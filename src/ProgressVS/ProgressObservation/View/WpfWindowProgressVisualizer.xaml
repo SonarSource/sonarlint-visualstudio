@@ -1,0 +1,37 @@
+﻿<ui:DialogWindow 
+            x:Class="SonarLint.VisualStudio.Progress.Observation.View.WpfWindowProgressVisualizer"
+            x:Name="this"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+            xmlns:core="clr-namespace:SonarLint.VisualStudio.Progress.Observation.View;assembly=SonarLint.VisualStudio.Progress"
+            ResizeMode="NoResize"
+            ShowInTaskbar="False"
+            SizeToContent="Height"
+            Width="450"
+            WindowStartupLocation="CenterScreen"
+            HasDialogFrame="False"
+            WindowStyle="None">
+    <ui:DialogWindow.Resources>
+        <ResourceDictionary>
+            <!-- Get VS styles -->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ui:DialogWindow.Resources>
+    
+    <core:ProgressVisualizerControl 
+        ViewModel="{Binding ElementName=this, Path=ViewModel}"
+        HeaderStyle="{StaticResource ControlHeaderStyle}"
+        BorderStyle="{StaticResource ControlBorderStyle}">
+        <core:ProgressVisualizerControl.Resources>
+            <ResourceDictionary>
+                <!-- Override data templates -->
+                <ResourceDictionary.MergedDictionaries>
+                    <ResourceDictionary Source="DataTemplates.xaml" />
+                </ResourceDictionary.MergedDictionaries>
+            </ResourceDictionary>
+        </core:ProgressVisualizerControl.Resources>
+    </core:ProgressVisualizerControl>
+</ui:DialogWindow>

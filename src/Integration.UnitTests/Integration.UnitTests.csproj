@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{CB59EF29-8193-4F32-866E-64FBB6199283}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Integration.UnitTests</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
+    <IsCodedUITest>False</IsCodedUITest>
+    <TestProjectType>UnitTest</TestProjectType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Owin, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\Packages\Microsoft.Owin.3.0.1\lib\net45\Microsoft.Owin.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Diagnostics, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\Packages\Microsoft.Owin.Diagnostics.3.0.1\lib\net45\Microsoft.Owin.Diagnostics.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Hosting, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\Packages\Microsoft.Owin.Hosting.3.0.1\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Testing, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\Packages\Microsoft.Owin.Testing.3.0.1\lib\net45\Microsoft.Owin.Testing.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\Packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NuGet.Core, Version=2.10.1.766, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\Packages\NuGet.Core.2.10.1\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NuGet.Versioning, Version=3.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\Packages\NuGet.Versioning.3.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NuGet.VisualStudio, Version=3.3.0.167, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\Packages\NuGet.VisualStudio.3.3.0\lib\net45\NuGet.VisualStudio.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
+      <HintPath>..\..\Packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup Label="GAC">
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  </ItemGroup>
+  <ItemGroup Label="NonGac">
+    <Reference Include="Microsoft.TeamFoundation.Client">
+      <HintPath>$(VS140COMNTOOLS)\..\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Controls">
+      <HintPath>$(VS140COMNTOOLS)\..\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <HintPath>$(VS140COMNTOOLS)\..\IDE\PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Common">
+      <HintPath>$(VS140COMNTOOLS)\..\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.CodeAnalysis, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>$(VS140COMNTOOLS)\..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Binding\BindCommandTests.cs" />
+    <Compile Include="Binding\BindingWorkflowTests.cs" />
+    <Compile Include="Binding\NuGetHelperTests.cs" />
+    <Compile Include="Binding\RuleSetInjectorTests.cs" />
+    <Compile Include="Binding\ProjectRuleSetHandlerTests.cs" />
+    <Compile Include="Binding\SolutionRuleSetWriterTests.cs" />
+    <Compile Include="Binding\SolutionRuleSetHandlerTests.cs" />
+    <Compile Include="Connection\BasicCredentialsValidatorTests.cs" />
+    <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
+    <Compile Include="Framework\ConfigurableCredentialStore.cs" />
+    <Compile Include="IServiceProviderExtensionsTests.cs" />
+    <Compile Include="PathHelperTests.cs" />
+    <Compile Include="Persistence\BoundSonarQubeProjectTests.cs" />
+    <Compile Include="Persistence\SolutionBindingTests.cs" />
+    <Compile Include="Progress\ProgressNotificationListenerTests.cs" />
+    <Compile Include="Progress\ProgressStepRunnerTests.cs" />
+    <Compile Include="SanityTests.cs" />
+    <Compile Include="Connection\ConnectionWorkflowTests.cs" />
+    <Compile Include="Connection\ConnectCommandTests.cs" />
+    <Compile Include="Service\AuthenticationHeaderProviderTests.cs" />
+    <Compile Include="Service\ConnectionInformationTests.cs" />
+    <Compile Include="Binding\ProjectRuleSetWriterTests.cs" />
+    <Compile Include="ActiveSolutionTrackerTests.cs" />
+    <Compile Include="Service\VersionHelperTests.cs" />
+    <Compile Include="TeamExplorer\ConnectSectionControllerTests.cs" />
+    <Compile Include="TeamExplorer\ConnectSectionTests.cs" />
+    <Compile Include="TeamExplorer\ConnectSectionViewModelTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\AssemblyInfo.Shared.cs" />
+    <Compile Include="Service\SonarQubeServiceWrapperTests.cs" />
+    <Compile Include="TeamExplorer\ProjectViewModelTests.cs" />
+    <Compile Include="TeamExplorer\ServerViewModelTests.cs" />
+    <Compile Include="ProjectSystemHelperTests.cs" />
+    <Compile Include="TeamExplorer\SonarQubeNavigationItemTests.cs" />
+    <Compile Include="TeamExplorer\SonarQubePageTests.cs" />
+    <Compile Include="TeamExplorer\TeamExplorerControllerTests.cs" />
+    <Compile Include="TeamExplorer\TestableConnectSectionController.cs" />
+    <Compile Include="TeamExplorer\TestableConnectSectionView.cs" />
+    <Compile Include="TelemetryLoggerAccessorTests.cs" />
+    <Compile Include="VsShellUtilsTests.cs" />
+    <Compile Include="WPF\BoolToVisibilityConverterTests.cs" />
+    <Compile Include="Connection\UriValidatorTests.cs" />
+    <Compile Include="Connection\ConnectDialogViewModelTests.cs" />
+    <Compile Include="WPF\ContextualCommandsCollectionTests.cs" />
+    <Compile Include="WPF\ContextualCommandViewModelTests.cs" />
+    <Compile Include="WPF\RelayCommandTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Progress\Progress.csproj">
+      <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
+      <Name>Progress</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProgressVS\ProgressVS.csproj">
+      <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
+      <Name>ProgressVS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Integration\Integration.csproj">
+      <Project>{03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f}</Project>
+      <Name>Integration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj">
+      <Project>{fbd8024a-9795-4e5b-938e-afe44fca240c}</Project>
+      <Name>TestInfrastructure</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Helpers\" />
+  </ItemGroup>
+  <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

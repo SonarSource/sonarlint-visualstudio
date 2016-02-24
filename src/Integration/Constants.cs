@@ -1,0 +1,28 @@
+//-----------------------------------------------------------------------
+// <copyright file="Constants.cs" company="SonarSource SA and Microsoft Corporation">
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
+// </copyright>
+//-----------------------------------------------------------------------
+
+namespace SonarLint.VisualStudio.Integration
+{
+    public static class Constants
+    {
+        /// <summary>
+        /// The property key which corresponds to the code analysis rule set
+        /// </summary>
+        public const string CodeAnalysisRuleSetPropertyKey = "CodeAnalysisRuleSet";
+
+        /// <summary>
+        /// The directory name of the SonarQube specific files that are being created
+        /// </summary>
+        public const string SonarQubeManagedFolderName = "SonarQube";
+
+        /// <summary>
+        /// The generated rule set name
+        /// </summary>
+        public const string RuleSetName = "SonarQube";
+
+    }
+}

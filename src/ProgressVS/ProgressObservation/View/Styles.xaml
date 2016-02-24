@@ -1,0 +1,45 @@
+﻿<ResourceDictionary
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             >
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Microsoft.Alm.Shared;component/ProgressObservation/View/Styles.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <Style TargetType="TextBlock">
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="Foreground" Value="{DynamicResource VsBrush.SideBarText}" />
+        <Setter Property="FontFamily" Value="{DynamicResource VsFont.EnvironmentFontFamily}" />
+    </Style>
+
+    <Style TargetType="Button">
+        <Setter Property="MinWidth" Value="86" />
+        <Setter Property="MinHeight" Value="24" />
+        <Setter Property="FontFamily" Value="{DynamicResource VsFont.EnvironmentFontFamily}" />
+    </Style>
+
+    <SolidColorBrush x:Key="AttractingColor" Color="CornflowerBlue" />
+
+    <Style x:Key="ControlHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource ResourceKey=DefaultProgressHeaderStyle}">
+        <Setter Property="Foreground" Value="{StaticResource AttractingColor}" />
+    </Style>
+
+    <Style x:Key="ControlBorderStyle" TargetType="Border" BasedOn="{StaticResource ResourceKey=DefaultProgressBorderStyle}">
+        <Setter Property="BorderBrush" Value="{StaticResource AttractingColor}" />
+        <Setter Property="Background" Value="{DynamicResource VsBrush.SideBarBackground}" />
+    </Style>
+
+    <Style TargetType="{x:Type ui:SmoothProgressBar}">
+        <Setter Property="Minimum" Value="0.0" />
+        <Setter Property="Maximum" Value="1.0" />
+        <Setter Property="MinHeight" Value="2" />
+        <Setter Property="MinWidth" Value="2" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Foreground" Value="{StaticResource AttractingColor}" />
+    </Style>
+
+</ResourceDictionary>

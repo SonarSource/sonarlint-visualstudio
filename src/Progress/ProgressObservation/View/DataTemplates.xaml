@@ -1,0 +1,25 @@
+﻿<ResourceDictionary
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:SonarLint.VisualStudio.Progress.Observation.ViewModels"
+             >
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Styles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <DataTemplate DataType="{x:Type vm:ProgressViewModel}">
+        <ProgressBar IsIndeterminate="{Binding Path=IsIndeterminate}">
+            <ProgressBar.Style>
+                <Style TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}" >
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=IsIndeterminate}" Value="False">
+                            <Setter Property="Value" Value="{Binding Path=Value}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ProgressBar.Style>
+        </ProgressBar>
+    </DataTemplate>
+</ResourceDictionary>

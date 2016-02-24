@@ -1,0 +1,408 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ConnectingToSever" xml:space="preserve">
+    <value>Connecting to {0}</value>
+    <comment>Progress message when connecting to server. {0} is the server uri.</comment>
+  </data>
+  <data name="ConnectLinkText" xml:space="preserve">
+    <value>Connect...</value>
+    <comment>Link text for 'connect' command to initiate a connection with a SonarQube server</comment>
+  </data>
+  <data name="ConnectSectionTitle" xml:space="preserve">
+    <value>Connections</value>
+    <comment>Title for the SonarQube connection section of the TE SonarQube page</comment>
+  </data>
+  <data name="CancelButtonText" xml:space="preserve">
+    <value>Ca_ncel</value>
+    <comment>Button text (with access key) for cancelling an action – access key 'n'</comment>
+  </data>
+  <data name="ConnectButtonText" xml:space="preserve">
+    <value>_Connect</value>
+    <comment>Button text for 'Connect' in SonarQube connect dialog</comment>
+  </data>
+  <data name="ConnectDialogTitle" xml:space="preserve">
+    <value>Connect to a SonarQube Server</value>
+    <comment>Connect dialog title</comment>
+  </data>
+  <data name="InsecureProtocolWarning" xml:space="preserve">
+    <value>The URL you entered is not secure. Use HTTPS connections to protect sensitive information.</value>
+    <comment>Message warning of consequences of connecting over an insecure channel</comment>
+  </data>
+  <data name="NotEmptyValidatorRequiredField" xml:space="preserve">
+    <value>Field can not be empty</value>
+    <comment>Not empty validator validation failed message - required field</comment>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>Password:</value>
+    <comment>Input label for password when connecting to a SonarQube server</comment>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>If a username is specified, a password must also be specified.</value>
+    <comment>Error message indicating that the password field is required if the username field is not empty</comment>
+  </data>
+  <data name="InvalidServerUriFormat" xml:space="preserve">
+    <value>"{0}" is not a valid URL</value>
+    <comment>Server URI validator error message, formatted. {0} - invalid input string</comment>
+  </data>
+  <data name="SonarQubeServerLabel" xml:space="preserve">
+    <value>SonarQube server:</value>
+    <comment>Input label for SonarQube server URL</comment>
+  </data>
+  <data name="UsernameLabel" xml:space="preserve">
+    <value>Username:</value>
+    <comment>Input label for username when connecting to a SonarQube server</comment>
+  </data>
+  <data name="ExceptionInsecureSchemesIsNotSubset" xml:space="preserve">
+    <value>Insecure schemes must be a subset of supported schemes</value>
+    <comment>Exception message stating that the specified set of insecure schemes was not a subset of all supported schemes</comment>
+  </data>
+  <data name="ConnectionFailed" xml:space="preserve">
+    <value>Cannot connect to the SonarQube server. Make sure you provided the correct connection information, including your sign-in credentials, and [try again](). 
+See more information in the output window.</value>
+    <comment>The error message the user sees when the connection has failed. The message will appear in team explorer.
+Localization note: '[try again]()' is a special markup used to translate the text 'try again' into a hyperlink. Make sure to keep it localized content in with that format to avoid reducing functionality in the localized version of the product</comment>
+  </data>
+  <data name="SonarQubeRequestFailed" xml:space="preserve">
+    <value>SonarQube request failed: {0} {1}</value>
+    <comment>Information message when the request failed.
+ {0} exception message
+ {1} inner exception message (if applicable)</comment>
+  </data>
+  <data name="SonarQubeRequestTimeoutOrCancelled" xml:space="preserve">
+    <value>SonarQube request timed out or was cancelled</value>
+    <comment>Information message when the request timed out or cancelled.</comment>
+  </data>
+  <data name="BindButtonText" xml:space="preserve">
+    <value>Bind</value>
+    <comment>Button text for binding a SonarQube project to a VS solution</comment>
+  </data>
+  <data name="CancelLinkText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Link text for canceling an action</comment>
+  </data>
+  <data name="UsernameRequired" xml:space="preserve">
+    <value>If a password is specified, a username must also be specified.</value>
+    <comment>Error message indicating that the username field is required if the password field is not empty</comment>
+  </data>
+  <data name="InvalidCharacterColon" xml:space="preserve">
+    <value>Colon (":") is not a permitted character.</value>
+    <comment>Error message indicating that the string must not contain an a colon (":") as is it an invalid character</comment>
+  </data>
+  <data name="SelectSonarQubeProjectInstruction" xml:space="preserve">
+    <value>Select a SonarQube project and bind it to the current solution.</value>
+    <comment>Message instructing the user to select from the presented list of SonarQube projects with which to bind the current solution to.</comment>
+  </data>
+  <data name="ProjectToolTipProjectNameFormat" xml:space="preserve">
+    <value>{0} (Bound)</value>
+    <comment>SonarQube project tooltip for project name (with 'bound' marker indicating the project is bound to the current solution). {0} - project name</comment>
+  </data>
+  <data name="ProjectToolTipKeyFormat" xml:space="preserve">
+    <value>Key: {0}</value>
+    <comment>SonarQube project tooltip for project key. {0} - project key</comment>
+  </data>
+  <data name="BindingProjectsDisplayMessage" xml:space="preserve">
+    <value>Binding projects</value>
+    <comment>Display message</comment>
+  </data>
+  <data name="RuleSetDownloadFailedMessage" xml:space="preserve">
+    <value>SonarQube rule set: Failed to download rule set</value>
+    <comment>Output window message indicating the rule set file failed to download</comment>
+  </data>
+  <data name="RuleSetDownloadedSuccessfulMessage" xml:space="preserve">
+    <value>SonarQube rule set was downloaded successfully</value>
+    <comment>Output window message indicating the rule set file was successfully downloaded</comment>
+  </data>
+  <data name="RuleSetDescription" xml:space="preserve">
+    <value>Rule set generated from SonarQube</value>
+    <comment>Generated rule set description.</comment>
+  </data>
+  <data name="FailedToSetCodeAnalysisRuleSetMessage" xml:space="preserve">
+    <value>Failed to set the code analysis ruleset for project: {0}.</value>
+    <comment>Output window error message. {0} - project unique name</comment>
+  </data>
+  <data name="PathHelperAbsolutePathExpected" xml:space="preserve">
+    <value>An absolute file path was expected.</value>
+    <comment>Exception message indicating the provided path should be an absolute path.</comment>
+  </data>
+  <data name="UnexpectedWorkflowError" xml:space="preserve">
+    <value>Unexpected error during workflow execution: {0}.</value>
+    <comment>Error message in case of an unexpected expection during workflow execution. {0} exception message.</comment>
+  </data>
+  <data name="RefreshCommandDisplayText" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Refresh command display text</comment>
+  </data>
+  <data name="RefreshCommandTooltip" xml:space="preserve">
+    <value>Will refetch the SonarQube projects from the server using the existing credentials</value>
+    <comment>Refresh command tooltip</comment>
+  </data>
+  <data name="DisconnectCommandDisplayText" xml:space="preserve">
+    <value>Disconnect</value>
+    <comment>Context menu command display text</comment>
+  </data>
+  <data name="DisconnectCommandTooltip" xml:space="preserve">
+    <value>Disconnect from SonarQube project</value>
+    <comment>Context menu command tooltip </comment>
+  </data>
+  <data name="ServerNoProjectsInlineText" xml:space="preserve">
+    <value>(no projects)</value>
+    <comment>Text to be displayed inline next to the connected SonarQube server in the Team Explorer tree view when there are no SonarQube Projects available under the given server</comment>
+  </data>
+  <data name="ServerNoProjectsToolTipText" xml:space="preserve">
+    <value>This server has no available projects with which to bind to. Please create at least one project and then refresh this connection.</value>
+    <comment>Tool tip text to be displayed for the connected SonarQube server in the Team Explorer tree view when there are no SonarQube Projects available under the given server</comment>
+  </data>
+  <data name="RuleSetGenerationProgressMessage" xml:space="preserve">
+    <value>Generating rule sets</value>
+    <comment>A progress notification message</comment>
+  </data>
+  <data name="EnsuringNugetPackagesProgressMessage" xml:space="preserve">
+    <value>Installing NuGet package {0} for project: {1}</value>
+    <comment>A progress notification message. {0} nuget package id, {1} project name</comment>
+  </data>
+  <data name="FailedDuringNuGetPackageInstall" xml:space="preserve">
+    <value>Failed to install NuGet package '{0}' for project '{1}'. Exception:\n{2}</value>
+    <comment>Output window message in case of failure - {0} nuget package id, {1} project name, {2} exception text</comment>
+  </data>
+  <data name="FailedToToBindSolution" xml:space="preserve">
+    <value>Failed to bind the solution to SonarQube project, [try again](). 
+See more information in the output window.</value>
+    <comment>Team explorer notification in case of a failure to bind a solution to SonarQube project
+ocalization note: '[try again]()' is a special markup used to translate the text 'try again' into a hyperlink. Make sure to keep it localized content in with that format to avoid reducing functionality in the localized version of the product</comment>
+  </data>
+  <data name="BindingSolutionPrefixMessageFormat" xml:space="preserve">
+    <value>Binding solution to SonarQube project: {0}</value>
+    <comment>Output window message prefix that will be common to all the steps (more than one) in the binding workflow. {0} the step specific message in that workflow.</comment>
+  </data>
+  <data name="FinishedSolutionBindingWorkflow" xml:space="preserve">
+    <value>Completed successfully</value>
+    <comment>A progress notification message</comment>
+  </data>
+  <data name="StartedSolutionBindingWorkflow" xml:space="preserve">
+    <value>Started</value>
+    <comment>A progress notification message</comment>
+  </data>
+  <data name="SyncButtonText" xml:space="preserve">
+    <value>Sync</value>
+    <comment>Button text for syncing an already bound SonarQube project to a VS solution</comment>
+  </data>
+  <data name="ShowAllProjectsCommandText" xml:space="preserve">
+    <value>Show all projects</value>
+    <comment>Server context menu command display text to show all projects (inc. unbound projects)</comment>
+  </data>
+  <data name="ToggleShowAllProjectsCommandTooltip" xml:space="preserve">
+    <value>Toggle visibility of unbound projects for this server.</value>
+    <comment>Server context menu command tool tip text to show all projects</comment>
+  </data>
+  <data name="IgnoredSonarQubeRuleDueToMissingInternalKey" xml:space="preserve">
+    <value>Sonar Qube rule set import: Sonar Qube rule with key '{0}' was ignored since it's missing an internal key. Contact your Sonar Qube administrator.</value>
+    <comment>Output window message. {0} - rule key (string)</comment>
+  </data>
+  <data name="FailedToDeserializeSQCOnfiguration" xml:space="preserve">
+    <value>Failed loading file: '{0}'. Please rebind solution to create a new configuration file.</value>
+    <comment>Output window message in case of deserialization error. {0} file path.</comment>
+  </data>
+  <data name="ExpectedAbsoluteUris" xml:space="preserve">
+    <value>The target URI must be an absolute URI</value>
+    <comment>Exception message</comment>
+  </data>
+  <data name="FailedToDeleteCredentials" xml:space="preserve">
+    <value>Failed to delete credentials for {0}.</value>
+    <comment>Exception message. {0} - the name of the thing we failed to delete.</comment>
+  </data>
+  <data name="UnexpectedTokenType" xml:space="preserve">
+    <value>Unexpected token type encountered</value>
+    <comment>Exception message</comment>
+  </data>
+  <data name="BoundProjectNotFound" xml:space="preserve">
+    <value>Bound project with key '{0}' was not found on the connected server. Select a new SonarQube project and bind to it.</value>
+    <comment>Team explorer error message when a persisted bound project is not found. {0} - SonarQube project key.</comment>
+  </data>
+  <data name="ConnectingToSonarQubePrefixMessageFormat" xml:space="preserve">
+    <value>Connecting to SonarQube server: {0}</value>
+    <comment>Output window message format. {0} the messages associated with the connection will all have this prefix and {0} will be the actual message.</comment>
+  </data>
+  <data name="ConnectionResultCancellation" xml:space="preserve">
+    <value>Canceled</value>
+    <comment>The place holder value in ConnectingToSonarQubePrefixMessageFormat</comment>
+  </data>
+  <data name="ConnectionResultFailure" xml:space="preserve">
+    <value>Failed</value>
+    <comment>The place holder value in ConnectingToSonarQubePrefixMessageFormat</comment>
+  </data>
+  <data name="ConnectionResultSuccess" xml:space="preserve">
+    <value>Succeeded</value>
+    <comment>The place holder value in ConnectingToSonarQubePrefixMessageFormat</comment>
+  </data>
+  <data name="HideUnboundProjectsCommandText" xml:space="preserve">
+    <value>Hide unbound projects</value>
+    <comment>Server context menu command display text to show all projects (inc. unbound projects)</comment>
+  </data>
+  <data name="DownloadingRulesProgressMessage" xml:space="preserve">
+    <value>Download rules for language '{0}'</value>
+    <comment>A progress notification message. {0} language name.</comment>
+  </data>
+  <data name="AutomationServerDescription" xml:space="preserve">
+    <value>SonarQube server: {0}</value>
+    <comment>Narrator description of a SonarQube server node in the Team Explorer. {0} server URL</comment>
+  </data>
+  <data name="AutomationProjectBoundDescription" xml:space="preserve">
+    <value>Bound project: {0}</value>
+    <comment>Narrator description of a bound SonarQube project node in the Team Explorer. {0} project name</comment>
+  </data>
+  <data name="AutomationServerNoProjectsDescription" xml:space="preserve">
+    <value>SonarQube server: {0}. This server has no projects.</value>
+    <comment>Narrator description of an empty SonarQube server node in the Team Explorer. {0} server URL</comment>
+  </data>
+  <data name="TeamExplorerPageTitle" xml:space="preserve">
+    <value>SonarQube</value>
+    <comment>Title for the SonarQube Team Explorer page</comment>
+  </data>
+  <data name="MissingService" xml:space="preserve">
+    <value>Could not acquire service: {0}</value>
+    <comment>Exception message indicating the package could not acquire the given service. {0} service name</comment>
+  </data>
+  <data name="ServerNuGetTrustWarningMessage" xml:space="preserve">
+    <value>NuGet analyzer packages may be downloaded and installed automatically when you bind to a SonarQube project.
+[Don't warn me again]()</value>
+    <comment>Team explorer warning notification about connecting to a server which will cause NuGet packages to be downloaded.
+Localization note: '[Don't warn me again]()' is a special markup used to translate the text 'try again' into a hyperlink. Make sure to keep it localized content in with that format to avoid reducing functionality in the localized version of the product</comment>
+  </data>
+  <data name="WarningsSettingsCategory" xml:space="preserve">
+    <value>Warnings</value>
+    <comment>Warnings settings category for Security options page</comment>
+  </data>
+  <data name="ShowServerNuGetTrustWarningSettingDescription" xml:space="preserve">
+    <value>Show a warning about automatically downloading NuGet packages when establishing a SonarQube server connection.</value>
+    <comment>Description for the ShowServerNuGetTrustWarning setting</comment>
+  </data>
+  <data name="ShowServerNuGetTrustWarningSettingName" xml:space="preserve">
+    <value>Show NuGet package warnings</value>
+    <comment>Name of the ShowServerNuGetTrustWarning setting</comment>
+  </data>
+  <data name="CannotCompareVersionStrings" xml:space="preserve">
+    <value>A SonarQube server plugin has a malformed version and cannot be compared. Version was "{0}".</value>
+    <comment>Exception message indicating that the provided version string is malformed and cannot be compared. {0} version string</comment>
+  </data>
+  <data name="ServerDoesNotHaveCorrectVersionOfCSharpPlugin" xml:space="preserve">
+    <value>SonarQube project binding failed: The server does not have the minimum required version ({0}) of the C# plugin installed.</value>
+    <comment>Error message indicating that the server does not have the required version of the C# plugin installed. {0} minimum required version</comment>
+  </data>
+</root>

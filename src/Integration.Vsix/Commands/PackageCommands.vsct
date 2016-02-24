@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable"
+              xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Commands package="guidVsPackagePkgString">
+    <Buttons>
+      <Button guid="guidCmdSet" id="cmdidManageConnections" type="Button">
+        <Icon guid="guidIcons" id="bmpSonarQube"/>
+        <Strings>
+          <ButtonText>Manage SonarQube Connections...</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+
+    <Bitmaps>
+      <Bitmap guid="guidIcons" href="..\Resources\CommandIcons.png" usedList="bmpSonarQube"/>
+    </Bitmaps>
+  </Commands>
+
+  <CommandPlacements>
+    <!-- cmdidManageConnections -->
+    <CommandPlacement guid="guidCmdSet" id="cmdidManageConnections" priority="0x900">
+      <Parent guid="guidCodeAnalysisMenuGroup" id="IDG_CODEANALYSIS_TOPLEVEL"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidCmdSet" id="cmdidManageConnections" priority="0x900">
+      <Parent guid="guidCodeAnalysisMenuGroup" id="IDG_SOLUTION_ANALYZE"/>
+    </CommandPlacement>
+  </CommandPlacements>
+  
+  <Symbols>
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="guidCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+      <IDSymbol name="cmdidManageConnections" value="0x100"/>
+    </GuidSymbol>
+
+    <!-- Menu command icons -->
+    <GuidSymbol name="guidIcons" value="{216049B9-855E-4091-8781-186C91F0743F}">
+      <IDSymbol name="bmpSonarQube" value="1"/>
+    </GuidSymbol>
+
+    <!-- VS Code Analysis menu/group Guid:IDs -->
+    <GuidSymbol name="guidCodeAnalysisMenuGroup" value="{FBC1A65B-A334-4EC8-8FBE-DB1C56335FB6}">
+      <IDSymbol name="IDG_CODEANALYSIS_TOPLEVEL" value="0x208"/>
+      <IDSymbol name="IDG_SOLUTION_ANALYZE" value="0x217"/>
+    </GuidSymbol>
+  </Symbols>
+  
+</CommandTable>

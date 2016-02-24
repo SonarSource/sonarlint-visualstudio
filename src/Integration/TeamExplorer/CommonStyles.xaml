@@ -1,0 +1,214 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+        xmlns:componentmodel="clr-namespace:System.ComponentModel;assembly=PresentationFramework"
+        xmlns:localWpf="clr-namespace:SonarLint.VisualStudio.Integration.WPF"
+        xmlns:tecontrols="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;assembly=Microsoft.TeamFoundation.Controls"
+        xmlns:tfcontrols="clr-namespace:Microsoft.TeamFoundation.Controls.WPF;assembly=Microsoft.TeamFoundation.Controls"
+        xmlns:tfconverters="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.Converters;assembly=Microsoft.TeamFoundation.Controls"
+        xmlns:vstheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+        xmlns:vsutilities="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
+        xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Microsoft.TeamFoundation.Controls;component/WPF/SharedResources.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- Converters -->
+    <tfconverters:AnyTrueToVisibleConverter x:Key="AnyTrueToVisibleConverter"/>
+    <tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter"/>
+    <tfconverters:IntToBoolConverter x:Key="IntToBoolConverter"/>
+    <tfconverters:IsNullConverter x:Key="IsNullConverter"/>
+    <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter"/>
+
+    <!-- Special style for contextual commands menu-->
+    <Style x:Key="SQContextMenuStyle" TargetType="ContextMenu" >
+        <Style.Triggers>
+            <!-- Force context menu bindings to be re-evaluated every time.
+                 WPF caches the context menu but the ContextMenuViewModels' fixed contexts can have their properties changed.
+                 The DataContext for the context menu is set to null (via trigger) when it is no longer visible, at which point
+                 the original DataContext (from ItemSource binding) will be set, trigging a data context change => redraw. -->
+            <Trigger Property="IsVisible" Value="False">
+                <Setter Property="DataContext" Value="{x:Null}"/>
+            </Trigger>
+        </Style.Triggers>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <!-- Use a data template rather than set the Header in item container style
+                     to get the right width, otherwise the menu item could be clipped -->
+                <DataTemplate DataType="{x:Type localWpf:ContextualCommandViewModel}">
+                    <TextBlock Text="{Binding DisplayText}" />
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <!-- The data context is ContextualCommandViewModel -->
+                <Style TargetType="{x:Type MenuItem}">
+                    <Setter Property="ToolTip" Value="{Binding Tooltip}"/>
+                    <Setter Property="Command" Value="{Binding Command}"/>
+                    <Setter Property="AutomationProperties.Name" Value="{Binding DisplayText}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Icon, Converter={StaticResource IsNullConverter}}" Value="False">
+                            <Setter Property="Icon" Value="{Binding Icon.Image}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="vstheming:ImageThemingUtilities.ImageBackgroundColor" Value="{Binding Path=Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}"/>
+    </Style>
+
+    <!-- Team Explorer Controls -->
+    <Style x:Key="SQTESectionStyle" TargetType="FrameworkElement">
+        <Setter Property="Margin" Value="6,0"/>
+    </Style>
+
+    <Style x:Key="SQActionListStyle" TargetType="WrapPanel">
+        <Setter Property="Orientation" Value="Horizontal"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Style.Resources>
+            <Style TargetType="Separator" BasedOn="{StaticResource VerticalSeparator}"/>
+        </Style.Resources>
+    </Style>
+
+    <Style x:Key="SQStaticTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource SubduedTextBrushKey}"/>
+        <Setter Property="Focusable" Value="True"/>
+    </Style>
+
+    <Style x:Key="SQTreeViewStyle" TargetType="TreeView">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+    </Style>
+
+    <Style x:Key="SQTreeViewItemStyleBase" BasedOn="{StaticResource TreeViewItemStyle}" TargetType="TreeViewItem">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="ToolTipService.InitialShowDelay" Value="1000"/>
+        <Setter Property="ToolTipService.ShowDuration" Value="20000"/>
+    </Style>
+
+    <Style x:Key="SQProjectTreeViewItemStyle" BasedOn="{StaticResource SQTreeViewItemStyleBase}" TargetType="TreeViewItem">
+        <!-- DataContext is ProjectViewModel -->
+        <Setter Property="Visibility">
+            <Setter.Value>
+                <MultiBinding Converter="{StaticResource AnyTrueToVisibleConverter}">
+                    <Binding Path="Owner.ShowAllProjects"/>
+                    <Binding Path="IsBound"/>
+                </MultiBinding>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
+        <!-- ContextMenu must be defined via a style in order to attach it to the implicitly created TreeViewItem (created by the TreeView DataTemplate) -->
+        <Setter Property="ContextMenu">
+            <Setter.Value>
+                <ContextMenu Style="{StaticResource SQContextMenuStyle}" 
+                             ItemsSource="{Binding Commands}"
+                             Visibility="{Binding Commands.HasCommands, Converter={StaticResource TrueToVisibleConverter}}"/>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ToolTip">
+            <Setter.Value>
+                <ToolTip>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding ToolTipProjectName}"/>
+                        <TextBlock Text="{Binding ToolTipKey}"/>
+                    </StackPanel>
+                </ToolTip>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SQServerTreeViewItemStyle" BasedOn="{StaticResource SQTreeViewItemStyleBase}" TargetType="TreeViewItem">
+        <!-- DataContext is ServerViewModel -->
+        <Setter Property="IsExpanded" Value="{Binding IsExpanded}"/>
+        <Setter Property="IsEnabled" Value="{Binding Projects.Count, Converter={StaticResource IntToBoolConverter}}"/>
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
+        <Setter Property="ContextMenuService.ShowOnDisabled" Value="True"/>
+        <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
+        <!-- ContextMenu must be defined via a style in order to attach it to the implicitly created TreeViewItem (created by the TreeView HierarchicalDataTemplate) -->
+        <Setter Property="ContextMenu">
+            <Setter.Value>
+                <ContextMenu Style="{StaticResource SQContextMenuStyle}" 
+                             ItemsSource="{Binding Commands}" 
+                             Visibility="{Binding Commands.HasCommands, Converter={StaticResource TrueToVisibleConverter}}"/>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Projects.Count}" Value="0">
+                <Setter Property="ToolTip">
+                    <Setter.Value>
+                        <ToolTip>
+                            <TextBlock Text="{x:Static resx:Strings.ServerNoProjectsToolTipText}"/>
+                        </ToolTip>
+                    </Setter.Value>
+                </Setter>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="SQTreeViewIconStyle" TargetType="Image">
+        <Setter Property="Height" Value="16"/>
+        <Setter Property="Width" Value="16"/>
+        <Setter Property="Margin" Value="0,1,6,1"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <!-- Icon brushes -->
+    <SolidColorBrush x:Key="SQForegroundBrush" Color="#ff579dd4" po:Freeze="True"/>
+    <SolidColorBrush x:Key="SQBackgroundBrush" Color="White" po:Freeze="True"/>
+
+    <!-- Icon geometry -->
+    <Geometry x:Key="SQProjectIconGeometry" po:Freeze="True">
+        F1
+        M 1,6 L 1,15 15,15 15,6 z
+        M 2,6 L 2,4 14,4 14,6
+        M 3,4 L 3,2 13,2 13,4
+    </Geometry>
+    <Geometry x:Key="SQServerIconGeometry" po:Freeze="True">
+        F1
+        M 12.34,12.68 C 12.34,7.07 7.71,2.5 2,2.5
+        M 13.42,9 C 12.59,5.49 9.75,2.56 6.18,1.55
+        M 14.11,5.77 C 13.26,3.91 11.8,2.29 10.02,1.2
+    </Geometry>
+    
+    <!-- Icon pens -->
+    <Pen x:Key="SQIconGeomPen"
+         Brush="{StaticResource SQForegroundBrush}"
+         Thickness="1"/>
+    <Pen x:Key="SQIconGeomOutlinePen"
+         Brush="{StaticResource SQBackgroundBrush}"
+         Thickness="3"/>
+    <Pen x:Key="SQIconGeomOutlineRoundedPen"
+         Brush="{StaticResource SQBackgroundBrush}"
+         Thickness="3"
+         StartLineCap="Round"
+         EndLineCap="Round"/>
+
+    <!-- Icon drawing images -->
+    <DrawingImage x:Key="SonarQubeProjectIcon" po:Freeze="True">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource SQProjectIconGeometry}"
+                                 Pen="{StaticResource SQIconGeomOutlinePen}"
+                                 Brush="{StaticResource SQBackgroundBrush}"/>
+                <GeometryDrawing Geometry="{StaticResource SQProjectIconGeometry}"
+                                 Pen="{StaticResource SQIconGeomPen}"/>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+    <DrawingImage x:Key="SonarQubeServerIcon" po:Freeze="True">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource SQServerIconGeometry}"
+                                 Pen="{StaticResource SQIconGeomOutlineRoundedPen}"/>
+                <GeometryDrawing Geometry="{StaticResource SQServerIconGeometry}"
+                                 Pen="{StaticResource SQIconGeomPen}"/>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+</ResourceDictionary>

@@ -1,0 +1,76 @@
+﻿<UserControl x:Class="SonarLint.VisualStudio.Progress.Observation.View.ProgressVisualizerControl"
+             x:Name="this"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:observation="clr-namespace:SonarLint.VisualStudio.Progress.Observation"
+             xmlns:vm="clr-namespace:SonarLint.VisualStudio.Progress.Observation.ViewModels"
+             xmlns:rootNs="clr-namespace:SonarLint.VisualStudio.Progress"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="500">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles.xaml" />
+                <ResourceDictionary Source="DataTemplates.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border Name="border" Padding="24" MinWidth="400" MinHeight="150"
+             Style="{Binding ElementName=this, Path=BorderStyle}"
+             DataContext="{Binding ElementName=this, Path=ViewModel}">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition MinHeight="10" Height="Auto"/>
+                <RowDefinition MinHeight="10" Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <TextBlock Grid.Row="0" Margin="0,0,0,22" Style="{Binding ElementName=this, Path=HeaderStyle}"
+                       Text="{Binding Title}" />
+
+            <!-- Steps-->
+            <!-- The margin Left set based on the step image width -->
+            <ItemsControl Grid.Row="1"
+                    ItemsSource="{Binding Steps}" />
+
+            <!-- Sub progress -->
+            <ContentPresenter Grid.Row="2" Margin="0,22,0,0" Height="3" 
+                              Content="{Binding Path=Current.Progress}" />
+
+            <!-- Main progress-->
+            <ContentPresenter Grid.Row="3" Margin="0,2,0,0" Height="5" 
+                              Content="{Binding Path=MainProgress}" />
+
+            <!-- Progress details-->
+            <TextBlock Grid.Row="4" Margin="0,2,0,0"
+                 Padding="0" ClipToBounds="true" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                 Text="{Binding Path=Current.ProgressDetailText}" />
+
+            <!-- Cancel button -->
+            <Button Grid.Row="5" Margin="0,22,0,0"
+              HorizontalAlignment="Right"
+              IsCancel="True" Content="{x:Static rootNs:CommonResources.CancelText}"
+              IsEnabled="{Binding Cancellable}"
+              Command="{Binding CancelCommand}">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CancelCommand}" Value="{x:Null}" >
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+    </Border>
+</UserControl>

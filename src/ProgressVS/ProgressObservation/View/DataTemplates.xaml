@@ -1,0 +1,65 @@
+﻿<ResourceDictionary
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:SonarLint.VisualStudio.Progress.Observation.ViewModels;assembly=SonarLint.VisualStudio.Progress"
+             xmlns:common="clr-namespace:SonarLint.VisualStudio.Progress.Controller;assembly=SonarLint.VisualStudio.Progress"
+             xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             >
+    <!-- Get VS styles -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Styles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <DataTemplate DataType="{x:Type vm:ProgressStepViewModel}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image Grid.Column="0"
+                       Width="16" Height="16" VerticalAlignment="Top">
+                <Image.Style>
+                    <Style TargetType="Image" >
+                        <Setter Property="Source" Value="{x:Null}" />
+                        <Setter Property="Visibility" Value="Hidden" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ExecutionState}" Value="{x:Static common:StepExecutionState.Succeeded}">
+                                <Setter Property="Source" Value="pack://application:,,,/Microsoft.VisualStudio.Alm.Shared;component/ProgressObservation/View/Images/CheckMark.png" />
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+            <TextBlock Grid.Column="1">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource ResourceKey={x:Type TextBlock}}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ExecutionState}" Value="{x:Static common:StepExecutionState.Executing}">
+                                <Setter Property="FontWeight" Value="Bold" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+                    <Run Text="{Binding DisplayText, Mode=OneWay}" />
+            </TextBlock>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:ProgressViewModel}">
+        <ui:SmoothProgressBar IsIndeterminate="{Binding Path=IsIndeterminate}">
+            <ui:SmoothProgressBar.Style>
+                <Style TargetType="ui:SmoothProgressBar" BasedOn="{StaticResource {x:Type ui:SmoothProgressBar}}" >
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=IsIndeterminate}" Value="False">
+                            <Setter Property="TargetValue" Value="{Binding Path=Value}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ui:SmoothProgressBar.Style>
+        </ui:SmoothProgressBar>
+    </DataTemplate>
+</ResourceDictionary>

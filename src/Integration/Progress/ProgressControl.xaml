@@ -1,0 +1,78 @@
+﻿<Grid x:Class="SonarLint.VisualStudio.Integration.Progress.ProgressControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:SonarLint.VisualStudio.Progress.Observation.ViewModels;assembly=SonarLint.VisualStudio.Progress"
+             xmlns:common="clr-namespace:SonarLint.VisualStudio.Progress.Controller;assembly=SonarLint.VisualStudio.Progress"
+             xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
+             mc:Ignorable="d" 
+             x:Name="this"
+             DataContext="{Binding ElementName=this, Path=ViewModel}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid.Resources>
+        <ResourceDictionary>
+            
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Microsoft.TeamFoundation.Controls;component/WPF/SharedResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style TargetType="ProgressBar" BasedOn="{StaticResource ProgressBarStyle}">
+                <Setter Property="Minimum" Value="0.0" />
+                <Setter Property="Maximum" Value="1.0" />
+                <Setter Property="MinHeight" Value="2" />
+                <Setter Property="MinWidth" Value="2" />
+                <Setter Property="UseLayoutRounding" Value="True" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+            </Style>
+                
+            <DataTemplate x:Key="ProgressDataTemplate" DataType="{x:Type vm:ProgressViewModel}">
+                <ProgressBar IsIndeterminate="{Binding Path=IsIndeterminate}" Value="{Binding Path=Value}" />
+            </DataTemplate>
+
+            <Style x:Key="ProgressTextStyle" BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="TextWrapping" Value="NoWrap" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            </Style>
+        </ResourceDictionary>
+    </Grid.Resources>
+
+    <Border Style="{DynamicResource EmbeddedDialog}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition x:Uid="topLabelRow" Height="Auto"/>
+                <RowDefinition x:Uid="progressBarRow" Height="Auto"/>
+                <RowDefinition x:Uid="bottomLabelRow" Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Uid="progressBarColumn" Width="*"/>
+                <ColumnDefinition x:Uid="cancelColumn" Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource ProgressTextStyle}"
+                        ToolTip="{Binding Current.DisplayText}"
+                        Text="{Binding Current.DisplayText}"
+                        />
+
+            <!-- Main progress-->
+            <ContentPresenter Grid.Row="1" Grid.Column="0" Margin="0,3,0,3" VerticalAlignment="Center" Height="2"
+                                Content="{Binding Path=Current.Progress}" ContentTemplate="{StaticResource ProgressDataTemplate}" />
+
+            <!-- Cancel button -->
+            <Button Grid.Row="1" Grid.Column="1" Margin="6,0,0,0"
+                        Command="{Binding CancelCommand}"
+                        IsEnabled="{Binding Cancellable}" 
+                        Content="{x:Static resx:Strings.CancelButtonText}"/>
+
+            <!-- Details text -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource ProgressTextStyle}"
+                        ToolTip="{Binding Current.ProgressDetailText}"
+                        Text="{Binding Current.ProgressDetailText}"
+                        Margin="0,0,0,6"/>
+
+        </Grid>
+    </Border>
+
+</Grid>
