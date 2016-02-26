@@ -125,7 +125,7 @@
     <Compile Include="Constants.cs" />
     <Compile Include="HostedCommandBase.cs" />
     <Compile Include="Binding\BindingWorkflow.cs" />
-    <Compile Include="Binding\IBindingWorkflow.cs" />
+    <Compile Include="Binding\IBindingWorkflowExecutor.cs" />
     <Compile Include="IProjectSystemHelper.cs" />
     <Compile Include="IActiveSolutionTracker.cs" />
     <Compile Include="IServiceProviderExtensions.cs" />

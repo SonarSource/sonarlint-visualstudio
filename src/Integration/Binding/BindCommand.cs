@@ -18,9 +18,9 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class BindCommand : HostedCommandBase, IBindingWorkflow
+    internal class BindCommand : HostedCommandBase, IBindingWorkflowExecutor
     {
-        private readonly IBindingWorkflow workflow;
+        private readonly IBindingWorkflowExecutor workflow;
         private readonly IProjectSystemHelper projectSystemHelper;
 
         public BindCommand(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService)
@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
         }
 
-        internal /*for testing purposes*/ BindCommand(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService, IBindingWorkflow workflow, IProjectSystemHelper projectSystemHelper)
+        internal /*for testing purposes*/ BindCommand(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService, IBindingWorkflowExecutor workflow, IProjectSystemHelper projectSystemHelper)
             : base(controller)
         {
             if (sonarQubeService == null)
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region IBindingWorkflow
 
-        void IBindingWorkflow.BindProject(ProjectViewModel projectVM)
+        void IBindingWorkflowExecutor.BindProject(ProjectViewModel projectVM)
         {
             BindingWorkflow workflowExecutor = new BindingWorkflow(this, projectVM.ProjectInformation);
             IProgressEvents progressEvents = workflowExecutor.Run();
