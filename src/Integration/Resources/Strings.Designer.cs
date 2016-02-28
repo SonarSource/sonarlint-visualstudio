@@ -260,11 +260,11 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Download rules for language &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Download quality profile for language &apos;{0}&apos;.
         /// </summary>
-        public static string DownloadingRulesProgressMessage {
+        public static string DownloadingQualityProfileProgressMessage {
             get {
-                return ResourceManager.GetString("DownloadingRulesProgressMessage", resourceCulture);
+                return ResourceManager.GetString("DownloadingQualityProfileProgressMessage", resourceCulture);
             }
         }
         
@@ -338,6 +338,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string FailedToToBindSolution {
             get {
                 return ResourceManager.GetString("FailedToToBindSolution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to unpack additional files required for analyzers.
+        /// </summary>
+        public static string FailedToUnpackAdditionalFiles {
+            get {
+                return ResourceManager.GetString("FailedToUnpackAdditionalFiles", resourceCulture);
             }
         }
         
@@ -459,6 +468,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube quality profile was downloaded successfully.
+        /// </summary>
+        public static string QualityProfileDownloadedSuccessfulMessage {
+            get {
+                return ResourceManager.GetString("QualityProfileDownloadedSuccessfulMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube quality profile: Failed to download profile.
+        /// </summary>
+        public static string QualityProfileDownloadFailedMessage {
+            get {
+                return ResourceManager.GetString("QualityProfileDownloadFailedMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Refresh.
         /// </summary>
         public static string RefreshCommandDisplayText {
@@ -486,25 +513,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube rule set was downloaded successfully.
-        /// </summary>
-        public static string RuleSetDownloadedSuccessfulMessage {
-            get {
-                return ResourceManager.GetString("RuleSetDownloadedSuccessfulMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube rule set: Failed to download rule set.
-        /// </summary>
-        public static string RuleSetDownloadFailedMessage {
-            get {
-                return ResourceManager.GetString("RuleSetDownloadFailedMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generating rule sets.
+        ///   Looks up a localized string similar to Generating project rule sets.
         /// </summary>
         public static string RuleSetGenerationProgressMessage {
             get {
@@ -663,6 +672,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string UnexpectedWorkflowError {
             get {
                 return ResourceManager.GetString("UnexpectedWorkflowError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unpacking additional file: {0}.
+        /// </summary>
+        public static string UnpackingAdditionalFile {
+            get {
+                return ResourceManager.GetString("UnpackingAdditionalFile", resourceCulture);
             }
         }
         

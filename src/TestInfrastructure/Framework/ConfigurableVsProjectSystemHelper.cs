@@ -10,6 +10,7 @@ using SonarLint.VisualStudio.Integration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE80;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -54,6 +55,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 project.ProjectItems.AddFromFile(file);
             }
         }
+
+        Solution2 IProjectSystemHelper.GetCurrentActiveSolution()
+        {
+            return this.CurrentActiveSolution;
+        }
+
         #endregion
 
         #region Test helpers
@@ -63,6 +70,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IEnumerable<Project> ManagedProjects { get; set; }
 
         public Func<Project, string, bool> IsFileInProjectAction { get; set; }
+
+        public Solution2 CurrentActiveSolution { get; set; }
 
         #endregion
     }

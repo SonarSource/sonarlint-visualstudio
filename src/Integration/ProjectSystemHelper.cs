@@ -112,14 +112,21 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        public Solution2 GetCurrentActiveSolution()
+        {
+            DTE dte = this.serviceProvider.GetService(typeof(DTE)) as DTE;
+            Debug.Assert(dte != null, "Could not find the DTE service");
+
+            Solution2 solution = (Solution2)dte?.Solution;
+
+            return solution;
+        }
+
         public Project GetSolutionItemsProject()
         {
             string solutionItemsFolderName = GetSolutionItemsFolderName(this.serviceProvider);
 
-            DTE dte = this.serviceProvider.GetService(typeof(DTE)) as DTE;
-            Debug.Assert(dte != null, "Could not find the DTE service");
-
-            Solution2 solution = (Solution2)dte.Solution;
+            Solution2 solution = this.GetCurrentActiveSolution();
 
             Project solutionItemsProject = null;
             // Enumerating instead of using OfType<Project> due to a bug in

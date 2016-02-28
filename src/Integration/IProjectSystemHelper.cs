@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
+using EnvDTE80;
 using System;
 using System.Collections.Generic;
 
@@ -15,6 +16,8 @@ namespace SonarLint.VisualStudio.Integration
     internal interface IProjectSystemHelper
     {
         IServiceProvider ServiceProvider { get; }
+
+        Solution2 GetCurrentActiveSolution();
 
         Project GetSolutionItemsProject();
 

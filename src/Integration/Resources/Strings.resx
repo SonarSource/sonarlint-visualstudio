@@ -221,13 +221,13 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Binding projects</value>
     <comment>Display message</comment>
   </data>
-  <data name="RuleSetDownloadFailedMessage" xml:space="preserve">
-    <value>SonarQube rule set: Failed to download rule set</value>
-    <comment>Output window message indicating the rule set file failed to download</comment>
+  <data name="QualityProfileDownloadFailedMessage" xml:space="preserve">
+    <value>SonarQube quality profile: Failed to download profile</value>
+    <comment>Output window message indicating the quality profile file failed to download</comment>
   </data>
-  <data name="RuleSetDownloadedSuccessfulMessage" xml:space="preserve">
-    <value>SonarQube rule set was downloaded successfully</value>
-    <comment>Output window message indicating the rule set file was successfully downloaded</comment>
+  <data name="QualityProfileDownloadedSuccessfulMessage" xml:space="preserve">
+    <value>SonarQube quality profile was downloaded successfully</value>
+    <comment>Output window message indicating the quality profile was successfully downloaded</comment>
   </data>
   <data name="RuleSetDescription" xml:space="preserve">
     <value>Rule set generated from SonarQube</value>
@@ -270,7 +270,7 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <comment>Tool tip text to be displayed for the connected SonarQube server in the Team Explorer tree view when there are no SonarQube Projects available under the given server</comment>
   </data>
   <data name="RuleSetGenerationProgressMessage" xml:space="preserve">
-    <value>Generating rule sets</value>
+    <value>Generating project rule sets</value>
     <comment>A progress notification message</comment>
   </data>
   <data name="EnsuringNugetPackagesProgressMessage" xml:space="preserve">
@@ -355,8 +355,8 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>Hide unbound projects</value>
     <comment>Server context menu command display text to show all projects (inc. unbound projects)</comment>
   </data>
-  <data name="DownloadingRulesProgressMessage" xml:space="preserve">
-    <value>Download rules for language '{0}'</value>
+  <data name="DownloadingQualityProfileProgressMessage" xml:space="preserve">
+    <value>Download quality profile for language '{0}'</value>
     <comment>A progress notification message. {0} language name.</comment>
   </data>
   <data name="AutomationServerDescription" xml:space="preserve">
@@ -404,5 +404,13 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
   <data name="ServerDoesNotHaveCorrectVersionOfCSharpPlugin" xml:space="preserve">
     <value>SonarQube project binding failed: The server does not have the minimum required version ({0}) of the C# plugin installed.</value>
     <comment>Error message indicating that the server does not have the required version of the C# plugin installed. {0} minimum required version</comment>
+  </data>
+  <data name="FailedToUnpackAdditionalFiles" xml:space="preserve">
+    <value>Failed to unpack additional files required for analyzers</value>
+    <comment>Output window message indicating failure when unpacking additional files for analyzers</comment>
+  </data>
+  <data name="UnpackingAdditionalFile" xml:space="preserve">
+    <value>Unpacking additional file: {0}</value>
+    <comment>Progress message indicating an additional files is being unpacked. {0} additional file name</comment>
   </data>
 </root>
