@@ -9,7 +9,7 @@ environment:
   solution_path: src\SonarLint.VisualStudio.Integration.sln
 
 before_build:
-  - cmd: nuget restore $(solution_path)
+  - cmd: nuget restore %solution_path%
 
 build:
   verbosity: minimal
