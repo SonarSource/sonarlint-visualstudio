@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         [ImportingConstructor]
         public ConnectSectionController([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, SonarQubeServiceWrapper sonarQubeService, IActiveSolutionTracker solutionTacker)
-            : this(serviceProvider, null, sonarQubeService, solutionTacker, Dispatcher.CurrentDispatcher)
+            : this(serviceProvider, new TransferableVisualState(), sonarQubeService, solutionTacker, Dispatcher.CurrentDispatcher)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
         }
@@ -53,8 +53,13 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                                     IActiveSolutionTracker solutionTacker,
                                     Dispatcher uiDispatcher)
         {
+           if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
             this.serviceProvider = serviceProvider;
-            this.State = state ?? new TransferableVisualState();
+            this.State = state;
             this.State.PropertyChanged += this.OnStatePropertyChanged;
             this.uiDispatcher = uiDispatcher;
             this.sonarQubeService = sonarQubeService;

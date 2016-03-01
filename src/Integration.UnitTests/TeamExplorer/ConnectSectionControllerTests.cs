@@ -332,7 +332,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.NotificationAccessor.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.State.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz1"))));
             testSubject.State.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz2"))));
-            testSubject.State.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new ProjectInformation()) { IsBound = true }));
+            testSubject.State.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new ProjectInformation())));
             var allProjects = testSubject.State.ConnectedServers.SelectMany(s => s.Projects).ToList();
             testSubject.State.SetBoundProject(allProjects.First());
 

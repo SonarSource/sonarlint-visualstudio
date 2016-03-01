@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             ProjectViewModel projectVM = CreateProjectViewModel();
-            BindCommand testSubject = this.PrepareCommpandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
 
             // Case 1: All the requirements are set
             // Act + Verify
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             ProjectViewModel projectVM = CreateProjectViewModel();
-            BindCommand testSubject = this.PrepareCommpandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
             ProjectMock project1 = this.solutionMock.Projects.Single();
 
             // Case 1: SolutionExistsAndNotBuildingAndNotDebugging is not active
@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void BindCommand_ExecuteBind()
         {
             // Setup
-            BindCommand testSubject = this.PrepareCommpandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
 
             // Act
             var projectToBind1 = new ProjectInformation { Key = "1" };
@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             ProjectViewModel projectVM = CreateProjectViewModel();
-            BindCommand testSubject = this.PrepareCommpandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
             var progressEvents = new ConfigurableProgressEvents();
 
             foreach (var controllerResult in (ProgressControllerResult[])Enum.GetValues(typeof(ProgressControllerResult)))
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             projects[0].IsBound = true;
             ProjectViewModel projectVM = projects[1];
 
-            BindCommand testSubject = this.PrepareCommpandForExecution(new ConnectionInformation(serverVM.Url));
+            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
             var progressEvents = new ConfigurableProgressEvents();
             testSubject.Controller.State.ConnectedServers.Add(serverVM);
             testSubject.Controller.State.SetBoundProject(projects[0]);
@@ -258,7 +258,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             });
             var projects = serverVM.Projects.ToArray();
             ProjectViewModel projectVM = projects[0];
-            BindCommand testSubject = this.PrepareCommpandForExecution(new ConnectionInformation(serverVM.Url));
+            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
             var progressEvents = new ConfigurableProgressEvents();
             testSubject.Controller.State.ConnectedServers.Add(serverVM);
 
@@ -294,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             });
             ProjectViewModel projectVM = serverVM.Projects.ToArray()[0];
             ConfigurableUserNotification userNotifications = new ConfigurableUserNotification();
-            BindCommand testSubject = this.PrepareCommpandForExecution(new ConnectionInformation(serverVM.Url), userNotifications);
+            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url), userNotifications);
             var progressEvents = new ConfigurableProgressEvents();
             testSubject.UserNotification.ShowNotificationError("Need to make sure that this is clear once started", NotificationIds.FailedToBindId, new RelayCommand(() => { }));
 
@@ -350,7 +350,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return new ServerViewModel(new ConnectionInformation(new Uri("http://123")));
         }
 
-        private BindCommand PrepareCommpandForExecution(ConnectionInformation connection, ConfigurableUserNotification notifications = null)
+        private BindCommand PrepareCommandForExecution(ConnectionInformation connection, ConfigurableUserNotification notifications = null)
         {
             BindCommand testSubject = this.CreateBindCommand();
             testSubject.UserNotification = notifications;
