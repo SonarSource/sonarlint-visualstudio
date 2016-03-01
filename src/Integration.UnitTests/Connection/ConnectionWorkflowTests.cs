@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionWorkflow_ShowNuGetWarning()
         {
             // Setup
-            ConnectCommand command;
+            ConnectionController command;
             ConnectedProjectsCallback callback = (c, p) => { };
             ConnectionWorkflow testSubject = this.CreateTestSubject(callback, out command);
             var notifications = new ConfigurableUserNotification();
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionWorkflow_DontWarnAgainExec()
         {
             // Setup
-            ConnectCommand command;
+            ConnectionController command;
             ConnectedProjectsCallback callback = (c, p) => { };
             ConnectionWorkflow testSubject = this.CreateTestSubject(callback, out command);
             var notifications = new ConfigurableUserNotification();
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionWorkflow_DontWarnAgainCanExec_HasSettings_IsTrue()
         {
             // Setup
-            ConnectCommand command;
+            ConnectionController command;
             ConnectedProjectsCallback callback = (c, p) => { };
             ConnectionWorkflow testSubject = this.CreateTestSubject(callback, out command);
 
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             var controller = new ConnectSectionController(new ConfigurableServiceProvider(false), new TransferableVisualState(), sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
-            var command = new ConnectCommand(controller, this.sonarQubeService);
+            var command = new ConnectionController(controller, this.sonarQubeService);
             ConnectedProjectsCallback callback = (c, p) => { };
             var testSubject = new ConnectionWorkflow(command, callback);
 
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
             var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
             this.sonarQubeService.ReturnProjectInformation = projects;
-            ConnectCommand command;
+            ConnectionController command;
             bool projectChangedCallbackCalled = false;
             ConnectedProjectsCallback projectsChanged = (c, p) =>
             {
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            ConnectCommand command;
+            ConnectionController command;
             bool projectChangedCallbackCalled = false;
             ConnectedProjectsCallback projectsChanged = (c, p) =>
             {
@@ -217,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         #endregion
 
         #region Helpers
-        private ConnectionWorkflow CreateTestSubject(ConnectedProjectsCallback projectsChanged, out ConnectCommand owningCommand)
+        private ConnectionWorkflow CreateTestSubject(ConnectedProjectsCallback projectsChanged, out ConnectionController owningCommand)
         {
             var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
             owningCommand = controller.ConnectCommand;

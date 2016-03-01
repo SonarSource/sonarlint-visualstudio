@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="BindCommand.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="BindingController.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -18,17 +18,17 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class BindCommand : HostedCommandBase, IBindingWorkflow
+    internal class BindingController : HostedCommandControllerBase, IBindingWorkflow
     {
         private readonly IBindingWorkflow workflow;
         private readonly IProjectSystemHelper projectSystemHelper;
 
-        public BindCommand(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService)
+        public BindingController(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService)
             :this(controller, sonarQubeService, null, null)
         {
         }
 
-        internal /*for testing purposes*/ BindCommand(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService, IBindingWorkflow workflow, IProjectSystemHelper projectSystemHelper)
+        internal /*for testing purposes*/ BindingController(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService, IBindingWorkflow workflow, IProjectSystemHelper projectSystemHelper)
             : base(controller)
         {
             if (sonarQubeService == null)

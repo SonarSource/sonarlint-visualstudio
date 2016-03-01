@@ -422,7 +422,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private ConnectSectionController CreateTestSubject(ConfigurableActiveSolutionTracker tracker)
         {
             var controller = new TestableConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, tracker);
-            controller.SetConnectCommand(new ConnectCommand(controller, this.sonarQubeService, null, this.workflow));
+            controller.SetConnectCommand(new ConnectionController(controller, this.sonarQubeService, null, this.workflow));
             return controller;
         }
 
@@ -432,7 +432,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             {
                 SetProjectsAction = setProjectsAction
             };
-            controller.SetConnectCommand(new ConnectCommand(controller, this.sonarQubeService, null, this.workflow));
+            controller.SetConnectCommand(new ConnectionController(controller, this.sonarQubeService, null, this.workflow));
             return controller;
         }
 

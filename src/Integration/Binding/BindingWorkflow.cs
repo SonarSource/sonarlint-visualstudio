@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal class BindingWorkflow
     {
-        private readonly BindCommand owner;
+        private readonly BindingController owner;
         private readonly ProjectInformation project;
         private readonly IProjectSystemHelper projectSystemHelper;
         private readonly SolutionRuleSetWriter solutionRuleSetWriter;
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {SonarQubeServiceWrapper.VBLanguage, RuleSetGroup.VB }
         };
 
-        public BindingWorkflow(BindCommand owner, ProjectInformation project, SolutionRuleSetWriter solutionRuleSetWriter = null, ProjectRuleSetWriter projectRuleSetWriter = null, IProjectSystemHelper projectSystemHelper = null)
+        public BindingWorkflow(BindingController owner, ProjectInformation project, SolutionRuleSetWriter solutionRuleSetWriter = null, ProjectRuleSetWriter projectRuleSetWriter = null, IProjectSystemHelper projectSystemHelper = null)
         {
             if (owner == null)
             {

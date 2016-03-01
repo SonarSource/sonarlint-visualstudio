@@ -108,20 +108,20 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         #endregion
 
         #region Initialization
-        internal /*for testing purposes*/ void SetConnectCommand(ConnectCommand cmd = null)
+        internal /*for testing purposes*/ void SetConnectCommand(ConnectionController cmd = null)
         {
             if (this.ConnectCommand != null)
             {
                 this.ConnectCommand.ProjectsChanged -= this.SetProjects;
             }
 
-            this.ConnectCommand = cmd ?? new ConnectCommand(this, this.sonarQubeService);
+            this.ConnectCommand = cmd ?? new ConnectionController(this, this.sonarQubeService);
             this.ConnectCommand.ProjectsChanged += this.SetProjects;
         }
 
-        internal /*for testing purposes*/ void SetBindCommand(BindCommand cmd = null)
+        internal /*for testing purposes*/ void SetBindCommand(BindingController cmd = null)
         {
-            this.BindCommand = cmd ?? new BindCommand(this, this.sonarQubeService);
+            this.BindCommand = cmd ?? new BindingController(this, this.sonarQubeService);
         }
         #endregion  
 
@@ -221,13 +221,13 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         #endregion
 
         #region Commands
-        internal /*for testing purposes*/ ConnectCommand ConnectCommand
+        internal /*for testing purposes*/ ConnectionController ConnectCommand
         {
             get;
             private set;
         }
 
-        internal /*for testing purposes*/ BindCommand BindCommand
+        internal /*for testing purposes*/ BindingController BindCommand
         {
             get;
             private set;

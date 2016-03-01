@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="ConnectCommand.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="ConnectionController.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -17,17 +17,17 @@ using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
-    internal class ConnectCommand : HostedCommandBase, IConnectionInformationProvider, IConnectionWorkflowExecutor
+    internal class ConnectionController : HostedCommandControllerBase, IConnectionInformationProvider, IConnectionWorkflowExecutor
     {
-        private readonly IConnectionInformationProvider connectionProvider;
         private readonly ConnectSectionController controller;
+        private readonly IConnectionInformationProvider connectionProvider;
 
-        public ConnectCommand(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService)
+        public ConnectionController(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService)
             : this(controller, sonarQubeService, null, null)
         {
         }
 
-        internal /*for testing purposes*/ ConnectCommand(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService, IConnectionInformationProvider connectionProvider, IConnectionWorkflowExecutor workflowExecutor)
+        internal /*for testing purposes*/ ConnectionController(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService, IConnectionInformationProvider connectionProvider, IConnectionWorkflowExecutor workflowExecutor)
             : base(controller)
         {
             if (sonarQubeService == null)

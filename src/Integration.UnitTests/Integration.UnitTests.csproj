@@ -121,7 +121,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Binding\BindCommandTests.cs" />
+    <Compile Include="Binding\BindingControllerTests.cs" />
     <Compile Include="Binding\BindingWorkflowTests.cs" />
     <Compile Include="Binding\NuGetHelperTests.cs" />
     <Compile Include="Binding\RuleSetInjectorTests.cs" />
@@ -139,7 +139,7 @@
     <Compile Include="Progress\ProgressStepRunnerTests.cs" />
     <Compile Include="SanityTests.cs" />
     <Compile Include="Connection\ConnectionWorkflowTests.cs" />
-    <Compile Include="Connection\ConnectCommandTests.cs" />
+    <Compile Include="Connection\ConnectControllerTests.cs" />
     <Compile Include="Service\AuthenticationHeaderProviderTests.cs" />
     <Compile Include="Service\ConnectionInformationTests.cs" />
     <Compile Include="Binding\ProjectRuleSetWriterTests.cs" />

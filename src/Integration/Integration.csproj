@@ -108,7 +108,7 @@
     <Reference Include="Microsoft.VisualStudio.Utilities, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Binding\BindCommand.cs" />
+    <Compile Include="Binding\BindingController.cs" />
     <Compile Include="Binding\IRuleSetGenerationFileSystem.cs" />
     <Compile Include="Binding\RuleSetGroup.cs" />
     <Compile Include="Binding\RuleSetInjection\ProjectRuleSetFileRetriever.cs" />
@@ -123,7 +123,7 @@
     <Compile Include="Connection\ConnectedProjectsEventArgs.cs" />
     <Compile Include="Connection\ConnectionWorkflow.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="HostedCommandBase.cs" />
+    <Compile Include="HostedCommandControllerBase.cs" />
     <Compile Include="Binding\BindingWorkflow.cs" />
     <Compile Include="Binding\IBindingWorkflow.cs" />
     <Compile Include="IProjectSystemHelper.cs" />
@@ -175,7 +175,7 @@
     <Compile Include="Service\SonarQubeServiceWrapper.cs" />
     <Compile Include="Service\ISonarQubeServiceWrapper.cs" />
     <Compile Include="Connection\BasicAuthenticationCredentialsValidator.cs" />
-    <Compile Include="Connection\ConnectCommand.cs" />
+    <Compile Include="Connection\ConnectionController.cs" />
     <Compile Include="Connection\IConnectionInformationProvider.cs" />
     <Compile Include="Connection\IConnectionWorkflowExecutor.cs" />
     <Compile Include="Service\SecureStringExtensions.cs" />

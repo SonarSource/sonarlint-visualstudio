@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="ConnectCommandTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="ConnectControllerTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -21,7 +21,7 @@ using System.Windows.Threading;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
     [TestClass]
-    public class ConnectCommandTests
+    public class ConnectControllerTests
     {
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
         private ConfigurableConnectionWorkflow connectionWorkflow;
@@ -42,27 +42,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
         #region  Tests
         [TestMethod]
-        public void ConnectCommand_Ctor_ArgumentChecks()
+        public void ConnectController_Ctor_ArgumentChecks()
         {
-            ConnectCommand suppressAnalysisIssue;
+            ConnectionController suppressAnalysisIssue;
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                suppressAnalysisIssue = new ConnectCommand(null, new ConfigurableSonarQubeServiceWrapper());
+                suppressAnalysisIssue = new ConnectionController(null, new ConfigurableSonarQubeServiceWrapper());
             });
 
             ThreadHelper.SetCurrentThreadAsUIThread();
             var controller = new ConnectSectionController(new ServiceContainer(), new SonarQubeServiceWrapper(new ServiceContainer()), new ConfigurableActiveSolutionTracker());
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                suppressAnalysisIssue = new ConnectCommand(controller, null);
+                suppressAnalysisIssue = new ConnectionController(controller, null);
             });
         }
 
         [TestMethod]
-        public void ConnectCommand_Ctor_DefaultState()
+        public void ConnectController_Ctor_DefaultState()
         {
             // Setup
-            ConnectCommand testSubject = this.CreateTestSubject();
+            ConnectionController testSubject = this.CreateTestSubject();
 
             // Verify
             Assert.IsNull(testSubject.ProgressControlHost, "Host is expected to be null initially");
@@ -70,10 +70,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void ConnectCommand_WpfCommandStatus()
+        public void ConnectController_WpfCommandStatus()
         {
             // Setup case 1: No host, has connection
-            ConnectCommand testSubject = this.CreateTestSubject();
+            ConnectionController testSubject = this.CreateTestSubject();
             this.sonarQubeService.SetConnection(new Uri("http://www.dummy.com"));
 
             // Act + Verify
@@ -107,10 +107,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void ConnectCommand_WpfCommandExecution()
+        public void ConnectController_WpfCommandExecution()
         {
             // Setup case 1: connection provider return null connection
-            ConnectCommand testSubject = this.CreateTestSubject();
+            ConnectionController testSubject = this.CreateTestSubject();
             testSubject.ProgressControlHost = new ConfigurableProgressControlHost();
             this.connectionProvider.ConnectionInformationToReturn = null;
 
@@ -156,21 +156,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void ConnectCommand_EstablishConnection_ArgChecks()
+        public void ConnectController_EstablishConnection_ArgChecks()
         {
             // Setup
-            ConnectCommand testSubject = this.CreateTestSubject();
+            ConnectionController testSubject = this.CreateTestSubject();
 
             Exceptions.Expect<ArgumentNullException>(() => testSubject.EstablishConnection(null));
         }
 
         [TestMethod]
-        public void ConnectCommand_EstablishConnection()
+        public void ConnectController_EstablishConnection()
         {
             // Setup 
             var connect1 = new ConnectionInformation(new Uri("https://127.0.0.1"));
             var connect2 = new ConnectionInformation(new Uri("https://127.0.0.2"));
-            ConnectCommand testSubject = this.CreateTestSubject();
+            ConnectionController testSubject = this.CreateTestSubject();
 
             // Sanity
             Assert.IsNull(testSubject.LastAttemptedConnection, "No previous attempts to connect");
@@ -199,7 +199,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void ConnectCommand_SetConnectionInProgress()
+        public void ConnectController_SetConnectionInProgress()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
@@ -238,10 +238,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         #endregion
 
         #region Helpers
-        private ConnectCommand CreateTestSubject()
+        private ConnectionController CreateTestSubject()
         {
             var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
-            return new ConnectCommand(controller, this.sonarQubeService, this.connectionProvider, this.connectionWorkflow);
+            return new ConnectionController(controller, this.sonarQubeService, this.connectionProvider, this.connectionWorkflow);
         }
         #endregion
     }

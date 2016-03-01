@@ -25,13 +25,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
     /// </summary>
     internal class ConnectionWorkflow
     {
-        private readonly ConnectCommand owner;
+        private readonly ConnectionController owner;
         private readonly ConnectedProjectsCallback connectedProjectsChanged;
         private readonly IIntegrationSettings settings;
         // TODO: this is the wrong place to have the ICommand, it should be higher up. Requires some refactoring.
         private readonly ICommand dontWarnAgainCommand;
 
-        public ConnectionWorkflow(ConnectCommand owner, ConnectedProjectsCallback connectedProjectsChanged)
+        public ConnectionWorkflow(ConnectionController owner, ConnectedProjectsCallback connectedProjectsChanged)
         {
             if (owner == null)
             {

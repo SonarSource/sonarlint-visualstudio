@@ -230,7 +230,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             ThreadHelper.SetCurrentThreadAsUIThread();
             var controller = new TestableConnectSectionController(this.serviceProvider, this.sonarQubeService);
-            controller.SetConnectCommand(new ConnectCommand(controller, this.sonarQubeService, null, this.workflow));
+            controller.SetConnectCommand(new ConnectionController(controller, this.sonarQubeService, null, this.workflow));
             var section = new ConnectSection(controller);
             section.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
             return section;
