@@ -22,7 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.Debug.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,7 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.Release.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=2.20.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -109,7 +109,7 @@
     <Reference Include="Microsoft.VisualStudio.Utilities, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Binding\BindCommand.cs" />
+    <Compile Include="Binding\BindingController.cs" />
     <Compile Include="Binding\IBindingOperation.cs" />
     <Compile Include="Binding\IRuleSetSerializer.cs" />
     <Compile Include="Binding\ISolutionRuleStore.cs" />
@@ -120,12 +120,13 @@
     <Compile Include="Binding\SolutionBindingOperation.cs" />
     <Compile Include="Binding\NuGetHelper.cs" />
     <Compile Include="Binding\SolutionBindingOperation.Writer.cs" />
-    <Compile Include="Connection\ConnectedProjectsEventArgs.cs" />
+    <Compile Include="Connection\ConnectionController.cs" />
     <Compile Include="Connection\ConnectionWorkflow.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="HostedCommandBase.cs" />
     <Compile Include="Binding\BindingWorkflow.cs" />
     <Compile Include="Binding\IBindingWorkflowExecutor.cs" />
+    <Compile Include="HostedCommandControllerBase.cs" />
+    <Compile Include="IHost.cs" />
     <Compile Include="IProjectSystemHelper.cs" />
     <Compile Include="IActiveSolutionTracker.cs" />
     <Compile Include="IServiceProviderExtensions.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="LocalServices\IFileSystem.cs" />
     <Compile Include="LocalServices\ISourceControlledFileSystem.cs" />
     <Compile Include="Persistence\ISolutionBinding.cs" />
+    <Compile Include="Progress\IProgressStepRunnerWrapper.cs" />
     <Compile Include="Service\DataModel\ServerPlugin.cs" />
     <Compile Include="Service\RoslynExporter\AdditionalFile.cs" />
     <Compile Include="Service\RoslynExporter\Configuration.cs" />
@@ -141,10 +143,13 @@
     <Compile Include="Service\RoslynExporter\NuGetPackageInfo.cs" />
     <Compile Include="Service\RoslynExporter\RoslynExportProfile.cs" />
     <Compile Include="Service\VersionHelper.cs" />
+    <Compile Include="State\IStateManager.cs" />
+    <Compile Include="State\StateManager.cs" />
     <Compile Include="LocalServices\SourceControlledFileSystem.cs" />
     <Compile Include="State\TransferableVisualState.cs" />
     <Compile Include="TeamExplorer\ITeamExplorerController.cs" />
     <Compile Include="TeamExplorer\ResourceHelper.cs" />
+    <Compile Include="TeamExplorer\SectionController.cs" />
     <Compile Include="TeamExplorer\SonarQubeNavigationItem.cs" />
     <Compile Include="TeamExplorer\SonarQubePage.cs" />
     <Compile Include="TeamExplorer\TeamExplorerController.cs" />
@@ -179,7 +184,6 @@
     <Compile Include="Service\SonarQubeServiceWrapper.cs" />
     <Compile Include="Service\ISonarQubeServiceWrapper.cs" />
     <Compile Include="Connection\BasicAuthenticationCredentialsValidator.cs" />
-    <Compile Include="Connection\ConnectCommand.cs" />
     <Compile Include="Connection\IConnectionInformationProvider.cs" />
     <Compile Include="Connection\IConnectionWorkflowExecutor.cs" />
     <Compile Include="Service\SecureStringExtensions.cs" />
@@ -188,9 +192,9 @@
       <DependentUpon>ConnectionInfoDialogView.xaml</DependentUpon>
     </Compile>
     <Compile Include="ActiveSolutionTracker.cs" />
-    <Compile Include="TeamExplorer\ConnectSectionController.cs" />
     <Compile Include="TeamExplorer\IConnectSection.cs" />
     <Compile Include="TelemetryLoggerAccessor.cs" />
+    <Compile Include="VsSessionHost.cs" />
     <Compile Include="WebBrowser.cs" />
     <Compile Include="WPF\ContextualCommandsCollection.cs" />
     <Compile Include="WPF\IconViewModel.cs" />
@@ -208,7 +212,6 @@
     <Compile Include="WPF\RelayCommand`1.cs" />
     <Compile Include="WPF\RelayCommandBase.cs" />
     <Compile Include="WPF\ViewModelBase.cs" />
-    <Compile Include="TeamExplorer\ConnectSection.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs" />
@@ -264,8 +267,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Integration.Debug.ruleset" />
-    <None Include="Integration.Release.ruleset" />
+    <None Include="Integration.ruleset" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
@@ -279,6 +281,7 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
+  
   <Target Name="AfterBuild">
   </Target>
   -->

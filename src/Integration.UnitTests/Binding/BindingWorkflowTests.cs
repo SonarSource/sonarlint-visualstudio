@@ -16,9 +16,6 @@ using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.Service.DataModel;
-using SonarLint.VisualStudio.Integration.State;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -278,10 +275,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null)
         {
-            var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
+            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.sonarQubeService.SetConnection(new Uri("http://connected"));
-            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
-            return new BindingWorkflow(controller.BindCommand, useProjectInfo, this.projectSystemHelper);
+            host.SonarQubeService = this.sonarQubeService;
+            var useProjectInfo = projectInfo ?? new ProjectInformation() { Key = "key" };
+
+            return new BindingWorkflow(host, useProjectInfo, this.projectSystemHelper);
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] managedProjects)

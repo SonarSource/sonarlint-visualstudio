@@ -33,7 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DeployExtension>True</DeployExtension>
-    <CodeAnalysisRuleSet>Integration.Vsix.Debug.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.Vsix.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,7 +42,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.Vsix.Release.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.Vsix.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commands\CommandIds.cs" />
@@ -80,8 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Integration.Vsix.Debug.ruleset" />
-    <None Include="Integration.Vsix.Release.ruleset" />
+    <None Include="Integration.Vsix.ruleset" />
     <None Include="packages.config" />
     <None Include="Telemetry\SonarLintSqmData.ttinclude" />
     <None Include="source.extension.vsixmanifest">

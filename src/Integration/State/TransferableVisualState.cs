@@ -60,9 +60,7 @@ namespace SonarLint.VisualStudio.Integration.State
             this.boundProject.IsBound = true;
             this.boundProject.Owner.ShowAllProjects = false;
 
-#pragma warning disable S3236 // Methods with caller info attributes should not be invoked with explicit arguments, Justification: false positive (will use the calling method name internally)
-            this.RaisePropertyChanged(nameof(HasBoundProject));
-#pragma warning restore S3236 // Methods with caller info attributes should not be invoked with explicit arguments
+            this.OnHasBoundProjectChanged();
         }
 
         public void ClearBoundProject()
@@ -74,10 +72,19 @@ namespace SonarLint.VisualStudio.Integration.State
                 this.boundProject.Owner.ShowAllProjects = true;
                 this.boundProject = null;
 
-#pragma warning disable S3236 // Methods with caller info attributes should not be invoked with explicit arguments, Justification: false positive (will use the calling method name internally)
-                this.RaisePropertyChanged(nameof(HasBoundProject));
-#pragma warning restore S3236 // Methods with caller info attributes should not be invoked with explicit arguments
+                this.OnHasBoundProjectChanged();
             }
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+          "S3236:Methods with caller info attributes should not be invoked with explicit arguments",
+          Justification = "False positive, we actually want to specify a different property to change",
+          Scope = "member",
+          Target = "~M:SonarLint.VisualStudio.Integration.State.TransferableVisualState.OnHasBoundProjectChanged()")]
+        private void OnHasBoundProjectChanged()
+        {
+            this.RaisePropertyChanged(nameof(HasBoundProject));
+
         }
     }
 }

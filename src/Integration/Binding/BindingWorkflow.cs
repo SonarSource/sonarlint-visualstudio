@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal class BindingWorkflow
     {
-        private readonly BindCommand owner;
+        private readonly IHost host;
         private readonly ProjectInformation project;
         private readonly IProjectSystemHelper projectSystemHelper;
         private readonly SolutionBindingOperation solutionBindingOperation;
@@ -37,17 +37,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {SonarQubeServiceWrapper.VBLanguage, RuleSetGroup.VB }
         };        
 
-        public BindingWorkflow(BindCommand owner, ProjectInformation project)
-            : this(owner, project, null)
+        public BindingWorkflow(IHost host, ProjectInformation project)
+            : this(host, project, null)
         {
 
         }
 
-        internal /*for testing purposes*/ BindingWorkflow(BindCommand owner, ProjectInformation project, IProjectSystemHelper projectSystemHelper)
+        internal /*for testing purposes*/ BindingWorkflow(IHost host, ProjectInformation project, IProjectSystemHelper projectSystemHelper)
         {
-            if (owner == null)
+            if (host == null)
             {
-                throw new ArgumentNullException(nameof(owner));
+                throw new ArgumentNullException(nameof(host));
             }
 
             if (project == null)
@@ -55,14 +55,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(project));
             }
 
-            this.owner = owner;
+            this.host = host;
             this.project = project;
-            this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.owner.ServiceProvider);
+            this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.host);
 
             this.solutionBindingOperation = new SolutionBindingOperation(
-                    this.owner.ServiceProvider,
+                    this.host,
                     this.projectSystemHelper,
-                    this.owner.SonarQubeService.CurrentConnection,
+                    this.host.SonarQubeService.CurrentConnection,
                     this.project.Key);
         }
 
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public IProgressEvents Run()
         {
-            this.owner.UserNotification.HideNotification(NotificationIds.FailedToBindId);
+            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToBindId);
 
             List<string> languages = new List<string>();
             if (this.projectSystemHelper.GetSolutionManagedProjects().Any(p => ProjectSystemHelper.IsCSharpProject(p)))
@@ -109,9 +109,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             Debug.Assert(languages.Count > 0, "Expecting managed projects in solution");
+            Debug.Assert(this.host.ActiveSection != null, "Expect the section to be attached at least until this method returns");
 
-            IProgressEvents progress = ProgressStepRunner.StartAsync(this.owner.ServiceProvider,
-                this.owner.ProgressControlHost,
+            IProgressEvents progress = ProgressStepRunner.StartAsync(this.host,
+                this.host.ActiveSection.ProgressHost,
                 (controller) => this.CreateWorkflowSteps(controller, languages));
 
             this.DebugOnly_MonitorProgress(progress);
@@ -122,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         [Conditional("DEBUG")]
         private void DebugOnly_MonitorProgress(IProgressEvents progress)
         {
-            progress.RunOnFinished(r => VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, "DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
+            progress.RunOnFinished(r => VsShellUtils.WriteToGeneralOutputPane(this.host, "DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
         }
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller, IEnumerable<string> languages)
@@ -143,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.DownloadQualityProfile(controller, token, notifications, languages)),
 
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
-                        (token, notifications) => { NuGetHelper.LoadService(this.owner.ServiceProvider); /*The service needs to be loaded on UI thread*/ }),
+                        (token, notifications) => { NuGetHelper.LoadService(this.host); /*The service needs to be loaded on UI thread*/ }),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.InstallPackages(controller, token, notifications)),
@@ -169,9 +170,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region Workflow steps
         internal /*for testing purposes*/ void PromptSaveSolutionIfDirty(IProgressController controller, CancellationToken token)
         {
-            if (!VsShellUtils.SaveSolution(this.owner.ServiceProvider, silent: false))
+            if (!VsShellUtils.SaveSolution(this.host, silent: false))
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, Strings.SolutionSaveCancelledBindAborted);
+                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SolutionSaveCancelledBindAborted);
 
                 this.AbortWorkflow(controller, token);
             }
@@ -179,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
         {
-            bool saved = VsShellUtils.SaveSolution(this.owner.ServiceProvider, silent: true);
+            bool saved = VsShellUtils.SaveSolution(this.host, silent: true);
             Debug.Assert(saved, "Should not be cancellable");
         }
 
@@ -196,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language));
 
-                var export = this.owner.SonarQubeService.GetExportProfile(this.project, language, cancellationToken);
+                var export = this.host.SonarQubeService.GetExportProfile(this.project, language, cancellationToken);
 
                 if (export == null)
                 {
@@ -221,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (failed)
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, Strings.QualityProfileDownloadFailedMessage);
+                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.QualityProfileDownloadFailedMessage);
                 this.AbortWorkflow(controller, cancellationToken);
             }
             else
@@ -297,7 +298,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     progressNotifier.NotifyCurrentProgress(message);
 
                     // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
-                    this.AllNuGetPackagesInstalled &= NuGetHelper.TryInstallPackage(this.owner.ServiceProvider, project, packageInfo.Id, packageInfo.Version);
+                    this.AllNuGetPackagesInstalled &= NuGetHelper.TryInstallPackage(this.host, project, packageInfo.Id, packageInfo.Version);
 
                     progressNotifier.NotifyIncrementedProgress(string.Empty);
                 }

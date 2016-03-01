@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="BindCommandTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="BindingControllerTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -12,20 +12,19 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
 using System;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     [TestClass]
-    public class BindCommandTests
+    public class BindingControllerTests
     {
+        private ConfigurableHost host;
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private TestBindingWorkflow workflow;
@@ -46,131 +45,119 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionMock = new SolutionMock();
             this.monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+            this.host.SonarQubeService = sonarQubeService;
         }
 
         #region Tests
         [TestMethod]
-        public void BindCommand_Ctor()
+        public void BindingController_Ctor()
         {
             // Setup
-            BindCommand testSubject = this.CreateBindCommand();
+            BindingController testSubject = this.CreateBindingController();
 
             // Verify
-            Assert.IsNotNull(testSubject.WpfCommand, "The WPF command should never be null");
+            Assert.IsNotNull(testSubject.BindCommand, "The Bind command should never be null");
         }
 
         [TestMethod]
-        public void BindCommand_Ctor_ArgumentChecks()
+        public void BindingController_Ctor_ArgumentChecks()
         {
-            BindCommand suppressAnalysisWarning;
+            BindingController suppressAnalysisWarning;
 
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                suppressAnalysisWarning = new BindCommand(null, new ConfigurableSonarQubeServiceWrapper());
-            });
-
-            ThreadHelper.SetCurrentThreadAsUIThread();
-            var controller = new ConnectSectionController(new ServiceContainer(), new SonarQubeServiceWrapper(new ServiceContainer()), new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser());
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                suppressAnalysisWarning = new BindCommand(controller, null);
+                suppressAnalysisWarning = new BindingController(null);
             });
         }
 
         [TestMethod]
-        public void BindCommand_CanExecuteBind()
+        public void BindingController_BindCommand_Status()
         {
             // Setup
             ProjectViewModel projectVM = CreateProjectViewModel();
-            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
 
             // Case 1: All the requirements are set
             // Act + Verify
-            Assert.IsTrue(testSubject.WpfCommand.CanExecute(projectVM), "All the requirement should be satisfied for the command to be enabled");
+            Assert.IsTrue(testSubject.BindCommand.CanExecute(projectVM), "All the requirement should be satisfied for the command to be enabled");
 
             // Case 2: project is null
             // Act + Verify
-            Assert.IsFalse(testSubject.WpfCommand.CanExecute(null), "Project is null");
+            Assert.IsFalse(testSubject.BindCommand.CanExecute(null), "Project is null");
 
             // Case 3: No connection
             this.sonarQubeService.ClearConnection();
             // Act + Verify
-            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No connection");
+            Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "No connection");
 
             // Case 4: busy
             this.sonarQubeService.SetConnection(new Uri("http://127.0.0.0"));
-            testSubject.Controller.State.IsBusy = true;
+            this.host.VisualStateManager.IsBusy = true;
             // Act + Verify
-            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "Connecting");
-
-            // Case 5: No host
-            testSubject.Controller.State.IsBusy = false;
-            testSubject.ProgressControlHost = null;
-            // Act + Verify
-            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No host");
+            Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "Connecting");
         }
 
         [TestMethod]
-        public void BindCommand_CanExecuteBind_VsState()
+        public void BindingController_BindCommand_Status_VsState()
         {
             // Setup
             ProjectViewModel projectVM = CreateProjectViewModel();
-            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
             ProjectMock project1 = this.solutionMock.Projects.Single();
-            testSubject.ProgressControlHost = new ConfigurableProgressControlHost();
 
             // Case 1: SolutionExistsAndFullyLoaded is not active
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, false);
             // Act + Verify
-            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No UI context: SolutionExistsAndFullyLoaded");
+            Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "No UI context: SolutionExistsAndFullyLoaded");
 
             // Case 2: SolutionExistsAndNotBuildingAndNotDebugging is not active
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, false);
             // Act + Verify
-            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No UI context: SolutionExistsAndNotBuildingAndNotDebugging");
+            Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "No UI context: SolutionExistsAndNotBuildingAndNotDebugging");
 
             // Case 3: Non-managed project kind
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
             this.projectSystemHelper.ManagedProjects = null;
             // Act + Verify
-            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No managed projects");
+            Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "No managed projects");
 
             // Case 4: No projects at all
             solutionMock.RemoveProject(project1);
             // Act + Verify
-            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No projects");
+            Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "No projects");
         }
 
         [TestMethod]
-        public void BindCommand_ExecuteBind()
+        public void BindingController_BindCommand_Execution()
         {
             // Setup
-            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
 
             // Act
             var projectToBind1 = new ProjectInformation { Key = "1" };
             ProjectViewModel projectVM1 = CreateProjectViewModel(projectToBind1);
-            testSubject.WpfCommand.Execute(projectVM1);
+            testSubject.BindCommand.Execute(projectVM1);
 
             // Verify
-            this.workflow.AssertBoundProject(projectVM1);
+            this.workflow.AssertBoundProject(projectToBind1);
 
             // Act, bind a different project
             var projectToBind2 = new ProjectInformation { Key = "2" };
             ProjectViewModel projectVM2 = CreateProjectViewModel(projectToBind2);
-            testSubject.WpfCommand.Execute(projectVM2);
+            testSubject.BindCommand.Execute(projectVM2);
 
             // Verify
-            this.workflow.AssertBoundProject(projectVM2);
+            this.workflow.AssertBoundProject(projectToBind2);
         }
 
         [TestMethod]
-        public void BindCommand_SetBindingInProgress()
+        public void BindingController_SetBindingInProgress()
         {
             // Setup
             ProjectViewModel projectVM = CreateProjectViewModel();
-            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
             var progressEvents = new ConfigurableProgressEvents();
 
             foreach (var controllerResult in (ProgressControllerResult[])Enum.GetValues(typeof(ProgressControllerResult)))
@@ -178,19 +165,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 this.dteMock.ToolWindows.SolutionExplorer.Window.Active = false;
 
                 // Sanity
-                Assert.IsTrue(testSubject.WpfCommand.CanExecute(projectVM));
+                Assert.IsTrue(testSubject.BindCommand.CanExecute(projectVM));
 
                 // Act - disable
-                testSubject.SetBindingInProgress(progressEvents, projectVM);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
 
                 // Verify 
-                Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "Binding is in progress so should not be enabled");
+                Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "Binding is in progress so should not be enabled");
 
                 // Act - finish
                 progressEvents.SimulateFinished(controllerResult);
 
                 // Verify 
-                Assert.IsTrue(testSubject.WpfCommand.CanExecute(projectVM), "Binding is finished with result: {0}", controllerResult);
+                Assert.IsTrue(testSubject.BindCommand.CanExecute(projectVM), "Binding is finished with result: {0}", controllerResult);
                 if (controllerResult == ProgressControllerResult.Succeeded)
                 {
                     Assert.IsTrue(this.dteMock.ToolWindows.SolutionExplorer.Window.Active, "SolutionExplorer window supposed to be activated");
@@ -203,47 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void BindCommand_SetBindingInProgress_ProjectViewModelIsBoundChanges()
-        {
-            // Setup
-            ServerViewModel serverVM = CreateServerViewModel();
-            serverVM.SetProjects(new[]
-            {
-                new ProjectInformation { Key = "key1" },
-                new ProjectInformation { Key = "key2" },
-            });
-            var projects = serverVM.Projects.ToArray();
-            projects[0].IsBound = true;
-            ProjectViewModel projectVM = projects[1];
-
-            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
-            var progressEvents = new ConfigurableProgressEvents();
-            testSubject.Controller.State.ConnectedServers.Add(serverVM);
-            testSubject.Controller.State.SetBoundProject(projects[0]);
-
-            // Sanity
-            Assert.IsTrue(testSubject.Controller.State.HasBoundProject);
-            Assert.IsTrue(testSubject.WpfCommand.CanExecute(projectVM));
-
-            // Act - start
-            testSubject.SetBindingInProgress(progressEvents, projectVM);
-
-            // Verify 
-            Assert.IsTrue(projects[0].IsBound, "Expected to remain bound at this point");
-            Assert.IsFalse(projects[1].IsBound, "Expected to remain unbound at this point");
-            Assert.IsTrue(testSubject.Controller.State.HasBoundProject);
-
-            // Act - finish
-            progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
-
-            // Verify 
-            Assert.IsFalse(projects[0].IsBound, "Expected to become unbound at this point");
-            Assert.IsTrue(projects[1].IsBound, "Expected to become bound at this point");
-            Assert.IsTrue(testSubject.Controller.State.HasBoundProject);
-        }
-
-        [TestMethod]
-        public void BindCommand_BindingFinished_ServerViewModelShowAllProjects()
+        public void BindingController_BindingFinished()
         {
             // Setup
             ServerViewModel serverVM = CreateServerViewModel();
@@ -251,35 +198,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             {
                 new ProjectInformation { Key = "key1" }
             });
-            var projects = serverVM.Projects.ToArray();
-            ProjectViewModel projectVM = projects[0];
-            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
+            ProjectViewModel projectVM = serverVM.Projects.First();
+            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
+            this.host.VisualStateManager.ManagedState.ConnectedServers.Add(serverVM);
             var progressEvents = new ConfigurableProgressEvents();
-            testSubject.Controller.State.ConnectedServers.Add(serverVM);
 
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Setup
-                testSubject.SetBindingInProgress(progressEvents, projectVM);
-                serverVM.ShowAllProjects = true;
+                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+                Assert.IsTrue(testSubject.IsBindingInProgress);
 
                 // Act
                 progressEvents.SimulateFinished(result);
 
+
                 // Verify 
+                Assert.IsFalse(testSubject.IsBindingInProgress);
+
                 if (result == ProgressControllerResult.Succeeded)
                 {
-                    Assert.IsFalse(serverVM.ShowAllProjects, "Not expected to show all projects after successful binding");
+                    ((ConfigurableStateManager)this.host.VisualStateManager).AssertBoundProject(projectVM.ProjectInformation);
                 }
                 else
                 {
-                    Assert.IsTrue(serverVM.ShowAllProjects, "Expected to still show all projects after failed binding");
+                    ((ConfigurableStateManager)this.host.VisualStateManager).AssertNoBoundProject();
                 }
             }
         }
 
         [TestMethod]
-        public void BindCommand_SetBindingInProgress_Notifications()
+        public void BindingController_SetBindingInProgress_Notifications()
         {
             // Setup
             ServerViewModel serverVM = CreateServerViewModel();
@@ -288,15 +237,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 new ProjectInformation { Key = "key1" }
             });
             ProjectViewModel projectVM = serverVM.Projects.ToArray()[0];
-            ConfigurableUserNotification userNotifications = new ConfigurableUserNotification();
-            BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url), userNotifications);
+            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
+            var section = ConfigurableConnectSection.CreateDefault();
+            this.host.SetActiveSection(section);
             var progressEvents = new ConfigurableProgressEvents();
-            testSubject.UserNotification.ShowNotificationError("Need to make sure that this is clear once started", NotificationIds.FailedToBindId, new RelayCommand(() => { }));
+            this.host.ActiveSection.UserNotifications.ShowNotificationError("Need to make sure that this is clear once started", NotificationIds.FailedToBindId, new RelayCommand(() => { }));
+            ConfigurableUserNotification userNotifications = (ConfigurableUserNotification)section.UserNotifications;
 
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Act - start
-                testSubject.SetBindingInProgress(progressEvents, projectVM);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
 
                 // Verify 
                 userNotifications.AssertNoNotification(NotificationIds.FailedToBindId);
@@ -317,12 +268,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void BindCommand_OnQueryStatus()
+        public void BindingController_BindCommand_OnQueryStatus()
         {
             // Setup
-            BindCommand testSubject = this.CreateBindCommand();
+            BindingController testSubject = this.CreateBindingController();
             bool canExecuteChanged = false;
-            testSubject.WpfCommand.CanExecuteChanged += (o, e) => canExecuteChanged = true;
+            testSubject.BindCommand.CanExecuteChanged += (o, e) => canExecuteChanged = true;
 
             // Act
             Guid notUsed = Guid.Empty;
@@ -345,43 +296,42 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return new ServerViewModel(new ConnectionInformation(new Uri("http://123")));
         }
 
-        private BindCommand PrepareCommandForExecution(ConnectionInformation connection, ConfigurableUserNotification notifications = null)
+        private BindingController PrepareCommandForExecution(ConnectionInformation connection)
         {
-            BindCommand testSubject = this.CreateBindCommand();
-            testSubject.UserNotification = notifications;
+            BindingController testSubject = this.CreateBindingController();
+            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
             this.sonarQubeService.SetConnection(connection);
-            testSubject.ProgressControlHost = new ConfigurableProgressControlHost();
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
             ProjectMock project1 = this.solutionMock.AddOrGetProject("project1");
             this.projectSystemHelper.ManagedProjects = new[] { project1 };
 
             // Sanity
-            Assert.IsTrue(testSubject.WpfCommand.CanExecute(CreateProjectViewModel()), "All the requirement should be satisfied for the command to be enabled");
+            Assert.IsTrue(testSubject.BindCommand.CanExecute(CreateProjectViewModel()), "All the requirement should be satisfied for the command to be enabled");
 
             return testSubject;
         }
 
         private class TestBindingWorkflow : IBindingWorkflowExecutor
         {
-            public ProjectViewModel BoundProject { get; private set; }
+            public ProjectInformation BoundProject { get; private set; }
 
-            #region IBindingWorkflow
-            void IBindingWorkflowExecutor.BindProject(ProjectViewModel projectVM)
+            #region IBindingWorkflowExecutor.
+            void IBindingWorkflowExecutor.BindProject(ProjectInformation project)
             {
-                this.BoundProject = projectVM;
+                this.BoundProject = project;
             }
             #endregion
 
-            public void AssertBoundProject(ProjectViewModel expected)
+            public void AssertBoundProject(ProjectInformation expected)
             {
                 Assert.AreSame(expected, this.BoundProject, "Unexpected project binding");
             }
         }
-        private BindCommand CreateBindCommand()
+
+        private BindingController CreateBindingController()
         {
-            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
-            return new BindCommand(controller, this.sonarQubeService, this.workflow, this.projectSystemHelper);
+            return new BindingController(this.host, this.workflow, this.projectSystemHelper);
         }
 
         #endregion

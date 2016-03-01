@@ -7,8 +7,8 @@
 
 using EnvDTE;
 using Microsoft.Alm.Authentication;
-using SonarLint.VisualStudio.Integration.Resources;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -133,6 +133,11 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return bound;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
+            "S3215:\"interface\" instances should not be cast to concrete types", 
+            Justification = "Casting as BasicAuthCredentials is because it's the only credential type we support. Once we add more we need to think again on how to refactor the code to avoid this", 
+            Scope = "member",
+            Target = "~M:SonarLint.VisualStudio.Integration.Persistence.SolutionBinding.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundSonarQubeProject)~System.Boolean")]
         private bool WriteBindingInformation(string configFile, BoundSonarQubeProject binding)
         {
             if (this.SafePerformFileSystemOperation(() => WriteConfig(configFile, binding)))
@@ -185,6 +190,11 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return null;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", 
+            "S1067:Expressions should not be too complex", 
+            Justification = "We want to filter only those exceptions. The rule doesn't apply in this case", 
+            Scope = "member", 
+            Target = "~M:SonarLint.VisualStudio.Integration.Persistence.SolutionBinding.SafePerformFileSystemOperation(System.Action)~System.Boolean")]
         private bool SafePerformFileSystemOperation(Action operation)
         {
             Debug.Assert(operation != null);

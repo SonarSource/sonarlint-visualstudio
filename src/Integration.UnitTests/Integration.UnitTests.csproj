@@ -26,7 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.UnitTests.Debug.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.UnitTests.Release.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -126,13 +126,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Binding\BindCommandTests.cs" />
+    <Compile Include="Binding\BindingControllerTests.cs" />
     <Compile Include="Binding\BindingWorkflowTests.cs" />
     <Compile Include="Binding\NuGetHelperTests.cs" />
     <Compile Include="Binding\ProjectBindingOperationTests.cs" />
     <Compile Include="Binding\SolutionBindingOperation.WriterTests.cs" />
     <Compile Include="Binding\SolutionBindingOperationTests.cs" />
     <Compile Include="Connection\BasicCredentialsValidatorTests.cs" />
+    <Compile Include="Connection\ConnectControllerTests.cs" />
     <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />
     <Compile Include="IServiceProviderExtensionsTests.cs" />
@@ -144,28 +145,26 @@
     <Compile Include="Progress\ProgressStepRunnerTests.cs" />
     <Compile Include="SanityTests.cs" />
     <Compile Include="Connection\ConnectionWorkflowTests.cs" />
-    <Compile Include="Connection\ConnectCommandTests.cs" />
     <Compile Include="Service\AuthenticationHeaderProviderTests.cs" />
     <Compile Include="Service\ConnectionInformationTests.cs" />
     <Compile Include="Binding\ProjectBindingOperation.WriterTests.cs" />
     <Compile Include="ActiveSolutionTrackerTests.cs" />
     <Compile Include="Service\VersionHelperTests.cs" />
+    <Compile Include="State\StateManagerTests.cs" />
     <Compile Include="State\TransferableVisualStateTests.cs" />
-    <Compile Include="TeamExplorer\ConnectSectionControllerTests.cs" />
-    <Compile Include="TeamExplorer\ConnectSectionTests.cs" />
     <Compile Include="TeamExplorer\ConnectSectionViewModelTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs" />
     <Compile Include="Service\SonarQubeServiceWrapperTests.cs" />
     <Compile Include="TeamExplorer\ProjectViewModelTests.cs" />
+    <Compile Include="TeamExplorer\SectionControllerTests.cs" />
     <Compile Include="TeamExplorer\ServerViewModelTests.cs" />
     <Compile Include="ProjectSystemHelperTests.cs" />
     <Compile Include="TeamExplorer\SonarQubeNavigationItemTests.cs" />
     <Compile Include="TeamExplorer\SonarQubePageTests.cs" />
     <Compile Include="TeamExplorer\TeamExplorerControllerTests.cs" />
-    <Compile Include="TeamExplorer\TestableConnectSectionController.cs" />
-    <Compile Include="TeamExplorer\TestableConnectSectionView.cs" />
     <Compile Include="TelemetryLoggerAccessorTests.cs" />
+    <Compile Include="VsSessionHostTests.cs" />
     <Compile Include="VsShellUtilsTests.cs" />
     <Compile Include="WPF\BoolToVisibilityConverterTests.cs" />
     <Compile Include="Connection\UriValidatorTests.cs" />
@@ -194,8 +193,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Integration.UnitTests.Debug.ruleset" />
-    <None Include="Integration.UnitTests.Release.ruleset" />
+    <None Include="Integration.UnitTests.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -207,11 +205,12 @@
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
+  
   <Target Name="AfterBuild">
   </Target>
-  -->
+-->
 </Project>

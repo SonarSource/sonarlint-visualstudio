@@ -6,13 +6,11 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
-using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
@@ -26,15 +24,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
     [TestClass]
     public class ConnectionWorkflowTests
     {
-        private ConfigurableIntegrationSettings settings;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
+        private ConfigurableHost host;
+        private ConfigurableIntegrationSettings settings;
 
         [TestInitialize]
         public void TestInit()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
+            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
+            this.host.SonarQubeService = this.sonarQubeService;
+
             this.sonarQubeService.RegisterServerPlugin(new ServerPlugin { Key = ServerPlugin.CSharpPluginKey, Version = ServerPlugin.CSharpPluginMinimumVersion });
             this.settings = new ConfigurableIntegrationSettings();
 
@@ -44,85 +47,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         #region Tests
-
-        [TestMethod]
-        public void ConnectionWorkflow_ShowNuGetWarning()
-        {
-            // Setup
-            ConnectCommand command;
-            ConnectedProjectsCallback callback = (c, p) => { };
-            ConnectionWorkflow testSubject = this.CreateTestSubject(callback, out command);
-            var notifications = new ConfigurableUserNotification();
-            command.UserNotification = notifications;
-
-            // Test Case 1: do NOT show
-            // Setup
-            this.settings.ShowServerNuGetTrustWarning = false;
-
-            // Act
-            testSubject.ShowNuGetWarning();
-
-            // Verify
-            notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
-
-
-            // Test Case 2: show
-            // Setup
-            this.settings.ShowServerNuGetTrustWarning = true;
-
-            // Act
-            testSubject.ShowNuGetWarning();
-
-            // Verify
-            notifications.AssertNotification(NotificationIds.WarnServerTrustId, Strings.ServerNuGetTrustWarningMessage);
-        }
-
-        [TestMethod]
-        public void ConnectionWorkflow_DontWarnAgainExec()
-        {
-            // Setup
-            ConnectCommand command;
-            ConnectedProjectsCallback callback = (c, p) => { };
-            ConnectionWorkflow testSubject = this.CreateTestSubject(callback, out command);
-            var notifications = new ConfigurableUserNotification();
-            command.UserNotification = notifications;
-
-            this.settings.ShowServerNuGetTrustWarning = true;
-            ((IUserNotification)notifications).ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
-
-            // Act
-            testSubject.DontWarnAgainExec();
-
-            // Verify
-            Assert.IsFalse(this.settings.ShowServerNuGetTrustWarning, "Expected show warning settings to be false");
-            notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
-        }
-
-        [TestMethod]
-        public void ConnectionWorkflow_DontWarnAgainCanExec_HasSettings_IsTrue()
-        {
-            // Setup
-            ConnectCommand command;
-            ConnectedProjectsCallback callback = (c, p) => { };
-            ConnectionWorkflow testSubject = this.CreateTestSubject(callback, out command);
-
-            // Act + Verify
-            Assert.IsTrue(testSubject.DontWarnAgainCanExec(), "Expected to be executable when settings are available");
-        }
-
-        [TestMethod]
-        public void ConnectionWorkflow_DontWarnAgainCanExec_NoSettings_IsFalse()
-        {
-            // Setup
-            var controller = new ConnectSectionController(new ConfigurableServiceProvider(false), new TransferableVisualState(), sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
-            var command = new ConnectCommand(controller, this.sonarQubeService);
-            ConnectedProjectsCallback callback = (c, p) => { };
-            var testSubject = new ConnectionWorkflow(command, callback);
-
-            // Act + Verify
-            Assert.IsFalse(testSubject.DontWarnAgainCanExec(), "Not expected to be executable when settings are unavailable");
-        }
-
         [TestMethod]
         public void ConnectionWorkflow_ConnectionStep_SuccessfulConnection()
         {
@@ -130,7 +54,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
             var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
             this.sonarQubeService.ReturnProjectInformation = projects;
-            ConnectCommand command;
             bool projectChangedCallbackCalled = false;
             ConnectedProjectsCallback projectsChanged = (c, p) =>
             {
@@ -138,13 +61,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Assert.AreSame(connectionInfo, c, "Unexpected connection");
                 CollectionAssert.AreEqual(projects, p.ToArray(), "Unexpected projects");
             };
-            ConnectionWorkflow testSubject = this.CreateTestSubject(projectsChanged, out command);
+            
             var controller = new ConfigurableProgressController();
-            var notifications = new ConfigurableUserNotification();
-            command.UserNotification = notifications;
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
-            this.settings.ShowServerNuGetTrustWarning = true;
+            var testSubject= new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), projectsChanged);
 
             // Act
             testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
@@ -154,8 +75,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.IsTrue(projectChangedCallbackCalled, "ConnectedProjectsCallaback was not called");
             sonarQubeService.AssertConnectRequests(1);
             Assert.AreSame(connectionInfo, ((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
-            notifications.AssertNoShowErrorMessages();
-            notifications.AssertNoNotification(NotificationIds.FailedToConnectId);
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
         }
 
         [TestMethod]
@@ -163,7 +84,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            ConnectCommand command;
             bool projectChangedCallbackCalled = false;
             ConnectedProjectsCallback projectsChanged = (c, p) =>
             {
@@ -171,13 +91,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Assert.AreSame(connectionInfo, c, "Unexpected connection");
                 Assert.IsNull(p, "Not expecting any projects");
             };
-            ConnectionWorkflow testSubject = this.CreateTestSubject(projectsChanged, out command);
             var controller = new ConfigurableProgressController();
             this.sonarQubeService.AllowConnections = false;
-            var notifications = new ConfigurableUserNotification();
-            command.UserNotification = notifications;
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), projectsChanged);
 
             // Act
             testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
@@ -187,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(1);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
-            notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
             // Act (reconnect with same bad connection)
             executionEvents.Reset();
@@ -199,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(2);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
-            notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
             // Cancelled connections
             CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -216,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(3);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
-            notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
         }
 
         [TestMethod]
@@ -224,15 +142,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            ConnectCommand command;
             ConnectedProjectsCallback projectsChanged = (c, p) => { };
-            ConnectionWorkflow testSubject = this.CreateTestSubject(projectsChanged, out command);
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(() => { }), projectsChanged);
             var controller = new ConfigurableProgressController();
             this.sonarQubeService.AllowConnections = true;
             this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
             this.sonarQubeService.ClearServerPlugins();
-            var notifications = new ConfigurableUserNotification();
-            command.UserNotification = notifications;
+            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
+            ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
 
             string expectedErrorMsg = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
@@ -252,11 +169,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         #endregion
 
         #region Helpers
-        private ConnectionWorkflow CreateTestSubject(ConnectedProjectsCallback projectsChanged, out ConnectCommand owningCommand)
+        private static void AssertIfCalled()
         {
-            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
-            owningCommand = controller.ConnectCommand;
-            return new ConnectionWorkflow(owningCommand, projectsChanged);
+            Assert.Fail("Command not expected to be called");
         }
         #endregion
     }

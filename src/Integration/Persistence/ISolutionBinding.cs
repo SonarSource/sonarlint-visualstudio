@@ -7,11 +7,21 @@
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    // Test only interface
+    // Test interface
     internal interface ISolutionBinding
     {
+        /// <summary>
+        /// Retrieves solution binding information
+        /// </summary>
+        /// <returns>Can be null if not bound</returns>
         BoundSonarQubeProject ReadSolutionBinding();
 
+        /// <summary>
+        /// Writes the binding information
+        /// </summary>
+        /// <param name="binding">Required</param>
+        /// <param name="sccFileSystem">Required</param>
+        /// <returns>The file path to the binding file</returns>
         string WriteSolutionBinding(ISourceControlledFileSystem sccFileSystem, BoundSonarQubeProject binding);
     }
 }
