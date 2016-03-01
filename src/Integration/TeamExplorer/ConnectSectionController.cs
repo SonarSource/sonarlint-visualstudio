@@ -14,10 +14,10 @@ using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Globalization;
@@ -31,33 +31,36 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ConnectSectionController : IServiceProvider, IDisposable
     {
-        private readonly ObservableCollection<ServerViewModel> connectedServers = new ObservableCollection<ServerViewModel>();
-        private readonly ObservableCollection<ProjectViewModel> boundProjects = new ObservableCollection<ProjectViewModel>();
         private readonly ISonarQubeServiceWrapper sonarQubeService;
         private readonly Dispatcher uiDispatcher;
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTacker;
 
-        private IConnectSection section;
-        private bool isDisposed = false;
-        private bool isConnecting = false;
-        private bool isBinding = false;
+        private bool isDisposed;
         private bool resetBindingWhenAttaching = true;
         private string boundSonarQubeProjectKey;
 
         [ImportingConstructor]
         public ConnectSectionController([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, SonarQubeServiceWrapper sonarQubeService, IActiveSolutionTracker solutionTacker)
-            : this(serviceProvider, sonarQubeService, solutionTacker, Dispatcher.CurrentDispatcher)
+            : this(serviceProvider, new TransferableVisualState(), sonarQubeService, solutionTacker, Dispatcher.CurrentDispatcher)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
         }
 
         internal /*for test purposes*/ ConnectSectionController(IServiceProvider serviceProvider,
+                                    TransferableVisualState state,
                                     ISonarQubeServiceWrapper sonarQubeService,
                                     IActiveSolutionTracker solutionTacker,
                                     Dispatcher uiDispatcher)
         {
+           if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
             this.serviceProvider = serviceProvider;
+            this.State = state;
+            this.State.PropertyChanged += this.OnStatePropertyChanged;
             this.uiDispatcher = uiDispatcher;
             this.sonarQubeService = sonarQubeService;
             this.solutionTacker = solutionTacker;
@@ -70,16 +73,39 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
         }
 
+        #region State
+        internal TransferableVisualState State
+        {
+            get;
+        }
+
+        private void OnStatePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(this.State.IsBusy))
+            {
+                ConnectSectionViewModel vm = this.AttachedSection?.ViewModel;
+                if (vm != null)
+                {
+                    vm.IsBusy = this.State.IsBusy;
+                }
+            }
+        }
+        #endregion
+
+        #region Notifications
+#pragma warning disable S2333 // Redundant modifiers should be removed, Justification: for test purposes
         /// <summary>
         /// API to notify the user. Can be null when we're not supposed to notify the user.
         /// </summary>
-        internal /*for testing purposes*/ virtual IUserNotification Notification
+        protected virtual IUserNotification Notification
+#pragma warning restore S2333 // Redundant modifiers should be removed
         {
             get
             {
                 return this.AttachedSection?.ViewModel;
             }
         }
+        #endregion
 
         #region Initialization
         internal /*for testing purposes*/ void SetConnectCommand(ConnectCommand cmd = null)
@@ -101,85 +127,24 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #region Controller API
 
-        public bool IsConnecting
-        {
-            get { return this.isConnecting; }
-            set
-            {
-                this.isConnecting = value;
-                this.UpdateBusyState();
-            }
-        }
-
-        public bool IsBinding
-        {
-            get { return this.isBinding; }
-            set
-            {
-                this.isBinding = value;
-                this.UpdateBusyState();
-            }
-        }
-
-        internal ObservableCollection<ServerViewModel> ConnectedServers
-        {
-            get
-            {
-                Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(ConnectedServers)} should only be accessed from the UI thread");
-                return this.connectedServers;
-            }
-        }
-
-        public ObservableCollection<ProjectViewModel> BoundProjects
-        {
-            // We only need the bound projects for easy tracking of whether any of the 
-            // servers has a bound project (see ConnectSectionView.xaml), so need to keep 
-            // it up-to-date by using ClearBoundProjects and SetBoundProject
-            get
-            {
-                Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(BoundProjects)} should only be accessed from the UI thread");
-                return this.boundProjects;
-            }
-        }
-
         internal IConnectSection AttachedSection
         {
-            get { return this.section; }
+            get;
+            private set;
         }
 
-        public void ClearAllBoundProjects()
+        public void ClearBoundProject()
         {
-            Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(ClearAllBoundProjects)} should only be accessed from the UI thread");
+            Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(ClearBoundProject)} should only be accessed from the UI thread");
             this.ClearBindingErrorNotifications();
-            foreach (ServerViewModel server in this.ConnectedServers)
-            {
-                this.ClearBoundProjects(server);
-            }
-        }
-
-        public void ClearBoundProjects(ServerViewModel serverViewModel)
-        {
-            Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(ClearBoundProjects)} should only be accessed from the UI thread");
-            this.ClearBindingErrorNotifications();
-            foreach (ProjectViewModel project in serverViewModel.Projects)
-            {
-                if (this.BoundProjects.Contains(project))
-                {
-                    this.BoundProjects.Remove(project);
-                }
-                project.IsBound = false;
-            }
-
-            serverViewModel.ShowAllProjects = true;
+            this.State.ClearBoundProject();
         }
 
         public void SetBoundProject(ProjectViewModel projectViewModel)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(SetBoundProject)} should only be accessed from the UI thread");
             this.ClearBindingErrorNotifications();
-            projectViewModel.IsBound = true;
-            projectViewModel.Owner.ShowAllProjects = false;
-            this.BoundProjects.Add(projectViewModel);
+            this.State.SetBoundProject(projectViewModel);
         }
 
         public void Attach(IConnectSection section)
@@ -189,9 +154,9 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                 throw new ArgumentNullException(nameof(section));
             }
 
-            Debug.Assert(this.section == null, "Already attached. Detach first");
+            Debug.Assert(this.AttachedSection == null, "Already attached. Detach first");
 
-            this.section = section;
+            this.AttachedSection = section;
             this.AttachViewModel(section.ViewModel);
             this.AttachView((IProgressControlHost)section.View);
 
@@ -216,29 +181,27 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                 throw new ArgumentNullException(nameof(section));
             }
 
-            if (this.section == null) // Can be called multiple times
+            if (this.AttachedSection == null) // Can be called multiple times
             {
                 return;
             }
 
             this.SaveState();
-            this.section.ViewModel.ConnectedServers = null;
-            this.section.ViewModel.BoundProjects = null;
-            this.DetachView((IProgressControlHost)section.View);
-            this.DetachViewModel(section.ViewModel);
-            this.section = null;
+            this.AttachedSection.ViewModel.State = null;
+            this.DetachView();
+            this.DetachViewModel();
+            this.AttachedSection = null;
         }
 
         private void LoadState()
         {
-            Debug.Assert(this.section != null, "Not attached to any section attached");
+            Debug.Assert(this.AttachedSection != null, "Not attached to any section attached");
 
-            if (this.section != null)
+            if (this.AttachedSection != null)
             {
-                this.section.ViewModel.ConnectedServers = this.ConnectedServers;
-                this.section.ViewModel.BoundProjects = this.BoundProjects;
+                this.AttachedSection.ViewModel.State = this.State;
 
-                IProgressControlHost progressHost = section.View as IProgressControlHost;
+                IProgressControlHost progressHost = this.AttachedSection.View as IProgressControlHost;
                 Debug.Assert(progressHost != null, "View is expected to implement IProgressControlHost");
                 ProgressStepRunner.ChangeHost(progressHost);
             }
@@ -246,22 +209,12 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private void SaveState()
         {
-            Debug.Assert(this.section != null, "Not attached to any section attached");
+            Debug.Assert(this.AttachedSection != null, "Not attached to any section attached");
             // All the state (ConnectedServers) is currently on the controller
             // or defined elsewhere, so just verifying that at this point
-            if (this.section != null)
+            if (this.AttachedSection != null)
             {
-                Debug.Assert(ReferenceEquals(this.ConnectedServers, this.section.ViewModel.ConnectedServers), "Broken invariant - the connected servers are different!");
-            }
-        }
-
-        private void UpdateBusyState()
-        {
-            Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be called on the UI thread");
-            ConnectSectionViewModel vm = this.section?.ViewModel;
-            if (vm != null)
-            {
-                vm.IsBusy = this.IsBinding || this.IsConnecting;
+                Debug.Assert(ReferenceEquals(this.State, this.AttachedSection.ViewModel.State), "Broken invariant - the connected servers are different!");
             }
         }
 
@@ -297,8 +250,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private bool CanExecRefresh()
         {
-            return !this.IsConnecting
-                && !this.IsBinding
+            return !this.State.IsBusy
                 && this.sonarQubeService.CurrentConnection != null;
         }
 
@@ -419,7 +371,9 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         #endregion
 
         #region Workflow event handler
-        internal /*for testing purposes*/ protected virtual void SetProjects(object sender, ConnectedProjectsEventArgs args)
+#pragma warning disable S2333 // Redundant modifiers should be removed, Justification: for test purposes
+        protected virtual void SetProjects(object sender, ConnectedProjectsEventArgs args)
+#pragma warning restore S2333 // Redundant modifiers should be removed
         {
             if (this.uiDispatcher.CheckAccess())
             {
@@ -445,20 +399,19 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             if (projects == null)
             {
                 // Disconnected, clear all
-                this.ConnectedServers.ToList().ForEach(s => this.ClearBoundProjects(s));
-                this.ConnectedServers.Clear();
-                Debug.Assert(this.BoundProjects.Count == 0, "Not expected any bound projects");
+                this.ClearBoundProject();
+                this.State.ConnectedServers.Clear();
             }
             else
             {
-                var existingServerVM = this.ConnectedServers.Where(serverVM => serverVM.Url == connection.ServerUri).SingleOrDefault();
+                var existingServerVM = this.State.ConnectedServers.SingleOrDefault(serverVM => serverVM.Url == connection.ServerUri);
                 ServerViewModel serverViewModel;
                 if (existingServerVM == null)
                 {
                     // Add new server
                     serverViewModel = new ServerViewModel(connection);
                     this.AddServerVMCommands(serverViewModel);
-                    this.ConnectedServers.Add(serverViewModel);
+                    this.State.ConnectedServers.Add(serverViewModel);
                 }
                 else
                 {
@@ -467,7 +420,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                 }
 
                 serverViewModel.SetProjects(projects);
-                Debug.Assert(serverViewModel.ShowAllProjects == true, "ShowAllProjects should have been set");
+                Debug.Assert(serverViewModel.ShowAllProjects, "ShowAllProjects should have been set");
                 this.SetProjectVMCommands(serverViewModel);
                 this.RestoreBoundProject(serverViewModel);
             }
@@ -562,7 +515,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.BindCommand.ProgressControlHost = view;
         }
 
-        private void DetachView(IProgressControlHost view)
+        private void DetachView()
         {
             this.ConnectCommand.ProgressControlHost = null;
             this.BindCommand.ProgressControlHost = null;
@@ -578,7 +531,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.BindCommand.UserNotification = vm;
         }
 
-        private void DetachViewModel(ConnectSectionViewModel vm)
+        private void DetachViewModel()
         {
             this.ConnectCommand.UserNotification = null;
             this.BindCommand.UserNotification = null;
@@ -594,12 +547,15 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #region IDisposable Support
 
+#pragma warning disable S2333 // Redundant modifiers should be removed, Justification: for test purposes
         protected virtual void Dispose(bool disposing)
+#pragma warning restore S2333 // Redundant modifiers should be removed
         {
             if (!this.isDisposed)
             {
                 if (disposing)
                 {
+                    this.State.PropertyChanged -= this.OnStatePropertyChanged;
                     this.ConnectCommand.ProjectsChanged -= this.SetProjects;
                     this.solutionTacker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
                 }

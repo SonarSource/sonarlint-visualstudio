@@ -137,6 +137,7 @@
     <Compile Include="Service\RoslynExporter\NuGetPackageInfo.cs" />
     <Compile Include="Service\RoslynExporter\RoslynExportProfile.cs" />
     <Compile Include="Service\VersionHelper.cs" />
+    <Compile Include="State\TransferableVisualState.cs" />
     <Compile Include="TeamExplorer\ITeamExplorerController.cs" />
     <Compile Include="TeamExplorer\ResourceHelper.cs" />
     <Compile Include="TeamExplorer\SonarQubeNavigationItem.cs" />

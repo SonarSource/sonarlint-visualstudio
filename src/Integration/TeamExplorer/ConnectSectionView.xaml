@@ -40,17 +40,17 @@
 
         <ContentControl Name="progressPlacePlaceholder"/>
 
-        <StackPanel Visibility="{Binding ConnectedServers.Count, Converter={StaticResource IntToVisibleConverter}}">
+        <StackPanel Visibility="{Binding State.ConnectedServers.Count, Converter={StaticResource IntToVisibleConverter}}">
 
             <TextBlock Style="{StaticResource SQStaticTextStyle}"
                        Text="{x:Static resx:Strings.SelectSonarQubeProjectInstruction}"
                        TextWrapping="Wrap"
-                       Visibility="{Binding BoundProjects.Count, Converter={StaticResource IntToVisibleConverter}, ConverterParameter=Invert}"
+                       Visibility="{Binding State.HasBoundProject, Converter={StaticResource TrueToVisibleConverter}, ConverterParameter=Invert}"
                        Margin="0,0,0,6"/>
 
             <TreeView x:Name="ServerTreeView"
                       Margin="0,0,0,6"
-                      ItemsSource="{Binding ConnectedServers}"
+                      ItemsSource="{Binding State.ConnectedServers}"
                       Style="{StaticResource SQTreeViewStyle}"
                       ItemContainerStyle="{StaticResource SQServerTreeViewItemStyle}">
                 <TreeView.Resources>

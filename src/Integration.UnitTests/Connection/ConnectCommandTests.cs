@@ -5,13 +5,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Progress.Controller;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.ComponentModel.Design;
 using System.Globalization;
@@ -35,23 +36,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.connectionWorkflow = new ConfigurableConnectionWorkflow(this.sonarQubeService);
             this.connectionProvider = new ConfigurableConnectionInformationProvider();
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane());
+            this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
+            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
         }
 
         #region  Tests
         [TestMethod]
         public void ConnectCommand_Ctor_ArgumentChecks()
         {
+            ConnectCommand suppressAnalysisIssue;
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                new ConnectCommand(null, new ConfigurableSonarQubeServiceWrapper());
+                suppressAnalysisIssue = new ConnectCommand(null, new ConfigurableSonarQubeServiceWrapper());
             });
 
             ThreadHelper.SetCurrentThreadAsUIThread();
             var controller = new ConnectSectionController(new ServiceContainer(), new SonarQubeServiceWrapper(new ServiceContainer()), new ConfigurableActiveSolutionTracker());
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                new ConnectCommand(controller, null);
+                suppressAnalysisIssue = new ConnectCommand(controller, null);
             });
         }
 
@@ -237,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         #region Helpers
         private ConnectCommand CreateTestSubject()
         {
-            var controller = new ConnectSectionController(this.serviceProvider, this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
+            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
             return new ConnectCommand(controller, this.sonarQubeService, this.connectionProvider, this.connectionWorkflow);
         }
         #endregion

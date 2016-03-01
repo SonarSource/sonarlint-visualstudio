@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
@@ -109,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionWorkflow_DontWarnAgainCanExec_NoSettings_IsFalse()
         {
             // Setup
-            var controller = new ConnectSectionController(new ConfigurableServiceProvider(false), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
+            var controller = new ConnectSectionController(new ConfigurableServiceProvider(false), new TransferableVisualState(), sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
             var command = new ConnectCommand(controller, this.sonarQubeService);
             ConnectedProjectsCallback callback = (c, p) => { };
             var testSubject = new ConnectionWorkflow(command, callback);
@@ -123,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            var projects = new ProjectInformation[] { new ProjectInformation() { Key = "project1" } };
+            var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
             this.sonarQubeService.ReturnProjectInformation = projects;
             ConnectCommand command;
             bool projectChangedCallbackCalled = false;
@@ -158,7 +159,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            var projects = new ProjectInformation[] { new ProjectInformation() { Key = "project1" } };
             ConnectCommand command;
             bool projectChangedCallbackCalled = false;
             ConnectedProjectsCallback projectsChanged = (c, p) =>
@@ -181,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
             Assert.IsTrue(projectChangedCallbackCalled, "ConnectedProjectsCallaback was not called");
-            sonarQubeService.AssertConnectRequests(1);
+            this.sonarQubeService.AssertConnectRequests(1);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
             Assert.IsTrue(projectChangedCallbackCalled, "ConnectedProjectsCallaback was not called");
-            sonarQubeService.AssertConnectRequests(2);
+            this.sonarQubeService.AssertConnectRequests(2);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
@@ -210,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultCancellation);
             Assert.IsTrue(projectChangedCallbackCalled, "ConnectedProjectsCallaback was not called");
-            sonarQubeService.AssertConnectRequests(3);
+            this.sonarQubeService.AssertConnectRequests(3);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
         }
@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         #region Helpers
         private ConnectionWorkflow CreateTestSubject(ConnectedProjectsCallback projectsChanged, out ConnectCommand owningCommand)
         {
-            var controller = new ConnectSectionController(this.serviceProvider, this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
+            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
             owningCommand = controller.ConnectCommand;
             return new ConnectionWorkflow(owningCommand, projectsChanged);
         }

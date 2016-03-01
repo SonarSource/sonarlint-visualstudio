@@ -63,13 +63,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             get
             {
-                return this.Controller.IsBinding;
+                return this.Controller.State.IsBusy;
             }
             private set
             {
-                if (this.Controller.IsBinding != value)
+                if (this.Controller.State.IsBusy != value)
                 {
-                    this.Controller.IsBinding = value;
+                    this.Controller.State.IsBusy = value;
                     this.WpfCommand.RequeryCanExecute();
                 }
             }
@@ -84,11 +84,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return base.OnQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "S1067:Expressions should not be too complex", 
+            Justification = "We need all those conditions to determine whether the command is enabled", 
+            Scope = "member", 
+            Target = "~M:SonarLint.VisualStudio.Integration.Binding.BindCommand.CanExecuteBind(SonarLint.VisualStudio.Integration.TeamExplorer.ProjectViewModel)~System.Boolean")]
         private bool CanExecuteBind(ProjectViewModel projectVM)
         {
-            return !this.IsBindingInProgress
-                && this.SonarQubeService.CurrentConnection != null
-                && !this.Controller.IsConnecting
+            return this.SonarQubeService.CurrentConnection != null
+                && !this.Controller.State.IsBusy
                 && this.ProgressControlHost != null
                 && projectVM?.ProjectInformation != null
                 && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()
@@ -106,15 +109,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflow.BindProject(ProjectViewModel projectVM)
         {
-            BindingWorkflow workflow = new BindingWorkflow(this, projectVM.ProjectInformation);
-            IProgressEvents progressEvents = workflow.Run();
+            BindingWorkflow workflowExecutor = new BindingWorkflow(this, projectVM.ProjectInformation);
+            IProgressEvents progressEvents = workflowExecutor.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
             this.SetBindingInProgress(progressEvents, projectVM);
         }
 
         internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, ProjectViewModel projectVM)
         {
-            this.OnBindingStarted(projectVM);
+            this.OnBindingStarted();
 
             ProgressNotificationListener progressListener = new ProgressNotificationListener(this.ServiceProvider, progressEvents);
             progressListener.MessageFormat = Strings.BindingSolutionPrefixMessageFormat;
@@ -127,16 +130,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             });
         }
 
-        private void OnBindingStarted(ProjectViewModel projectVM)
+        private void OnBindingStarted()
         {
             this.IsBindingInProgress = true;
-            this.UserNotification.HideNotification(NotificationIds.FailedToBindId);
+            this.UserNotification?.HideNotification(NotificationIds.FailedToBindId);
         }
 
         private void OnBindingFinished(ProjectViewModel projectVM, bool isFinishedSuccessfully)
         {
             this.IsBindingInProgress = false;
-            this.Controller.ClearAllBoundProjects();
+            this.Controller.ClearBoundProject();
 
             if (isFinishedSuccessfully)
             {
@@ -145,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
             else
             {
-                this.UserNotification.ShowNotificationError(Strings.FailedToToBindSolution,
+                this.UserNotification?.ShowNotificationError(Strings.FailedToToBindSolution,
                     NotificationIds.FailedToBindId,
                     new ContextualCommandViewModel(projectVM, this.WpfCommand).Command);
             }

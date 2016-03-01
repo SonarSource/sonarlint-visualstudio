@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsNotNull(testSubject.View, "Failed to get the View");
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
 
-            // Case 2: re-initialization with connection but no projects;
+            // Case 2: re-initialization with connection but no projects
             var connection = new ConnectionInformation(new Uri("http://localhost"));
             this.sonarQubeService.SetConnection(connection);
             this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ConnectSectionViewModel vm = ((IConnectSection)testSubject).ViewModel;
             VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(vm, connection);
 
-            // Case 3: re-initialization with connection and projects;
+            // Case 3: re-initialization with connection and projects
             var projects = new [] { new ProjectInformation() };
             this.sonarQubeService.ReturnProjectInformation = projects;
             ResetSection(testSubject);
@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private static void ResetSection(ConnectSection section)
         {
             section.Controller.Detach(section);
-            section.Controller.ConnectedServers.Clear();
+            section.Controller.State.ConnectedServers.Clear();
             section.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
             section.Refresh();
         }
@@ -175,13 +175,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private static void VerifyConnectSectionViewModelIsNotConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
         {
-            ServerViewModel serverVM = vm.ConnectedServers.SingleOrDefault(s => s.Url == connection.ServerUri);
+            ServerViewModel serverVM = vm.State.ConnectedServers.SingleOrDefault(s => s.Url == connection.ServerUri);
             Assert.IsNull(serverVM, "Should not find server view model for {0}", connection.ServerUri);
         }
 
         private static ServerViewModel VerifyConnectSectionViewModelIsConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
         {
-            ServerViewModel serverVM = vm.ConnectedServers.SingleOrDefault(s => s.Url == connection.ServerUri);
+            ServerViewModel serverVM = vm.State.ConnectedServers.SingleOrDefault(s => s.Url == connection.ServerUri);
             Assert.IsNotNull(serverVM, "Could not find server view model for {0}", connection.ServerUri);
 
             return serverVM;
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private class TestCommandTarget : IOleCommandTarget
         {
-            private int queryStatusNumberOfCalls = 0;
+            private int queryStatusNumberOfCalls;
 
             #region IOleCommandTarget
             int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)

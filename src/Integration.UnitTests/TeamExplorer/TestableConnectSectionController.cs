@@ -7,6 +7,7 @@
 
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
 using System.Windows.Threading;
@@ -17,14 +18,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
     {
         public TestableConnectSectionController(IServiceProvider serviceProvider,
                                                ISonarQubeServiceWrapper sonarQubeService)
-            : this(serviceProvider, sonarQubeService, new ConfigurableActiveSolutionTracker())
+            : this(serviceProvider, new TransferableVisualState(), sonarQubeService, new ConfigurableActiveSolutionTracker())
         {
         }
 
         public TestableConnectSectionController(IServiceProvider serviceProvider,
+                                                TransferableVisualState state,
                                                 ISonarQubeServiceWrapper sonarQubeService,
                                                 IActiveSolutionTracker tracker)
-            : base(serviceProvider, sonarQubeService, tracker, Dispatcher.CurrentDispatcher)
+            : base(serviceProvider, state, sonarQubeService, tracker, Dispatcher.CurrentDispatcher)
         {
         }
 
@@ -36,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         } = new ConfigurableUserNotification();
 
         #region Overrides
-        internal override IUserNotification Notification
+        protected override IUserNotification Notification
         {
             get
             {
@@ -44,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             }
         }
 
-        internal protected override void SetProjects(object sender, ConnectedProjectsEventArgs args)
+        protected override void SetProjects(object sender, ConnectedProjectsEventArgs args)
         {
             if (this.SetProjectsAction != null)
             {
@@ -57,6 +59,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // This call will make sure that that async request is executed now 
             DispatcherHelper.DispatchFrame();
+        }
+        #endregion
+
+        #region Test accessors
+        public void InvokeSetProjects(ConnectedProjectsEventArgs args)
+        {
+            this.SetProjects(null, args);
+        }
+
+        public IUserNotification NotificationAccessor
+        {
+            get
+            {
+                return this.Notification;
+            }
         }
         #endregion
     }

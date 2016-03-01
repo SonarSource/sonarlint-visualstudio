@@ -73,13 +73,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             get
             {
-                return this.controller.IsConnecting;
+                return this.controller.State.IsBusy;
             }
             set
             {
-                if (this.controller.IsConnecting != value)
+                if (this.controller.State.IsBusy != value)
                 {
-                    this.controller.IsConnecting = value;
+                    this.controller.State.IsBusy = value;
                     this.WpfCommand.RequeryCanExecute();
                 }
             }
@@ -92,13 +92,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             return this.SonarQubeService.CurrentConnection == null
                 && this.ProgressControlHost != null
-                && !this.controller.IsConnecting;
+                && !this.controller.State.IsBusy;
         }
 
         private void OnConnect()
         {
             Debug.Assert(this.OnConnectStatus());
-            Debug.Assert(!this.controller.IsConnecting, "Service is in a connecting state");
+            Debug.Assert(!this.controller.State.IsBusy, "Service is in a connecting state");
 
             var connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
             if (connectionInfo != null)

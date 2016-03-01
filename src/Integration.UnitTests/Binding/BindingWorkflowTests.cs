@@ -16,6 +16,7 @@ using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
+using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane());
+            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
         }
@@ -300,7 +301,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var connectionInfo = new ConnectionInformation(new Uri("http://xxx"), "user", "pwd".ConvertToSecureString());
-            var projectInfo = new ProjectInformation() { Key = "ProjectKey 1" };
+            var projectInfo = new ProjectInformation { Key = "ProjectKey 1" };
             var testSubject = this.CreateTestSubject(projectInfo);
             this.sonarQubeService.SetConnection(connectionInfo);
             var dte = new DTEMock();
@@ -327,18 +328,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null, IRuleSetGenerationFileSystem fileSystem = null, ProjectRuleSetWriter projectWriter = null)
         {
-            projectInfo = projectInfo ?? new ProjectInformation();
+            var useProjectInfo = projectInfo ?? new ProjectInformation();
+            var slnWriter = new SolutionRuleSetWriter(useProjectInfo, fileSystem);
+            var useProjectWriter = projectWriter ?? new ProjectRuleSetWriter(fileSystem);
 
-            var slnWriter = new SolutionRuleSetWriter(projectInfo, fileSystem);
-            projectWriter = projectWriter ?? new ProjectRuleSetWriter(fileSystem);
+            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
 
-            var controller = new ConnectSectionController(this.serviceProvider, this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
-            return new BindingWorkflow(
-                controller.BindCommand,
-                projectInfo,
-                slnWriter,
-                projectWriter,
-                this.projectSystemHelper);
+            return new BindingWorkflow(controller.BindCommand, useProjectInfo, slnWriter, useProjectWriter, this.projectSystemHelper);
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] managedProjects)
