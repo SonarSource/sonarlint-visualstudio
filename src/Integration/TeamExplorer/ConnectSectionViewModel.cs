@@ -7,8 +7,8 @@
 
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
+using SonarLint.VisualStudio.Integration.State;
 using System;
-using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
@@ -16,8 +16,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     internal class ConnectSectionViewModel : TeamExplorerSectionViewModelBase,
                                         IUserNotification /* Most of it implemented by TeamExplorerSectionViewModelBase */
     {
-        private ObservableCollection<ServerViewModel> connectedServers;
-        private ObservableCollection<ProjectViewModel> boundProjects;
+        private TransferableVisualState state;
         private ICommand connectCommand;
         private ICommand bindCommand;
 
@@ -44,16 +43,10 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #region Properties
 
-        public ObservableCollection<ServerViewModel> ConnectedServers
+        public TransferableVisualState State
         {
-            get { return this.connectedServers; }
-            set { this.SetAndRaisePropertyChanged(ref this.connectedServers, value); }
-        }
-
-        public ObservableCollection<ProjectViewModel> BoundProjects
-        {
-            get { return this.boundProjects; }
-            set { this.SetAndRaisePropertyChanged(ref this.boundProjects, value); }
+            get { return this.state; }
+            set { this.SetAndRaisePropertyChanged(ref this.state, value); }
         }
 
         #endregion

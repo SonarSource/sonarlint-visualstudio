@@ -145,6 +145,7 @@
     <Compile Include="Binding\ProjectRuleSetWriterTests.cs" />
     <Compile Include="ActiveSolutionTrackerTests.cs" />
     <Compile Include="Service\VersionHelperTests.cs" />
+    <Compile Include="State\TransferableVisualStateTests.cs" />
     <Compile Include="TeamExplorer\ConnectSectionControllerTests.cs" />
     <Compile Include="TeamExplorer\ConnectSectionTests.cs" />
     <Compile Include="TeamExplorer\ConnectSectionViewModelTests.cs" />

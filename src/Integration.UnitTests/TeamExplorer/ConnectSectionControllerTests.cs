@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
@@ -69,9 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             var testSubject = this.CreateTestSubject();
-            var section = new ConfigurableConnectSection();
-            var vm = section.ViewModel = new ConnectSectionViewModel();
-            var view = section.View = new TestableConnectSectionView();
+            var section =  CreateConnectSection();
             testSubject.Attach(section);
 
             // Act
@@ -90,9 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Setup
             bool firedProjectsChangedEvent = false;
             var testSubject = this.CreateTestSubject(setProjectsAction: () => firedProjectsChangedEvent = true);
-            var section = new ConfigurableConnectSection();
-            var vm = section.ViewModel = new ConnectSectionViewModel();
-            var view = section.View = new TestableConnectSectionView();
+            var section =  CreateConnectSection();
 
             // Act (attach + raise event)
             testSubject.Attach(section);
@@ -126,15 +123,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             var testSubject1 = this.CreateTestSubject();
-            var server1 = new ServerViewModel(new ConnectionInformation(new Uri("http://www1")));
-            var project1 = new ProjectViewModel(server1, new ProjectInformation { Name = "Proj1", Key = "p1" });
-            testSubject1.ConnectedServers.Add(server1);
-            testSubject1.BoundProjects.Add(project1);
-            var server2 = new ServerViewModel(new ConnectionInformation(new Uri("http://www2")));
-            var project2 = new ProjectViewModel(server2, new ProjectInformation { Name = "Proj2", Key = "p2" });
-            testSubject1.ConnectedServers.Add(server2);
-            testSubject1.BoundProjects.Add(project2);
-            // Detached sections
             var section1 = CreateConnectSection();
             var section2 = CreateConnectSection();
 
@@ -142,22 +130,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject1.Attach(section2);
 
             // Verify
-            Assert.AreSame(testSubject1.ConnectedServers, section2.ViewModel.ConnectedServers);
-            Assert.AreSame(testSubject1.BoundProjects, section2.ViewModel.BoundProjects);
+            Assert.AreSame(testSubject1.State, section2.ViewModel.State);
 
             // Act (detach)
             testSubject1.Detach(section2);
 
             // Verify 
-            Assert.IsNull(section2.ViewModel.ConnectedServers);
-            Assert.IsNull(section2.ViewModel.BoundProjects);
+            Assert.IsNull(section2.ViewModel.State);
 
             // Act (attach a different section, will load the state on it)
             testSubject1.Attach(section1);
 
             // Verify
-            Assert.AreSame(testSubject1.ConnectedServers, section1.ViewModel.ConnectedServers);
-            Assert.AreSame(testSubject1.BoundProjects, section1.ViewModel.BoundProjects);
+            Assert.AreSame(testSubject1.State, section1.ViewModel.State);
         }
 
         [TestMethod]
@@ -175,18 +160,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.sonarQubeService.SetConnection(new Uri("http://connected"));
             this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
 
-            // Case 3: Connecting
-            testSubject.IsConnecting = true;
+            // Case 3: busy
+            testSubject.State.IsBusy = true;
             // Act + Verify CanExecute
             Assert.IsFalse(testSubject.RefreshCommand.CanExecute(null));
 
-            // Case 4: Binding
-            testSubject.IsConnecting = false;
-            testSubject.IsBinding = true;
-            // Act + Verify CanExecute
-            Assert.IsFalse(testSubject.RefreshCommand.CanExecute(null));
-
-            testSubject.IsBinding = false;
+            testSubject.State.IsBusy = false;
 
             // Act + Verify CanExecute
             Assert.IsTrue(testSubject.RefreshCommand.CanExecute(null));
@@ -227,9 +206,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = this.CreateTestSubject();
             var connInfo = new ConnectionInformation(new Uri("http://localhost"));
             var projectInfo = new ProjectInformation { Key = "p1", Name = "proj1" };
-            testSubject.SetProjects(null, new ConnectedProjectsEventArgs(connInfo, new[] { projectInfo }));
+            testSubject.InvokeSetProjects(new ConnectedProjectsEventArgs(connInfo, new[] { projectInfo }));
 
-            ServerViewModel server = testSubject.ConnectedServers.First();
+            ServerViewModel server = testSubject.State.ConnectedServers.First();
             ProjectViewModel project = server.Projects.Single();
             ContextualCommandViewModel toggleContextCmd = server.Commands.First(x => x.InternalRealCommand == testSubject.ToggleShowAllProjectsCommand);
 
@@ -239,8 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.AreEqual(Strings.HideUnboundProjectsCommandText, toggleContextCmd.DisplayText, "Unexpected disabled context command text");
 
             // Case 2: Bound
-            project.IsBound = true;
-            testSubject.BoundProjects.Add(project);
+            testSubject.State.SetBoundProject(project);
 
             // Case 2a: Hide --> Show
             // Setup
@@ -271,18 +249,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Setup
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
             var connection2 = new ConnectionInformation(new Uri("http://127.0.0.2"));
-            var testSubject = (TestableConnectSectionController)this.CreateTestSubject();
+            var testSubject = this.CreateTestSubject();
             var section = new ConfigurableConnectSection();
-            var vm = section.ViewModel = new ConnectSectionViewModel() { ConnectedServers = testSubject.ConnectedServers };
+            var vm = section.ViewModel = new ConnectSectionViewModel { State = testSubject.State };
             section.View = new TestableConnectSectionView();
             testSubject.Attach(section);
             var projects = new ProjectInformation[] { new ProjectInformation(), new ProjectInformation() };
             this.sonarQubeService.SetConnection(connection1);
-            ServerViewModel serverVM = null;
+            ServerViewModel serverVM;
 
             // Act + Verify
             // Case 1 - no active connection (indicated by the null in projects rather that the using the service figure this out)
-            testSubject.Notification.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
+            testSubject.NotificationAccessor.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.ConnectCommand.ConnectedProjectsChanged(connection1, null);
 
             testSubject.NotificationOverride.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
@@ -291,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             VerifyConnectSectionViewModelHasNoBoundProjects(vm);
 
             // Case 2 - connection1, empty project collection
-            testSubject.Notification.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
+            testSubject.NotificationAccessor.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.ConnectCommand.ConnectedProjectsChanged(connection1, new ProjectInformation[0]);
 
             testSubject.NotificationOverride.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
@@ -302,7 +280,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             VerifyConnectSectionViewModelHasNoBoundProjects(vm);
 
             // Case 3 - connection1, non-empty project collection
-            testSubject.Notification.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
+            testSubject.NotificationAccessor.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.ConnectCommand.ConnectedProjectsChanged(connection1, projects);
 
             testSubject.NotificationOverride.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
@@ -314,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 4 - connection2, change projects
             testSubject.ConnectCommand.ConnectedProjectsChanged(connection1, projects);
-            testSubject.Notification.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
+            testSubject.NotificationAccessor.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.ConnectCommand.ConnectedProjectsChanged(connection2, projects);
 
             testSubject.NotificationOverride.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
@@ -328,14 +306,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Case 5 - connection1 & connection2, once detached (connected or not), are reset, changes still being tracked
             testSubject.Detach(section);
             testSubject.ConnectCommand.ConnectedProjectsChanged(connection1, projects);
-            testSubject.Notification.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
+            testSubject.NotificationAccessor.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.ConnectCommand.ConnectedProjectsChanged(connection2, projects);
             // Sanity
             testSubject.NotificationOverride.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             VerifyConnectSectionViewModelIsNotConnected(vm, connection1);
             VerifyConnectSectionViewModelIsNotConnected(vm, connection2);
             // Act
-            testSubject.Notification.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
+            testSubject.NotificationAccessor.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.Attach(section);
             // Verify
             testSubject.NotificationOverride.AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId);
@@ -347,72 +325,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         }
 
         [TestMethod]
-        public void ConnectSectionController_ClearBoundProjects()
+        public void ConnectSectionController_ClearBoundProject()
         {
             // Setup
-            var testSubject = (TestableConnectSectionController)this.CreateTestSubject();
+            var testSubject = this.CreateTestSubject();
+            testSubject.NotificationAccessor.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
+            testSubject.State.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz1"))));
+            testSubject.State.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz2"))));
+            testSubject.State.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new ProjectInformation()) { IsBound = true }));
+            var allProjects = testSubject.State.ConnectedServers.SelectMany(s => s.Projects).ToList();
+            testSubject.State.SetBoundProject(allProjects.First());
 
-            var serverA = new ServerViewModel(new ConnectionInformation(new Uri("http://sonarqube-A")));
-            serverA.SetProjects(new[]
-            {
-                new ProjectInformation { Key = "A_p1", Name = "A_Project1" },
-                new ProjectInformation { Key = "A_p2", Name = "A_Project2" }
-            });
-            IList<ProjectViewModel> projectsA = serverA.Projects.ToList();
-            projectsA[0].IsBound = true;
-
-            var serverB = new ServerViewModel(new ConnectionInformation(new Uri("http://sonarqube-B")));
-            serverB.SetProjects(new[]
-            {
-                new ProjectInformation { Key = "B_p1", Name = "B_Project1" },
-                new ProjectInformation { Key = "B_p2", Name = "B_Project2" }
-
-            });
-            IList<ProjectViewModel> projectsB = serverB.Projects.ToList();
-            projectsB[0].IsBound = true;
-
-            testSubject.ConnectedServers.Add(serverA);
-            testSubject.ConnectedServers.Add(serverB);
-            testSubject.BoundProjects.Add(projectsA[0]);
-            testSubject.BoundProjects.Add(projectsB[0]);
-
-            serverA.ShowAllProjects = false;
-            serverB.ShowAllProjects = false;
-            testSubject.Notification.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
+            // Sanity
+            Assert.IsTrue(testSubject.State.HasBoundProject);
 
             // Act
-            testSubject.ClearBoundProjects(serverA);
+            testSubject.ClearBoundProject();
 
             // Verify
-            Assert.AreSame(projectsB[0], testSubject.BoundProjects.Single(), "Expected only server B bound project");
-            Assert.IsTrue(projectsB[0].IsBound, "Expected server B bound project to remain bound");
-            Assert.IsFalse(projectsB[1].IsBound, "Expected server B unbound project remain unbound");
-            Assert.IsFalse(serverB.ShowAllProjects, "Server B ShowAllProjects should remain false");
-
-            Assert.IsFalse(projectsA[0].IsBound, "Expected server A bound project to now be set as unbound");
-            Assert.IsFalse(projectsA[1].IsBound, "Expected server A unbound project remain unbound");
-            Assert.IsTrue(serverA.ShowAllProjects, "Server A ShowAllProjects should be true after clearing it's bound projects");
-            testSubject.NotificationOverride.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
-        }
-
-        [TestMethod]
-        public void ConnectSectionController_ClearAllBoundProjects()
-        {
-            // Setup
-            var testSubject = (TestableConnectSectionController)this.CreateTestSubject();
-            testSubject.Notification.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
-            testSubject.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz1"))));
-            testSubject.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz2"))));
-            testSubject.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new ProjectInformation()) { IsBound = true }));
-            var allProjects = testSubject.ConnectedServers.SelectMany(s => s.Projects).ToList();
-            allProjects.ForEach(p => testSubject.BoundProjects.Add(p));
-
-            // Act
-            testSubject.ClearAllBoundProjects();
-
-            // Verify
-            Assert.AreEqual(0, testSubject.BoundProjects.Count, "All the bound projects were supposed to be cleared");
-            Assert.IsFalse(allProjects.Any(p => p.IsBound), "Not expecting any bound projects");
+            Assert.IsFalse(testSubject.State.HasBoundProject);
             testSubject.NotificationOverride.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
         }
 
@@ -420,8 +351,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void ConnectSectionController_SetBoundProject()
         {
             // Setup
-            var testSubject = (TestableConnectSectionController)this.CreateTestSubject();
-            testSubject.Notification.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
+            var testSubject = this.CreateTestSubject();
+            testSubject.NotificationAccessor.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             ServerViewModel serverVM = new ServerViewModel(new ConnectionInformation(new Uri("http://xyz")));
             ProjectViewModel project1 = new ProjectViewModel(serverVM, new ProjectInformation());
             serverVM.Projects.Add(project1);
@@ -435,7 +366,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.NotificationOverride.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             Assert.IsTrue(project2.IsBound, "Expected to be bound");
             Assert.IsFalse(project1.IsBound, "Not expected to be bound");
-            CollectionAssert.AreEqual(new[] { project2 }, testSubject.BoundProjects.ToArray(), "Unexpected projects in the bound collection");
+            Assert.IsTrue(testSubject.State.HasBoundProject, "Expected a bound project");
         }
 
         [TestMethod]
@@ -447,47 +378,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var section = CreateConnectSection();
 
             // Case 1: not attached -> no-op (i.e. no exception)
-            testSubject.IsBinding = true;
-            testSubject.IsConnecting = true;
-            testSubject.IsBinding = false;
-            testSubject.IsConnecting = false;
+            testSubject.State.IsBusy = true;
+            testSubject.State.IsBusy = false;
 
             // Case 2: controller attached to section
             testSubject.Attach(section);
 
-            // Sanity (!IsBinding & !IsConnecting -> !IsBusy)
+            // Sanity (!IsBus)
             Assert.IsFalse(section.ViewModel.IsBusy);
 
-            // Act (IsBinding -> IsBusy)
-            testSubject.IsBinding = true;
+            // Act (IsBusy -> IsBusy)
+            testSubject.State.IsBusy = true;
 
             // Verify
             Assert.IsTrue(section.ViewModel.IsBusy);
 
-            // Act (!IsBinding -> !IsBusy)
-            testSubject.IsBinding = false;
+            // Act (!IsBusy -> !IsBusy)
+            testSubject.State.IsBusy = false;
 
             // Verify
             Assert.IsFalse(section.ViewModel.IsBusy);
-
-            // Act (IsConnecting -> IsBusy)
-            testSubject.IsConnecting = true;
-
-            // Verify
-            Assert.IsTrue(section.ViewModel.IsBusy);
-
-            // Act (!IsConnecting -> !IsBusy)
-            testSubject.IsConnecting = false;
-
-            // Verify
-            Assert.IsFalse(section.ViewModel.IsBusy);
-
-            // Act (IsConnecting && IsBinding -> IsBusy)
-            testSubject.IsConnecting = true;
-            testSubject.IsBinding = true;
-
-            // Verify
-            Assert.IsTrue(section.ViewModel.IsBusy);
         }
         #endregion
 
@@ -511,12 +421,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private ConnectSectionController CreateTestSubject(ConfigurableActiveSolutionTracker tracker)
         {
-            var controller = new TestableConnectSectionController(this.serviceProvider, this.sonarQubeService, tracker);
+            var controller = new TestableConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, tracker);
             controller.SetConnectCommand(new ConnectCommand(controller, this.sonarQubeService, null, this.workflow));
             return controller;
         }
 
-        private ConnectSectionController CreateTestSubject(Action setProjectsAction = null)
+        private TestableConnectSectionController CreateTestSubject(Action setProjectsAction = null)
         {
             var controller = new TestableConnectSectionController(this.serviceProvider, this.sonarQubeService)
             {
@@ -597,13 +507,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private static void VerifyConnectSectionViewModelIsNotConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
         {
-            ServerViewModel serverVM = vm.ConnectedServers?.SingleOrDefault(s => s.Url == connection.ServerUri);
+            ServerViewModel serverVM = vm.State?.ConnectedServers?.SingleOrDefault(s => s.Url == connection.ServerUri);
             Assert.IsNull(serverVM, "Should not find server view model for {0}", connection.ServerUri);
         }
 
         private static ServerViewModel VerifyConnectSectionViewModelIsConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
         {
-            ServerViewModel serverVM = vm.ConnectedServers?.SingleOrDefault(s => s.Url == connection.ServerUri);
+            ServerViewModel serverVM = vm.State?.ConnectedServers?.SingleOrDefault(s => s.Url == connection.ServerUri);
             Assert.IsNotNull(serverVM, "Could not find server view model for {0}", connection.ServerUri);
 
             return serverVM;
@@ -611,7 +521,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private static void VerifyConnectSectionViewModelHasNoBoundProjects(ConnectSectionViewModel vm)
         {
-            Assert.IsFalse(vm.BoundProjects.Any(), "View model should not have any bound projects");
+            Assert.IsFalse(vm.State.HasBoundProject, "View model should not have any bound projects");
         }
 
         #endregion
