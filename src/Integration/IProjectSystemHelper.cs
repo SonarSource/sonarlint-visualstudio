@@ -26,5 +26,7 @@ namespace SonarLint.VisualStudio.Integration
         void AddFileToProject(Project project, string file);
 
         IEnumerable<Project> GetSolutionManagedProjects();
+
+        Microsoft.Build.Evaluation.Project GetEquivalentMSBuildProject(EnvDTE.Project project);
     }
 }

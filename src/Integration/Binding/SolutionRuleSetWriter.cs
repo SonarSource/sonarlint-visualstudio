@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             string solutionRoot = Path.GetDirectoryName(solutionFullPath);
-            string ruleSetRoot = this.GetOrCreateRuleSetDirectory(PathHelper.ForceDirectoryEnding(solutionRoot));
+            string ruleSetRoot = this.GetOrCreateRuleSetDirectory(solutionRoot);
 
             // Create or overwrite existing rule set
             string existingRuleSetPath = GenerateSolutionRuleSetPath(ruleSetRoot, this.projectInformation, fileNameSuffix);

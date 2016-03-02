@@ -9,6 +9,7 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using MSBuild = Microsoft.Build.Evaluation;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -89,6 +90,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
             private set;
         }
+
+        public List<string> AdditionalFilePaths
+        {
+            get;
+        } = new List<string>();
 
         #endregion
 
@@ -270,6 +276,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.RuleSetInjector.CommitUpdates();
 
+            this.InjectAdditionalFiles();
+
             this.PersistBinding();
         }
 
@@ -341,13 +349,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Solution2 solution = this.projectSystemHelper.GetCurrentActiveSolution();
             if (solution == null)
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, Strings.FailedToUnpackAdditionalFiles);
-                bool aborted = controller.TryAbort();
-                Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
+                Debug.Fail("Cannot get current active solution");
+                return;
             }
 
             string solutionRoot = Path.GetDirectoryName(solution.FullName);
-            string root = this.solutionRuleSetWriter.GetOrCreateRuleSetDirectory(PathHelper.ForceDirectoryEnding(solutionRoot));
+            string root = this.solutionRuleSetWriter.GetOrCreateRuleSetDirectory(solutionRoot);
 
             DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, this.AdditionalFiles.Count());
 
@@ -363,6 +370,61 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 string filePath = Path.Combine(root, additionalFile.FileName);
                 File.WriteAllBytes(filePath, additionalFile.Content);
+
+                this.AdditionalFilePaths.Add(filePath);
+            }
+        }
+
+        private void InjectAdditionalFiles()
+        {
+            InjectAdditionalFilesIntoSolution();
+            InjectAdditionalFilesIntoProjects();
+        }
+
+        internal /*for testing purposes*/ void InjectAdditionalFilesIntoProjects()
+        {
+            foreach (var project in this.projectSystemHelper.GetSolutionManagedProjects())
+            {
+                string projectRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(project.FullName));
+
+                MSBuild.Project msBuildProject = this.projectSystemHelper.GetEquivalentMSBuildProject(project);
+
+                Debug.Assert(msBuildProject != null, "Couldn't find equivalent MSBuild project object to VS project object");
+
+                if (msBuildProject != null)
+                {
+                    // Try and find all existing additional files, and fully resolve their full file paths
+                    var existingFullPaths = new HashSet<string>(
+                        from item in msBuildProject.Items
+                        where item.ItemType == Constants.AdditionalFilePropertyKey
+                        select PathHelper.ResolveRelativePath(item.EvaluatedInclude, project.FullName),
+                        StringComparer.OrdinalIgnoreCase);
+
+                    // Add those files which aren't already in the project
+                    var fullPathsToAdd = this.AdditionalFilePaths.Where(x => !existingFullPaths.Contains(x));
+                    foreach (var fullPath in fullPathsToAdd)
+                    {
+                        string relativePath = PathHelper.CalculateRelativePath(projectRoot, fullPath);
+                        msBuildProject.AddItem(Constants.AdditionalFilePropertyKey, relativePath);
+                    }
+                }
+            }
+        }
+
+        internal /*for testing purposes*/ void InjectAdditionalFilesIntoSolution()
+        {
+            Project solutionItemsProject = this.projectSystemHelper.GetSolutionItemsProject();
+            if (solutionItemsProject == null)
+            {
+                Debug.Fail("Could not find the solution items project");
+            }
+            else
+            {
+                // Add additional files to the solution items project
+                foreach (var additionalFilePath in this.AdditionalFilePaths)
+                {
+                    this.projectSystemHelper.AddFileToProject(solutionItemsProject, additionalFilePath);
+                }
             }
         }
 

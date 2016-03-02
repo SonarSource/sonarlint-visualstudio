@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
+using MSBuild = Microsoft.Build.Evaluation;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -309,8 +310,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             string solutionRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
             string solutionFilePath = Path.Combine(solutionRoot, "Solution.sln");
-            ProjectMock project1 = new ProjectMock("project1");
-            ProjectMock project2 = new ProjectMock("project2");
             SolutionMock solution = new SolutionMock(new DTEMock(), solutionFilePath);
             this.projectSystemHelper.CurrentActiveSolution = solution;
 
@@ -326,6 +325,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.UnpackAdditionalFiles(new ConfigurableProgressController(), CancellationToken.None, progressEvents);
 
             // Verify
+            Assert.AreEqual(2, testSubject.AdditionalFilePaths.Count, "Unexpected number of file paths stored");
+            Assert.IsTrue(testSubject.AdditionalFilePaths.Contains(expectedFile1Path), "File 1 path was not stored");
+            Assert.IsTrue(testSubject.AdditionalFilePaths.Contains(expectedFile2Path), "File 2 path was not stored");
             Assert.IsTrue(File.Exists(expectedFile1Path), "File 1 was not written to the correct location");
             Assert.IsTrue(File.Exists(expectedFile2Path), "File 2 was not written to the correct location");
             CollectionAssert.AreEqual(file1.Content, File.ReadAllBytes(expectedFile1Path), "Unexpected file 1 content");
@@ -336,6 +338,96 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             progressEvents.AssertProgress(
                 .5,
                 1.0);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_InjectAdditionalFilesIntoSolution()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            const string solutionRoot = @"X:\SolutionDir\";
+            string sonarDirPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
+
+            var solutionItemsProject = new ProjectMock("Solution items");
+            this.projectSystemHelper.SolutionItemsProject = solutionItemsProject;
+
+            string additionalFilePath1 = Path.Combine(sonarDirPath, "extra1.xml");
+            string additionalFilePath2 = Path.Combine(sonarDirPath, "extra2.xml");
+            testSubject.AdditionalFilePaths.Add(additionalFilePath1);
+            testSubject.AdditionalFilePaths.Add(additionalFilePath2);
+
+            // Act
+            testSubject.InjectAdditionalFilesIntoSolution();
+
+            // Verify
+            Assert.IsTrue(solutionItemsProject.Files.ContainsKey(additionalFilePath1), "Failed to add additional file to solution items");
+            Assert.IsTrue(solutionItemsProject.Files.ContainsKey(additionalFilePath2), "Failed to add additional file to solution items");
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_InjectAdditionalFilesIntoProjects()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            const string solutionRoot = @"X:\SolutionDir\";
+            string sonarDirPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
+
+            string project1Root = Path.Combine(solutionRoot, "p1");
+            string project2Root = Path.Combine(solutionRoot, "p2");
+            var project1 = new ProjectMock(Path.Combine(project1Root, "p1.proj"));
+            var project2 = new ProjectMock(Path.Combine(project1Root, "p2.proj"));
+            this.projectSystemHelper.ManagedProjects = new[] { project1, project2 };
+
+            string additionalFilePath1 = Path.Combine(sonarDirPath, "extra1.xml");
+            string additionalFilePath2 = Path.Combine(sonarDirPath, "extra2.xml");
+            testSubject.AdditionalFilePaths.Add(additionalFilePath1);
+            testSubject.AdditionalFilePaths.Add(additionalFilePath2);
+
+            var msbuildProject1 = new MSBuild.Project();
+            var msbuildProject2 = new MSBuild.Project();
+            this.projectSystemHelper.MsBuildProjectMapping.Add(project1, msbuildProject1);
+            this.projectSystemHelper.MsBuildProjectMapping.Add(project2, msbuildProject2);
+
+            // Act
+            testSubject.InjectAdditionalFilesIntoProjects();
+
+            // Verify
+            VerifyAdditionalFileAddedToProject(project1, msbuildProject1, additionalFilePath1);
+            VerifyAdditionalFileAddedToProject(project2, msbuildProject2, additionalFilePath1);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_InjectAdditionalFilesIntoProjects_ExistingFile_DoesNotAddToProject()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            const string solutionRoot = @"X:\SolutionDir\";
+            string sonarDirPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
+
+            string projectRoot = Path.Combine(solutionRoot, "p1");
+            var project = new ProjectMock(Path.Combine(projectRoot, "p1.proj"));
+            this.projectSystemHelper.ManagedProjects = new[] { project };
+
+            string additionalFilePath = Path.Combine(sonarDirPath, "FOOBAR.XML");
+            testSubject.AdditionalFilePaths.Add(additionalFilePath);
+
+            string existingFullPath = Path.Combine(sonarDirPath, "foobar.xml");
+            string existingRelativePath = PathHelper.CalculateRelativePath(project.FilePath, existingFullPath);
+            var msbuildProject = new MSBuild.Project();
+            msbuildProject.AddItemFast(Constants.AdditionalFilePropertyKey, existingRelativePath);
+            this.projectSystemHelper.MsBuildProjectMapping.Add(project, msbuildProject);
+
+            // Sanity
+            Assert.AreEqual(1, msbuildProject.Items.Count(x => x.ItemType == Constants.AdditionalFilePropertyKey), "Expected 1 additional file in the project beforehand");
+
+            // Act
+            testSubject.InjectAdditionalFilesIntoProjects();
+
+            // Verify
+            Assert.AreEqual(1, msbuildProject.Items.Count(x => x.ItemType == Constants.AdditionalFilePropertyKey), "Unexpected number of additional files; none should have been added/removed");
         }
 
         [TestMethod]
@@ -426,6 +518,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 CollectionAssert.AreEqual(expected[i].Content, actual[i].Content, $"Files have different content at index {i}.");
             }
         }
+
+        private static void VerifyAdditionalFileAddedToProject(Project vsProject, MSBuild.Project msbuildProject, string additionalFilePath)
+        {
+            string relativePath = PathHelper.CalculateRelativePath(vsProject.FullName, additionalFilePath);
+
+            var additionalFileItems = msbuildProject.Items.Where(x => x.ItemType == Constants.AdditionalFilePropertyKey);
+
+            Assert.IsTrue(additionalFileItems.Select(x => x.UnevaluatedInclude).Contains(relativePath), $"AdditionalFile '{relativePath}' is missing");
+        }
+
 
         #endregion
     }

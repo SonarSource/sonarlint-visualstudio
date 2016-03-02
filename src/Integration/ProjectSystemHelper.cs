@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
@@ -194,6 +193,12 @@ namespace SonarLint.VisualStudio.Integration
         private static bool IsProjectKind(Project project, string projectKindGuidString)
         {
             return StringComparer.OrdinalIgnoreCase.Equals(projectKindGuidString, project.Kind);
+        }
+
+        public Microsoft.Build.Evaluation.Project GetEquivalentMSBuildProject(Project project)
+        {
+            return Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection
+                .LoadedProjects.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.FullPath, project.FullName));
         }
     }
 }

@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
-using SonarLint.VisualStudio.Integration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +16,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     internal class ConfigurableVsProjectSystemHelper : IProjectSystemHelper
     {
         private readonly IServiceProvider serviceProvider;
+
+        public IDictionary<Project, Microsoft.Build.Evaluation.Project> MsBuildProjectMapping { get; } = new Dictionary<Project, Microsoft.Build.Evaluation.Project>();
 
         public ConfigurableVsProjectSystemHelper(IServiceProvider serviceProvider)
         {
@@ -59,6 +60,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         Solution2 IProjectSystemHelper.GetCurrentActiveSolution()
         {
             return this.CurrentActiveSolution;
+        }
+
+        Microsoft.Build.Evaluation.Project IProjectSystemHelper.GetEquivalentMSBuildProject(EnvDTE.Project project)
+        {
+            if (this.MsBuildProjectMapping.ContainsKey(project))
+            {
+                return this.MsBuildProjectMapping[project];
+            }
+
+            return null;
         }
 
         #endregion

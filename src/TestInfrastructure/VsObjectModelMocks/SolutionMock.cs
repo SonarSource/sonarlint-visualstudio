@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             : base("Solution.sln")
         {
             this.dte = dte;
-            if (dte!=null)
+            if (dte != null)
             {
                 dte.Solution = this;
             }

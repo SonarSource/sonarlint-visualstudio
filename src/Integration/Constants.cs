@@ -24,5 +24,9 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public const string RuleSetName = "SonarQube";
 
+        /// <summary>
+        /// The property key which corresponds to the Roslyn analyzer additional files
+        /// </summary>
+        public const string AdditionalFilePropertyKey = "AdditionalFile";
     }
 }

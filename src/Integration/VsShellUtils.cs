@@ -89,5 +89,10 @@ namespace SonarLint.VisualStudio.Integration
                 .Where(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, propertyName))
                 .SingleOrDefault();
         }
+
+        internal static IEnumerable<Property> EnumerateProjectProperties(Project project, object additionalFilePropertyKey)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
