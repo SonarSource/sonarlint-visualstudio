@@ -18,7 +18,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ProvideAutoLoad(CommonGuids.PackageActivation)]
     [ProvideOptionPage(typeof(OptionsPage), OptionsPage.CategoryName, OptionsPage.PageName, 901, 902, false, 903)]
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
-         "Building & (HasCSProj | HasVBProj)",
+         "(HasCSProj | HasVBProj)",
         new string[] { "Building",
                        "HasCSProj",
                        "HasVBProj" },
@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private BoundSolutionAnalyzer usageAnalyzer;
         private PackageCommandManager commandManager;
+        private SonarAnalyzerCollisionManager sonarAnalyzerCollisionManager;
 
         protected override void Initialize()
         {
@@ -40,8 +41,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
             this.commandManager = new PackageCommandManager(serviceProvider);
+            this.sonarAnalyzerCollisionManager = new SonarAnalyzerCollisionManager(serviceProvider);
 
             this.commandManager.Initialize();
+            this.sonarAnalyzerCollisionManager.Initialize();
         }
 
         protected override void Dispose(bool disposing)
