@@ -414,6 +414,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to More info....
+        /// </summary>
+        public static string MoreInfoLinkText {
+            get {
+                return ResourceManager.GetString("MoreInfoLinkText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to http://sonarqube.org.
+        /// </summary>
+        public static string MoreInfoLinkUrl {
+            get {
+                return ResourceManager.GetString("MoreInfoLinkUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field can not be empty.
         /// </summary>
         public static string NotEmptyValidatorRequiredField {
@@ -446,6 +464,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string PathHelperAbsolutePathExpected {
             get {
                 return ResourceManager.GetString("PathHelperAbsolutePathExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarSource and Microsoft.
+        /// </summary>
+        public static string ProductAuthors {
+            get {
+                return ResourceManager.GetString("ProductAuthors", resourceCulture);
             }
         }
         
@@ -591,6 +618,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string ShowServerNuGetTrustWarningSettingName {
             get {
                 return ResourceManager.GetString("ShowServerNuGetTrustWarningSettingName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube is an open source platform to manage code quality. Connect your solution to an existing SonarQube Server to get the same issues in Visual Studio and in your SonarQube server..
+        /// </summary>
+        public static string SonarQubeDescription {
+            get {
+                return ResourceManager.GetString("SonarQubeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube.
+        /// </summary>
+        public static string SonarQubeName {
+            get {
+                return ResourceManager.GetString("SonarQubeName", resourceCulture);
             }
         }
         

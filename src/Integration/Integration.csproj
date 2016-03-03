@@ -131,6 +131,7 @@
     <Compile Include="IActiveSolutionTracker.cs" />
     <Compile Include="IServiceProviderExtensions.cs" />
     <Compile Include="IIntegrationSettings.cs" />
+    <Compile Include="IWebBrowser.cs" />
     <Compile Include="Service\DataModel\ServerPlugin.cs" />
     <Compile Include="Service\RoslynExporter\AdditionalFile.cs" />
     <Compile Include="Service\RoslynExporter\Configuration.cs" />
@@ -188,6 +189,7 @@
     <Compile Include="TeamExplorer\ConnectSectionController.cs" />
     <Compile Include="TeamExplorer\IConnectSection.cs" />
     <Compile Include="TelemetryLoggerAccessor.cs" />
+    <Compile Include="WebBrowser.cs" />
     <Compile Include="WPF\ContextualCommandsCollection.cs" />
     <Compile Include="WPF\IconViewModel.cs" />
     <Compile Include="TeamExplorer\IUserNotification.cs" />

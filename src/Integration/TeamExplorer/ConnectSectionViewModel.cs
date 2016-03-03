@@ -19,6 +19,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private TransferableVisualState state;
         private ICommand connectCommand;
         private ICommand bindCommand;
+        private ICommand browseToUrl;
 
         public ConnectSectionViewModel()
         {
@@ -63,6 +64,12 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             get { return this.bindCommand; }
             set { SetAndRaisePropertyChanged(ref this.bindCommand, value); }
+        }
+
+        public ICommand BrowseToUrlCommand
+        {
+            get { return this.browseToUrl; }
+            set { SetAndRaisePropertyChanged(ref this.browseToUrl, value); }
         }
 
         #endregion

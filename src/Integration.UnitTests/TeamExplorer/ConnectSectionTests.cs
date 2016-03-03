@@ -41,8 +41,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Constructor time initialization
             Assert.IsNotNull(testSubject.Controller.ConnectCommand, "ConnectCommand is not initialized");
             Assert.IsNotNull(testSubject.Controller.BindCommand, "BindCommand is not initialized");
+            Assert.IsNotNull(testSubject.Controller.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
             Assert.IsNotNull(testSubject.Controller.DisconnectCommand, "DisconnectCommand is not initialized");
             Assert.IsNotNull(testSubject.Controller.RefreshCommand, "RefreshCommand is not initialized");
+            Assert.IsNotNull(testSubject.Controller.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not initialized");
 
             // Case 1: first time initialization
             // Verify

@@ -63,6 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.AreSame(view, testSubject.BindCommand.ProgressControlHost);
             Assert.AreSame(testSubject.ConnectCommand.WpfCommand, vm.ConnectCommand);
             Assert.AreSame(testSubject.BindCommand.WpfCommand, vm.BindCommand);
+            Assert.AreSame(testSubject.BrowseToUrlCommand, vm.BrowseToUrlCommand);
         }
 
         [TestMethod]
@@ -143,6 +144,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Verify
             Assert.AreSame(testSubject1.State, section1.ViewModel.State);
+        }
+
+        [TestMethod]
+        public void ConnectSectionController_BrowseToUrlCommand()
+        {
+            // Setup
+            var webBrowser = new ConfigurableWebBrowser();
+            var testSubject = new ConnectSectionController(this.serviceProvider,
+                new SonarQubeServiceWrapper(this.serviceProvider),
+                new ConfigurableActiveSolutionTracker(),
+                webBrowser);
+
+            // Case 1: Empty URL
+            // Act + Verify CanExecute
+            Assert.IsFalse(testSubject.BrowseToUrlCommand.CanExecute(null));
+
+            // Case 2: Bad URL
+            // Act + Verify CanExecute
+            Assert.IsFalse(testSubject.BrowseToUrlCommand.CanExecute("notaurl"));
+
+            // Case 3: Good URL
+            const string goodUrl = "http://localhost";
+
+            // Act + Verify CanExecute
+            Assert.IsTrue(testSubject.BrowseToUrlCommand.CanExecute(goodUrl));
+
+            // Act + Verify Execute
+            testSubject.BrowseToUrlCommand.Execute(goodUrl);
+            webBrowser.AssertNavigateToCalls(1);
+            webBrowser.AssertRequestToNavigateTo(goodUrl);
         }
 
         [TestMethod]
@@ -421,7 +452,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private ConnectSectionController CreateTestSubject(ConfigurableActiveSolutionTracker tracker)
         {
-            var controller = new TestableConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, tracker);
+            var controller = new TestableConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, tracker, new ConfigurableWebBrowser());
             controller.SetConnectCommand(new ConnectCommand(controller, this.sonarQubeService, null, this.workflow));
             return controller;
         }

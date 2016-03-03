@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             });
 
             ThreadHelper.SetCurrentThreadAsUIThread();
-            var controller = new ConnectSectionController(new ServiceContainer(), new SonarQubeServiceWrapper(new ServiceContainer()), new ConfigurableActiveSolutionTracker());
+            var controller = new ConnectSectionController(new ServiceContainer(), new SonarQubeServiceWrapper(new ServiceContainer()), new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser());
             Exceptions.Expect<ArgumentNullException>(() =>
             {
                 suppressAnalysisWarning = new BindCommand(controller, null);
@@ -384,7 +384,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
         private BindCommand CreateBindCommand()
         {
-            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
+            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
             return new BindCommand(controller, this.sonarQubeService, this.workflow, this.projectSystemHelper);
         }
 

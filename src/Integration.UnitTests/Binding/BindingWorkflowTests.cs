@@ -466,7 +466,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var slnWriter = new SolutionRuleSetWriter(useProjectInfo, fileSystem);
             var useProjectWriter = projectWriter ?? new ProjectRuleSetWriter(fileSystem);
 
-            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
+            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
 
             return new BindingWorkflow(controller.BindCommand, useProjectInfo, slnWriter, useProjectWriter, this.projectSystemHelper);
         }

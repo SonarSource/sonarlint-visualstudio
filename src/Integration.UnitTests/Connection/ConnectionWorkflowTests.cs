@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionWorkflow_DontWarnAgainCanExec_NoSettings_IsFalse()
         {
             // Setup
-            var controller = new ConnectSectionController(new ConfigurableServiceProvider(false), new TransferableVisualState(), sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
+            var controller = new ConnectSectionController(new ConfigurableServiceProvider(false), new TransferableVisualState(), sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
             var command = new ConnectCommand(controller, this.sonarQubeService);
             ConnectedProjectsCallback callback = (c, p) => { };
             var testSubject = new ConnectionWorkflow(command, callback);
@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         #region Helpers
         private ConnectionWorkflow CreateTestSubject(ConnectedProjectsCallback projectsChanged, out ConnectCommand owningCommand)
         {
-            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
+            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
             owningCommand = controller.ConnectCommand;
             return new ConnectionWorkflow(owningCommand, projectsChanged);
         }

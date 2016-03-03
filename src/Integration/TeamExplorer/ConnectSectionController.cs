@@ -35,14 +35,15 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private readonly Dispatcher uiDispatcher;
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTacker;
+        private readonly IWebBrowser webBrowser;
 
         private bool isDisposed;
         private bool resetBindingWhenAttaching = true;
         private string boundSonarQubeProjectKey;
 
         [ImportingConstructor]
-        public ConnectSectionController([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, SonarQubeServiceWrapper sonarQubeService, IActiveSolutionTracker solutionTacker)
-            : this(serviceProvider, new TransferableVisualState(), sonarQubeService, solutionTacker, Dispatcher.CurrentDispatcher)
+        public ConnectSectionController([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, SonarQubeServiceWrapper sonarQubeService, IActiveSolutionTracker solutionTacker, IWebBrowser webBrowser)
+            : this(serviceProvider, new TransferableVisualState(), sonarQubeService, solutionTacker, webBrowser, Dispatcher.CurrentDispatcher)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
         }
@@ -51,9 +52,10 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                                     TransferableVisualState state,
                                     ISonarQubeServiceWrapper sonarQubeService,
                                     IActiveSolutionTracker solutionTacker,
+                                    IWebBrowser webBrowser,
                                     Dispatcher uiDispatcher)
         {
-           if (state == null)
+            if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
             }
@@ -65,9 +67,11 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.sonarQubeService = sonarQubeService;
             this.solutionTacker = solutionTacker;
             this.solutionTacker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
+            this.webBrowser = webBrowser;
 
             this.SetConnectCommand();
             this.SetBindCommand();
+            this.BrowseToUrlCommand = new RelayCommand<string>(this.ExecBrowseToUrl, this.CanExecBrowseToUrl);
             this.RefreshCommand = new RelayCommand(this.ExecRefresh, this.CanExecRefresh);
             this.DisconnectCommand = new RelayCommand(this.Disconnect, this.CanDisconnect);
             this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
@@ -233,6 +237,11 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
+        internal /*for testing purposes*/ ICommand BrowseToUrlCommand
+        {
+            get;
+        }
+
         internal /*for testing purposes*/ ICommand RefreshCommand
         {
             get;
@@ -246,6 +255,18 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         internal /*for testing purposes*/ ICommand ToggleShowAllProjectsCommand
         {
             get;
+        }
+
+        private bool CanExecBrowseToUrl(string url)
+        {
+            return Uri.IsWellFormedUriString(url, UriKind.Absolute);
+        }
+
+        private void ExecBrowseToUrl(string url)
+        {
+            Debug.Assert(this.CanExecBrowseToUrl(url), "Should not be able to execute!");
+
+            this.webBrowser.NavigateTo(url);
         }
 
         private bool CanExecRefresh()
@@ -527,6 +548,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             vm.ConnectCommand = this.ConnectCommand.WpfCommand;
             vm.BindCommand = this.BindCommand.WpfCommand;
+            vm.BrowseToUrlCommand = this.BrowseToUrlCommand;
             this.ConnectCommand.UserNotification = vm;
             this.BindCommand.UserNotification = vm;
         }

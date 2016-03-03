@@ -18,15 +18,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
     {
         public TestableConnectSectionController(IServiceProvider serviceProvider,
                                                ISonarQubeServiceWrapper sonarQubeService)
-            : this(serviceProvider, new TransferableVisualState(), sonarQubeService, new ConfigurableActiveSolutionTracker())
+            : this(serviceProvider, new TransferableVisualState(), sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser())
         {
         }
 
         public TestableConnectSectionController(IServiceProvider serviceProvider,
                                                 TransferableVisualState state,
                                                 ISonarQubeServiceWrapper sonarQubeService,
-                                                IActiveSolutionTracker tracker)
-            : base(serviceProvider, state, sonarQubeService, tracker, Dispatcher.CurrentDispatcher)
+                                                IActiveSolutionTracker tracker,
+                                                IWebBrowser webBrowser)
+            : base(serviceProvider, state, sonarQubeService, tracker, webBrowser, Dispatcher.CurrentDispatcher)
         {
         }
 

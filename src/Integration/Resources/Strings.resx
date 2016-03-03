@@ -413,4 +413,24 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
     <value>Unpacking additional file: {0}</value>
     <comment>Progress message indicating an additional files is being unpacked. {0} additional file name</comment>
   </data>
+  <data name="MoreInfoLinkText" xml:space="preserve">
+    <value>More info...</value>
+    <comment>Link text for getting more information about SonarQube</comment>
+  </data>
+  <data name="MoreInfoLinkUrl" xml:space="preserve">
+    <value>http://sonarqube.org</value>
+    <comment>Link URL for SonarQube's website</comment>
+  </data>
+  <data name="ProductAuthors" xml:space="preserve">
+    <value>SonarSource and Microsoft</value>
+    <comment>Authors of the product</comment>
+  </data>
+  <data name="SonarQubeDescription" xml:space="preserve">
+    <value>SonarQube is an open source platform to manage code quality. Connect your solution to an existing SonarQube Server to get the same issues in Visual Studio and in your SonarQube server.</value>
+    <comment>Short descriptive text about SonarQube shown on the Team Explorer invitiation card.</comment>
+  </data>
+  <data name="SonarQubeName" xml:space="preserve">
+    <value>SonarQube</value>
+    <comment>Name of SonarQube server product</comment>
+  </data>
 </root>
