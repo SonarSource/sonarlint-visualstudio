@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Tests
         [TestMethod]
-        public void ProjectSystemHelper_GetSolutionManagedProjects()
+        public void ProjectSystemHelper_GetSolutionManagedProjects_ReturnsOnlyCSharp()
         {
             // Setup
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actual = this.testSubject.GetSolutionManagedProjects().ToArray();
 
             // Verify
-            CollectionAssert.AreEqual(new[] { csProject, vbProject }, actual,
+            CollectionAssert.AreEqual(new[] { csProject }, actual,
                 "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
         }
 

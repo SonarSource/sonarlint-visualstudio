@@ -177,7 +177,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private static bool IsManagedProject(Project project)
         {
-            return IsCSharpProject(project) || IsVBProject(project);
+            // NB: We only support C# projects currently because the VB.NET plugin hasn't been updated.
+            return IsCSharpProject(project);
         }
 
         public static bool IsVBProject(Project project)
