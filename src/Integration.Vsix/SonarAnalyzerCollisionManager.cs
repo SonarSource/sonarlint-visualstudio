@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PackageCommandManager.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SonarAnalyzerCollisionManager.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -58,13 +58,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return false;
             }
 
-            foreach (var reference in references.Where(a => a.Display == AnalyzerName))
+            var sameNamedAnalyzers = references
+                .Where(reference => string.Compare(reference.Display, AnalyzerName, StringComparison.OrdinalIgnoreCase) == 0)
+                .ToList();
+
+            if (!sameNamedAnalyzers.Any())
             {
-                Version version = (reference.Id as AssemblyIdentity)?.Version;
-                return version != AnalyzerVersion;
+                return false;
             }
 
-            return false;
+            return sameNamedAnalyzers
+                .Select(reference => (reference.Id as AssemblyIdentity)?.Version)
+                .All(version => version != AnalyzerVersion);
         }
     }
 }
