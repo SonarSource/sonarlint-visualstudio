@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private static Property FindProperty(Properties properties, string propertyName)
+        public static Property FindProperty(Properties properties, string propertyName)
         {
             return properties?.OfType<Property>()
                 .Where(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, propertyName))

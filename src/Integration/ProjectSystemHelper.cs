@@ -111,6 +111,36 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        public void AddFileToProject(Project project, string fullFilePath, string itemType)
+        {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
+            if (string.IsNullOrWhiteSpace(fullFilePath))
+            {
+                throw new ArgumentNullException(nameof(fullFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(itemType))
+            {
+                throw new ArgumentNullException(nameof(itemType));
+            }
+
+            if (!this.IsFileInProject(project, fullFilePath))
+            {
+                ProjectItem item = project.ProjectItems.AddFromFile(fullFilePath);
+                Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Constants.ItemTypePropertyKey);
+
+                Debug.Assert(itemTypeProperty != null, "Failed to set the ItemType of the project item");
+                if (itemTypeProperty != null)
+                {
+                    itemTypeProperty.Value = itemType;
+                }
+            }
+        }
+
         public Solution2 GetCurrentActiveSolution()
         {
             DTE dte = this.serviceProvider.GetService(typeof(DTE)) as DTE;
@@ -194,12 +224,6 @@ namespace SonarLint.VisualStudio.Integration
         private static bool IsProjectKind(Project project, string projectKindGuidString)
         {
             return StringComparer.OrdinalIgnoreCase.Equals(projectKindGuidString, project.Kind);
-        }
-
-        public Microsoft.Build.Evaluation.Project GetEquivalentMSBuildProject(Project project)
-        {
-            return Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection
-                .LoadedProjects.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.FullPath, project.FullName));
         }
     }
 }

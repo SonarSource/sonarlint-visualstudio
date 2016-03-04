@@ -16,7 +16,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ProjectItemsMock : ProjectItems
     {
-        private List<ProjectItem> items = new List<ProjectItem>();
+        private readonly List<ProjectItem> items = new List<ProjectItem>();
 
         public ProjectItemsMock(ProjectMock parent, params ProjectItem[] items)
         {
@@ -125,11 +125,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         // Simplification over the exact structure
         internal class FileProjectItemMock : ProjectItem
         {
+            private readonly PropertiesMock properties;
+
             public FileProjectItemMock(ProjectItemsMock parent, string file)
             {
                 this.Parent = parent;
                 this.Name = file;
-                this.Properties = new PropertiesMock(this);
+                this.properties = new PropertiesMock(this);
+                this.properties.RegisterKnownProperty(Constants.ItemTypePropertyKey);
             }
 
             public ProjectItemsMock Parent
@@ -241,7 +244,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public Properties Properties
             {
-                get;
+                get { return this.properties; }
             }
 
             public bool Saved

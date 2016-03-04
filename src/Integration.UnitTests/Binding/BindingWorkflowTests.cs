@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
-using MSBuild = Microsoft.Build.Evaluation;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -377,7 +376,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string project1Root = Path.Combine(solutionRoot, "p1");
             string project2Root = Path.Combine(solutionRoot, "p2");
             var project1 = new ProjectMock(Path.Combine(project1Root, "p1.proj"));
-            var project2 = new ProjectMock(Path.Combine(project1Root, "p2.proj"));
+            var project2 = new ProjectMock(Path.Combine(project2Root, "p2.proj"));
             this.projectSystemHelper.ManagedProjects = new[] { project1, project2 };
 
             string additionalFilePath1 = Path.Combine(sonarDirPath, "extra1.xml");
@@ -385,49 +384,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.AdditionalFilePaths.Add(additionalFilePath1);
             testSubject.AdditionalFilePaths.Add(additionalFilePath2);
 
-            var msbuildProject1 = new MSBuild.Project();
-            var msbuildProject2 = new MSBuild.Project();
-            this.projectSystemHelper.MsBuildProjectMapping.Add(project1, msbuildProject1);
-            this.projectSystemHelper.MsBuildProjectMapping.Add(project2, msbuildProject2);
-
             // Act
             testSubject.InjectAdditionalFilesIntoProjects();
 
             // Verify
-            VerifyAdditionalFileAddedToProject(project1, msbuildProject1, additionalFilePath1);
-            VerifyAdditionalFileAddedToProject(project2, msbuildProject2, additionalFilePath1);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_InjectAdditionalFilesIntoProjects_ExistingFile_DoesNotAddToProject()
-        {
-            // Setup
-            var testSubject = this.CreateTestSubject();
-
-            const string solutionRoot = @"X:\SolutionDir\";
-            string sonarDirPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
-
-            string projectRoot = Path.Combine(solutionRoot, "p1");
-            var project = new ProjectMock(Path.Combine(projectRoot, "p1.proj"));
-            this.projectSystemHelper.ManagedProjects = new[] { project };
-
-            string additionalFilePath = Path.Combine(sonarDirPath, "FOOBAR.XML");
-            testSubject.AdditionalFilePaths.Add(additionalFilePath);
-
-            string existingFullPath = Path.Combine(sonarDirPath, "foobar.xml");
-            string existingRelativePath = PathHelper.CalculateRelativePath(project.FilePath, existingFullPath);
-            var msbuildProject = new MSBuild.Project();
-            msbuildProject.AddItemFast(Constants.AdditionalFilesPropertyKey, existingRelativePath);
-            this.projectSystemHelper.MsBuildProjectMapping.Add(project, msbuildProject);
-
-            // Sanity
-            Assert.AreEqual(1, msbuildProject.Items.Count(x => x.ItemType == Constants.AdditionalFilesPropertyKey), "Expected 1 additional file in the project beforehand");
-
-            // Act
-            testSubject.InjectAdditionalFilesIntoProjects();
-
-            // Verify
-            Assert.AreEqual(1, msbuildProject.Items.Count(x => x.ItemType == Constants.AdditionalFilesPropertyKey), "Unexpected number of additional files; none should have been added/removed");
+            VerifyAdditionalFileAddedToProject(project1, additionalFilePath1);
+            VerifyAdditionalFileAddedToProject(project2, additionalFilePath1);
         }
 
         [TestMethod]
@@ -519,13 +481,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        private static void VerifyAdditionalFileAddedToProject(Project vsProject, MSBuild.Project msbuildProject, string additionalFilePath)
+        private static void VerifyAdditionalFileAddedToProject(Project project, string additionalFilePath)
         {
-            string relativePath = PathHelper.CalculateRelativePath(vsProject.FullName, additionalFilePath);
+            IEnumerable<ProjectItem> existingAdditionalFileItems = project.ProjectItems.Cast<ProjectItem>().Where(x => x.Properties.Cast<Property>().Any(y => y.Name == Constants.ItemTypePropertyKey));
 
-            var additionalFileItems = msbuildProject.Items.Where(x => x.ItemType == Constants.AdditionalFilesPropertyKey);
+            var additionalFileItem = existingAdditionalFileItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, additionalFilePath));
 
-            Assert.IsTrue(additionalFileItems.Select(x => x.UnevaluatedInclude).Contains(relativePath), $"AdditionalFile '{relativePath}' is missing");
+            Assert.IsNotNull(additionalFileItem, $"AdditionalFile '{additionalFilePath}' is missing");
         }
 
 

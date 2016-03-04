@@ -17,8 +17,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private readonly IServiceProvider serviceProvider;
 
-        public IDictionary<Project, Microsoft.Build.Evaluation.Project> MsBuildProjectMapping { get; } = new Dictionary<Project, Microsoft.Build.Evaluation.Project>();
-
         public ConfigurableVsProjectSystemHelper(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
@@ -57,19 +55,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
+        void IProjectSystemHelper.AddFileToProject(Project project, string file, string itemType)
+        {
+            bool addFileToProject = !project.ProjectItems.OfType<ProjectItem>().Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, file));
+            if (addFileToProject)
+            {
+                var item = project.ProjectItems.AddFromFile(file);
+                Property itemTypeProperty = item.Properties.Cast<Property>().FirstOrDefault(x => x.Name == Constants.ItemTypePropertyKey);
+                if (itemTypeProperty != null)
+                {
+                    itemTypeProperty.Value = itemType;
+                }
+            }
+        }
+
         Solution2 IProjectSystemHelper.GetCurrentActiveSolution()
         {
             return this.CurrentActiveSolution;
-        }
-
-        Microsoft.Build.Evaluation.Project IProjectSystemHelper.GetEquivalentMSBuildProject(EnvDTE.Project project)
-        {
-            if (this.MsBuildProjectMapping.ContainsKey(project))
-            {
-                return this.MsBuildProjectMapping[project];
-            }
-
-            return null;
         }
 
         #endregion

@@ -9,7 +9,6 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using MSBuild = Microsoft.Build.Evaluation;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -356,7 +355,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string solutionRoot = Path.GetDirectoryName(solution.FullName);
             string root = this.solutionRuleSetWriter.GetOrCreateRuleSetDirectory(solutionRoot);
 
-            DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, this.AdditionalFiles.Count());
+            DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, this.AdditionalFiles.Count);
 
             foreach (var additionalFile in this.AdditionalFiles)
             {
@@ -385,28 +384,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             foreach (var project in this.projectSystemHelper.GetSolutionManagedProjects())
             {
-                string projectRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(project.FullName));
-
-                MSBuild.Project msBuildProject = this.projectSystemHelper.GetEquivalentMSBuildProject(project);
-
-                Debug.Assert(msBuildProject != null, "Couldn't find equivalent MSBuild project object to VS project object");
-
-                if (msBuildProject != null)
+                foreach (var additionalFilePath in this.AdditionalFilePaths)
                 {
-                    // Try and find all existing additional files, and fully resolve their full file paths
-                    var existingFullPaths = new HashSet<string>(
-                        from item in msBuildProject.Items
-                        where item.ItemType == Constants.AdditionalFilesPropertyKey
-                        select PathHelper.ResolveRelativePath(item.EvaluatedInclude, project.FullName),
-                        StringComparer.OrdinalIgnoreCase);
-
-                    // Add those files which aren't already in the project
-                    var fullPathsToAdd = this.AdditionalFilePaths.Where(x => !existingFullPaths.Contains(x));
-                    foreach (var fullPath in fullPathsToAdd)
-                    {
-                        string relativePath = PathHelper.CalculateRelativePath(projectRoot, fullPath);
-                        msBuildProject.AddItem(Constants.AdditionalFilesPropertyKey, relativePath);
-                    }
+                    this.projectSystemHelper.AddFileToProject(project, additionalFilePath, Constants.AdditionalFilesPropertyKey);
                 }
             }
         }
