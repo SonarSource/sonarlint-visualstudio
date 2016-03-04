@@ -16,7 +16,7 @@ namespace SonarLint.VisualStudio.Integration.Service.DataModel
         #region Known plugins
 
         public const string CSharpPluginKey = "csharp";
-        public const string CSharpPluginMinimumVersion = "4.5";
+        public const string CSharpPluginMinimumVersion = "5.0";
 
         #endregion
 

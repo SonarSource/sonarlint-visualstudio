@@ -14,6 +14,7 @@
              xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.TeamExplorer"
              xmlns:localWpf="clr-namespace:SonarLint.VisualStudio.Integration.WPF"
              xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
+             xmlns:root="clr-namespace:SonarLint.VisualStudio.Integration"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
@@ -29,14 +30,49 @@
     </UserControl.Resources>
 
     <StackPanel Style="{StaticResource SQTESectionStyle}">
-        <WrapPanel Style="{StaticResource SQActionListStyle}"
-                   Visibility="{Binding ElementName=ConnectLink, Path=IsEnabled, Converter={StaticResource TrueToVisibleConverter}}"
-                   Margin="0,0,0,6">
-            <tecontrols:TextLink x:Name="ConnectLink"
-                                 Text="{x:Static resx:Strings.ConnectLinkText}"
-                                 Command="{Binding ConnectCommand}"
-                                 CommandParameter="{Binding ElementName=progressPlacePlaceholder}"/>
-        </WrapPanel>
+
+        <StackPanel Visibility="{Binding State.ConnectedServers.Count, Converter={StaticResource IntToVisibleConverter}, ConverterParameter=Invert}"
+                    Margin="0,6,6,6">
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Image Grid.Column="0"
+                       VerticalAlignment="Center"
+                       Width="32" Height="32"
+                       SnapsToDevicePixels="True"
+                       Margin="0,0,6,0"
+                       Source="{StaticResource SonarQubeServerIcon}"/>
+                <StackPanel Grid.Column="1"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static resx:Strings.SonarQubeName}"
+                               Style="{StaticResource EmphasizedText}"/>
+                    <TextBlock Text="{x:Static resx:Strings.ProductAuthors}"
+                               Style="{StaticResource SubduedText}"/>
+                </StackPanel>
+            </Grid>
+            <TextBlock Grid.Row="1"
+                       Margin="0,0,0,6"
+                       Text="{x:Static resx:Strings.SonarQubeDescription}"
+                       TextWrapping="Wrap"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <tecontrols:TextLink Grid.Column="0"
+                                     x:Name="ConnectLink"
+                                     Text="{x:Static resx:Strings.ConnectLinkText}"
+                                     Command="{Binding ConnectCommand}"
+                                     CommandParameter="{Binding ElementName=progressPlacePlaceholder}"/>
+                <tecontrols:TextLink Grid.Column="2"
+                                     Text="{x:Static resx:Strings.MoreInfoLinkText}"
+                                     Command="{Binding BrowseToUrlCommand}"
+                                     CommandParameter="{x:Static root:Constants.SonarQubeHomeWebUrl}"/>
+            </Grid>
+        </StackPanel>
 
         <ContentControl Name="progressPlacePlaceholder"/>
 

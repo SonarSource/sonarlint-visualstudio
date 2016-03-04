@@ -316,12 +316,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return testSubject;
         }
 
-        private class TestBindingWorkflow : IBindingWorkflow
+        private class TestBindingWorkflow : IBindingWorkflowExecutor
         {
             public ProjectInformation BoundProject { get; private set; }
 
-            #region IBindingWorkflow
-            void IBindingWorkflow.BindProject(ProjectInformation project)
+            #region IBindingWorkflowExecutor
+            void IBindingWorkflowExecutor.BindProject(ProjectInformation project)
             {
                 this.BoundProject = project;
             }

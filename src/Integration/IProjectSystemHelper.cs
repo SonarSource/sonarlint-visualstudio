@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
+using EnvDTE80;
 using System;
 using System.Collections.Generic;
 
@@ -16,11 +17,15 @@ namespace SonarLint.VisualStudio.Integration
     {
         IServiceProvider ServiceProvider { get; }
 
+        Solution2 GetCurrentActiveSolution();
+
         Project GetSolutionItemsProject();
 
         bool IsFileInProject(Project project, string file);
 
         void AddFileToProject(Project project, string file);
+
+        void AddFileToProject(Project project, string file, string itemType);
 
         IEnumerable<Project> GetSolutionManagedProjects();
     }

@@ -6,10 +6,10 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
-using SonarLint.VisualStudio.Integration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE80;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -54,6 +54,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 project.ProjectItems.AddFromFile(file);
             }
         }
+
+        void IProjectSystemHelper.AddFileToProject(Project project, string file, string itemType)
+        {
+            bool addFileToProject = !project.ProjectItems.OfType<ProjectItem>().Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, file));
+            if (addFileToProject)
+            {
+                var item = project.ProjectItems.AddFromFile(file);
+                Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Constants.ItemTypePropertyKey);
+                if (itemTypeProperty != null)
+                {
+                    itemTypeProperty.Value = itemType;
+                }
+            }
+        }
+
+        Solution2 IProjectSystemHelper.GetCurrentActiveSolution()
+        {
+            return this.CurrentActiveSolution;
+        }
+
         #endregion
 
         #region Test helpers
@@ -63,6 +83,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IEnumerable<Project> ManagedProjects { get; set; }
 
         public Func<Project, string, bool> IsFileInProjectAction { get; set; }
+
+        public Solution2 CurrentActiveSolution { get; set; }
 
         #endregion
     }

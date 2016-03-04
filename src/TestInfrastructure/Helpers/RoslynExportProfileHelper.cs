@@ -12,6 +12,7 @@ using SonarLint.VisualStudio.Integration.Service;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -24,6 +25,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public static RoslynExportProfile CreateExport(RuleSet ruleSet, IEnumerable<PackageName> packages)
         {
+            return CreateExport(ruleSet, Enumerable.Empty<PackageName>(), Enumerable.Empty<AdditionalFile>());
+        }
+
+        public static RoslynExportProfile CreateExport(RuleSet ruleSet, IEnumerable<PackageName> packages, IEnumerable<AdditionalFile> additionalFiles)
+        {
             string xml = TestRuleSetHelper.RuleSetToXml(ruleSet);
             var ruleSetXmlDoc = new XmlDocument();
             ruleSetXmlDoc.LoadXml(xml);
@@ -33,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Configuration = new Configuration
                 {
                     RuleSet = ruleSetXmlDoc.DocumentElement,
-                    AdditionalFiles = new List<AdditionalFile>()
+                    AdditionalFiles = additionalFiles.ToList()
                 },
                 Deployment = new Deployment
                 {

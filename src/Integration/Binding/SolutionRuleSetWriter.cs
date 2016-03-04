@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             string solutionRoot = Path.GetDirectoryName(solutionFullPath);
-            string ruleSetRoot = this.GetOrCreateRuleSetDirectory(PathHelper.ForceDirectoryEnding(solutionRoot));
+            string ruleSetRoot = this.GetOrCreateRuleSetDirectory(solutionRoot);
 
             // Create or overwrite existing rule set
             string existingRuleSetPath = GenerateSolutionRuleSetPath(ruleSetRoot, this.projectInformation, fileNameSuffix);
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Ensure that the solution level SonarQube rule set folder exists and return the full path to it.
         /// </summary>
-        internal /* testing purposes */ string GetOrCreateRuleSetDirectory(string solutionRoot)
+        public string GetOrCreateRuleSetDirectory(string solutionRoot)
         {
             string ruleSetDirectoryPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
             if (!this.FileSystem.DirectoryExists(ruleSetDirectoryPath))

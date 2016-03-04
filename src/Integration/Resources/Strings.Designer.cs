@@ -260,11 +260,11 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Download rules for language &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Download quality profile for language &apos;{0}&apos;.
         /// </summary>
-        public static string DownloadingRulesProgressMessage {
+        public static string DownloadingQualityProfileProgressMessage {
             get {
-                return ResourceManager.GetString("DownloadingRulesProgressMessage", resourceCulture);
+                return ResourceManager.GetString("DownloadingQualityProfileProgressMessage", resourceCulture);
             }
         }
         
@@ -342,6 +342,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to unpack additional files required for analyzers.
+        /// </summary>
+        public static string FailedToUnpackAdditionalFiles {
+            get {
+                return ResourceManager.GetString("FailedToUnpackAdditionalFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Completed successfully.
         /// </summary>
         public static string FinishedSolutionBindingWorkflow {
@@ -405,6 +414,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to More info....
+        /// </summary>
+        public static string MoreInfoLinkText {
+            get {
+                return ResourceManager.GetString("MoreInfoLinkText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field can not be empty.
         /// </summary>
         public static string NotEmptyValidatorRequiredField {
@@ -441,6 +459,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarSource and Microsoft.
+        /// </summary>
+        public static string ProductAuthors {
+            get {
+                return ResourceManager.GetString("ProductAuthors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key: {0}.
         /// </summary>
         public static string ProjectToolTipKeyFormat {
@@ -455,6 +482,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string ProjectToolTipProjectNameFormat {
             get {
                 return ResourceManager.GetString("ProjectToolTipProjectNameFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube quality profile was downloaded successfully.
+        /// </summary>
+        public static string QualityProfileDownloadedSuccessfulMessage {
+            get {
+                return ResourceManager.GetString("QualityProfileDownloadedSuccessfulMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube quality profile: Failed to download profile.
+        /// </summary>
+        public static string QualityProfileDownloadFailedMessage {
+            get {
+                return ResourceManager.GetString("QualityProfileDownloadFailedMessage", resourceCulture);
             }
         }
         
@@ -486,25 +531,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube rule set was downloaded successfully.
-        /// </summary>
-        public static string RuleSetDownloadedSuccessfulMessage {
-            get {
-                return ResourceManager.GetString("RuleSetDownloadedSuccessfulMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube rule set: Failed to download rule set.
-        /// </summary>
-        public static string RuleSetDownloadFailedMessage {
-            get {
-                return ResourceManager.GetString("RuleSetDownloadFailedMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generating rule sets.
+        ///   Looks up a localized string similar to Generating project rule sets.
         /// </summary>
         public static string RuleSetGenerationProgressMessage {
             get {
@@ -586,6 +613,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube is an open source platform to manage code quality. Connect your solution to an existing SonarQube Server to get the same issues in Visual Studio and in your SonarQube server..
+        /// </summary>
+        public static string SonarQubeDescription {
+            get {
+                return ResourceManager.GetString("SonarQubeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube.
+        /// </summary>
+        public static string SonarQubeName {
+            get {
+                return ResourceManager.GetString("SonarQubeName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube request failed: {0} {1}.
         /// </summary>
         public static string SonarQubeRequestFailed {
@@ -663,6 +708,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string UnexpectedWorkflowError {
             get {
                 return ResourceManager.GetString("UnexpectedWorkflowError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unpacking additional file: {0}.
+        /// </summary>
+        public static string UnpackingAdditionalFile {
+            get {
+                return ResourceManager.GetString("UnpackingAdditionalFile", resourceCulture);
             }
         }
         

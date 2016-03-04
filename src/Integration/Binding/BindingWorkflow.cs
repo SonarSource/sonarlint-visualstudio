@@ -5,6 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -80,6 +82,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new List<NuGetPackageInfo>();
 
+        public List<AdditionalFile> AdditionalFiles
+        {
+            get;
+        } = new List<AdditionalFile>();
+
         public Dictionary<RuleSetGroup, string> SolutionRulesetPaths
         {
             get;
@@ -90,6 +97,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
             private set;
         }
+
+        public List<string> AdditionalFilePaths
+        {
+            get;
+        } = new List<string>();
 
         #endregion
 
@@ -142,13 +154,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.VerifyServerPlugins(controller, token, notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.DownloadRuleSet(controller, token, notifications, languages)),
+                        (token, notifications) => this.DownloadQualityProfile(controller, token, notifications, languages)),
 
                 new ProgressStepDefinition(null, IndeterminateNonCancellableUIStep,
                         (token, notifications) => { NuGetHelper.LoadService(this.host); /*The service needs to be loaded on UI thread*/ }),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.InstallPackages(controller, token, notifications)),
+
+                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
+                        (token, notifications) => this.UnpackAdditionalFiles(controller, token, notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableUIStep,
                         (token, notifications) => this.PrepareRuleSetInjector(notifications)),
@@ -180,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        internal /*for testing purposes*/ void DownloadRuleSet(IProgressController controller, CancellationToken cancellationToken, IProgressStepExecutionEvents notificationEvents, IEnumerable<string> languages)
+        internal /*for testing purposes*/ void DownloadQualityProfile(IProgressController controller, CancellationToken cancellationToken, IProgressStepExecutionEvents notificationEvents, IEnumerable<string> languages)
         {
             Debug.Assert(controller != null);
             Debug.Assert(notificationEvents != null);
@@ -191,7 +206,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var language in languages)
             {
-                notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingRulesProgressMessage, language));
+                notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language));
 
                 var export = this.host.SonarQubeService.GetExportProfile(this.project, language, cancellationToken);
 
@@ -202,6 +217,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
 
                 this.NuGetPackages.AddRange(export.Deployment.NuGetPackages);
+
+                this.AdditionalFiles.AddRange(export.Configuration.AdditionalFiles);
 
                 var tempRuleSetFilePath = Path.GetTempFileName();
                 File.WriteAllText(tempRuleSetFilePath, export.Configuration.RuleSet.OuterXml);
@@ -218,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (failed)
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.RuleSetDownloadFailedMessage);
+                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.QualityProfileDownloadFailedMessage);
                 bool aborted = controller.TryAbort();
                 Debug.Assert(aborted || cancellationToken.IsCancellationRequested, "Failed to abort the workflow");
             }
@@ -230,7 +247,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     this.Rulesets[this.LanguageToGroup(keyValue.Key)] = keyValue.Value;
                 }
 
-                notifier.NotifyCurrentProgress(Strings.RuleSetDownloadedSuccessfulMessage);
+                notifier.NotifyCurrentProgress(Strings.QualityProfileDownloadedSuccessfulMessage);
             }
         }
 
@@ -264,6 +281,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(System.Windows.Application.Current?.Dispatcher.CheckAccess() ?? false, "Expected to run on UI thread");
 
             this.RuleSetInjector.CommitUpdates();
+
+            this.InjectAdditionalFiles();
 
             this.PersistBinding();
         }
@@ -326,10 +345,83 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
+        internal /*for testing purposes*/ void UnpackAdditionalFiles(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents)
+        {
+            if (!this.AdditionalFiles.Any())
+            {
+                return; // Nothing to unpack
+            }
+
+            Solution2 solution = this.projectSystemHelper.GetCurrentActiveSolution();
+            if (solution == null)
+            {
+                Debug.Fail("Cannot get current active solution");
+                return;
+            }
+
+            string solutionRoot = Path.GetDirectoryName(solution.FullName);
+            string root = this.solutionRuleSetWriter.GetOrCreateRuleSetDirectory(solutionRoot);
+
+            DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, this.AdditionalFiles.Count);
+
+            foreach (var additionalFile in this.AdditionalFiles)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                string message = string.Format(CultureInfo.CurrentCulture, Strings.UnpackingAdditionalFile, additionalFile.FileName);
+                notifier.NotifyIncrementedProgress(message);
+
+                string filePath = Path.Combine(root, additionalFile.FileName);
+                File.WriteAllBytes(filePath, additionalFile.Content);
+
+                this.AdditionalFilePaths.Add(filePath);
+            }
+        }
+
+        private void InjectAdditionalFiles()
+        {
+            if (this.AdditionalFiles.Any())
+            {
+                InjectAdditionalFilesIntoSolution();
+                InjectAdditionalFilesIntoProjects();
+            }
+        }
+
+        internal /*for testing purposes*/ void InjectAdditionalFilesIntoProjects()
+        {
+            foreach (var project in this.projectSystemHelper.GetSolutionManagedProjects())
+            {
+                foreach (var additionalFilePath in this.AdditionalFilePaths)
+                {
+                    this.projectSystemHelper.AddFileToProject(project, additionalFilePath, Constants.AdditionalFilesItemTypeName);
+                }
+            }
+        }
+
+        internal /*for testing purposes*/ void InjectAdditionalFilesIntoSolution()
+        {
+            Project solutionItemsProject = this.projectSystemHelper.GetSolutionItemsProject();
+            if (solutionItemsProject == null)
+            {
+                Debug.Fail("Could not find the solution items project");
+            }
+            else
+            {
+                // Add additional files to the solution items project
+                foreach (var additionalFilePath in this.AdditionalFilePaths)
+                {
+                    this.projectSystemHelper.AddFileToProject(solutionItemsProject, additionalFilePath);
+                }
+            }
+        }
+
         internal /*for testing purposes*/ string SetSolutionRuleSet(RuleSetGroup group, string solutionFullPath)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(solutionFullPath), "Expecting a solution file path");
-            Debug.Assert(this.Rulesets.ContainsKey(group) && this.Rulesets[group] != null, $"Rule set should have been stashed by previous step ({nameof(DownloadRuleSet)})");
+            Debug.Assert(this.Rulesets.ContainsKey(group) && this.Rulesets[group] != null, $"Rule set should have been stashed by previous step ({nameof(DownloadQualityProfile)})");
 
             RuleSet ruleset;
             string path = null;
@@ -345,7 +437,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal /*for testing purposes*/ string UpdateProjectRuleSet(RuleSetGroup group, string projectFullPath, string configurationName, string currentRuleSet)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(projectFullPath), "Expecting a project full path");
-            Debug.Assert(this.SolutionRulesetPaths.ContainsKey(group) && this.SolutionRulesetPaths[group] != null, $"Rule set should have been stashed by previous step ({nameof(DownloadRuleSet)})");
+            Debug.Assert(this.SolutionRulesetPaths.ContainsKey(group) && this.SolutionRulesetPaths[group] != null, $"Rule set should have been stashed by previous step ({nameof(DownloadQualityProfile)})");
 
             string solutionRuleSetPath = null;
             string projectRuleSetPath = null;

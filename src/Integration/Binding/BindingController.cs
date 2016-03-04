@@ -22,10 +22,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// <summary>
     /// A dedicated controller for the <see cref="BindCommand"/>
     /// </summary>
-    internal class BindingController : HostedCommandControllerBase, IBindingWorkflow
+    internal class BindingController : HostedCommandControllerBase, IBindingWorkflowExecutor
     {
         private readonly IHost host;
-        private readonly IBindingWorkflow workflow;
+        private readonly IBindingWorkflowExecutor workflow;
         private readonly IProjectSystemHelper projectSystemHelper;
 
         public BindingController(IHost host)
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
         }
 
-        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflow workflow, IProjectSystemHelper projectSystemHelper)
+        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflowExecutor workflow, IProjectSystemHelper projectSystemHelper)
             : base(host)
         {
             if (host == null)
@@ -109,9 +109,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
         #endregion
 
-        #region IBindingWorkflow
+        #region IBindingWorkflowExecutor
 
-        void IBindingWorkflow.BindProject(ProjectInformation projectInformation)
+        void IBindingWorkflowExecutor.BindProject(ProjectInformation projectInformation)
         {
             BindingWorkflow workflowExecutor = new BindingWorkflow(this.host, this.BindCommand, projectInformation);
             IProgressEvents progressEvents = workflowExecutor.Run();

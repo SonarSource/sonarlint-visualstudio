@@ -32,10 +32,14 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         internal const int CommandNotHandled = (int)OleConstants.OLECMDERR_E_UNKNOWNGROUP;
 
+        private readonly IWebBrowser webBrowser;
+
+
         [ImportingConstructor]
-        public SectionController([Import] IHost host)
+        public SectionController([Import] IHost host, IWebBrowser webBrowser)
         {
             this.Host = host;
+            this.webBrowser = webBrowser;
         }
 
         internal /*for testing purposes*/ List<IOleCommandTarget> CommandTargets
@@ -93,6 +97,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             this.InitializeControllerCommands();
             this.InitializeProvidedCommands();
+            this.SyncCommands();
 
             this.Host.SetActiveSection(this);
         }
@@ -103,6 +108,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             this.CleanControllerCommands();
             this.CleanProvidedCommands();
+            this.SyncCommands();
 
             // Dispose the View & ViewModel
             base.Dispose();
@@ -138,10 +144,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             return result;
         }
 
-        protected override int IOleCommandTargetExec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
-        {
-            return base.IOleCommandTargetExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-        }
         #endregion
 
         #region Commands
@@ -175,6 +177,12 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
+        public ICommand BrowseToUrlCommand
+        {
+            get;
+            private set;
+        }
+
         private void InitializeControllerCommands()
         {
             // Due to complexity of connect and bind we "outsource" the controlling part 
@@ -188,10 +196,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.ConnectCommand = connectionController.ConnectCommand;
             this.RefreshCommand = connectionController.RefreshCommand;
             this.BindCommand = bindingController.BindCommand;
-
-            IConnectSection section = (IConnectSection)this;
-            section.ViewModel.ConnectCommand = this.ConnectCommand;
-            section.ViewModel.BindCommand = this.BindCommand;
         }
 
         private void CleanControllerCommands()
@@ -201,13 +205,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.ConnectCommand = null;
             this.RefreshCommand = null;
             this.BindCommand = null;
-
-            IConnectSection section = (IConnectSection)this;
-            if (section.ViewModel !=null)
-            {
-                section.ViewModel.ConnectCommand = null;
-                section.ViewModel.BindCommand = null;
-            }
         }
 
         private void InitializeProvidedCommands()
@@ -215,12 +212,25 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             // Simple commands provided by this class directly
             this.DisconnectCommand = new RelayCommand(this.Disconnect, this.CanDisconnect);
             this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
+            this.BrowseToUrlCommand = new RelayCommand<string>(this.ExecBrowseToUrl, this.CanExecBrowseToUrl);
         }
 
         private void CleanProvidedCommands()
         {
             this.DisconnectCommand = null;
             this.ToggleShowAllProjectsCommand = null;
+            this.BrowseToUrlCommand = null;
+        }
+
+        private void SyncCommands()
+        {
+            IConnectSection section = (IConnectSection)this;
+            if (section.ViewModel != null)
+            {
+                section.ViewModel.ConnectCommand = this.ConnectCommand;
+                section.ViewModel.BindCommand = this.BindCommand;
+                section.ViewModel.BrowseToUrlCommand = this.BrowseToUrlCommand;
+            }
         }
 
         private bool CanDisconnect()
@@ -244,6 +254,18 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private void ToggleShowAllProjects(ServerViewModel server)
         {
             server.ShowAllProjects = !server.ShowAllProjects;
+        }
+
+        private bool CanExecBrowseToUrl(string url)
+        {
+            return Uri.IsWellFormedUriString(url, UriKind.Absolute);
+        }
+
+        private void ExecBrowseToUrl(string url)
+        {
+            Debug.Assert(this.CanExecBrowseToUrl(url), "Should not be able to execute!");
+
+            this.webBrowser.NavigateTo(url);
         }
         #endregion
     }

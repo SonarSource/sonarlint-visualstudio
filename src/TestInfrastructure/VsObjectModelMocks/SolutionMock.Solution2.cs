@@ -23,6 +23,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             : base(solutionFile)
         {
             this.dte = dte;
+            if (this.dte != null)
+            {
+                this.dte.Solution = this;
+            }
         }
 
         DTE Solution2.DTE

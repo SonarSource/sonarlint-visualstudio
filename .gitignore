@@ -49,6 +49,9 @@ UnitTestResults.html
 # Visual Studio cache files
 *.sln.ide/
 
+# Visual Studio temp directories
+.vs/
+
 # Visual C++ cache files
 ipch/
 *.aps

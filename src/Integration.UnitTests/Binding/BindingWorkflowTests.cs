@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_DownloadRuleSet_Success()
+        public void BindingWorkflow_DownloadQualityProfile_Success()
         {
             // Setup
             BindingWorkflow testSubject = this.CreateTestSubject();
@@ -94,16 +94,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
-            RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet);
+            var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
+            var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
+            RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             string language = "lang";
             this.ConfigureProfileExport(testSubject, export, language, RuleSetGroup.VB);
 
             // Act
-            testSubject.DownloadRuleSet(controller, CancellationToken.None, notifications, new[] { language });
+            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
             // Verify
             RuleSetAssert.AreEqual(ruleSet, testSubject.Rulesets[RuleSetGroup.VB], "Unexpected rule set");
+            VerifyAdditionalFilesDownloaded(additionalFiles, testSubject);
+            VerifyNuGetPackgesDownloaded(nugetPackages, testSubject);
             this.outputWindowPane.AssertOutputStrings(0);
             controller.AssertNumberOfAbortRequests(0);
             notifications.AssertProgress(
@@ -111,13 +115,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 1.0,
                 1.0);
             notifications.AssertProgressMessages(
-                string.Format(CultureInfo.CurrentCulture, Strings.DownloadingRulesProgressMessage, language),
+                string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language),
                 string.Empty,
-                Strings.RuleSetDownloadedSuccessfulMessage);
+                Strings.QualityProfileDownloadedSuccessfulMessage);
         }
 
         [TestMethod]
-        public void BindingWorkflow_DownloadRuleSet_Failure()
+        public void BindingWorkflow_DownloadQualityProfile_Failure()
         {
             // Setup
             BindingWorkflow testSubject = this.CreateTestSubject();
@@ -126,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProfileExport(testSubject, null, language, RuleSetGroup.VB);
 
             // Act
-            testSubject.DownloadRuleSet(controller, CancellationToken.None, new ConfigurableProgressStepExecutionEvents(), new[] { language });
+            testSubject.DownloadQualityProfile(controller, CancellationToken.None, new ConfigurableProgressStepExecutionEvents(), new[] { language });
 
             // Verify
             Assert.IsFalse(testSubject.Rulesets.ContainsKey(RuleSetGroup.VB), "Not expecting any rules for this language");
@@ -296,6 +300,98 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void BindingWorkflow_UnpackAdditionalFiles()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            string solutionRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+            string solutionFilePath = Path.Combine(solutionRoot, "Solution.sln");
+            SolutionMock solution = new SolutionMock(new DTEMock(), solutionFilePath);
+            this.projectSystemHelper.CurrentActiveSolution = solution;
+
+            var file1 = new AdditionalFile { FileName = "file1.xml", Content = new byte[] { 1, 2, 3 } };
+            var file2 = new AdditionalFile { FileName = "file2.xml", Content = new byte[] { 4, 5, 6 } };
+            testSubject.AdditionalFiles.Add(file1);
+            testSubject.AdditionalFiles.Add(file2);
+
+            string expectedFile1Path = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName, file1.FileName);
+            string expectedFile2Path = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName, file2.FileName);
+
+            // Act
+            testSubject.UnpackAdditionalFiles(new ConfigurableProgressController(), CancellationToken.None, progressEvents);
+
+            // Verify
+            Assert.AreEqual(2, testSubject.AdditionalFilePaths.Count, "Unexpected number of file paths stored");
+            Assert.IsTrue(testSubject.AdditionalFilePaths.Contains(expectedFile1Path), "File 1 path was not stored");
+            Assert.IsTrue(testSubject.AdditionalFilePaths.Contains(expectedFile2Path), "File 2 path was not stored");
+            Assert.IsTrue(File.Exists(expectedFile1Path), "File 1 was not written to the correct location");
+            Assert.IsTrue(File.Exists(expectedFile2Path), "File 2 was not written to the correct location");
+            CollectionAssert.AreEqual(file1.Content, File.ReadAllBytes(expectedFile1Path), "Unexpected file 1 content");
+            CollectionAssert.AreEqual(file2.Content, File.ReadAllBytes(expectedFile2Path), "Unexpected file 1 content");
+            progressEvents.AssertProgressMessages(
+                string.Format(CultureInfo.CurrentCulture, Strings.UnpackingAdditionalFile, file1.FileName),
+                string.Format(CultureInfo.CurrentCulture, Strings.UnpackingAdditionalFile, file2.FileName));
+            progressEvents.AssertProgress(
+                .5,
+                1.0);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_InjectAdditionalFilesIntoSolution()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            const string solutionRoot = @"X:\SolutionDir\";
+            string sonarDirPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
+
+            var solutionItemsProject = new ProjectMock("Solution items");
+            this.projectSystemHelper.SolutionItemsProject = solutionItemsProject;
+
+            string additionalFilePath1 = Path.Combine(sonarDirPath, "extra1.xml");
+            string additionalFilePath2 = Path.Combine(sonarDirPath, "extra2.xml");
+            testSubject.AdditionalFilePaths.Add(additionalFilePath1);
+            testSubject.AdditionalFilePaths.Add(additionalFilePath2);
+
+            // Act
+            testSubject.InjectAdditionalFilesIntoSolution();
+
+            // Verify
+            Assert.IsTrue(solutionItemsProject.Files.ContainsKey(additionalFilePath1), "Failed to add additional file to solution items");
+            Assert.IsTrue(solutionItemsProject.Files.ContainsKey(additionalFilePath2), "Failed to add additional file to solution items");
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_InjectAdditionalFilesIntoProjects()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            const string solutionRoot = @"X:\SolutionDir\";
+            string sonarDirPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
+
+            string project1Root = Path.Combine(solutionRoot, "p1");
+            string project2Root = Path.Combine(solutionRoot, "p2");
+            var project1 = new ProjectMock(Path.Combine(project1Root, "p1.proj"));
+            var project2 = new ProjectMock(Path.Combine(project2Root, "p2.proj"));
+            this.projectSystemHelper.ManagedProjects = new[] { project1, project2 };
+
+            string additionalFilePath1 = Path.Combine(sonarDirPath, "extra1.xml");
+            string additionalFilePath2 = Path.Combine(sonarDirPath, "extra2.xml");
+            testSubject.AdditionalFilePaths.Add(additionalFilePath1);
+            testSubject.AdditionalFilePaths.Add(additionalFilePath2);
+
+            // Act
+            testSubject.InjectAdditionalFilesIntoProjects();
+
+            // Verify
+            VerifyAdditionalFileAddedToProject(project1, additionalFilePath1);
+            VerifyAdditionalFileAddedToProject(project2, additionalFilePath1);
+        }
+
+        [TestMethod]
         public void BindingWorkflow_PersistBinding()
         {
             // Setup
@@ -362,6 +458,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sonarQubeService.ReturnExport[language] = export;
             testSubject.LanguageToGroupMapping[language] = group;
         }
+
+        private static void VerifyNuGetPackgesDownloaded(IEnumerable<PackageName> expectedPackages, BindingWorkflow testSubject)
+        {
+            var expected = expectedPackages.ToArray();
+            var actual = testSubject.NuGetPackages.Select(x => new PackageName(x.Id, new SemanticVersion(x.Version))).ToArray();
+
+            Assert.AreEqual(expected.Length, actual.Length, "Different number of packages.");
+
+            for (int i = 0; i < expected.Length; i++)
+            {
+                Assert.IsTrue(expected[i].Equals(actual[i]), $"Packages are different at index {i}.");
+            }
+        }
+
+        private static void VerifyAdditionalFilesDownloaded(IEnumerable<AdditionalFile> expectedFiles, BindingWorkflow testSubject)
+        {
+            var expected = expectedFiles.ToArray();
+            var actual = testSubject.AdditionalFiles.ToArray();
+
+            Assert.AreEqual(expected.Length, actual.Length, "Different number of files.");
+
+            for (int i = 0; i < expected.Length; i++)
+            {
+                Assert.AreEqual(expected[i].FileName, actual[i].FileName, $"Files have different names at index {i}.");
+                CollectionAssert.AreEqual(expected[i].Content, actual[i].Content, $"Files have different content at index {i}.");
+            }
+        }
+
+        private static void VerifyAdditionalFileAddedToProject(Project project, string additionalFilePath)
+        {
+            IEnumerable<ProjectItem> existingAdditionalFileItems = project.ProjectItems.Cast<ProjectItem>().Where(x => x.Properties.Cast<Property>().Any(y => y.Name == Constants.ItemTypePropertyKey));
+
+            var additionalFileItem = existingAdditionalFileItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, additionalFilePath));
+
+            Assert.IsNotNull(additionalFileItem, $"AdditionalFile '{additionalFilePath}' is missing");
+        }
+
 
         #endregion
     }

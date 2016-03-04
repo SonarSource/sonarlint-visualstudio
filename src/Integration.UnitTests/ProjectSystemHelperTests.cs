@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Tests
         [TestMethod]
-        public void ProjectSystemHelper_GetSolutionManagedProjects()
+        public void ProjectSystemHelper_GetSolutionManagedProjects_ReturnsOnlyCSharp()
         {
             // Setup
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actual = this.testSubject.GetSolutionManagedProjects().ToArray();
 
             // Verify
-            CollectionAssert.AreEqual(new[] { csProject, vbProject }, actual,
+            CollectionAssert.AreEqual(new[] { csProject }, actual,
                 "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
         }
 
@@ -75,6 +75,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.IsFalse(this.testSubject.IsFileInProject(project2, file1));
             Assert.IsFalse(this.testSubject.IsFileInProject(project2, file2));
             Assert.IsFalse(this.testSubject.IsFileInProject(project2, file3));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_IsFileInProject_DifferentCase()
+        {
+            // Setup
+            ProjectMock project = this.solutionMock.AddOrGetProject("project1");
+            string existingFile = "FILENAME";
+            string newFile = "filename";
+            project.AddOrGetFile(existingFile);
+
+            // Act + Verify
+            Assert.IsTrue(this.testSubject.IsFileInProject(project, newFile));
         }
 
         [TestMethod]

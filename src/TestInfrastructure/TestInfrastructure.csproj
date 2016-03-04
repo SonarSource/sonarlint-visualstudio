@@ -148,6 +148,7 @@
     <Compile Include="Framework\ConfigurableVsMonitorSelection.cs" />
     <Compile Include="Framework\ConfigurableVsProjectSystemHelper.cs" />
     <Compile Include="Framework\ConfigurableTelemetryLogger.cs" />
+    <Compile Include="Framework\ConfigurableWebBrowser.cs" />
     <Compile Include="Framework\ConfigurableWritableSettingsStore.cs" />
     <Compile Include="Helpers\AssertIgnoreScope.cs" />
     <Compile Include="Helpers\DispatcherHelper.cs" />

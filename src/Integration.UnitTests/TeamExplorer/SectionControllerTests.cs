@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsNotNull(testSubject.DisconnectCommand, "DisconnectCommand is not initialized");
             Assert.IsNotNull(testSubject.BindCommand, "BindCommand is not initialized");
             Assert.IsNotNull(testSubject.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not initialized");
+            Assert.IsNotNull(testSubject.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
 
             // Case 1: first time initialization
             // Verify
@@ -56,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ReInitialize(testSubject);
 
             // Verify
+            AssertCommandsInSync(testSubject);
             Assert.IsNotNull(testSubject.View, "Failed to get the View");
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
 
@@ -65,6 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ReInitialize(testSubject);
 
             // Verify
+            AssertCommandsInSync(testSubject);
             Assert.IsNotNull(testSubject.View, "Failed to get the View");
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
 
@@ -73,8 +76,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ReInitialize(testSubject);
 
             // Verify
+            AssertCommandsInSync(testSubject);
             Assert.IsNotNull(testSubject.View, "Failed to get the View");
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
+
+            // Case 5: Dispose
+            testSubject.Dispose();
+
+            // Verify
+            Assert.IsNull(testSubject.ConnectCommand, "ConnectCommand is not cleared");
+            Assert.IsNull(testSubject.RefreshCommand, "RefreshCommand is not cleared");
+            Assert.IsNull(testSubject.DisconnectCommand, "DisconnectCommand is not ;");
+            Assert.IsNull(testSubject.BindCommand, "BindCommand is not ;");
+            Assert.IsNull(testSubject.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not ;");
+            Assert.IsNull(testSubject.BrowseToUrlCommand, "BrowseToUrlCommand is not ;");
         }
 
         [TestMethod]
@@ -181,6 +196,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.AreEqual(original, server.ShowAllProjects);
         }
 
+        [TestMethod]
+        public void SectionController_BrowseToUrlCommand()
+        {
+            // Setup
+            var webBrowser = new ConfigurableWebBrowser();
+            var testSubject = this.CreateTestSubject(webBrowser);
+
+            // Case 1: Empty URL
+            // Act + Verify CanExecute
+            Assert.IsFalse(testSubject.BrowseToUrlCommand.CanExecute(null));
+
+            // Case 2: Bad URL
+            // Act + Verify CanExecute
+            Assert.IsFalse(testSubject.BrowseToUrlCommand.CanExecute("not a Uri"));
+
+            // Case 3: Good URL
+            const string goodUrl = "http://localhost";
+
+            // Act + Verify CanExecute
+            Assert.IsTrue(testSubject.BrowseToUrlCommand.CanExecute(goodUrl));
+
+            // Act + Verify Execute
+            testSubject.BrowseToUrlCommand.Execute(goodUrl);
+            webBrowser.AssertNavigateToCalls(1);
+            webBrowser.AssertRequestToNavigateTo(goodUrl);
+        }
         #endregion 
 
         #region Helpers
@@ -226,13 +267,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             #endregion
         }
 
-        private SectionController CreateTestSubject()
+        private SectionController CreateTestSubject(IWebBrowser webBrowser = null)
         {
             var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             host.SonarQubeService = this.sonarQubeService;
-            var controller = new SectionController(host);
+            var controller = new SectionController(host, webBrowser ?? new ConfigurableWebBrowser());
             controller.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
             return controller;
+        }
+
+        private void AssertCommandsInSync(SectionController section)
+        {
+            ConnectSectionViewModel viewModel = (ConnectSectionViewModel)section.ViewModel;
+
+            Assert.AreSame(section.ConnectCommand, viewModel.ConnectCommand, "ConnectCommand is not initialized");
+            Assert.AreSame(section.BindCommand, viewModel.BindCommand, "BindCommand is not initialized");
+            Assert.AreSame(section.BrowseToUrlCommand, viewModel.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
         }
         #endregion
     }

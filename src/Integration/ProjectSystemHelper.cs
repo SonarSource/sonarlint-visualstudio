@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
@@ -112,14 +111,51 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        public void AddFileToProject(Project project, string fullFilePath, string itemType)
+        {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
+            if (string.IsNullOrWhiteSpace(fullFilePath))
+            {
+                throw new ArgumentNullException(nameof(fullFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(itemType))
+            {
+                throw new ArgumentNullException(nameof(itemType));
+            }
+
+            if (!this.IsFileInProject(project, fullFilePath))
+            {
+                ProjectItem item = project.ProjectItems.AddFromFile(fullFilePath);
+                Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Constants.ItemTypePropertyKey);
+
+                Debug.Assert(itemTypeProperty != null, "Failed to set the ItemType of the project item");
+                if (itemTypeProperty != null)
+                {
+                    itemTypeProperty.Value = itemType;
+                }
+            }
+        }
+
+        public Solution2 GetCurrentActiveSolution()
+        {
+            DTE dte = this.serviceProvider.GetService(typeof(DTE)) as DTE;
+            Debug.Assert(dte != null, "Could not find the DTE service");
+
+            Solution2 solution = (Solution2)dte?.Solution;
+
+            return solution;
+        }
+
         public Project GetSolutionItemsProject()
         {
             string solutionItemsFolderName = GetSolutionItemsFolderName(this.serviceProvider);
 
-            DTE dte = this.serviceProvider.GetService(typeof(DTE)) as DTE;
-            Debug.Assert(dte != null, "Could not find the DTE service");
-
-            Solution2 solution = (Solution2)dte.Solution;
+            Solution2 solution = this.GetCurrentActiveSolution();
 
             Project solutionItemsProject = null;
             // Enumerating instead of using OfType<Project> due to a bug in
@@ -171,7 +207,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private static bool IsManagedProject(Project project)
         {
-            return IsCSharpProject(project) || IsVBProject(project);
+            // NB: We only support C# projects currently because the VB.NET plugin hasn't been updated.
+            return IsCSharpProject(project);
         }
 
         public static bool IsVBProject(Project project)

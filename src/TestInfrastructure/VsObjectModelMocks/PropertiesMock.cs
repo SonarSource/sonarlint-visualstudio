@@ -16,8 +16,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class PropertiesMock : Properties
     {
-        private List<PropertyMock> properties = new List<PropertyMock>();
-        private object parent;
+        private readonly List<PropertyMock> properties = new List<PropertyMock>();
+        private readonly object parent;
 
         public PropertiesMock(object parent)
         {
