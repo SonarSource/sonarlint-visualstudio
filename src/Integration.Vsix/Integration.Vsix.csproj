@@ -46,7 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commands\CommandIds.cs" />
-    <Compile Include="Commands\SonarAnalyzerCollisionManager.cs" />
+    <Compile Include="SonarAnalyzerCollisionManager.cs" />
     <Compile Include="Commands\VsCommandBase.cs" />
     <Compile Include="Commands\ManageConnectionsCommand.cs" />
     <Compile Include="Commands\PackageCommandManager.cs" />

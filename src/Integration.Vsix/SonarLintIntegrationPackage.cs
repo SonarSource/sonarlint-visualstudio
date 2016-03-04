@@ -19,11 +19,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ProvideOptionPage(typeof(OptionsPage), OptionsPage.CategoryName, OptionsPage.PageName, 901, 902, false, 903)]
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
          "(HasCSProj | HasVBProj)",
-        new string[] { "Building",
-                       "HasCSProj",
+        new string[] { "HasCSProj",
                        "HasVBProj" },
-        new string[] { VSConstants.UICONTEXT.SolutionBuilding_string,
-                       "SolutionHasProjectCapability:CSharp",
+        new string[] { "SolutionHasProjectCapability:CSharp",
                        "SolutionHasProjectCapability:VB" }
     )]
     public partial class SonarLintIntegrationPackage : Package
@@ -44,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.sonarAnalyzerCollisionManager = new SonarAnalyzerCollisionManager(serviceProvider);
 
             this.commandManager.Initialize();
-            this.sonarAnalyzerCollisionManager.Initialize();
         }
 
         protected override void Dispose(bool disposing)
