@@ -417,10 +417,6 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
     <value>More info...</value>
     <comment>Link text for getting more information about SonarQube</comment>
   </data>
-  <data name="MoreInfoLinkUrl" xml:space="preserve">
-    <value>http://sonarqube.org</value>
-    <comment>Link URL for SonarQube's website</comment>
-  </data>
   <data name="ProductAuthors" xml:space="preserve">
     <value>SonarSource and Microsoft</value>
     <comment>Authors of the product</comment>

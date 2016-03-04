@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private static bool IsSafeScheme(string scheme)
         {
-            return scheme.ToLowerInvariant().Contains("http");
+            return scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

@@ -423,15 +423,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://sonarqube.org.
-        /// </summary>
-        public static string MoreInfoLinkUrl {
-            get {
-                return ResourceManager.GetString("MoreInfoLinkUrl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Field can not be empty.
         /// </summary>
         public static string NotEmptyValidatorRequiredField {

@@ -14,6 +14,7 @@
              xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.TeamExplorer"
              xmlns:localWpf="clr-namespace:SonarLint.VisualStudio.Integration.WPF"
              xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
+             xmlns:root="clr-namespace:SonarLint.VisualStudio.Integration"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
@@ -69,7 +70,7 @@
                 <tecontrols:TextLink Grid.Column="2"
                                      Text="{x:Static resx:Strings.MoreInfoLinkText}"
                                      Command="{Binding BrowseToUrlCommand}"
-                                     CommandParameter="{x:Static resx:Strings.MoreInfoLinkUrl}"/>
+                                     CommandParameter="{x:Static root:Constants.SonarQubeHomeWebUrl}"/>
             </Grid>
         </StackPanel>
 
