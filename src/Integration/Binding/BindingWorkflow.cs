@@ -376,8 +376,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void InjectAdditionalFiles()
         {
-            InjectAdditionalFilesIntoSolution();
-            InjectAdditionalFilesIntoProjects();
+            if (this.AdditionalFiles.Any())
+            {
+                InjectAdditionalFilesIntoSolution();
+                InjectAdditionalFilesIntoProjects();
+            }
         }
 
         internal /*for testing purposes*/ void InjectAdditionalFilesIntoProjects()

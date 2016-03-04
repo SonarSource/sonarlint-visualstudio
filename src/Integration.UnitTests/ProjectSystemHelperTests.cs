@@ -78,6 +78,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void ProjectSystemHelper_IsFileInProject_DifferentCase()
+        {
+            // Setup
+            ProjectMock project = this.solutionMock.AddOrGetProject("project1");
+            string existingFile = "FILENAME";
+            string newFile = "filename";
+            project.AddOrGetFile(existingFile);
+
+            // Act + Verify
+            Assert.IsTrue(this.testSubject.IsFileInProject(project, newFile));
+        }
+
+        [TestMethod]
         public void ProjectSystemHelper_GetSolutionItemsProject()
         {
             // Setup
