@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             var sameNamedAnalyzers = references
-                .Where(reference => string.Compare(reference.Display, AnalyzerName, StringComparison.OrdinalIgnoreCase) == 0)
+                .Where(reference => string.Equals(reference.Display, AnalyzerName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             if (!sameNamedAnalyzers.Any())
