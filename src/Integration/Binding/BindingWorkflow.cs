@@ -386,7 +386,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 foreach (var additionalFilePath in this.AdditionalFilePaths)
                 {
-                    this.projectSystemHelper.AddFileToProject(project, additionalFilePath, Constants.AdditionalFilesPropertyKey);
+                    this.projectSystemHelper.AddFileToProject(project, additionalFilePath, Constants.AdditionalFilesItemTypeName);
                 }
             }
         }
