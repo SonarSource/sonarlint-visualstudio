@@ -417,17 +417,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string existingFullPath = Path.Combine(sonarDirPath, "foobar.xml");
             string existingRelativePath = PathHelper.CalculateRelativePath(project.FilePath, existingFullPath);
             var msbuildProject = new MSBuild.Project();
-            msbuildProject.AddItemFast(Constants.AdditionalFilePropertyKey, existingRelativePath);
+            msbuildProject.AddItemFast(Constants.AdditionalFilesPropertyKey, existingRelativePath);
             this.projectSystemHelper.MsBuildProjectMapping.Add(project, msbuildProject);
 
             // Sanity
-            Assert.AreEqual(1, msbuildProject.Items.Count(x => x.ItemType == Constants.AdditionalFilePropertyKey), "Expected 1 additional file in the project beforehand");
+            Assert.AreEqual(1, msbuildProject.Items.Count(x => x.ItemType == Constants.AdditionalFilesPropertyKey), "Expected 1 additional file in the project beforehand");
 
             // Act
             testSubject.InjectAdditionalFilesIntoProjects();
 
             // Verify
-            Assert.AreEqual(1, msbuildProject.Items.Count(x => x.ItemType == Constants.AdditionalFilePropertyKey), "Unexpected number of additional files; none should have been added/removed");
+            Assert.AreEqual(1, msbuildProject.Items.Count(x => x.ItemType == Constants.AdditionalFilesPropertyKey), "Unexpected number of additional files; none should have been added/removed");
         }
 
         [TestMethod]
@@ -523,7 +523,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             string relativePath = PathHelper.CalculateRelativePath(vsProject.FullName, additionalFilePath);
 
-            var additionalFileItems = msbuildProject.Items.Where(x => x.ItemType == Constants.AdditionalFilePropertyKey);
+            var additionalFileItems = msbuildProject.Items.Where(x => x.ItemType == Constants.AdditionalFilesPropertyKey);
 
             Assert.IsTrue(additionalFileItems.Select(x => x.UnevaluatedInclude).Contains(relativePath), $"AdditionalFile '{relativePath}' is missing");
         }

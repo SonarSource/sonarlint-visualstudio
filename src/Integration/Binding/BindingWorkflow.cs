@@ -396,7 +396,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     // Try and find all existing additional files, and fully resolve their full file paths
                     var existingFullPaths = new HashSet<string>(
                         from item in msBuildProject.Items
-                        where item.ItemType == Constants.AdditionalFilePropertyKey
+                        where item.ItemType == Constants.AdditionalFilesPropertyKey
                         select PathHelper.ResolveRelativePath(item.EvaluatedInclude, project.FullName),
                         StringComparer.OrdinalIgnoreCase);
 
@@ -405,7 +405,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     foreach (var fullPath in fullPathsToAdd)
                     {
                         string relativePath = PathHelper.CalculateRelativePath(projectRoot, fullPath);
-                        msBuildProject.AddItem(Constants.AdditionalFilePropertyKey, relativePath);
+                        msBuildProject.AddItem(Constants.AdditionalFilesPropertyKey, relativePath);
                     }
                 }
             }
