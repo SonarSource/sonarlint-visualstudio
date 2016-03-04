@@ -1,4 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="SonarQube" ToolsVersion="14.0">
-  <Include Path="..\sonarqube\sonarlint-visualstudiocsharp.ruleset" Action="Default" />
-</RuleSet>

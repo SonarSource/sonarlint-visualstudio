@@ -6,8 +6,6 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.TeamFoundation.Client.CommandTarget;
-using SonarLint.VisualStudio.Integration.Progress;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
 
 namespace SonarLint.VisualStudio.Integration
@@ -22,18 +20,6 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             this.ServiceProvider = serviceProvider;
-        }
-
-        public IProgressControlHost ProgressControlHost
-        {
-            get;
-            set;
-        }
-
-        public IUserNotification UserNotification
-        {
-            get;
-            set;
         }
 
         public IServiceProvider ServiceProvider

@@ -25,7 +25,9 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.UnitTests.Debug.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.UnitTests.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,7 +36,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.UnitTests.Release.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -145,9 +147,10 @@
     <Compile Include="Binding\ProjectRuleSetWriterTests.cs" />
     <Compile Include="ActiveSolutionTrackerTests.cs" />
     <Compile Include="Service\VersionHelperTests.cs" />
+    <Compile Include="State\StateManagerTests.cs" />
     <Compile Include="State\TransferableVisualStateTests.cs" />
-    <Compile Include="TeamExplorer\ConnectSectionControllerTests.cs" />
-    <Compile Include="TeamExplorer\ConnectSectionTests.cs" />
+    <Compile Include="VsSessionHostTests.cs" />
+    <Compile Include="TeamExplorer\SectionControllerTests.cs" />
     <Compile Include="TeamExplorer\ConnectSectionViewModelTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs" />
@@ -158,8 +161,6 @@
     <Compile Include="TeamExplorer\SonarQubeNavigationItemTests.cs" />
     <Compile Include="TeamExplorer\SonarQubePageTests.cs" />
     <Compile Include="TeamExplorer\TeamExplorerControllerTests.cs" />
-    <Compile Include="TeamExplorer\TestableConnectSectionController.cs" />
-    <Compile Include="TeamExplorer\TestableConnectSectionView.cs" />
     <Compile Include="TelemetryLoggerAccessorTests.cs" />
     <Compile Include="VsShellUtilsTests.cs" />
     <Compile Include="WPF\BoolToVisibilityConverterTests.cs" />
@@ -189,8 +190,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Integration.UnitTests.Debug.ruleset" />
-    <None Include="Integration.UnitTests.Release.ruleset" />
+    <None Include="Integration.UnitTests.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

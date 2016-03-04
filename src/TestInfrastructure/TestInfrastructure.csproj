@@ -20,7 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>TestInfrastructure.Debug.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>testinfrastructure.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,7 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>TestInfrastructure.Release.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>testinfrastructure.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Owin, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -115,7 +115,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Framework\ConfigurableHost.cs" />
     <Compile Include="Framework\ConfigurableIntegrationSettings.cs" />
+    <Compile Include="Framework\ConfigurableProgressStepRunner.cs" />
+    <Compile Include="Framework\ConfigurableSolutionBinding.cs" />
+    <Compile Include="Framework\ConfigurableStateManager.cs" />
     <Compile Include="Framework\ConfigurableSettingsManager.cs" />
     <Compile Include="Framework\ConfigurableVsCommand.cs" />
     <Compile Include="Framework\ConfigurableComponentModel.cs" />
@@ -191,8 +195,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="TestInfrastructure.Debug.ruleset" />
-    <None Include="TestInfrastructure.Release.ruleset" />
+    <None Include="TestInfrastructure.ruleset" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\SonarLint.1.7.0\analyzers\SonarLint.CSharp.dll" />

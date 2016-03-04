@@ -12,57 +12,64 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
+    /// <summary>
+    /// Connection related controller. 
+    /// Provides the following commands:
+    /// <see cref="ConnectCommand"/>
+    /// <see cref="RefreshCommand"/>
+    /// <see cref="DontWarnAgainCommand"/>
+    /// </summary>
     internal class ConnectionController : HostedCommandControllerBase, IConnectionInformationProvider, IConnectionWorkflowExecutor
     {
-        private readonly ConnectSectionController controller;
+        private readonly IHost host;
         private readonly IConnectionInformationProvider connectionProvider;
+        private readonly IIntegrationSettings settings;
 
-        public ConnectionController(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService)
-            : this(controller, sonarQubeService, null, null)
+        public ConnectionController(IHost host)
+            : this(host, null, null)
         {
         }
 
-        internal /*for testing purposes*/ ConnectionController(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService, IConnectionInformationProvider connectionProvider, IConnectionWorkflowExecutor workflowExecutor)
-            : base(controller)
+        internal /*for testing purposes*/ ConnectionController(IHost host, IConnectionInformationProvider connectionProvider, IConnectionWorkflowExecutor workflowExecutor)
+            : base(host)
         {
-            if (sonarQubeService == null)
+            if (host == null)
             {
-                throw new ArgumentNullException(nameof(sonarQubeService));
+                throw new ArgumentNullException(nameof(host));
             }
 
-            this.controller = controller;
-            this.SonarQubeService = sonarQubeService;
+            this.host = host;
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
-            this.WpfCommand = new RelayCommand(this.OnConnect, this.OnConnectStatus);
-        }
+            this.settings = this.host.GetMefService<IIntegrationSettings>();
 
-        /// <summary>
-        /// The connected server projects have changed
-        /// </summary>
-        /// <remarks>When the <see cref="ConnectedProjectsEventArgs.Projects"/> are null it means that the connection is disconnected.</remarks>
-        public event EventHandler<ConnectedProjectsEventArgs> ProjectsChanged;
+            this.ConnectCommand = new RelayCommand(this.OnConnect, this.OnConnectStatus);
+            this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.OnRefreshStatus);
+            this.DontWarnAgainCommand = new RelayCommand(this.OnDontWarnAgain, this.OnDontWarnAgainStatus);
+        }
 
         #region Properties
 
-        public RelayCommand WpfCommand
+        public RelayCommand ConnectCommand
         {
             get;
         }
 
+        public RelayCommand DontWarnAgainCommand
+        {
+            get;
+        }
+
+        public RelayCommand<ConnectionInformation> RefreshCommand
+        {
+            get;
+        }
 
         internal IConnectionWorkflowExecutor WorkflowExecutor
-        {
-            get;
-        }
-
-
-        internal ISonarQubeServiceWrapper SonarQubeService
         {
             get;
         }
@@ -73,38 +80,79 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             get
             {
-                return this.controller.State.IsBusy;
+                return this.host.VisualStateManager.IsBusy;
             }
             set
             {
-                if (this.controller.State.IsBusy != value)
+                if (this.host.VisualStateManager.IsBusy != value)
                 {
-                    this.controller.State.IsBusy = value;
-                    this.WpfCommand.RequeryCanExecute();
+                    this.host.VisualStateManager.IsBusy = value;
+                    this.ConnectCommand.RequeryCanExecute();
+                    this.RefreshCommand.RequeryCanExecute();
                 }
             }
         }
         #endregion
 
-        #region Command
+        #region Connect Command
 
         private bool OnConnectStatus()
         {
-            return this.SonarQubeService.CurrentConnection == null
-                && this.ProgressControlHost != null
-                && !this.controller.State.IsBusy;
+            return this.host.SonarQubeService.CurrentConnection == null
+                && !this.host.VisualStateManager.IsBusy;
         }
 
         private void OnConnect()
         {
             Debug.Assert(this.OnConnectStatus());
-            Debug.Assert(!this.controller.State.IsBusy, "Service is in a connecting state");
+            Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
 
             var connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
             if (connectionInfo != null)
             {
                 this.EstablishConnection(connectionInfo);
             }
+        }
+        #endregion
+
+        #region Refresh Command
+
+        private bool OnRefreshStatus(ConnectionInformation useConnection)
+        {
+            return !this.host.VisualStateManager.IsBusy
+                && (useConnection != null || this.host.SonarQubeService.CurrentConnection != null);
+        }
+
+        private void OnRefresh(ConnectionInformation useConnection)
+        {
+            Debug.Assert(this.OnRefreshStatus(useConnection));
+
+            ConnectionInformation connectionToRefresh = useConnection ?? this.host.SonarQubeService.CurrentConnection;
+            Debug.Assert(connectionToRefresh != null, "Expecting either to be connected to get a connection to connect to");
+
+            // Any existing connection will be disconnected and disposed, so create a copy and use it to connect
+            this.EstablishConnection(connectionToRefresh.Clone());
+        }
+        #endregion
+
+        #region Don't warn again command
+        private void ShowNuGetWarning(ProgressControllerResult executionResult)
+        {
+            if (executionResult == ProgressControllerResult.Succeeded && this.settings.ShowServerNuGetTrustWarning)
+            {
+                this.host.ActiveSection?.UserNotifications?.ShowNotificationWarning(Strings.ServerNuGetTrustWarningMessage, NotificationIds.WarnServerTrustId, this.DontWarnAgainCommand);
+            }
+        }
+
+        private void OnDontWarnAgain()
+        {
+            this.settings.ShowServerNuGetTrustWarning = false;
+            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.WarnServerTrustId);
+        }
+
+        private bool OnDontWarnAgainStatus()
+        {
+            return this.settings != null;
         }
         #endregion
 
@@ -119,22 +167,18 @@ namespace SonarLint.VisualStudio.Integration.Connection
         #endregion
 
         #region IConnectionWorkflowExecutor
-
-        public void EstablishConnection(ConnectionInformation connectionInfo)
+        private void EstablishConnection(ConnectionInformation connectionInfo)
         {
-            if (connectionInfo == null)
-            {
-                throw new ArgumentNullException(nameof(connectionInfo));
-            }
+            Debug.Assert(connectionInfo != null);
 
             this.LastAttemptedConnection = connectionInfo;
 
-            this.WorkflowExecutor.EstablishConnection(connectionInfo, this.ConnectedProjectsChanged);
+            this.WorkflowExecutor.EstablishConnection(connectionInfo, this.host.VisualStateManager.SetProjects);
         }
 
         void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information, ConnectedProjectsCallback connectedProjectsChanged)
         {
-            ConnectionWorkflow workflow = new ConnectionWorkflow(this, connectedProjectsChanged);
+            ConnectionWorkflow workflow = new ConnectionWorkflow(this.host, this.ConnectCommand, connectedProjectsChanged);
             IProgressEvents progressEvents = workflow.Run(information);
             this.SetConnectionInProgress(progressEvents);
         }
@@ -146,20 +190,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
             ProgressNotificationListener progressListener = new ProgressNotificationListener(this.ServiceProvider, progressEvents);
             progressListener.MessageFormat = Strings.ConnectingToSonarQubePrefixMessageFormat;
 
-            progressEvents.RunOnFinished(r =>
+            progressEvents.RunOnFinished(result =>
             {
                 progressListener.Dispose();
-
                 this.IsConnectionInProgress = false;
+                this.ShowNuGetWarning(result);
             });
         }
-
-        internal /*for testing purposes*/ void ConnectedProjectsChanged(ConnectionInformation connection, IEnumerable<ProjectInformation> projects)
-        {
-            this.ProjectsChanged?.Invoke(this, new ConnectedProjectsEventArgs(connection, projects));
-        }
-
         #endregion
-
     }
 }

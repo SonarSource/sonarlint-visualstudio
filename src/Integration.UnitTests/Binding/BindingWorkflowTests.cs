@@ -16,8 +16,7 @@ using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
-using SonarLint.VisualStudio.Integration.State;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -328,13 +327,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null, IRuleSetGenerationFileSystem fileSystem = null, ProjectRuleSetWriter projectWriter = null)
         {
+            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+            host.SonarQubeService = this.sonarQubeService;
+
             var useProjectInfo = projectInfo ?? new ProjectInformation();
             var slnWriter = new SolutionRuleSetWriter(useProjectInfo, fileSystem);
             var useProjectWriter = projectWriter ?? new ProjectRuleSetWriter(fileSystem);
 
-            var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), Dispatcher.CurrentDispatcher);
+            return new BindingWorkflow(host, new RelayCommand(AssertIfCalled), useProjectInfo, slnWriter, useProjectWriter, this.projectSystemHelper);
+        }
 
-            return new BindingWorkflow(controller.BindCommand, useProjectInfo, slnWriter, useProjectWriter, this.projectSystemHelper);
+        private static void AssertIfCalled()
+        {
+            Assert.Fail("The bind command was not expected to be called");
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] managedProjects)

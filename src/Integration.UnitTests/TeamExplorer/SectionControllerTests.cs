@@ -1,52 +1,51 @@
 //-----------------------------------------------------------------------
-// <copyright file="ConnectSectionTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SectionControllerTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
 using Microsoft.TeamFoundation.Client.CommandTarget;
-using SonarLint.VisualStudio.Integration.Connection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.ComponentModel.Design;
-using System.Linq;
+using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
     [TestClass]
-    public class ConnectSectionTests
+    public class SectionControllerTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
-        private ConfigurableConnectionWorkflow workflow;
 
         [TestInitialize]
         public void TestInitialize()
         {
+            ThreadHelper.SetCurrentThreadAsUIThread();
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
-            this.workflow = new ConfigurableConnectionWorkflow(this.sonarQubeService);
         }
 
         #region Tests
         [TestMethod]
-        public void ConnectSection_Initialization()
+        public void SectionController_Initialization()
         {
             // Act 
-            var testSubject = this.CreateTestSubject();
+            SectionController testSubject = this.CreateTestSubject();
 
             // Constructor time initialization
-            Assert.IsNotNull(testSubject.Controller.ConnectCommand, "ConnectCommand is not initialized");
-            Assert.IsNotNull(testSubject.Controller.BindCommand, "BindCommand is not initialized");
-            Assert.IsNotNull(testSubject.Controller.DisconnectCommand, "DisconnectCommand is not initialized");
-            Assert.IsNotNull(testSubject.Controller.RefreshCommand, "RefreshCommand is not initialized");
+            Assert.IsNotNull(testSubject.ConnectCommand, "ConnectCommand is not initialized");
+            Assert.IsNotNull(testSubject.RefreshCommand, "RefreshCommand is not initialized");
+            Assert.IsNotNull(testSubject.DisconnectCommand, "DisconnectCommand is not initialized");
+            Assert.IsNotNull(testSubject.BindCommand, "BindCommand is not initialized");
+            Assert.IsNotNull(testSubject.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not initialized");
 
             // Case 1: first time initialization
             // Verify
-            workflow.AssertEstablishConnectionCalled(0);
             Assert.IsNotNull(testSubject.View, "Failed to get the View");
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
 
@@ -54,43 +53,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var connection = new ConnectionInformation(new Uri("http://localhost"));
             this.sonarQubeService.SetConnection(connection);
             this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
-            ResetSection(testSubject);
-
-            // Sanity
-            workflow.AssertEstablishConnectionCalled(1);
+            ReInitialize(testSubject);
 
             // Verify
             Assert.IsNotNull(testSubject.View, "Failed to get the View");
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
-            ConnectSectionViewModel vm = ((IConnectSection)testSubject).ViewModel;
-            VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(vm, connection);
 
             // Case 3: re-initialization with connection and projects
             var projects = new [] { new ProjectInformation() };
             this.sonarQubeService.ReturnProjectInformation = projects;
-            ResetSection(testSubject);
+            ReInitialize(testSubject);
 
             // Verify
-            workflow.AssertEstablishConnectionCalled(2);
             Assert.IsNotNull(testSubject.View, "Failed to get the View");
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
-            vm = ((IConnectSection)testSubject).ViewModel;
-            VerifyConnectSectionViewModelIsConnectedAndHasProjects(vm, connection, projects);
 
             // Case 4: re-initialization with no connection
             this.sonarQubeService.ClearConnection();
-            ResetSection(testSubject);
+            ReInitialize(testSubject);
 
             // Verify
-            workflow.AssertEstablishConnectionCalled(2);
             Assert.IsNotNull(testSubject.View, "Failed to get the View");
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
-            vm = ((IConnectSection)testSubject).ViewModel;
-            VerifyConnectSectionViewModelIsNotConnected(vm, connection);
         }
 
         [TestMethod]
-        public void ConnectionSection_IOleCommandTargetQueryStatus()
+        public void SectionController_IOleCommandTargetQueryStatus()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
@@ -109,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 1 : no commands handling the request
             // Act+Verify
-            Assert.AreEqual(ConnectSection.CommandNotHandled, testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText));
+            Assert.AreEqual(SectionController.CommandNotHandled, testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText));
             command1.AssertQueryStatusCalled(1);
             command2.AssertQueryStatusCalled(1);
             command3.AssertQueryStatusCalled(1);
@@ -132,67 +120,79 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         }
 
         [TestMethod]
-        public void ConnectionSection_Refresh()
+        public void SectionController_DisconnectCommand()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
 
             // Case 1: No connection
-            // Act
-            testSubject.Refresh();
-
-            // Verify
-            this.sonarQubeService.AssertConnectRequests(0);
+            // Act + Verify CanExecute
+            Assert.IsFalse(testSubject.DisconnectCommand.CanExecute(null));
+            this.sonarQubeService.AssertDisconnectRequests(0);
 
             // Case 2: Connected
             this.sonarQubeService.SetConnection(new Uri("http://connected"));
-            this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
+
+            // Act + Verify CanExecute
+            Assert.IsTrue(testSubject.DisconnectCommand.CanExecute(null));
+            this.sonarQubeService.AssertDisconnectRequests(0);
+
+            // Act + Verify Execute
+            testSubject.DisconnectCommand.Execute(null);
+            this.sonarQubeService.AssertDisconnectRequests(1);
+        }
+
+        [TestMethod]
+        public void SectionController_ToggleShowAllProjectsCommand()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+            var connInfo = new ConnectionInformation(new Uri("http://localhost"));
+            var projectInfo = new ProjectInformation { Key = "p1", Name = "proj1" };
+            var server = new ServerViewModel(connInfo);
+            var project = new ProjectViewModel(server, projectInfo);
+            server.Projects.Add(project);
+
+            // Case 1: No bound projects
+            project.IsBound = false;
+
+            // Act + Verify CanExecute
+            Assert.IsFalse(testSubject.ToggleShowAllProjectsCommand.CanExecute(server));
+
+            // Case 2: Bound
+            project.IsBound = true;
+
+            // Act + Verify
+            Assert.IsTrue(testSubject.ToggleShowAllProjectsCommand.CanExecute(server));
+
+            // Verify execution
+            bool original = server.ShowAllProjects;
 
             // Act
-            testSubject.Refresh();
+            testSubject.ToggleShowAllProjectsCommand.Execute(server);
 
             // Verify
-            this.sonarQubeService.AssertConnectRequests(1);
+            Assert.AreEqual(!original, server.ShowAllProjects);
+
+            // Act
+            testSubject.ToggleShowAllProjectsCommand.Execute(server);
+
+            // Verify
+            Assert.AreEqual(original, server.ShowAllProjects);
         }
+
         #endregion 
 
         #region Helpers
-        private static void ResetSection(ConnectSection section)
+        private static void ReInitialize(SectionController controller)
         {
-            section.Controller.Detach(section);
-            section.Controller.State.ConnectedServers.Clear();
-            section.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
-            section.Refresh();
-        }
-
-        private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(ConnectSectionViewModel vm, ConnectionInformation connection)
-        {
-            ServerViewModel serverVM = VerifyConnectSectionViewModelIsConnected(vm, connection);
-            Assert.AreEqual(0, serverVM.Projects.Count, "Unexpected number of projects");
-
-            return serverVM;
-        }
-
-        private static void VerifyConnectSectionViewModelIsNotConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
-        {
-            ServerViewModel serverVM = vm.State.ConnectedServers.SingleOrDefault(s => s.Url == connection.ServerUri);
-            Assert.IsNull(serverVM, "Should not find server view model for {0}", connection.ServerUri);
-        }
-
-        private static ServerViewModel VerifyConnectSectionViewModelIsConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
-        {
-            ServerViewModel serverVM = vm.State.ConnectedServers.SingleOrDefault(s => s.Url == connection.ServerUri);
-            Assert.IsNotNull(serverVM, "Could not find server view model for {0}", connection.ServerUri);
-
-            return serverVM;
-        }
-
-        private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasProjects(ConnectSectionViewModel vm, ConnectionInformation connection, ProjectInformation[] projects)
-        {
-            ServerViewModel serverVM = VerifyConnectSectionViewModelIsConnected(vm, connection);
-            CollectionAssert.AreEquivalent(projects, serverVM.Projects.Select(p => p.ProjectInformation).ToArray(), "Unexpected projects for server {0}", connection.ServerUri);
-
-            return serverVM;
+            controller.Host.ClearActiveSection();
+            controller.Host.VisualStateManager.ManagedState.ConnectedServers.Clear();
+            controller.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
+            bool refreshCalled = false;
+            controller.RefreshCommand = new RelayCommand(() => refreshCalled = true);
+            controller.Refresh();
+            Assert.IsTrue(refreshCalled, "Refresh command execution was expected");
         }
 
         private class TestCommandTarget : IOleCommandTarget
@@ -217,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             {
                 get;
                 set;
-            } = ConnectSection.CommandNotHandled;
+            } = SectionController.CommandNotHandled;
 
             public void AssertQueryStatusCalled(int expectedNumberOfTimes)
             {
@@ -226,14 +226,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             #endregion
         }
 
-        private ConnectSection CreateTestSubject()
+        private SectionController CreateTestSubject()
         {
-            ThreadHelper.SetCurrentThreadAsUIThread();
-            var controller = new TestableConnectSectionController(this.serviceProvider, this.sonarQubeService);
-            controller.SetConnectCommand(new ConnectionController(controller, this.sonarQubeService, null, this.workflow));
-            var section = new ConnectSection(controller);
-            section.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
-            return section;
+            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+            host.SonarQubeService = this.sonarQubeService;
+            var controller = new SectionController(host);
+            controller.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
+            return controller;
         }
         #endregion
     }

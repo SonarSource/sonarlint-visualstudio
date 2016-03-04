@@ -15,45 +15,40 @@ using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
+    /// <summary>
+    /// A dedicated controller for the <see cref="BindCommand"/>
+    /// </summary>
     internal class BindingController : HostedCommandControllerBase, IBindingWorkflow
     {
+        private readonly IHost host;
         private readonly IBindingWorkflow workflow;
         private readonly IProjectSystemHelper projectSystemHelper;
 
-        public BindingController(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService)
-            :this(controller, sonarQubeService, null, null)
+        public BindingController(IHost host)
+            :this(host, null, null)
         {
         }
 
-        internal /*for testing purposes*/ BindingController(ConnectSectionController controller, ISonarQubeServiceWrapper sonarQubeService, IBindingWorkflow workflow, IProjectSystemHelper projectSystemHelper)
-            : base(controller)
+        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflow workflow, IProjectSystemHelper projectSystemHelper)
+            : base(host)
         {
-            if (sonarQubeService == null)
+            if (host == null)
             {
-                throw new ArgumentNullException(nameof(sonarQubeService));
+                throw new ArgumentNullException(nameof(host));
             }
 
-            this.Controller = controller;
-            this.SonarQubeService = sonarQubeService;
-            this.WpfCommand = new RelayCommand<ProjectViewModel>(this.ExecuteBind, this.CanExecuteBind);
+            this.host = host;
+
+            this.BindCommand = new RelayCommand<ProjectViewModel>(this.OnBind, this.OnBindStatus);
             this.workflow = workflow ?? this;
-            this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.Controller);
+            this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.host);
         }
 
-        public RelayCommand<ProjectViewModel> WpfCommand
-        {
-            get;
-        }
-
-        internal ISonarQubeServiceWrapper SonarQubeService
-        {
-            get;
-        }
-
-        internal ConnectSectionController Controller
+        public RelayCommand<ProjectViewModel> BindCommand
         {
             get;
         }
@@ -63,14 +58,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             get
             {
-                return this.Controller.State.IsBusy;
+                return this.host.VisualStateManager.IsBusy;
             }
             private set
             {
-                if (this.Controller.State.IsBusy != value)
+                if (this.host.VisualStateManager.IsBusy != value)
                 {
-                    this.Controller.State.IsBusy = value;
-                    this.WpfCommand.RequeryCanExecute();
+                    this.host.VisualStateManager.IsBusy = value;
+                    this.BindCommand.RequeryCanExecute();
                 }
             }
         }
@@ -79,43 +74,52 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             // Using just as a means that indicates that the status was invalidated and it needs to be recalculate
             // in response to IVsUIShell.UpdateCommandUI which is triggered for the various UI context changes
-            this.WpfCommand.RequeryCanExecute();
+            this.BindCommand.RequeryCanExecute();
 
             return base.OnQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "S1067:Expressions should not be too complex", 
-            Justification = "We need all those conditions to determine whether the command is enabled", 
-            Scope = "member", 
-            Target = "~M:SonarLint.VisualStudio.Integration.Binding.BindCommand.CanExecuteBind(SonarLint.VisualStudio.Integration.TeamExplorer.ProjectViewModel)~System.Boolean")]
-        private bool CanExecuteBind(ProjectViewModel projectVM)
+        private bool OnBindStatus(ProjectViewModel projectVM)
         {
-            return this.SonarQubeService.CurrentConnection != null
-                && !this.Controller.State.IsBusy
-                && this.ProgressControlHost != null
-                && projectVM?.ProjectInformation != null
+            return this.OnBindStatus(projectVM?.ProjectInformation);
+        }
+
+        private void OnBind(ProjectViewModel projectVM)
+        {
+            this.OnBind(projectVM?.ProjectInformation);
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "S1067:Expressions should not be too complex",
+            Justification = "We need all those conditions to determine whether the command is enabled",
+            Scope = "member",
+            Target = "~M:SonarLint.VisualStudio.Integration.Binding.BindCommand.OnBindStatus(SonarLint.VisualStudio.Integration.Service.ProjectInformation)~System.Boolean")]
+        private bool OnBindStatus(ProjectInformation projectInformation)
+        {
+            return projectInformation != null
+                && this.host.SonarQubeService.CurrentConnection != null
+                && !this.host.VisualStateManager.IsBusy
                 && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()
                 && (this.projectSystemHelper.GetSolutionManagedProjects()?.Any() ?? false);
         }
 
-        private void ExecuteBind(ProjectViewModel projectVM)
+        private void OnBind(ProjectInformation projectInformation)
         {
-            Debug.Assert(this.CanExecuteBind(projectVM));
-            this.workflow.BindProject(projectVM);
+            Debug.Assert(this.OnBindStatus(projectInformation));
+            this.workflow.BindProject(projectInformation);
         }
         #endregion
 
         #region IBindingWorkflow
 
-        void IBindingWorkflow.BindProject(ProjectViewModel projectVM)
+        void IBindingWorkflow.BindProject(ProjectInformation projectInformation)
         {
-            BindingWorkflow workflowExecutor = new BindingWorkflow(this, projectVM.ProjectInformation);
+            BindingWorkflow workflowExecutor = new BindingWorkflow(this.host, this.BindCommand, projectInformation);
             IProgressEvents progressEvents = workflowExecutor.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
-            this.SetBindingInProgress(progressEvents, projectVM);
+            this.SetBindingInProgress(progressEvents, projectInformation);
         }
 
-        internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, ProjectViewModel projectVM)
+        internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, ProjectInformation projectInformation)
         {
             this.OnBindingStarted();
 
@@ -126,31 +130,32 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 progressListener.Dispose();
 
-                this.OnBindingFinished(projectVM, r == ProgressControllerResult.Succeeded);
+                this.OnBindingFinished(projectInformation, r == ProgressControllerResult.Succeeded);
             });
         }
 
         private void OnBindingStarted()
         {
             this.IsBindingInProgress = true;
-            this.UserNotification?.HideNotification(NotificationIds.FailedToBindId);
+            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToBindId);
         }
 
-        private void OnBindingFinished(ProjectViewModel projectVM, bool isFinishedSuccessfully)
+        private void OnBindingFinished(ProjectInformation projectInformation, bool isFinishedSuccessfully)
         {
             this.IsBindingInProgress = false;
-            this.Controller.ClearBoundProject();
+            this.host.VisualStateManager.ClearBoundProject();
 
             if (isFinishedSuccessfully)
             {
-                this.Controller.SetBoundProject(projectVM);
+                this.host.VisualStateManager.SetBoundProject(projectInformation);
                 VsShellUtils.ActivateSolutionExplorer(this.ServiceProvider);
             }
             else
             {
-                this.UserNotification?.ShowNotificationError(Strings.FailedToToBindSolution,
-                    NotificationIds.FailedToBindId,
-                    new ContextualCommandViewModel(projectVM, this.WpfCommand).Command);
+                // Create a command with a fixed argument with the help of ContextualCommandViewModel that creates proxy command for the contextual (fixed) instance and the passed in ICommand that expects it
+                Lazy<ICommand> cmd = new Lazy<ICommand>(() => new ContextualCommandViewModel(projectInformation, new RelayCommand<ProjectInformation>(this.OnBind, this.OnBindStatus)).Command);
+
+                this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.FailedToToBindSolution, NotificationIds.FailedToBindId, cmd.Value);
             }
         }
         #endregion

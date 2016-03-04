@@ -21,7 +21,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Xml;
+using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -30,7 +30,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal class BindingWorkflow
     {
-        private readonly BindingController owner;
+        private readonly IHost host;
+        private readonly ICommand parentCommand;
         private readonly ProjectInformation project;
         private readonly IProjectSystemHelper projectSystemHelper;
         private readonly SolutionRuleSetWriter solutionRuleSetWriter;
@@ -42,11 +43,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {SonarQubeServiceWrapper.VBLanguage, RuleSetGroup.VB }
         };
 
-        public BindingWorkflow(BindingController owner, ProjectInformation project, SolutionRuleSetWriter solutionRuleSetWriter = null, ProjectRuleSetWriter projectRuleSetWriter = null, IProjectSystemHelper projectSystemHelper = null)
+        public BindingWorkflow(IHost host, ICommand parentCommand, ProjectInformation project, SolutionRuleSetWriter solutionRuleSetWriter = null, ProjectRuleSetWriter projectRuleSetWriter = null, IProjectSystemHelper projectSystemHelper = null)
         {
-            if (owner == null)
+            if (host == null)
             {
-                throw new ArgumentNullException(nameof(owner));
+                throw new ArgumentNullException(nameof(host));
+            }
+
+            if (parentCommand == null)
+            {
+                throw new ArgumentNullException(nameof(parentCommand));
             }
 
             if (project == null)
@@ -54,9 +60,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(project));
             }
 
-            this.owner = owner;
+            this.host = host;
+            this.parentCommand = parentCommand;
             this.project = project;
-            this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.owner.ServiceProvider);
+            this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.host);
             this.solutionRuleSetWriter = solutionRuleSetWriter ?? new SolutionRuleSetWriter(this.project);
             this.projectRuleSetWriter = projectRuleSetWriter ?? new ProjectRuleSetWriter();
         }
@@ -90,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public IProgressEvents Run()
         {
-            this.owner.UserNotification.HideNotification(NotificationIds.FailedToBindId);
+            this.host.ActiveSection.UserNotifications?.HideNotification(NotificationIds.FailedToBindId);
 
             List<string> languages = new List<string>();
             if (this.projectSystemHelper.GetSolutionManagedProjects().Any(p => ProjectSystemHelper.IsCSharpProject(p)))
@@ -104,9 +111,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             Debug.Assert(languages.Count > 0, "Expecting managed projects in solution");
+            Debug.Assert(this.host.ActiveSection != null, "Expect the section to be attached at least until this method returns");
 
-            IProgressEvents progress = ProgressStepRunner.StartAsync(this.owner.ServiceProvider,
-                this.owner.ProgressControlHost,
+            IProgressEvents progress = ProgressStepRunner.StartAsync(this.host,
+                this.host.ActiveSection.ProgressHost,
                 (controller) => this.CreateWorkflowSteps(controller, languages));
 
             this.DebugOnly_MonitorProgress(progress);
@@ -117,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         [Conditional("DEBUG")]
         private void DebugOnly_MonitorProgress(IProgressEvents progress)
         {
-            progress.RunOnFinished(r => VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, "DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
+            progress.RunOnFinished(r => VsShellUtils.WriteToGeneralOutputPane(this.host, "DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
         }
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller, IEnumerable<string> languages)
@@ -137,19 +145,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.DownloadRuleSet(controller, token, notifications, languages)),
 
                 new ProgressStepDefinition(null, IndeterminateNonCancellableUIStep,
-                        (token, notifications) => { NuGetHelper.LoadService(this.owner.ServiceProvider); /*The service needs to be loaded on UI thread*/ }),
+                        (token, notifications) => { NuGetHelper.LoadService(this.host); /*The service needs to be loaded on UI thread*/ }),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.InstallPackages(controller, token, notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableUIStep,
-                        (token, notifications) => this.PrepareRuleSetInjector(controller, notifications)),
+                        (token, notifications) => this.PrepareRuleSetInjector(notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
-                        (token, notifications) => this.PrepareRuleSets(controller, token, notifications)),
+                        (token, notifications) => this.PrepareRuleSets(token)),
 
                 new ProgressStepDefinition(null, IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact,
-                        (token, notifications) => this.FinishBindingOnUIThread(controller, notifications)),
+                        (token, notifications) => this.FinishBindingOnUIThread()),
 
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
                         (token, notifications) => notifications.ProgressChanged(Strings.FinishedSolutionBindingWorkflow, double.NaN))
@@ -162,11 +170,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void VerifyServerPlugins(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
         {
-            var csPluginVersion = this.owner.SonarQubeService.GetPluginVersion(ServerPlugin.CSharpPluginKey, token);
+            var csPluginVersion = this.host.SonarQubeService.GetPluginVersion(ServerPlugin.CSharpPluginKey, token);
             if (string.IsNullOrWhiteSpace(csPluginVersion) || VersionHelper.Compare(csPluginVersion, ServerPlugin.CSharpPluginMinimumVersion) < 0)
             {
                 string errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
-                VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, errorMessage);
+                VsShellUtils.WriteToGeneralOutputPane(this.host, errorMessage);
                 bool aborted = controller.TryAbort();
                 Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
             }
@@ -185,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingRulesProgressMessage, language));
 
-                var export = this.owner.SonarQubeService.GetExportProfile(this.project, language, cancellationToken);
+                var export = this.host.SonarQubeService.GetExportProfile(this.project, language, cancellationToken);
 
                 if (export == null)
                 {
@@ -210,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (failed)
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, Strings.RuleSetDownloadFailedMessage);
+                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.RuleSetDownloadFailedMessage);
                 bool aborted = controller.TryAbort();
                 Debug.Assert(aborted || cancellationToken.IsCancellationRequested, "Failed to abort the workflow");
             }
@@ -237,23 +245,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return group;
         }
 
-        private void PrepareRuleSetInjector(IProgressController controller, IProgressStepExecutionEvents notificationEvents)
+        private void PrepareRuleSetInjector(IProgressStepExecutionEvents notificationEvents)
         {
             Debug.Assert(System.Windows.Application.Current?.Dispatcher.CheckAccess() ?? false, "Expected to run on UI thread");
 
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage, double.NaN);
-            this.RuleSetInjector = new RuleSetInjection.RuleSetInjector(
-                this.projectSystemHelper,
-                this.SetSolutionRuleSet,
-                this.UpdateProjectRuleSet);
+
+            this.RuleSetInjector = new RuleSetInjection.RuleSetInjector(this.projectSystemHelper, this.SetSolutionRuleSet, this.UpdateProjectRuleSet);
         }
 
-        private void PrepareRuleSets(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents)
+        private void PrepareRuleSets(CancellationToken token)
         {
             this.RuleSetInjector.PrepareUpdates(token);
         }
 
-        private void FinishBindingOnUIThread(IProgressController controller, IProgressStepExecutionEvents notificationEvents)
+        private void FinishBindingOnUIThread()
         {
             Debug.Assert(System.Windows.Application.Current?.Dispatcher.CheckAccess() ?? false, "Expected to run on UI thread");
 
@@ -265,14 +271,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Will persist the binding information for next time usage
         /// </summary>
-        internal /*for testing purposes*/ void PersistBinding(ICredentialStore credentialStore = null, IProjectSystemHelper projectSystemHelper = null)
+        internal /*for testing purposes*/ void PersistBinding(ICredentialStore credentialStore = null, IProjectSystemHelper projectSystem = null)
         {
-            Debug.Assert(this.owner.SonarQubeService.CurrentConnection != null, "Connection expected");
-            ConnectionInformation connection = this.owner.SonarQubeService.CurrentConnection;
+            Debug.Assert(this.host.SonarQubeService.CurrentConnection != null, "Connection expected");
+            ConnectionInformation connection = this.host.SonarQubeService.CurrentConnection;
 
             BasicAuthCredentials credentials = connection.UserName == null? null : new BasicAuthCredentials(connection.UserName, connection.Password);
 
-            SolutionBinding binding = new SolutionBinding(this.owner.ServiceProvider, credentialStore, projectSystemHelper);
+            SolutionBinding binding = new SolutionBinding(this.host, credentialStore, projectSystem);
             binding.WriteSolutionBinding(new BoundSonarQubeProject(connection.ServerUri, this.project.Key, credentials));
         }
 
@@ -309,7 +315,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                     string message = string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, packageInfo.Id, project.Name);
                     progressNotifier.NotifyCurrentProgress(message);
-                    if (!NuGetHelper.TryInstallPackage(this.owner.ServiceProvider, project, packageInfo.Id, packageInfo.Version))
+                    if (!NuGetHelper.TryInstallPackage(this.host, project, packageInfo.Id, packageInfo.Version))
                     {
                         bool aborted = controller.TryAbort();
                         Debug.Assert(aborted, "Failed to abort the binding workflow");
