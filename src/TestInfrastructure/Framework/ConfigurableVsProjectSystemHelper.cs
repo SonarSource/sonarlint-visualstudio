@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             if (addFileToProject)
             {
                 var item = project.ProjectItems.AddFromFile(file);
-                Property itemTypeProperty = item.Properties.Cast<Property>().FirstOrDefault(x => x.Name == Constants.ItemTypePropertyKey);
+                Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Constants.ItemTypePropertyKey);
                 if (itemTypeProperty != null)
                 {
                     itemTypeProperty.Value = itemType;
