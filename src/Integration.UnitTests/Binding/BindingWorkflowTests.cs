@@ -300,6 +300,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void BindingWorkflow_InstallPackages_FailureOnOneProject_Continues()
+        {
+            // Setup
+            const string failureMessage = "Failure for project1";
+            const string project1Name = "project1";
+            const string project2Name = "project2";
+
+            var testSubject = this.CreateTestSubject();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var cts = new CancellationTokenSource();
+
+            ProjectMock project1 = new ProjectMock(project1Name);
+            ProjectMock project2 = new ProjectMock(project2Name);
+
+            var nugetPackage = new PackageName("mypackage", new SemanticVersion("1.1.0"));
+            var packages = new[] { nugetPackage };
+
+            ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, packages, project1, project2);
+            packageInstaller.InstallPackageAction = (p) =>
+            {
+                packageInstaller.InstallPackageAction = null;
+                throw new Exception(failureMessage);
+            };
+
+            // Act
+            testSubject.InstallPackages(new ConfigurableProgressController(), cts.Token, progressEvents);
+
+            // Verify
+            packageInstaller.AssertNoInstalledPackages(project1);
+            packageInstaller.AssertInstalledPackages(project2, packages);
+            outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.FailedDuringNuGetPackageInstall, nugetPackage.Id, project1Name, failureMessage));
+        }
+
+        [TestMethod]
         public void BindingWorkflow_PersistBinding()
         {
             // Setup
@@ -323,6 +357,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             store.AssertHasCredentials(connectionInfo.ServerUri);
             Assert.AreEqual(1, this.projectSystemHelper.SolutionItemsProject.ProjectItems.Count, "Expect configuration file to be added to the solution items folder");
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_EmitBindingCompleteMessage()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            // Test case 1: Default state is 'true'
+            Assert.IsTrue(testSubject.AllNuGetPackagesInstalled, $"Initial state of {nameof(BindingWorkflow.AllNuGetPackagesInstalled)} should be true");
+
+            // Test case 2: All packages installed
+            // Setup
+            var notificationsOk = new ConfigurableProgressStepExecutionEvents();
+            testSubject.AllNuGetPackagesInstalled = true;
+
+            // Act
+            testSubject.EmitBindingCompleteMessage(notificationsOk);
+
+            // Verify
+            notificationsOk.AssertProgressMessages(string.Format(CultureInfo.CurrentCulture, Strings.FinishedSolutionBindingWorkflowSuccessful));
+
+            // Test case 3: Not all packages installed
+            // Setup
+            var notificationsFail = new ConfigurableProgressStepExecutionEvents();
+            testSubject.AllNuGetPackagesInstalled = false;
+
+            // Act
+            testSubject.EmitBindingCompleteMessage(notificationsFail);
+
+            // Verify
+            notificationsFail.AssertProgressMessages(string.Format(CultureInfo.CurrentCulture, Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled));
         }
 
         #endregion

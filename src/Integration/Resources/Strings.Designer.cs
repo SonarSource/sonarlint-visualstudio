@@ -351,11 +351,20 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not all NuGet packages were installed. Please see output above for more information..
+        /// </summary>
+        public static string FinishedSolutionBindingWorkflowNotAllPackagesInstalled {
+            get {
+                return ResourceManager.GetString("FinishedSolutionBindingWorkflowNotAllPackagesInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Completed successfully.
         /// </summary>
-        public static string FinishedSolutionBindingWorkflow {
+        public static string FinishedSolutionBindingWorkflowSuccessful {
             get {
-                return ResourceManager.GetString("FinishedSolutionBindingWorkflow", resourceCulture);
+                return ResourceManager.GetString("FinishedSolutionBindingWorkflowSuccessful", resourceCulture);
             }
         }
         

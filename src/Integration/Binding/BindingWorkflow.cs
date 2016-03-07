@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             {SonarQubeServiceWrapper.CSharpLanguage, RuleSetGroup.CSharp },
             {SonarQubeServiceWrapper.VBLanguage, RuleSetGroup.VB }
-        };
+        };        
 
         public BindingWorkflow(BindCommand owner, ProjectInformation project, SolutionRuleSetWriter solutionRuleSetWriter = null, ProjectRuleSetWriter projectRuleSetWriter = null, IProjectSystemHelper projectSystemHelper = null)
         {
@@ -84,6 +84,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
             private set;
         }
+
+        internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
+        {
+            get;
+            set;
+        } = true;
 
         #endregion
 
@@ -153,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.FinishBindingOnUIThread(controller, notifications)),
 
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
-                        (token, notifications) => notifications.ProgressChanged(Strings.FinishedSolutionBindingWorkflow, double.NaN))
+                        (token, notifications) => this.EmitBindingCompleteMessage(notifications))
             };
         }
 
@@ -312,8 +318,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     progressNotifier.NotifyCurrentProgress(message);
 
                     // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
-                    // We are ignoring package install failures at this level. NuGetHelper will write a message to the output window.
-                    var installedOk = !NuGetHelper.TryInstallPackage(this.owner.ServiceProvider, project, packageInfo.Id, packageInfo.Version);
+                    this.AllNuGetPackagesInstalled &= NuGetHelper.TryInstallPackage(this.owner.ServiceProvider, project, packageInfo.Id, packageInfo.Version);
 
                     progressNotifier.NotifyIncrementedProgress(string.Empty);
                 }
@@ -349,6 +354,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             return projectRuleSetPath;
+        }
+
+        internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
+        {
+            var message = this.AllNuGetPackagesInstalled
+                ? Strings.FinishedSolutionBindingWorkflowSuccessful
+                : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
+            notifications.ProgressChanged(message, double.NaN);
         }
 
         #endregion
