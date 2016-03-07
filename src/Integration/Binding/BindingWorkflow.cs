@@ -310,12 +310,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                     string message = string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, packageInfo.Id, project.Name);
                     progressNotifier.NotifyCurrentProgress(message);
-                    if (!NuGetHelper.TryInstallPackage(this.owner.ServiceProvider, project, packageInfo.Id, packageInfo.Version))
-                    {
-                        bool aborted = controller.TryAbort();
-                        Debug.Assert(aborted, "Failed to abort the binding workflow");
-                        break;
-                    }
+
+                    // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
+                    // We are ignoring package install failures at this level. NuGetHelper will write a message to the output window.
+                    var installedOk = !NuGetHelper.TryInstallPackage(this.owner.ServiceProvider, project, packageInfo.Id, packageInfo.Version);
+
                     progressNotifier.NotifyIncrementedProgress(string.Empty);
                 }
             }
