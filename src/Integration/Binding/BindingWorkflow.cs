@@ -74,11 +74,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new List<NuGetPackageInfo>();
 
-        public List<AdditionalFile> AdditionalFiles
-        {
-            get;
-        } = new List<AdditionalFile>();
-
         public Dictionary<RuleSetGroup, string> SolutionRulesetPaths
         {
             get;
@@ -89,11 +84,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
             private set;
         }
-
-        public List<string> AdditionalFilePaths
-        {
-            get;
-        } = new List<string>();
 
         #endregion
 
@@ -153,9 +143,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.InstallPackages(controller, token, notifications)),
 
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.UnpackAdditionalFiles(controller, token, notifications)),
-
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableUIStep,
                         (token, notifications) => this.PrepareRuleSetInjector(controller, notifications)),
 
@@ -208,8 +195,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
 
                 this.NuGetPackages.AddRange(export.Deployment.NuGetPackages);
-
-                this.AdditionalFiles.AddRange(export.Configuration.AdditionalFiles);
 
                 var tempRuleSetFilePath = Path.GetTempFileName();
                 File.WriteAllText(tempRuleSetFilePath, export.Configuration.RuleSet.OuterXml);
@@ -275,8 +260,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.RuleSetInjector.CommitUpdates();
 
-            this.InjectAdditionalFiles();
-
             this.PersistBinding();
         }
 
@@ -334,79 +317,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         break;
                     }
                     progressNotifier.NotifyIncrementedProgress(string.Empty);
-                }
-            }
-        }
-
-        internal /*for testing purposes*/ void UnpackAdditionalFiles(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents)
-        {
-            if (!this.AdditionalFiles.Any())
-            {
-                return; // Nothing to unpack
-            }
-
-            Solution2 solution = this.projectSystemHelper.GetCurrentActiveSolution();
-            if (solution == null)
-            {
-                Debug.Fail("Cannot get current active solution");
-                return;
-            }
-
-            string solutionRoot = Path.GetDirectoryName(solution.FullName);
-            string root = this.solutionRuleSetWriter.GetOrCreateRuleSetDirectory(solutionRoot);
-
-            DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, this.AdditionalFiles.Count);
-
-            foreach (var additionalFile in this.AdditionalFiles)
-            {
-                if (token.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                string message = string.Format(CultureInfo.CurrentCulture, Strings.UnpackingAdditionalFile, additionalFile.FileName);
-                notifier.NotifyIncrementedProgress(message);
-
-                string filePath = Path.Combine(root, additionalFile.FileName);
-                File.WriteAllBytes(filePath, additionalFile.Content);
-
-                this.AdditionalFilePaths.Add(filePath);
-            }
-        }
-
-        private void InjectAdditionalFiles()
-        {
-            if (this.AdditionalFiles.Any())
-            {
-                InjectAdditionalFilesIntoSolution();
-                InjectAdditionalFilesIntoProjects();
-            }
-        }
-
-        internal /*for testing purposes*/ void InjectAdditionalFilesIntoProjects()
-        {
-            foreach (var project in this.projectSystemHelper.GetSolutionManagedProjects())
-            {
-                foreach (var additionalFilePath in this.AdditionalFilePaths)
-                {
-                    this.projectSystemHelper.AddFileToProject(project, additionalFilePath, Constants.AdditionalFilesItemTypeName);
-                }
-            }
-        }
-
-        internal /*for testing purposes*/ void InjectAdditionalFilesIntoSolution()
-        {
-            Project solutionItemsProject = this.projectSystemHelper.GetSolutionItemsProject();
-            if (solutionItemsProject == null)
-            {
-                Debug.Fail("Could not find the solution items project");
-            }
-            else
-            {
-                // Add additional files to the solution items project
-                foreach (var additionalFilePath in this.AdditionalFilePaths)
-                {
-                    this.projectSystemHelper.AddFileToProject(solutionItemsProject, additionalFilePath);
                 }
             }
         }
