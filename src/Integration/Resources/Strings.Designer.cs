@@ -296,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to install NuGet package &apos;{0}&apos; for project &apos;{1}&apos;. Exception:\n{2}.
+        ///   Looks up a localized string similar to Failed to install NuGet package &apos;{0}&apos; for project &apos;{1}&apos;. Message: {2}.
         /// </summary>
         public static string FailedDuringNuGetPackageInstall {
             get {
