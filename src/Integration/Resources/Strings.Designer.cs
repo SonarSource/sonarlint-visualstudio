@@ -622,7 +622,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Solution save was cancelled. Bind operation was aborted..
+        ///   Looks up a localized string similar to Cannot bind or sync if there are unsaved changes. Operation cancelled..
         /// </summary>
         public static string SolutionSaveCancelledBindAborted {
             get {
