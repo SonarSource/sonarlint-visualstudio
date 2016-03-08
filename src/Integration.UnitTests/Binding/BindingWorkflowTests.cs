@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -391,6 +392,47 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             notificationsFail.AssertProgressMessages(string.Format(CultureInfo.CurrentCulture, Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled));
         }
 
+        [TestMethod]
+        public void BindingWorkflow_PromptSaveSolutionIfDirty()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+            var solution = new SolutionMock();
+            serviceProvider.RegisterService(typeof(SVsSolution), solution);
+            var controller = new ConfigurableProgressController();
+
+            // Case 1: Users saves the changes
+            solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_OK;
+            // Act
+            testSubject.PromptSaveSolutionIfDirty(controller, CancellationToken.None);
+            // Verify
+            this.outputWindowPane.AssertOutputStrings(0);
+            controller.AssertNumberOfAbortRequests(0);
+
+            // Case 2: Users cancels the save
+            solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_FALSE;
+            // Act
+            testSubject.PromptSaveSolutionIfDirty(controller, CancellationToken.None);
+            // Verify
+            this.outputWindowPane.AssertOutputStrings(Strings.SolutionSaveCancelledBindAborted);
+            controller.AssertNumberOfAbortRequests(1);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_SilentSaveSolutionIfDirty()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+            var solution = new SolutionMock();
+            serviceProvider.RegisterService(typeof(SVsSolution), solution);
+            solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_OK;
+
+            // Act
+            testSubject.SilentSaveSolutionIfDirty();
+
+            // Verify
+            this.outputWindowPane.AssertOutputStrings(0);
+        }
         #endregion
 
         #region Helpers

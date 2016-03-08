@@ -622,6 +622,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot bind or sync if there are unsaved changes. Operation cancelled..
+        /// </summary>
+        public static string SolutionSaveCancelledBindAborted {
+            get {
+                return ResourceManager.GetString("SolutionSaveCancelledBindAborted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube is an open source platform to manage code quality. Connect your solution to an existing SonarQube Server to get the same issues in Visual Studio and in your SonarQube server..
         /// </summary>
         public static string SonarQubeDescription {

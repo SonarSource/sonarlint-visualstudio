@@ -433,4 +433,8 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
     <value>Not all NuGet packages were installed. Please see output above for more information.</value>
     <comment>Output message indicating not all NuGet packages were installed during the binding workflow</comment>
   </data>
+  <data name="SolutionSaveCancelledBindAborted" xml:space="preserve">
+    <value>Cannot bind or sync if there are unsaved changes. Operation cancelled.</value>
+    <comment>Output window message when the user cancels the solution save dialog</comment>
+  </data>
 </root>

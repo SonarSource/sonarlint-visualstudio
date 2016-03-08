@@ -397,12 +397,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsSolution.SaveSolutionElement(uint grfSaveOpts, IVsHierarchy pHier, uint docCookie)
         {
-            throw new NotImplementedException();
+            if (this.SaveSolutionElementAction == null)
+            {
+                throw new NotImplementedException();
+            }
+
+            return this.SaveSolutionElementAction(grfSaveOpts, pHier, docCookie);
         }
 
         int IVsSolution2.SaveSolutionElement(uint grfSaveOpts, IVsHierarchy pHier, uint docCookie)
         {
-            throw new NotImplementedException();
+            return ((IVsSolution)this).SaveSolutionElement(grfSaveOpts, pHier, docCookie);
         }
 
         int IVsSolution.SetProperty(int propid, object var)
@@ -547,6 +552,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sinks.ForEach(s => s.OnBeforeUnloadProject(project, null));
         }
 
+        public Func<uint, IVsHierarchy , uint , int> SaveSolutionElementAction { get; set; }
         #endregion
     }
 }
