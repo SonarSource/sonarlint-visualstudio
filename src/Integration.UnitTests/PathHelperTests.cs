@@ -248,6 +248,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.IsFalse(unrootedIsRooted, $"Path '{unrootedFile}' should not be rooted under '{root}'");
         }
 
+        [TestMethod]
+        public void PathHelper_IsPathRootedUnder_PathsContainRelativeComponents()
+        {
+            // Setup
+            const string root = @"X:\All\Files\..\Files\Live\Here";
+            const string rootedFile = @"X:\All\..\All\Files\Live\Here\likeme.ext";
+
+            // Act
+            bool rootedIsRooted = PathHelper.IsPathRootedUnderRoot(rootedFile, root);
+
+            // Verify
+            Assert.IsTrue(rootedIsRooted, $"Path '{rootedFile}' should be rooted under '{root}'");
+        }
+
         #region Helpers
 
         private static void VerifyCalculateRelativePath(string expected, string fromPath, string toPath)

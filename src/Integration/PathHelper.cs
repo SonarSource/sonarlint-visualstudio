@@ -123,7 +123,10 @@ namespace SonarLint.VisualStudio.Integration
         {
             Debug.Assert(Path.IsPathRooted(path) || Path.IsPathRooted(rootDirectory), "Path should be absolute");
 
-            return path.StartsWith(rootDirectory, StringComparison.OrdinalIgnoreCase);
+            string expandedPath = Path.GetFullPath(path);
+            string expandedRootDirectory = Path.GetFullPath(rootDirectory);
+
+            return expandedPath.StartsWith(expandedRootDirectory, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string ToFilePathString(Uri uri)

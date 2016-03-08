@@ -13,6 +13,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal static class TestRuleSetHelper
     {
+        public static RuleSet CreateTestRuleSet(string fullPath)
+        {
+            return new RuleSet(Constants.RuleSetName) { FilePath = fullPath };
+        }
+
+        public static RuleSet CreateTestRuleSet(string rootDir, string fileName)
+        {
+            return CreateTestRuleSet(Path.Combine(rootDir, fileName));
+        }
+
         public static RuleSet CreateTestRuleSet(int numRules, IEnumerable<string> includes = null)
         {
             var ruleSet = new RuleSet(Constants.RuleSetName);

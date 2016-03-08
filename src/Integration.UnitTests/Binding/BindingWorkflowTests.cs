@@ -187,14 +187,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string projectFullPath = Path.Combine(projectRoot, projectName + ".proj");
 
             string existingRuleSetPath = Path.Combine(projectRoot, "mycustomruleset.ruleset");
-            var existingRuleSet = new RuleSet(Constants.RuleSetName);
+            var existingRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingRuleSetPath);
             existingRuleSet.Rules.Add(new RuleReference("testId", "testNs", "42", RuleAction.Default));
 
             var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
             fileSystem.AddRuleSetFile(existingRuleSetPath, existingRuleSet);
+            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("sonar1"));
 
             string expectedRuleSetPath = existingRuleSetPath;
-            var expectedRuleSet = new RuleSet(Constants.RuleSetName);
+            var expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet(expectedRuleSetPath);
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(solutionRuleSetInclude, RuleAction.Default));
             expectedRuleSet.Rules.Add(new RuleReference("testId", "testNs", "42", RuleAction.Default));
 

@@ -99,15 +99,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Remove all rule set inclusions which exist under the specified root directory.
         /// </summary>
-        internal /* testing purposes */  static void RemoveAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)
+        internal /* testing purposes */  void RemoveAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(rootDirectory));
-            
+
+            string ruleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(ruleSet.FilePath));
+
             // List<T> required as RuleSetIncludes will be modified
             List<RuleSetInclude> toRemove = ruleSet.RuleSetIncludes
                                             .Where(include =>
                                             {
-                                                string fullIncludePath = PathHelper.ResolveRelativePath(include.FilePath, rootDirectory);
+                                                string fullIncludePath = PathHelper.ResolveRelativePath(include.FilePath, ruleSetRoot);
                                                 return PathHelper.IsPathRootedUnderRoot(fullIncludePath, rootDirectory);
                                             })
                                             .ToList();
@@ -125,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             // Remove all solution level inclusions
             string solutionRuleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(solutionRuleSetPath));
-            RemoveAllIncludesUnderRoot(existingProjectRuleSet, solutionRuleSetRoot);
+            this.RemoveAllIncludesUnderRoot(existingProjectRuleSet, solutionRuleSetRoot);
 
             // Add correct inclusion
             string expectedIncludePath = PathHelper.CalculateRelativePath(projectRuleSetPath, solutionRuleSetPath);

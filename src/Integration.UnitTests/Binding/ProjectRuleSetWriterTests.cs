@@ -24,29 +24,49 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ProjectRuleSetWriter_RemoveAllIncludesUnderRoot()
         {
             // Setup
-            const string removalRoot = @"X:\dirA\rootRemoveDir\";
+            const string slnRoot = @"X:\SolutionDir\";
+            string projectRoot = Path.Combine(slnRoot, @"Project\");
+            string sonarRoot = Path.Combine(slnRoot, @"Sonar\");
+            string commonRoot = Path.Combine(slnRoot, @"Common\");
 
-            const string notRemovedAbsolute = @"X:\should not be removed absolute.ruleset";
-            const string notRemovedRelative = @"..\..\should not be removed absolute.ruleset";
+            const string sonarRs1FileName      = "Sonar1.ruleset";
+            const string sonarRs2FileName      = "Sonar2.ruleset";
+            const string projectRsBaseFileName = "ProjectBase.ruleset";
+            const string commonRs1FileName     = "SolutionCommon1.ruleset";
+            const string commonRs2FileName     = "SolutionCommon2.ruleset";
 
-            const string removedAbsolute = @"X:\dirA\rootRemoveDir\sonarqube1.ruleset";
-            const string removedRelative = @"..\rootRemoveDir\sonarqube2.ruleset";
+            var sonarRs1      = TestRuleSetHelper.CreateTestRuleSet(sonarRoot, sonarRs1FileName);
+            var sonarRs2      = TestRuleSetHelper.CreateTestRuleSet(sonarRoot, sonarRs2FileName);
+            var projectBaseRs = TestRuleSetHelper.CreateTestRuleSet(projectRoot, projectRsBaseFileName);
+            var commonRs1     = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs1FileName);
+            var commonRs2     = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs2FileName);
 
-            var ruleSet = new RuleSet("Test");
-            ruleSet.RuleSetIncludes.Add(new RuleSetInclude(notRemovedAbsolute, RuleAction.Default));
-            ruleSet.RuleSetIncludes.Add(new RuleSetInclude(notRemovedRelative, RuleAction.Default));
-            ruleSet.RuleSetIncludes.Add(new RuleSetInclude(removedAbsolute, RuleAction.Default));
-            ruleSet.RuleSetIncludes.Add(new RuleSetInclude(removedRelative, RuleAction.Default));
+            var fs = new ConfigurableRuleSetGenerationFileSystem();
+            fs.AddRuleSetFile(sonarRs1.FilePath, sonarRs1);
+            fs.AddRuleSetFile(sonarRs2.FilePath, sonarRs2);
+            fs.AddRuleSetFile(projectBaseRs.FilePath, projectBaseRs);
+            fs.AddRuleSetFile(commonRs1.FilePath, commonRs1);
+            fs.AddRuleSetFile(commonRs2.FilePath, commonRs2);
 
-            var expectedRuleSet = new RuleSet("Test");
-            expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(notRemovedAbsolute, RuleAction.Default));
-            expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(notRemovedRelative, RuleAction.Default));
+            var inputRuleSet = TestRuleSetHelper.CreateTestRuleSet(projectRoot,  "test.ruleset");
+            AddRuleSetInclusion(inputRuleSet, projectBaseRs, useRelativePath: true);
+            AddRuleSetInclusion(inputRuleSet, commonRs1, useRelativePath: true);
+            AddRuleSetInclusion(inputRuleSet, commonRs2, useRelativePath: false);
+            AddRuleSetInclusion(inputRuleSet, sonarRs1, useRelativePath: true);
+            AddRuleSetInclusion(inputRuleSet, sonarRs2, useRelativePath: false);
+
+            var expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet(projectRoot, "test.ruleset");
+            AddRuleSetInclusion(expectedRuleSet, projectBaseRs, useRelativePath: true);
+            AddRuleSetInclusion(expectedRuleSet, commonRs1, useRelativePath: true);
+            AddRuleSetInclusion(expectedRuleSet, commonRs2, useRelativePath: false);
+
+            var testSubject = new ProjectRuleSetWriter(fs);
 
             // Act
-            ProjectRuleSetWriter.RemoveAllIncludesUnderRoot(ruleSet, removalRoot);
+            testSubject.RemoveAllIncludesUnderRoot(inputRuleSet, sonarRoot);
 
             // Verify
-            RuleSetAssert.AreEqual(expectedRuleSet, ruleSet);
+            RuleSetAssert.AreEqual(expectedRuleSet, inputRuleSet);
         }
 
         [TestMethod]
@@ -245,13 +265,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string newSolutionRuleSetPath = @"X:\MySolution\SolutionRuleSets\sonarqube2.ruleset";
             const string expectedInclude = @"..\SolutionRuleSets\sonarqube2.ruleset";
 
-            var existingProjectRuleSet = new RuleSet("existing name");
+            var existingProjectRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingProjectRuleSetPath);
             existingProjectRuleSet.RuleSetIncludes.Add(new RuleSetInclude(existingInclude, RuleAction.Default));
 
             fileSystem.AddRuleSetFile(existingProjectRuleSetPath, existingProjectRuleSet);
             long initalWriteTimestamp = fileSystem.GetFileTimestamp(existingProjectRuleSetPath);
 
-            var expectedRuleSet = new RuleSet("existing name");
+            fileSystem.AddRuleSetFile(@"X:\MySolution\SolutionRuleSets\sonarqube1.ruleset", new RuleSet("sonar1"));
+
+            var expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingProjectRuleSetPath);
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(expectedInclude, RuleAction.Default));
 
             // Act
@@ -286,6 +308,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 numRules: 0,
                 includes: new[] { existingSolutionRuleSetInclude }
             );
+            existingRuleSet.FilePath = existingSolutionRuleSetPath;
+            fileSystem.AddRuleSetFile(existingSolutionRuleSetPath, existingRuleSet);
             fileSystem.AddRuleSetFile(projectRuleSetPath, existingRuleSet);
 
             string newSolutionRuleSetPath = Path.Combine(solutionRoot, "RuleSets", "sonar2.ruleset");
@@ -432,6 +456,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             long afterTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
             Assert.AreEqual(beforeTimestamp, afterTimestamp, "Rule set timestamp has changed; file was unexpectedly written to.");
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private static void AddRuleSetInclusion(RuleSet parent, RuleSet child, bool useRelativePath)
+        {
+            string include = useRelativePath
+                ? PathHelper.CalculateRelativePath(parent.FilePath, child.FilePath)
+                : child.FilePath;
+            parent.RuleSetIncludes.Add(new RuleSetInclude(include, RuleAction.Default));
         }
 
         #endregion
