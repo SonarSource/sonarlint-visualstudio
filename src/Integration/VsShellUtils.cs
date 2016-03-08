@@ -86,13 +86,27 @@ namespace SonarLint.VisualStudio.Integration
         public static Property FindProperty(Properties properties, string propertyName)
         {
             return properties?.OfType<Property>()
-                .Where(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, propertyName))
-                .SingleOrDefault();
+                .SingleOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, propertyName));
         }
 
-        internal static IEnumerable<Property> EnumerateProjectProperties(Project project, object additionalFilePropertyKey)
+        public static bool SaveSolution(IServiceProvider serviceProvider, bool silent)
         {
-            throw new NotImplementedException();
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            var solutionService = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
+            __VSSLNSAVEOPTIONS saveOptions = __VSSLNSAVEOPTIONS.SLNSAVEOPT_SaveIfDirty;
+            if (!silent)
+            {
+                saveOptions |= __VSSLNSAVEOPTIONS.SLNSAVEOPT_PromptSave;
+            }
+
+            int hr = solutionService.SaveSolutionElement((uint)saveOptions, null, 0);
+
+            // True if user clicked Yes, false otherwise (No/Cancel/Esc/Close dialog)
+            return hr != VSConstants.E_ABORT && ErrorHandler.ThrowOnFailure(hr) == VSConstants.S_OK;
         }
     }
 }

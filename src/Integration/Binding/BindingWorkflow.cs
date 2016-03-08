@@ -5,8 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using EnvDTE;
-using EnvDTE80;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -130,6 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller, IEnumerable<string> languages)
         {
             StepAttributes IndeterminateNonCancellableUIStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable;
+            StepAttributes HiddenIndeterminateNonImpactingNonCancellableUIStep = IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
             StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
 
             return new ProgressStepDefinition[]
@@ -137,13 +136,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
                         (token, notifications) => notifications.ProgressChanged(Strings.StartedSolutionBindingWorkflow, double.NaN)),
 
-                new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
+                new ProgressStepDefinition(null, StepAttributes.Indeterminate | StepAttributes.Hidden,
+                        (token, notifications) => this.PromptSaveSolutionIfDirty(controller, token)),
+
+                new ProgressStepDefinition(null, StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.Indeterminate,
                         (token, notifications) => this.VerifyServerPlugins(controller, token, notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.DownloadQualityProfile(controller, token, notifications, languages)),
 
-                new ProgressStepDefinition(null, IndeterminateNonCancellableUIStep,
+                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => { NuGetHelper.LoadService(this.owner.ServiceProvider); /*The service needs to be loaded on UI thread*/ }),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
@@ -155,8 +157,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
                         (token, notifications) => this.PrepareRuleSets(controller, token, notifications)),
 
-                new ProgressStepDefinition(null, IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact,
+                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => this.FinishBindingOnUIThread(controller, notifications)),
+
+                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
+                        (token, notifications) => this.SilentSaveSolutionIfDirty()),
 
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
                         (token, notifications) => this.EmitBindingCompleteMessage(notifications))
@@ -166,6 +171,27 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Workflow steps
+        private void AbortWorkflow(IProgressController controller, CancellationToken token)
+        {
+            bool aborted = controller.TryAbort();
+            Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
+        }
+
+        internal /*for testing purposes*/ void PromptSaveSolutionIfDirty(IProgressController controller, CancellationToken token)
+        {
+            if (!VsShellUtils.SaveSolution(this.owner.ServiceProvider, silent: false))
+            {
+                VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, Strings.SolutionSaveCancelledBindAborted);
+
+                this.AbortWorkflow(controller, token);
+            }
+        }
+
+        internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
+        {
+            bool saved = VsShellUtils.SaveSolution(this.owner.ServiceProvider, silent: true);
+            Debug.Assert(saved, "Should not be cancellable");
+        }
 
         internal /*for testing purposes*/ void VerifyServerPlugins(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
         {
@@ -174,8 +200,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 string errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
                 VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, errorMessage);
-                bool aborted = controller.TryAbort();
-                Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
+
+                this.AbortWorkflow(controller, token);
             }
         }
 
