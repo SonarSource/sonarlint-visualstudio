@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     throw;
                 }
 
-                VsShellUtils.WriteToGeneralOutputPane(serviceProvider, Strings.FailedDuringNuGetPackageInstall, packageId, project.Name, ex.ToString());
+                VsShellUtils.WriteToGeneralOutputPane(serviceProvider, Strings.FailedDuringNuGetPackageInstall, packageId, project.Name, ex.Message);
                 return false;
             }
         }

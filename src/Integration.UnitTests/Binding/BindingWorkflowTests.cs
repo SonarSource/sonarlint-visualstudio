@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -106,7 +107,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             RuleSetAssert.AreEqual(ruleSet, testSubject.Rulesets[RuleSetGroup.VB], "Unexpected rule set");
-            VerifyAdditionalFilesDownloaded(additionalFiles, testSubject);
             VerifyNuGetPackgesDownloaded(nugetPackages, testSubject);
             this.outputWindowPane.AssertOutputStrings(0);
             controller.AssertNumberOfAbortRequests(0);
@@ -300,95 +300,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_UnpackAdditionalFiles()
+        public void BindingWorkflow_InstallPackages_FailureOnOneProject_Continues()
         {
             // Setup
+            const string failureMessage = "Failure for project1";
+            const string project1Name = "project1";
+            const string project2Name = "project2";
+
             var testSubject = this.CreateTestSubject();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var cts = new CancellationTokenSource();
 
-            string solutionRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
-            string solutionFilePath = Path.Combine(solutionRoot, "Solution.sln");
-            SolutionMock solution = new SolutionMock(new DTEMock(), solutionFilePath);
-            this.projectSystemHelper.CurrentActiveSolution = solution;
+            ProjectMock project1 = new ProjectMock(project1Name);
+            ProjectMock project2 = new ProjectMock(project2Name);
 
-            var file1 = new AdditionalFile { FileName = "file1.xml", Content = new byte[] { 1, 2, 3 } };
-            var file2 = new AdditionalFile { FileName = "file2.xml", Content = new byte[] { 4, 5, 6 } };
-            testSubject.AdditionalFiles.Add(file1);
-            testSubject.AdditionalFiles.Add(file2);
+            var nugetPackage = new PackageName("mypackage", new SemanticVersion("1.1.0"));
+            var packages = new[] { nugetPackage };
 
-            string expectedFile1Path = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName, file1.FileName);
-            string expectedFile2Path = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName, file2.FileName);
-
-            // Act
-            testSubject.UnpackAdditionalFiles(new ConfigurableProgressController(), CancellationToken.None, progressEvents);
-
-            // Verify
-            Assert.AreEqual(2, testSubject.AdditionalFilePaths.Count, "Unexpected number of file paths stored");
-            Assert.IsTrue(testSubject.AdditionalFilePaths.Contains(expectedFile1Path), "File 1 path was not stored");
-            Assert.IsTrue(testSubject.AdditionalFilePaths.Contains(expectedFile2Path), "File 2 path was not stored");
-            Assert.IsTrue(File.Exists(expectedFile1Path), "File 1 was not written to the correct location");
-            Assert.IsTrue(File.Exists(expectedFile2Path), "File 2 was not written to the correct location");
-            CollectionAssert.AreEqual(file1.Content, File.ReadAllBytes(expectedFile1Path), "Unexpected file 1 content");
-            CollectionAssert.AreEqual(file2.Content, File.ReadAllBytes(expectedFile2Path), "Unexpected file 1 content");
-            progressEvents.AssertProgressMessages(
-                string.Format(CultureInfo.CurrentCulture, Strings.UnpackingAdditionalFile, file1.FileName),
-                string.Format(CultureInfo.CurrentCulture, Strings.UnpackingAdditionalFile, file2.FileName));
-            progressEvents.AssertProgress(
-                .5,
-                1.0);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_InjectAdditionalFilesIntoSolution()
-        {
-            // Setup
-            var testSubject = this.CreateTestSubject();
-
-            const string solutionRoot = @"X:\SolutionDir\";
-            string sonarDirPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
-
-            var solutionItemsProject = new ProjectMock("Solution items");
-            this.projectSystemHelper.SolutionItemsProject = solutionItemsProject;
-
-            string additionalFilePath1 = Path.Combine(sonarDirPath, "extra1.xml");
-            string additionalFilePath2 = Path.Combine(sonarDirPath, "extra2.xml");
-            testSubject.AdditionalFilePaths.Add(additionalFilePath1);
-            testSubject.AdditionalFilePaths.Add(additionalFilePath2);
+            ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, packages, project1, project2);
+            packageInstaller.InstallPackageAction = (p) =>
+            {
+                packageInstaller.InstallPackageAction = null;
+                throw new Exception(failureMessage);
+            };
 
             // Act
-            testSubject.InjectAdditionalFilesIntoSolution();
+            testSubject.InstallPackages(new ConfigurableProgressController(), cts.Token, progressEvents);
 
             // Verify
-            Assert.IsTrue(solutionItemsProject.Files.ContainsKey(additionalFilePath1), "Failed to add additional file to solution items");
-            Assert.IsTrue(solutionItemsProject.Files.ContainsKey(additionalFilePath2), "Failed to add additional file to solution items");
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_InjectAdditionalFilesIntoProjects()
-        {
-            // Setup
-            var testSubject = this.CreateTestSubject();
-
-            const string solutionRoot = @"X:\SolutionDir\";
-            string sonarDirPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
-
-            string project1Root = Path.Combine(solutionRoot, "p1");
-            string project2Root = Path.Combine(solutionRoot, "p2");
-            var project1 = new ProjectMock(Path.Combine(project1Root, "p1.proj"));
-            var project2 = new ProjectMock(Path.Combine(project2Root, "p2.proj"));
-            this.projectSystemHelper.ManagedProjects = new[] { project1, project2 };
-
-            string additionalFilePath1 = Path.Combine(sonarDirPath, "extra1.xml");
-            string additionalFilePath2 = Path.Combine(sonarDirPath, "extra2.xml");
-            testSubject.AdditionalFilePaths.Add(additionalFilePath1);
-            testSubject.AdditionalFilePaths.Add(additionalFilePath2);
-
-            // Act
-            testSubject.InjectAdditionalFilesIntoProjects();
-
-            // Verify
-            VerifyAdditionalFileAddedToProject(project1, additionalFilePath1);
-            VerifyAdditionalFileAddedToProject(project2, additionalFilePath1);
+            packageInstaller.AssertNoInstalledPackages(project1);
+            packageInstaller.AssertInstalledPackages(project2, packages);
+            outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.FailedDuringNuGetPackageInstall, nugetPackage.Id, project1Name, failureMessage));
         }
 
         [TestMethod]
@@ -417,6 +359,79 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.AreEqual(1, this.projectSystemHelper.SolutionItemsProject.ProjectItems.Count, "Expect configuration file to be added to the solution items folder");
         }
 
+        [TestMethod]
+        public void BindingWorkflow_EmitBindingCompleteMessage()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            // Test case 1: Default state is 'true'
+            Assert.IsTrue(testSubject.AllNuGetPackagesInstalled, $"Initial state of {nameof(BindingWorkflow.AllNuGetPackagesInstalled)} should be true");
+
+            // Test case 2: All packages installed
+            // Setup
+            var notificationsOk = new ConfigurableProgressStepExecutionEvents();
+            testSubject.AllNuGetPackagesInstalled = true;
+
+            // Act
+            testSubject.EmitBindingCompleteMessage(notificationsOk);
+
+            // Verify
+            notificationsOk.AssertProgressMessages(string.Format(CultureInfo.CurrentCulture, Strings.FinishedSolutionBindingWorkflowSuccessful));
+
+            // Test case 3: Not all packages installed
+            // Setup
+            var notificationsFail = new ConfigurableProgressStepExecutionEvents();
+            testSubject.AllNuGetPackagesInstalled = false;
+
+            // Act
+            testSubject.EmitBindingCompleteMessage(notificationsFail);
+
+            // Verify
+            notificationsFail.AssertProgressMessages(string.Format(CultureInfo.CurrentCulture, Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled));
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_PromptSaveSolutionIfDirty()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+            var solution = new SolutionMock();
+            serviceProvider.RegisterService(typeof(SVsSolution), solution);
+            var controller = new ConfigurableProgressController();
+
+            // Case 1: Users saves the changes
+            solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_OK;
+            // Act
+            testSubject.PromptSaveSolutionIfDirty(controller, CancellationToken.None);
+            // Verify
+            this.outputWindowPane.AssertOutputStrings(0);
+            controller.AssertNumberOfAbortRequests(0);
+
+            // Case 2: Users cancels the save
+            solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_FALSE;
+            // Act
+            testSubject.PromptSaveSolutionIfDirty(controller, CancellationToken.None);
+            // Verify
+            this.outputWindowPane.AssertOutputStrings(Strings.SolutionSaveCancelledBindAborted);
+            controller.AssertNumberOfAbortRequests(1);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_SilentSaveSolutionIfDirty()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+            var solution = new SolutionMock();
+            serviceProvider.RegisterService(typeof(SVsSolution), solution);
+            solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_OK;
+
+            // Act
+            testSubject.SilentSaveSolutionIfDirty();
+
+            // Verify
+            this.outputWindowPane.AssertOutputStrings(0);
+        }
         #endregion
 
         #region Helpers
@@ -471,30 +486,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.IsTrue(expected[i].Equals(actual[i]), $"Packages are different at index {i}.");
             }
         }
-
-        private static void VerifyAdditionalFilesDownloaded(IEnumerable<AdditionalFile> expectedFiles, BindingWorkflow testSubject)
-        {
-            var expected = expectedFiles.ToArray();
-            var actual = testSubject.AdditionalFiles.ToArray();
-
-            Assert.AreEqual(expected.Length, actual.Length, "Different number of files.");
-
-            for (int i = 0; i < expected.Length; i++)
-            {
-                Assert.AreEqual(expected[i].FileName, actual[i].FileName, $"Files have different names at index {i}.");
-                CollectionAssert.AreEqual(expected[i].Content, actual[i].Content, $"Files have different content at index {i}.");
-            }
-        }
-
-        private static void VerifyAdditionalFileAddedToProject(Project project, string additionalFilePath)
-        {
-            IEnumerable<ProjectItem> existingAdditionalFileItems = project.ProjectItems.Cast<ProjectItem>().Where(x => x.Properties.Cast<Property>().Any(y => y.Name == Constants.ItemTypePropertyKey));
-
-            var additionalFileItem = existingAdditionalFileItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, additionalFilePath));
-
-            Assert.IsNotNull(additionalFileItem, $"AdditionalFile '{additionalFilePath}' is missing");
-        }
-
 
         #endregion
     }

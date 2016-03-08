@@ -278,8 +278,8 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <comment>A progress notification message. {0} nuget package id, {1} project name</comment>
   </data>
   <data name="FailedDuringNuGetPackageInstall" xml:space="preserve">
-    <value>Failed to install NuGet package '{0}' for project '{1}'. Exception:\n{2}</value>
-    <comment>Output window message in case of failure - {0} nuget package id, {1} project name, {2} exception text</comment>
+    <value>Failed to install NuGet package '{0}' for project '{1}'. Message: {2}</value>
+    <comment>Output window message in case of failure - {0} nuget package id, {1} project name, {2} message</comment>
   </data>
   <data name="FailedToToBindSolution" xml:space="preserve">
     <value>Failed to bind the solution to SonarQube project, [try again](). 
@@ -291,7 +291,7 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>Binding solution to SonarQube project: {0}</value>
     <comment>Output window message prefix that will be common to all the steps (more than one) in the binding workflow. {0} the step specific message in that workflow.</comment>
   </data>
-  <data name="FinishedSolutionBindingWorkflow" xml:space="preserve">
+  <data name="FinishedSolutionBindingWorkflowSuccessful" xml:space="preserve">
     <value>Completed successfully</value>
     <comment>A progress notification message</comment>
   </data>
@@ -428,5 +428,13 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
   <data name="SonarQubeName" xml:space="preserve">
     <value>SonarQube</value>
     <comment>Name of SonarQube server product</comment>
+  </data>
+  <data name="FinishedSolutionBindingWorkflowNotAllPackagesInstalled" xml:space="preserve">
+    <value>Not all NuGet packages were installed. Please see output above for more information.</value>
+    <comment>Output message indicating not all NuGet packages were installed during the binding workflow</comment>
+  </data>
+  <data name="SolutionSaveCancelledBindAborted" xml:space="preserve">
+    <value>Cannot bind or sync if there are unsaved changes. Operation cancelled.</value>
+    <comment>Output window message when the user cancels the solution save dialog</comment>
   </data>
 </root>

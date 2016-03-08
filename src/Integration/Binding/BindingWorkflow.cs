@@ -5,8 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using EnvDTE;
-using EnvDTE80;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -82,11 +80,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new List<NuGetPackageInfo>();
 
-        public List<AdditionalFile> AdditionalFiles
-        {
-            get;
-        } = new List<AdditionalFile>();
-
         public Dictionary<RuleSetGroup, string> SolutionRulesetPaths
         {
             get;
@@ -98,10 +91,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             private set;
         }
 
-        public List<string> AdditionalFilePaths
+        internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
         {
             get;
-        } = new List<string>();
+            set;
+        } = true;
 
         #endregion
 
@@ -143,6 +137,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller, IEnumerable<string> languages)
         {
             StepAttributes IndeterminateNonCancellableUIStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable;
+            StepAttributes HiddenIndeterminateNonImpactingNonCancellableUIStep = IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
             StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
 
             return new ProgressStepDefinition[]
@@ -150,7 +145,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
                         (token, notifications) => notifications.ProgressChanged(Strings.StartedSolutionBindingWorkflow, double.NaN)),
 
-                new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
+                new ProgressStepDefinition(null, StepAttributes.Indeterminate | StepAttributes.Hidden,
+                        (token, notifications) => this.PromptSaveSolutionIfDirty(controller, token)),
+
+                new ProgressStepDefinition(null, StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.Indeterminate,
                         (token, notifications) => this.VerifyServerPlugins(controller, token, notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
@@ -162,26 +160,47 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.InstallPackages(controller, token, notifications)),
 
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.UnpackAdditionalFiles(controller, token, notifications)),
-
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableUIStep,
                         (token, notifications) => this.PrepareRuleSetInjector(notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
                         (token, notifications) => this.PrepareRuleSets(token)),
 
-                new ProgressStepDefinition(null, IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact,
+                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => this.FinishBindingOnUIThread()),
 
+                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
+                        (token, notifications) => this.SilentSaveSolutionIfDirty()),
+
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
-                        (token, notifications) => notifications.ProgressChanged(Strings.FinishedSolutionBindingWorkflow, double.NaN))
+                        (token, notifications) => this.EmitBindingCompleteMessage(notifications))
             };
         }
 
         #endregion
 
         #region Workflow steps
+        private void AbortWorkflow(IProgressController controller, CancellationToken token)
+        {
+            bool aborted = controller.TryAbort();
+            Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
+        }
+
+        internal /*for testing purposes*/ void PromptSaveSolutionIfDirty(IProgressController controller, CancellationToken token)
+        {
+            if (!VsShellUtils.SaveSolution(this.host, silent: false))
+            {
+                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SolutionSaveCancelledBindAborted);
+
+                this.AbortWorkflow(controller, token);
+            }
+        }
+
+        internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
+        {
+            bool saved = VsShellUtils.SaveSolution(this.host, silent: true);
+            Debug.Assert(saved, "Should not be cancellable");
+        }
 
         internal /*for testing purposes*/ void VerifyServerPlugins(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
         {
@@ -190,8 +209,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 string errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
                 VsShellUtils.WriteToGeneralOutputPane(this.host, errorMessage);
-                bool aborted = controller.TryAbort();
-                Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
+
+                this.AbortWorkflow(controller, token);
             }
         }
 
@@ -217,8 +236,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
 
                 this.NuGetPackages.AddRange(export.Deployment.NuGetPackages);
-
-                this.AdditionalFiles.AddRange(export.Configuration.AdditionalFiles);
 
                 var tempRuleSetFilePath = Path.GetTempFileName();
                 File.WriteAllText(tempRuleSetFilePath, export.Configuration.RuleSet.OuterXml);
@@ -282,8 +299,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.RuleSetInjector.CommitUpdates();
 
-            this.InjectAdditionalFiles();
-
             this.PersistBinding();
         }
 
@@ -334,86 +349,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                     string message = string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, packageInfo.Id, project.Name);
                     progressNotifier.NotifyCurrentProgress(message);
-                    if (!NuGetHelper.TryInstallPackage(this.host, project, packageInfo.Id, packageInfo.Version))
-                    {
-                        bool aborted = controller.TryAbort();
-                        Debug.Assert(aborted, "Failed to abort the binding workflow");
-                        break;
-                    }
+
+                    // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
+                    this.AllNuGetPackagesInstalled &= NuGetHelper.TryInstallPackage(this.host, project, packageInfo.Id, packageInfo.Version);
+
                     progressNotifier.NotifyIncrementedProgress(string.Empty);
-                }
-            }
-        }
-
-        internal /*for testing purposes*/ void UnpackAdditionalFiles(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents)
-        {
-            if (!this.AdditionalFiles.Any())
-            {
-                return; // Nothing to unpack
-            }
-
-            Solution2 solution = this.projectSystemHelper.GetCurrentActiveSolution();
-            if (solution == null)
-            {
-                Debug.Fail("Cannot get current active solution");
-                return;
-            }
-
-            string solutionRoot = Path.GetDirectoryName(solution.FullName);
-            string root = this.solutionRuleSetWriter.GetOrCreateRuleSetDirectory(solutionRoot);
-
-            DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, this.AdditionalFiles.Count);
-
-            foreach (var additionalFile in this.AdditionalFiles)
-            {
-                if (token.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                string message = string.Format(CultureInfo.CurrentCulture, Strings.UnpackingAdditionalFile, additionalFile.FileName);
-                notifier.NotifyIncrementedProgress(message);
-
-                string filePath = Path.Combine(root, additionalFile.FileName);
-                File.WriteAllBytes(filePath, additionalFile.Content);
-
-                this.AdditionalFilePaths.Add(filePath);
-            }
-        }
-
-        private void InjectAdditionalFiles()
-        {
-            if (this.AdditionalFiles.Any())
-            {
-                InjectAdditionalFilesIntoSolution();
-                InjectAdditionalFilesIntoProjects();
-            }
-        }
-
-        internal /*for testing purposes*/ void InjectAdditionalFilesIntoProjects()
-        {
-            foreach (var project in this.projectSystemHelper.GetSolutionManagedProjects())
-            {
-                foreach (var additionalFilePath in this.AdditionalFilePaths)
-                {
-                    this.projectSystemHelper.AddFileToProject(project, additionalFilePath, Constants.AdditionalFilesItemTypeName);
-                }
-            }
-        }
-
-        internal /*for testing purposes*/ void InjectAdditionalFilesIntoSolution()
-        {
-            Project solutionItemsProject = this.projectSystemHelper.GetSolutionItemsProject();
-            if (solutionItemsProject == null)
-            {
-                Debug.Fail("Could not find the solution items project");
-            }
-            else
-            {
-                // Add additional files to the solution items project
-                foreach (var additionalFilePath in this.AdditionalFilePaths)
-                {
-                    this.projectSystemHelper.AddFileToProject(solutionItemsProject, additionalFilePath);
                 }
             }
         }
@@ -447,6 +387,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             return projectRuleSetPath;
+        }
+
+        internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
+        {
+            var message = this.AllNuGetPackagesInstalled
+                ? Strings.FinishedSolutionBindingWorkflowSuccessful
+                : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
+            notifications.ProgressChanged(message, double.NaN);
         }
 
         #endregion

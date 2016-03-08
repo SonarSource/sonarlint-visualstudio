@@ -296,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to install NuGet package &apos;{0}&apos; for project &apos;{1}&apos;. Exception:\n{2}.
+        ///   Looks up a localized string similar to Failed to install NuGet package &apos;{0}&apos; for project &apos;{1}&apos;. Message: {2}.
         /// </summary>
         public static string FailedDuringNuGetPackageInstall {
             get {
@@ -351,11 +351,20 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not all NuGet packages were installed. Please see output above for more information..
+        /// </summary>
+        public static string FinishedSolutionBindingWorkflowNotAllPackagesInstalled {
+            get {
+                return ResourceManager.GetString("FinishedSolutionBindingWorkflowNotAllPackagesInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Completed successfully.
         /// </summary>
-        public static string FinishedSolutionBindingWorkflow {
+        public static string FinishedSolutionBindingWorkflowSuccessful {
             get {
-                return ResourceManager.GetString("FinishedSolutionBindingWorkflow", resourceCulture);
+                return ResourceManager.GetString("FinishedSolutionBindingWorkflowSuccessful", resourceCulture);
             }
         }
         
@@ -609,6 +618,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string ShowServerNuGetTrustWarningSettingName {
             get {
                 return ResourceManager.GetString("ShowServerNuGetTrustWarningSettingName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot bind or sync if there are unsaved changes. Operation cancelled..
+        /// </summary>
+        public static string SolutionSaveCancelledBindAborted {
+            get {
+                return ResourceManager.GetString("SolutionSaveCancelledBindAborted", resourceCulture);
             }
         }
         
