@@ -373,6 +373,67 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
         }
 
+        [TestMethod]
+        public void ProjectRuleSetWriter_TryUpdateExistingProjectRuleSet_RuleSetNotAlreadyWritten_WritesFile()
+        {
+            // Setup
+            var fs = new ConfigurableRuleSetGenerationFileSystem();
+            var testSubject = new ProjectRuleSetWriter(fs);
+
+            const string solutionRoot = @"X:\SolutionDir\";
+            string solutionRuleSetPath = Path.Combine(solutionRoot, @"Sonar\Sonar1.ruleset");
+            string projectRuleSetRoot = Path.Combine(solutionRoot, @"Project\");
+
+            string existingRuleSetFileName = @"ExistingSharedRuleSet.ruleset";
+            string existingRuleSetFullPath = Path.Combine(solutionRoot, existingRuleSetFileName);
+            string existingRuleSetPropValue = PathHelper.CalculateRelativePath(projectRuleSetRoot, existingRuleSetFullPath);
+
+            fs.AddRuleSetFile(existingRuleSetFullPath, new RuleSet("test"));
+            long beforeTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
+
+            // Act
+            string pathOutResult;
+            bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, existingRuleSetPropValue, out pathOutResult);
+
+            // Verify
+            Assert.IsTrue(result, "Expected to return true when trying to update existing rule set");
+            Assert.AreEqual(existingRuleSetFullPath, pathOutResult, "Unexpected rule set path was returned");
+
+            long afterTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
+            Assert.IsTrue(beforeTimestamp < afterTimestamp, "Rule set timestamp has not changed; expected file to be written to.");
+        }
+
+        [TestMethod]
+        public void ProjectRuleSetWriter_TryUpdateExistingProjectRuleSet_RuleSetAlreadyWritten_DoesNotWriteAgain()
+        {
+            // Setup
+            var fs = new ConfigurableRuleSetGenerationFileSystem();
+            var testSubject = new ProjectRuleSetWriter(fs);
+
+            const string solutionRoot = @"X:\SolutionDir\";
+            string solutionRuleSetPath = Path.Combine(solutionRoot, @"Sonar\Sonar1.ruleset");
+            string projectRuleSetRoot = Path.Combine(solutionRoot, @"Project\");
+
+            string existingRuleSetFileName = @"ExistingSharedRuleSet.ruleset";
+            string existingRuleSetFullPath = Path.Combine(solutionRoot, existingRuleSetFileName);
+            string existingRuleSetPropValue = PathHelper.CalculateRelativePath(projectRuleSetRoot, existingRuleSetFullPath);
+
+            testSubject.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetFullPath);
+            fs.AddRuleSetFile(existingRuleSetFullPath, new RuleSet("test"));
+            long beforeTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
+
+            // Act
+            string pathOutResult;
+            bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, existingRuleSetPropValue, out pathOutResult);
+
+            // Verify
+            Assert.IsTrue(result, "Expected to return true when trying to update already updated existing rule set");
+            Assert.AreEqual(existingRuleSetFullPath, pathOutResult, "Unexpected rule set path was returned");
+
+            long afterTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
+            Assert.AreEqual(beforeTimestamp, afterTimestamp, "Rule set timestamp has changed; file was unexpectedly written to.");
+        }
+
         #endregion
     }
 }

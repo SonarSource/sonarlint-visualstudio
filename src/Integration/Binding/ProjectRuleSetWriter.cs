@@ -19,6 +19,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         internal const string DefaultProjectRuleSet = "MinimumRecommendedRules.ruleset";
 
+        internal /*for testing purposes*/ ISet<string> AlreadyUpdatedExistingRuleSetPaths
+        {
+            get;
+        } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         public ProjectRuleSetWriter(IRuleSetGenerationFileSystem fileSystem = null)
             : base(fileSystem)
         {
@@ -51,8 +56,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (this.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, ruleSetRoot, currentRuleSetPath, out existingRuleSetPath))
             {
                 Debug.Assert(existingRuleSetPath != null);
-                    return existingRuleSetPath;
-                }
+                return existingRuleSetPath;
+            }
 
             // Create a new project level rule set
             string projectName = Path.GetFileNameWithoutExtension(projectFullPath);
@@ -65,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #region Rule Set Helpers
-        private bool TryUpdateExistingProjectRuleSet(string solutionRuleSetPath, string projectRuleSetRootFolder, string currentRuleSet, out string existingRuleSetPath)
+        internal /*for testing purposes*/ bool TryUpdateExistingProjectRuleSet(string solutionRuleSetPath, string projectRuleSetRootFolder, string currentRuleSet, out string existingRuleSetPath)
         {
             existingRuleSetPath = null;
             if (string.IsNullOrWhiteSpace(currentRuleSet))
@@ -74,10 +79,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             existingRuleSetPath = PathHelper.ResolveRelativePath(currentRuleSet, projectRuleSetRootFolder);
+
+            if (this.AlreadyUpdatedExistingRuleSetPaths.Contains(existingRuleSetPath))
+            {
+                return true;
+            }
+
             RuleSet existingRuleSet = this.SafeLoadRuleSet(existingRuleSetPath);
             if (existingRuleSet != null)
             {
                 this.UpdateExistingProjectRuleSet(existingRuleSet, existingRuleSetPath, solutionRuleSetPath);
+                this.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetPath);
                 return true;
             }
 
