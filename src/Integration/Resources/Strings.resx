@@ -153,10 +153,6 @@
     <value>Password:</value>
     <comment>Input label for password when connecting to a SonarQube server</comment>
   </data>
-  <data name="PasswordRequired" xml:space="preserve">
-    <value>If a username is specified, a password must also be specified.</value>
-    <comment>Error message indicating that the password field is required if the username field is not empty</comment>
-  </data>
   <data name="InvalidServerUriFormat" xml:space="preserve">
     <value>"{0}" is not a valid URL</value>
     <comment>Server URI validator error message, formatted. {0} - invalid input string</comment>

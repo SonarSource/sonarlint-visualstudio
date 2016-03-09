@@ -88,16 +88,6 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
             get { return this.uriValidator.IsValidUri(this.ServerUrlRaw); }
         }
 
-        public bool IsPasswordValid
-        {
-            get { return this.credentialsValidator.IsPasswordValid; }
-        }
-
-        public string PasswordErrorMessage
-        {
-            get { return this.credentialsValidator.InvalidPasswordErrorMessage; }
-        }
-
         /// <summary>
         /// Whether or not all credential information is valid.
         /// </summary>
@@ -138,8 +128,6 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
             this.credentialsValidator.Update(this.Username, password);
 
             // Notify of possible changes to validation errors for Username and Password
-            this.RaisePropertyChanged(nameof(this.IsPasswordValid));
-            this.RaisePropertyChanged(nameof(this.PasswordErrorMessage));
             this.RaisePropertyChanged(nameof(this.IsCredentialsValid));
             this.RaisePropertyChanged(nameof(this.IsValid));
             this.RaiseErrorsChanged(nameof(this.Username));

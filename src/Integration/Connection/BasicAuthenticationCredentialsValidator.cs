@@ -25,18 +25,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             get { return this.InvalidUsernameErrorMessage == null; }
         }
-        
-        public bool IsPasswordValid
-        {
-            get { return this.InvalidPasswordErrorMessage == null; }
-        }
 
         /// <summary>
-        /// True iff both username (<see cref="IsUsernameValid"/>) and password (<see cref="IsPasswordValid"/>) valid.
+        /// True iff username (<see cref="IsUsernameValid"/>) is valid.
         /// </summary>
         public bool IsValid
         {
-            get { return this.IsUsernameValid && this.IsPasswordValid; }
+            get { return this.IsUsernameValid; }
         }
 
         /// <summary>
@@ -59,26 +54,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 if (this.username != null && InvalidCharacters.IsMatch(this.username))
                 {
                     AppendError(errorMessage, Resources.Strings.InvalidCharacterColon);
-                }
-
-                return CreateMessage(errorMessage);
-            }
-        }
-
-        /// <summary>
-        /// Error message summary for the Password, or null if valid.
-        /// </summary>
-        public string InvalidPasswordErrorMessage
-        {
-            get
-            {
-                var errorMessage = new StringBuilder();
-
-                // Required?
-                bool passwordRequired = !string.IsNullOrEmpty(this.username) && this.password.IsNullOrEmpty();
-                if (passwordRequired)
-                {
-                    AppendError(errorMessage, Resources.Strings.PasswordRequired);
                 }
 
                 return CreateMessage(errorMessage);

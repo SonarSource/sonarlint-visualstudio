@@ -450,15 +450,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If a username is specified, a password must also be specified..
-        /// </summary>
-        public static string PasswordRequired {
-            get {
-                return ResourceManager.GetString("PasswordRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An absolute file path was expected..
         /// </summary>
         public static string PathHelperAbsolutePathExpected {
