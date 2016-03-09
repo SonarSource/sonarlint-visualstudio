@@ -412,7 +412,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string existingRuleSetFullPath = Path.Combine(solutionRoot, existingRuleSetFileName);
             string existingRuleSetPropValue = PathHelper.CalculateRelativePath(projectRuleSetRoot, existingRuleSetFullPath);
 
-            fs.AddRuleSetFile(existingRuleSetFullPath, new RuleSet("test"));
+            fs.AddRuleSetFile(existingRuleSetFullPath, TestRuleSetHelper.CreateTestRuleSet(existingRuleSetFullPath));
             long beforeTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
 
             // Act
