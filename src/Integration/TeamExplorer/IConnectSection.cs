@@ -5,15 +5,46 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Windows;
+using SonarLint.VisualStudio.Integration.Progress;
+using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
-    // Test only interface
+    /// <summary>
+    /// Representation of the connect section
+    /// </summary>
     internal interface IConnectSection
     {
-        DependencyObject View { get; }
+        /// <summary>
+        /// The progress host
+        /// </summary>
+        /// <remarks>return <see cref="View"/> when the view specific host is the one to use</remarks>
+        IProgressControlHost ProgressHost { get; }
 
+        /// <summary>
+        /// <see cref="ConnectSectionView"/>
+        /// </summary>
+        ConnectSectionView View { get; }
+
+        /// <summary>
+        /// <see cref="ConnectSectionViewModel"/>
+        /// </summary>
         ConnectSectionViewModel ViewModel { get; }
+
+        /// <summary>
+        /// The notifications service to use
+        /// </summary>
+        ///<remarks>return <see cref="ViewModel"/> when the view model specific implementation is the one to use</remarks>
+        IUserNotification UserNotifications { get; }
+
+        ICommand ConnectCommand { get; }
+
+        ICommand BindCommand { get; }
+
+        ICommand RefreshCommand { get; }
+
+        ICommand DisconnectCommand { get; }
+
+        ICommand ToggleShowAllProjectsCommand { get; }
     }
 }

@@ -5,14 +5,53 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using System.Windows;
+using SonarLint.VisualStudio.Integration.WPF;
+using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableConnectSection : IConnectSection
     {
-        public DependencyObject View
+        #region  IConnectSection
+        public ICommand BindCommand
+        {
+            get;
+            set;
+        }
+
+        public ICommand ConnectCommand
+        {
+            get;
+            set;
+        }
+
+        public ICommand DisconnectCommand
+        {
+            get;
+            set;
+        }
+
+        public IProgressControlHost ProgressHost
+        {
+            get;
+            set;
+        }
+
+        public ICommand RefreshCommand
+        {
+            get;
+            set;
+        }
+
+        public ICommand ToggleShowAllProjectsCommand
+        {
+            get;
+            set;
+        }
+
+        public IUserNotification UserNotifications
         {
             get;
             set;
@@ -22,6 +61,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get;
             set;
+        }
+
+        public ConnectSectionView View
+        {
+            get;
+            set;
+        }
+        #endregion
+
+        public static ConfigurableConnectSection CreateDefault()
+        {
+            var section = new ConfigurableConnectSection();
+            section.ViewModel = new ConnectSectionViewModel();
+            section.View = new ConnectSectionView();
+            section.ProgressHost = new ConfigurableProgressControlHost();
+            section.UserNotifications = new ConfigurableUserNotification();
+            section.BindCommand = new RelayCommand(() => { });
+            section.ConnectCommand = new RelayCommand(() => { });
+            section.DisconnectCommand = new RelayCommand(() => { });
+            section.RefreshCommand = new RelayCommand(() => { });
+            section.ToggleShowAllProjectsCommand = new RelayCommand(() => { });
+            return section;
         }
     }
 }

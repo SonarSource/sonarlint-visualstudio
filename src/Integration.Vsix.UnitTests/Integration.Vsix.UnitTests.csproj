@@ -26,7 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.Vsix.UnitTests.Debug.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.Vsix.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.Vsix.UnitTests.Release.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Integration.Vsix.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -107,8 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Integration.Vsix.UnitTests.Debug.ruleset" />
-    <None Include="Integration.Vsix.UnitTests.Release.ruleset" />
+    <None Include="Integration.Vsix.UnitTests.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

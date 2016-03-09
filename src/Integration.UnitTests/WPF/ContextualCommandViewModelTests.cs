@@ -5,8 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Integration.WPF;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,29 +19,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
         [TestMethod]
         public void ContextualCommandViewModel_Ctor_NullArgChecks()
         {
-            var context = new object();
             var command = new RelayCommand(() => { });
-
+            ContextualCommandViewModel suppressAnalysisWarning;
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                new ContextualCommandViewModel(null, command);
-            });
-
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                new ContextualCommandViewModel(context, null);
+                suppressAnalysisWarning = new ContextualCommandViewModel(null, command);
             });
         }
 
         [TestMethod]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", 
+            "S1854:Dead stores should be removed", 
+            Justification = "False positive canExecute is being used ", 
+            Scope = "member", 
+            Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.WPF.ContextualCommandViewModelTests.ContextualCommandViewModel_CommandInvocation")]
         public void ContextualCommandViewModel_CommandInvocation()
         {
             // Setup
             bool canExecute = false;
             bool executed = false;
             var realCommand = new RelayCommand<object>(
-                (state) => { Assert.AreEqual(this, state); executed = true; },
-                (state) => { Assert.AreEqual(this, state); return canExecute; });
+                (state) => 
+                {
+                    Assert.AreEqual(this, state);
+                    executed = true;
+                },
+                (state) => 
+                {
+                    Assert.AreEqual(this, state);
+                    return canExecute;
+                });
             var testSubject = new ContextualCommandViewModel(this, realCommand);
 
             // Sanity
@@ -55,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 
             // Case 2: Can execute
             canExecute = true;
+
             // Act
             Assert.IsTrue(testSubject.Command.CanExecute(null), "CanExecute wasn't called as expected");
 
@@ -86,7 +94,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 
                 // Case 3: dynamic
                 var funcInvoked = false;
-                Func<object, string> func = x => { funcInvoked = true; return "1234"; };
+                Func<object, string> func = x => 
+                {
+                    funcInvoked = true;
+                    return "1234";
+                };
                 testSubject.SetDynamicDisplayText(func);
                 // Act + Verify
                 Assert.AreEqual("1234", testSubject.DisplayText, "Unexpected dynamic display text");
@@ -122,7 +134,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
                 // Case 3: dynamic
                 var dynamicIcon = new IconViewModel(null);
                 var funcInvoked = false;
-                Func<object, IconViewModel> func = x => { funcInvoked = true; return dynamicIcon; };
+                Func<object, IconViewModel> func = x => 
+                {
+                    funcInvoked = true;
+                    return dynamicIcon;
+                };
                 testSubject.SetDynamicIcon(func);
                 // Act + Verify
                 Assert.AreSame(dynamicIcon, testSubject.Icon, "Unexpected dynamic icon");
@@ -134,10 +150,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             Exceptions.Expect<ArgumentNullException>(() => testSubject.SetDynamicIcon(null));
         }
 
-        private class PropertyChangedTracker : IDisposable
+        private sealed class PropertyChangedTracker : IDisposable
         {
-            private INotifyPropertyChanged subject;
-            private IDictionary<string, int> trackingDictionary = new Dictionary<string, int>();
+            private readonly INotifyPropertyChanged subject;
+            private readonly IDictionary<string, int> trackingDictionary = new Dictionary<string, int>();
 
             public PropertyChangedTracker(INotifyPropertyChanged subject)
             {
@@ -162,9 +178,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 
             #region IDisposable
 
-            private bool isDisposed = false;
+            private bool isDisposed;
 
-            protected virtual void Dispose(bool disposing)
+            private void Dispose(bool disposing)
             {
                 if (!isDisposed)
                 {

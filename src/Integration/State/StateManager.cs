@@ -1,0 +1,260 @@
+﻿//-----------------------------------------------------------------------
+// <copyright file="StateManager.cs" company="SonarSource SA and Microsoft Corporation">
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using Microsoft.VisualStudio.Imaging;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.WPF;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+
+namespace SonarLint.VisualStudio.Integration.State
+{
+    /// <summary>
+    /// Implementation of <see cref="IStateManager"/>
+    /// </summary>
+    internal sealed class StateManager : IStateManager, IDisposable
+    {
+        private bool isDisposed;
+
+        public StateManager(IHost host, TransferableVisualState state)
+        {
+            if (host == null)
+            {
+                throw new ArgumentNullException(nameof(host));
+            }
+
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            this.Host = host;
+            this.ManagedState = state;
+            this.ManagedState.PropertyChanged += this.OnStatePropertyChanged;
+        }
+
+        #region IStateManager
+        public TransferableVisualState ManagedState
+        {
+            get;
+        }
+
+        public IHost Host
+        {
+            get;
+        }
+
+        public bool IsBusy
+        {
+            get
+            {
+                return this.ManagedState.IsBusy;
+            }
+            set
+            {
+                this.ManagedState.IsBusy = value;
+            }
+        }
+
+        public string BoundProjectKey { get; set; }
+
+        public void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects)
+        {
+            if (this.Host.UIDIspatcher.CheckAccess())
+            {
+                this.SetProjectsUIThread(connection, projects);
+            }
+            else
+            {
+                this.Host.UIDIspatcher.BeginInvoke(new Action(() => this.SetProjectsUIThread(connection, projects)));
+            }
+        }
+
+        public void SetBoundProject(ProjectInformation project)
+        {
+            this.ClearBindingErrorNotifications();
+            ProjectViewModel projectViewModel = this.ManagedState.ConnectedServers.SelectMany(s => s.Projects).SingleOrDefault(p => p.ProjectInformation == project);
+            Debug.Assert(projectViewModel != null, "Expecting a single project mapped to project information");
+            this.ManagedState.SetBoundProject(projectViewModel);
+        }
+
+        public void ClearBoundProject()
+        {
+            this.ClearBindingErrorNotifications();
+            this.ManagedState.ClearBoundProject();
+        }
+
+        public void SyncCommandFromActiveSection()
+        {
+            foreach(ServerViewModel serverVM in this.ManagedState.ConnectedServers)
+            {
+                this.SetServerVMCommands(serverVM);
+                this.SetServerProjectsVMCommands(serverVM);
+            }
+        }
+        #endregion
+
+        #region Non public API
+        private void OnStatePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(this.ManagedState.IsBusy))
+            {
+                var vm = this.Host.ActiveSection?.ViewModel;
+                if (vm != null)
+                {
+                    vm.IsBusy = this.ManagedState.IsBusy;
+                }
+            }
+        }
+
+        private void SetProjectsUIThread(ConnectionInformation connection, IEnumerable<ProjectInformation> projects)
+        {
+            Debug.Assert(connection != null);
+            this.ClearBindingErrorNotifications();
+
+            // !!! Avoid using the service to detect disconnects since it's not thread safe !!!
+            if (projects == null)
+            {
+                // Disconnected, clear all
+                this.ClearBoundProject();
+                this.ManagedState.ConnectedServers.Clear();
+            }
+            else
+            {
+                var existingServerVM = this.ManagedState.ConnectedServers.SingleOrDefault(serverVM => serverVM.Url == connection.ServerUri);
+                ServerViewModel serverViewModel;
+                if (existingServerVM == null)
+                {
+                    // Add new server
+                    serverViewModel = new ServerViewModel(connection);
+                    this.SetServerVMCommands(serverViewModel);
+                    this.ManagedState.ConnectedServers.Add(serverViewModel);
+                }
+                else
+                {
+                    // Update existing server
+                    serverViewModel = existingServerVM;
+                }
+
+                serverViewModel.SetProjects(projects);
+                Debug.Assert(serverViewModel.ShowAllProjects, "ShowAllProjects should have been set");
+                this.SetServerProjectsVMCommands(serverViewModel);
+                this.RestoreBoundProject(serverViewModel);
+            }
+        }
+
+        private void ClearBindingErrorNotifications()
+        {
+            this.Host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToFindBoundProjectKeyId);
+        }
+
+        private void RestoreBoundProject(ServerViewModel serverViewModel)
+        {
+            if (this.BoundProjectKey == null)
+            {
+                // Nothing to restore
+                return;
+            }
+
+            // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject 
+            ProjectInformation boundProject = serverViewModel.Projects.FirstOrDefault(pvm => StringComparer.Ordinal.Equals(pvm.Key, this.BoundProjectKey))?.ProjectInformation;
+            if (boundProject == null)
+            {
+                // Defensive coding: invoked asynchronous and it's safer to assume that value could be null
+                // and just not do anything since if they are null it means that there's no solution open.
+                this.Host.ActiveSection?.UserNotifications?.ShowNotificationError(string.Format(CultureInfo.CurrentCulture, Strings.BoundProjectNotFound, this.BoundProjectKey), NotificationIds.FailedToFindBoundProjectKeyId, null);
+            }
+            else
+            {
+                this.SetBoundProject(boundProject);
+            }
+        }
+
+        private void SetServerVMCommands(ServerViewModel serverVM)
+        {
+            serverVM.Commands.Clear();
+            var refreshContextualCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection?.RefreshCommand)
+            {
+                DisplayText = Strings.RefreshCommandDisplayText,
+                Tooltip = Strings.RefreshCommandTooltip,
+                Icon = new IconViewModel(KnownMonikers.Refresh)
+            };
+
+            var disconnectContextualCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection?.DisconnectCommand)
+            {
+                DisplayText = Strings.DisconnectCommandDisplayText,
+                Tooltip = Strings.DisconnectCommandTooltip,
+                Icon = new IconViewModel(KnownMonikers.Disconnect)
+            };
+
+            var toggleShowAllProjectsCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection?.ToggleShowAllProjectsCommand)
+            {
+                Tooltip = Strings.ToggleShowAllProjectsCommandTooltip
+            };
+            toggleShowAllProjectsCommand.SetDynamicDisplayText(x =>
+            {
+                ServerViewModel ctx = x as ServerViewModel;
+                Debug.Assert(ctx != null, "Unexpected fixed context for ToggleShowAllProjects context command");
+                return ctx?.ShowAllProjects ?? false ? Strings.HideUnboundProjectsCommandText : Strings.ShowAllProjectsCommandText;
+            });
+
+            serverVM.Commands.Add(refreshContextualCommand);
+            serverVM.Commands.Add(disconnectContextualCommand);
+            serverVM.Commands.Add(toggleShowAllProjectsCommand);
+        }
+
+        private void SetServerProjectsVMCommands(ServerViewModel serverVM)
+        {
+            foreach (ProjectViewModel projectVM in serverVM.Projects)
+            {
+                projectVM.Commands.Clear();
+
+                var bindContextCommand = new ContextualCommandViewModel(projectVM, this.Host.ActiveSection?.BindCommand);
+                bindContextCommand.SetDynamicDisplayText(x =>
+                {
+                    var ctx = x as ProjectViewModel;
+                    Debug.Assert(ctx != null, "Unexpected fixed context for bind context command");
+                    return ctx?.IsBound ?? false ? Strings.SyncButtonText : Strings.BindButtonText;
+                });
+                bindContextCommand.SetDynamicIcon(x =>
+                {
+                    var ctx = x as ProjectViewModel;
+                    Debug.Assert(ctx != null, "Unexpected fixed context for bind context command");
+                    return new IconViewModel(ctx?.IsBound ?? false ? KnownMonikers.Sync : KnownMonikers.Link);
+                });
+
+                projectVM.Commands.Add(bindContextCommand);
+            }
+        }
+        #endregion
+
+        #region IDisposable Support
+         private void Dispose(bool disposing)
+        {
+            if (!this.isDisposed)
+            {
+                if (disposing)
+                {
+                    this.ManagedState.PropertyChanged -= this.OnStatePropertyChanged;
+                }
+
+                this.isDisposed = true;
+            }
+        }
+ 
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
+    }
+}

@@ -21,7 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Progress.Debug.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>progress.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Progress.Release.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>progress.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -132,8 +132,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Progress.Debug.ruleset" />
-    <None Include="Progress.Release.ruleset" />
+    <None Include="Progress.ruleset" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\SonarLint.1.7.0\analyzers\SonarLint.CSharp.dll" />

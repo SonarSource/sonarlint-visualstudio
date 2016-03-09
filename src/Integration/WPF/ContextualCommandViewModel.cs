@@ -17,13 +17,18 @@ namespace SonarLint.VisualStudio.Integration.WPF
     public class ContextualCommandViewModel : ViewModelBase
     {
         private readonly object fixedContext;
-        private readonly ICommand command;
         private readonly RelayCommand proxyCommand;
 
+        private ICommand command;
         private Func<object, string> displayTextFunc;
         private string tooltip;
         private Func<object, IconViewModel> iconFunc;
 
+        /// <summary>
+        /// Creates an instance of contextual command view model
+        /// </summary>
+        /// <param name="fixedContext">Required context</param>
+        /// <param name="command">Optional real command to trigger and pass the fixed context to</param>
         public ContextualCommandViewModel(object fixedContext, ICommand command)
         {
             if (fixedContext == null)
@@ -31,36 +36,48 @@ namespace SonarLint.VisualStudio.Integration.WPF
                 throw new ArgumentNullException(nameof(fixedContext));
             }
 
-            if (command == null)
-            {
-                throw new ArgumentNullException(nameof(command));
-            }
-
-            this.command = command;
             this.fixedContext = fixedContext;
             this.proxyCommand = new RelayCommand(this.Execute, this.CanExecute);
+            this.SetCommand(command);
         }
 
-        public void SetDynamicDisplayText(Func<object, string> displayTextFunc)
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
+            "S3236:Methods with caller info attributes should not be invoked with explicit arguments", 
+            Justification = "We want to change a different property than the 'caller' which is a method",
+            Scope = "member", 
+            Target = "~M:SonarLint.VisualStudio.Integration.WPF.ContextualCommandViewModel.SetDynamicDisplayText(System.Func{System.Object,System.String})")]
+        public void SetDynamicDisplayText(Func<object, string> getDisplayText)
         {
-            if (displayTextFunc == null)
+            if (getDisplayText == null)
             {
-                throw new ArgumentNullException(nameof(displayTextFunc));
+                throw new ArgumentNullException(nameof(getDisplayText));
             }
 
-            this.displayTextFunc = displayTextFunc;
+            this.displayTextFunc = getDisplayText;
             this.RaisePropertyChanged(nameof(this.DisplayText));
         }
 
-        public void SetDynamicIcon(Func<object, IconViewModel> iconFunc)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
+            "S3236:Methods with caller info attributes should not be invoked with explicit arguments", 
+            Justification = "We want to change a different property than the 'caller' which is a method",
+            Scope = "member", 
+            Target = "~M:SonarLint.VisualStudio.Integration.WPF.ContextualCommandViewModel.SetDynamicIcon(System.Func{System.Object,SonarLint.VisualStudio.Integration.WPF.IconViewModel})")]
+        public void SetDynamicIcon(Func<object, IconViewModel> getIconFunc)
         {
-            if (iconFunc == null)
+            if (getIconFunc == null)
             {
-                throw new ArgumentNullException(nameof(iconFunc));
+                throw new ArgumentNullException(nameof(getIconFunc));
             }
 
-            this.iconFunc = iconFunc;
+            this.iconFunc = getIconFunc;
             this.RaisePropertyChanged(nameof(this.Icon));
+        }
+
+        public void SetCommand(ICommand realCommand)
+        {
+            this.command = realCommand;
+            this.proxyCommand.RequeryCanExecute();
         }
 
         public string DisplayText
@@ -117,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
 
         private bool CanExecute()
         {
-            return this.command.CanExecute(this.fixedContext);
+            return this.command != null && this.command.CanExecute(this.fixedContext);
         }
     }
 }

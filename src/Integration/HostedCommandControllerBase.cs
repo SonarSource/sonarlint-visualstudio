@@ -1,20 +1,18 @@
 //-----------------------------------------------------------------------
-// <copyright file="HostedCommandBase.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="HostedCommandControllerBase.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
 using Microsoft.TeamFoundation.Client.CommandTarget;
-using SonarLint.VisualStudio.Integration.Progress;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal abstract class HostedCommandBase : IOleCommandTarget
+    internal abstract class HostedCommandControllerBase : IOleCommandTarget
     {
-        protected HostedCommandBase(IServiceProvider serviceProvider)
+        protected HostedCommandControllerBase(IServiceProvider serviceProvider)
         {
             if (serviceProvider == null)
             {
@@ -22,18 +20,6 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             this.ServiceProvider = serviceProvider;
-        }
-
-        public IProgressControlHost ProgressControlHost
-        {
-            get;
-            set;
-        }
-
-        public IUserNotification UserNotification
-        {
-            get;
-            set;
         }
 
         public IServiceProvider ServiceProvider

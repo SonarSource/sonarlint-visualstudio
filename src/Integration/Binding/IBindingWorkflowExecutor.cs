@@ -5,13 +5,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Service;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     // Test only interface
     internal interface  IBindingWorkflowExecutor
     {
-        void BindProject(ProjectViewModel projectVM);
+        void BindProject(ProjectInformation projectInformation);
     }
 }
