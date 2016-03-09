@@ -94,6 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 && !this.Controller.State.IsBusy
                 && this.ProgressControlHost != null
                 && projectVM?.ProjectInformation != null
+                && VsShellUtils.IsSolutionExistsAndFullyLoaded()
                 && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()
                 && (this.projectSystemHelper.GetSolutionManagedProjects()?.Any() ?? false);
         }

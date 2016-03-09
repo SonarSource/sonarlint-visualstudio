@@ -53,6 +53,16 @@ namespace SonarLint.VisualStudio.Integration
             return false;
         }
 
+        public static bool IsSolutionExistsAndFullyLoaded(Action onChange = null)
+        {
+            Debug.Assert(KnownUIContexts.SolutionExistsAndFullyLoadedContext != null, "KnownUIContexts.SolutionExistsAndFullyLoadedContext is null");
+            if (KnownUIContexts.SolutionExistsAndFullyLoadedContext != null)
+            {
+                return KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive;
+            }
+            return false;
+        }
+
         public static void ActivateSolutionExplorer(IServiceProvider serviceProvider)
         {
             var dte = serviceProvider.GetService(typeof(DTE)) as DTE2;

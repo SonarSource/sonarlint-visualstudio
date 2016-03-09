@@ -128,20 +128,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ProjectViewModel projectVM = CreateProjectViewModel();
             BindCommand testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
             ProjectMock project1 = this.solutionMock.Projects.Single();
-
-            // Case 1: SolutionExistsAndNotBuildingAndNotDebugging is not active
             testSubject.ProgressControlHost = new ConfigurableProgressControlHost();
+
+            // Case 1: SolutionExistsAndFullyLoaded is not active
+            this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, false);
+            // Act + Verify
+            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No UI context: SolutionExistsAndFullyLoaded");
+
+            // Case 2: SolutionExistsAndNotBuildingAndNotDebugging is not active
+            this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, false);
             // Act + Verify
-            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No UI context");
+            Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No UI context: SolutionExistsAndNotBuildingAndNotDebugging");
 
-            // Case 2: Non-managed project kind
+            // Case 3: Non-managed project kind
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
             this.projectSystemHelper.ManagedProjects = null;
             // Act + Verify
             Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No managed projects");
 
-            // Case 3: No projects at all
+            // Case 4: No projects at all
             solutionMock.RemoveProject(project1);
             // Act + Verify
             Assert.IsFalse(testSubject.WpfCommand.CanExecute(projectVM), "No projects");
@@ -356,6 +362,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.UserNotification = notifications;
             this.sonarQubeService.SetConnection(connection);
             testSubject.ProgressControlHost = new ConfigurableProgressControlHost();
+            this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
             ProjectMock project1 = this.solutionMock.AddOrGetProject("project1");
             this.projectSystemHelper.ManagedProjects = new[] { project1 };
