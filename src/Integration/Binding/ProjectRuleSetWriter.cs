@@ -19,6 +19,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         internal const string DefaultProjectRuleSet = "MinimumRecommendedRules.ruleset";
 
+        internal /*for testing purposes*/ ISet<string> AlreadyUpdatedExistingRuleSetPaths
+        {
+            get;
+        } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         public ProjectRuleSetWriter(IRuleSetGenerationFileSystem fileSystem = null)
             : base(fileSystem)
         {
@@ -51,8 +56,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (this.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, ruleSetRoot, currentRuleSetPath, out existingRuleSetPath))
             {
                 Debug.Assert(existingRuleSetPath != null);
-                    return existingRuleSetPath;
-                }
+                return existingRuleSetPath;
+            }
 
             // Create a new project level rule set
             string projectName = Path.GetFileNameWithoutExtension(projectFullPath);
@@ -65,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #region Rule Set Helpers
-        private bool TryUpdateExistingProjectRuleSet(string solutionRuleSetPath, string projectRuleSetRootFolder, string currentRuleSet, out string existingRuleSetPath)
+        internal /*for testing purposes*/ bool TryUpdateExistingProjectRuleSet(string solutionRuleSetPath, string projectRuleSetRootFolder, string currentRuleSet, out string existingRuleSetPath)
         {
             existingRuleSetPath = null;
             if (string.IsNullOrWhiteSpace(currentRuleSet))
@@ -74,10 +79,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             existingRuleSetPath = PathHelper.ResolveRelativePath(currentRuleSet, projectRuleSetRootFolder);
+
+            if (this.AlreadyUpdatedExistingRuleSetPaths.Contains(existingRuleSetPath))
+            {
+                return true;
+            }
+
             RuleSet existingRuleSet = this.SafeLoadRuleSet(existingRuleSetPath);
             if (existingRuleSet != null)
             {
                 this.UpdateExistingProjectRuleSet(existingRuleSet, existingRuleSetPath, solutionRuleSetPath);
+                this.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetPath);
                 return true;
             }
 
@@ -87,15 +99,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Remove all rule set inclusions which exist under the specified root directory.
         /// </summary>
-        internal /* testing purposes */  static void RemoveAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)
+        internal /* testing purposes */  void RemoveAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(rootDirectory));
-            
+
+            string ruleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(ruleSet.FilePath));
+
             // List<T> required as RuleSetIncludes will be modified
             List<RuleSetInclude> toRemove = ruleSet.RuleSetIncludes
                                             .Where(include =>
                                             {
-                                                string fullIncludePath = PathHelper.ResolveRelativePath(include.FilePath, rootDirectory);
+                                                string fullIncludePath = PathHelper.ResolveRelativePath(include.FilePath, ruleSetRoot);
                                                 return PathHelper.IsPathRootedUnderRoot(fullIncludePath, rootDirectory);
                                             })
                                             .ToList();
@@ -113,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             // Remove all solution level inclusions
             string solutionRuleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(solutionRuleSetPath));
-            RemoveAllIncludesUnderRoot(existingProjectRuleSet, solutionRuleSetRoot);
+            this.RemoveAllIncludesUnderRoot(existingProjectRuleSet, solutionRuleSetRoot);
 
             // Add correct inclusion
             string expectedIncludePath = PathHelper.CalculateRelativePath(projectRuleSetPath, solutionRuleSetPath);

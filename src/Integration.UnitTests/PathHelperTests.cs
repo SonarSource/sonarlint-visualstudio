@@ -100,6 +100,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 fromPath: @"X:\file with spaces (1).ext",
                 toPath: @"X:\file with spaces (2).ext"
             );
+
+            // Non canonical paths (contains . and ..)
+            VerifyCalculateRelativePath
+            (
+                expected: @"..\..\file1.ext",
+                fromPath: @"X:\dirA\..\dirA\dirB\dirC\dirD\",
+                toPath: @"X:\dirA\dirB\..\dirB\file1.ext"
+            );
         }
 
         [TestMethod]
@@ -238,6 +246,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             Assert.IsFalse(unrootedIsRooted, $"Path '{unrootedFile}' should not be rooted under '{root}'");
+        }
+
+        [TestMethod]
+        public void PathHelper_IsPathRootedUnder_PathsContainRelativeComponents()
+        {
+            // Setup
+            const string root = @"X:\All\Files\..\Files\Live\Here";
+            const string rootedFile = @"X:\All\..\All\Files\Live\Here\likeme.ext";
+
+            // Act
+            bool rootedIsRooted = PathHelper.IsPathRootedUnderRoot(rootedFile, root);
+
+            // Verify
+            Assert.IsTrue(rootedIsRooted, $"Path '{rootedFile}' should be rooted under '{root}'");
         }
 
         #region Helpers
