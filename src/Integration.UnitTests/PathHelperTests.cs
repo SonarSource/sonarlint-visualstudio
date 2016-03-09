@@ -100,6 +100,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 fromPath: @"X:\file with spaces (1).ext",
                 toPath: @"X:\file with spaces (2).ext"
             );
+
+            // Non canonical paths (contains . and ..)
+            VerifyCalculateRelativePath
+            (
+                expected: @"..\..\file1.ext",
+                fromPath: @"X:\dirA\..\dirA\dirB\dirC\dirD\",
+                toPath: @"X:\dirA\dirB\..\dirB\file1.ext"
+            );
         }
 
         [TestMethod]
