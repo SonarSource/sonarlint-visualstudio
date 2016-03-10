@@ -52,42 +52,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Tests
 
         [TestMethod]
-        public void BindingWorkflow_VerifyServerPlugin_HasCSharpPlugin_DoesNotAbort()
-        {
-            // Setup
-            var testSubject = CreateTestSubject();
-            var progressExecEvents = new ConfigurableProgressStepExecutionEvents();
-            var progressController = new ConfigurableProgressController();
-            var plugin = new ServerPlugin { Key = ServerPlugin.CSharpPluginKey, Version = ServerPlugin.CSharpPluginMinimumVersion };
-            this.sonarQubeService.RegisterServerPlugin(plugin);
-
-            // Act
-            testSubject.VerifyServerPlugins(progressController, CancellationToken.None, progressExecEvents);
-
-            // Verify
-            progressController.AssertNumberOfAbortRequests(0);
-            this.outputWindowPane.AssertOutputStrings(0);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_VerifyServerPlugin_MissingCSharpPlugin_AbortsWorkflow()
-        {
-            // Setup
-            var testSubject = CreateTestSubject();
-            var progressExecEvents = new ConfigurableProgressStepExecutionEvents();
-            var progressController = new ConfigurableProgressController();
-            string expectedErrorMsg = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
-
-            // Act
-            testSubject.VerifyServerPlugins(progressController, CancellationToken.None, progressExecEvents);
-
-            // Verify
-            progressController.AssertNumberOfAbortRequests(1);
-            this.outputWindowPane.AssertOutputStrings(1);
-            this.outputWindowPane.AssertOutputStrings(expectedErrorMsg);
-        }
-
-        [TestMethod]
         public void BindingWorkflow_DownloadQualityProfile_Success()
         {
             // Setup

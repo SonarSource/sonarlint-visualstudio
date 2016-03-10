@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void AssertProgressMessages(params string[] expectedOrderedMessages)
         {
             string[] actualMessages = this.progressEventsMessages.Select(kv => kv.Item1).ToArray();
-            CollectionAssert.AreEqual(expectedOrderedMessages, actualMessages, "Unexpected messages :{0}", string.Join(", ", actualMessages));
+            CollectionAssert.AreEqual(expectedOrderedMessages, actualMessages, "Unexpected messages: {0}", string.Join(", ", actualMessages));
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void AssertProgress(params double[] expectedProgress)
         {
             double[] actualProgress = this.progressEventsMessages.Select(kv => kv.Item2).ToArray();
-            CollectionAssert.AreEqual(expectedProgress, actualProgress, "Unexpected progress :{0}", string.Join(", ", actualProgress));
+            CollectionAssert.AreEqual(expectedProgress, actualProgress, "Unexpected progress: {0}", string.Join(", ", actualProgress));
         }
 
         public void Reset()

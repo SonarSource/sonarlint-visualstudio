@@ -10,10 +10,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
@@ -32,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
+            this.sonarQubeService.RegisterServerPlugin(new ServerPlugin { Key = ServerPlugin.CSharpPluginKey, Version = ServerPlugin.CSharpPluginMinimumVersion });
             this.settings = new ConfigurableIntegrationSettings();
 
             var mefExports = MefTestHelpers.CreateExport<IIntegrationSettings>(settings);
@@ -180,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
-            Assert.IsTrue(projectChangedCallbackCalled, "ConnectedProjectsCallaback was not called");
+            Assert.IsFalse(projectChangedCallbackCalled, "ConnectedProjectsCallaback should not have been called");
             this.sonarQubeService.AssertConnectRequests(1);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
@@ -192,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
-            Assert.IsTrue(projectChangedCallbackCalled, "ConnectedProjectsCallaback was not called");
+            Assert.IsFalse(projectChangedCallbackCalled, "ConnectedProjectsCallaback should not have been called");
             this.sonarQubeService.AssertConnectRequests(2);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
@@ -209,11 +212,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultCancellation);
-            Assert.IsTrue(projectChangedCallbackCalled, "ConnectedProjectsCallaback was not called");
+            Assert.IsFalse(projectChangedCallbackCalled, "ConnectedProjectsCallaback should not have been called");
             this.sonarQubeService.AssertConnectRequests(3);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
         }
+
+        [TestMethod]
+        public void ConnectionWorkflow_ConnectionStep_MissingCSharpPlugin_AbortsWorkflowAndDisconnects()
+        {
+            // Setup
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+            ConnectCommand command;
+            ConnectedProjectsCallback projectsChanged = (c, p) => { };
+            ConnectionWorkflow testSubject = this.CreateTestSubject(projectsChanged, out command);
+            var controller = new ConfigurableProgressController();
+            this.sonarQubeService.AllowConnections = true;
+            this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
+            this.sonarQubeService.ClearServerPlugins();
+            var notifications = new ConfigurableUserNotification();
+            command.UserNotification = notifications;
+            var executionEvents = new ConfigurableProgressStepExecutionEvents();
+
+            string expectedErrorMsg = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
+
+            // Act
+            testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
+
+            // Verify
+            this.sonarQubeService.AssertDisconnectRequests(1);
+            controller.AssertNumberOfAbortRequests(1);
+            executionEvents.AssertProgressMessages(
+                connectionInfo.ServerUri.ToString(),
+                expectedErrorMsg,
+                Strings.ConnectionResultFailure);
+            notifications.AssertNotification(NotificationIds.BadServerPluginId, expectedErrorMsg);
+        }
+
         #endregion
 
         #region Helpers

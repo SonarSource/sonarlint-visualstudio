@@ -70,6 +70,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ServerPlugins[plugin.Key] = plugin;
         }
 
+        public void ClearServerPlugins()
+        {
+            this.ServerPlugins.Clear();
+        }
+
         #endregion
 
         #region ISonarQubeServiceWrapper

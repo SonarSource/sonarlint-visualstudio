@@ -8,6 +8,7 @@
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
@@ -95,28 +96,47 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Workflow steps
 
+        private static void AbortWorkflow(IProgressController controller, CancellationToken token)
+        {
+            bool aborted = controller.TryAbort();
+            Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
+        }
+
         internal /* for testing purposes */ void ConnectionStep(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
         {
             this.owner.UserNotification?.HideNotification(NotificationIds.FailedToConnectId);
+            this.owner.UserNotification?.HideNotification(NotificationIds.BadServerPluginId);
 
             notifications.ProgressChanged(connection.ServerUri.ToString(), double.NaN);
 
             ProjectInformation[] projects = this.owner.SonarQubeService.Connect(connection, cancellationToken)?.ToArray();
-            this.OnProjectsChanged(connection, projects);
 
             if (this.owner.SonarQubeService.CurrentConnection == null)
             {
                 notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure, double.NaN);
-
-                bool aborted = controller.TryAbort();
-                Debug.Assert(aborted || cancellationToken.IsCancellationRequested, "Failed to abort the workflow");
-
                 this.owner.UserNotification?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.owner.WpfCommand);
+
+                AbortWorkflow(controller, cancellationToken);
+                return;
             }
-            else
+            
+            var csPluginVersion = this.owner.SonarQubeService.GetPluginVersion(ServerPlugin.CSharpPluginKey, cancellationToken);
+            if (string.IsNullOrWhiteSpace(csPluginVersion) || VersionHelper.Compare(csPluginVersion, ServerPlugin.CSharpPluginMinimumVersion) < 0)
             {
-                notifications.ProgressChanged(Strings.ConnectionResultSuccess, double.NaN);
+                string errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
+
+                this.owner.UserNotification?.ShowNotificationError(errorMessage, NotificationIds.BadServerPluginId, this.owner.WpfCommand);
+                notifications.ProgressChanged(errorMessage, double.NaN);
+                notifications.ProgressChanged(Strings.ConnectionResultFailure, double.NaN);
+
+                this.owner.SonarQubeService.Disconnect();
+
+                AbortWorkflow(controller, cancellationToken);
+                return;
             }
+
+            this.OnProjectsChanged(connection, projects);
+            notifications.ProgressChanged(Strings.ConnectionResultSuccess, double.NaN);            
         }
 
         internal /* for testing purposes */ void ShowNuGetWarning()

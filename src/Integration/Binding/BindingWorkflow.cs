@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             {SonarQubeServiceWrapper.CSharpLanguage, RuleSetGroup.CSharp },
             {SonarQubeServiceWrapper.VBLanguage, RuleSetGroup.VB }
-        };
+        };        
 
         public BindingWorkflow(BindCommand owner, ProjectInformation project)
             : this(owner, project, null)
@@ -141,9 +141,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(null, StepAttributes.Indeterminate | StepAttributes.Hidden,
                         (token, notifications) => this.PromptSaveSolutionIfDirty(controller, token)),
 
-                new ProgressStepDefinition(null, StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.Indeterminate,
-                        (token, notifications) => this.VerifyServerPlugins(controller, token, notifications)),
-
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.DownloadQualityProfile(controller, token, notifications, languages)),
 
@@ -186,18 +183,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             bool saved = VsShellUtils.SaveSolution(this.owner.ServiceProvider, silent: true);
             Debug.Assert(saved, "Should not be cancellable");
-        }
-
-        internal /*for testing purposes*/ void VerifyServerPlugins(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
-        {
-            var csPluginVersion = this.owner.SonarQubeService.GetPluginVersion(ServerPlugin.CSharpPluginKey, token);
-            if (string.IsNullOrWhiteSpace(csPluginVersion) || VersionHelper.Compare(csPluginVersion, ServerPlugin.CSharpPluginMinimumVersion) < 0)
-            {
-                string errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
-                VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, errorMessage);
-
-                this.AbortWorkflow(controller, token);
-            }
         }
 
         internal /*for testing purposes*/ void DownloadQualityProfile(IProgressController controller, CancellationToken cancellationToken, IProgressStepExecutionEvents notificationEvents, IEnumerable<string> languages)
@@ -334,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
-        {
+            {
             var message = this.AllNuGetPackagesInstalled
                 ? Strings.FinishedSolutionBindingWorkflowSuccessful
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
