@@ -179,25 +179,9 @@
                              PasswordChanged="PasswordInput_PasswordChanged"
                              AutomationProperties.LabeledBy="{Binding ElementName=PasswordLabel}">
                     <PasswordBox.Style>
-                        <Style BasedOn="{StaticResource InputStyle}" TargetType="PasswordBox">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsPasswordValid}" Value="False">
-                                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlEditHintTextBrushKey}}" />
-                                    <Setter Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlEditRequiredBackgroundBrushKey }}" />
-                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlEditRequiredHintTextBrushKey }}" />
-                                    <Setter Property="ToolTip" Value="{Binding PasswordErrorMessage}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
+                        <Style BasedOn="{StaticResource InputStyle}" TargetType="PasswordBox" />
                     </PasswordBox.Style>
                 </PasswordBox>
-                <!-- For consistency overlaying the validation error on top of the password box -->
-                <vsimaging:CrispImage Grid.Column="1" 
-                                      HorizontalAlignment="Right" VerticalAlignment="Top"
-                                      Margin="4"
-                                      ToolTip="{Binding PasswordErrorMessage}"
-                                      Visibility="{Binding IsPasswordValid, Converter={StaticResource FalseToVisibleConverter}}"
-                                      Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusInvalid}" />
             </Grid>
         </Grid>
 
