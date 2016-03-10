@@ -15,7 +15,7 @@ using System.Xml;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class ProjectRuleSetWriter: RuleSetWriter
+    internal class ProjectRuleSetWriter : RuleSetWriter
     {
         internal const string DefaultProjectRuleSet = "MinimumRecommendedRules.ruleset";
 
@@ -24,13 +24,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        public ProjectRuleSetWriter()
-            :this(null)
-        {
-        }
-
-        internal /*for testing purposes*/ ProjectRuleSetWriter(IRuleSetGenerationFileSystem fs)
-            : base(fs)
+        public ProjectRuleSetWriter(IRuleSetGenerationFileSystem fileSystem = null)
+            : base(fileSystem)
         {
         }
 
@@ -38,20 +33,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// Write a project-level SonarQube <see cref="RuleSet"/> file in the <param name="projectRoot"/> directory.
         /// </summary>
         /// <param name="projectFullPath">The absolute full path to the project</param>
-        /// <param name="ruleSetFileName">The rule set file name</param>
+        /// <param name="configurationName">Configuration of the project</param>
         /// <param name="solutionRuleSetPath">Full path of the parent solution-level SonarQube rule set</param>
         /// <param name="existingRuleSetPath">Existing project rule set</param>
         /// <returns>Full file path of the file that was written out</returns>
-        public string WriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, string solutionRuleSetPath, string currentRuleSetPath)
+        public string WriteProjectLevelRuleSet(string projectFullPath, string configurationName, string solutionRuleSetPath, string currentRuleSetPath)
         {
             if (string.IsNullOrWhiteSpace(projectFullPath))
             {
                 throw new ArgumentNullException(nameof(projectFullPath));
-            }
-
-            if (string.IsNullOrWhiteSpace(ruleSetFileName))
-            {
-                throw new ArgumentNullException(nameof(ruleSetFileName));
             }
 
             if (string.IsNullOrWhiteSpace(solutionRuleSetPath))
@@ -70,9 +60,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             // Create a new project level rule set
+            string projectName = Path.GetFileNameWithoutExtension(projectFullPath);
             string solutionIncludePath = PathHelper.CalculateRelativePath(ruleSetRoot, solutionRuleSetPath);
             RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath);
-            string newRuleSetPath = this.GenerateNewProjectRuleSetPath(ruleSetRoot, ruleSetFileName);
+            string newRuleSetPath = this.GenerateNewProjectRuleSetPath(ruleSetRoot, projectName, configurationName);
             this.FileSystem.WriteRuleSetFile(newRuleSet, newRuleSetPath);
 
             return newRuleSetPath;
@@ -159,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // default rule set property value. The idea here is that we would like to preserve any explicit setting by the user
             // and we assume that the default rule set can be safely ignored since wasn't set explicitly by the user (or even if it was 
             // it has low value in comparison to what is configured in SQ).
-            if (!ShouldIgnoreConfigureRuleSetValue(currentRuleSetPath))
+            if (!IsIgnoredRuleSet(currentRuleSetPath))
             {
                 ruleSet.RuleSetIncludes.Add(new RuleSetInclude(currentRuleSetPath, RuleAction.Default));
             }
@@ -169,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Gets whether or not the provided rule set should be ignored for inclusion in a rule set.
         /// </summary>
-        public static bool ShouldIgnoreConfigureRuleSetValue(string ruleSet)
+        internal /* testing purposes */ static bool IsIgnoredRuleSet(string ruleSet)
         {
             return string.IsNullOrWhiteSpace(ruleSet) || StringComparer.OrdinalIgnoreCase.Equals(DefaultProjectRuleSet, ruleSet);
         }
@@ -201,13 +192,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Generate a project level rule set file path from the given project name.
         /// </summary>
-        /// <param name="ruleSetFileName">Name of the rule set file</param>
+        /// <param name="ruleSetRootPath">Root directory path</param>
+        /// <param name="projectName">Name of project</param>
         /// <param name="configuration">Project configuration (optional)</param>
         /// <returns>Full unique file path of project level rule set file</returns>
-        internal /* testing purposes */ string GenerateNewProjectRuleSetPath(string ruleSetRootPath, string ruleSetFileName)
+        internal /* testing purposes */ string GenerateNewProjectRuleSetPath(string ruleSetRootPath, string projectName, string configuration)
         {
+            configuration = string.IsNullOrWhiteSpace(configuration) ? string.Empty : $".{configuration}";
 
-            string escapedFileName = PathHelper.EscapeFileName(ruleSetFileName);
+            string escapedProjectName = PathHelper.EscapeFileName(projectName);
+            string escapedConfiguration = PathHelper.EscapeFileName(configuration);
 
             // Set a reasonable maximum number of integer-based unique names to try
             const uint maxAttempts = 9;
@@ -225,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 // Cannot use Path.ChangeExtension here because if the sonar project name contains
                 // a dot (.) then everything after this will be replaced with .ruleset
-                string candidateFileName = $"{escapedFileName}{uniqueStr}.{FileExtension}";
+                string candidateFileName = $"{escapedProjectName}{uniqueStr}{escapedConfiguration}.{FileExtension}";
 
                 candiatePath = Path.Combine(ruleSetRootPath, candidateFileName);
 

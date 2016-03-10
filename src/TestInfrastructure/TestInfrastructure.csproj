@@ -116,10 +116,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Framework\ConfigurableBindingOperation.cs" />
     <Compile Include="Framework\ConfigurableIntegrationSettings.cs" />
     <Compile Include="Framework\ConfigurableSettingsManager.cs" />
-    <Compile Include="Framework\ConfigurableSolutionBinder.cs" />
     <Compile Include="Framework\ConfigurableVsCommand.cs" />
     <Compile Include="Framework\ConfigurableComponentModel.cs" />
     <Compile Include="Framework\ConfigurableCompositionService.cs" />

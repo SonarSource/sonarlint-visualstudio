@@ -32,22 +32,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly BindCommand owner;
         private readonly ProjectInformation project;
         private readonly IProjectSystemHelper projectSystemHelper;
-        private readonly IBindingOperation solutionBindingOperation;
-        private readonly ISolutionRuleStore solutionRuleStore;
+        private readonly SolutionRuleSetWriter solutionRuleSetWriter;
+        private readonly ProjectRuleSetWriter projectRuleSetWriter;
 
         internal readonly Dictionary<string, RuleSetGroup> LanguageToGroupMapping = new Dictionary<string, RuleSetGroup>
         {
             {SonarQubeServiceWrapper.CSharpLanguage, RuleSetGroup.CSharp },
             {SonarQubeServiceWrapper.VBLanguage, RuleSetGroup.VB }
-        };
+        };        
 
-        public BindingWorkflow(BindCommand owner, ProjectInformation project)
-            : this(owner, project, null, null, null)
-        {
-
-        }
-
-        internal /*for testing purposes*/ BindingWorkflow(BindCommand owner, ProjectInformation project, IProjectSystemHelper projectSystemHelper, IBindingOperation solutionBindingOperation, ISolutionRuleStore solutionRuleStore)
+        public BindingWorkflow(BindCommand owner, ProjectInformation project, SolutionRuleSetWriter solutionRuleSetWriter = null, ProjectRuleSetWriter projectRuleSetWriter = null, IProjectSystemHelper projectSystemHelper = null)
         {
             if (owner == null)
             {
@@ -62,15 +56,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.owner = owner;
             this.project = project;
             this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.owner.ServiceProvider);
-
-            Lazy<SolutionBindingOperation> solutionBindingOperationInstance = new Lazy<SolutionBindingOperation>(
-                () => new SolutionBindingOperation(
-                    this.owner.ServiceProvider,
-                    this.projectSystemHelper,
-                    this.project.Key));
-
-            this.solutionBindingOperation = solutionBindingOperation ?? solutionBindingOperationInstance.Value;
-            this.solutionRuleStore = solutionRuleStore ?? solutionBindingOperationInstance.Value;
+            this.solutionRuleSetWriter = solutionRuleSetWriter ?? new SolutionRuleSetWriter(this.project);
+            this.projectRuleSetWriter = projectRuleSetWriter ?? new ProjectRuleSetWriter();
         }
 
         #region Workflow state
@@ -90,6 +77,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new Dictionary<RuleSetGroup, string>();
 
+        internal RuleSetInjection.RuleSetInjector RuleSetInjector
+        {
+            get;
+            private set;
+        }
 
         internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
         {
@@ -160,13 +152,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.InstallPackages(controller, token, notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableUIStep,
-                        (token, notifications) => this.InitializeSolutionBindingOnUIThread(notifications)),
+                        (token, notifications) => this.PrepareRuleSetInjector(controller, notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
-                        (token, notifications) => this.PrepareSolutionBinding(token)),
+                        (token, notifications) => this.PrepareRuleSets(controller, token, notifications)),
 
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
-                        (token, notifications) => this.FinishSolutionBindingOnUIThread()),
+                        (token, notifications) => this.FinishBindingOnUIThread(controller, notifications)),
 
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => this.SilentSaveSolutionIfDirty()),
@@ -175,9 +167,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.EmitBindingCompleteMessage(notifications))
             };
         }
+
         #endregion
 
         #region Workflow steps
+        private void AbortWorkflow(IProgressController controller, CancellationToken token)
+        {
+            bool aborted = controller.TryAbort();
+            Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
+        }
+
         internal /*for testing purposes*/ void PromptSaveSolutionIfDirty(IProgressController controller, CancellationToken token)
         {
             if (!VsShellUtils.SaveSolution(this.owner.ServiceProvider, silent: false))
@@ -251,7 +250,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             else
             {
                 // Set the rule set which should be available for the following steps
-                foreach (var keyValue in rulesets)
+                foreach(var keyValue in rulesets)
                 {
                     this.Rulesets[this.LanguageToGroup(keyValue.Key)] = keyValue.Value;
                 }
@@ -260,26 +259,38 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        private void InitializeSolutionBindingOnUIThread(IProgressStepExecutionEvents notificationEvents)
+        private RuleSetGroup LanguageToGroup(string language)
+        {
+            RuleSetGroup group;
+            if (!this.LanguageToGroupMapping.TryGetValue(language, out group))
+            {
+                Debug.Fail("Unsupported language: " + language);
+                throw new InvalidOperationException();
+            }
+            return group;
+        }
+
+        private void PrepareRuleSetInjector(IProgressController controller, IProgressStepExecutionEvents notificationEvents)
         {
             Debug.Assert(System.Windows.Application.Current?.Dispatcher.CheckAccess() ?? false, "Expected to run on UI thread");
 
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage, double.NaN);
-
-            this.solutionRuleStore.RegisterKnownRuleSets(this.Rulesets);
-            this.solutionBindingOperation.Initialize();
+            this.RuleSetInjector = new RuleSetInjection.RuleSetInjector(
+                this.projectSystemHelper,
+                this.SetSolutionRuleSet,
+                this.UpdateProjectRuleSet);
         }
 
-        private void PrepareSolutionBinding(CancellationToken token)
+        private void PrepareRuleSets(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents)
         {
-            this.solutionBindingOperation.Prepare(token);
+            this.RuleSetInjector.PrepareUpdates(token);
         }
 
-        private void FinishSolutionBindingOnUIThread()
+        private void FinishBindingOnUIThread(IProgressController controller, IProgressStepExecutionEvents notificationEvents)
         {
             Debug.Assert(System.Windows.Application.Current?.Dispatcher.CheckAccess() ?? false, "Expected to run on UI thread");
 
-            this.solutionBindingOperation.Commit();
+            this.RuleSetInjector.CommitUpdates();
 
             this.PersistBinding();
         }
@@ -287,14 +298,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Will persist the binding information for next time usage
         /// </summary>
-        internal /*for testing purposes*/ void PersistBinding(ICredentialStore credentialStore = null, IProjectSystemHelper projectSystem = null)
+        internal /*for testing purposes*/ void PersistBinding(ICredentialStore credentialStore = null, IProjectSystemHelper projectSystemHelper = null)
         {
             Debug.Assert(this.owner.SonarQubeService.CurrentConnection != null, "Connection expected");
             ConnectionInformation connection = this.owner.SonarQubeService.CurrentConnection;
 
-            BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connection.UserName, connection.Password);
+            BasicAuthCredentials credentials = connection.UserName == null? null : new BasicAuthCredentials(connection.UserName, connection.Password);
 
-            SolutionBinding binding = new SolutionBinding(this.owner.ServiceProvider, credentialStore, projectSystem);
+            SolutionBinding binding = new SolutionBinding(this.owner.ServiceProvider, credentialStore, projectSystemHelper);
             binding.WriteSolutionBinding(new BoundSonarQubeProject(connection.ServerUri, this.project.Key, credentials));
         }
 
@@ -340,6 +351,37 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
+        internal /*for testing purposes*/ string SetSolutionRuleSet(RuleSetGroup group, string solutionFullPath)
+        {
+            Debug.Assert(!string.IsNullOrWhiteSpace(solutionFullPath), "Expecting a solution file path");
+            Debug.Assert(this.Rulesets.ContainsKey(group) && this.Rulesets[group] != null, $"Rule set should have been stashed by previous step ({nameof(DownloadQualityProfile)})");
+
+            RuleSet ruleset;
+            string path = null;
+            if (this.Rulesets.TryGetValue(group, out ruleset) && ruleset!=null)
+            {
+                path = this.solutionRuleSetWriter.WriteSolutionLevelRuleSet(solutionFullPath, ruleset, fileNameSuffix: group.ToString());
+                this.SolutionRulesetPaths[group] = path;
+            }
+
+            return path;
+        }
+
+        internal /*for testing purposes*/ string UpdateProjectRuleSet(RuleSetGroup group, string projectFullPath, string configurationName, string currentRuleSet)
+        {
+            Debug.Assert(!string.IsNullOrWhiteSpace(projectFullPath), "Expecting a project full path");
+            Debug.Assert(this.SolutionRulesetPaths.ContainsKey(group) && this.SolutionRulesetPaths[group] != null, $"Rule set should have been stashed by previous step ({nameof(DownloadQualityProfile)})");
+
+            string solutionRuleSetPath = null;
+            string projectRuleSetPath = null;
+            if (this.SolutionRulesetPaths.TryGetValue(group, out solutionRuleSetPath))
+            {
+                projectRuleSetPath = this.projectRuleSetWriter.WriteProjectLevelRuleSet(projectFullPath, configurationName, solutionRuleSetPath, currentRuleSet);
+            }
+
+            return projectRuleSetPath;
+        }
+
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
         {
             var message = this.AllNuGetPackagesInstalled
@@ -347,26 +389,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
             notifications.ProgressChanged(message, double.NaN);
         }
+
         #endregion
-
-        #region Helpers
-        private RuleSetGroup LanguageToGroup(string language)
-        {
-            RuleSetGroup group;
-            if (!this.LanguageToGroupMapping.TryGetValue(language, out group))
-            {
-                Debug.Fail("Unsupported language: " + language);
-                throw new InvalidOperationException();
-            }
-            return group;
-        }
-
-        private void AbortWorkflow(IProgressController controller, CancellationToken token)
-        {
-            bool aborted = controller.TryAbort();
-            Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
-        }
-        #endregion
-
     }
 }

@@ -8,6 +8,7 @@
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Globalization;
 using System.IO;
@@ -24,17 +25,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionRuleSetWriter_WriteSolutionLevelRuleSet_NullArgumentChecks()
         {
-            var testSubject = new SolutionRuleSetWriter("key");
+            var testSubject = new SolutionRuleSetWriter(new ProjectInformation());
             var ruleSet = TestRuleSetHelper.CreateTestRuleSet(numRules: 1);
 
             Exceptions.Expect<ArgumentNullException>(()=>
             {
                 testSubject.WriteSolutionLevelRuleSet(null, ruleSet, string.Empty);
-            });
-
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                testSubject.WriteSolutionLevelRuleSet(string.Empty, ruleSet, string.Empty);
             });
 
             Exceptions.Expect<ArgumentNullException>(() =>
@@ -63,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string solutionRoot = @"X:\myDirectory\mySubDirectory";
             string ruleSetRoot = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
             var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new SolutionRuleSetWriter("key", fileSystem);
+            var testSubject = new SolutionRuleSetWriter(new ProjectInformation(), fileSystem);
 
             // Test case 1: directory chain already exists
             // Setup
@@ -94,11 +90,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             const string rootPath = @"X:\MyPath\";
-          
+            var sonarProject = new ProjectInformation
+            {
+                Name = @"SonarQubeProjectNAME",
+                Key = @"SonarQubeProjectKEY"
+            };
             const string expectedPath = @"X:\MyPath\SonarQubeProjectKEY" + "." + RuleSetWriter.FileExtension;
 
             // Act
-            string actualPath = SolutionRuleSetWriter.GenerateSolutionRuleSetPath(rootPath, "SonarQubeProjectKEY", "");
+            string actualPath = SolutionRuleSetWriter.GenerateSolutionRuleSetPath(rootPath, sonarProject, "");
 
             // Verify
             Assert.AreEqual(expectedPath, actualPath);
@@ -109,14 +109,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             const string sonarProjectName = "SonarAwesome";
+            var projectInfo = new ProjectInformation { Name = sonarProjectName };
             var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var writer = new SolutionRuleSetWriter(sonarProjectName, fileSystem);
+            var writer = new SolutionRuleSetWriter(projectInfo, fileSystem);
             const string solutionRoot = @"X:\ProjectAwesome\";
             string solutionFullPath = Path.Combine(solutionRoot, "mySolution.sln");
             string ruleSetRoot = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSet(numRules: 3);
 
-            string expectedOutputPath = SolutionRuleSetWriter.GenerateSolutionRuleSetPath(ruleSetRoot, sonarProjectName, "MySuffix");
+            string expectedOutputPath = SolutionRuleSetWriter.GenerateSolutionRuleSetPath(ruleSetRoot, projectInfo, "MySuffix");
 
             // Act
             writer.WriteSolutionLevelRuleSet(solutionFullPath, ruleSet, "MySuffix");

@@ -59,10 +59,6 @@
       <HintPath>..\..\Packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="NuGet.Core, Version=2.10.1.766, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\Packages\NuGet.Core.2.10.1\lib\net40-Client\NuGet.Core.dll</HintPath>
       <Private>True</Private>
@@ -129,9 +125,10 @@
     <Compile Include="Binding\BindCommandTests.cs" />
     <Compile Include="Binding\BindingWorkflowTests.cs" />
     <Compile Include="Binding\NuGetHelperTests.cs" />
-    <Compile Include="Binding\ProjectBindingOperationTests.cs" />
+    <Compile Include="Binding\RuleSetInjectorTests.cs" />
+    <Compile Include="Binding\ProjectRuleSetHandlerTests.cs" />
     <Compile Include="Binding\SolutionRuleSetWriterTests.cs" />
-    <Compile Include="Binding\SolutionBindingOpearationTests.cs" />
+    <Compile Include="Binding\SolutionRuleSetHandlerTests.cs" />
     <Compile Include="Connection\BasicCredentialsValidatorTests.cs" />
     <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />
