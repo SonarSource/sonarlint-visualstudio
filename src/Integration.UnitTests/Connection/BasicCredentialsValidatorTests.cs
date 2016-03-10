@@ -5,9 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Integration.Connection;
-using SonarLint.VisualStudio.Integration.Service;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Connection;
 using System.Linq;
 using System.Security;
 
@@ -49,12 +48,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Setup
             var validator = new BasicAuthenticationCredentialsValidator();
 
-            // Valid
+            // Valid - user name and password
             VerifyUsernameAndPassword(validator, string.Empty, string.Empty, expectedValid: true);
             VerifyUsernameAndPassword(validator, "admin", "letmein", expectedValid: true);
 
+            // Valid - just a token, no password
+            VerifyUsernameAndPassword(validator, "eab759ea1ba04baa58dab0ac9e964f475a51ffe5", string.Empty, expectedValid: true);
+            VerifyUsernameAndPassword(validator, "user name or token - can't tell which", string.Empty, expectedValid: true);
+
             // Not valid
-            VerifyUsernameAndPassword(validator, "admin", string.Empty, expectedValid: false);
             VerifyUsernameAndPassword(validator, string.Empty, "letmein", expectedValid: false);
         }
 

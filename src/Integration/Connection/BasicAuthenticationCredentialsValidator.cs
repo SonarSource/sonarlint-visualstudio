@@ -18,8 +18,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
     {
         private readonly static Regex InvalidCharacters = new Regex("[:]"); // colon
 
-        private string username;
-        private SecureString password;
+        private string user;
+        private SecureString pwd;
 
         public bool IsUsernameValid
         {
@@ -43,15 +43,20 @@ namespace SonarLint.VisualStudio.Integration.Connection
             {
                 var errorMessage = new StringBuilder();
 
+                // Valid options:
+                // 1. No user name or password -> anonymous access
+                // 2. User name and password
+                // 3. User name only, which is treated as a user token: http://docs.sonarqube.org/display/SONAR/User+Token.
+
                 // Required?
-                bool usernameRequired = !this.password.IsNullOrEmpty() && string.IsNullOrEmpty(this.username);
+                bool usernameRequired = !this.pwd.IsNullOrEmpty() && string.IsNullOrEmpty(this.user);
                 if (usernameRequired)
                 {
                     AppendError(errorMessage, Resources.Strings.UsernameRequired);
                 }
 
                 // Invalid characters?
-                if (this.username != null && InvalidCharacters.IsMatch(this.username))
+                if (this.user != null && InvalidCharacters.IsMatch(this.user))
                 {
                     AppendError(errorMessage, Resources.Strings.InvalidCharacterColon);
                 }
@@ -68,18 +73,18 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         internal /* testing purposes */ void UpdateUsername(string username)
         {
-            this.username = username;
+            this.user = username;
         }
 
         internal /* testing purposes */ void UpdatePassword(SecureString password)
         {
-            this.password = password;
+            this.pwd = password;
         }
 
         public void Reset()
         {
-            this.username = null;
-            this.password = null;
+            this.user = null;
+            this.pwd = null;
         }
 
         #region Error message helpers
