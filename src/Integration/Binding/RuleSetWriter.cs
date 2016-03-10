@@ -6,14 +6,19 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal abstract class RuleSetWriter : IRuleSetGenerationFileSystem
     {
-        internal /* testing purposes */ const string FileExtension = "ruleset";
+        public const string FileExtension = "ruleset";
+
         private readonly IRuleSetGenerationFileSystem fileSystem;
+        private readonly HashSet<string> writtenFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         protected IRuleSetGenerationFileSystem FileSystem => this.fileSystem;
 
@@ -31,7 +36,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IRuleSetGenerationFileSystem.WriteRuleSetFile(RuleSet ruleSet, string path)
         {
-            ruleSet.WriteToFile(path);
+            if (this.writtenFiles.Contains(path))
+            {
+                Debug.Fail("The same file was attempted to be written more than once: " + path);
+            }
+            else
+            {
+                this.writtenFiles.Add(path);
+                ruleSet.WriteToFile(path);
+            }
         }
 
         void IRuleSetGenerationFileSystem.CreateDirectory(string directoryPath)
