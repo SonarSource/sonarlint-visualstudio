@@ -63,14 +63,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.project = project;
             this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.owner.ServiceProvider);
 
-            Lazy<SolutionBindingOperation> solutionBindingOperationInstance = new Lazy<SolutionBindingOperation>(
-                () => new SolutionBindingOperation(
+            // This instance will be "wasted" only when created for testing purposes
+            var solutionBinding = new SolutionBindingOperation(
                     this.owner.ServiceProvider,
                     this.projectSystemHelper,
-                    this.project.Key));
+                    this.project.Key);
 
-            this.solutionBindingOperation = solutionBindingOperation ?? solutionBindingOperationInstance.Value;
-            this.solutionRuleStore = solutionRuleStore ?? solutionBindingOperationInstance.Value;
+            this.solutionBindingOperation = solutionBindingOperation ?? solutionBinding;
+            this.solutionRuleStore = solutionRuleStore ?? solutionBinding;
         }
 
         #region Workflow state
