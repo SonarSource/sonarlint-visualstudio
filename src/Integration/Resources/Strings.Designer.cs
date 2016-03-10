@@ -549,7 +549,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connection failed. The server does not have the minimum required version ({0}) of the C# plugin installed..
+        ///   Looks up a localized string similar to The specified server does not have the minimum required version ({0}) of the C# plugin installed. Please contact your SonarQube server administrator..
         /// </summary>
         public static string ServerDoesNotHaveCorrectVersionOfCSharpPlugin {
             get {

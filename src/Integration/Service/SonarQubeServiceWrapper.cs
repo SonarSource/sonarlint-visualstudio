@@ -117,18 +117,17 @@ namespace SonarLint.VisualStudio.Integration.Service
                 client => this.DownloadExportForProject(client, project, language, token));
         }
 
-        public string GetPluginVersion(string pluginKey, CancellationToken token)
+        public IEnumerable<ServerPlugin> GetPlugins(ConnectionInformation connectionInformation, CancellationToken token)
         {
-            if (string.IsNullOrWhiteSpace(pluginKey))
+            if (connectionInformation == null)
             {
-                throw new ArgumentNullException(nameof(pluginKey));
+                throw new ArgumentNullException(nameof(connectionInformation));
             }
 
-            ServerPlugin[] plugins = this.SafeUseHttpClient<ServerPlugin[]>(this.CurrentConnection,
+            ServerPlugin[] plugins = this.SafeUseHttpClient<ServerPlugin[]>(connectionInformation,
                 client => DownloadPluginInformation(client, token));
 
-            var plugin = plugins?.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, pluginKey));
-            return plugin?.Version;
+            return plugins;
         }
 
         #endregion

@@ -398,7 +398,7 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
     <comment>Exception message indicating that the provided version string is malformed and cannot be compared. {0} version string</comment>
   </data>
   <data name="ServerDoesNotHaveCorrectVersionOfCSharpPlugin" xml:space="preserve">
-    <value>Connection failed. The server does not have the minimum required version ({0}) of the C# plugin installed.</value>
+    <value>The specified server does not have the minimum required version ({0}) of the C# plugin installed. Please contact your SonarQube server administrator.</value>
     <comment>Error message indicating that the server does not have the required version of the C# plugin installed. {0} minimum required version</comment>
   </data>
   <data name="FailedToUnpackAdditionalFiles" xml:space="preserve">

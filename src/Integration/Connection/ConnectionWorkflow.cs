@@ -109,6 +109,30 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             notifications.ProgressChanged(connection.ServerUri.ToString(), double.NaN);
 
+            var plugins = this.owner.SonarQubeService.GetPlugins(connection, cancellationToken);
+
+            if (plugins == null)
+            {
+                notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure, double.NaN);
+                this.owner.UserNotification?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.owner.WpfCommand);
+
+                AbortWorkflow(controller, cancellationToken);
+                return;
+            }
+
+            var csPlugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, ServerPlugin.CSharpPluginKey));
+            if (string.IsNullOrWhiteSpace(csPlugin?.Version) || VersionHelper.Compare(csPlugin.Version, ServerPlugin.CSharpPluginMinimumVersion) < 0)
+            {
+                string errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
+
+                this.owner.UserNotification?.ShowNotificationError(errorMessage, NotificationIds.BadServerPluginId, null);
+                notifications.ProgressChanged(errorMessage, double.NaN);
+                notifications.ProgressChanged(Strings.ConnectionResultFailure, double.NaN);
+
+                AbortWorkflow(controller, cancellationToken);
+                return;
+            }
+
             ProjectInformation[] projects = this.owner.SonarQubeService.Connect(connection, cancellationToken)?.ToArray();
 
             if (this.owner.SonarQubeService.CurrentConnection == null)
@@ -119,24 +143,9 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 AbortWorkflow(controller, cancellationToken);
                 return;
             }
-            
-            var csPluginVersion = this.owner.SonarQubeService.GetPluginVersion(ServerPlugin.CSharpPluginKey, cancellationToken);
-            if (string.IsNullOrWhiteSpace(csPluginVersion) || VersionHelper.Compare(csPluginVersion, ServerPlugin.CSharpPluginMinimumVersion) < 0)
-            {
-                string errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
-
-                this.owner.UserNotification?.ShowNotificationError(errorMessage, NotificationIds.BadServerPluginId, this.owner.WpfCommand);
-                notifications.ProgressChanged(errorMessage, double.NaN);
-                notifications.ProgressChanged(Strings.ConnectionResultFailure, double.NaN);
-
-                this.owner.SonarQubeService.Disconnect();
-
-                AbortWorkflow(controller, cancellationToken);
-                return;
-            }
 
             this.OnProjectsChanged(connection, projects);
-            notifications.ProgressChanged(Strings.ConnectionResultSuccess, double.NaN);            
+            notifications.ProgressChanged(Strings.ConnectionResultSuccess, double.NaN);
         }
 
         internal /* for testing purposes */ void ShowNuGetWarning()

@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -183,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
-            Assert.IsFalse(projectChangedCallbackCalled, "ConnectedProjectsCallaback should not have been called");
+            Assert.IsFalse(projectChangedCallbackCalled, "Callback should have been called");
             this.sonarQubeService.AssertConnectRequests(1);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
@@ -195,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
-            Assert.IsFalse(projectChangedCallbackCalled, "ConnectedProjectsCallaback should not have been called");
+            Assert.IsFalse(projectChangedCallbackCalled, "Callback should have been called");
             this.sonarQubeService.AssertConnectRequests(2);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
@@ -212,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultCancellation);
-            Assert.IsFalse(projectChangedCallbackCalled, "ConnectedProjectsCallaback should not have been called");
+            Assert.IsFalse(projectChangedCallbackCalled, "Callback should have been called");
             this.sonarQubeService.AssertConnectRequests(3);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
@@ -240,7 +241,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
 
             // Verify
-            this.sonarQubeService.AssertDisconnectRequests(1);
             controller.AssertNumberOfAbortRequests(1);
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),

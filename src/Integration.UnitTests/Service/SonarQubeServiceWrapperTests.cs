@@ -396,15 +396,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_GetPluginVersion_ArgChecks()
+        public void SonarQubeServiceWrapper_GetPlugins_ArgChecks()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider, timeoutInMilliseconds: 1))
             {
-                // Empty plugin key string
-                Exceptions.Expect<ArgumentNullException>(() => testSubject.GetPluginVersion(string.Empty, CancellationToken.None));
-
-                // Null plugin key
-                Exceptions.Expect<ArgumentNullException>(() => testSubject.GetPluginVersion(null, CancellationToken.None));
+                // Null connection information
+                Exceptions.Expect<ArgumentNullException>(() => testSubject.GetPlugins(null, CancellationToken.None));
 
                 // Those are API usage issue which we don't report to the output pane
                 this.outputWindowPane.AssertOutputStrings(0);
@@ -412,37 +409,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_GetPluginVersion()
+        public void SonarQubeServiceWrapper_GetPlugins()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
                 // Setup
-                var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
-                ConnectToServerWithProjects(testSubject, new[] { project });
-                var plugin1 = new ServerPlugin { Key = "plugin1", Version = "3.14159" };
+                var connectionInfo = new ConnectionInformation(new Uri("http://servername"));
+                var plugin1 = new ServerPlugin { Key = "plugin1" };
+                var plugin2 = new ServerPlugin { Key = "plugin2" };
+
+                var expectedPlugins = new[] { plugin1, plugin2 };
 
                 // Setup test server
                 RequestHandler handler = testSubject.RegisterRequestHandler(
                     SonarQubeServiceWrapper.ServerPluginsInstalledAPI,
-                    ctx => ServiceServerPlugins(ctx, new[] { plugin1 })
+                    ctx => ServiceServerPlugins(ctx, expectedPlugins)
                 );
 
-                // Test case 1: plugin exists
                 // Act
-                string version1 = testSubject.GetPluginVersion(plugin1.Key, CancellationToken.None);
+                var actualPlugins = testSubject.GetPlugins(connectionInfo, CancellationToken.None).ToArray();
 
                 // Verify
-                Assert.AreEqual(plugin1.Version, version1, "Unexpected plugin version");
+                CollectionAssert.AreEqual(expectedPlugins.Select(x => x.Key).ToArray(), actualPlugins.Select(x => x.Key).ToArray(), "Unexpected server plugins");
                 handler.AssertHandlerCalled(1);
-
-
-                // Test case 2: plugin does not exist
-                // Act
-                string version2 = testSubject.GetPluginVersion("NotARealPlugin", CancellationToken.None);
-
-                // Verify
-                Assert.IsNull(version2, "Expected no version to be returned");
-                handler.AssertHandlerCalled(2);
             }
         }
 

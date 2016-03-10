@@ -17,8 +17,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     internal class ConfigurableSonarQubeServiceWrapper : ISonarQubeServiceWrapper
     {
         private ConnectionInformation connection;
-        private int connectRequestsCount = 0;
-        private int disconnectRequestsCount = 0;
+        private int connectRequestsCount;
+        private int disconnectRequestsCount;
 
         #region Testing helpers
         public bool AllowConnections { get; set; } = true;
@@ -122,11 +122,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return export;
         }
 
-        public string GetPluginVersion(string pluginKey, CancellationToken token)
+        public IEnumerable<ServerPlugin> GetPlugins(ConnectionInformation connectionInformation, CancellationToken token)
         {
-            ServerPlugin plugin = null;
-            this.ServerPlugins.TryGetValue(pluginKey, out plugin);
-            return plugin?.Version;
+            return this.ServerPlugins.Values;
         }
 
         #endregion

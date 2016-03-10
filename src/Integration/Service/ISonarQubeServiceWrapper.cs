@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -44,10 +45,10 @@ namespace SonarLint.VisualStudio.Integration.Service
         RoslynExportProfile GetExportProfile(ProjectInformation project, string language, CancellationToken token);
 
         /// <summary>
-        /// Retrieves the version of the specified server plugin based on its <paramref name="pluginKey"/>.
+        /// Retrieves all server plugins for the given <paramref name="connectionInformation"/>.
         /// </summary>
-        /// <param name="pluginKey">Key of the server plugin</param>
-        /// <returns>The version string of the plugin, or null if it is not installed</returns>
-        string GetPluginVersion(string pluginKey, CancellationToken token);
+        /// <param name="connectionInformation">Required connecting information</param>
+        /// <returns>All server plugins, or null on connection failure</returns>
+        IEnumerable<ServerPlugin> GetPlugins(ConnectionInformation connectionInformation, CancellationToken token);
     }
 }
