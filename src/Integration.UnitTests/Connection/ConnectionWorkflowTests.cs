@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
-            Assert.IsFalse(projectChangedCallbackCalled, "Callback should have been called");
+            Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(1);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
-            Assert.IsFalse(projectChangedCallbackCalled, "Callback should have been called");
+            Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(2);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
@@ -213,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultCancellation);
-            Assert.IsFalse(projectChangedCallbackCalled, "Callback should have been called");
+            Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(3);
             Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
             notifications.AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
