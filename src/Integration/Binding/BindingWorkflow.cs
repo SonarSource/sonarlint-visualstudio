@@ -32,8 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly BindCommand owner;
         private readonly ProjectInformation project;
         private readonly IProjectSystemHelper projectSystemHelper;
-        private readonly IBindingOperation solutionBindingOperation;
-        private readonly ISolutionRuleStore solutionRuleStore;
+        private readonly SolutionBindingOperation solutionBindingOperation;
 
         internal readonly Dictionary<string, RuleSetGroup> LanguageToGroupMapping = new Dictionary<string, RuleSetGroup>
         {
@@ -42,12 +41,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
         };
 
         public BindingWorkflow(BindCommand owner, ProjectInformation project)
-            : this(owner, project, null, null, null)
+            : this(owner, project, null)
         {
 
         }
 
-        internal /*for testing purposes*/ BindingWorkflow(BindCommand owner, ProjectInformation project, IProjectSystemHelper projectSystemHelper, IBindingOperation solutionBindingOperation, ISolutionRuleStore solutionRuleStore)
+        internal /*for testing purposes*/ BindingWorkflow(BindCommand owner, ProjectInformation project, IProjectSystemHelper projectSystemHelper)
         {
             if (owner == null)
             {
@@ -63,14 +62,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.project = project;
             this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.owner.ServiceProvider);
 
-            // This instance will be "wasted" only when created for testing purposes
-            var solutionBinding = new SolutionBindingOperation(
+            this.solutionBindingOperation = new SolutionBindingOperation(
                     this.owner.ServiceProvider,
                     this.projectSystemHelper,
                     this.project.Key);
-
-            this.solutionBindingOperation = solutionBindingOperation ?? solutionBinding;
-            this.solutionRuleStore = solutionRuleStore ?? solutionBinding;
         }
 
         #region Workflow state
@@ -89,7 +84,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             get;
         } = new Dictionary<RuleSetGroup, string>();
-
 
         internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
         {
@@ -245,8 +239,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (failed)
             {
                 VsShellUtils.WriteToGeneralOutputPane(this.owner.ServiceProvider, Strings.QualityProfileDownloadFailedMessage);
-                bool aborted = controller.TryAbort();
-                Debug.Assert(aborted || cancellationToken.IsCancellationRequested, "Failed to abort the workflow");
+                this.AbortWorkflow(controller, cancellationToken);
             }
             else
             {
@@ -266,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage, double.NaN);
 
-            this.solutionRuleStore.RegisterKnownRuleSets(this.Rulesets);
+            this.solutionBindingOperation.RegisterKnownRuleSets(this.Rulesets);
             this.solutionBindingOperation.Initialize();
         }
 

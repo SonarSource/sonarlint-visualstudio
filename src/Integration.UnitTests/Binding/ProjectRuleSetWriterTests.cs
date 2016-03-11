@@ -60,10 +60,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             AddRuleSetInclusion(expectedRuleSet, commonRs1, useRelativePath: true);
             AddRuleSetInclusion(expectedRuleSet, commonRs2, useRelativePath: false);
 
-            var testSubject = new ProjectRuleSetWriter(fs);
-
             // Act
-            testSubject.RemoveAllIncludesUnderRoot(inputRuleSet, sonarRoot);
+            ProjectRuleSetWriter.RemoveAllIncludesUnderRoot(inputRuleSet, sonarRoot);
 
             // Verify
             RuleSetAssert.AreEqual(expectedRuleSet, inputRuleSet);
@@ -277,33 +275,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RuleSetIsFound()
+        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_UnderTheProject()
         {
             // Setup
             var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
             var testSubject = new ProjectRuleSetWriter(fileSystem);
 
-            const string projectName = "My Project";
             const string ruleSetName = "Happy";
+            const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
+            const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
+            const string existingProjectRuleSetPath = @"X:\SolutionDir\ProjectDir\ExistingRuleSet.ruleset";
 
-            const string solutionRoot = @"X:\SolutionDir";
-            string projectRoot = Path.Combine(solutionRoot, "ProjectDir");
-            string projectFullPath = Path.Combine(projectRoot, $"{projectName}.proj");
-            string projectRuleSetPath = Path.Combine(projectRoot, "myexistingproject.ruleset");
-
-            string existingSolutionRuleSetPath = Path.Combine(solutionRoot, "RuleSets", "sonar1.ruleset");
-            string existingSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectRuleSetPath, existingSolutionRuleSetPath);
             RuleSet existingRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
-                includes: new[] { existingSolutionRuleSetInclude }
+                includes: new[] { solutionRuleSetPath }
             );
-            existingRuleSet.FilePath = existingSolutionRuleSetPath;
-            fileSystem.AddRuleSetFile(existingSolutionRuleSetPath, existingRuleSet);
-            fileSystem.AddRuleSetFile(projectRuleSetPath, existingRuleSet);
+            existingRuleSet.FilePath = existingProjectRuleSetPath;
 
-            string newSolutionRuleSetPath = Path.Combine(solutionRoot, "RuleSets", "sonar2.ruleset");
-            string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectRuleSetPath, newSolutionRuleSetPath);
+            fileSystem.AddRuleSetFile(existingProjectRuleSetPath, existingRuleSet);
+            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+
+
+            string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
+            string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
 
             RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
@@ -312,10 +307,121 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
 
             // Act
-            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, projectRuleSetPath);
+            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, existingProjectRuleSetPath);
 
             // Verify
             fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
+            Assert.AreEqual(existingProjectRuleSetPath, actualPath, "Expecting the rule set to be updated");
+        }
+
+        [TestMethod]
+        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_UnderTheProject()
+        {
+            // Setup
+            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
+            var testSubject = new ProjectRuleSetWriter(fileSystem);
+
+            const string ruleSetName = "Happy";
+            const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
+            const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
+            const string existingProjectRuleSetPath = @"X:\SolutionDir\ProjectDir\ExistingRuleSet.ruleset";
+
+            RuleSet existingRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            (
+                numRules: 0,
+                includes: new[] { PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath) }
+            );
+            existingRuleSet.FilePath = existingProjectRuleSetPath;
+
+            fileSystem.AddRuleSetFile(existingProjectRuleSetPath, existingRuleSet);
+            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+
+
+            string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
+            string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
+
+            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            (
+                numRules: 0,
+                includes: new[] { newSolutionRuleSetInclude }
+            );
+
+            // Act
+            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
+
+            // Verify
+            fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
+            Assert.AreEqual(existingProjectRuleSetPath, actualPath, "Expecting the rule set to be updated");
+        }
+
+        [TestMethod]
+        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_ButNotUnderTheProject()
+        {
+            // Setup
+            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
+            var testSubject = new ProjectRuleSetWriter(fileSystem);
+
+            const string ruleSetName = "Happy";
+
+            const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
+            const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
+            const string existingProjectRuleSetPath = @"x:\myexistingproject.ruleset";
+
+            fileSystem.AddRuleSetFile(existingProjectRuleSetPath, new RuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
+            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+
+            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            (
+                numRules: 0,
+                includes: new[]
+                {
+                    existingProjectRuleSetPath, // The project exists, but not ours so we should keep it as it was previously specified
+                    PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
+                }
+            );
+
+            // Act
+            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, existingProjectRuleSetPath);
+
+            // Verify
+            fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
+            Assert.AreNotEqual(existingProjectRuleSetPath, actualPath, "Expecting a new rule set to be created");
+        }
+
+        [TestMethod]
+        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_ButNotUnderTheSProject()
+        {
+            // Setup
+            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
+            var testSubject = new ProjectRuleSetWriter(fileSystem);
+
+            const string ruleSetName = "Happy";
+
+            const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
+            const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
+            const string existingProjectRuleSetPath = @"x:\SolutionDir\myexistingproject.ruleset";
+
+            fileSystem.AddRuleSetFile(existingProjectRuleSetPath, new RuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
+            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+
+            string relativePathToExistingProjectRuleSet = PathHelper.CalculateRelativePath(existingProjectRuleSetPath, projectFullPath);
+
+            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            (
+                numRules: 0,
+                includes: new[]
+                {
+                    relativePathToExistingProjectRuleSet, // The project exists, but not ours so we should keep it as it was previously specified
+                    PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
+                }
+            );
+
+            // Act
+            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, relativePathToExistingProjectRuleSet);
+
+            // Verify
+            fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
+            Assert.AreNotEqual(existingProjectRuleSetPath, actualPath, "Expecting a new rule set to be created");
         }
 
         [TestMethod]
@@ -347,6 +453,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
+            Assert.AreNotEqual(currentNonExistingRuleSet, actualPath, "Expecting a new rule set to be created");
         }
 
         [TestMethod]
@@ -356,27 +463,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
             var testSubject = new ProjectRuleSetWriter(fileSystem);
 
-            const string projectName = "My Project";
             const string ruleSetFileName = "Happy";
 
-            const string solutionRoot = @"X:\SolutionDir";
-            string projectRoot = Path.Combine(solutionRoot, "ProjectDir");
-            string projectFullPath = Path.Combine(projectRoot, $"{projectName}.proj");
+            const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
+            const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
 
-            string solutionRuleSetPath = Path.Combine(solutionRoot, "RuleSets", "sonar1.ruleset");
             string expectedSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath);
-
             RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
                 includes: new[] { expectedSolutionRuleSetInclude }
             );
 
-            // Act
-            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, solutionRuleSetPath, null);
+            foreach (var currentRuleSet in new[] { null, string.Empty, ProjectRuleSetWriter.DefaultProjectRuleSet })
+            {
+                // Act
+                string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, solutionRuleSetPath, currentRuleSet);
 
-            // Verify
-            fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
+                // Verify
+                fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
+                Assert.AreNotEqual(solutionRuleSetPath, actualPath, "Expecting a new rule set to be created");
+            }
         }
 
         [TestMethod]
@@ -386,12 +493,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var fs = new ConfigurableRuleSetGenerationFileSystem();
             var testSubject = new ProjectRuleSetWriter(fs);
 
-            const string solutionRoot = @"X:\SolutionDir\";
-            string solutionRuleSetPath = Path.Combine(solutionRoot, @"Sonar\Sonar1.ruleset");
-            string projectRuleSetRoot = Path.Combine(solutionRoot, @"Project\");
+            string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
+            string projectRuleSetRoot = @"X:\SolutionDir\Project\";
+            string existingRuleSetFullPath = @"X:\SolutionDir\Project\ExistingSharedRuleSet.ruleset";
 
-            string existingRuleSetFileName = @"ExistingSharedRuleSet.ruleset";
-            string existingRuleSetFullPath = Path.Combine(solutionRoot, existingRuleSetFileName);
             string existingRuleSetPropValue = PathHelper.CalculateRelativePath(projectRuleSetRoot, existingRuleSetFullPath);
 
             fs.AddRuleSetFile(existingRuleSetFullPath, TestRuleSetHelper.CreateTestRuleSet(existingRuleSetFullPath));
@@ -416,12 +521,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var fs = new ConfigurableRuleSetGenerationFileSystem();
             var testSubject = new ProjectRuleSetWriter(fs);
 
-            const string solutionRoot = @"X:\SolutionDir\";
-            string solutionRuleSetPath = Path.Combine(solutionRoot, @"Sonar\Sonar1.ruleset");
-            string projectRuleSetRoot = Path.Combine(solutionRoot, @"Project\");
+            string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
+            string projectRuleSetRoot = @"X:\SolutionDir\Project\";
+            string existingRuleSetFullPath = @"X:\SolutionDir\Project\ExistingSharedRuleSet.ruleset";
 
-            string existingRuleSetFileName = @"ExistingSharedRuleSet.ruleset";
-            string existingRuleSetFullPath = Path.Combine(solutionRoot, existingRuleSetFileName);
             string existingRuleSetPropValue = PathHelper.CalculateRelativePath(projectRuleSetRoot, existingRuleSetFullPath);
 
             testSubject.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetFullPath);
@@ -438,6 +541,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             long afterTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
             Assert.AreEqual(beforeTimestamp, afterTimestamp, "Rule set timestamp has changed; file was unexpectedly written to.");
+        }
+
+        [TestMethod]
+        public void ProjectRuleSetWriter_TryUpdateExistingProjectRuleSet_ExistingRuleSetIsNotAtTheProjectLevel()
+        {
+            // Setup
+            var fs = new ConfigurableRuleSetGenerationFileSystem();
+            var testSubject = new ProjectRuleSetWriter(fs);
+
+            string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
+            string projectRuleSetRoot = @"X:\SolutionDir\Project\";
+
+            string[] cases = new[]
+            {
+                "../relativeSolutionLevel.ruleset",
+                @"..\..\relativeSolutionLevel.ruleset",
+                @"X:\SolutionDir\Sonar\absolutionSolutionRooted.ruleset",
+                @"c:\OtherPlaceEntirey\rules.ruleset",
+                ProjectRuleSetWriter.DefaultProjectRuleSet,
+                null,
+                string.Empty
+            };
+
+            foreach (var currentRuleSet in cases)
+            {
+                // Case 1: Solution level, relative
+                // Act
+                string pathOutResult;
+                bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, currentRuleSet, out pathOutResult);
+
+                // Verify
+                string testCase = currentRuleSet ?? "NULL";
+                Assert.IsNull(pathOutResult, "Unexpected rule set path was returned: {0}. Case: {1}", pathOutResult, testCase);
+                Assert.IsFalse(result, "Not expecting to update a non project rooted rulesets. Case: {0}", testCase);
+            }
         }
 
         #endregion

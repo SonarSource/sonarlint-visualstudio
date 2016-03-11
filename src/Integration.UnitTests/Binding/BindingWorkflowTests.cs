@@ -343,7 +343,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
 
             var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
-            return new BindingWorkflow(controller.BindCommand, useProjectInfo, this.projectSystemHelper, new ConfigurableBindingOperation(), new ConfigurableSolutionRuleStore());
+            return new BindingWorkflow(controller.BindCommand, useProjectInfo, this.projectSystemHelper);
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] managedProjects)

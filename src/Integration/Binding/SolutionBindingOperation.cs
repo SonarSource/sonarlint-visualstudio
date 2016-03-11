@@ -18,7 +18,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// <summary>
     /// Solution level binding by delegating some of the work to <see cref="ProjectBindingOperation"/>
     /// </summary>
-    internal class SolutionBindingOperation : IBindingOperation, ISolutionRuleStore
+    internal class SolutionBindingOperation : ISolutionRuleStore
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IProjectSystemHelper projectSystem;
