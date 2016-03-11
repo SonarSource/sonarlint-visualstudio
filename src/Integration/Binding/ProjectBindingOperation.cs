@@ -186,11 +186,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     throw new ArgumentNullException(nameof(targetRuleSetName));
                 }
 
-                if (string.IsNullOrWhiteSpace(currentRuleSetFilePath))
-                {
-                    throw new ArgumentNullException(nameof(currentRuleSetFilePath));
-                }
-
                 this.TargetRuleSetFileName = targetRuleSetName;
                 this.CurrentRuleSetFilePath = currentRuleSetFilePath;
             }

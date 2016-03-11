@@ -77,6 +77,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
+        public void ProjectBindingOperation_Initialize_ConfigurationPropertyWithEmptyRuleSets()
+        {
+            // Setup
+            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore);
+            this.projectMock.SetVBProjectKind();
+            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", null);
+            PropertyMock prop2 = CreateProperty(this.projectMock, "config2", string.Empty);
+
+            // Act
+            testSubject.Initialize();
+
+            // Verify
+            Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
+            Assert.AreEqual(RuleSetGroup.VB, testSubject.ProjectGroup);
+            CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
+
+            foreach (var prop in new[] { prop1, prop2 })
+            {
+                Assert.IsTrue(string.IsNullOrEmpty(testSubject.PropertyInformationMap[prop].CurrentRuleSetFilePath));
+                Assert.AreEqual("project", testSubject.PropertyInformationMap[prop].TargetRuleSetFileName);
+            }
+        }
+        [TestMethod]
         public void ProjectBindingOperation_Initialize_ConfigurationPropertyWithSameNonDefaultValues()
         {
             // Setup
