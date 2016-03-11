@@ -141,106 +141,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_SetSolutionRuleSet()
-        {
-            // Setup
-            const string projectName = "My Awesome Project";
-            const string projectKey = "MyAweProj";
-            const string solutionRoot = @"X:\MySolution";
-
-            var projectInfo = new ProjectInformation { Name = projectName, Key = projectKey };
-            var solution = new SolutionMock(null, Path.Combine(solutionRoot, "Solution.sln"));
-            RuleSetGroup group = RuleSetGroup.CSharp;
-
-            var expectedRuleSetPath = Path.Combine
-            (
-                solutionRoot,
-                Constants.SonarQubeManagedFolderName,
-                projectKey + group.ToString()
-            ) + "." + RuleSetWriter.FileExtension;
-
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "rule1", "rule2" });
-
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            BindingWorkflow testSubject = this.CreateTestSubject(projectInfo, fileSystem);
-            testSubject.Rulesets[group] = expectedRuleSet;
-
-            // Act
-            testSubject.SetSolutionRuleSet(group, solution.FilePath);
-
-            // Verify
-            Assert.AreEqual(expectedRuleSetPath, testSubject.SolutionRulesetPaths[group], "Rule set path should have been set");
-            fileSystem.AssertFileExists(expectedRuleSetPath);
-            fileSystem.AssertRuleSetsAreEqual(expectedRuleSetPath, expectedRuleSet);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_UpdateProjectRuleSet_ExistingRuleSet()
-        {
-            // Setup
-            const string solutionRuleSetPath = @"X:\SolutionDir\SolutionRuleSets\sonar1.ruleset";
-            const string solutionRuleSetInclude = @"..\SolutionRuleSets\sonar1.ruleset";
-
-            const string projectName = "My Awesome Project";
-            const string projectRoot = @"X:\SolutionDir\ProjectDir";
-            const string configurationName = "Happy";
-            string projectFullPath = Path.Combine(projectRoot, projectName + ".proj");
-
-            string existingRuleSetPath = Path.Combine(projectRoot, "mycustomruleset.ruleset");
-            var existingRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingRuleSetPath);
-            existingRuleSet.Rules.Add(new RuleReference("testId", "testNs", "42", RuleAction.Default));
-
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            fileSystem.AddRuleSetFile(existingRuleSetPath, existingRuleSet);
-            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("sonar1"));
-
-            string expectedRuleSetPath = existingRuleSetPath;
-            var expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet(expectedRuleSetPath);
-            expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(solutionRuleSetInclude, RuleAction.Default));
-            expectedRuleSet.Rules.Add(new RuleReference("testId", "testNs", "42", RuleAction.Default));
-
-            BindingWorkflow testSubject = this.CreateTestSubject(new ProjectInformation(), fileSystem);
-            RuleSetGroup group = RuleSetGroup.VB;
-            testSubject.SolutionRulesetPaths[group] = solutionRuleSetPath;
-
-            // Act
-            testSubject.UpdateProjectRuleSet(group, projectFullPath, configurationName, existingRuleSetPath);
-
-            // Verify
-            fileSystem.AssertFileExists(expectedRuleSetPath);
-            fileSystem.AssertRuleSetsAreEqual(expectedRuleSetPath, expectedRuleSet);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_UpdateProjectRuleSet_NoExistingRuleSet()
-        {
-            // Setup
-            const string solutionRuleSetPath = @"X:\SolutionDir\SolutionRuleSets\sonar1.ruleset";
-            const string solutionRuleSetInclude = @"..\SolutionRuleSets\sonar1.ruleset";
-
-            const string projectName = "My Awesome Project";
-            const string projectRoot = @"X:\SolutionDir\ProjectDir";
-            const string configurationName = "Happy";
-            string projectFullPath = Path.Combine(projectRoot, projectName + ".proj");
-
-            var expectedRuleSetPath = Path.Combine(projectRoot, projectName + "." + configurationName + "." + RuleSetWriter.FileExtension);
-            var expectedRuleSet = new RuleSet(Constants.RuleSetName);
-            expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(solutionRuleSetInclude, RuleAction.Default));
-
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            BindingWorkflow testSubject = this.CreateTestSubject(new ProjectInformation(), fileSystem);
-            RuleSetGroup group = RuleSetGroup.CSharp;
-            testSubject.SolutionRulesetPaths[group] = solutionRuleSetPath;
-
-            // Act
-            testSubject.UpdateProjectRuleSet(group, projectFullPath, configurationName, null);
-
-            // Verify
-            fileSystem.AssertFileExists(expectedRuleSetPath);
-            fileSystem.AssertRuleSetsAreEqual(expectedRuleSetPath, expectedRuleSet);
-        }
-
-        [TestMethod]
         public void BindingWorkflow_InstallPackages()
         {
             // Setup
@@ -438,15 +338,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null, IRuleSetGenerationFileSystem fileSystem = null, ProjectRuleSetWriter projectWriter = null)
+        private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null)
         {
-            var useProjectInfo = projectInfo ?? new ProjectInformation();
-            var slnWriter = new SolutionRuleSetWriter(useProjectInfo, fileSystem);
-            var useProjectWriter = projectWriter ?? new ProjectRuleSetWriter(fileSystem);
+            var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
 
             var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
-
-            return new BindingWorkflow(controller.BindCommand, useProjectInfo, slnWriter, useProjectWriter, this.projectSystemHelper);
+            return new BindingWorkflow(controller.BindCommand, useProjectInfo, this.projectSystemHelper);
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] managedProjects)
