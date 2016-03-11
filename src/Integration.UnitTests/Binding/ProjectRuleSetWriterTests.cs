@@ -566,7 +566,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             foreach (var currentRuleSet in cases)
             {
-                // Case 1: Solution level, relative
                 // Act
                 string pathOutResult;
                 bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, currentRuleSet, out pathOutResult);
