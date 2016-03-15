@@ -16,7 +16,7 @@ using System.Threading;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     [TestClass]
-    public class ProjectBindingOperationTests
+    public partial class ProjectBindingOperationTests
     {
         private DTEMock dte;
         private ConfigurableServiceProvider serviceProvider;
@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ProjectMock projectMock;
         private const string SolutionRoot = @"c:\solution";
         private ConfigurableSolutionRuleStore ruleStore;
+        private ConfigurableSourceControlledFileSystem sccFileSystem;
 
         [TestInitialize]
         public void TestInitialize()
@@ -38,17 +39,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.ruleStore = new ConfigurableSolutionRuleStore();
+            this.sccFileSystem = new ConfigurableSourceControlledFileSystem();
         }
 
         [TestMethod]
         public void ProjectBindingOperation_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.projectSystemHelper, this.ruleStore));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.projectSystemHelper, this.ruleStore));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, null, this.ruleStore));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, null));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.sccFileSystem, this.projectMock, this.projectSystemHelper, this.ruleStore));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, null, this.projectMock, this.projectSystemHelper, this.ruleStore));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.sccFileSystem, null, this.projectSystemHelper, this.ruleStore));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.sccFileSystem, this.projectMock, null, this.ruleStore));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.sccFileSystem, this.projectMock, this.projectSystemHelper, null));
 
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore);
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
             Assert.IsNotNull(testSubject, "Suppress warning that not used");
         }
 
@@ -56,10 +59,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Initialize_ConfigurationPropertyWithDefaultValues()
         {
             // Setup
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore);
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
-            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", ProjectRuleSetWriter.DefaultProjectRuleSet);
-            PropertyMock prop2 = CreateProperty(this.projectMock, "config2", ProjectRuleSetWriter.DefaultProjectRuleSet);
+            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
+            PropertyMock prop2 = CreateProperty(this.projectMock, "config2", ProjectBindingOperation.DefaultProjectRuleSet);
 
             // Act
             testSubject.Initialize();
@@ -71,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             foreach (var prop in new[] { prop1, prop2 })
             {
-                Assert.AreEqual(ProjectRuleSetWriter.DefaultProjectRuleSet, testSubject.PropertyInformationMap[prop].CurrentRuleSetFilePath);
+                Assert.AreEqual(ProjectBindingOperation.DefaultProjectRuleSet, testSubject.PropertyInformationMap[prop].CurrentRuleSetFilePath);
                 Assert.AreEqual("project", testSubject.PropertyInformationMap[prop].TargetRuleSetFileName);
             }
         }
@@ -80,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Initialize_ConfigurationPropertyWithEmptyRuleSets()
         {
             // Setup
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore);
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
             PropertyMock prop1 = CreateProperty(this.projectMock, "config1", null);
             PropertyMock prop2 = CreateProperty(this.projectMock, "config2", string.Empty);
@@ -103,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Initialize_ConfigurationPropertyWithSameNonDefaultValues()
         {
             // Setup
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore);
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
             PropertyMock prop1 = CreateProperty(this.projectMock, "config1", "Custom1.ruleset");
             PropertyMock prop2 = CreateProperty(this.projectMock, "config2", "Custom1.ruleset");
@@ -127,9 +130,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Initialize_ConfigurationPropertiesWithVariousValues()
         {
             // Setup
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore);
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", ProjectRuleSetWriter.DefaultProjectRuleSet);
+            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
             PropertyMock prop2 = CreateProperty(this.projectMock, "config2", "NonDefualtRuleSet.ruleset");
 
             // Act
@@ -140,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Assert.AreEqual(RuleSetGroup.CSharp, testSubject.ProjectGroup);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
-            Assert.AreEqual(ProjectRuleSetWriter.DefaultProjectRuleSet, testSubject.PropertyInformationMap[prop1].CurrentRuleSetFilePath);
+            Assert.AreEqual(ProjectBindingOperation.DefaultProjectRuleSet, testSubject.PropertyInformationMap[prop1].CurrentRuleSetFilePath);
             Assert.AreEqual("project", testSubject.PropertyInformationMap[prop1].TargetRuleSetFileName, "Default ruleset - expected project based name to be generated");
             Assert.AreEqual("NonDefualtRuleSet.ruleset", testSubject.PropertyInformationMap[prop2].CurrentRuleSetFilePath);
             Assert.AreEqual("project.config2", testSubject.PropertyInformationMap[prop2].TargetRuleSetFileName, "Non default ruleset - expected configuration based rule set name to be generated");
@@ -151,13 +154,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             this.ruleStore.RegisterRuleSetPath(RuleSetGroup.VB, @"c:\Solution\sln.ruleset");
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore, new ProjectRuleSetWriter(fs));
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
             this.projectMock.SetVBProjectKind();
             PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
             PropertyMock customRuleSetProperty2 = CreateProperty(this.projectMock, "config2", "Custom.ruleset");
-            PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config3", ProjectRuleSetWriter.DefaultProjectRuleSet);
-            PropertyMock defaultRuleSetProperty2 = CreateProperty(this.projectMock, "config4", ProjectRuleSetWriter.DefaultProjectRuleSet);
+            PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config3", ProjectBindingOperation.DefaultProjectRuleSet);
+            PropertyMock defaultRuleSetProperty2 = CreateProperty(this.projectMock, "config4", ProjectBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
 
             // Act
@@ -165,17 +168,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            fs.AssertFileExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
+            this.sccFileSystem.AssertFileNotExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
             Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[defaultRuleSetProperty1].NewRuleSetFilePath, "Expected all the properties with default ruleset to have the same new ruleset");
             Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[defaultRuleSetProperty2].NewRuleSetFilePath, "Expected all the properties with default ruleset to have the same new ruleset");
 
             string expectedRuleSetForConfig1 = Path.ChangeExtension(expectedRuleSetFileForPropertiesWithDefaultRulSets, "config1.ruleset");
             Assert.AreEqual(expectedRuleSetForConfig1, testSubject.PropertyInformationMap[customRuleSetProperty1].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
-            fs.AssertFileExists(expectedRuleSetForConfig1);
+            this.sccFileSystem.AssertFileNotExists(expectedRuleSetForConfig1);
 
             string expectedRuleSetForConfig2 = Path.ChangeExtension(expectedRuleSetFileForPropertiesWithDefaultRulSets, "config2.ruleset");
             Assert.AreEqual(expectedRuleSetForConfig2, testSubject.PropertyInformationMap[customRuleSetProperty2].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
-            fs.AssertFileExists(expectedRuleSetForConfig2);
+            this.sccFileSystem.AssertFileNotExists(expectedRuleSetForConfig2);
+
+            // Act (write pending)
+            this.sccFileSystem.WritePendingNoErrorsExpected();
+
+            // Verify that written
+            this.sccFileSystem.AssertFileExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
+            this.sccFileSystem.AssertFileExists(expectedRuleSetForConfig1);
+            this.sccFileSystem.AssertFileExists(expectedRuleSetForConfig2);
         }
 
         [TestMethod]
@@ -183,8 +194,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             this.ruleStore.RegisterRuleSetPath(RuleSetGroup.VB, @"c:\Solution\sln.ruleset");
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore, new ProjectRuleSetWriter(fs));
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
             this.projectMock.SetVBProjectKind();
             PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
             PropertyMock customRuleSetProperty2 = CreateProperty(this.projectMock, "config2", "Custom.ruleset");
@@ -195,9 +206,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            fs.AssertFileExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
+            this.sccFileSystem.AssertFileNotExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
             Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[customRuleSetProperty1].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
             Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[customRuleSetProperty2].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
+
+            // Act (write pending)
+            this.sccFileSystem.WritePendingNoErrorsExpected();
+
+            // Verify that written
+            this.sccFileSystem.AssertFileExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
         }
 
         [TestMethod]
@@ -205,11 +222,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             this.ruleStore.RegisterRuleSetPath(RuleSetGroup.VB, @"c:\Solution\sln.ruleset");
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore, new ProjectRuleSetWriter(fs));
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
             this.projectMock.SetVBProjectKind();
-            PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config1", ProjectRuleSetWriter.DefaultProjectRuleSet);
-            PropertyMock defaultRuleSetProperty2 = CreateProperty(this.projectMock, "config2", ProjectRuleSetWriter.DefaultProjectRuleSet);
+            PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
+            PropertyMock defaultRuleSetProperty2 = CreateProperty(this.projectMock, "config2", ProjectBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
 
             // Act
@@ -217,9 +234,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            fs.AssertFileExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
+            this.sccFileSystem.AssertFileNotExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
             Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[defaultRuleSetProperty1].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
             Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[defaultRuleSetProperty2].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
+
+            // Act (write pending)
+            this.sccFileSystem.WritePendingNoErrorsExpected();
+
+            // Verify that written
+            this.sccFileSystem.AssertFileExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
         }
 
         [TestMethod]
@@ -227,10 +250,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             this.ruleStore.RegisterRuleSetPath(RuleSetGroup.CSharp, @"c:\Solution\sln.ruleset");
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore, new ProjectRuleSetWriter(fs));
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectRuleSetWriter.DefaultProjectRuleSet);
+            PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
             using (CancellationTokenSource src = new CancellationTokenSource())
             {
@@ -244,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             string expectedFile = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
             Assert.IsNull(testSubject.PropertyInformationMap[prop].NewRuleSetFilePath, "Not expecting the new rule set path to be set when cancelled");
-            Assert.AreEqual(ProjectRuleSetWriter.DefaultProjectRuleSet, prop.Value.ToString(), "Should not update the property value");
+            Assert.AreEqual(ProjectBindingOperation.DefaultProjectRuleSet, prop.Value.ToString(), "Should not update the property value");
             Assert.IsFalse(this.projectMock.Files.ContainsKey(expectedFile), "Should not be added to the project");
         }
 
@@ -252,11 +274,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Commit()
         {
             // Setup
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.projectSystemHelper, this.ruleStore, new ProjectRuleSetWriter(fs));
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
             this.ruleStore.RegisterRuleSetPath(RuleSetGroup.CSharp, @"c:\Solution\sln.ruleset");
-            PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectRuleSetWriter.DefaultProjectRuleSet);
+            PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
 
@@ -285,6 +306,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var prop = config.Properties.RegisterKnownProperty(Constants.CodeAnalysisRuleSetPropertyKey);
             prop.Value = propertyValue;
             return prop;
+        }
+
+        private ProjectBindingOperation CreateTestSubject(IRuleSetFileSystem ruleSetFileSystem = null)
+        {
+            return new ProjectBindingOperation(this.serviceProvider, this.sccFileSystem, this.projectMock, this.projectSystemHelper, this.ruleStore, ruleSetFileSystem);
         }
         #endregion
     }

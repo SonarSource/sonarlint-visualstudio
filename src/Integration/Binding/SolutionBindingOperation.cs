@@ -7,6 +7,8 @@
 
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,29 +20,43 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// <summary>
     /// Solution level binding by delegating some of the work to <see cref="ProjectBindingOperation"/>
     /// </summary>
-    internal class SolutionBindingOperation : ISolutionRuleStore
+    internal partial class SolutionBindingOperation : ISolutionRuleStore
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly SolutionRuleSetWriter solutionRuleSetWriter;
+        private readonly ISolutionBinding solutionBinding;
+
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
         private readonly Dictionary<RuleSetGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<RuleSetGroup, RuleSetInformation>();
+        private readonly ConnectionInformation connection;
+        private readonly string sonarQubeProjectKey;
 
-        public SolutionBindingOperation(IServiceProvider serviceProvider, IProjectSystemHelper projectSystemHelper, string sonarQubeProjectKey)
-            : this(serviceProvider, projectSystemHelper, sonarQubeProjectKey, null)
+        public SolutionBindingOperation(IServiceProvider serviceProvider, IProjectSystemHelper projectSystemHelper, ConnectionInformation connection, string sonarQubeProjectKey)
+            :this(serviceProvider, projectSystemHelper, connection, sonarQubeProjectKey, new SourceControlledFileSystem(serviceProvider), null, null)
         {
         }
 
-        internal SolutionBindingOperation(IServiceProvider serviceProvider, IProjectSystemHelper projectSystemHelper, string sonarQubeProjectKey, SolutionRuleSetWriter solutionRuleSetWriter)
+        internal /*for testing purposes*/ SolutionBindingOperation(IServiceProvider serviceProvider, IProjectSystemHelper projectSystemHelper, ConnectionInformation connection, string sonarQubeProjectKey, ISourceControlledFileSystem sourceControlledFileSystem,  IRuleSetFileSystem rsFileSystem, ISolutionBinding solutionBinding)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
+            if (sourceControlledFileSystem == null)
+            {
+                throw new ArgumentNullException(nameof(sourceControlledFileSystem));
+            }
+
             if (projectSystemHelper == null)
             {
                 throw new ArgumentNullException(nameof(projectSystemHelper));
+            }
+
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
             }
 
             if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
@@ -49,9 +65,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             this.serviceProvider = serviceProvider;
+            this.sourceControlledFileSystem = sourceControlledFileSystem;
             this.projectSystem = projectSystemHelper;
-            this.solutionRuleSetWriter = solutionRuleSetWriter ?? new SolutionRuleSetWriter(sonarQubeProjectKey);
-
+            this.connection = connection;
+            this.sonarQubeProjectKey = sonarQubeProjectKey;
+            this.ruleSetFileSystem = rsFileSystem ?? new RuleSetFileSystem();
+            this.solutionBinding = solutionBinding ?? new SolutionBinding(this.serviceProvider);
         }
 
         #region State
@@ -106,14 +125,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #endregion
 
-        #region IBindingOperation
+        #region Public API
         public void Initialize()
         {
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
 
             foreach (Project project in this.projectSystem.GetSolutionManagedProjects())
             {
-                var binder = new ProjectBindingOperation(serviceProvider, project, this.projectSystem, this);
+                var binder = new ProjectBindingOperation(serviceProvider, sourceControlledFileSystem, project, this.projectSystem, this);
                 binder.Initialize();
                 this.childBinder.Add(binder);
             }
@@ -134,7 +153,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 RuleSetGroup group = keyValue.Key;
                 Debug.Assert(info.NewRuleSetFilePath == null, "Not expected to be called twice");
 
-                info.NewRuleSetFilePath = this.solutionRuleSetWriter.WriteSolutionLevelRuleSet(this.SolutionFullPath, info.RuleSet, fileNameSuffix: group.ToString());
+                info.NewRuleSetFilePath = this.PendWriteSolutionLevelRuleSet(this.SolutionFullPath, info.RuleSet, fileNameSuffix: group.ToString());
+
+                Debug.Assert(!string.IsNullOrWhiteSpace(info.NewRuleSetFilePath) 
+                    && this.sourceControlledFileSystem.IsFileExistOrPendingWrite(info.NewRuleSetFilePath), "Expected a rule set to pend pended");
             }
 
             foreach (IBindingOperation binder in this.childBinder)
@@ -148,21 +170,44 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        public void Commit()
+        public bool CommitSolutionBinding()
         {
+            this.PendBindingInformation(this.connection); // This is the last pend, so will be executed last
+
+            if (this.sourceControlledFileSystem.WritePendingFiles())
+        {
+                // No reason to modify VS state if could not write files
+
             this.childBinder.ForEach(b => b.Commit());
 
-            foreach(RuleSetInformation info in ruleSetsInformationMap.Values)
+                foreach (RuleSetInformation info in ruleSetsInformationMap.Values)
             {
+                    Debug.Assert(this.sourceControlledFileSystem.IsFileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
                 this.AddFileToSolutionItems(info.NewRuleSetFilePath);
             }
+
+                return true;
+            }
+
+            return false;
         }
+
+
         #endregion
 
         #region Helpers
+        /// <summary>
+        /// Will bend add/edit the binding information for next time usage
+        /// </summary>
+        private void PendBindingInformation(ConnectionInformation connection)
+        {
+            BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connection.UserName, connection.Password);
+            this.solutionBinding.WriteSolutionBinding(this.sourceControlledFileSystem, new BoundSonarQubeProject(connection.ServerUri, this.sonarQubeProjectKey, credentials));
+        }
+
         private void AddFileToSolutionItems(string fullFilePath)
         {
-            Debug.Assert(Path.IsPathRooted(fullFilePath) && File.Exists(fullFilePath), "Expecting a rooted path to existing file");
+            Debug.Assert(Path.IsPathRooted(fullFilePath) && this.sourceControlledFileSystem.IsFileExist(fullFilePath), "Expecting a rooted path to existing file");
 
             Project solutionItemsProject = this.projectSystem.GetSolutionItemsProject();
             if (solutionItemsProject == null)
@@ -201,4 +246,3 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
     }
 }
-

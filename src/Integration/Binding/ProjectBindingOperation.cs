@@ -16,26 +16,32 @@ using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class ProjectBindingOperation : IBindingOperation
+    internal partial class ProjectBindingOperation : IBindingOperation
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly ISolutionRuleStore ruleStore;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly ProjectRuleSetWriter writer;
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, IProjectSystemHelper projectSystem, ISolutionRuleStore ruleStore)
-            : this(serviceProvider, project, projectSystem, ruleStore, null)
+        public ProjectBindingOperation(IServiceProvider serviceProvider, ISourceControlledFileSystem sccFileSystem, Project project, IProjectSystemHelper projectSystem, ISolutionRuleStore ruleStore)
+            :this(serviceProvider, sccFileSystem, project, projectSystem, ruleStore, null)
         {
+            
         }
 
-        internal /*for testing purposes*/ ProjectBindingOperation(IServiceProvider serviceProvider, Project project, IProjectSystemHelper projectSystem, ISolutionRuleStore ruleStore, ProjectRuleSetWriter writer)
+        internal /*for testing purposes*/ ProjectBindingOperation(IServiceProvider serviceProvider, ISourceControlledFileSystem sccFileSystem, Project project, IProjectSystemHelper projectSystem, ISolutionRuleStore ruleStore, IRuleSetFileSystem rsFileSystem)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            if (sccFileSystem == null)
+            {
+                throw new ArgumentNullException(nameof(sccFileSystem));
             }
 
             if (project == null)
@@ -54,11 +60,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             this.serviceProvider = serviceProvider;
+            this.sourceControlledFileSystem = sccFileSystem;
             this.initializedProject = project;
             this.ruleStore = ruleStore;
             this.projectSystem = projectSystem;
-            this.writer = writer ?? new ProjectRuleSetWriter();
+            this.ruleSetFileSystem = rsFileSystem ?? new RuleSetFileSystem();
         }
+
 
         #region State
         internal /*for testing purposes*/ RuleSetGroup ProjectGroup { get; private set; }
@@ -92,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 string targetRuleSetFileName = group.Key;
                 string currentRuleSetFilePath = group.First().CurrentRuleSetFilePath;
                 Debug.Assert(group.All(i => StringComparer.OrdinalIgnoreCase.Equals(currentRuleSetFilePath, currentRuleSetFilePath)), "Expected all the rulesets to be the same when the target rule set name is the same");
-                string newRuleSetFilePath = this.writer.WriteProjectLevelRuleSet(this.ProjectFullPath, targetRuleSetFileName, solutionRuleSetPath, currentRuleSetFilePath);
+                string newRuleSetFilePath = this.PendWriteProjectLevelRuleSet(this.ProjectFullPath, targetRuleSetFileName, solutionRuleSetPath, currentRuleSetFilePath);
 
                 foreach (PropertyInformation info in group)
                 {
@@ -107,10 +115,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 Property property = keyValue.Key;
                 string ruleSetFullFilePath = keyValue.Value.NewRuleSetFilePath;
+
                 Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFullFilePath), "Prepare was not called");
+                Debug.Assert(this.sourceControlledFileSystem.IsFileExist(ruleSetFullFilePath), "File not written: " + ruleSetFullFilePath);
 
                 string updatedRuleSetValue = PathHelper.CalculateRelativePath(this.ProjectFullPath, ruleSetFullFilePath);
                 property.Value = updatedRuleSetValue;
+
                 this.AddFileToProject(this.initializedProject, ruleSetFullFilePath);
             }
         }
@@ -147,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     string targetRuleSetName = projectBasedRuleSetName;
                     currentRuleSetValue = codeAnalysisRuleProperty.Value as string;
-                    if (!useSameTargetName && !ProjectRuleSetWriter.ShouldIgnoreConfigureRuleSetValue(currentRuleSetValue))
+                    if (!useSameTargetName && !ShouldIgnoreConfigureRuleSetValue(currentRuleSetValue))
                     {
                         targetRuleSetName = string.Join(".", targetRuleSetName, TryGetPropertyConfiguration(codeAnalysisRuleProperty)?.ConfigurationName ?? string.Empty);
                     }

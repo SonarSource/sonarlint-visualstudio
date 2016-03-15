@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestInitialize]
         public void TestInitialize()
         {
+            KnownUIContextsAccessor.Reset();
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.workflow = new TestBindingWorkflow();
             this.serviceProvider = new ConfigurableServiceProvider();
@@ -45,18 +46,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionMock = new SolutionMock();
             this.monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-        }
-
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            this.monitorSelection = null;
-        }
-
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            KnownUIContextsAccessor.Reset();
         }
 
         #region Tests

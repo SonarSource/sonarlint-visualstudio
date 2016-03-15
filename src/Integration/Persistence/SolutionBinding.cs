@@ -15,7 +15,7 @@ using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal class SolutionBinding
+    internal class SolutionBinding : ISolutionBinding
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ICredentialStore credentialStore;
@@ -24,7 +24,12 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public const string SonarQubeSolutionBindingConfigurationFileName = "SolutionBinding.sqconfig";
         public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
 
-        public SolutionBinding(IServiceProvider serviceProvider, ICredentialStore credentialStore = null, IProjectSystemHelper projectSystemHelper = null)
+        public SolutionBinding(IServiceProvider serviceProvider)
+            :this(serviceProvider, null, null)
+        {
+        }
+
+        internal /*for testing purposes*/ SolutionBinding(IServiceProvider serviceProvider, ICredentialStore credentialStore = null, IProjectSystemHelper projectSystemHelper = null)
         {
             if (serviceProvider == null)
             {
@@ -52,27 +57,41 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return this.ReadBindingInformation(configFile);
         }
 
-        public string WriteSolutionBinding(BoundSonarQubeProject binding)
+        public string WriteSolutionBinding(ISourceControlledFileSystem sccFileSystem, BoundSonarQubeProject binding)
         {
+            if (sccFileSystem == null)
+            {
+                throw new ArgumentNullException(nameof(sccFileSystem));
+            }
+
+            if (binding == null)
+            {
+                throw new ArgumentNullException(nameof(binding));
+            }
+
             string configFile = this.GetSonarQubeConfigurationFilePath();
             if (string.IsNullOrWhiteSpace(configFile))
             {
                 return null;
             }
 
-            if (this.WriteBindingInformation(configFile, binding))
+            sccFileSystem.PendFileWrite(configFile, ()=>
             {
-                this.AddSolutionItemFile(configFile);
+                if (this.WriteBindingInformation(configFile, binding))
+                {
+                    this.AddSolutionItemFile(configFile);
+                    return true;
+                }
 
-                return configFile;
-            }
+                return false;
+            });
 
-            return null;
+            return configFile;
         }
 
         private void AddSolutionItemFile(string configFile)
         {
-            Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid config file");
+            Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid configuration file");
 
             Project solutionItemsProject = this.projectSystemHelper.GetSolutionItemsProject();
             if (solutionItemsProject == null)

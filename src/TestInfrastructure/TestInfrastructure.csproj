@@ -117,9 +117,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Framework\ConfigurableBindingOperation.cs" />
+    <Compile Include="Framework\ConfigurableFileSystem.cs" />
     <Compile Include="Framework\ConfigurableIntegrationSettings.cs" />
     <Compile Include="Framework\ConfigurableSettingsManager.cs" />
-    <Compile Include="Framework\ConfigurableSolutionBinder.cs" />
+    <Compile Include="Framework\ConfigurableSolutionRuleStore.cs" />
+    <Compile Include="Framework\ConfigurableSolutionBinding.cs" />
+    <Compile Include="Framework\ConfigurableSourceControlledFileSystem.cs" />
     <Compile Include="Framework\ConfigurableVsCommand.cs" />
     <Compile Include="Framework\ConfigurableComponentModel.cs" />
     <Compile Include="Framework\ConfigurableCompositionService.cs" />
@@ -147,6 +150,7 @@
     <Compile Include="Framework\ConfigurableVsMonitorSelection.cs" />
     <Compile Include="Framework\ConfigurableVsProjectSystemHelper.cs" />
     <Compile Include="Framework\ConfigurableTelemetryLogger.cs" />
+    <Compile Include="Framework\ConfigurableVsQueryEditQuerySave2.cs" />
     <Compile Include="Framework\ConfigurableWebBrowser.cs" />
     <Compile Include="Framework\ConfigurableWritableSettingsStore.cs" />
     <Compile Include="Helpers\AssertIgnoreScope.cs" />

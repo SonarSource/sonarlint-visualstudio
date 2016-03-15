@@ -20,8 +20,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         static KnownUIContextsAccessor()
         {
             ServiceProvider = VsServiceProviderHelper.GlobalServiceProvider;
+            MonitorSelectionService = new ConfigurableVsMonitorSelection();
+            ServiceProvider.RegisterService(typeof(IVsMonitorSelection), MonitorSelectionService, true);
             Reset();
-            Assert.IsTrue(KnownUIContextsProperties.All(pi => pi.GetValue(null) != null), "UIContext failed to register");
         }
 
         public static ConfigurableVsMonitorSelection MonitorSelectionService
@@ -37,12 +38,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public static void Reset()
         {
-            MonitorSelectionService = new ConfigurableVsMonitorSelection();
-            ServiceProvider.RegisterService(typeof(IVsMonitorSelection), MonitorSelectionService, true);
-
             MonitorSelectionService.UIContexts
                 .ToList()
                 .ForEach(contextId => MonitorSelectionService.SetContext(contextId, false));
+
+            Assert.IsTrue(KnownUIContextsProperties.All(pi => pi.GetValue(null) != null), "UIContext failed to register");
         }
 
         private static IEnumerable<PropertyInfo> KnownUIContextsProperties

@@ -1,27 +1,28 @@
 //-----------------------------------------------------------------------
-// <copyright file="ProjectRuleSetWriterTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="ProjectBindingOperation.WriterTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Integration.Binding;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using SonarLint.VisualStudio.Integration.Binding;
+using System.Linq;
+using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
-    [TestClass]
-    public class ProjectRuleSetWriterTests
+    public partial class ProjectBindingOperationTests
     {
         #region Tests
 
         [TestMethod]
-        public void ProjectRuleSetWriter_RemoveAllIncludesUnderRoot()
+        public void ProjectBindingOperation_RemoveAllIncludesUnderRoot()
         {
             // Setup
             const string slnRoot = @"X:\SolutionDir\";
@@ -41,12 +42,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var commonRs1 = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs1FileName);
             var commonRs2 = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs2FileName);
 
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            fs.AddRuleSetFile(sonarRs1.FilePath, sonarRs1);
-            fs.AddRuleSetFile(sonarRs2.FilePath, sonarRs2);
-            fs.AddRuleSetFile(projectBaseRs.FilePath, projectBaseRs);
-            fs.AddRuleSetFile(commonRs1.FilePath, commonRs1);
-            fs.AddRuleSetFile(commonRs2.FilePath, commonRs2);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            rsFS.RegisterRuleSet(sonarRs1);
+            rsFS.RegisterRuleSet(sonarRs2);
+            rsFS.RegisterRuleSet(projectBaseRs);
+            rsFS.RegisterRuleSet(commonRs1);
+            rsFS.RegisterRuleSet(commonRs2);
 
             var inputRuleSet = TestRuleSetHelper.CreateTestRuleSet(projectRoot, "test.ruleset");
             AddRuleSetInclusion(inputRuleSet, projectBaseRs, useRelativePath: true);
@@ -61,39 +62,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             AddRuleSetInclusion(expectedRuleSet, commonRs2, useRelativePath: false);
 
             // Act
-            ProjectRuleSetWriter.RemoveAllIncludesUnderRoot(inputRuleSet, sonarRoot);
+            ProjectBindingOperation.RemoveAllIncludesUnderRoot(inputRuleSet, sonarRoot);
 
             // Verify
             RuleSetAssert.AreEqual(expectedRuleSet, inputRuleSet);
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_NullArgumentChecks()
-        {
-            var testSubject = new ProjectRuleSetWriter();
-
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                testSubject.WriteProjectLevelRuleSet(null, "config", @"X:\MySln\RuleSets\rs.ruleset", @"Y:\existing.ruleset");
-            });
-
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                testSubject.WriteProjectLevelRuleSet(@"X:\MySln\Project1\proj1.proj", "config", null, @"Y:\existing.ruleset");
-            });
-        }
-
-        [TestMethod]
-        public void ProjectRuleSetWriter_SafeLoadRuleSet()
+        public void ProjectBindingOperation_SafeLoadRuleSet()
         {
             // Setup
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             // Test case 1: load existing, well formed rule set
             const string goodRuleSetPath = @"X:\good.ruleset";
             RuleSet goodRuleSet = TestRuleSetHelper.CreateTestRuleSet(numRules: 3);
-            fileSystem.AddRuleSetFile(goodRuleSetPath, goodRuleSet);
+            rsFS.RegisterRuleSet(goodRuleSet, goodRuleSetPath);
 
             // Act
             RuleSet loadedGood = testSubject.SafeLoadRuleSet(goodRuleSetPath);
@@ -102,10 +87,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.IsNotNull(loadedGood, "Expected existing well formed ruleset to be loaded");
             RuleSetAssert.AreEqual(goodRuleSet, loadedGood);
 
-
             // Test case 2: load existing, badly formed rule set (empty)
             const string badRuleSetPath = @"X:\bad.ruleset";
-            fileSystem.AddRuleSetFile(badRuleSetPath, null);
+            rsFS.RegisterRuleSet(null, badRuleSetPath);
 
             // Act
             RuleSet loadedBad = testSubject.SafeLoadRuleSet(badRuleSetPath);
@@ -125,14 +109,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_GenerateNewProjectRuleSetPath_FileNameHasDot_AppendsExtension()
+        public void ProjectBindingOperation_GenerateNewProjectRuleSetPath_FileNameHasDot_AppendsExtension()
         {
             // Setup
             const string ruleSetRootPath = @"X:\";
             const string fileName = "My.File.With.Dots";
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
-            string expected = $"X:\\My.File.With.Dots.{RuleSetWriter.FileExtension}";
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            string expected = $"X:\\My.File.With.Dots.ruleset";
 
             // Act
             string actual = testSubject.GenerateNewProjectRuleSetPath
@@ -146,17 +129,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_GenerateNewProjectRuleSetPath_DesiredFileNameExists_AppendsNumberToFileName()
+        public void ProjectBindingOperation_GenerateNewProjectRuleSetPath_DesiredFileNameExists_AppendsNumberToFileName()
         {
             // General setup
             const string ruleSetRootPath = @"X:\";
             const string fileName = "NameTaken";
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
 
             // Test case 1: desired name exists
             // Setup
-            fileSystem.Files.Add($"X:\\NameTaken.{RuleSetWriter.FileExtension}", null);
+            this.sccFileSystem.RegisterFile($"X:\\NameTaken.ruleset");
 
             // Act
             string actual = testSubject.GenerateNewProjectRuleSetPath
@@ -166,12 +148,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
 
             // Verify
-            Assert.AreEqual($"X:\\{fileName}-1.{RuleSetWriter.FileExtension}", actual, "Expected to append running number to desired file name");
+            Assert.AreEqual($"X:\\{fileName}-1.ruleset", actual, "Expected to append running number to desired file name, skipping the default one since exists");
 
             // Test case 2: desired name + 1 + 2 exists
             // Setup
-            fileSystem.Files.Add($"X:\\{fileName}-1.{RuleSetWriter.FileExtension}", null);
-            fileSystem.Files.Add($"X:\\{fileName}-2.{RuleSetWriter.FileExtension}", null);
+            this.sccFileSystem.RegisterFile(@"X:\NameTaken-1.ruleset");
+            this.sccFileSystem.RegisterFile(@"X:\NameTaken-2.ruleset");
 
             // Act
             actual = testSubject.GenerateNewProjectRuleSetPath
@@ -181,20 +163,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
 
             // Verify
-            Assert.AreEqual($"X:\\{fileName}-3.{RuleSetWriter.FileExtension}", actual, "Expected to append running number to desired file name");
+            Assert.AreEqual(@"X:\NameTaken-3.ruleset", actual, "Expected to append running number to desired file name");
+
+            // Test case 3: has a pending write (not exists yet)
+            ((ISourceControlledFileSystem)this.sccFileSystem).PendFileWrite(@"X:\NameTaken-3.ruleset", () => true);
+
+            // Act
+            actual = testSubject.GenerateNewProjectRuleSetPath
+            (
+                ruleSetRootPath,
+                fileName
+            );
+
+            // Verify
+            Assert.AreEqual(@"X:\NameTaken-4.ruleset", actual, "Expected to append running number to desired file name, skipping 3 since pending write");
+
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_GenerateNewProjectRuleSetPath_NoAvailableFileNames_AppendsGuid()
+        public void ProjectBindingOperation_GenerateNewProjectRuleSetPath_NoAvailableFileNames_AppendsGuid()
         {
             // Setup
+            const string fileName = "fileTaken";
             const string ruleSetRootPath = @"X:\";
-            const string fileName = "NameTaken";
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
-            fileSystem.ExistingFilesPattern = new Regex($"X:\\\\{fileName}-?[0-9]*\\.{RuleSetWriter.FileExtension}", RegexOptions.IgnoreCase); // all integer appended files exists
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            string[] existingFiles = Enumerable.Range(0, 10).Select(i => $@"X:\{fileName}-{i}.ruleset").ToArray();
+            this.sccFileSystem.RegisterFile($@"X:\{fileName}.ruleset");
+            this.sccFileSystem.RegisterFiles(existingFiles);
 
-            var expectedGuidFileNamePattern = new Regex($"X:\\\\{fileName}-[A-Z0-9]{{32}}\\.{RuleSetWriter.FileExtension}", RegexOptions.IgnoreCase);
 
             // Act
             string actual = testSubject.GenerateNewProjectRuleSetPath
@@ -204,27 +200,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
 
             // Verify
-            StringAssert.Matches(actual, expectedGuidFileNamePattern, "Expected to append GUID to desired file name");
+            string actualFileName = Path.GetFileNameWithoutExtension(actual);
+            Assert.AreEqual(fileName.Length + 32 + 1, actualFileName.Length, "Expected to append GUID to desired file name, actual: " + actualFileName);
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_ShouldIgnoreConfigureRuleSetValue()
+        public void ProjectBindingOperation_ShouldIgnoreConfigureRuleSetValue()
         {
             // Test case 1: not ignored
-            Assert.IsFalse(ProjectRuleSetWriter.ShouldIgnoreConfigureRuleSetValue("My awesome rule set.ruleset"));
+            Assert.IsFalse(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue("My awesome rule set.ruleset"));
 
             // Test case 2: ignored
             // Act
-            Assert.IsTrue(ProjectRuleSetWriter.ShouldIgnoreConfigureRuleSetValue(null));
-            Assert.IsTrue(ProjectRuleSetWriter.ShouldIgnoreConfigureRuleSetValue(" "));
-            Assert.IsTrue(ProjectRuleSetWriter.ShouldIgnoreConfigureRuleSetValue("\t"));
-            Assert.IsTrue(ProjectRuleSetWriter.ShouldIgnoreConfigureRuleSetValue(ProjectRuleSetWriter.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)));
-            Assert.IsTrue(ProjectRuleSetWriter.ShouldIgnoreConfigureRuleSetValue(ProjectRuleSetWriter.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)));
-            Assert.IsTrue(ProjectRuleSetWriter.ShouldIgnoreConfigureRuleSetValue(ProjectRuleSetWriter.DefaultProjectRuleSet));
+            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(null));
+            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(" "));
+            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue("\t"));
+            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)));
+            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)));
+            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet));
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_GenerateNewProjectRuleSet()
+        public void ProjectBindingOperation_GenerateNewProjectRuleSet()
         {
             // Setup
             const string solutionIncludePath = @"..\..\solution.ruleset";
@@ -234,18 +231,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(currentRuleSetPath, RuleAction.Default));
 
             // Act
-            RuleSet actualRuleSet = ProjectRuleSetWriter.GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath);
+            RuleSet actualRuleSet = ProjectBindingOperation.GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath);
 
             // Verify
             RuleSetAssert.AreEqual(expectedRuleSet, actualRuleSet);
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_UpdateExistingProjectRuleSet()
+        public void ProjectBindingOperation_UpdateExistingProjectRuleSet()
         {
             // Setup
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string existingProjectRuleSetPath = @"X:\MySolution\ProjectOne\proj1.ruleset";
             const string existingInclude = @"..\SolutionRuleSets\sonarqube1.ruleset";
@@ -256,10 +253,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var existingProjectRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingProjectRuleSetPath);
             existingProjectRuleSet.RuleSetIncludes.Add(new RuleSetInclude(existingInclude, RuleAction.Default));
 
-            fileSystem.AddRuleSetFile(existingProjectRuleSetPath, existingProjectRuleSet);
-            long initalWriteTimestamp = fileSystem.GetFileTimestamp(existingProjectRuleSetPath);
-
-            fileSystem.AddRuleSetFile(@"X:\MySolution\SolutionRuleSets\sonarqube1.ruleset", new RuleSet("sonar1"));
+            rsFS.RegisterRuleSet(existingProjectRuleSet, existingProjectRuleSetPath);
+            rsFS.RegisterRuleSet(new RuleSet("sonar1"), @"X:\MySolution\SolutionRuleSets\sonarqube1.ruleset");
+            long initalWriteTimestamp = this.sccFileSystem.GetFileTimestamp(existingProjectRuleSetPath);
 
             var expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingProjectRuleSetPath);
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(expectedInclude, RuleAction.Default));
@@ -268,18 +264,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.UpdateExistingProjectRuleSet(existingProjectRuleSet, existingProjectRuleSetPath, newSolutionRuleSetPath);
 
             // Verify
-            fileSystem.AssertRuleSetsAreEqual(existingProjectRuleSetPath, expectedRuleSet);
-
-            long newWriteTimestamp = fileSystem.GetFileTimestamp(existingProjectRuleSetPath);
-            Assert.IsTrue(newWriteTimestamp > initalWriteTimestamp, $"Expected updated rule set to be written out. File timestamps: initial {initalWriteTimestamp}, final {newWriteTimestamp}");
+            rsFS.AssertRuleSetsAreEqual(existingProjectRuleSetPath, expectedRuleSet);
+            this.sccFileSystem.AssertFileTimestamp(existingProjectRuleSetPath, initalWriteTimestamp);
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_UnderTheProject()
+        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_UnderTheProject()
         {
             // Setup
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetName = "Happy";
             const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
@@ -293,8 +287,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
             existingRuleSet.FilePath = existingProjectRuleSetPath;
 
-            fileSystem.AddRuleSetFile(existingProjectRuleSetPath, existingRuleSet);
-            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+            rsFS.RegisterRuleSet(existingRuleSet);
+            rsFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
 
             string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
@@ -307,19 +301,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
 
             // Act
-            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, existingProjectRuleSetPath);
+            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, existingProjectRuleSetPath);
 
             // Verify
-            fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
+            rsFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
             Assert.AreEqual(existingProjectRuleSetPath, actualPath, "Expecting the rule set to be updated");
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_UnderTheProject()
+        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_UnderTheProject()
         {
             // Setup
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetName = "Happy";
             const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
@@ -333,8 +327,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
             existingRuleSet.FilePath = existingProjectRuleSetPath;
 
-            fileSystem.AddRuleSetFile(existingProjectRuleSetPath, existingRuleSet);
-            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+            rsFS.RegisterRuleSet(existingRuleSet);
+            rsFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
 
             string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
@@ -347,19 +341,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
 
             // Act
-            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
+            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
 
             // Verify
-            fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
+            rsFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
             Assert.AreEqual(existingProjectRuleSetPath, actualPath, "Expecting the rule set to be updated");
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_ButNotUnderTheProject()
+        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_ButNotUnderTheProject()
         {
             // Setup
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetName = "Happy";
 
@@ -367,8 +361,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
             const string existingProjectRuleSetPath = @"x:\myexistingproject.ruleset";
 
-            fileSystem.AddRuleSetFile(existingProjectRuleSetPath, new RuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
-            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+            rsFS.RegisterRuleSet(new RuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
+            rsFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
             RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
@@ -381,19 +375,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
 
             // Act
-            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, existingProjectRuleSetPath);
+            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, existingProjectRuleSetPath);
 
             // Verify
-            fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
-            Assert.AreNotEqual(existingProjectRuleSetPath, actualPath, "Expecting a new rule set to be created");
+            rsFS.AssertRuleSetNotExists(actualPath);
+            Assert.AreNotEqual(existingProjectRuleSetPath, actualPath, "Expecting a new rule set to be created once written pending");
+
+            // Act (write pending)
+            this.sccFileSystem.WritePendingNoErrorsExpected();
+
+            // Verify
+            rsFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_ButNotUnderTheSProject()
+        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_ButNotUnderTheSProject()
         {
             // Setup
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetName = "Happy";
 
@@ -401,8 +401,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
             const string existingProjectRuleSetPath = @"x:\SolutionDir\myexistingproject.ruleset";
 
-            fileSystem.AddRuleSetFile(existingProjectRuleSetPath, new RuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
-            fileSystem.AddRuleSetFile(solutionRuleSetPath, new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+            rsFS.RegisterRuleSet(new RuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
+            rsFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
             string relativePathToExistingProjectRuleSet = PathHelper.CalculateRelativePath(existingProjectRuleSetPath, projectFullPath);
 
@@ -417,19 +417,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
 
             // Act
-            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, relativePathToExistingProjectRuleSet);
+            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, relativePathToExistingProjectRuleSet);
 
             // Verify
-            fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
-            Assert.AreNotEqual(existingProjectRuleSetPath, actualPath, "Expecting a new rule set to be created");
+            rsFS.AssertRuleSetNotExists(actualPath);
+            Assert.AreNotEqual(existingProjectRuleSetPath, actualPath, "Expecting a new rule set to be created once written pending");
+
+            // Act (write pending)
+            this.sccFileSystem.WritePendingNoErrorsExpected();
+
+            // Verify
+            rsFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RuleSetIsNotFound()
+        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RuleSetIsNotFound()
         {
             // Setup
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string projectName = "My Project";
             const string ruleSetFileName = "Happy";
@@ -449,22 +455,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
 
             // Act
-            string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, newSolutionRuleSetPath, currentNonExistingRuleSet);
+            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, newSolutionRuleSetPath, currentNonExistingRuleSet);
 
             // Verify
-            fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
-            Assert.AreNotEqual(currentNonExistingRuleSet, actualPath, "Expecting a new rule set to be created");
+            rsFS.AssertRuleSetNotExists(actualPath);
+            Assert.AreNotEqual(currentNonExistingRuleSet, actualPath, "Expecting a new rule set to be created once written pending");
+
+            // Act (write pending)
+            this.sccFileSystem.WritePendingNoErrorsExpected();
+
+            // Verify
+            rsFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_WriteProjectLevelRuleSet_NewBinding()
+        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_NewBinding()
         {
             // Setup
-            var fileSystem = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fileSystem);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetFileName = "Happy";
-
             const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
             const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
 
@@ -475,23 +486,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 includes: new[] { expectedSolutionRuleSetInclude }
             );
 
-            foreach (var currentRuleSet in new[] { null, string.Empty, ProjectRuleSetWriter.DefaultProjectRuleSet })
+            List<string> filesPending = new List<string>();
+            foreach (var currentRuleSet in new[] { null, string.Empty, ProjectBindingOperation.DefaultProjectRuleSet })
             {
                 // Act
-                string actualPath = testSubject.WriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, solutionRuleSetPath, currentRuleSet);
+                string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, solutionRuleSetPath, currentRuleSet);
+                filesPending.Add(actualPath);
 
                 // Verify
-                fileSystem.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
-                Assert.AreNotEqual(solutionRuleSetPath, actualPath, "Expecting a new rule set to be created");
+                rsFS.AssertRuleSetNotExists(actualPath);
+                Assert.AreNotEqual(solutionRuleSetPath, actualPath, "Expecting a new rule set to be created once pending were written");
+            }
+
+            // Act (write pending)
+            this.sccFileSystem.WritePendingNoErrorsExpected();
+
+                // Verify
+            foreach (var pending in filesPending)
+            {
+                // Verify
+                rsFS.AssertRuleSetsAreEqual(pending, expectedRuleSet);
             }
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_TryUpdateExistingProjectRuleSet_RuleSetNotAlreadyWritten_WritesFile()
+        public void ProjectBindingOperation_TryUpdateExistingProjectRuleSet_RuleSetNotAlreadyWritten_WritesFile()
         {
             // Setup
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fs);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
             string projectRuleSetRoot = @"X:\SolutionDir\Project\";
@@ -499,27 +522,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             string existingRuleSetPropValue = PathHelper.CalculateRelativePath(projectRuleSetRoot, existingRuleSetFullPath);
 
-            fs.AddRuleSetFile(existingRuleSetFullPath, TestRuleSetHelper.CreateTestRuleSet(existingRuleSetFullPath));
-            long beforeTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
+            var existingRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingRuleSetFullPath);
+            rsFS.RegisterRuleSet(existingRuleSet, existingRuleSetFullPath);
+            long beforeTimestamp = this.sccFileSystem.GetFileTimestamp(existingRuleSetFullPath);
 
             // Act
             string pathOutResult;
-            bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, existingRuleSetPropValue, out pathOutResult);
+            RuleSet rsOutput;
+            bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, existingRuleSetPropValue, out pathOutResult, out rsOutput);
 
             // Verify
             Assert.IsTrue(result, "Expected to return true when trying to update existing rule set");
+            Assert.AreSame(existingRuleSet, rsOutput, "Same RuleSet instance expected");
             Assert.AreEqual(existingRuleSetFullPath, pathOutResult, "Unexpected rule set path was returned");
-
-            long afterTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
-            Assert.IsTrue(beforeTimestamp < afterTimestamp, "Rule set timestamp has not changed; expected file to be written to.");
+            this.sccFileSystem.AssertFileTimestamp(existingRuleSetFullPath, beforeTimestamp);
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_TryUpdateExistingProjectRuleSet_RuleSetAlreadyWritten_DoesNotWriteAgain()
+        public void ProjectBindingOperation_TryUpdateExistingProjectRuleSet_RuleSetAlreadyWritten_DoesNotWriteAgain()
         {
             // Setup
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fs);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
             string projectRuleSetRoot = @"X:\SolutionDir\Project\";
@@ -527,28 +551,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             string existingRuleSetPropValue = PathHelper.CalculateRelativePath(projectRuleSetRoot, existingRuleSetFullPath);
 
-            testSubject.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetFullPath);
-            fs.AddRuleSetFile(existingRuleSetFullPath, new RuleSet("test"));
-            long beforeTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
+            var existingRuleSet = new RuleSet("test") { FilePath = existingRuleSetFullPath };
+            testSubject.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSet.FilePath, existingRuleSet);
+            rsFS.RegisterRuleSet(existingRuleSet);
+            long beforeTimestamp = this.sccFileSystem.GetFileTimestamp(existingRuleSetFullPath);
 
             // Act
             string pathOutResult;
-            bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, existingRuleSetPropValue, out pathOutResult);
+            RuleSet rsOutput;
+            bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, existingRuleSetPropValue, out pathOutResult, out rsOutput);
 
             // Verify
             Assert.IsTrue(result, "Expected to return true when trying to update already updated existing rule set");
+            Assert.AreSame(existingRuleSet, rsOutput, "Same RuleSet instance is expected");
             Assert.AreEqual(existingRuleSetFullPath, pathOutResult, "Unexpected rule set path was returned");
-
-            long afterTimestamp = fs.GetFileTimestamp(existingRuleSetFullPath);
-            Assert.AreEqual(beforeTimestamp, afterTimestamp, "Rule set timestamp has changed; file was unexpectedly written to.");
+            this.sccFileSystem.AssertFileTimestamp(existingRuleSetFullPath, beforeTimestamp);
         }
 
         [TestMethod]
-        public void ProjectRuleSetWriter_TryUpdateExistingProjectRuleSet_ExistingRuleSetIsNotAtTheProjectLevel()
+        public void ProjectBindingOperation_TryUpdateExistingProjectRuleSet_ExistingRuleSetIsNotAtTheProjectLevel()
         {
             // Setup
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var testSubject = new ProjectRuleSetWriter(fs);
+            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
             string projectRuleSetRoot = @"X:\SolutionDir\Project\";
@@ -559,7 +584,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 @"..\..\relativeSolutionLevel.ruleset",
                 @"X:\SolutionDir\Sonar\absolutionSolutionRooted.ruleset",
                 @"c:\OtherPlaceEntirey\rules.ruleset",
-                ProjectRuleSetWriter.DefaultProjectRuleSet,
+                ProjectBindingOperation.DefaultProjectRuleSet,
                 null,
                 string.Empty
             };
@@ -568,11 +593,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Act
                 string pathOutResult;
-                bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, currentRuleSet, out pathOutResult);
+                RuleSet rsOutput;
+                bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, currentRuleSet, out pathOutResult, out rsOutput);
 
                 // Verify
                 string testCase = currentRuleSet ?? "NULL";
                 Assert.IsNull(pathOutResult, "Unexpected rule set path was returned: {0}. Case: {1}", pathOutResult, testCase);
+                Assert.IsNull(rsOutput, "Unexpected rule set was returned. Case: {0}", testCase);
                 Assert.IsFalse(result, "Not expecting to update a non project rooted rulesets. Case: {0}", testCase);
             }
         }

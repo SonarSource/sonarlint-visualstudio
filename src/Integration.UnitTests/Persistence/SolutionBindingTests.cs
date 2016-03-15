@@ -20,6 +20,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsGeneralOutputWindowPane outputPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
+        private ConfigurableSourceControlledFileSystem sourceControlledFileSystem;
 
         private DTEMock dte;
         private ConfigurableCredentialStore store;
@@ -41,20 +42,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.store = new ConfigurableCredentialStore();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.projectSystemHelper.SolutionItemsProject = this.dte.Solution.AddOrGetProject("Solution Items");
+            this.sourceControlledFileSystem = new ConfigurableSourceControlledFileSystem();
         }
 
         [TestMethod]
         public void SolutionBinding_WriteSolutionBinding_ReadSolutionBinding()
         {
             // Setup
-            var testSubject = new SolutionBinding(this.serviceProvider, this.store, this.projectSystemHelper);
+            SolutionBinding testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
 
             // Act (write)
-            string output = testSubject.WriteSolutionBinding(written);
+            string output = testSubject.WriteSolutionBinding(this.sourceControlledFileSystem, written);
+            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
             Assert.IsNotNull(output, "Expected a real file");
             this.TestContext.AddResultFile(output);
             Assert.IsTrue(File.Exists(output), "Expected a real file");
@@ -91,7 +94,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             BoundSonarQubeProject read = null;
             try
             {
-                testSubject.WriteSolutionBinding(written);
+                testSubject.WriteSolutionBinding(this.sourceControlledFileSystem, written);
+                this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
                 read = testSubject.ReadSolutionBinding();
             }
             finally
@@ -115,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             read = null;
             try
             {
-                testSubject.WriteSolutionBinding(written);
+                testSubject.WriteSolutionBinding(this.sourceControlledFileSystem, written);
                 read = testSubject.ReadSolutionBinding();
             }
             finally
@@ -133,15 +137,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBinding_ReadSolutionBinding_InvalidData()
         {
             // Setup
-            var testSubject = new SolutionBinding(this.serviceProvider, this.store, this.projectSystemHelper);
+            SolutionBinding testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
-            string output = testSubject.WriteSolutionBinding(written);
+            string output = testSubject.WriteSolutionBinding(this.sourceControlledFileSystem, written);
+            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
             Assert.IsNotNull(output, "Expected a real file");
             File.WriteAllText(output, "bla bla bla: bla");
-
+            
             // Act (read)
             BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
@@ -154,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBinding_ReadSolutionBinding_NoFile()
         {
             // Setup
-            var testSubject = new SolutionBinding(this.serviceProvider, this.store);
+            SolutionBinding testSubject = this.CreateTestSubject();
 
             // Act (read)
             BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
@@ -168,12 +173,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBinding_ReadSolutionBinding_IOError()
         {
             // Setup
-            var testSubject = new SolutionBinding(this.serviceProvider, this.store, this.projectSystemHelper);
+            SolutionBinding testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
-            string output = testSubject.WriteSolutionBinding(written);
+            string output = testSubject.WriteSolutionBinding(this.sourceControlledFileSystem, written);
+            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
             using (var stream = new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 // Act (read)
@@ -189,19 +195,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBinding_WriteSolutionBinding_IOError()
         {
             // Setup
-            var testSubject = new SolutionBinding(this.serviceProvider, this.store, this.projectSystemHelper);
+            SolutionBinding testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
-            string output = testSubject.WriteSolutionBinding(written);
+            string output = testSubject.WriteSolutionBinding(this.sourceControlledFileSystem, written);
+            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
+
             using (var stream = new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 // Act (write again)
-                string output2 = testSubject.WriteSolutionBinding(written);
+                string output2 = testSubject.WriteSolutionBinding(this.sourceControlledFileSystem, written);
+                this.sourceControlledFileSystem.WritePendingErrorsExpected();
 
                 // Verify
-                Assert.IsNull(output2, "Not expecting to be able to write binding information in case of error");
+                Assert.AreEqual(output, output2, "Same output is expected");
                 this.outputPane.AssertOutputStrings(1);
             }
         }
@@ -210,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBinding_WriteSolutionBinding_AddConfigFileToSolutionItemsFolder()
         {
             // Setup
-            var testSubject = new SolutionBinding(this.serviceProvider, this.store, this.projectSystemHelper);
+            SolutionBinding testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
@@ -218,19 +227,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ProjectMock solutionProject = (ProjectMock)this.projectSystemHelper.SolutionItemsProject;
 
             // Act
-            string output = testSubject.WriteSolutionBinding(toWrite);
+            string output = testSubject.WriteSolutionBinding(this.sourceControlledFileSystem, toWrite);
+
+            // Verify that not actually done anything until the pending files were written
+            this.store.AssertHasNoCredentials(serverUri);
+            Assert.IsFalse(solutionProject.Files.ContainsKey(output), "Not expected to be added to solution items folder just yet");
+
+            // Act (write pending)
+            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
 
             // Verify
             this.store.AssertHasCredentials(serverUri);
             Assert.IsTrue(solutionProject.Files.ContainsKey(output), "File {0} was not added to project", output);
 
             // Act (write again)
-            string output2 = testSubject.WriteSolutionBinding(toWrite);
+            string output2 = testSubject.WriteSolutionBinding(this.sourceControlledFileSystem, toWrite);
+            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
 
             // Verify
             Assert.AreEqual(output, output2, "Should be the same file");
             this.store.AssertHasCredentials(serverUri);
             Assert.IsTrue(solutionProject.Files.ContainsKey(output), "File {0} should remain in the project project", output);
         }
+
+        #region Helpers
+        private SolutionBinding CreateTestSubject()
+        {
+            return new SolutionBinding(this.serviceProvider, this.store, this.projectSystemHelper);
+        }
+        #endregion
     }
 }

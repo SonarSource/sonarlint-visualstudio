@@ -200,32 +200,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_PersistBinding()
-        {
-            // Setup
-            var connectionInfo = new ConnectionInformation(new Uri("http://xxx"), "user", "pwd".ConvertToSecureString());
-            var projectInfo = new ProjectInformation { Key = "ProjectKey 1" };
-            var testSubject = this.CreateTestSubject(projectInfo);
-            this.sonarQubeService.SetConnection(connectionInfo);
-            var dte = new DTEMock();
-            dte.Solution = new SolutionMock(dte, Path.Combine(this.TestContext.TestRunDirectory, this.TestContext.TestName, "solution.sln"));
-            this.serviceProvider.RegisterService(typeof(DTE), dte);
-            var store = new ConfigurableCredentialStore();
-            this.projectSystemHelper.SolutionItemsProject = dte.Solution.AddOrGetProject("Solution items folder");
-
-            // Sanity
-            store.AssertHasNoCredentials(connectionInfo.ServerUri);
-            Assert.AreEqual(0, this.projectSystemHelper.SolutionItemsProject.ProjectItems.Count, "Not expecting any project items");
-
-            // Act
-            testSubject.PersistBinding(store, this.projectSystemHelper);
-
-            // Verify
-            store.AssertHasCredentials(connectionInfo.ServerUri);
-            Assert.AreEqual(1, this.projectSystemHelper.SolutionItemsProject.ProjectItems.Count, "Expect configuration file to be added to the solution items folder");
-        }
-
-        [TestMethod]
         public void BindingWorkflow_EmitBindingCompleteMessage()
         {
             // Setup
@@ -305,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null)
         {
             var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
-
+            this.sonarQubeService.SetConnection(new Uri("http://connected"));
             var controller = new ConnectSectionController(this.serviceProvider, new TransferableVisualState(), this.sonarQubeService, new ConfigurableActiveSolutionTracker(), new ConfigurableWebBrowser(), Dispatcher.CurrentDispatcher);
             return new BindingWorkflow(controller.BindCommand, useProjectInfo, this.projectSystemHelper);
         }

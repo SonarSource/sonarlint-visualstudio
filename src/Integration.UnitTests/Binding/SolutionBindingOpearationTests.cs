@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +19,7 @@ using System.Threading;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     [TestClass]
-    public class SolutionBindingOpearationTests
+    public partial class SolutionBindingOpearationTests
     {
         private DTEMock dte;
         private ConfigurableServiceProvider serviceProvider;
@@ -26,7 +27,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableVsGeneralOutputWindowPane outputPane;
         private ProjectMock solutionItemsProject;
         private SolutionMock solutionMock;
+        private ConfigurableSourceControlledFileSystem sccFileSystem;
+        private ConfigurableRuleSetFileSystem ruleFS;
+        private ConfigurableSolutionBinding solutionBinding;
+
         private const string SolutionRoot = @"c:\solution";
+
+        public TestContext TestContext { get; set; }
 
         [TestInitialize]
         public void TestInitialize()
@@ -39,17 +46,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionItemsProject = this.solutionMock.AddOrGetProject("Solution items");
             this.projectSystemHelper.SolutionItemsProject = this.solutionItemsProject;
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
+            this.sccFileSystem  = new ConfigurableSourceControlledFileSystem();
+            this.ruleFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            this.solutionBinding = new ConfigurableSolutionBinding();
         }
 
         [TestMethod]
         public void SolutionBindingOpearation_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, this.projectSystemHelper, "key"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, null));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, string.Empty));
+            var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, this.projectSystemHelper, connectionInformation, "key"));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, connectionInformation, "key"));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, null, "key"));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, connectionInformation, null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, connectionInformation, string.Empty));
 
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, "key");
+            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, connectionInformation, "key");
             Assert.IsNotNull(testSubject, "Avoid 'testSubject' not used analysis warning");
         }
 
@@ -57,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOpearation_RegisterKnownRuleSets()
         {
             // Setup
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, "key");
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key"); 
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
             ruleSetMap[RuleSetGroup.CSharp] = new RuleSet("cs");
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
@@ -78,10 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOpearation_GetRuleSetFilePath()
         {
             // Setup
-            const string ProjectKey = "key";
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var writer = new SolutionRuleSetWriter(ProjectKey, fs);
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, "key", writer);
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
             ruleSetMap[RuleSetGroup.CSharp] = new RuleSet("cs");
@@ -109,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             cs2Project.SetCSProjectKind();
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, "key");
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
             this.projectSystemHelper.ManagedProjects = new[] { cs1Project, vbProject, cs2Project };
 
             // Sanity
@@ -127,16 +136,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOpearation_Prepare()
         {
             // Setup
-            const string ProjectKey = "key";
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
             this.projectSystemHelper.ManagedProjects = new[] { csProject, vbProject };
 
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var writer = new SolutionRuleSetWriter(ProjectKey, fs);
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, ProjectKey, writer);
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
             ruleSetMap[RuleSetGroup.CSharp] = new RuleSet("cs");
@@ -160,26 +166,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[RuleSetGroup.CSharp].NewRuleSetFilePath);
             Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[RuleSetGroup.VB].NewRuleSetFilePath);
-            fs.AssertFileExists(@"c:\solution\SonarQube\keyCSharp.ruleset");
-            fs.AssertFileExists(@"c:\solution\SonarQube\keyVB.ruleset");
             Assert.IsTrue(prepareCalledForBinder, "Expected to propagate the prepare call to binders");
+            this.sccFileSystem.AssertFileNotExists(@"c:\solution\SonarQube\keyCSharp.ruleset");
+            this.sccFileSystem.AssertFileNotExists(@"c:\solution\SonarQube\keyVB.ruleset");
+
+            // Act (write pending)
+            this.sccFileSystem.WritePendingNoErrorsExpected();
+
+            // Verify
+            this.sccFileSystem.AssertFileExists(@"c:\solution\SonarQube\keyCSharp.ruleset");
+            this.sccFileSystem.AssertFileExists(@"c:\solution\SonarQube\keyVB.ruleset");
         }
 
         [TestMethod]
         public void SolutionBindingOpearation_Prepare_Cancellation_DuringBindersPrepare()
         {
             // Setup
-            const string ProjectKey = "key";
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
             this.projectSystemHelper.ManagedProjects = new[] { csProject, vbProject };
 
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var writer = new SolutionRuleSetWriter(ProjectKey, fs);
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, ProjectKey, writer);
-
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
             ruleSetMap[RuleSetGroup.CSharp] = new RuleSet("cs");
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
@@ -207,16 +216,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SSolutionBindingOpearation_Prepare_Cancellation_BeforeBindersPrepare()
         {
             // Setup
-            const string ProjectKey = "key";
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
             this.projectSystemHelper.ManagedProjects = new[] { csProject, vbProject };
 
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var writer = new SolutionRuleSetWriter(ProjectKey, fs);
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, ProjectKey, writer);
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
             ruleSetMap[RuleSetGroup.CSharp] = new RuleSet("cs");
@@ -242,17 +248,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_Commit()
+        public void SolutionBindingOpearation_CommitSolutionBinding()
         {
             // Setup
-            const string ProjectKey = "key";
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
             this.projectSystemHelper.ManagedProjects = new[] { csProject };
 
-            var fs = new ConfigurableRuleSetGenerationFileSystem();
-            var writer = new SolutionRuleSetWriter(ProjectKey, fs);
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, ProjectKey, writer);
+            var connectionInformation = new Integration.Service.ConnectionInformation(new Uri("Http://xyz"));
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation);
 
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
             ruleSetMap[RuleSetGroup.CSharp] = new RuleSet("cs");
@@ -264,16 +268,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             bool commitCalledForBinder = false;
             testSubject.Binders.Add(new ConfigurableBindingOperation { CommitAction = () => commitCalledForBinder = true });
             testSubject.Prepare(CancellationToken.None);
+            this.solutionBinding.WriteSolutionBindingAction = b =>
+            {
+                Assert.AreEqual(connectionInformation.ServerUri, b.ServerUri);
+                Assert.AreEqual(connectionInformation.ServerUri, b.ServerUri);
+
+                return "Doesn't matter";
+            };
 
             // Act
-            using (new AssertIgnoreScope()) // Ignore asserts that the file is not on disk
-            {
-                testSubject.Commit();
-            }
+
+            this.solutionBinding.AssertWriteSolutionBindingRequests(0);
+            Assert.IsTrue(testSubject.CommitSolutionBinding());
 
             // Verify
             Assert.IsTrue(commitCalledForBinder);
             Assert.IsTrue(this.solutionItemsProject.Files.ContainsKey(@"c:\solution\SonarQube\keyCSharp.ruleset"), "Ruleset was expected to be added to solution items");
+            this.solutionBinding.AssertWriteSolutionBindingRequests(1);
+            this.solutionBinding.AssertAllPendingWritten();
+        }
+
+        private SolutionBindingOperation CreateTestSubject(string projectKey, ConnectionInformation connection = null)
+        {
+            return new SolutionBindingOperation(this.serviceProvider,
+                this.projectSystemHelper,
+                connection ?? new ConnectionInformation(new Uri("http://host")),
+                projectKey,
+                this.sccFileSystem,
+                this.ruleFS,
+                this.solutionBinding);
         }
     }
 }
