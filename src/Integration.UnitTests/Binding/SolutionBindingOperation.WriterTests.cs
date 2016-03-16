@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="SolutionBindingOpearation.WriterTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SolutionBindingOperation.WriterTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -13,41 +13,41 @@ using System.Globalization;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
-    public partial class SolutionBindingOpearationTests
+    public partial class SolutionBindingOperationTests
     {
         private static readonly IFormatProvider TestCulture = CultureInfo.InvariantCulture;
 
         #region Tests
 
         [TestMethod]
-        public void SolutionBindingOpearation_PendWriteSolutionLevelRuleSet_NullArgumentChecks()
+        public void SolutionBindingOpearation_QueueWriteSolutionLevelRuleSet_NullArgumentChecks()
         {
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
             var ruleSet = TestRuleSetHelper.CreateTestRuleSet(numRules: 1);
 
             Exceptions.Expect<ArgumentNullException>(()=>
             {
-                testSubject.PendWriteSolutionLevelRuleSet(null, ruleSet, string.Empty);
+                testSubject.QueueWriteSolutionLevelRuleSet(null, ruleSet, string.Empty);
             });
 
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                testSubject.PendWriteSolutionLevelRuleSet(string.Empty, ruleSet, string.Empty);
+                testSubject.QueueWriteSolutionLevelRuleSet(string.Empty, ruleSet, string.Empty);
             });
 
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                testSubject.PendWriteSolutionLevelRuleSet("X:\\bob.sln", null, string.Empty);
+                testSubject.QueueWriteSolutionLevelRuleSet("X:\\bob.sln", null, string.Empty);
             });
 
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                testSubject.PendWriteSolutionLevelRuleSet("X:\\bob.sln", ruleSet, null);
+                testSubject.QueueWriteSolutionLevelRuleSet("X:\\bob.sln", ruleSet, null);
             });
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_PendWriteSolutionLevelRuleSet_CreatesRuleSetDirectory()
+        public void SolutionBindingOpearation_QueueWriteSolutionLevelRuleSet_CreatesRuleSetDirectory()
         {
             const string solutionFullPath = @"X:\myDirectory\mySubDirectory\Solution.sln";
             const string ruleSetRoot = @"X:\myDirectory\mySubDirectory\" + Constants.SonarQubeManagedFolderName;
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.sccFileSystem.AssertDirectoryNotExists(ruleSetRoot);
 
             // Act
-            testSubject.PendWriteSolutionLevelRuleSet(solutionFullPath, new RuleSet("rule set"), "Debug");
+            testSubject.QueueWriteSolutionLevelRuleSet(solutionFullPath, new RuleSet("rule set"), "Debug");
 
             // Verify
             this.sccFileSystem.AssertDirectoryExists(ruleSetRoot);
@@ -68,14 +68,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.ruleFS.ClearRuleSets();
 
             // Act
-            testSubject.PendWriteSolutionLevelRuleSet(solutionFullPath, new RuleSet("rule set"), "Release");
+            testSubject.QueueWriteSolutionLevelRuleSet(solutionFullPath, new RuleSet("rule set"), "Release");
 
             // Verify
             this.sccFileSystem.AssertDirectoryExists(ruleSetRoot);
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_PendWriteSolutionLevelRuleSet_WritesRuleSetToCorrectPath()
+        public void SolutionBindingOpearation_QueueWriteSolutionLevelRuleSet_WritesRuleSetToCorrectPath()
         {
             const string solutionFullPath = @"X:\myDirectory\mySubDirectory\Solution.sln";
             const string expectedOutputPath = @"X:\myDirectory\mySubDirectory\" + Constants.SonarQubeManagedFolderName + @"\keyMySuffix.ruleset";
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSet(numRules: 3);
 
             // Act
-            testSubject.PendWriteSolutionLevelRuleSet(solutionFullPath, ruleSet, "MySuffix");
+            testSubject.QueueWriteSolutionLevelRuleSet(solutionFullPath, ruleSet, "MySuffix");
 
             // Verify
             this.ruleFS.AssertRuleSetNotExists(expectedOutputPath);

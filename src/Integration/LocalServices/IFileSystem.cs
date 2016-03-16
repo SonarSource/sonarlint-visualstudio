@@ -10,7 +10,7 @@ namespace SonarLint.VisualStudio.Integration
     // Test wrapper over basic file system operations
     internal interface IFileSystem
     {
-        bool IsFileExist(string filePath);
+        bool FileExist(string filePath);
 
         bool DirectoryExists(string path);
 

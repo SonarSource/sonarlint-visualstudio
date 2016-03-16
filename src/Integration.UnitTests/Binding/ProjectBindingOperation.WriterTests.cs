@@ -166,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Assert.AreEqual(@"X:\NameTaken-3.ruleset", actual, "Expected to append running number to desired file name");
 
             // Test case 3: has a pending write (not exists yet)
-            ((ISourceControlledFileSystem)this.sccFileSystem).PendFileWrite(@"X:\NameTaken-3.ruleset", () => true);
+            ((ISourceControlledFileSystem)this.sccFileSystem).QueueFileWrite(@"X:\NameTaken-3.ruleset", () => true);
 
             // Act
             actual = testSubject.GenerateNewProjectRuleSetPath
@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_UnderTheProject()
+        public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_UnderTheProject()
         {
             // Setup
             var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
@@ -301,7 +301,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             );
 
             // Act
-            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, existingProjectRuleSetPath);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, existingProjectRuleSetPath);
 
             // Verify
             rsFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
@@ -309,7 +309,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_UnderTheProject()
+        public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_UnderTheProject()
         {
             // Setup
             var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
@@ -341,7 +341,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             );
 
             // Act
-            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
 
             // Verify
             rsFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
@@ -349,7 +349,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_ButNotUnderTheProject()
+        public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_ButNotUnderTheProject()
         {
             // Setup
             var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
@@ -375,7 +375,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             );
 
             // Act
-            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, existingProjectRuleSetPath);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, existingProjectRuleSetPath);
 
             // Verify
             rsFS.AssertRuleSetNotExists(actualPath);
@@ -389,7 +389,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_ButNotUnderTheSProject()
+        public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_ButNotUnderTheSProject()
         {
             // Setup
             var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
@@ -417,7 +417,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             );
 
             // Act
-            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, relativePathToExistingProjectRuleSet);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, relativePathToExistingProjectRuleSet);
 
             // Verify
             rsFS.AssertRuleSetNotExists(actualPath);
@@ -431,7 +431,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RuleSetIsNotFound()
+        public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RuleSetIsNotFound()
         {
             // Setup
             var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
@@ -455,7 +455,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             );
 
             // Act
-            string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, newSolutionRuleSetPath, currentNonExistingRuleSet);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, newSolutionRuleSetPath, currentNonExistingRuleSet);
 
             // Verify
             rsFS.AssertRuleSetNotExists(actualPath);
@@ -469,7 +469,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_PendWriteProjectLevelRuleSet_NewBinding()
+        public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_NewBinding()
         {
             // Setup
             var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
@@ -490,7 +490,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (var currentRuleSet in new[] { null, string.Empty, ProjectBindingOperation.DefaultProjectRuleSet })
             {
                 // Act
-                string actualPath = testSubject.PendWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, solutionRuleSetPath, currentRuleSet);
+                string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, solutionRuleSetPath, currentRuleSet);
                 filesPending.Add(actualPath);
 
                 // Verify

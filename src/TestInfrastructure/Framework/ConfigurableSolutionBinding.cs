@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string filePath = this.WriteSolutionBindingAction?.Invoke(binding) ?? binding.ProjectKey;
             this.pendingFiles++;
 
-            sccFileSystem.PendFileWrite(filePath ,() =>
+            sccFileSystem.QueueFileWrite(filePath ,() =>
             {
                 this.pendingFiles--;
                 return true;

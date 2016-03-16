@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 string targetRuleSetFileName = group.Key;
                 string currentRuleSetFilePath = group.First().CurrentRuleSetFilePath;
                 Debug.Assert(group.All(i => StringComparer.OrdinalIgnoreCase.Equals(currentRuleSetFilePath, currentRuleSetFilePath)), "Expected all the rulesets to be the same when the target rule set name is the same");
-                string newRuleSetFilePath = this.PendWriteProjectLevelRuleSet(this.ProjectFullPath, targetRuleSetFileName, solutionRuleSetPath, currentRuleSetFilePath);
+                string newRuleSetFilePath = this.QueueWriteProjectLevelRuleSet(this.ProjectFullPath, targetRuleSetFileName, solutionRuleSetPath, currentRuleSetFilePath);
 
                 foreach (PropertyInformation info in group)
                 {
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 string ruleSetFullFilePath = keyValue.Value.NewRuleSetFilePath;
 
                 Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFullFilePath), "Prepare was not called");
-                Debug.Assert(this.sourceControlledFileSystem.IsFileExist(ruleSetFullFilePath), "File not written: " + ruleSetFullFilePath);
+                Debug.Assert(this.sourceControlledFileSystem.FileExist(ruleSetFullFilePath), "File not written: " + ruleSetFullFilePath);
 
                 string updatedRuleSetValue = PathHelper.CalculateRelativePath(this.ProjectFullPath, ruleSetFullFilePath);
                 property.Value = updatedRuleSetValue;

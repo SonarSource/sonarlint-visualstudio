@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 return null;
             }
 
-            sccFileSystem.PendFileWrite(configFile, ()=>
+            sccFileSystem.QueueFileWrite(configFile, ()=>
             {
                 if (this.WriteBindingInformation(configFile, binding))
                 {

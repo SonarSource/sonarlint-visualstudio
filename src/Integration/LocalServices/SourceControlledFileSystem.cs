@@ -54,9 +54,9 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         #region ISourceControlledFileSystem
-        public void PendFileWrite(string filePath, Func<bool> fileWriteOperation)
+        public void QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
         {
-            if (this.fileSystemWrapper.IsFileExist(filePath))
+            if (this.fileSystemWrapper.FileExist(filePath))
             {
                 this.filesEdit.Add(filePath);
             }
@@ -68,12 +68,12 @@ namespace SonarLint.VisualStudio.Integration
             this.fileWriteOperations.Enqueue(fileWriteOperation);
         }
 
-        public bool IsFileExistOrPendingWrite(string filePath)
+        public bool FileExistOrQueuedToBeWritten(string filePath)
         {
-            return this.filesCreate.Contains(filePath) || this.fileSystemWrapper.IsFileExist(filePath);
+            return this.filesCreate.Contains(filePath) || this.fileSystemWrapper.FileExist(filePath);
         }
 
-        public bool WritePendingFiles()
+        public bool WriteQueuedFiles()
         {
             bool success = true;
             this.QueryFileOperation.BeginQuerySaveBatch();
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration
             return Directory.Exists(path);
         }
 
-        bool IFileSystem.IsFileExist(string filePath)
+        bool IFileSystem.FileExist(string filePath)
         {
             return File.Exists(filePath);
         }
@@ -158,17 +158,6 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return tagVSQuerySaveResult.QSR_SaveOK == saveResult;
-        }
-
-        private uint[] GetQuerySaveFilesFlags(string[] fileNames)
-        {
-            // Disable SaveAs, we don't allow it in the default bind experience (nothing prevents the user to rename later)
-            uint[] flags = new uint[fileNames.Length];
-            for (int i = 0; i < flags.Length; i++)
-            {
-                flags[i] = (uint)tagVSQEQSFlags.VSQEQS_NoSaveAs;
-            }
-            return flags;
         }
         #endregion
     }

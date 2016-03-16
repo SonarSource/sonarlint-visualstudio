@@ -16,13 +16,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IRuleSetFileSystem ruleSetFileSystem;
 
         /// <summary>
-        /// Write out the provided <see cref="RuleSet"/> file under the specified solution root path.
+        /// Queues a write of the provided <see cref="RuleSet"/> file under the specified solution root path.
         /// </summary>
         /// <param name="solutionFullPath">Full path to the solution file</param>
         /// <param name="downloadedRuleSet"><see cref="RuleSet"/> that was downloaded from the server</param>
         /// <param name="fileNameSuffix">Rule set file suffix</param>
-        /// <returns>Full file path of the file that was written out</returns>
-        internal string PendWriteSolutionLevelRuleSet(string solutionFullPath, RuleSet downloadedRuleSet, string fileNameSuffix)
+        /// <returns>Full file path of the file that we expect to write to</returns>
+        internal string QueueWriteSolutionLevelRuleSet(string solutionFullPath, RuleSet downloadedRuleSet, string fileNameSuffix)
         {
             if (string.IsNullOrWhiteSpace(solutionFullPath))
             {
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             // Create or overwrite existing rule set
             string solutionRuleSet = GenerateSolutionRuleSetPath(ruleSetRoot, this.sonarQubeProjectKey, fileNameSuffix);
-            this.sourceControlledFileSystem.PendFileWrite(solutionRuleSet, () =>
+            this.sourceControlledFileSystem.QueueFileWrite(solutionRuleSet, () =>
             {
                 this.ruleSetFileSystem.WriteRuleSetFile(downloadedRuleSet, solutionRuleSet);
 

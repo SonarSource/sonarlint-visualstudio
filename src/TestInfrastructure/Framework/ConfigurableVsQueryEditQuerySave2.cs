@@ -93,9 +93,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CollectionAssert.AreEquivalent(expectedFiles, this.editRequested.ToArray(), "Actual: " + string.Join(", ", this.editRequested));
         }
 
+        public void AssertNoEditRequested()
+        {
+            this.AssertEditRequested(new string[0]);
+        }
+
         public void AssertCreateRequested(params string[] expectedFiles)
         {
             CollectionAssert.AreEquivalent(expectedFiles, this.createRequested.ToArray(), "Actual: " + string.Join(", ", this.createRequested));
+        }
+
+        public void AssertNoCreateRequested()
+        {
+            this.AssertCreateRequested(new string[0]);
         }
 
         public void AssertAllBatchesCompleted(int expectedBatches)

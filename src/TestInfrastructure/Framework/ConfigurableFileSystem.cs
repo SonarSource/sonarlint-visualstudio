@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.directories.Contains(path);
         }
 
-        bool IFileSystem.IsFileExist(string filePath)
+        bool IFileSystem.FileExist(string filePath)
         {
             return this.files.ContainsKey(filePath);
         }

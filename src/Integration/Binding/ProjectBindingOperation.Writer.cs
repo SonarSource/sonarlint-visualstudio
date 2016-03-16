@@ -27,14 +27,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
 
         /// <summary>
-        /// Pends a write to a project-level SonarQube <see cref="RuleSet"/> file in the <param name="projectRoot"/> directory.
+        /// Queues a write to a project-level SonarQube <see cref="RuleSet"/> file in the <param name="projectRoot"/> directory.
         /// </summary>
         /// <param name="projectFullPath">The absolute full path to the project</param>
         /// <param name="ruleSetFileName">The rule set file name</param>
         /// <param name="solutionRuleSetPath">Full path of the parent solution-level SonarQube rule set</param>
         /// <param name="existingRuleSetPath">Existing project rule set</param>
-        /// <returns>Full file path of the file that was written out</returns>
-        internal /*for testing purposes*/ string PendWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, string solutionRuleSetPath, string currentRuleSetPath)
+        /// <returns>Full file path of the file that we expect to write to</returns>
+        internal /*for testing purposes*/ string QueueWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, string solutionRuleSetPath, string currentRuleSetPath)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(projectFullPath));
             Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFileName));
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 Debug.Assert(existingRuleSet != null);
 
                 // Pend update
-                this.sourceControlledFileSystem.PendFileWrite(existingRuleSetPath, () =>
+                this.sourceControlledFileSystem.QueueFileWrite(existingRuleSetPath, () =>
                 {
                     existingRuleSet.WriteToFile(existingRuleSetPath);
                     return true;
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string newRuleSetPath = this.GenerateNewProjectRuleSetPath(ruleSetRoot, ruleSetFileName);
 
             // Pend new
-            this.sourceControlledFileSystem.PendFileWrite(newRuleSetPath, () =>
+            this.sourceControlledFileSystem.QueueFileWrite(newRuleSetPath, () =>
             {
                 this.ruleSetFileSystem.WriteRuleSetFile(newRuleSet, newRuleSetPath);
                 return true;
@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <returns>Rule set or null if does not exist or is malformed</returns>
         internal /* testing purposes */ RuleSet SafeLoadRuleSet(string ruleSetPath)
         {
-            if (this.sourceControlledFileSystem.IsFileExist(ruleSetPath))
+            if (this.sourceControlledFileSystem.FileExist(ruleSetPath))
             {
                 try
                 {
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 // Increment index
                 i++;
-            } while (this.sourceControlledFileSystem.IsFileExistOrPendingWrite(candiatePath));
+            } while (this.sourceControlledFileSystem.FileExistOrQueuedToBeWritten(candiatePath));
 
             return candiatePath;
         }

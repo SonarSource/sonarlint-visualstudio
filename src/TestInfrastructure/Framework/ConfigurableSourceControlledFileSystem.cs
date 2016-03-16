@@ -17,12 +17,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<string, Func<bool>> fileWriteOperations = new Dictionary<string, Func<bool>>(StringComparer.OrdinalIgnoreCase);
 
         #region ISourceControlledFileSystem
-        bool ISourceControlledFileSystem.IsFileExistOrPendingWrite(string filePath)
+        bool ISourceControlledFileSystem.FileExistOrQueuedToBeWritten(string filePath)
         {
-            return this.fileWriteOperations.ContainsKey(filePath) || ((IFileSystem)this).IsFileExist(filePath);
+            return this.fileWriteOperations.ContainsKey(filePath) || ((IFileSystem)this).FileExist(filePath);
         }
 
-        void ISourceControlledFileSystem.PendFileWrite(string filePath, Func<bool> fileWriteOperation)
+        void ISourceControlledFileSystem.QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
         {
             Assert.IsFalse(this.fileWriteOperations.ContainsKey(filePath), "Not expected to modify the same file during execution");
             Assert.IsNotNull(fileWriteOperation, "Not expecting the operation to be null");
@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileWriteOperations[filePath] = fileWriteOperation;
         }
 
-        bool ISourceControlledFileSystem.WritePendingFiles()
+        bool ISourceControlledFileSystem.WriteQueuedFiles()
         {
             if (this.WritePending)
             {
@@ -56,12 +56,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void WritePendingNoErrorsExpected()
         {
-            Assert.IsTrue(((ISourceControlledFileSystem)this).WritePendingFiles(), "Failed to write all the pending files");
+            Assert.IsTrue(((ISourceControlledFileSystem)this).WriteQueuedFiles(), "Failed to write all the pending files");
         }
 
         public void WritePendingErrorsExpected()
         {
-            Assert.IsFalse(((ISourceControlledFileSystem)this).WritePendingFiles(), "Expected to fail writing the pending files");
+            Assert.IsFalse(((ISourceControlledFileSystem)this).WriteQueuedFiles(), "Expected to fail writing the pending files");
         }
 
         public void ClearPending()

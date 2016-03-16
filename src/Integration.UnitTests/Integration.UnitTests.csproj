@@ -130,8 +130,8 @@
     <Compile Include="Binding\BindingWorkflowTests.cs" />
     <Compile Include="Binding\NuGetHelperTests.cs" />
     <Compile Include="Binding\ProjectBindingOperationTests.cs" />
-    <Compile Include="Binding\SolutionBindingOpearation.WriterTests.cs" />
-    <Compile Include="Binding\SolutionBindingOpearationTests.cs" />
+    <Compile Include="Binding\SolutionBindingOperation.WriterTests.cs" />
+    <Compile Include="Binding\SolutionBindingOperationTests.cs" />
     <Compile Include="Connection\BasicCredentialsValidatorTests.cs" />
     <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />

@@ -153,10 +153,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 RuleSetGroup group = keyValue.Key;
                 Debug.Assert(info.NewRuleSetFilePath == null, "Not expected to be called twice");
 
-                info.NewRuleSetFilePath = this.PendWriteSolutionLevelRuleSet(this.SolutionFullPath, info.RuleSet, fileNameSuffix: group.ToString());
+                info.NewRuleSetFilePath = this.QueueWriteSolutionLevelRuleSet(this.SolutionFullPath, info.RuleSet, fileNameSuffix: group.ToString());
 
                 Debug.Assert(!string.IsNullOrWhiteSpace(info.NewRuleSetFilePath) 
-                    && this.sourceControlledFileSystem.IsFileExistOrPendingWrite(info.NewRuleSetFilePath), "Expected a rule set to pend pended");
+                    && this.sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.NewRuleSetFilePath), "Expected a rule set to pend pended");
             }
 
             foreach (IBindingOperation binder in this.childBinder)
@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             this.PendBindingInformation(this.connection); // This is the last pend, so will be executed last
 
-            if (this.sourceControlledFileSystem.WritePendingFiles())
+            if (this.sourceControlledFileSystem.WriteQueuedFiles())
         {
                 // No reason to modify VS state if could not write files
 
@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 foreach (RuleSetInformation info in ruleSetsInformationMap.Values)
             {
-                    Debug.Assert(this.sourceControlledFileSystem.IsFileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
+                    Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
                 this.AddFileToSolutionItems(info.NewRuleSetFilePath);
             }
 
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void AddFileToSolutionItems(string fullFilePath)
         {
-            Debug.Assert(Path.IsPathRooted(fullFilePath) && this.sourceControlledFileSystem.IsFileExist(fullFilePath), "Expecting a rooted path to existing file");
+            Debug.Assert(Path.IsPathRooted(fullFilePath) && this.sourceControlledFileSystem.FileExist(fullFilePath), "Expecting a rooted path to existing file");
 
             Project solutionItemsProject = this.projectSystem.GetSolutionItemsProject();
             if (solutionItemsProject == null)
