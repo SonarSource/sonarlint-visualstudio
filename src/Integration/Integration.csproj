@@ -111,7 +111,7 @@
   <ItemGroup>
     <Compile Include="Binding\BindCommand.cs" />
     <Compile Include="Binding\IBindingOperation.cs" />
-    <Compile Include="Binding\IRuleSetGenerationFileSystem.cs" />
+    <Compile Include="Binding\IRuleSetSerializer.cs" />
     <Compile Include="Binding\ISolutionRuleStore.cs" />
     <Compile Include="Binding\ProjectBindingOperation.cs" />
     <Compile Include="Binding\ProjectBindingOperation.Writer.cs" />

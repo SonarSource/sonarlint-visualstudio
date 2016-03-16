@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             
         }
 
-        internal /*for testing purposes*/ ProjectBindingOperation(IServiceProvider serviceProvider, ISourceControlledFileSystem sccFileSystem, Project project, IProjectSystemHelper projectSystem, ISolutionRuleStore ruleStore, IRuleSetFileSystem rsFileSystem)
+        internal /*for testing purposes*/ ProjectBindingOperation(IServiceProvider serviceProvider, ISourceControlledFileSystem sccFileSystem, Project project, IProjectSystemHelper projectSystem, ISolutionRuleStore ruleStore, IRuleSetSerializer rsFileSystem)
         {
             if (serviceProvider == null)
             {

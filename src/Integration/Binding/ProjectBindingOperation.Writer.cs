@@ -18,7 +18,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal partial class ProjectBindingOperation
     {
         internal const string DefaultProjectRuleSet = "MinimumRecommendedRules.ruleset";
-        private readonly IRuleSetFileSystem ruleSetFileSystem;
+        private readonly IRuleSetSerializer ruleSetFileSystem;
 
         internal /*for testing purposes*/ IDictionary<string, RuleSet> AlreadyUpdatedExistingRuleSetPaths
         {
@@ -106,10 +106,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
 
-                this.UpdateExistingProjectRuleSet(existingRuleSet, existingRuleSetPath, solutionRuleSetPath);
+            this.UpdateExistingProjectRuleSet(existingRuleSet, existingRuleSetPath, solutionRuleSetPath);
             this.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetPath, existingRuleSet);
-                return true;
-            }
+            return true;
+        }
 
         /// <summary>
         /// Remove all rule set inclusions which exist under the specified root directory.

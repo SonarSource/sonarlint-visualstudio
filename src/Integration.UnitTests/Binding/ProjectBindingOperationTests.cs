@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             this.ruleStore.RegisterRuleSetPath(RuleSetGroup.VB, @"c:\Solution\sln.ruleset");
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
             this.projectMock.SetVBProjectKind();
             PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
@@ -194,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             this.ruleStore.RegisterRuleSetPath(RuleSetGroup.VB, @"c:\Solution\sln.ruleset");
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
             this.projectMock.SetVBProjectKind();
             PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             this.ruleStore.RegisterRuleSetPath(RuleSetGroup.VB, @"c:\Solution\sln.ruleset");
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
             this.projectMock.SetVBProjectKind();
             PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
@@ -308,7 +308,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return prop;
         }
 
-        private ProjectBindingOperation CreateTestSubject(IRuleSetFileSystem ruleSetFileSystem = null)
+        private ProjectBindingOperation CreateTestSubject(IRuleSetSerializer ruleSetFileSystem = null)
         {
             return new ProjectBindingOperation(this.serviceProvider, this.sccFileSystem, this.projectMock, this.projectSystemHelper, this.ruleStore, ruleSetFileSystem);
         }

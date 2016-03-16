@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ProjectMock solutionItemsProject;
         private SolutionMock solutionMock;
         private ConfigurableSourceControlledFileSystem sccFileSystem;
-        private ConfigurableRuleSetFileSystem ruleFS;
+        private ConfigurableRuleSetSerializer ruleFS;
         private ConfigurableSolutionBinding solutionBinding;
 
         private const string SolutionRoot = @"c:\solution";
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.projectSystemHelper.SolutionItemsProject = this.solutionItemsProject;
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
             this.sccFileSystem  = new ConfigurableSourceControlledFileSystem();
-            this.ruleFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            this.ruleFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             this.solutionBinding = new ConfigurableSolutionBinding();
         }
 

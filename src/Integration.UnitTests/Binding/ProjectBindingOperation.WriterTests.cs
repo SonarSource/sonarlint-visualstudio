@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var commonRs1 = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs1FileName);
             var commonRs2 = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs2FileName);
 
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             rsFS.RegisterRuleSet(sonarRs1);
             rsFS.RegisterRuleSet(sonarRs2);
             rsFS.RegisterRuleSet(projectBaseRs);
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_SafeLoadRuleSet()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             // Test case 1: load existing, well formed rule set
@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_UpdateExistingProjectRuleSet()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string existingProjectRuleSetPath = @"X:\MySolution\ProjectOne\proj1.ruleset";
@@ -272,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_UnderTheProject()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetName = "Happy";
@@ -312,7 +312,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_UnderTheProject()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetName = "Happy";
@@ -352,7 +352,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_ButNotUnderTheProject()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetName = "Happy";
@@ -392,7 +392,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_ButNotUnderTheSProject()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetName = "Happy";
@@ -434,7 +434,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RuleSetIsNotFound()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string projectName = "My Project";
@@ -472,7 +472,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_NewBinding()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             const string ruleSetFileName = "Happy";
@@ -513,7 +513,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_TryUpdateExistingProjectRuleSet_RuleSetNotAlreadyWritten_WritesFile()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
@@ -542,7 +542,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_TryUpdateExistingProjectRuleSet_RuleSetAlreadyWritten_DoesNotWriteAgain()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
@@ -572,7 +572,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_TryUpdateExistingProjectRuleSet_ExistingRuleSetIsNotAtTheProjectLevel()
         {
             // Setup
-            var rsFS = new ConfigurableRuleSetFileSystem(this.sccFileSystem);
+            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
 
             string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";

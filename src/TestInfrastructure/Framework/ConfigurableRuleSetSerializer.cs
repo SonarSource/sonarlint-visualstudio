@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="ConfigurableRuleSetFileSystem.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="ConfigurableRuleSetSerializer.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -15,24 +15,24 @@ using System.Xml;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal class ConfigurableRuleSetFileSystem : IRuleSetFileSystem
+    internal class ConfigurableRuleSetSerializer : IRuleSetSerializer
     {
         private readonly Dictionary<string, RuleSet> savedRuleSets = new Dictionary<string, RuleSet>(StringComparer.OrdinalIgnoreCase);
         private readonly ConfigurableFileSystem fileSystem;
 
-        public ConfigurableRuleSetFileSystem()
+        public ConfigurableRuleSetSerializer()
             :this(new ConfigurableFileSystem())
         {
 
         }
 
-        public ConfigurableRuleSetFileSystem(ConfigurableFileSystem fs)
+        public ConfigurableRuleSetSerializer(ConfigurableFileSystem fs)
         {
             this.fileSystem = fs;
         }
 
         #region IRuleSetFileSystem
-        RuleSet IRuleSetFileSystem.LoadRuleSet(string path)
+        RuleSet IRuleSetSerializer.LoadRuleSet(string path)
         {
             RuleSet rs;
             if (this.savedRuleSets.TryGetValue(path, out rs))
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new IOException("File does not exist in test file system"); // Simulate RuleSet.LoadFromFile()
         }
 
-        void IRuleSetFileSystem.WriteRuleSetFile(RuleSet ruleSet, string path)
+        void IRuleSetSerializer.WriteRuleSetFile(RuleSet ruleSet, string path)
         {
             RuleSet rs;
             if (!this.savedRuleSets.TryGetValue(path, out rs))

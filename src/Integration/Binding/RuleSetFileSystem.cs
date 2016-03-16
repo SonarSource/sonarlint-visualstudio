@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal sealed class RuleSetFileSystem : IRuleSetFileSystem
+    internal sealed class RuleSetFileSystem : IRuleSetSerializer
     {
         public RuleSet LoadRuleSet(string path)
         {

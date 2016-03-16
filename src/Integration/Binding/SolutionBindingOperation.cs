@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
         }
 
-        internal /*for testing purposes*/ SolutionBindingOperation(IServiceProvider serviceProvider, IProjectSystemHelper projectSystemHelper, ConnectionInformation connection, string sonarQubeProjectKey, ISourceControlledFileSystem sourceControlledFileSystem,  IRuleSetFileSystem rsFileSystem, ISolutionBinding solutionBinding)
+        internal /*for testing purposes*/ SolutionBindingOperation(IServiceProvider serviceProvider, IProjectSystemHelper projectSystemHelper, ConnectionInformation connection, string sonarQubeProjectKey, ISourceControlledFileSystem sourceControlledFileSystem,  IRuleSetSerializer rsFileSystem, ISolutionBinding solutionBinding)
         {
             if (serviceProvider == null)
             {

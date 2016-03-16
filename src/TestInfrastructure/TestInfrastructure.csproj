@@ -136,7 +136,7 @@
     <Compile Include="Framework\ConfigurableProgressEvents.cs" />
     <Compile Include="Framework\ConfigurableProgressStep.cs" />
     <Compile Include="Framework\ConfigurableProgressStepExecutionEvents.cs" />
-    <Compile Include="Framework\ConfigurableRuleSetFileSystem.cs" />
+    <Compile Include="Framework\ConfigurableRuleSetSerializer.cs" />
     <Compile Include="Framework\ConfigurableServiceProvider.cs" />
     <Compile Include="Framework\ConfigurableActiveSolutionTracker.cs" />
     <Compile Include="Framework\ConfigurableSonarQubeServiceWrapper.cs" />

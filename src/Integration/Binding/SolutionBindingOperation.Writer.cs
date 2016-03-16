@@ -13,7 +13,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal partial class SolutionBindingOperation
     {
-        private readonly IRuleSetFileSystem ruleSetFileSystem;
+        private readonly IRuleSetSerializer ruleSetFileSystem;
 
         /// <summary>
         /// Queues a write of the provided <see cref="RuleSet"/> file under the specified solution root path.
