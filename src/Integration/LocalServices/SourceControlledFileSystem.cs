@@ -15,6 +15,11 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    /// <summary>
+    /// A general helper class that deals with all the various source control systems integrated with VS (without using any SCC specific APIs).
+    /// The idea is to checkout files (and notify that about to create new files) by using the <see cref="IVsQueryEditQuerySave2"/> service
+    /// which will in turn notify the source control system and will delegate the rest of the work to it (i.e. checking it out).
+    /// </summary>
     internal class SourceControlledFileSystem : ISourceControlledFileSystem
     {
         private readonly IServiceProvider serviceProvider;
