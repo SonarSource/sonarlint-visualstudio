@@ -251,6 +251,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C#.
+        /// </summary>
+        public static string CSharpLanguageName {
+            get {
+                return ResourceManager.GetString("CSharpLanguageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disconnect.
         /// </summary>
         public static string DisconnectCommandDisplayText {
@@ -265,6 +274,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string DisconnectCommandTooltip {
             get {
                 return ResourceManager.GetString("DisconnectCommandTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discovering solution projects.
+        /// </summary>
+        public static string DiscoveringSolutionProjectsProgressMessage {
+            get {
+                return ResourceManager.GetString("DiscoveringSolutionProjectsProgressMessage", resourceCulture);
             }
         }
         
@@ -432,6 +450,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No projects in the current solution are applicable to the selected SonarQube project&apos;s quality profile..
+        /// </summary>
+        public static string NoProjectsApplicableForBinding {
+            get {
+                return ResourceManager.GetString("NoProjectsApplicableForBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field can not be empty.
         /// </summary>
         public static string NotEmptyValidatorRequiredField {
@@ -455,6 +482,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string PathHelperAbsolutePathExpected {
             get {
                 return ResourceManager.GetString("PathHelperAbsolutePathExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preparing binding steps.
+        /// </summary>
+        public static string PreparingBindingWorkflowProgessMessage {
+            get {
+                return ResourceManager.GetString("PreparingBindingWorkflowProgessMessage", resourceCulture);
             }
         }
         
@@ -753,6 +789,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string UsernameRequired {
             get {
                 return ResourceManager.GetString("UsernameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB.NET.
+        /// </summary>
+        public static string VBNetLanguageName {
+            get {
+                return ResourceManager.GetString("VBNetLanguageName", resourceCulture);
             }
         }
         

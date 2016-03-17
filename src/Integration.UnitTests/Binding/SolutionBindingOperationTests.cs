@@ -24,6 +24,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private DTEMock dte;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
+        private ConfigurableProjectSystemFilter projectFilter;
         private ConfigurableVsGeneralOutputWindowPane outputPane;
         private ProjectMock solutionItemsProject;
         private SolutionMock solutionMock;
@@ -44,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionMock = new SolutionMock(dte, Path.Combine(SolutionRoot, "xxx.sln"));
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane = new ConfigurableVsGeneralOutputWindowPane());
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.projectFilter = new ConfigurableProjectSystemFilter();
             this.solutionItemsProject = this.solutionMock.AddOrGetProject("Solution items");
             this.projectSystemHelper.SolutionItemsProject = this.solutionItemsProject;
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
@@ -105,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize();
+            testSubject.Initialize(new ProjectMock[0]);
             testSubject.Prepare(CancellationToken.None);
 
             // Act
@@ -127,17 +129,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
-            this.projectSystemHelper.ManagedProjects = new[] { cs1Project, vbProject, cs2Project };
+            var projects = new[] { cs1Project, vbProject, cs2Project };
 
             // Sanity
             Assert.AreEqual(0, testSubject.Binders.Count, "Not expecting any project binders");
 
             // Act
-            testSubject.Initialize();
+            testSubject.Initialize(projects);
 
             // Verify
             Assert.AreEqual(@"c:\solution\xxx.sln", testSubject.SolutionFullPath);
-            Assert.AreEqual(this.projectSystemHelper.ManagedProjects.Count(), testSubject.Binders.Count, "Should be one per managed project");
+            Assert.AreEqual(projects.Length, testSubject.Binders.Count, "Should be one per managed project");
         }
 
         [TestMethod]
@@ -148,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             csProject.SetCSProjectKind();
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
-            this.projectSystemHelper.ManagedProjects = new[] { csProject, vbProject };
+            var projects = new[] { csProject, vbProject };
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
@@ -157,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize();
+            testSubject.Initialize(projects);
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             var binder = new ConfigurableBindingOperation();
             testSubject.Binders.Add(binder);
@@ -196,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             csProject.SetCSProjectKind();
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
-            this.projectSystemHelper.ManagedProjects = new[] { csProject, vbProject };
+            var projects = new[] { csProject, vbProject };
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
@@ -204,7 +206,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize();
+            testSubject.Initialize(projects);
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool prepareCalledForBinder = false;
             using (CancellationTokenSource src = new CancellationTokenSource())
@@ -230,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             csProject.SetCSProjectKind();
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
-            this.projectSystemHelper.ManagedProjects = new[] { csProject, vbProject };
+            var projects = new[] { csProject, vbProject };
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
@@ -239,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize();
+            testSubject.Initialize(projects);
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool prepareCalledForBinder = false;
             using (CancellationTokenSource src = new CancellationTokenSource())
@@ -264,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBinding), this.solutionBinding);
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
-            this.projectSystemHelper.ManagedProjects = new[] { csProject };
+            var projects = new[] { csProject };
 
             var connectionInformation = new Integration.Service.ConnectionInformation(new Uri("Http://xyz"));
             SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation);
@@ -274,7 +276,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize();
+            testSubject.Initialize(projects);
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool commitCalledForBinder = false;
             testSubject.Binders.Add(new ConfigurableBindingOperation { CommitAction = () => commitCalledForBinder = true });

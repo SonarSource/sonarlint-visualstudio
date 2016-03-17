@@ -8,11 +8,13 @@
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Flavor;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using DteProject = EnvDTE.Project;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -20,6 +22,8 @@ namespace SonarLint.VisualStudio.Integration
     {
         internal const string VbProjectKind = "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}";
         internal const string CSharpProjectKind = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
+        internal const string TestProjectKind = "{3AC096D0-A1C2-E12C-1390-A8335801FDAB}";
+        internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);
 
         // This constant is necessary to find the name of the "Solution Items" folder
         // for the CurrentUICulture. They correspond to a resource string in the satellite dll
@@ -43,27 +47,51 @@ namespace SonarLint.VisualStudio.Integration
             get { return this.serviceProvider; }
         }
 
-        public IEnumerable<Project> GetSolutionManagedProjects()
+        public IEnumerable<DteProject> GetSolutionProjects()
         {
-            IVsSolution solution = this.serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
-            return EnumerateProjects(solution)
-                .Select(h =>
-                    {
-                        Debug.Assert(h != null);
-                        object project = null;
-                        if (ErrorHandler.Succeeded(h.GetProperty((uint)VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out project)))
-                        {
-                            return project as Project;
-                        }
-                        return null;
-                    })
-                .Where(p => p != null && IsManagedProject(p));
+            foreach (var hierarchy in EnumerateProjects(solution))
+            {
+                DteProject dteProject = GetDteProject(hierarchy);
+                if (dteProject != null && Language.ForProject(dteProject) != null)
+                {
+                    yield return dteProject;
+                }
+            }
         }
 
+        public static DteProject GetDteProject(IVsHierarchy hierarchy)
+        {
+            if (hierarchy == null)
+            {
+                throw new ArgumentNullException(nameof(hierarchy));
+            }
 
-        public bool IsFileInProject(Project project, string file)
+            object project = null;
+            if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out project)))
+            {
+                return project as DteProject;
+            }
+            return null;
+        }
+
+        public IVsHierarchy GetIVsHierarchy(DteProject dteProject)
+        {
+            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
+            Debug.Assert(solution != null, "Cannot find SVsSolution");
+
+            IVsHierarchy hierarchy;
+            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(dteProject.UniqueName, out hierarchy)))
+            {
+                return hierarchy;
+            }
+
+            return null;
+        }
+
+        public bool IsFileInProject(DteProject project, string file)
         {
             if (project == null)
             {
@@ -93,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration
             return false;
         }
 
-        public void AddFileToProject(Project project, string fullFilePath)
+        public void AddFileToProject(DteProject project, string fullFilePath)
         {
             if (project == null)
             {
@@ -111,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public void AddFileToProject(Project project, string fullFilePath, string itemType)
+        public void AddFileToProject(DteProject project, string fullFilePath, string itemType)
         {
             if (project == null)
             {
@@ -151,16 +179,18 @@ namespace SonarLint.VisualStudio.Integration
             return solution;
         }
 
-        public Project GetSolutionItemsProject()
+        public DteProject GetSolutionItemsProject()
         {
-            string solutionItemsFolderName = GetSolutionItemsFolderName(this.serviceProvider);
+            string solutionItemsFolderName = this.GetSolutionItemsFolderName();
 
             Solution2 solution = this.GetCurrentActiveSolution();
 
-            Project solutionItemsProject = null;
-            // Enumerating instead of using OfType<Project> due to a bug in
+            DteProject solutionItemsProject = null;
+            // Enumerating instead of using OfType<DteProject> due to a bug in
             // install shield projects that will throw an exception
-            foreach (Project project in solution.Projects)
+#pragma warning disable S3217
+            foreach (DteProject project in solution.Projects)
+#pragma warning restore S3217
             {
                 // Check if Solution Items folder already exists
                 if (project.Name == solutionItemsFolderName)
@@ -179,12 +209,12 @@ namespace SonarLint.VisualStudio.Integration
             return solutionItemsProject;
         }
 
-        private static string GetSolutionItemsFolderName(IServiceProvider serviceProvider)
+        private string GetSolutionItemsFolderName()
         {
             string solutionItemsFolderName = null;
             Guid guid = VSConstants.CLSID.VsEnvironmentPackage_guid;
 
-            IVsShell shell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            IVsShell shell = this.serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
             Debug.Assert(shell != null, "Could not find the SVsShell service");
 
             ErrorHandler.ThrowOnFailure(shell.LoadPackageString(ref guid, SolutionItemResourceId, out solutionItemsFolderName));
@@ -205,23 +235,52 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private static bool IsManagedProject(Project project)
+        public static IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
         {
-            // NB: We only support C# projects currently because the VB.NET plugin hasn't been updated.
-            return IsCSharpProject(project);
+            if (hierarchy == null)
+            {
+                throw new ArgumentNullException(nameof(hierarchy));
+            }
+
+            IVsAggregatableProjectCorrected aggregatableProject = hierarchy as IVsAggregatableProjectCorrected;
+            if (aggregatableProject != null)
+            {
+                string guidStrings;
+                if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out guidStrings)))
+                {
+                    foreach (var guidStr in guidStrings.Split(';'))
+                    {
+                        Guid guid;
+                        if (Guid.TryParse(guidStr, out guid))
+                        {
+                            yield return guid;
+                        }
+                    }
+                }
+            }
         }
 
-        public static bool IsVBProject(Project project)
+        public static bool IsKnownTestProject(IVsHierarchy vsProject)
+        {
+            return GetAggregateProjectKinds(vsProject).Contains(TestProjectKindGuid);
+        }
+
+        private static bool IsManagedProject(DteProject project)
+        {
+            return IsCSharpProject(project) || IsVBProject(project);
+        }
+
+        public static bool IsVBProject(DteProject project)
         {
             return IsProjectKind(project, VbProjectKind);
         }
 
-        public static bool IsCSharpProject(Project project)
+        public static bool IsCSharpProject(DteProject project)
         {
             return IsProjectKind(project, CSharpProjectKind);
         }
 
-        private static bool IsProjectKind(Project project, string projectKindGuidString)
+        private static bool IsProjectKind(DteProject project, string projectKindGuidString)
         {
             return StringComparer.OrdinalIgnoreCase.Equals(projectKindGuidString, project.Kind);
         }

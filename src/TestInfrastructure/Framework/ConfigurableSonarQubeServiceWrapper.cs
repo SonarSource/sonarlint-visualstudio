@@ -25,7 +25,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public ProjectInformation[] ReturnProjectInformation { get; set; }
 
-        public IDictionary<string, ServerPlugin> ServerPlugins { get; } = new Dictionary<string, ServerPlugin>();
+        public ISet<ServerPlugin> ServerPlugins { get; } = new HashSet<ServerPlugin>();
+
+        public ISet<ServerProperty> ServerProperties { get; } = new HashSet<ServerProperty>();
 
         /// <summary>
         /// Language to rules map
@@ -67,12 +69,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void RegisterServerPlugin(ServerPlugin plugin)
         {
-            this.ServerPlugins[plugin.Key] = plugin;
+            this.ServerPlugins.Add(plugin);
         }
 
         public void ClearServerPlugins()
         {
             this.ServerPlugins.Clear();
+        }
+
+        public void RegisterServerProperty(ServerProperty property)
+        {
+            this.ServerProperties.Add(property);
+        }
+
+        public void ClearServerProperties()
+        {
+            this.ServerProperties.Clear();
         }
 
         #endregion
@@ -124,7 +136,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public IEnumerable<ServerPlugin> GetPlugins(ConnectionInformation connectionInformation, CancellationToken token)
         {
-            return this.ServerPlugins.Values;
+            return this.ServerPlugins;
+        }
+
+        public IEnumerable<ServerProperty> GetProperties(CancellationToken token)
+        {
+            return this.ServerProperties;
         }
 
         #endregion

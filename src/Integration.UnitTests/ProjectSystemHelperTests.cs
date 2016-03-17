@@ -8,7 +8,6 @@
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
@@ -25,14 +24,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
+            this.solutionMock = new SolutionMock();
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock = new SolutionMock());
+            this.serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
             this.testSubject = new ProjectSystemHelper(this.serviceProvider);
         }
 
         #region Tests
         [TestMethod]
-        public void ProjectSystemHelper_GetSolutionManagedProjects_ReturnsOnlyCSharp()
+        public void ProjectSystemHelper_GetSolutionManagedProjects_ReturnsOnlyKnownLanguages()
         {
             // Setup
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
@@ -49,10 +49,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             erronousProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
 
             // Act
-            var actual = this.testSubject.GetSolutionManagedProjects().ToArray();
+            var actual = this.testSubject.GetSolutionProjects().ToArray();
 
             // Verify
-            CollectionAssert.AreEqual(new[] { csProject }, actual,
+            CollectionAssert.AreEqual(new[] { csProject, vbProject }, actual,
                 "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
         }
 
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Helpers
         private void SetSolutionFolderName(string name)
         {
-            this.serviceProvider.RegisterService(typeof(SVsShell), new TestVsShell() { LoadPackageStringResult = name });
+            this.serviceProvider.RegisterService(typeof(SVsShell), new TestVsShell { LoadPackageStringResult = name });
         }
 
         private class TestVsShell : IVsShell

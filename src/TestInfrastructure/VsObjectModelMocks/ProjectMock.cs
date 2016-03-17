@@ -7,6 +7,7 @@
 
 using EnvDTE;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Flavor;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
@@ -15,11 +16,13 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ProjectMock : VsUIHierarchyMock, IVsProject, Project
+    public class ProjectMock : VsUIHierarchyMock, IVsProject, Project, IVsBuildPropertyStorage, IVsAggregatableProjectCorrected
     {
         private readonly Dictionary<string, uint> files = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
         private readonly PropertiesMock properties;
         private readonly ConfigurationManagerMock configurationManager = new ConfigurationManagerMock();
+        private readonly IDictionary<string, string> buildProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private string aggregateProjectTypeGuids = string.Empty;
 
         public DTE DTE { get; set; }
 
@@ -286,6 +289,70 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
         #endregion
 
+        #region IVsBuildPropertyStorage
+
+        int IVsBuildPropertyStorage.GetPropertyValue(string pszPropName, string pszConfigName, uint storage, out string pbstrPropValue)
+        {
+            pbstrPropValue = null;
+            return this.buildProperties.TryGetValue(pszPropName, out pbstrPropValue)
+                ? VSConstants.S_OK
+                : VSConstants.E_FAIL;
+        }
+
+        int IVsBuildPropertyStorage.SetPropertyValue(string pszPropName, string pszConfigName, uint storage, string pszPropValue)
+        {
+            this.buildProperties[pszPropName] = pszPropValue;
+            return VSConstants.S_OK;
+        }
+
+        int IVsBuildPropertyStorage.RemoveProperty(string pszPropName, string pszConfigName, uint storage)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsBuildPropertyStorage.GetItemAttribute(uint item, string pszAttributeName, out string pbstrAttributeValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsBuildPropertyStorage.SetItemAttribute(uint item, string pszAttributeName, string pszAttributeValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region IVsAggregatableProjectCorrected
+
+        int IVsAggregatableProjectCorrected.SetInnerProject(IntPtr punkInnerIUnknown)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsAggregatableProjectCorrected.InitializeForOuter(string pszFilename, string pszLocation, string pszName, uint grfCreateFlags, ref Guid iidProject, out IntPtr ppvProject, out int pfCanceled)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsAggregatableProjectCorrected.OnAggregationComplete()
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsAggregatableProjectCorrected.GetAggregateProjectTypeGuids(out string pbstrProjTypeGuids)
+        {
+            pbstrProjTypeGuids = this.aggregateProjectTypeGuids;
+            return VSConstants.S_OK;
+        }
+
+        int IVsAggregatableProjectCorrected.SetAggregateProjectTypeGuids(string lpstrProjTypeGuids)
+        {
+            this.aggregateProjectTypeGuids = lpstrProjTypeGuids;
+            return VSConstants.S_OK;
+        }
+
+        #endregion
+
         public uint AddOrGetFile(string filePath)
         {
             uint fileId;
@@ -310,6 +377,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SetVBProjectKind()
         {
             this.ProjectKind = ProjectSystemHelper.VbProjectKind;
+        }
+
+        public void SetBuildProperty(string propertyName, string value)
+        {
+            ((IVsBuildPropertyStorage)this).SetPropertyValue(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
+        }
+
+        public void SetAggregateProjectTypeGuids(params Guid[] guids)
+        {
+            this.aggregateProjectTypeGuids = string.Join(";", guids.Select(x => x.ToString("N"))) ?? string.Empty;
+        }
+
+        public void SetTestProject()
+        {
+            this.SetAggregateProjectTypeGuids(ProjectSystemHelper.TestProjectKindGuid);
         }
     }
 }

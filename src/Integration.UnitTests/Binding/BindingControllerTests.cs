@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Case 3: Non-managed project kind
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
-            this.projectSystemHelper.ManagedProjects = null;
+            this.projectSystemHelper.Projects = null;
             // Act + Verify
             Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "No managed projects");
 
@@ -305,7 +305,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
             ProjectMock project1 = this.solutionMock.AddOrGetProject("project1");
-            this.projectSystemHelper.ManagedProjects = new[] { project1 };
+            this.projectSystemHelper.Projects = new[] { project1 };
 
             // Sanity
             Assert.IsTrue(testSubject.BindCommand.CanExecute(CreateProjectViewModel()), "All the requirement should be satisfied for the command to be enabled");

@@ -54,5 +54,15 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public const string RuleSetFileExtension = "ruleset";
 
+        /// <summary>
+        /// The build property key which corresponds to the explicit SonarQube project exclusion.
+        /// </summary>
+        public const string SonarQubeExcludeBuildPropertyKey = "SonarQubeExclude";
+
+        /// <summary>
+        /// The build property key which corresponds to the explicit SonarQube test project identification.
+        /// </summary>
+        public const string SonarQubeTestProjectBuildPropertyKey = "SonarQubeTestProject";
+
     }
 }

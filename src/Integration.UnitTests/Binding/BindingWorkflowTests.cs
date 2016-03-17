@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Threading;
 
@@ -33,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
         private ConfigurableVsGeneralOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
+        private ConfigurableProjectSystemFilter projectFilter;
 
         public TestContext TestContext { get; set; }
 
@@ -44,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.projectFilter = new ConfigurableProjectSystemFilter();
 
             var sccFileSystem = new ConfigurableSourceControlledFileSystem();
             var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem);
@@ -70,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
             RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
-            string language = "lang";
+            var language = Language.CSharp;
             this.ConfigureProfileExport(testSubject, export, language, RuleSetGroup.VB);
 
             // Act
@@ -86,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 1.0,
                 1.0);
             notifications.AssertProgressMessages(
-                string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language),
+                string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language.Name),
                 string.Empty,
                 Strings.QualityProfileDownloadedSuccessfulMessage);
         }
@@ -97,7 +100,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             BindingWorkflow testSubject = this.CreateTestSubject();
             ConfigurableProgressController controller = new ConfigurableProgressController();
-            string language = "lang";
+
+            var language = Language.CSharp;
             this.ConfigureProfileExport(testSubject, null, language, RuleSetGroup.VB);
 
             // Act
@@ -278,23 +282,181 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             this.outputWindowPane.AssertOutputStrings(0);
         }
+
+        [TestMethod]
+        public void BindingWorkflow_GetBindingLangauges_ReturnsDistinctLanguagesForProjects()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            var csProject1 = new ProjectMock("cs1.csproj");
+            var csProject2 = new ProjectMock("cs2.csproj");
+            var csProject3 = new ProjectMock("cs3.csproj");
+            csProject1.SetCSProjectKind();
+            csProject2.SetCSProjectKind();
+            csProject3.SetCSProjectKind();
+            var vbNetProject1 = new ProjectMock("vb1.vbproj");
+            var vbNetProject2 = new ProjectMock("vb2.vbproj");
+            vbNetProject1.SetVBProjectKind();
+            vbNetProject2.SetVBProjectKind();
+            var projects = new[]
+            {
+                csProject1,
+                csProject2,
+                vbNetProject1,
+                csProject3,
+                vbNetProject2
+            };
+            testSubject.BindingProjects.AddRange(projects);
+
+            var expectedLanguages = new[] { Language.CSharp, Language.VBNET };
+
+            // Act
+            var actualLanguages = testSubject.GetBindingLanguages();
+
+            // Verify
+            CollectionAssert.AreEqual(expectedLanguages, actualLanguages.ToArray(), "Unexpected lanuages for binding projects");
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DownloadBindingParameters_RegexPropertyNotSet_SetsFilterWithDefaultExpression()
+        {
+            // Setup
+            var filter = new ConfigurableProjectSystemFilter();
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
+
+            var testSubject = this.CreateTestSubject(filter: filter);
+
+            // Sanity
+            Assert.IsFalse(this.sonarQubeService.ServerProperties.Any(x => x.Key != ServerProperty.TestProjectRegexKey), "Test project regex property should not be set");
+
+            // Act
+            testSubject.DownloadBindingParameters(controller, CancellationToken.None, progressEvents);
+
+            // Verify
+            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
+            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DownloadBindingParameters_CustomRegexProperty_SetsFilterWithCorrectExpression()
+        {
+            // Setup
+            var filter = new ConfigurableProjectSystemFilter();
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            var expectedExpression = ".*spoon.*";
+            this.sonarQubeService.RegisterServerProperty(new ServerProperty
+            {
+                Key = ServerProperty.TestProjectRegexKey,
+                Value = expectedExpression
+            });
+
+            var testSubject = this.CreateTestSubject(filter: filter);
+
+            // Act
+            testSubject.DownloadBindingParameters(controller, CancellationToken.None, progressEvents);
+
+            // Verify
+            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
+            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+        }
+
+
+        [TestMethod]
+        public void BindingWorkflow_DownloadBindingParameters_Cancelled_AbortsWorkflow()
+        {
+            // Setup
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            
+            var testSubject = this.CreateTestSubject();
+
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            // Act
+            testSubject.DownloadBindingParameters(controller, cts.Token, progressEvents);
+
+            // Verify
+            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            controller.AssertNumberOfAbortRequests(1);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DiscoverProjects_AddsMatchingProjectsToBinding()
+        {
+            // Setup
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var filter = new ConfigurableProjectSystemFilter();
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            var csProject1 = new ProjectMock("cs1.csproj");
+            var csProject2 = new ProjectMock("cs2.csproj");
+            csProject1.SetCSProjectKind();
+            csProject2.SetCSProjectKind();
+
+            var matchingProjects = new[] { csProject1, csProject2 };
+            this.projectSystemHelper.Projects = matchingProjects;
+            filter.AllProjectsMatchReturn = true;
+
+            var testSubject = this.CreateTestSubject(filter: filter);
+
+            // Act
+            testSubject.DiscoverProjects(controller, progressEvents);
+
+            // Verify
+            CollectionAssert.AreEqual(matchingProjects, testSubject.BindingProjects.ToArray(), "Unexpected projects selected for binding");
+            progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DiscoverProjects_NoMatchingProjects_AbortsWorkflow()
+        {
+            // Setup
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var filter = new ConfigurableProjectSystemFilter();
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            filter.AllProjectsMatchReturn = false;
+
+            var testSubject = this.CreateTestSubject(filter: filter);
+
+            // Act
+            testSubject.DiscoverProjects(controller, progressEvents);
+
+            // Verify
+            Assert.AreEqual(0, testSubject.BindingProjects.Count, "Expected no projects selected for binding");
+            progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
+            this.outputWindowPane.AssertOutputStrings(Strings.NoProjectsApplicableForBinding);
+            controller.AssertNumberOfAbortRequests(1);
+        }
+
         #endregion
 
         #region Helpers
 
-        private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null)
+        private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null, IProjectSystemFilter filter = null)
         {
             var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.sonarQubeService.SetConnection(new Uri("http://connected"));
             host.SonarQubeService = this.sonarQubeService;
-            var useProjectInfo = projectInfo ?? new ProjectInformation() { Key = "key" };
+            var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
 
-            return new BindingWorkflow(host, useProjectInfo);
+            return new BindingWorkflow(host, useProjectInfo, filter);
         }
 
-        private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] managedProjects)
+        private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] projects)
         {
-            this.projectSystemHelper.ManagedProjects = managedProjects;
+            testSubject.BindingProjects.Clear();
+            testSubject.BindingProjects.AddRange(projects);
+
             foreach (var package in nugetPackages.Select(x => new NuGetPackageInfo { Id = x.Id, Version = x.Version.ToNormalizedString() }))
             {
                 testSubject.NuGetPackages.Add(package);
@@ -307,9 +469,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return packageInstaller;
         }
 
-        private void ConfigureProfileExport(BindingWorkflow testSubject, RoslynExportProfile export, string language, RuleSetGroup group)
+        private void ConfigureProfileExport(BindingWorkflow testSubject, RoslynExportProfile export, Language language, RuleSetGroup group)
         {
-            this.sonarQubeService.ReturnExport[language] = export;
+            this.sonarQubeService.ReturnExport[language.ServerKey] = export;
             testSubject.LanguageToGroupMapping[language] = group;
         }
 

@@ -25,7 +25,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IServiceProvider serviceProvider;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
-
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
         private readonly Dictionary<RuleSetGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<RuleSetGroup, RuleSetInformation>();
         private readonly ConnectionInformation connection;
@@ -38,7 +37,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-          
             if (connection == null)
             {
                 throw new ArgumentNullException(nameof(connection));
@@ -116,11 +114,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Public API
-        public void Initialize()
+        public void Initialize(IEnumerable<Project> projects)
         {
+            if (projects == null)
+            {
+                throw new ArgumentNullException(nameof(projects));
+            }
+
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
 
-            foreach (Project project in this.projectSystem.GetSolutionManagedProjects())
+            foreach (Project project in projects)
             {
                 var binder = new ProjectBindingOperation(serviceProvider, project, this);
                 binder.Initialize();

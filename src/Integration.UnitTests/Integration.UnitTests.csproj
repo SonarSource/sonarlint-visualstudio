@@ -144,6 +144,7 @@
     <Compile Include="Persistence\SolutionBindingTests.cs" />
     <Compile Include="Progress\ProgressNotificationListenerTests.cs" />
     <Compile Include="Progress\ProgressStepRunnerTests.cs" />
+    <Compile Include="Binding\ProjectSystemFilterTests.cs" />
     <Compile Include="RuleSetHelperTests.cs" />
     <Compile Include="SanityTests.cs" />
     <Compile Include="Connection\ConnectionWorkflowTests.cs" />

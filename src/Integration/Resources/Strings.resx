@@ -438,4 +438,24 @@ This is the general format to use when writing errors to output window or when t
     <value>Warning: could not find CodeAnalysisRuleSet for project '{0}'</value>
     <comment>Warning message. '{0}' project unique name </comment>
   </data>
+  <data name="PreparingBindingWorkflowProgessMessage" xml:space="preserve">
+    <value>Preparing binding steps</value>
+    <comment>Binding progress message about preparing further binding steps</comment>
+  </data>
+  <data name="NoProjectsApplicableForBinding" xml:space="preserve">
+    <value>No projects in the current solution are applicable to the selected SonarQube project's quality profile.</value>
+    <comment>Output window message indicating the the current solution does not contain any projects that are applicable to the currently selected SonarQube project's quality profile.</comment>
+  </data>
+  <data name="CSharpLanguageName" xml:space="preserve">
+    <value>C#</value>
+    <comment>C# language name</comment>
+  </data>
+  <data name="VBNetLanguageName" xml:space="preserve">
+    <value>VB.NET</value>
+    <comment>VB.NET language name</comment>
+  </data>
+  <data name="DiscoveringSolutionProjectsProgressMessage" xml:space="preserve">
+    <value>Discovering solution projects</value>
+    <comment>Progress step message indicating projects are being discovered in the current solution</comment>
+  </data>
 </root>
