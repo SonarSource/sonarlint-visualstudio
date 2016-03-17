@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="SolutionRuleSetWriter.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SolutionBindingOperation.Writer.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -7,34 +7,22 @@
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using System;
-using System.Diagnostics;
 using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class SolutionRuleSetWriter : RuleSetWriter
+    internal partial class SolutionBindingOperation
     {
-        private readonly string sonarQubeProjectKey;
-
-        public SolutionRuleSetWriter(string sonarQubeProjectKey, IRuleSetGenerationFileSystem fileSystem = null)
-            :base(fileSystem)
-        {
-            if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
-            {
-                throw new ArgumentNullException(nameof(sonarQubeProjectKey));
-            }
-
-            this.sonarQubeProjectKey = sonarQubeProjectKey;
-        }
+        private readonly IRuleSetSerializer ruleSetFileSystem;
 
         /// <summary>
-        /// Write out the provided <see cref="RuleSet"/> file under the specified solution root path.
+        /// Queues a write of the provided <see cref="RuleSet"/> file under the specified solution root path.
         /// </summary>
         /// <param name="solutionFullPath">Full path to the solution file</param>
         /// <param name="downloadedRuleSet"><see cref="RuleSet"/> that was downloaded from the server</param>
         /// <param name="fileNameSuffix">Rule set file suffix</param>
-        /// <returns>Full file path of the file that was written out</returns>
-        public string WriteSolutionLevelRuleSet(string solutionFullPath, RuleSet downloadedRuleSet, string fileNameSuffix)
+        /// <returns>Full file path of the file that we expect to write to</returns>
+        internal string QueueWriteSolutionLevelRuleSet(string solutionFullPath, RuleSet downloadedRuleSet, string fileNameSuffix)
         {
             if (string.IsNullOrWhiteSpace(solutionFullPath))
             {
@@ -55,10 +43,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string ruleSetRoot = this.GetOrCreateRuleSetDirectory(solutionRoot);
 
             // Create or overwrite existing rule set
-            string existingRuleSetPath = GenerateSolutionRuleSetPath(ruleSetRoot, this.sonarQubeProjectKey, fileNameSuffix);
-            this.FileSystem.WriteRuleSetFile(downloadedRuleSet, existingRuleSetPath);
+            string solutionRuleSet = GenerateSolutionRuleSetPath(ruleSetRoot, this.sonarQubeProjectKey, fileNameSuffix);
+            this.sourceControlledFileSystem.QueueFileWrite(solutionRuleSet, () =>
+            {
+                this.ruleSetFileSystem.WriteRuleSetFile(downloadedRuleSet, solutionRuleSet);
 
-            return existingRuleSetPath;
+                return true;
+            });
+
+            return solutionRuleSet;
         }
 
         /// <summary>
@@ -67,25 +60,23 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <param name="ruleSetRootPath">Root directory to generate the full file path under</param>
         /// <param name="sonarQubeProjectKey">SonarQube project key to generate a rule set file name path for</param>
         /// <param name="fileNameSuffix">Fixed file name suffix</param>
-        internal /* testing purposes */ static string GenerateSolutionRuleSetPath(string ruleSetRootPath, string sonarQubeProjectKey, string fileNameSuffix)
+        private static string GenerateSolutionRuleSetPath(string ruleSetRootPath, string sonarQubeProjectKey, string fileNameSuffix)
         {
-            Debug.Assert(fileNameSuffix != null);
-
             // Cannot use Path.ChangeExtension here because if the sonar project name contains
             // a dot (.) then everything after this will be replaced with .ruleset
-            string fileName = $"{PathHelper.EscapeFileName(sonarQubeProjectKey + fileNameSuffix)}.{FileExtension}";
+            string fileName = $"{PathHelper.EscapeFileName(sonarQubeProjectKey + fileNameSuffix ?? string.Empty)}.{Constants.RuleSetFileExtension}";
             return Path.Combine(ruleSetRootPath, fileName);
         }
 
         /// <summary>
         /// Ensure that the solution level SonarQube rule set folder exists and return the full path to it.
         /// </summary>
-        public string GetOrCreateRuleSetDirectory(string solutionRoot)
+        private string GetOrCreateRuleSetDirectory(string solutionRoot)
         {
             string ruleSetDirectoryPath = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
-            if (!this.FileSystem.DirectoryExists(ruleSetDirectoryPath))
+            if (!this.sourceControlledFileSystem.DirectoryExists(ruleSetDirectoryPath))
             {
-                this.FileSystem.CreateDirectory(ruleSetDirectoryPath);
+                this.sourceControlledFileSystem.CreateDirectory(ruleSetDirectoryPath);
             }
             return ruleSetDirectoryPath;
         }

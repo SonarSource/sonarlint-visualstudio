@@ -35,8 +35,14 @@ namespace SonarLint.VisualStudio.Integration
         public const string SonarQubeHomeWebUrl = "http://sonarqube.org";
 
         /// <summary>
-        /// The property key which correspsonds to the ItemType of a <see cref="EnvDTE.ProjectItem"/>.
+        /// The property key which corresponds to the ItemType of a <see cref="EnvDTE.ProjectItem"/>.
         /// </summary>
         public const string ItemTypePropertyKey = "ItemType";
+
+        /// <summary>
+        /// Ruleset file extension
+        /// </summary>
+        public const string RuleSetFileExtension = "ruleset";
+
     }
 }

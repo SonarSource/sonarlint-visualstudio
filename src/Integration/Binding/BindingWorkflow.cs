@@ -5,13 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Progress.Controller;
 using System;
@@ -65,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.solutionBindingOperation = new SolutionBindingOperation(
                     this.owner.ServiceProvider,
                     this.projectSystemHelper,
+                    this.owner.SonarQubeService.CurrentConnection,
                     this.project.Key);
         }
 
@@ -156,8 +154,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
                         (token, notifications) => this.PrepareSolutionBinding(token)),
 
-                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
-                        (token, notifications) => this.FinishSolutionBindingOnUIThread()),
+                new ProgressStepDefinition(null, StepAttributes.Hidden | StepAttributes.Indeterminate,
+                        (token, notifications) => this.FinishSolutionBindingOnUIThread(controller, token)),
 
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => this.SilentSaveSolutionIfDirty()),
@@ -253,27 +251,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.solutionBindingOperation.Prepare(token);
         }
 
-        private void FinishSolutionBindingOnUIThread()
+        private void FinishSolutionBindingOnUIThread(IProgressController controller, CancellationToken token)
         {
             Debug.Assert(System.Windows.Application.Current?.Dispatcher.CheckAccess() ?? false, "Expected to run on UI thread");
 
-            this.solutionBindingOperation.Commit();
-
-            this.PersistBinding();
+            if (!this.solutionBindingOperation.CommitSolutionBinding())
+            {
+                AbortWorkflow(controller, token);
+                return;
         }
-
-        /// <summary>
-        /// Will persist the binding information for next time usage
-        /// </summary>
-        internal /*for testing purposes*/ void PersistBinding(ICredentialStore credentialStore = null, IProjectSystemHelper projectSystem = null)
-        {
-            Debug.Assert(this.owner.SonarQubeService.CurrentConnection != null, "Connection expected");
-            ConnectionInformation connection = this.owner.SonarQubeService.CurrentConnection;
-
-            BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connection.UserName, connection.Password);
-
-            SolutionBinding binding = new SolutionBinding(this.owner.ServiceProvider, credentialStore, projectSystem);
-            binding.WriteSolutionBinding(new BoundSonarQubeProject(connection.ServerUri, this.project.Key, credentials));
         }
 
         /// <summary>

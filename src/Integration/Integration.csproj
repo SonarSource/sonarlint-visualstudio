@@ -111,14 +111,15 @@
   <ItemGroup>
     <Compile Include="Binding\BindCommand.cs" />
     <Compile Include="Binding\IBindingOperation.cs" />
-    <Compile Include="Binding\IRuleSetGenerationFileSystem.cs" />
+    <Compile Include="Binding\IRuleSetSerializer.cs" />
     <Compile Include="Binding\ISolutionRuleStore.cs" />
     <Compile Include="Binding\ProjectBindingOperation.cs" />
+    <Compile Include="Binding\ProjectBindingOperation.Writer.cs" />
     <Compile Include="Binding\RuleSetGroup.cs" />
+    <Compile Include="Binding\RuleSetFileSystem.cs" />
     <Compile Include="Binding\SolutionBindingOperation.cs" />
     <Compile Include="Binding\NuGetHelper.cs" />
-    <Compile Include="Binding\ProjectRuleSetWriter.cs" />
-    <Compile Include="Binding\SolutionRuleSetWriter.cs" />
+    <Compile Include="Binding\SolutionBindingOperation.Writer.cs" />
     <Compile Include="Connection\ConnectedProjectsEventArgs.cs" />
     <Compile Include="Connection\ConnectionWorkflow.cs" />
     <Compile Include="Constants.cs" />
@@ -130,6 +131,9 @@
     <Compile Include="IServiceProviderExtensions.cs" />
     <Compile Include="IIntegrationSettings.cs" />
     <Compile Include="IWebBrowser.cs" />
+    <Compile Include="LocalServices\IFileSystem.cs" />
+    <Compile Include="LocalServices\ISourceControlledFileSystem.cs" />
+    <Compile Include="Persistence\ISolutionBinding.cs" />
     <Compile Include="Service\DataModel\ServerPlugin.cs" />
     <Compile Include="Service\RoslynExporter\AdditionalFile.cs" />
     <Compile Include="Service\RoslynExporter\Configuration.cs" />
@@ -137,6 +141,7 @@
     <Compile Include="Service\RoslynExporter\NuGetPackageInfo.cs" />
     <Compile Include="Service\RoslynExporter\RoslynExportProfile.cs" />
     <Compile Include="Service\VersionHelper.cs" />
+    <Compile Include="LocalServices\SourceControlledFileSystem.cs" />
     <Compile Include="State\TransferableVisualState.cs" />
     <Compile Include="TeamExplorer\ITeamExplorerController.cs" />
     <Compile Include="TeamExplorer\ResourceHelper.cs" />
@@ -171,7 +176,6 @@
     <Compile Include="Service\DataModel\ProjectInformation.cs" />
     <Compile Include="Service\ConnectedProjectsCallback.cs" />
     <Compile Include="Service\DataModel\QualityProfile.cs" />
-    <Compile Include="Binding\RuleSetWriter.cs" />
     <Compile Include="Service\SonarQubeServiceWrapper.cs" />
     <Compile Include="Service\ISonarQubeServiceWrapper.cs" />
     <Compile Include="Connection\BasicAuthenticationCredentialsValidator.cs" />

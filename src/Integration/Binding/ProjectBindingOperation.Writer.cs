@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="ProjectRuleSetWriter.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="ProjectBindingOperation.Writer.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -15,57 +15,48 @@ using System.Xml;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class ProjectRuleSetWriter: RuleSetWriter
+    internal partial class ProjectBindingOperation
     {
         internal const string DefaultProjectRuleSet = "MinimumRecommendedRules.ruleset";
+        private readonly IRuleSetSerializer ruleSetFileSystem;
 
-        internal /*for testing purposes*/ ISet<string> AlreadyUpdatedExistingRuleSetPaths
+        internal /*for testing purposes*/ IDictionary<string, RuleSet> AlreadyUpdatedExistingRuleSetPaths
         {
             get;
-        } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        } = new Dictionary<string, RuleSet>(StringComparer.OrdinalIgnoreCase);
 
-        public ProjectRuleSetWriter()
-            :this(null)
-        {
-        }
-
-        internal /*for testing purposes*/ ProjectRuleSetWriter(IRuleSetGenerationFileSystem fs)
-            : base(fs)
-        {
-        }
 
         /// <summary>
-        /// Write a project-level SonarQube <see cref="RuleSet"/> file in the <param name="projectRoot"/> directory.
+        /// Queues a write to a project-level SonarQube <see cref="RuleSet"/> file in the <param name="projectRoot"/> directory.
         /// </summary>
         /// <param name="projectFullPath">The absolute full path to the project</param>
         /// <param name="ruleSetFileName">The rule set file name</param>
         /// <param name="solutionRuleSetPath">Full path of the parent solution-level SonarQube rule set</param>
         /// <param name="existingRuleSetPath">Existing project rule set</param>
-        /// <returns>Full file path of the file that was written out</returns>
-        public string WriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, string solutionRuleSetPath, string currentRuleSetPath)
+        /// <returns>Full file path of the file that we expect to write to</returns>
+        internal /*for testing purposes*/ string QueueWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, string solutionRuleSetPath, string currentRuleSetPath)
         {
-            if (string.IsNullOrWhiteSpace(projectFullPath))
-            {
-                throw new ArgumentNullException(nameof(projectFullPath));
-            }
-
-            if (string.IsNullOrWhiteSpace(ruleSetFileName))
-            {
-                throw new ArgumentNullException(nameof(ruleSetFileName));
-            }
-
-            if (string.IsNullOrWhiteSpace(solutionRuleSetPath))
-            {
-                throw new ArgumentNullException(nameof(solutionRuleSetPath));
-            }
+            Debug.Assert(!string.IsNullOrWhiteSpace(projectFullPath));
+            Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFileName));
+            Debug.Assert(!string.IsNullOrWhiteSpace(solutionRuleSetPath));
 
             string projectRoot = Path.GetDirectoryName(projectFullPath);
             string ruleSetRoot = PathHelper.ForceDirectoryEnding(projectRoot);
 
             string existingRuleSetPath;
-            if (this.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, ruleSetRoot, currentRuleSetPath, out existingRuleSetPath))
+            RuleSet existingRuleSet;
+            if (this.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, ruleSetRoot, currentRuleSetPath, out existingRuleSetPath, out existingRuleSet))
             {
                 Debug.Assert(existingRuleSetPath != null);
+                Debug.Assert(existingRuleSet != null);
+
+                // Pend update
+                this.sourceControlledFileSystem.QueueFileWrite(existingRuleSetPath, () =>
+                {
+                    existingRuleSet.WriteToFile(existingRuleSetPath);
+                    return true;
+                });
+
                 return existingRuleSetPath;
             }
 
@@ -73,15 +64,23 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string solutionIncludePath = PathHelper.CalculateRelativePath(ruleSetRoot, solutionRuleSetPath);
             RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath);
             string newRuleSetPath = this.GenerateNewProjectRuleSetPath(ruleSetRoot, ruleSetFileName);
-            this.FileSystem.WriteRuleSetFile(newRuleSet, newRuleSetPath);
+
+            // Pend new
+            this.sourceControlledFileSystem.QueueFileWrite(newRuleSetPath, () =>
+            {
+                this.ruleSetFileSystem.WriteRuleSetFile(newRuleSet, newRuleSetPath);
+                return true;
+            });
 
             return newRuleSetPath;
         }
 
         #region Rule Set Helpers
-        internal /*for testing purposes*/ bool TryUpdateExistingProjectRuleSet(string solutionRuleSetPath, string projectRuleSetRootFolder, string currentRuleSet, out string existingRuleSetPath)
+        internal /*for testing purposes*/ bool TryUpdateExistingProjectRuleSet(string solutionRuleSetPath, string projectRuleSetRootFolder, string currentRuleSet, out string existingRuleSetPath, out RuleSet existingRuleSet)
         {
             existingRuleSetPath = null;
+            existingRuleSet = null;
+
             if (ShouldIgnoreConfigureRuleSetValue(currentRuleSet))
             {
                 return false;
@@ -95,21 +94,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
 
-            if (this.AlreadyUpdatedExistingRuleSetPaths.Contains(existingRuleSetPath))
+            if (this.AlreadyUpdatedExistingRuleSetPaths.TryGetValue(existingRuleSetPath, out existingRuleSet))
             {
                 return true;
             }
 
-            RuleSet existingRuleSet = this.SafeLoadRuleSet(existingRuleSetPath);
-            if (existingRuleSet != null)
+            existingRuleSet = this.SafeLoadRuleSet(existingRuleSetPath);
+            if (existingRuleSet == null)
             {
-                this.UpdateExistingProjectRuleSet(existingRuleSet, existingRuleSetPath, solutionRuleSetPath);
-                this.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetPath);
-                return true;
+                existingRuleSetPath = null;
+                return false;
             }
 
-            existingRuleSetPath = null;
-            return false;
+            this.UpdateExistingProjectRuleSet(existingRuleSet, existingRuleSetPath, solutionRuleSetPath);
+            this.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetPath, existingRuleSet);
+            return true;
         }
 
         /// <summary>
@@ -148,8 +147,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Add correct inclusion
             string expectedIncludePath = PathHelper.CalculateRelativePath(projectRuleSetPath, solutionRuleSetPath);
             existingProjectRuleSet.RuleSetIncludes.Add(new RuleSetInclude(expectedIncludePath, RuleAction.Default));
-
-            this.FileSystem.WriteRuleSetFile(existingProjectRuleSet, projectRuleSetPath);
         }
 
         /// <summary>
@@ -187,11 +184,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <returns>Rule set or null if does not exist or is malformed</returns>
         internal /* testing purposes */ RuleSet SafeLoadRuleSet(string ruleSetPath)
         {
-            if (this.FileSystem.FileExists(ruleSetPath))
+            if (this.sourceControlledFileSystem.FileExist(ruleSetPath))
             {
                 try
                 {
-                    return this.FileSystem.LoadRuleSet(ruleSetPath);
+                    return this.ruleSetFileSystem.LoadRuleSet(ruleSetPath);
                 }
                 catch (Exception ex) when (ex is InvalidRuleSetException || ex is XmlException || ex is IOException)
                 {
@@ -232,13 +229,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 // Cannot use Path.ChangeExtension here because if the sonar project name contains
                 // a dot (.) then everything after this will be replaced with .ruleset
-                string candidateFileName = $"{escapedFileName}{uniqueStr}.{FileExtension}";
+                string candidateFileName = $"{escapedFileName}{uniqueStr}.{Constants.RuleSetFileExtension}";
 
                 candiatePath = Path.Combine(ruleSetRootPath, candidateFileName);
 
                 // Increment index
                 i++;
-            } while (this.FileSystem.FileExists(candiatePath));
+            } while (this.sourceControlledFileSystem.FileExistOrQueuedToBeWritten(candiatePath));
 
             return candiatePath;
         }

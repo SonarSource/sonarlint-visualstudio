@@ -130,12 +130,13 @@
     <Compile Include="Binding\BindingWorkflowTests.cs" />
     <Compile Include="Binding\NuGetHelperTests.cs" />
     <Compile Include="Binding\ProjectBindingOperationTests.cs" />
-    <Compile Include="Binding\SolutionRuleSetWriterTests.cs" />
-    <Compile Include="Binding\SolutionBindingOpearationTests.cs" />
+    <Compile Include="Binding\SolutionBindingOperation.WriterTests.cs" />
+    <Compile Include="Binding\SolutionBindingOperationTests.cs" />
     <Compile Include="Connection\BasicCredentialsValidatorTests.cs" />
     <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />
     <Compile Include="IServiceProviderExtensionsTests.cs" />
+    <Compile Include="LocalServices\SourceControlledFileSystemTests.cs" />
     <Compile Include="PathHelperTests.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectTests.cs" />
     <Compile Include="Persistence\SolutionBindingTests.cs" />
@@ -146,7 +147,7 @@
     <Compile Include="Connection\ConnectCommandTests.cs" />
     <Compile Include="Service\AuthenticationHeaderProviderTests.cs" />
     <Compile Include="Service\ConnectionInformationTests.cs" />
-    <Compile Include="Binding\ProjectRuleSetWriterTests.cs" />
+    <Compile Include="Binding\ProjectBindingOperation.WriterTests.cs" />
     <Compile Include="ActiveSolutionTrackerTests.cs" />
     <Compile Include="Service\VersionHelperTests.cs" />
     <Compile Include="State\TransferableVisualStateTests.cs" />
