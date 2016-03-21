@@ -433,8 +433,9 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
     <value>Cannot bind or sync if there are unsaved changes. Operation cancelled.</value>
     <comment>Output window message when the user cancels the solution save dialog</comment>
   </data>
-  <data name="UnexpectedRuleSetInpectorError" xml:space="preserve">
-    <value>{0}: Unexpected error: {1}</value>
-    <comment>{0} - the class name, {1} - error message</comment>
+  <data name="UnexpectedErrorMessageFormat" xml:space="preserve">
+    <value>{0}: Unexpected error: {1}. You can help us improve by reporting this bug at {2}.</value>
+    <comment>{0} - the class name, {1} - error message, {2} url.
+This is the general format to use when writing errors to output window or when there might not be enough context for the user to understand where is the error comming from.</comment>
   </data>
 </root>

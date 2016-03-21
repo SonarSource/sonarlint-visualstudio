@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsShell shell;
         private ConfigurableVsGeneralOutputWindowPane outputPane;
+        private TempFileCollection temporaryFiles;
 
         #region Test plumbing
         public TestContext TestContext { get; set; }
@@ -43,20 +44,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             this.shell = new ConfigurableVsShell();
             this.shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.SonarQubeRuleSetFolder);
             this.serviceProvider.RegisterService(typeof(SVsShell), this.shell);
-           
+
             this.testSubject = new RuleSetInspector(this.serviceProvider);
 
-            if (!Directory.Exists(VsRuleSetsDirectory))
-            {
-                Directory.CreateDirectory(VsRuleSetsDirectory);
-            }
+            Directory.CreateDirectory(this.VsRuleSetsDirectory);
+
+            this.temporaryFiles = new TempFileCollection();
         }
 
         [TestCleanup]
         public void TestCleanup()
         {
             // Catch release-build issues that would otherwise be ignored because Debug.Assert will not be called
-            this.outputPane.AssertOutputStrings(0); 
+            this.outputPane.AssertOutputStrings(0);
+            ((IDisposable)this.temporaryFiles).Dispose();
         }
         #endregion
 
@@ -88,41 +89,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_ProjectLevelOverridesOfTheSolutionRuleset()
         {
-            using (var temps = new TempFileCollection())
+            // Setup
+            string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
+            this.temporaryFiles.AddFile(solutionRuleSet, false);
+
+            // Check all supported RuleAction values
+            RuleAction[] unsupportedActions = new[] { RuleAction.Default };
+            foreach (RuleAction ruleAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
             {
-                // Setup
-                string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
-                temps.AddFile(solutionRuleSet, false);
-
-                // Check all supported RuleAction values
-                RuleAction[] unsupportedActions = new[] { RuleAction.Default };
-                foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
+                foreach (IncludeType includeType in Enum.GetValues(typeof(IncludeType)).OfType<IncludeType>())
                 {
-                    foreach (IncludeType includeType in Enum.GetValues(typeof(IncludeType)).OfType<IncludeType>())
+                    this.TestContext.WriteLine("Running test case, Project Rules are {0}, SolutionInclude is {1}", ruleAction, includeType);
+
+                    RuleSet projectRuleSet = CreateProjectRuleSetWithInclude(DefaultNumberOfRules, solutionRuleSet, includeType, ruleAction);
+                    this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
+
+                    // Act
+                    RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
+
+                    // Verify
+                    if (ruleAction == RuleAction.None)
                     {
-                        this.TestContext.WriteLine("Running test case, Project Rules are {0}, SolutionInclude is {1}", includeAllAction, includeType);
-
-                        RuleSet projectRuleSet = CreateProjectRuleSetWithInclude(DefaultNumberOfRules, solutionRuleSet, includeType, includeAllAction);
-                        temps.AddFile(projectRuleSet.FilePath, false);
-
-                        // Act
-                        RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
-
-                        // Verify
-                        if (includeAllAction == RuleAction.None)
-                        {
-                            AssertMissingRulesByFullIds(conflicts, projectRuleSet.Rules);
-                            AssertNoWeakRules(conflicts);
-                        }
-                        else if (includeAllAction == RuleAction.Info)
-                        {
-                            AssertWeakRulesByFullIds(conflicts, projectRuleSet.Rules);
-                            AssertNoMissingRules(conflicts);
-                        }
-                        else
-                        {
-                            AssertNoConflicts(conflicts);
-                        }
+                        AssertMissingRulesByFullIds(conflicts, projectRuleSet.Rules);
+                        AssertNoWeakRules(conflicts);
+                    }
+                    else if (ruleAction == RuleAction.Info || ruleAction == RuleAction.Hidden)
+                    {
+                        AssertWeakRulesByFullIds(conflicts, projectRuleSet.Rules);
+                        AssertNoMissingRules(conflicts);
+                    }
+                    else
+                    {
+                        AssertNoConflicts(conflicts);
                     }
                 }
             }
@@ -131,90 +129,82 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_VsIncludesCannotCreateConflictsByDefault()
         {
-            using (var temps = new TempFileCollection())
+            // Setup
+            string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
+            this.temporaryFiles.AddFile(solutionRuleSet, false);
+
+            // Check all supported RuleAction values
+            RuleAction[] unsupportedActions = new[] { RuleAction.Default };
+            foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
             {
-                // Setup
-                string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
-                temps.AddFile(solutionRuleSet, false);
+                string vsRuleSetName = $"VsRuleSet{includeAllAction}.ruleset";
+                RuleSet vsRuleSet = CreateVsRuleSet(DefaultNumberOfRules, vsRuleSetName, includeAllAction);
+                this.temporaryFiles.AddFile(vsRuleSet.FilePath, false);
 
-                // Check all supported RuleAction values
-                RuleAction[] unsupportedActions = new[] { RuleAction.Default };
-                foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
-                {
-                    string vsRuleSetName = $"VsRuleSet{includeAllAction}.ruleset";
-                    RuleSet vsRuleSet = CreateVsRuleSet(DefaultNumberOfRules, vsRuleSetName, includeAllAction);
-                    temps.AddFile(vsRuleSet.FilePath, false);
+                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet, IncludeType.AsRelativeToProject, RuleAction.Default, vsRuleSetName);
+                this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
-                    RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet, IncludeType.AsRelativeToProject, RuleAction.Default, vsRuleSetName);
-                    temps.AddFile(projectRuleSet.FilePath, false);
+                // Act
+                RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
 
-                    // Act
-                    RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
+                // Verify
+                AssertNoConflicts(conflicts);
 
-                    // Verify
-                    AssertNoConflicts(conflicts);
-                }
             }
         }
 
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_UserIncludesCannotCreateConflictsByDefault()
         {
-            using (var temps = new TempFileCollection())
+            // Setup
+            string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
+            this.temporaryFiles.AddFile(solutionRuleSet, false);
+
+            // Check all supported RuleAction values
+            RuleAction[] unsupportedActions = new[] { RuleAction.Default };
+            foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
             {
-                // Setup
-                string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
-                temps.AddFile(solutionRuleSet, false);
+                RuleSet otherRuleSet = this.CreateCommonRuleSet($"User{includeAllAction}.ruleset", includeAllAction);
+                this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-                // Check all supported RuleAction values
-                RuleAction[] unsupportedActions = new[] { RuleAction.Default };
-                foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
-                {
-                    RuleSet otherRuleSet = this.CreateCommonRuleSet($"User{includeAllAction}.ruleset", includeAllAction);
-                    temps.AddFile(otherRuleSet.FilePath, false);
+                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
+                this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
-                    RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
-                    temps.AddFile(projectRuleSet.FilePath, false);
+                // Act
+                RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
 
-                    // Act
-                    RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
-
-                    // Verify 
-                    AssertNoConflicts(conflicts);
-                }
+                // Verify 
+                AssertNoConflicts(conflicts);
             }
         }
 
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_IncludeAllCannotCreateConflictsByDefault()
         {
-            using (var temps = new TempFileCollection())
+            // Setup
+            RuleSet solutionRuleSet = this.CreateCommonRuleSet();
+            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
+
+            // Check all supported RuleAction values
+            RuleAction[] unsupportedActions = new[] { RuleAction.None, RuleAction.Default };
+            foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
             {
-                // Setup
-                RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-                temps.AddFile(solutionRuleSet.FilePath, false);
+                // Include with <IncludeAll ... />
+                RuleSet otherRuleSet = this.CreateCommonRuleSet($"User{includeAllAction}.ruleset", RuleAction.Info);
+                otherRuleSet.IncludeAll = new IncludeAll(includeAllAction);
+                this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-                // Check all supported RuleAction values
-                RuleAction[] unsupportedActions = new[] { RuleAction.None, RuleAction.Default };
-                foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
-                {
-                    // Include with <IncludeAll ... />
-                    RuleSet otherRuleSet = this.CreateCommonRuleSet($"User{includeAllAction}.ruleset", RuleAction.Info);
-                    otherRuleSet.IncludeAll = new IncludeAll(includeAllAction);
-                    temps.AddFile(otherRuleSet.FilePath, false);
+                // Target with <IncludeAll ... />
+                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsRelativeToProject, RuleAction.Info);
+                projectRuleSet.IncludeAll = new IncludeAll(includeAllAction);
+                projectRuleSet.WriteToFile(projectRuleSet.FilePath);
+                this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
-                    // Target with <IncludeAll ... />
-                    RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsRelativeToProject, RuleAction.Info);
-                    projectRuleSet.IncludeAll = new IncludeAll(includeAllAction);
-                    projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-                    temps.AddFile(projectRuleSet.FilePath, false);
+                // Act
+                RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
-                    // Act
-                    RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
-
-                    // Verify
-                    AssertNoConflicts(conflicts);
-                }
+                // Verify
+                AssertNoConflicts(conflicts);
             }
         }
 
@@ -224,168 +214,190 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             // Make sure that the solution level has only one ruleset, and all the other rulesets have DefaultNumberOfRules (>1).
             // This is mainly to check the internal implementation of the RuleSetInjector and its RuleInfoProvider.
 
-            using (var temps = new TempFileCollection())
-            {
-                // Setup
-                string solutionRuleSet = this.CreateCommonRuleSet(rules: 1).FilePath; 
-                temps.AddFile(solutionRuleSet, false);
+            // Setup
+            string solutionRuleSet = this.CreateCommonRuleSet(rules: 1, defaultAction: RuleAction.Hidden).FilePath;
+            this.temporaryFiles.AddFile(solutionRuleSet, false);
 
-                // Modifies all the solution rules to Info (should not impact the result)
-                RuleSet otherRuleSet = this.CreateCommonRuleSet("User.ruleset", RuleAction.Info);
-                temps.AddFile(otherRuleSet.FilePath, false);
+            // Modifies all the solution rules to Info (should not impact the result)
+            RuleSet otherRuleSet = this.CreateCommonRuleSet("User.ruleset", RuleAction.Info);
+            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-                // Modifies all the solution rules to None (should not impact the result)
-                const string BuiltInRuleSetName = "NoneAllRules.ruleset";
-                RuleSet vsRuleSet = CreateVsRuleSet(DefaultNumberOfRules, BuiltInRuleSetName, RuleAction.None);
-                temps.AddFile(vsRuleSet.FilePath, false);
+            // Modifies all the solution rules to None (should not impact the result)
+            const string BuiltInRuleSetName = "NoneAllRules.ruleset";
+            RuleSet vsRuleSet = CreateVsRuleSet(DefaultNumberOfRules, BuiltInRuleSetName, RuleAction.None);
+            this.temporaryFiles.AddFile(vsRuleSet.FilePath, false);
 
-                // The project has 3 modification -> error, info and warning
-                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet, IncludeType.AsIs, RuleAction.Hidden, otherRuleSet.FilePath);
-                projectRuleSet.Rules[1].Action = RuleAction.Error;
-                projectRuleSet.Rules[2].Action = RuleAction.Warning;
-                projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-                temps.AddFile(projectRuleSet.FilePath, false);
+            // The project has 3 modification -> error, info and warning
+            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet, IncludeType.AsIs, RuleAction.Hidden, otherRuleSet.FilePath);
+            projectRuleSet.Rules[0].Action = RuleAction.Info;
+            projectRuleSet.Rules[1].Action = RuleAction.Error;
+            projectRuleSet.Rules[2].Action = RuleAction.Warning;
+            projectRuleSet.WriteToFile(projectRuleSet.FilePath);
+            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
-                // Act
-                RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
+            // Act
+            RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
 
-                // Verify
-                AssertNoConflicts(conflicts);
-            }
+            // Verify
+            AssertNoConflicts(conflicts);
         }
 
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_ComplexStructureWithConflicts()
         {
-            using (var temps = new TempFileCollection())
-            {
-                // Setup
-                string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
-                temps.AddFile(solutionRuleSet, false);
+            // Setup
+            string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
+            this.temporaryFiles.AddFile(solutionRuleSet, false);
 
-                // Modifies all the solution rules to Info (should not impact the result)
-                RuleSet otherRuleSet = this.CreateCommonRuleSet("User.ruleset", RuleAction.Info);
-                temps.AddFile(otherRuleSet.FilePath, false);
+            // Modifies all the solution rules to Info (should not impact the result)
+            RuleSet otherRuleSet = this.CreateCommonRuleSet("User.ruleset", RuleAction.Info);
+            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-                // Modifies all the solution rules to None (should not impact the result)
-                const string BuiltInRuleSetName = "NoneAllRules.ruleset";
-                RuleSet vsRuleSet = CreateVsRuleSet(DefaultNumberOfRules, BuiltInRuleSetName, RuleAction.None);
-                temps.AddFile(vsRuleSet.FilePath, false);
+            // Modifies all the solution rules to None (should not impact the result)
+            const string BuiltInRuleSetName = "NoneAllRules.ruleset";
+            RuleSet vsRuleSet = CreateVsRuleSet(DefaultNumberOfRules, BuiltInRuleSetName, RuleAction.None);
+            this.temporaryFiles.AddFile(vsRuleSet.FilePath, false);
 
-                // The project has 3 modification -> error, info and warning
-                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet, IncludeType.AsIs, RuleAction.Error, otherRuleSet.FilePath);
-                projectRuleSet.Rules[1].Action = RuleAction.Info;
-                projectRuleSet.Rules[2].Action = RuleAction.None;
-                projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-                temps.AddFile(projectRuleSet.FilePath, false);
+            // The project has 3 modification -> error, info and warning
+            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet, IncludeType.AsIs, RuleAction.Error, otherRuleSet.FilePath);
+            projectRuleSet.Rules[1].Action = RuleAction.Info;
+            projectRuleSet.Rules[2].Action = RuleAction.None;
+            projectRuleSet.WriteToFile(projectRuleSet.FilePath);
+            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
-                // Act 
-                RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
+            // Act 
+            RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
 
-                // Verify [verify that having all that with all that extra noise, since the project level overrides two of the values there will be conflicts]
-                AssertWeakRulesByFullIds(conflicts, new[] { projectRuleSet.Rules[1] });
-                AssertMissingRulesByFullIds(conflicts, new[] { projectRuleSet.Rules[2] });
-            }
+            // Verify [verify that having all that with all that extra noise, since the project level overrides two of the values there will be conflicts]
+            AssertWeakRulesByFullIds(conflicts, new[] { projectRuleSet.Rules[1] });
+            AssertMissingRulesByFullIds(conflicts, new[] { projectRuleSet.Rules[2] });
         }
 
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_RuleSetFileCustomization_BaselineRuleSetWasRemoved()
         {
-            using (var temps = new TempFileCollection())
-            {
-                // Setup
-                RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-                temps.AddFile(solutionRuleSet.FilePath, false);
+            // Setup
+            RuleSet solutionRuleSet = this.CreateCommonRuleSet();
+            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
 
-                RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", rules: 2);
-                temps.AddFile(otherRuleSet.FilePath, false);
+            RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", rules: 2);
+            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, otherRuleSet.FilePath, IncludeType.AsIs);
-                temps.AddFile(projectRuleSet.FilePath, false);
+            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, otherRuleSet.FilePath, IncludeType.AsIs);
+            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
-                // Act
-                RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
+            // Act
+            RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
-                // Verify [deleting the baseline and not providing any replacements means that the delta rules are missing]
-                AssertMissingRulesByFullIds(conflicts, new [] { solutionRuleSet.Rules.Last() });
-                AssertNoWeakRules(conflicts);
-            }
+            // Verify [deleting the baseline and not providing any replacements means that the delta rules are missing]
+            AssertMissingRulesByFullIds(conflicts, new[] { solutionRuleSet.Rules.Last() });
+            AssertNoWeakRules(conflicts);
         }
 
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_RuleSetFileCustomization_BaselineRuleSetWasIncludedAsNone()
         {
-            using (var temps = new TempFileCollection())
-            {
-                // Setup
-                RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-                temps.AddFile(solutionRuleSet.FilePath, false);
+            // Setup
+            RuleSet solutionRuleSet = this.CreateCommonRuleSet();
+            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
 
-                RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", RuleAction.Info);
-                temps.AddFile(otherRuleSet.FilePath, false);
+            RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", RuleAction.Info);
+            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
-                projectRuleSet.RuleSetIncludes[0].Action = RuleAction.None;
-                projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-                temps.AddFile(projectRuleSet.FilePath, false);
+            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
+            projectRuleSet.RuleSetIncludes[0].Action = RuleAction.None;
+            projectRuleSet.WriteToFile(projectRuleSet.FilePath);
+            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
-                // Act
-                RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
+            // Act
+            RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
-                // Verify [since baseline is None, the other rulesets actions are then ones being used i.e. Info instead of Warning]
-                AssertWeakRulesByFullIds(conflicts, solutionRuleSet.Rules);
-                AssertNoMissingRules(conflicts);
-            }
+            // Verify [since baseline is None, the other rulesets actions are then ones being used i.e. Info instead of Warning]
+            AssertWeakRulesByFullIds(conflicts, solutionRuleSet.Rules);
+            AssertNoMissingRules(conflicts);
         }
 
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_RuleSetFileCustomization_OtherRuleSetWasIncludedAtLowerStrictnessThanWarning()
         {
-            using (var temps = new TempFileCollection())
-            {
-                // Setup
-                RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-                temps.AddFile(solutionRuleSet.FilePath, false);
+            // Setup
+            RuleSet solutionRuleSet = this.CreateCommonRuleSet();
+            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
 
-                RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", RuleAction.Info);
-                temps.AddFile(otherRuleSet.FilePath, false);
+            RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", RuleAction.Info);
+            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
-                projectRuleSet.RuleSetIncludes[1].Action = RuleAction.Info;
-                projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-                temps.AddFile(projectRuleSet.FilePath, false);
+            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
+            projectRuleSet.RuleSetIncludes[1].Action = RuleAction.Info;
+            projectRuleSet.WriteToFile(projectRuleSet.FilePath);
+            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
-                // Act
-                RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
+            // Act
+            RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
-                // Verify [since included with info the user rule set will remain info and once merged will become warning)
-                AssertNoConflicts(conflicts);
-            }
+            // Verify [since included with info the user rule set will remain info and once merged will become warning)
+            AssertNoConflicts(conflicts);
         }
 
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_RuleSetFileCustomization_OtherRuleSetWasIncludedAtHigherStrictnessThanWarning()
         {
-            using (var temps = new TempFileCollection())
-            {
-                // Setup
-                RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-                temps.AddFile(solutionRuleSet.FilePath, false);
+            // Setup
+            RuleSet solutionRuleSet = this.CreateCommonRuleSet();
+            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
 
-                RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", RuleAction.Info);
-                temps.AddFile(otherRuleSet.FilePath, false);
+            RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", RuleAction.Info);
+            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
-                projectRuleSet.RuleSetIncludes[1].Action = RuleAction.Error;
-                projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-                temps.AddFile(projectRuleSet.FilePath, false);
+            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
+            projectRuleSet.RuleSetIncludes[1].Action = RuleAction.Error;
+            projectRuleSet.WriteToFile(projectRuleSet.FilePath);
+            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
-                // Act
-                RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
+            // Act
+            RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
-                // Verify [since included with Error the user rule set will become error and once merged will become error, not a conflict)
-                AssertNoConflicts(conflicts);
-            }
+            // Verify [since included with Error the user rule set will become error and once merged will become error, not a conflict)
+            AssertNoConflicts(conflicts);
+        }
+
+        [TestMethod]
+        public void RuleSetInspector_IsBaselineWeakend()
+        {
+            // X -> Error
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Error, RuleAction.Error));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Warning, RuleAction.Error));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Info, RuleAction.Error));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Hidden, RuleAction.Error));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.None, RuleAction.Error));
+
+            // X -> Warning
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Error, RuleAction.Warning));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Warning, RuleAction.Warning));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Info, RuleAction.Warning));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Hidden, RuleAction.Warning));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.None, RuleAction.Warning));
+
+            // X -> Info
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Error, RuleAction.Info));
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Warning, RuleAction.Info));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Info, RuleAction.Info));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Hidden, RuleAction.Info));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.None, RuleAction.Info));
+
+            // X -> Hidden
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Error, RuleAction.Hidden));
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Warning, RuleAction.Hidden));
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Info, RuleAction.Hidden));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.Hidden, RuleAction.Hidden));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.None, RuleAction.Hidden));
+
+            // X -> Hidden
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Error, RuleAction.None));
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Warning, RuleAction.None));
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Info, RuleAction.None));
+            Assert.IsTrue(RuleSetInspector.IsBaselineWeakend(RuleAction.Hidden, RuleAction.None));
+            Assert.IsFalse(RuleSetInspector.IsBaselineWeakend(RuleAction.None, RuleAction.None));
         }
         #endregion
 
@@ -450,7 +462,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         private static void AssertWeakRulesByFullIds(RuleConflictInfo info, IEnumerable<RuleReference> expectedRules)
         {
             string[] expectedFullRuleIds = expectedRules.Select(r => r.FullId).ToArray();
-            var actualFullIds = info.WeakActionRules.Select(r => r.FullId).ToArray();
+            var actualFullIds = info.WeakerActionRules.Select(r => r.FullId).ToArray();
             CollectionAssert.AreEquivalent(expectedFullRuleIds, actualFullIds, "Actually weak: {0}", string.Join(", ", actualFullIds));
         }
 
@@ -474,7 +486,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
         private static void AssertNoWeakRules(RuleConflictInfo info)
         {
-            Assert.AreEqual(0, info.WeakActionRules.Count, "Actually weak: {0}", string.Join(", ", info.WeakActionRules.Select(r => r.FullId)));
+            Assert.AreEqual(0, info.WeakerActionRules.Count, "Actually weak: {0}", string.Join(", ", info.WeakerActionRules.Select(r => r.FullId)));
         }
         #endregion Helpers
     }

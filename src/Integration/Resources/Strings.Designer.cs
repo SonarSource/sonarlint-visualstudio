@@ -703,11 +703,11 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}: Unexpected error: {1}.
+        ///   Looks up a localized string similar to {0}: Unexpected error: {1}. You can help us improve by reporting this bug at {2}..
         /// </summary>
-        public static string UnexpectedRuleSetInpectorError {
+        public static string UnexpectedErrorMessageFormat {
             get {
-                return ResourceManager.GetString("UnexpectedRuleSetInpectorError", resourceCulture);
+                return ResourceManager.GetString("UnexpectedErrorMessageFormat", resourceCulture);
             }
         }
         

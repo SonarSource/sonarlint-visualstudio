@@ -22,6 +22,14 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IServiceProvider serviceProvider;
         private readonly HashSet<string> ruleSetSearchDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly RuleAction[] ruleActionStrictnessOrder = new RuleAction[]
+        {
+            RuleAction.None,
+            RuleAction.Hidden,
+            RuleAction.Info,
+            RuleAction.Warning,
+            RuleAction.Error
+        };
 
         /// <summary>
         /// Relative path from VS install to the rule sets folder that come with VS
@@ -56,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration
             // a wrapper that provides the baseline rules, but in the context of the problem this is not required
             // since we will be able to find that the rules were missing just by diffing with the results from 
             // GetEffectiveRules, see more details below.
-            RuleInfoProvider[] providers = new RuleInfoProvider[0]; 
+            RuleInfoProvider[] providers = new RuleInfoProvider[0];
 
             // Underlying implementation details of GetEffectiveRules:
             // The method will return a list of rules, some are the same as specified, and for some the Action will change 
@@ -95,7 +103,8 @@ namespace SonarLint.VisualStudio.Integration
             // will not be optimal in terms of the user or the rebind/update experience. A better approach would be something like:
             // 1. Reset the baseline Include to Action=Default
             // 2. If there are still conflicts, remove all the conflicting rules which are directly on target ruleset.
-            // 3. If there are still conflicts, add the remaining conflicting rules directly under the target with Action=Warning
+            // At this point we should not have any conflicts, so there's should not be a need to add the remaining conflicting 
+            // rules directly under the target with Action=TheExpectedAction
 
             var effectiveRulesMap = target.GetEffectiveRules(ruleSetDirectories, providers, this.EffectiveRulesErrorHandler)
                 .ToDictionary(r => r.FullId, StringComparer.OrdinalIgnoreCase);
@@ -107,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     Debug.Assert(reference.Action != RuleAction.None, "Expected to be found in the missing set");
 
-                    if (reference.Action == RuleAction.Info)
+                    if (IsBaselineWeakend(r.Action, reference.Action))
                     {
                         return reference;
                     }
@@ -121,9 +130,20 @@ namespace SonarLint.VisualStudio.Integration
             return new RuleConflictInfo(disabledRules, deprioritizedRules);
         }
 
+        internal /*for testing purposes*/ static bool IsBaselineWeakend(RuleAction baselineAction, RuleAction targetAction)
+        {
+            Debug.Assert(baselineAction != RuleAction.Default, "'Default' is invalid value for rule. RuleSet schema should prevent this");
+            Debug.Assert(targetAction != RuleAction.Default, "'Default' is invalid value for rule. RuleSet schema should prevent this");
+
+            int baselineStrictness = Array.IndexOf(ruleActionStrictnessOrder, baselineAction);
+            int targetStrictness = Array.IndexOf(ruleActionStrictnessOrder, targetAction);
+
+            return baselineStrictness > targetStrictness;
+        }
+
         private void EffectiveRulesErrorHandler(string message, Exception error)
         {
-            VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.UnexpectedRuleSetInpectorError, nameof(RuleSetInspector), message);
+            VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.UnexpectedErrorMessageFormat, typeof(RuleSetInspector).FullName, message, Constants.SonarLintIssuesWebUrl);
             Debug.Fail(message, error.ToString());
         }
 
@@ -139,6 +159,5 @@ namespace SonarLint.VisualStudio.Integration
 
             return Path.Combine(vsInstallDirectory, DefaultVSRuleSetsFolder);
         }
-
     }
 }
