@@ -90,27 +90,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         public void RuleSetInspector_FindConflictingRules_ProjectLevelOverridesOfTheSolutionRuleset()
         {
             // Setup
-            string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
-            this.temporaryFiles.AddFile(solutionRuleSet, false);
+            RuleSet solutionRuleSet = this.CreateCommonRuleSet();
 
             // Check all supported RuleAction values
-            RuleAction[] unsupportedActions = new[] { RuleAction.Default };
-            foreach (RuleAction ruleAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
+            foreach (RuleAction ruleAction in GetSupportedRuleActions())
             {
                 foreach (IncludeType includeType in Enum.GetValues(typeof(IncludeType)).OfType<IncludeType>())
                 {
                     this.TestContext.WriteLine("Running test case, Project Rules are {0}, SolutionInclude is {1}", ruleAction, includeType);
 
-                    RuleSet projectRuleSet = CreateProjectRuleSetWithInclude(DefaultNumberOfRules, solutionRuleSet, includeType, ruleAction);
-                    this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
+                    RuleSet projectRuleSet = this.CreateProjectRuleSetWithInclude(DefaultNumberOfRules, solutionRuleSet.FilePath, includeType, ruleAction);
 
                     // Act
-                    RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
+                    RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
                     // Verify
                     if (ruleAction == RuleAction.None)
                     {
-                        AssertMissingRulesByFullIds(conflicts, projectRuleSet.Rules);
+                        AssertMissingRulesByFullIds(conflicts, solutionRuleSet.Rules);
                         AssertNoWeakRules(conflicts);
                     }
                     else if (ruleAction == RuleAction.Info || ruleAction == RuleAction.Hidden)
@@ -131,18 +128,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             // Setup
             string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
-            this.temporaryFiles.AddFile(solutionRuleSet, false);
 
             // Check all supported RuleAction values
-            RuleAction[] unsupportedActions = new[] { RuleAction.Default };
-            foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
+            foreach (RuleAction includeAllAction in GetSupportedRuleActions())
             {
                 string vsRuleSetName = $"VsRuleSet{includeAllAction}.ruleset";
-                RuleSet vsRuleSet = CreateVsRuleSet(DefaultNumberOfRules, vsRuleSetName, includeAllAction);
-                this.temporaryFiles.AddFile(vsRuleSet.FilePath, false);
+                this.CreateVsRuleSet(DefaultNumberOfRules, vsRuleSetName, includeAllAction);
 
-                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet, IncludeType.AsRelativeToProject, RuleAction.Default, vsRuleSetName);
-                this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
+                RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(0, solutionRuleSet, IncludeType.AsRelativeToProject, RuleAction.Default, vsRuleSetName);
 
                 // Act
                 RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
@@ -158,17 +151,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             // Setup
             string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
-            this.temporaryFiles.AddFile(solutionRuleSet, false);
 
             // Check all supported RuleAction values
-            RuleAction[] unsupportedActions = new[] { RuleAction.Default };
-            foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
+            foreach (RuleAction includeAllAction in GetSupportedRuleActions())
             {
                 RuleSet otherRuleSet = this.CreateCommonRuleSet($"User{includeAllAction}.ruleset", includeAllAction);
-                this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
-                this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
+                RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(0, solutionRuleSet, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
 
                 // Act
                 RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
@@ -183,22 +172,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             // Setup
             RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
 
             // Check all supported RuleAction values
-            RuleAction[] unsupportedActions = new[] { RuleAction.None, RuleAction.Default };
-            foreach (RuleAction includeAllAction in Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions))
+            foreach (RuleAction includeAllAction in GetSupportedImportRuleActions())
             {
                 // Include with <IncludeAll ... />
                 RuleSet otherRuleSet = this.CreateCommonRuleSet($"User{includeAllAction}.ruleset", RuleAction.Info);
                 otherRuleSet.IncludeAll = new IncludeAll(includeAllAction);
-                this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
                 // Target with <IncludeAll ... />
-                RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsRelativeToProject, RuleAction.Info);
+                RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsRelativeToProject, RuleAction.Info);
                 projectRuleSet.IncludeAll = new IncludeAll(includeAllAction);
                 projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-                this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
                 // Act
                 RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
@@ -216,24 +201,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             // Setup
             string solutionRuleSet = this.CreateCommonRuleSet(rules: 1, defaultAction: RuleAction.Hidden).FilePath;
-            this.temporaryFiles.AddFile(solutionRuleSet, false);
 
             // Modifies all the solution rules to Info (should not impact the result)
             RuleSet otherRuleSet = this.CreateCommonRuleSet("User.ruleset", RuleAction.Info);
-            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
             // Modifies all the solution rules to None (should not impact the result)
             const string BuiltInRuleSetName = "NoneAllRules.ruleset";
-            RuleSet vsRuleSet = CreateVsRuleSet(DefaultNumberOfRules, BuiltInRuleSetName, RuleAction.None);
-            this.temporaryFiles.AddFile(vsRuleSet.FilePath, false);
+            this.CreateVsRuleSet(DefaultNumberOfRules, BuiltInRuleSetName, RuleAction.None);
 
             // The project has 3 modification -> error, info and warning
-            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet, IncludeType.AsIs, RuleAction.Hidden, otherRuleSet.FilePath);
+            RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet, IncludeType.AsIs, RuleAction.Hidden, otherRuleSet.FilePath, BuiltInRuleSetName);
             projectRuleSet.Rules[0].Action = RuleAction.Info;
             projectRuleSet.Rules[1].Action = RuleAction.Error;
             projectRuleSet.Rules[2].Action = RuleAction.Warning;
             projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
             // Act
             RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
@@ -247,23 +228,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             // Setup
             string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
-            this.temporaryFiles.AddFile(solutionRuleSet, false);
 
             // Modifies all the solution rules to Info (should not impact the result)
             RuleSet otherRuleSet = this.CreateCommonRuleSet("User.ruleset", RuleAction.Info);
-            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
             // Modifies all the solution rules to None (should not impact the result)
             const string BuiltInRuleSetName = "NoneAllRules.ruleset";
-            RuleSet vsRuleSet = CreateVsRuleSet(DefaultNumberOfRules, BuiltInRuleSetName, RuleAction.None);
-            this.temporaryFiles.AddFile(vsRuleSet.FilePath, false);
+            this.CreateVsRuleSet(DefaultNumberOfRules, BuiltInRuleSetName, RuleAction.None);
 
             // The project has 3 modification -> error, info and warning
-            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet, IncludeType.AsIs, RuleAction.Error, otherRuleSet.FilePath);
+            RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet, IncludeType.AsIs, RuleAction.Error, otherRuleSet.FilePath, BuiltInRuleSetName);
             projectRuleSet.Rules[1].Action = RuleAction.Info;
             projectRuleSet.Rules[2].Action = RuleAction.None;
             projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
             // Act 
             RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
@@ -277,14 +254,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         public void RuleSetInspector_FindConflictingRules_RuleSetFileCustomization_BaselineRuleSetWasRemoved()
         {
             // Setup
-            RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
+            RuleSet solutionRuleSet = this.CreateCommonRuleSet(rules: 3);
 
             RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", rules: 2);
-            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, otherRuleSet.FilePath, IncludeType.AsIs);
-            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
+            RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(0, otherRuleSet.FilePath, IncludeType.AsIs);
 
             // Act
             RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
@@ -299,15 +273,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             // Setup
             RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
 
             RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", RuleAction.Info);
-            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
+            RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
             projectRuleSet.RuleSetIncludes[0].Action = RuleAction.None;
             projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
             // Act
             RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
@@ -322,15 +293,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             // Setup
             RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
 
             RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", RuleAction.Info);
-            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
+            RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
             projectRuleSet.RuleSetIncludes[1].Action = RuleAction.Info;
             projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
             // Act
             RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
@@ -344,15 +312,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             // Setup
             RuleSet solutionRuleSet = this.CreateCommonRuleSet();
-            this.temporaryFiles.AddFile(solutionRuleSet.FilePath, false);
 
             RuleSet otherRuleSet = this.CreateCommonRuleSet($"User.ruleset", RuleAction.Info);
-            this.temporaryFiles.AddFile(otherRuleSet.FilePath, false);
 
-            RuleSet projectRuleSet = CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
+            RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Default, otherRuleSet.FilePath);
             projectRuleSet.RuleSetIncludes[1].Action = RuleAction.Error;
             projectRuleSet.WriteToFile(projectRuleSet.FilePath);
-            this.temporaryFiles.AddFile(projectRuleSet.FilePath, false);
 
             // Act
             RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
@@ -411,6 +376,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             ruleSet.FilePath = Path.Combine(this.SonarQubeRuleSetFolder, ruleSetFileName);
             ruleSet.WriteToFile(ruleSet.FilePath);
 
+            this.temporaryFiles.AddFile(ruleSet.FilePath, false);
             return ruleSet;
         }
 
@@ -421,10 +387,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             ruleSet.FilePath = Path.Combine(this.VsRuleSetsDirectory, ruleSetFileName);
             ruleSet.WriteToFile(ruleSet.FilePath);
 
+            this.temporaryFiles.AddFile(ruleSet.FilePath, false);
+
             return ruleSet;
         }
 
-        private static RuleSet CreateProjectRuleSetWithIncludes(int rules, string solutionRuleSetToInclude, IncludeType solutionIncludeType, RuleAction defaultAction = RuleAction.Warning, params string[] otherIncludes)
+        private RuleSet CreateProjectRuleSetWithIncludes(int rules, string solutionRuleSetToInclude, IncludeType solutionIncludeType, RuleAction defaultAction = RuleAction.Warning, params string[] otherIncludes)
         {
             string projectFile = Path.GetTempFileName();
             string solutionInclude = solutionIncludeType == IncludeType.AsIs ? solutionRuleSetToInclude : PathHelper.CalculateRelativePath(projectFile, solutionRuleSetToInclude);
@@ -439,12 +407,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             ruleSet.FilePath = projectFile;
             ruleSet.WriteToFile(ruleSet.FilePath);
 
+            this.temporaryFiles.AddFile(ruleSet.FilePath, false);
+
             return ruleSet;
         }
 
-        private static RuleSet CreateProjectRuleSetWithInclude(int rules, string solutionRuleSetToInclude, IncludeType solutionIncludeType, RuleAction defaultAction)
+        private RuleSet CreateProjectRuleSetWithInclude(int rules, string solutionRuleSetToInclude, IncludeType solutionIncludeType, RuleAction defaultAction)
         {
-            return CreateProjectRuleSetWithIncludes(rules, solutionRuleSetToInclude, solutionIncludeType, defaultAction);
+            return this.CreateProjectRuleSetWithIncludes(rules, solutionRuleSetToInclude, solutionIncludeType, defaultAction);
         }
 
         /// <summary>
@@ -487,6 +457,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         private static void AssertNoWeakRules(RuleConflictInfo info)
         {
             Assert.AreEqual(0, info.WeakerActionRules.Count, "Actually weak: {0}", string.Join(", ", info.WeakerActionRules.Select(r => r.FullId)));
+        }
+
+        private static IEnumerable<RuleAction> GetSupportedRuleActions()
+        {
+            RuleAction[] unsupportedActions = new[] { RuleAction.Default };
+            return Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions);
+        }
+
+        private static IEnumerable<RuleAction> GetSupportedImportRuleActions()
+        {
+            RuleAction[] unsupportedActions = new[] { RuleAction.None, RuleAction.Default };
+            return Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions);
         }
         #endregion Helpers
     }
