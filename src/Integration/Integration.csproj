@@ -42,6 +42,7 @@
       <HintPath>..\..\Packages\Microsoft.IdentityModel.Clients.ActiveDirectory.2.20.301151232\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.WindowsForms.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -133,9 +134,13 @@
     <Compile Include="IIntegrationSettings.cs" />
     <Compile Include="IWebBrowser.cs" />
     <Compile Include="LocalServices\IFileSystem.cs" />
+    <Compile Include="LocalServices\IRuleSetInspector.cs" />
     <Compile Include="LocalServices\ISourceControlledFileSystem.cs" />
+    <Compile Include="LocalServices\RuleConflictInfo.cs" />
+    <Compile Include="LocalServices\RuleSetInspector.cs" />
     <Compile Include="Persistence\ISolutionBinding.cs" />
     <Compile Include="Progress\IProgressStepRunnerWrapper.cs" />
+    <Compile Include="RuleSetHelper.cs" />
     <Compile Include="Service\DataModel\ServerPlugin.cs" />
     <Compile Include="Service\RoslynExporter\AdditionalFile.cs" />
     <Compile Include="Service\RoslynExporter\Configuration.cs" />

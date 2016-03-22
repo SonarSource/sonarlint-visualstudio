@@ -23,8 +23,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             string nl = Environment.NewLine;
 
-            string contentMessage = message ?? $"Documents are not equal. Expected:{nl}{expectedDocument}{nl}but was:{nl}{actualDocument}";
-            string declarationMessage = message ?? $"Declarations are not equal. Expected: {expectedDocument.Declaration} but was {actualDocument.Declaration}";
+            string contentMessage = (message ?? string.Empty) + $"Documents are not equal. Expected:{nl}{expectedDocument}{nl}but was:{nl}{actualDocument}";
+            string declarationMessage = (message ?? string.Empty) + $"Declarations are not equal. Expected: {expectedDocument.Declaration} but was {actualDocument.Declaration}";
 
             bool contentEqual = XNode.DeepEquals(expectedDocument, actualDocument);
             bool declarationEqual = string.Equals(expectedDocument.Declaration.Encoding, actualDocument.Declaration.Encoding) &&
