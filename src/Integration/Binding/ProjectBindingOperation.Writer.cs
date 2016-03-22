@@ -106,48 +106,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
 
-            this.UpdateExistingProjectRuleSet(existingRuleSet, existingRuleSetPath, solutionRuleSetPath);
+            RuleSetHelper.UpdateExistingProjectRuleSet(existingRuleSet, existingRuleSetPath, solutionRuleSetPath);
             this.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetPath, existingRuleSet);
             return true;
         }
 
-        /// <summary>
-        /// Remove all rule set inclusions which exist under the specified root directory.
-        /// </summary>
-        internal /* testing purposes */ static void RemoveAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)
-        {
-            Debug.Assert(!string.IsNullOrWhiteSpace(rootDirectory));
-
-            string ruleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(ruleSet.FilePath));
-
-            // List<T> required as RuleSetIncludes will be modified
-            List<RuleSetInclude> toRemove = ruleSet.RuleSetIncludes
-                                            .Where(include =>
-                                            {
-                                                string fullIncludePath = PathHelper.ResolveRelativePath(include.FilePath, ruleSetRoot);
-                                                return PathHelper.IsPathRootedUnderRoot(fullIncludePath, rootDirectory);
-                                            })
-                                            .ToList();
-            toRemove.ForEach(x => ruleSet.RuleSetIncludes.Remove(x));
-        }
-
-        /// <summary>
-        /// Update the existing project rule set inclusions if required, otherwise do nothing.
-        /// </summary>
-        /// <param name="existingProjectRuleSet">Existing project level rule set</param>
-        /// <param name="projectRuleSetPath">Full path of <paramref name="existingProjectRuleSet"/></param>
-        /// <param name="solutionRuleSetPath">Full path of solution level rule set</param>
-        /// <returns>Updated <see cref="RuleSet"/> (<paramref name="existingProjectRuleSet"/>) with correct inclusions</returns>
-        internal /* testing purposes */ void UpdateExistingProjectRuleSet(RuleSet existingProjectRuleSet, string projectRuleSetPath, string solutionRuleSetPath)
-        {
-            // Remove all solution level inclusions
-            string solutionRuleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(solutionRuleSetPath));
-            RemoveAllIncludesUnderRoot(existingProjectRuleSet, solutionRuleSetRoot);
-
-            // Add correct inclusion
-            string expectedIncludePath = PathHelper.CalculateRelativePath(projectRuleSetPath, solutionRuleSetPath);
-            existingProjectRuleSet.RuleSetIncludes.Add(new RuleSetInclude(expectedIncludePath, RuleAction.Default));
-        }
 
         /// <summary>
         /// Generate a new project level rule set with the provided inclusions (if not an ignored rule set).

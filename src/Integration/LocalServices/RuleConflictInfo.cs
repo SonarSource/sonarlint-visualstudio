@@ -20,11 +20,13 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.MissingRules = (missing ?? Enumerable.Empty<RuleReference>()).ToArray();
             this.WeakerActionRules = (weak ?? Enumerable.Empty<RuleReference>()).ToArray();
+            this.HasConflicts = this.MissingRules.Count > 0 || this.WeakerActionRules.Count > 0;
         }
 
         public IReadOnlyList<RuleReference> MissingRules { get; }
 
         public IReadOnlyList<RuleReference> WeakerActionRules { get; }
-    }
 
+        public bool HasConflicts { get; }
+    }
 }

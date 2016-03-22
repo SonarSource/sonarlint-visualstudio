@@ -48,15 +48,65 @@ namespace SonarLint.VisualStudio.Integration
             ruleSetSearchDirectories.Add(GetStaticAnalysisToolsDirectory());
         }
 
+        /// <summary>
+        /// <see cref="IRuleSetInspector.FindConflictingRules(string, string)"/>
+        /// </summary>
+        public RuleSet FixConflictingRules(string baselineRuleSetPath, string targetRuleSetPath)
+        {
+            if (string.IsNullOrWhiteSpace(baselineRuleSetPath))
+            {
+                throw new ArgumentNullException(nameof(baselineRuleSetPath));
+            }
+
+            if (string.IsNullOrWhiteSpace(targetRuleSetPath))
+            {
+                throw new ArgumentNullException(nameof(targetRuleSetPath));
+            }
+
+
+            RuleSet baseline = RuleSet.LoadFromFile(baselineRuleSetPath);
+            RuleSet target = RuleSet.LoadFromFile(targetRuleSetPath);
+
+            RuleConflictInfo conflicts = this.FindConlictsCore(baseline, target);
+            Debug.Assert(conflicts.HasConflicts, "There are no conflicts between baseline and target.");
+            if (conflicts.HasConflicts)
+            {
+                if (!this.TryResolveIncludeConflicts(baseline, target))
+                {
+                    this.DeleteConflictingRules(baseline, target);
+                }
+            }
+
+            return target;
+        }
+
+        /// <summary>
+        /// <see cref="IRuleSetInspector.FindConflictingRules(string, string)"/>
+        /// </summary>
         public RuleConflictInfo FindConflictingRules(string baseLineRuleSet, string targetRuleSet)
         {
-            var baseLine = RuleSet.LoadFromFile(baseLineRuleSet);
-            var target = RuleSet.LoadFromFile(targetRuleSet);
+            if (string.IsNullOrWhiteSpace(baseLineRuleSet))
+            {
+                throw new ArgumentNullException(nameof(baseLineRuleSet));
+            }
 
+            if (string.IsNullOrWhiteSpace(targetRuleSet))
+            {
+                throw new ArgumentNullException(nameof(targetRuleSet));
+            }
+
+            RuleSet baseline = RuleSet.LoadFromFile(baseLineRuleSet);
+            RuleSet target = RuleSet.LoadFromFile(targetRuleSet);
+
+            return FindConlictsCore(baseline, target);
+        }
+
+        private RuleConflictInfo FindConlictsCore(RuleSet baselineRuleSet, RuleSet targetRuleSet)
+        {
             string[] ruleSetDirectories = this.ruleSetSearchDirectories.Union(new[]
             {
-                    Path.GetDirectoryName(baseLineRuleSet), 
-                    Path.GetDirectoryName(targetRuleSet)
+                    Path.GetDirectoryName(baselineRuleSet.FilePath),
+                    Path.GetDirectoryName(targetRuleSet.FilePath)
                 }).ToArray();
 
             // RuleProviders are used in practice for IncludeAll purposes i.e. AllRule.ruleset will be 
@@ -106,10 +156,10 @@ namespace SonarLint.VisualStudio.Integration
             // At this point we should not have any conflicts, so there's should not be a need to add the remaining conflicting 
             // rules directly under the target with Action=TheExpectedAction
 
-            var effectiveRulesMap = target.GetEffectiveRules(ruleSetDirectories, providers, this.EffectiveRulesErrorHandler)
+            var effectiveRulesMap = targetRuleSet.GetEffectiveRules(ruleSetDirectories, providers, this.EffectiveRulesErrorHandler)
                 .ToDictionary(r => r.FullId, StringComparer.OrdinalIgnoreCase);
 
-            var deprioritizedRules = baseLine.Rules.Select(r =>
+            var deprioritizedRules = baselineRuleSet.Rules.Select(r =>
             {
                 RuleReference reference;
                 if (effectiveRulesMap.TryGetValue(r.FullId, out reference))
@@ -125,9 +175,47 @@ namespace SonarLint.VisualStudio.Integration
                 return null;
             }).Where(r => r != null);
 
-            var disabledRules = baseLine.Rules.Where(r => !effectiveRulesMap.ContainsKey(r.FullId));
+            var disabledRules = baselineRuleSet.Rules.Where(r => !effectiveRulesMap.ContainsKey(r.FullId));
 
             return new RuleConflictInfo(disabledRules, deprioritizedRules);
+        }
+
+        /// <summary>
+        /// Attempts to fix the conflicts by updating the RuleSet Includes to what they were 
+        /// when we bound the solution to SonarQube
+        /// </summary>
+        /// <returns>Whether all conflicts were resolved</returns>
+        private bool TryResolveIncludeConflicts(RuleSet baselineRuleSet, RuleSet targetRuleSet)
+        {
+            Debug.Assert(baselineRuleSet != null);
+            Debug.Assert(targetRuleSet != null);
+            Debug.Assert(!string.IsNullOrWhiteSpace(baselineRuleSet.FilePath));
+            Debug.Assert(!string.IsNullOrWhiteSpace(targetRuleSet.FilePath));
+
+            RuleSetHelper.UpdateExistingProjectRuleSet(targetRuleSet, targetRuleSet.FilePath, baselineRuleSet.FilePath);
+            RuleConflictInfo conflicts1stAttempt = this.FindConlictsCore(baselineRuleSet, targetRuleSet);
+            return !conflicts1stAttempt.HasConflicts;
+        }
+
+        /// <summary>
+        /// Fixes conflicts resulting in having rule overrides in <param name="targetRuleSet" />
+        /// </summary>
+        /// <remarks>Assumes that <see cref="ResetSolutionRuleSetIncludes"/> executed already to fix the include issues</remarks>
+        private void DeleteConflictingRules(RuleSet baselineRuleSet, RuleSet targetRuleSet)
+        {
+            // At this point the remaining conflicts are the rule overrides directly on target.
+            // Removing those issues should fix all the remaining conflicts.
+            foreach (RuleReference baselineRule in baselineRuleSet.Rules)
+            {
+                RuleReference targetRule;
+                if (targetRuleSet.Rules.TryGetRule(baselineRule.FullId, out targetRule)
+                    && IsBaselineWeakend(baselineRule.Action, targetRule.Action))
+                {
+                    targetRuleSet.Rules.Remove(targetRule);
+                }
+            }
+
+            Debug.Assert(!this.FindConlictsCore(baselineRuleSet, targetRuleSet).HasConflicts, "Not expecting any conflicts once deleted the conflicting baseline rules on target");
         }
 
         internal /*for testing purposes*/ static bool IsBaselineWeakend(RuleAction baselineAction, RuleAction targetAction)

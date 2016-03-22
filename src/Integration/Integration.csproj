@@ -138,6 +138,7 @@
     <Compile Include="LocalServices\RuleConflictInfo.cs" />
     <Compile Include="LocalServices\RuleSetInspector.cs" />
     <Compile Include="Persistence\ISolutionBinding.cs" />
+    <Compile Include="RuleSetHelper.cs" />
     <Compile Include="Service\DataModel\ServerPlugin.cs" />
     <Compile Include="Service\RoslynExporter\AdditionalFile.cs" />
     <Compile Include="Service\RoslynExporter\Configuration.cs" />

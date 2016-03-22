@@ -7,66 +7,17 @@
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Globalization;
 using SonarLint.VisualStudio.Integration.Binding;
-using System.Linq;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     public partial class ProjectBindingOperationTests
     {
         #region Tests
-
-        [TestMethod]
-        public void ProjectBindingOperation_RemoveAllIncludesUnderRoot()
-        {
-            // Setup
-            const string slnRoot = @"X:\SolutionDir\";
-            string projectRoot = Path.Combine(slnRoot, @"Project\");
-            string sonarRoot = Path.Combine(slnRoot, @"Sonar\");
-            string commonRoot = Path.Combine(slnRoot, @"Common\");
-
-            const string sonarRs1FileName = "Sonar1.ruleset";
-            const string sonarRs2FileName = "Sonar2.ruleset";
-            const string projectRsBaseFileName = "ProjectBase.ruleset";
-            const string commonRs1FileName = "SolutionCommon1.ruleset";
-            const string commonRs2FileName = "SolutionCommon2.ruleset";
-
-            var sonarRs1 = TestRuleSetHelper.CreateTestRuleSet(sonarRoot, sonarRs1FileName);
-            var sonarRs2 = TestRuleSetHelper.CreateTestRuleSet(sonarRoot, sonarRs2FileName);
-            var projectBaseRs = TestRuleSetHelper.CreateTestRuleSet(projectRoot, projectRsBaseFileName);
-            var commonRs1 = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs1FileName);
-            var commonRs2 = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs2FileName);
-
-            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
-            rsFS.RegisterRuleSet(sonarRs1);
-            rsFS.RegisterRuleSet(sonarRs2);
-            rsFS.RegisterRuleSet(projectBaseRs);
-            rsFS.RegisterRuleSet(commonRs1);
-            rsFS.RegisterRuleSet(commonRs2);
-
-            var inputRuleSet = TestRuleSetHelper.CreateTestRuleSet(projectRoot, "test.ruleset");
-            AddRuleSetInclusion(inputRuleSet, projectBaseRs, useRelativePath: true);
-            AddRuleSetInclusion(inputRuleSet, commonRs1, useRelativePath: true);
-            AddRuleSetInclusion(inputRuleSet, commonRs2, useRelativePath: false);
-            AddRuleSetInclusion(inputRuleSet, sonarRs1, useRelativePath: true);
-            AddRuleSetInclusion(inputRuleSet, sonarRs2, useRelativePath: false);
-
-            var expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet(projectRoot, "test.ruleset");
-            AddRuleSetInclusion(expectedRuleSet, projectBaseRs, useRelativePath: true);
-            AddRuleSetInclusion(expectedRuleSet, commonRs1, useRelativePath: true);
-            AddRuleSetInclusion(expectedRuleSet, commonRs2, useRelativePath: false);
-
-            // Act
-            ProjectBindingOperation.RemoveAllIncludesUnderRoot(inputRuleSet, sonarRoot);
-
-            // Verify
-            RuleSetAssert.AreEqual(expectedRuleSet, inputRuleSet);
-        }
 
         [TestMethod]
         public void ProjectBindingOperation_SafeLoadRuleSet()
@@ -235,37 +186,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             RuleSetAssert.AreEqual(expectedRuleSet, actualRuleSet);
-        }
-
-        [TestMethod]
-        public void ProjectBindingOperation_UpdateExistingProjectRuleSet()
-        {
-            // Setup
-            var rsFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
-            ProjectBindingOperation testSubject = this.CreateTestSubject(rsFS);
-
-            const string existingProjectRuleSetPath = @"X:\MySolution\ProjectOne\proj1.ruleset";
-            const string existingInclude = @"..\SolutionRuleSets\sonarqube1.ruleset";
-
-            const string newSolutionRuleSetPath = @"X:\MySolution\SolutionRuleSets\sonarqube2.ruleset";
-            const string expectedInclude = @"..\SolutionRuleSets\sonarqube2.ruleset";
-
-            var existingProjectRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingProjectRuleSetPath);
-            existingProjectRuleSet.RuleSetIncludes.Add(new RuleSetInclude(existingInclude, RuleAction.Default));
-
-            rsFS.RegisterRuleSet(existingProjectRuleSet, existingProjectRuleSetPath);
-            rsFS.RegisterRuleSet(new RuleSet("sonar1"), @"X:\MySolution\SolutionRuleSets\sonarqube1.ruleset");
-            long initalWriteTimestamp = this.sccFileSystem.GetFileTimestamp(existingProjectRuleSetPath);
-
-            var expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingProjectRuleSetPath);
-            expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(expectedInclude, RuleAction.Default));
-
-            // Act
-            testSubject.UpdateExistingProjectRuleSet(existingProjectRuleSet, existingProjectRuleSetPath, newSolutionRuleSetPath);
-
-            // Verify
-            rsFS.AssertRuleSetsAreEqual(existingProjectRuleSetPath, expectedRuleSet);
-            this.sccFileSystem.AssertFileTimestamp(existingProjectRuleSetPath, initalWriteTimestamp);
         }
 
         [TestMethod]
@@ -602,18 +522,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 Assert.IsNull(rsOutput, "Unexpected rule set was returned. Case: {0}", testCase);
                 Assert.IsFalse(result, "Not expecting to update a non project rooted rulesets. Case: {0}", testCase);
             }
-        }
-
-        #endregion
-
-        #region Helpers
-
-        private static void AddRuleSetInclusion(RuleSet parent, RuleSet child, bool useRelativePath)
-        {
-            string include = useRelativePath
-                ? PathHelper.CalculateRelativePath(parent.FilePath, child.FilePath)
-                : child.FilePath;
-            parent.RuleSetIncludes.Add(new RuleSetInclude(include, RuleAction.Default));
         }
 
         #endregion
