@@ -136,6 +136,7 @@
     <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />
     <Compile Include="IServiceProviderExtensionsTests.cs" />
+    <Compile Include="LocalServices\RuleSetInspectorTests.cs" />
     <Compile Include="LocalServices\SourceControlledFileSystemTests.cs" />
     <Compile Include="PathHelperTests.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectTests.cs" />

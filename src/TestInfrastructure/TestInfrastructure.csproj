@@ -151,6 +151,7 @@
     <Compile Include="Framework\ConfigurableVsProjectSystemHelper.cs" />
     <Compile Include="Framework\ConfigurableTelemetryLogger.cs" />
     <Compile Include="Framework\ConfigurableVsQueryEditQuerySave2.cs" />
+    <Compile Include="Framework\ConfigurableVsShell.cs" />
     <Compile Include="Framework\ConfigurableWebBrowser.cs" />
     <Compile Include="Framework\ConfigurableWritableSettingsStore.cs" />
     <Compile Include="Helpers\AssertIgnoreScope.cs" />
