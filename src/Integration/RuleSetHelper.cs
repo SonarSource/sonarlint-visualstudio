@@ -16,14 +16,23 @@ namespace SonarLint.VisualStudio.Integration
     internal static class RuleSetHelper
     {
         /// <summary>
-        /// Updates the existing project rule set inclusions by deleting all the previous solution includes (determined by solution rule set folder)
+        /// Updates the <paramref name="ruleSet"/> by deleting all the previously included rule sets 
+        /// that were in the same folder as <paramref name="solutionRuleSetPath"/> and then includes 
+        /// the rule set specified by <paramref name="solutionRuleSetPath"/>.
         /// </summary>
-        /// <remarks>The update is in-memory to the <paramref name="ruleSet"/></remarks>
-        /// <param name="existingProjectRuleSet">Existing project level rule set</param>
-        /// <param name="projectRuleSetPath">Full path of <paramref name="existingProjectRuleSet"/></param>
-        /// <param name="solutionRuleSetPath">Full path of solution level rule set</param>
-        public static void UpdateExistingProjectRuleSet(RuleSet ruleSet, string projectRuleSetPath, string solutionRuleSetPath)
+        /// <remarks>
+        /// The update is in-memory to the <paramref name="ruleSet"/> and we rely on the fact that we 
+        /// previously generated the 'solutionRuleSet' to the same folder as the updated <paramref name="solutionRuleSetPath"/></remarks>
+        /// <param name="ruleSet">Existing project level rule set</param>
+        /// <param name="solutionRuleSetPath">Full path of solution level rule set (one that was generated during bind)</param>
+        public static void UpdateExistingProjectRuleSet(RuleSet ruleSet, string solutionRuleSetPath)
         {
+            Debug.Assert(ruleSet != null);
+            Debug.Assert(!string.IsNullOrWhiteSpace(solutionRuleSetPath));
+
+            string projectRuleSetPath = ruleSet.FilePath;
+            Debug.Assert(!string.IsNullOrWhiteSpace(projectRuleSetPath));
+
             // Remove all solution level inclusions
             string solutionRuleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(solutionRuleSetPath));
             RuleSetHelper.RemoveAllIncludesUnderRoot(ruleSet, solutionRuleSetRoot);

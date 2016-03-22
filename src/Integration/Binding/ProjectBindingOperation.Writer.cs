@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
 
-            RuleSetHelper.UpdateExistingProjectRuleSet(existingRuleSet, existingRuleSetPath, solutionRuleSetPath);
+            RuleSetHelper.UpdateExistingProjectRuleSet(existingRuleSet, solutionRuleSetPath);
             this.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSetPath, existingRuleSet);
             return true;
         }

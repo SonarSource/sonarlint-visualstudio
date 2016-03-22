@@ -20,7 +20,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     public class RuleSetInspectorTests
     {
         /* Notes: "By default" is referred to the way we create rulesets for projects when binding.
-        Also, please read the comments inside FindConlictsCore to better understand the merge logic (if needed to)
+        Also, please read the comments inside FindConflictsCore to better understand the merge logic (if needed to)
         */
         private const int DefaultNumberOfRules = 3;
 
@@ -372,11 +372,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             AssertNoConflictsExpected(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Act
-            RuleSet target;
-            using (new AssertIgnoreScope())
-            {
-                target = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
-            }
+            RuleSet target = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Verify
             RuleSetAssert.AreEqual(projectRuleSet, target);

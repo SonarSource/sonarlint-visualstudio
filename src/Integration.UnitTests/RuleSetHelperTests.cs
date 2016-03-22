@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(expectedInclude, RuleAction.Default));
 
             // Act
-            RuleSetHelper.UpdateExistingProjectRuleSet(existingProjectRuleSet, existingProjectRuleSetPath, newSolutionRuleSetPath);
+            RuleSetHelper.UpdateExistingProjectRuleSet(existingProjectRuleSet, newSolutionRuleSetPath);
 
             // Verify
             RuleSetAssert.AreEqual(expectedRuleSet, existingProjectRuleSet, "Update should delete previous solution rulesets, and replace them with a new one provide");

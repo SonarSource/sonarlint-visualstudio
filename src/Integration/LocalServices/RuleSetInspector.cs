@@ -67,8 +67,7 @@ namespace SonarLint.VisualStudio.Integration
             RuleSet baseline = RuleSet.LoadFromFile(baselineRuleSetPath);
             RuleSet target = RuleSet.LoadFromFile(targetRuleSetPath);
 
-            RuleConflictInfo conflicts = this.FindConlictsCore(baseline, target);
-            Debug.Assert(conflicts.HasConflicts, "There are no conflicts between baseline and target.");
+            RuleConflictInfo conflicts = this.FindConflictsCore(baseline, target);
             if (conflicts.HasConflicts)
             {
                 if (!this.TryResolveIncludeConflicts(baseline, target))
@@ -83,11 +82,11 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// <see cref="IRuleSetInspector.FindConflictingRules(string, string)"/>
         /// </summary>
-        public RuleConflictInfo FindConflictingRules(string baseLineRuleSet, string targetRuleSet)
+        public RuleConflictInfo FindConflictingRules(string baselineRuleSet, string targetRuleSet)
         {
-            if (string.IsNullOrWhiteSpace(baseLineRuleSet))
+            if (string.IsNullOrWhiteSpace(baselineRuleSet))
             {
-                throw new ArgumentNullException(nameof(baseLineRuleSet));
+                throw new ArgumentNullException(nameof(baselineRuleSet));
             }
 
             if (string.IsNullOrWhiteSpace(targetRuleSet))
@@ -95,13 +94,13 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(targetRuleSet));
             }
 
-            RuleSet baseline = RuleSet.LoadFromFile(baseLineRuleSet);
+            RuleSet baseline = RuleSet.LoadFromFile(baselineRuleSet);
             RuleSet target = RuleSet.LoadFromFile(targetRuleSet);
 
-            return FindConlictsCore(baseline, target);
+            return this.FindConflictsCore(baseline, target);
         }
 
-        private RuleConflictInfo FindConlictsCore(RuleSet baselineRuleSet, RuleSet targetRuleSet)
+        private RuleConflictInfo FindConflictsCore(RuleSet baselineRuleSet, RuleSet targetRuleSet)
         {
             string[] ruleSetDirectories = this.ruleSetSearchDirectories.Union(new[]
             {
@@ -181,8 +180,7 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         /// <summary>
-        /// Attempts to fix the conflicts by updating the RuleSet Includes to what they were 
-        /// when we bound the solution to SonarQube
+        /// Attempts to fix the conflicts by ensuring that the server ruleset is included with the expected Include Action
         /// </summary>
         /// <returns>Whether all conflicts were resolved</returns>
         private bool TryResolveIncludeConflicts(RuleSet baselineRuleSet, RuleSet targetRuleSet)
@@ -192,15 +190,15 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(!string.IsNullOrWhiteSpace(baselineRuleSet.FilePath));
             Debug.Assert(!string.IsNullOrWhiteSpace(targetRuleSet.FilePath));
 
-            RuleSetHelper.UpdateExistingProjectRuleSet(targetRuleSet, targetRuleSet.FilePath, baselineRuleSet.FilePath);
-            RuleConflictInfo conflicts1stAttempt = this.FindConlictsCore(baselineRuleSet, targetRuleSet);
+            RuleSetHelper.UpdateExistingProjectRuleSet(targetRuleSet, baselineRuleSet.FilePath);
+            RuleConflictInfo conflicts1stAttempt = this.FindConflictsCore(baselineRuleSet, targetRuleSet);
             return !conflicts1stAttempt.HasConflicts;
         }
 
         /// <summary>
         /// Fixes conflicts resulting in having rule overrides in <param name="targetRuleSet" />
         /// </summary>
-        /// <remarks>Assumes that <see cref="ResetSolutionRuleSetIncludes"/> executed already to fix the include issues</remarks>
+        /// <remarks>Assumes that <see cref="TryResolveIncludeConflicts"/> executed already to fix the include issues</remarks>
         private void DeleteConflictingRules(RuleSet baselineRuleSet, RuleSet targetRuleSet)
         {
             // At this point the remaining conflicts are the rule overrides directly on target.
@@ -215,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration
                 }
             }
 
-            Debug.Assert(!this.FindConlictsCore(baselineRuleSet, targetRuleSet).HasConflicts, "Not expecting any conflicts once deleted the conflicting baseline rules on target");
+            Debug.Assert(!this.FindConflictsCore(baselineRuleSet, targetRuleSet).HasConflicts, "Not expecting any conflicts once deleted the conflicting baseline rules on target");
         }
 
         internal /*for testing purposes*/ static bool IsBaselineWeakend(RuleAction baselineAction, RuleAction targetAction)
