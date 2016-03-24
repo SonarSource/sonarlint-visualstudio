@@ -150,14 +150,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
 
             // Act Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, "valid suffix"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(" ", "valid suffix"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("valid key", ""));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("valid key", null));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, RuleSetGroup.CSharp));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, RuleSetGroup.VB));
         }
 
         [TestMethod]
-        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath()
+        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_OnOpenSolution()
         {
             // Setup
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
@@ -166,15 +164,120 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
 
+            // Case 1: VB + invalid path characters
             // Act
-            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(), Path.GetInvalidPathChars().Last() + "MySuffix");
+            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(), RuleSetGroup.VB);
 
             // Verify
-            Assert.AreEqual(@"z:\folder\solution\SonarQube\MyKey__MySuffix.ruleset", ruleSetPath);
+            Assert.AreEqual(@"z:\folder\solution\SonarQube\MyKey_VB.ruleset", ruleSetPath);
+
+            // Case 2: C# + valid path characters
+            // Act
+            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", RuleSetGroup.CSharp);
+
+            // Verify
+            Assert.AreEqual(@"z:\folder\solution\SonarQube\MyKeyCSharp.ruleset", ruleSetPath);
+        }
+
+        [TestMethod]
+        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_OnClosedSolution()
+        {
+            // Setup
+            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
+            var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            projectHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
+
+            // Act + Verify
+            Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", RuleSetGroup.CSharp));
+        }
+
+        [TestMethod]
+        public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_OnOpenSolution()
+        {
+            // Setup
+            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
+            var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            projectHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
+
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
+
+            //
+            // Act
+            string path = testSubject.GetSolutionSonarQubeRulesFolder();
+
+            // Verify
+            Assert.AreEqual(@"z:\folder\solution\SonarQube", path);
+        }
+
+        [TestMethod]
+        public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_OnClosedSolution()
+        {
+            // Setup
+            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
+            var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            projectHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
+
+            //
+            // Act
+            string path = testSubject.GetSolutionSonarQubeRulesFolder();
+
+            // Verify
+            Assert.IsNull(path);
+        }
+
+
+        [TestMethod]
+        public void SolutionRuleSetsInformationProvider_TryGetProjectRuleSetFilePath()
+        {
+            // Setup
+            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
+            var fileSystem = new ConfigurableFileSystem();
+            this.serviceProvider.RegisterService(typeof(IFileSystem), fileSystem);
+            ProjectMock project = new ProjectMock(@"c:\Solution\Project\Project1.myProj");
+            RuleSetDeclaration declaration;
+            string ruleSetPath;
+
+            // Case 1: Declaration has an full path which exists on disk
+            declaration = CreateDeclaration(project, @"c:\RuleSet.ruleset");
+            fileSystem.RegisterFile(declaration.RuleSetPath);
+
+            // Act
+            Assert.IsTrue(testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath));
+
+            // Verify
+            Assert.AreEqual(@"c:\RuleSet.ruleset", ruleSetPath);
+
+            // Case 2: Declaration is relative to project and on disk
+            fileSystem.ClearFiles();
+            declaration = CreateDeclaration(project, @"..\RuleSet.ruleset");
+            fileSystem.RegisterFile(@"c:\Solution\RuleSet.ruleset");
+
+            // Act
+            Assert.IsTrue(testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath));
+
+            // Verify
+            Assert.AreEqual(@"c:\Solution\RuleSet.ruleset", ruleSetPath);
+
+            // Case 3: File doesn't exist
+            fileSystem.ClearFiles();
+            declaration = CreateDeclaration(project, "MyFile.ruleset");
+
+            // Act
+            Assert.IsFalse(testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath));
+
+            // Verify
+            Assert.IsNull(ruleSetPath);
         }
         #endregion
 
         #region Helpers
+        private static RuleSetDeclaration CreateDeclaration(ProjectMock project, string ruleSetValue)
+        {
+            return new RuleSetDeclaration(project, new PropertyMock("never mind", null), ruleSetValue, "Configuration");
+        }
+
         private static PropertyMock CreateProperty(ProjectMock project, string configurationName, object propertyValue, string propertyName = Constants.CodeAnalysisRuleSetPropertyKey)
         {
             ConfigurationMock config = GetOrCreateConfiguration(project, configurationName);

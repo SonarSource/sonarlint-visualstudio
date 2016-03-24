@@ -7,11 +7,8 @@
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Binding;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -34,17 +31,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region IRuleSetFileSystem
         RuleSet IRuleSetSerializer.LoadRuleSet(string path)
         {
-            RuleSet rs;
-            if (this.savedRuleSets.TryGetValue(path, out rs))
-            {
-                if (rs == null)
-                {
-                    throw new XmlException("File is empty in test file system"); // Simulate RuleSet.LoadFromFile()
-                }
-                rs.Validate(); // Simulate RuleSet.LoadFromFile() (throws InvalidRuleSetException)
-                return rs;
-            }
-            throw new IOException("File does not exist in test file system"); // Simulate RuleSet.LoadFromFile()
+            RuleSet rs = null;
+            this.savedRuleSets.TryGetValue(path, out rs);
+            rs?.Validate();
+            return rs;
         }
 
         void IRuleSetSerializer.WriteRuleSetFile(RuleSet ruleSet, string path)

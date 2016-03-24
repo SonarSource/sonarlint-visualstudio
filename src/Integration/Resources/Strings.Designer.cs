@@ -793,6 +793,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The operation requires an open solution..
+        /// </summary>
+        public static string SolutionIsClosed {
+            get {
+                return ResourceManager.GetString("SolutionIsClosed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot bind or sync if there are unsaved changes. Operation cancelled..
         /// </summary>
         public static string SolutionSaveCancelledBindAborted {

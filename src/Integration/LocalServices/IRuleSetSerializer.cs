@@ -9,11 +9,21 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    // Interface for testing purposes only
+    /// <summary>
+    /// Abstraction for reading and writing of <see cref="RuleSet"/> instances.
+    /// </summary>
     internal interface IRuleSetSerializer : ILocalService
     {
+        /// <summary>
+        /// Will write the specified <paramref name="ruleSet"/> into specified path.
+        /// The caller needs to handler the various possible errors.
+        /// </summary>
         void WriteRuleSetFile(RuleSet ruleSet, string path);
 
+        /// <summary>
+        /// Will load a RuleSet in specified <paramref name="path"/>. 
+        /// In case of error, null will be returned.
+        /// </summary>
         RuleSet LoadRuleSet(string path);
     }
 }

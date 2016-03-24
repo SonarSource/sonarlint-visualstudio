@@ -110,15 +110,16 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
         private string GetSonarQubeConfigurationFilePath()
         {
-            var dte = this.serviceProvider.GetService(typeof(DTE)) as DTE;
-            string solutionFullFilePath = dte?.Solution?.FullName;
+            var solutionRuleSetsInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
+            string rootFolder = solutionRuleSetsInfoProvider.GetSolutionSonarQubeRulesFolder();
 
-            if (string.IsNullOrWhiteSpace(solutionFullFilePath))
+            // When the solution is closed return null
+            if (rootFolder == null)
             {
                 return null;
             }
 
-            return Path.Combine(Path.GetDirectoryName(solutionFullFilePath), Constants.SonarQubeManagedFolderName, SonarQubeSolutionBindingConfigurationFileName);
+            return Path.Combine(rootFolder, SonarQubeSolutionBindingConfigurationFileName);
         }
 
         private BoundSonarQubeProject ReadBindingInformation(string configFile)

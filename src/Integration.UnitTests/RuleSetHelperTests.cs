@@ -8,6 +8,7 @@
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -55,6 +56,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void RuleSetHelper_FindAllIncludesUnderRoot()
+        {
+            // Setup
+            const string slnRoot = @"X:\SolutionDir\";
+            string projectRoot = Path.Combine(slnRoot, @"Project\");
+            string sonarRoot = Path.Combine(slnRoot, @"Sonar\");
+            string commonRoot = Path.Combine(slnRoot, @"Common\");
+
+            const string sonarRs1FileName = "Sonar1.ruleset";
+            const string sonarRs2FileName = "Sonar2.ruleset";
+            const string projectRsBaseFileName = "ProjectBase.ruleset";
+            const string commonRs1FileName = "SolutionCommon1.ruleset";
+            const string commonRs2FileName = "SolutionCommon2.ruleset";
+
+            var sonarRs1 = TestRuleSetHelper.CreateTestRuleSet(sonarRoot, sonarRs1FileName);
+            var sonarRs2 = TestRuleSetHelper.CreateTestRuleSet(sonarRoot, sonarRs2FileName);
+            var projectBaseRs = TestRuleSetHelper.CreateTestRuleSet(projectRoot, projectRsBaseFileName);
+            var commonRs1 = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs1FileName);
+            var commonRs2 = TestRuleSetHelper.CreateTestRuleSet(commonRoot, commonRs2FileName);
+
+            var inputRuleSet = TestRuleSetHelper.CreateTestRuleSet(projectRoot, "test.ruleset");
+            AddRuleSetInclusion(inputRuleSet, projectBaseRs, useRelativePath: true);
+            AddRuleSetInclusion(inputRuleSet, commonRs1, useRelativePath: true);
+            AddRuleSetInclusion(inputRuleSet, commonRs2, useRelativePath: false);
+            var expected1 = AddRuleSetInclusion(inputRuleSet, sonarRs1, useRelativePath: true);
+            var expected2 = AddRuleSetInclusion(inputRuleSet, sonarRs2, useRelativePath: false);
+
+            // Act
+            RuleSetInclude[] actual = RuleSetHelper.FindAllIncludesUnderRoot(inputRuleSet, sonarRoot).ToArray();
+
+            // Verify
+            CollectionAssert.AreEquivalent(new[] { expected1, expected2 }, actual);
+        }
+
+        [TestMethod]
         public void RuleSetHelper_UpdateExistingProjectRuleSet()
         {
             // Setup
@@ -79,12 +115,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private static void AddRuleSetInclusion(RuleSet parent, RuleSet child, bool useRelativePath)
+        private static RuleSetInclude AddRuleSetInclusion(RuleSet parent, RuleSet child, bool useRelativePath)
         {
             string include = useRelativePath
                 ? PathHelper.CalculateRelativePath(parent.FilePath, child.FilePath)
                 : child.FilePath;
-            parent.RuleSetIncludes.Add(new RuleSetInclude(include, RuleAction.Default));
+            var ruleSetInclude = new RuleSetInclude(include, RuleAction.Default);
+            parent.RuleSetIncludes.Add(ruleSetInclude);
+            return ruleSetInclude;
         }
 
         #endregion

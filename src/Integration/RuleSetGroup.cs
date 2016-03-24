@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Integration
 {
     public enum RuleSetGroup
     {

@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return true;
             }
 
-            existingRuleSet = this.SafeLoadRuleSet(existingRuleSetPath);
+            existingRuleSet = this.ruleSetSerializer.LoadRuleSet(existingRuleSetPath);
             if (existingRuleSet == null)
             {
                 existingRuleSetPath = null;
@@ -138,26 +138,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public static bool ShouldIgnoreConfigureRuleSetValue(string ruleSet)
         {
             return string.IsNullOrWhiteSpace(ruleSet) || StringComparer.OrdinalIgnoreCase.Equals(DefaultProjectRuleSet, ruleSet);
-        }
-
-        /// <summary>
-        /// Try and load the <see cref="RuleSet"/> from the given full file path.
-        /// </summary>
-        /// <returns>Rule set or null if does not exist or is malformed</returns>
-        internal /* testing purposes */ RuleSet SafeLoadRuleSet(string ruleSetPath)
-        {
-            if (this.sourceControlledFileSystem.FileExist(ruleSetPath))
-            {
-                try
-                {
-                    return this.ruleSetSerializer.LoadRuleSet(ruleSetPath);
-                }
-                catch (Exception ex) when (ex is InvalidRuleSetException || ex is XmlException || ex is IOException)
-                {
-                    return null;
-                }
-            }
-            return null;
         }
 
         #endregion

@@ -118,7 +118,7 @@
     <Compile Include="Binding\ISolutionRuleStore.cs" />
     <Compile Include="Binding\ProjectBindingOperation.cs" />
     <Compile Include="Binding\ProjectBindingOperation.Writer.cs" />
-    <Compile Include="Binding\RuleSetGroup.cs" />
+    <Compile Include="RuleSetGroup.cs" />
     <Compile Include="ProfileConflicts\ConflictsManager.cs" />
     <Compile Include="ProfileConflicts\IConflictsManager.cs" />
     <Compile Include="ProfileConflicts\IRuleSetConflictsController.cs" />
@@ -290,7 +290,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="ArchetectureOverview.dgml" />
-    <None Include="Integration.ruleset" />
+    <None Include="Integration.ruleset">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

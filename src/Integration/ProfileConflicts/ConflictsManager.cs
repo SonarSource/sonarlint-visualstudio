@@ -110,8 +110,9 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
             foreach (Project project in projectSystem.GetFilteredSolutionProjects())
             {
-                string suffix = SolutionBindingOperation.GetProjectRuleSetSuffix(ProjectBindingOperation.GetProjectGroup(project));
-                string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(bindingInfo.ProjectKey, suffix);
+                string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
+                    bindingInfo.ProjectKey, 
+                    ProjectBindingOperation.GetProjectGroup(project));
 
                 if (!fileSystem.FileExist(baselineRuleSet))
                 {
@@ -121,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
                 foreach (RuleSetDeclaration declaration in ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project))
                 {
-                    string projectRuleSet = CalculateProjectRuleSetFullPath(fileSystem, project, declaration);
+                    string projectRuleSet = CalculateProjectRuleSetFullPath(ruleSetInfoProvider, project, declaration);
 
                     this.AddOrUpdateAggregatedRuleSetInformation(projectRuleSetAggregation, baselineRuleSet, declaration, projectRuleSet);
                 }
@@ -159,18 +160,11 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.ConflictsManagerWarningMessage, message);
         }
 
-        private static string CalculateProjectRuleSetFullPath(IFileSystem fileSystem, Project project, RuleSetDeclaration declaration)
+        private static string CalculateProjectRuleSetFullPath(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, Project project, RuleSetDeclaration declaration)
         {
-            List<string> options = new List<string>();
-            options.Add(declaration.RuleSetPath); // Might be a full path
-            options.Add(PathHelper.ResolveRelativePath(declaration.RuleSetPath, project.FullName)); // Relative to project
+            string projectRuleSet;
 
-            // Note at this stage we don't care about rule set directories, since we expect that 
-            // in worst case to get an exception from the rule inspector when it will try to load the rule set
-
-            string projectRuleSet = options.FirstOrDefault(fileSystem.FileExist);
-
-            if (string.IsNullOrWhiteSpace(projectRuleSet))
+            if (!ruleSetInfoProvider.TryGetProjectRuleSetFilePath(project, declaration, out projectRuleSet))
             {
                 // Use the original property value to attempt to load the rule set with the directories information, during FindConflicts
                 projectRuleSet = declaration.RuleSetPath;

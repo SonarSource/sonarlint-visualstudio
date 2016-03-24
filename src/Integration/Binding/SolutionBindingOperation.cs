@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 Debug.Assert(!this.ruleSetsInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
 
-                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.sonarQubeProjectKey, GetProjectRuleSetSuffix(keyValue.Key));
+                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.sonarQubeProjectKey, keyValue.Key);
                 this.ruleSetsInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
             }
         }
@@ -251,13 +251,5 @@ namespace SonarLint.VisualStudio.Integration.Binding
             public string NewRuleSetFilePath { get; set; }
         }
         #endregion
-
-        #region Static helper
-
-        public static string GetProjectRuleSetSuffix(RuleSetGroup group)
-        {
-            return group.ToString();
-        }
-        #endregion  
     }
 }
