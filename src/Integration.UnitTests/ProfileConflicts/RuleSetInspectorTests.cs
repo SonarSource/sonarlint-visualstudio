@@ -8,14 +8,20 @@
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
+namespace SonarLint.VisualStudio.Integration.UnitTests
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
+        "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"", 
+        Justification = "Not needed, will be disposed part of the test clean up", 
+        Scope = "type", 
+        Target = "~T:SonarLint.VisualStudio.Integration.UnitTests.LocalServices.RuleSetInspectorTests")]
     [TestClass]
     public class RuleSetInspectorTests
     {
@@ -145,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                     }
                     else if (ruleAction == RuleAction.Info || ruleAction == RuleAction.Hidden)
                     {
-                        AssertWeakRulesByFullIds(conflicts, projectRuleSet.Rules);
+                        AssertWeakRulesByFullIds(conflicts, projectRuleSet.Rules, solutionRuleSet);
                         AssertNoMissingRules(conflicts);
                     }
                     else
@@ -154,6 +160,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                     }
                 }
             }
+        }
+
+        [TestMethod]
+        public void RuleSetInspector_FindConflictingRules_BaselineNoneRulesAreNotTreatedAsMissing()
+        {
+            // Setup
+            RuleSet solutionRuleSet = this.CreateCommonRuleSet(rules:2);
+            ChangeRuleActions(solutionRuleSet, RuleAction.None, RuleAction.None);
+            solutionRuleSet.WriteToFile(solutionRuleSet.FilePath);
+
+            RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsRelativeToProject, RuleAction.Default);
+            projectRuleSet.WriteToFile(projectRuleSet.FilePath);
+
+            // Act
+            RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
+
+            // Verify
+            AssertNoConflicts(conflicts);
         }
 
         [TestMethod]
@@ -260,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         public void RuleSetInspector_FindConflictingRules_ComplexStructureWithConflicts()
         {
             // Setup
-            string solutionRuleSet = this.CreateCommonRuleSet().FilePath;
+            RuleSet solutionRuleSet = this.CreateCommonRuleSet();
 
             // Modifies all the solution rules to Info (should not impact the result)
             RuleSet otherRuleSet = this.CreateUserSharedRuleSet("User.ruleset", RuleAction.Info);
@@ -270,16 +294,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             this.CreateVsRuleSet(DefaultNumberOfRules, BuiltInRuleSetName, RuleAction.None);
 
             // The project has 3 modification -> error, info and warning
-            RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet, IncludeType.AsIs, RuleAction.Error, otherRuleSet.FilePath, BuiltInRuleSetName);
+            RuleSet projectRuleSet = this.CreateProjectRuleSetWithIncludes(DefaultNumberOfRules, solutionRuleSet.FilePath, IncludeType.AsIs, RuleAction.Error, otherRuleSet.FilePath, BuiltInRuleSetName);
             projectRuleSet.Rules[1].Action = RuleAction.Info;
             projectRuleSet.Rules[2].Action = RuleAction.None;
             projectRuleSet.WriteToFile(projectRuleSet.FilePath);
 
             // Act 
-            RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
+            RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Verify [verify that having all that with all that extra noise, since the project level overrides two of the values there will be conflicts]
-            AssertWeakRulesByFullIds(conflicts, new[] { projectRuleSet.Rules[1] });
+            AssertWeakRulesByFullIds(conflicts, new[] { projectRuleSet.Rules[1] }, solutionRuleSet);
             AssertMissingRulesByFullIds(conflicts, new[] { projectRuleSet.Rules[2] });
         }
 
@@ -317,7 +341,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Verify [since baseline is None, the other rulesets actions are then ones being used i.e. Info instead of Warning]
-            AssertWeakRulesByFullIds(conflicts, solutionRuleSet.Rules);
+            AssertWeakRulesByFullIds(conflicts, solutionRuleSet.Rules, solutionRuleSet);
             AssertNoMissingRules(conflicts);
         }
 
@@ -372,10 +396,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             AssertNoConflictsExpected(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Act
-            RuleSet target = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
+            FixedRuleSetInfo fixedInfo = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Verify
+            RuleSet target = fixedInfo.FixedRuleSet;
             RuleSetAssert.AreEqual(projectRuleSet, target);
+            VerifyFix(fixedInfo, expectedIncludesReset: 0, expectedRulesDeleted: 0);
         }
 
         [TestMethod]
@@ -395,9 +421,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             AssertConflictsExpected(solutionRuleSet.FilePath, projectRuleSet.FilePath, "Expected 3 weakened rules since solution include was set to Hidden");
 
             // Act
-            RuleSet fixedTarget = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
+            FixedRuleSetInfo fixedInfo = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Verify
+            VerifyFix(fixedInfo, expectedIncludesReset: 1, expectedRulesDeleted: 0);
+            RuleSet fixedTarget = fixedInfo.FixedRuleSet;
             RuleSet expectedRuleSet = this.CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsRelativeToProject, RuleAction.Warning, otherRuleSet.FilePath);
             RuleSetAssert.AreEqual(expectedRuleSet, fixedTarget, "Expected the include action to be fixed");
             VerifyFixedRuleSetIsNotPersisted(solutionRuleSet, projectRuleSet, fixedTarget);
@@ -420,9 +448,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             AssertConflictsExpected(solutionRuleSet.FilePath, projectRuleSet.FilePath, "Expected 2 weakened rules and 1 missing due to rule overrides at the project level");
 
             // Act
-            RuleSet fixedTarget = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
+            FixedRuleSetInfo fixedInfo = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Verify
+            VerifyFix(fixedInfo, expectedIncludesReset: 1, expectedRulesDeleted: 3);
+            RuleSet fixedTarget = fixedInfo.FixedRuleSet;
             RuleSet expectedRuleSet = this.CreateProjectRuleSetWithIncludes(1, solutionRuleSet.FilePath, IncludeType.AsRelativeToProject);
             RuleSetAssert.AreEqual(expectedRuleSet, fixedTarget, "Expected the conflicting rules to be deleted");
             VerifyFixedRuleSetIsNotPersisted(solutionRuleSet, projectRuleSet, fixedTarget);
@@ -445,9 +475,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             AssertConflictsExpected(solutionRuleSet.FilePath, projectRuleSet.FilePath, "Expected 3 weakened rules since solution include was set to Hidden (and also a rule override with a weaker action)");
 
             // Act
-            RuleSet fixedTarget = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
+            FixedRuleSetInfo fixedInfo = this.testSubject.FixConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Verify
+            VerifyFix(fixedInfo, expectedIncludesReset: 1, expectedRulesDeleted: 1);
+            RuleSet fixedTarget = fixedInfo.FixedRuleSet;
             RuleSet expectedRuleSet = this.CreateProjectRuleSetWithIncludes(0, solutionRuleSet.FilePath, IncludeType.AsRelativeToProject, otherIncludes: otherRuleSet.FilePath);
             RuleSetAssert.AreEqual(expectedRuleSet, fixedTarget, "Expected the include action to change to default and the conflicting rules to be removed");
             VerifyFixedRuleSetIsNotPersisted(solutionRuleSet, projectRuleSet, fixedTarget);
@@ -497,6 +529,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
         #region Helpers
         enum IncludeType { AsIs, AsRelativeToProject };
+
+        private static void VerifyFix(FixedRuleSetInfo fixedInfo, int expectedIncludesReset, int expectedRulesDeleted)
+        {
+            Assert.AreEqual(expectedIncludesReset, fixedInfo.IncludesReset.Count(), "Unexpected number if includes were reset");
+            Assert.AreEqual(expectedRulesDeleted, fixedInfo.RulesDeleted.Count(), "Unexpected number of rules were deleted");
+        }
 
         private void AssertConflictsExpected(string baselineFilePath, string targetFilePath, string detailedFailMessage = "")
         {
@@ -597,11 +635,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             }
         }
 
-        private static void AssertWeakRulesByFullIds(RuleConflictInfo info, IEnumerable<RuleReference> expectedRules)
+        private static void AssertWeakRulesByFullIds(RuleConflictInfo info, IEnumerable<RuleReference> expectedRules, RuleSet baseline)
         {
-            string[] expectedFullRuleIds = expectedRules.Select(r => r.FullId).ToArray();
-            var actualFullIds = info.WeakerActionRules.Select(r => r.FullId).ToArray();
-            CollectionAssert.AreEquivalent(expectedFullRuleIds, actualFullIds, "Actually weak: {0}", string.Join(", ", actualFullIds));
+            var expectedFullRuleIds = new HashSet<string>(expectedRules.Select(r => r.FullId));
+            List<string> found = new List<string>();
+            foreach(var keyValue in info.WeakerActionRules)
+            {
+                string ruleFullId = keyValue.Key.FullId;
+                found.Add(ruleFullId);
+
+                Assert.IsTrue(expectedFullRuleIds.Contains(ruleFullId), "Unexpected weakened rule");
+                RuleReference baselineRule;
+                Assert.IsTrue(baseline.Rules.TryGetRule(ruleFullId, out baselineRule), "Test setup error: baseline doesn't contain the rule {0}", ruleFullId);
+                Assert.AreEqual(baselineRule.Action, keyValue.Value, "Unexpected Action. Expecting the baseline rule action to be returned part of RuleConflictInfo");
+            }
+
+            Assert.AreEqual(expectedFullRuleIds.Count, info.WeakerActionRules.Count, "Not all the expected weakened rule were found. Missing: {0}", string.Join(", ", expectedFullRuleIds.Except(found)));
             Assert.IsTrue(info.HasConflicts, "Expected weakened rules");
         }
 
@@ -627,7 +676,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
         private static void AssertNoWeakRules(RuleConflictInfo info)
         {
-            Assert.AreEqual(0, info.WeakerActionRules.Count, "Actually weak: {0}", string.Join(", ", info.WeakerActionRules.Select(r => r.FullId)));
+            Assert.AreEqual(0, info.WeakerActionRules.Count, "Actually weak: {0}", string.Join(", ", info.WeakerActionRules.Keys.Select(r => r.FullId)));
         }
 
         private static IEnumerable<RuleAction> GetSupportedRuleActions()

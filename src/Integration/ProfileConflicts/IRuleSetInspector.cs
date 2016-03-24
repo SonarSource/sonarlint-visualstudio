@@ -7,12 +7,12 @@
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 {
     /// <summary>
     /// RuleSet inspection service
     /// </summary>
-    public interface IRuleSetInspector
+    public interface IRuleSetInspector : ILocalService
     {
         /// <summary>
         /// Inspects whether the <paramref name="baselineRuleSet"/> rules are missing or less strict than in the <paramref name="targetRuleSet"/>
@@ -30,6 +30,6 @@ namespace SonarLint.VisualStudio.Integration
         /// <param name="baselineRuleSet">Required full path to baseline RuleSet</param>
         /// <param name="targetRuleSet">Required full path to target RuleSet</param>
         /// <param name="ruleSetDirectories">Optional rule set directories i.e. when the <paramref name="targetRuleSet"/> is not absolute</param>
-        RuleSet FixConflictingRules(string baselineRuleSetPath, string targetRuleSetPath, params string[] ruleSetDirectories);
+        FixedRuleSetInfo FixConflictingRules(string baselineRuleSetPath, string targetRuleSetPath, params string[] ruleSetDirectories);
     }
 }

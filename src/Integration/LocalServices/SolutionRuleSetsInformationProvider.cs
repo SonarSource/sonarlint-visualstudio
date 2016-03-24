@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration
                 string ruleSetValue = ruleSetProperty.Value as string;
                 string activationContext = TryGetPropertyConfiguration(ruleSetProperty)?.ConfigurationName ?? string.Empty;
 
-                yield return new RuleSetDeclaration(ruleSetProperty, ruleSetValue, activationContext, ruleSetDirectories);
+                yield return new RuleSetDeclaration(project, ruleSetProperty, ruleSetValue, activationContext, ruleSetDirectories);
             }
 
             if (!found)

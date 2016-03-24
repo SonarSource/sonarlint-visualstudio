@@ -8,6 +8,7 @@
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
@@ -32,7 +33,10 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(ISolutionBinding),
                 typeof(IProjectSystemHelper),
                 typeof(ISourceControlledFileSystem),
-                typeof(IFileSystem)
+                typeof(IFileSystem),
+                typeof(IConflictsManager),
+                typeof(IRuleSetInspector),
+                typeof(IRuleSetConflictsController)
         };
 
         private readonly IServiceProvider serviceProvider;
@@ -265,6 +269,9 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
             this.localServices.Add(typeof(ISolutionBinding), new Lazy<ILocalService>(() => new SolutionBinding(this)));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
+            this.localServices.Add(typeof(IConflictsManager), new Lazy<ILocalService>(() => new ConflictsManager(this)));
+            this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this)));
+            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this)));
 
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this));
             this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);

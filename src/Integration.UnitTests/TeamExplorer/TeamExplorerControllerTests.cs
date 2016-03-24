@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = new TeamExplorerController(serviceProvider);
 
             // Act
-            testSubject.ShowConnectionsPage();
+            testSubject.ShowSonarQubePage();
 
             // Verify
             teService.AssertCurrentPage(sonarPageId);

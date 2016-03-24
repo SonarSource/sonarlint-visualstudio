@@ -117,11 +117,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Framework\ConfigurableBindingOperation.cs" />
+    <Compile Include="Framework\ConfigurableConflictsManager.cs" />
     <Compile Include="Framework\ConfigurableFileSystem.cs" />
     <Compile Include="Framework\ConfigurableHost.cs" />
     <Compile Include="Framework\ConfigurableIntegrationSettings.cs" />
     <Compile Include="Framework\ConfigurableProgressStepRunner.cs" />
     <Compile Include="Framework\ConfigurableProjectSystemFilter.cs" />
+    <Compile Include="Framework\ConfigurableRuleSetConflictsController.cs" />
+    <Compile Include="Framework\ConfigurableRuleSetInspector.cs" />
     <Compile Include="Framework\ConfigurableSettingsManager.cs" />
     <Compile Include="Framework\ConfigurableSolutionRuleSetsInformationProvider.cs" />
     <Compile Include="Framework\ConfigurableSolutionRuleStore.cs" />

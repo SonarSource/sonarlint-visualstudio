@@ -15,17 +15,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableSolutionRuleSetsInformationProvider : ISolutionRuleSetsInformationProvider
     {
-        private readonly Dictionary<Project, IEnumerable<RuleSetDeclaration>> registeredProjectData = new Dictionary<Project, IEnumerable<RuleSetDeclaration>>();
+        private readonly Dictionary<Project, List<RuleSetDeclaration>> registeredProjectData = new Dictionary<Project, List<RuleSetDeclaration>>();
 
         #region ISolutionRuleSetsInformationProvider
         IEnumerable<RuleSetDeclaration> ISolutionRuleSetsInformationProvider.GetProjectRuleSetsDeclarations(Project project)
         {
             Assert.IsNotNull(project);
 
-            IEnumerable<RuleSetDeclaration> result;
+            List<RuleSetDeclaration> result;
             if (!this.registeredProjectData.TryGetValue(project, out result))
             {
-                result = Enumerable.Empty<RuleSetDeclaration>();
+                result = new List<RuleSetDeclaration>();
+                this.registeredProjectData[project] = result;
             }
 
             return result;
@@ -38,9 +39,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         #region Test helpers
-        public void RegsiterProjectInfo(Project project, params RuleSetDeclaration[] info )
+        public void RegisterProjectInfo(Project project, params RuleSetDeclaration[] info )
         {
-            this.registeredProjectData[project] = info;
+            List<RuleSetDeclaration> declarations;
+
+            if (!this.registeredProjectData.TryGetValue(project, out declarations))
+            {
+                declarations = new List<RuleSetDeclaration>();
+                this.registeredProjectData[project] = declarations;
+            }
+
+            declarations.AddRange(info);
+        }
+
+        public void ClearProjectInfo(Project project)
+        {
+            this.registeredProjectData.Remove(project);
         }
 
         public string SolutionRootFolder { get; set; }
