@@ -137,6 +137,7 @@
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />
     <Compile Include="IServiceProviderExtensionsTests.cs" />
     <Compile Include="LocalServices\RuleSetSerializerTests.cs" />
+    <Compile Include="Persistence\SolutionBindingSerializerTests.cs" />
     <Compile Include="ProfileConflicts\ConflictsManagerTests.cs" />
     <Compile Include="ProfileConflicts\FixedRuleSetInfoTests.cs" />
     <Compile Include="ProfileConflicts\RuleConflictInfoTests.cs" />
@@ -149,7 +150,6 @@
     <Compile Include="LocalServices\SourceControlledFileSystemTests.cs" />
     <Compile Include="PathHelperTests.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectTests.cs" />
-    <Compile Include="Persistence\SolutionBindingTests.cs" />
     <Compile Include="Progress\ProgressNotificationListenerTests.cs" />
     <Compile Include="Progress\ProgressStepRunnerTests.cs" />
     <Compile Include="LocalServices\ProjectSystemFilterTests.cs" />

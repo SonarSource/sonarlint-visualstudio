@@ -47,11 +47,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var sccFileSystem = new ConfigurableSourceControlledFileSystem();
             var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem);
-            var solutionBinding = new ConfigurableSolutionBinding();
+            var solutionBinding = new ConfigurableSolutionBindingSerializer();
 
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), ruleSerializer);
-            this.serviceProvider.RegisterService(typeof(ISolutionBinding), solutionBinding);
+            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
         }
 

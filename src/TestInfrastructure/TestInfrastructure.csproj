@@ -127,9 +127,9 @@
     <Compile Include="Framework\ConfigurableRuleSetConflictsController.cs" />
     <Compile Include="Framework\ConfigurableRuleSetInspector.cs" />
     <Compile Include="Framework\ConfigurableSettingsManager.cs" />
+    <Compile Include="Framework\ConfigurableSolutionBindingSerializer.cs" />
     <Compile Include="Framework\ConfigurableSolutionRuleSetsInformationProvider.cs" />
     <Compile Include="Framework\ConfigurableSolutionRuleStore.cs" />
-    <Compile Include="Framework\ConfigurableSolutionBinding.cs" />
     <Compile Include="Framework\ConfigurableSourceControlledFileSystem.cs" />
     <Compile Include="Framework\ConfigurableStateManager.cs" />
     <Compile Include="Framework\ConfigurableVsCommand.cs" />

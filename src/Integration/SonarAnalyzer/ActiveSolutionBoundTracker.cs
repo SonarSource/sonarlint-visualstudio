@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.SonarAnalyzer
 
         private void CalculateSolutionBinding()
         {
-            ISolutionBinding solutionBinding = this.extensionHost.GetService<ISolutionBinding>();
+            ISolutionBindingSerializer solutionBinding = this.extensionHost.GetService<ISolutionBindingSerializer>();
             solutionBinding.AssertLocalServiceIsNotNull();
 
             BoundSonarQubeProject bindingInfo = solutionBinding.ReadSolutionBinding();

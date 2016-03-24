@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private SolutionMock solutionMock;
         private ConfigurableSourceControlledFileSystem sccFileSystem;
         private ConfigurableRuleSetSerializer ruleFS;
-        private ConfigurableSolutionBinding solutionBinding;
+        private ConfigurableSolutionBindingSerializer solutionBinding;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfo;
 
         private const string SolutionRoot = @"c:\solution";
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
             this.sccFileSystem  = new ConfigurableSourceControlledFileSystem();
             this.ruleFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
-            this.solutionBinding = new ConfigurableSolutionBinding();
+            this.solutionBinding = new ConfigurableSolutionBindingSerializer();
             this.ruleSetInfo = new ConfigurableSolutionRuleSetsInformationProvider();
             this.ruleSetInfo.SolutionRootFolder = SolutionRoot;
 
@@ -293,7 +293,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_CommitSolutionBinding()
         {
             // Setup
-            this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBinding), this.solutionBinding);
+            this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBindingSerializer), this.solutionBinding);
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
             var projects = new[] { csProject };
