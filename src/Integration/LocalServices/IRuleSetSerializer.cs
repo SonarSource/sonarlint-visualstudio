@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 namespace SonarLint.VisualStudio.Integration
 {
     // Interface for testing purposes only
-    internal interface IRuleSetSerializer
+    internal interface IRuleSetSerializer : ILocalService
     {
         void WriteRuleSetFile(RuleSet ruleSet, string path);
 

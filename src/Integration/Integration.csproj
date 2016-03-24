@@ -112,6 +112,7 @@
   <ItemGroup>
     <Compile Include="Binding\BindingController.cs" />
     <Compile Include="Binding\IBindingOperation.cs" />
+    <Compile Include="LocalServices\ILocalService.cs" />
     <Compile Include="LocalServices\IRuleSetSerializer.cs" />
     <Compile Include="Binding\ISolutionRuleStore.cs" />
     <Compile Include="Binding\ProjectBindingOperation.cs" />

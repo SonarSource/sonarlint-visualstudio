@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    interface ISolutionRuleSetsInformationProvider
+    interface ISolutionRuleSetsInformationProvider : ILocalService
     {
         /// <summary>
         /// For a given <paramref name="project"/> will return all the <see cref="RuleSetDeclaration"/>

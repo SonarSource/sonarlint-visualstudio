@@ -47,9 +47,9 @@ namespace SonarLint.VisualStudio.Integration
                 string ruleSetDirectoriesValue = VsShellUtils.FindProperty(ruleSetProperty.Collection, Constants.CodeAnalysisRuleSetDirectoriesPropertyKey)?.Value as string;
                 string[] ruleSetDirectories = ruleSetDirectoriesValue?.Split(new[] { RuleSetDirectoriesValueSpliter }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
                 string ruleSetValue = ruleSetProperty.Value as string;
-                string activatopnContext = TryGetPropertyConfiguration(ruleSetProperty)?.ConfigurationName ?? string.Empty;
+                string activationContext = TryGetPropertyConfiguration(ruleSetProperty)?.ConfigurationName ?? string.Empty;
 
-                yield return new RuleSetDeclaration(ruleSetProperty, ruleSetValue, activatopnContext, ruleSetDirectories);
+                yield return new RuleSetDeclaration(ruleSetProperty, ruleSetValue, activationContext, ruleSetDirectories);
             }
 
             if (!found)

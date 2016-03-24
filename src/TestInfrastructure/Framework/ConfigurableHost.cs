@@ -10,6 +10,7 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
+using System.Linq;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -64,6 +65,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public object GetService(Type serviceType)
         {
+            if (typeof(ILocalService).IsAssignableFrom(serviceType))
+            {
+                Assert.IsTrue(VsSessionHost.SupportedLocalServices.Contains(serviceType), "The specified service type '{0}' will not be serviced in the real IHost.", serviceType.FullName);
+            }
+
             return this.serviceProvider.GetService(serviceType);
         }
 

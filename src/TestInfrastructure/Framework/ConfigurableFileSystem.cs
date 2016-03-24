@@ -20,11 +20,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region IFileSystem
         void IFileSystem.CreateDirectory(string path)
         {
-            if (this.directories.Contains(path))
-            {
-                throw new System.IO.IOException("Directory already exists: " + path);
-            }
-
             this.directories.Add(path);
         }
 

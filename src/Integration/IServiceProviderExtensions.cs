@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration
 
         [Conditional("DEBUG")]
         internal static void AssertLocalServiceIsNotNull<T>(this T service)
-            where T : class
+            where T : class, ILocalService
         {
             Debug.Assert(service != null, $"Local service {typeof(T).FullName} is not registered");
         }

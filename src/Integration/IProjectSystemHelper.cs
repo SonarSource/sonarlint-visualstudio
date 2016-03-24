@@ -13,7 +13,7 @@ using System.Collections.Generic;
 namespace SonarLint.VisualStudio.Integration
 {
     // Test only interface
-    internal interface IProjectSystemHelper
+    internal interface IProjectSystemHelper : ILocalService
     {
         IServiceProvider ServiceProvider { get; }
 

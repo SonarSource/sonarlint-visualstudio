@@ -148,11 +148,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.sourceControlledFileSystem.QueueFileWrite(info.NewRuleSetFilePath, () =>
                 {
                     string ruleSetDirectoryPath = Path.GetDirectoryName(info.NewRuleSetFilePath);
-                    if (!this.sourceControlledFileSystem.DirectoryExists(ruleSetDirectoryPath))
-                    {
-                        this.sourceControlledFileSystem.CreateDirectory(ruleSetDirectoryPath);
-                    }
 
+                    this.sourceControlledFileSystem.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
 
                     // Create or overwrite existing rule set
                     ruleSetSerializer.WriteRuleSetFile(info.RuleSet, info.NewRuleSetFilePath);

@@ -25,11 +25,21 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class VsSessionHost : IHost, IProgressStepRunnerWrapper, IDisposable
     {
+        internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = new Type[]
+        {
+                typeof(ISolutionRuleSetsInformationProvider),
+                typeof(IRuleSetSerializer),
+                typeof(ISolutionBinding),
+                typeof(IProjectSystemHelper),
+                typeof(ISourceControlledFileSystem),
+                typeof(IFileSystem)
+        };
+
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTacker;
         private readonly ISolutionBinding solutionBinding;
         private readonly IProgressStepRunnerWrapper progressStepRunner;
-        private readonly Dictionary<Type, Lazy<object>> localServices = new Dictionary<Type, Lazy<object>>();
+        private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
 
         private bool isDisposed;
         private bool resetBindingWhenAttaching = true;
@@ -251,21 +261,24 @@ namespace SonarLint.VisualStudio.Integration
         private void RegisterLocalServices()
         {
             // Use Lazy<object> to avoid creating instances needlessly
-            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<object>(() => new SolutionRuleSetsInformationProvider(this)));
-            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<object>(() => new RuleSetSerializer()));
-            this.localServices.Add(typeof(ISolutionBinding), new Lazy<object>(() => new SolutionBinding(this)));
-            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<object>(() => new ProjectSystemHelper(this)));
+            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this)));
+            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
+            this.localServices.Add(typeof(ISolutionBinding), new Lazy<ILocalService>(() => new SolutionBinding(this)));
+            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
 
-            var sccFs = new Lazy<object>(() => new SourceControlledFileSystem(this));
+            var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this));
             this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
             this.localServices.Add(typeof(IFileSystem), sccFs);
+
+            Debug.Assert(SupportedLocalServices.Length == this.localServices.Count, "Unexpected number of local services");
+            Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");
         }
 
         public object GetService(Type type)
         {
             // We don't expect COM types, otherwise the dictionary would have to use a custom comparer
-            Lazy<object> instanceFactory;
-            if (this.localServices.TryGetValue(type, out instanceFactory))
+            Lazy<ILocalService> instanceFactory;
+            if (typeof(ILocalService).IsAssignableFrom(type) && this.localServices.TryGetValue(type, out instanceFactory))
             {
                 return instanceFactory.Value;
             }
