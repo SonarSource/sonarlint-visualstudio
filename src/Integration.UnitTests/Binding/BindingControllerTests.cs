@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionMock = new SolutionMock();
             this.monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = sonarQubeService;
         }
@@ -331,7 +332,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private BindingController CreateBindingController()
         {
-            return new BindingController(this.host, this.workflow, this.projectSystemHelper);
+            return new BindingController(this.host, this.workflow);
         }
 
         #endregion

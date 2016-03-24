@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public const string DefaultVSRuleSetsFolder = @"Team Tools\Static Analysis Tools\Rule Sets";
 
-        public RuleSetInspector(IServiceProvider serviceProvider, params string[] userRuleSetDirectories)
+        public RuleSetInspector(IServiceProvider serviceProvider, params string[] knownRuleSetDirectories)
         {
             if (serviceProvider == null)
             {
@@ -44,14 +44,14 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             this.serviceProvider = serviceProvider;
-            ruleSetSearchDirectories.UnionWith(userRuleSetDirectories);
+            ruleSetSearchDirectories.UnionWith(knownRuleSetDirectories);
             ruleSetSearchDirectories.Add(GetStaticAnalysisToolsDirectory());
         }
 
         /// <summary>
         /// <see cref="IRuleSetInspector.FindConflictingRules(string, string)"/>
         /// </summary>
-        public RuleSet FixConflictingRules(string baselineRuleSetPath, string targetRuleSetPath)
+        public RuleSet FixConflictingRules(string baselineRuleSetPath, string targetRuleSetPath, params string[] ruleSetDirectories)
         {
             if (string.IsNullOrWhiteSpace(baselineRuleSetPath))
             {
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration
             RuleSet baseline = RuleSet.LoadFromFile(baselineRuleSetPath);
             RuleSet target = RuleSet.LoadFromFile(targetRuleSetPath);
 
-            RuleConflictInfo conflicts = this.FindConflictsCore(baseline, target);
+            RuleConflictInfo conflicts = this.FindConflictsCore(baseline, target, ruleSetDirectories);
             if (conflicts.HasConflicts)
             {
                 if (!this.TryResolveIncludeConflicts(baseline, target))
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// <see cref="IRuleSetInspector.FindConflictingRules(string, string)"/>
         /// </summary>
-        public RuleConflictInfo FindConflictingRules(string baselineRuleSet, string targetRuleSet)
+        public RuleConflictInfo FindConflictingRules(string baselineRuleSet, string targetRuleSet, params string[] ruleSetDirectories)
         {
             if (string.IsNullOrWhiteSpace(baselineRuleSet))
             {
@@ -97,13 +97,15 @@ namespace SonarLint.VisualStudio.Integration
             RuleSet baseline = RuleSet.LoadFromFile(baselineRuleSet);
             RuleSet target = RuleSet.LoadFromFile(targetRuleSet);
 
-            return this.FindConflictsCore(baseline, target);
+            return this.FindConflictsCore(baseline, target, ruleSetDirectories);
         }
 
-        private RuleConflictInfo FindConflictsCore(RuleSet baselineRuleSet, RuleSet targetRuleSet)
+        private RuleConflictInfo FindConflictsCore(RuleSet baselineRuleSet, RuleSet targetRuleSet, params string[] ruleSetDirectories)
         {
-            string[] ruleSetDirectories = this.ruleSetSearchDirectories.Union(new[]
-            {
+            string[] directories = this.ruleSetSearchDirectories
+                .Union(ruleSetDirectories)
+                .Union(new[]
+                {
                     Path.GetDirectoryName(baselineRuleSet.FilePath),
                     Path.GetDirectoryName(targetRuleSet.FilePath)
                 }).ToArray();
@@ -155,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration
             // At this point we should not have any conflicts, so there's should not be a need to add the remaining conflicting 
             // rules directly under the target with Action=TheExpectedAction
 
-            var effectiveRulesMap = targetRuleSet.GetEffectiveRules(ruleSetDirectories, providers, this.EffectiveRulesErrorHandler)
+            var effectiveRulesMap = targetRuleSet.GetEffectiveRules(directories, providers, this.EffectiveRulesErrorHandler)
                 .ToDictionary(r => r.FullId, StringComparer.OrdinalIgnoreCase);
 
             var deprioritizedRules = baselineRuleSet.Rules.Select(r =>

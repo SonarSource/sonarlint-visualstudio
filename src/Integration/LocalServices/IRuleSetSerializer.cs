@@ -7,7 +7,7 @@
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Integration
 {
     // Interface for testing purposes only
     internal interface IRuleSetSerializer

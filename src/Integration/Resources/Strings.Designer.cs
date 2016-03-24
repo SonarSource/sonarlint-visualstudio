@@ -242,6 +242,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: could not find CodeAnalysisRuleSet for project &apos;{0}&apos;.
+        /// </summary>
+        public static string CouldNotFindCodeAnalysisRuleSetPropertyOnProject {
+            get {
+                return ResourceManager.GetString("CouldNotFindCodeAnalysisRuleSetPropertyOnProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disconnect.
         /// </summary>
         public static string DisconnectCommandDisplayText {
@@ -319,15 +328,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string FailedToDeserializeSQCOnfiguration {
             get {
                 return ResourceManager.GetString("FailedToDeserializeSQCOnfiguration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to set the code analysis ruleset for project: {0}..
-        /// </summary>
-        public static string FailedToSetCodeAnalysisRuleSetMessage {
-            get {
-                return ResourceManager.GetString("FailedToSetCodeAnalysisRuleSetMessage", resourceCulture);
             }
         }
         

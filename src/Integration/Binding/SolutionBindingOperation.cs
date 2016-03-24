@@ -20,40 +20,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// <summary>
     /// Solution level binding by delegating some of the work to <see cref="ProjectBindingOperation"/>
     /// </summary>
-    internal partial class SolutionBindingOperation : ISolutionRuleStore
+    internal class SolutionBindingOperation : ISolutionRuleStore
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly ISolutionBinding solutionBinding;
 
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
         private readonly Dictionary<RuleSetGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<RuleSetGroup, RuleSetInformation>();
         private readonly ConnectionInformation connection;
         private readonly string sonarQubeProjectKey;
 
-        public SolutionBindingOperation(IServiceProvider serviceProvider, IProjectSystemHelper projectSystemHelper, ConnectionInformation connection, string sonarQubeProjectKey)
-            :this(serviceProvider, projectSystemHelper, connection, sonarQubeProjectKey, new SourceControlledFileSystem(serviceProvider), null, null)
-        {
-        }
-
-        internal /*for testing purposes*/ SolutionBindingOperation(IServiceProvider serviceProvider, IProjectSystemHelper projectSystemHelper, ConnectionInformation connection, string sonarQubeProjectKey, ISourceControlledFileSystem sourceControlledFileSystem,  IRuleSetSerializer rsFileSystem, ISolutionBinding solutionBinding)
-        {
+        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string sonarQubeProjectKey)
+        { 
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            if (sourceControlledFileSystem == null)
-            {
-                throw new ArgumentNullException(nameof(sourceControlledFileSystem));
-            }
-
-            if (projectSystemHelper == null)
-            {
-                throw new ArgumentNullException(nameof(projectSystemHelper));
-            }
-
+          
             if (connection == null)
             {
                 throw new ArgumentNullException(nameof(connection));
@@ -65,12 +50,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             this.serviceProvider = serviceProvider;
-            this.sourceControlledFileSystem = sourceControlledFileSystem;
-            this.projectSystem = projectSystemHelper;
             this.connection = connection;
             this.sonarQubeProjectKey = sonarQubeProjectKey;
-            this.ruleSetFileSystem = rsFileSystem ?? new RuleSetFileSystem();
-            this.solutionBinding = solutionBinding ?? new SolutionBinding(this.serviceProvider);
+
+            this.projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
+            this.projectSystem.AssertLocalServiceIsNotNull();
+
+            this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
+            this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
         }
 
         #region State
@@ -100,10 +87,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(ruleSets));
             }
 
+            var ruleSetInfo = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
+            ruleSetInfo.AssertLocalServiceIsNotNull();
+
             foreach (var keyValue in ruleSets)
             {
                 Debug.Assert(!this.ruleSetsInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
-                this.ruleSetsInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value);
+
+                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.sonarQubeProjectKey, GetProjectRuleSetSuffix(keyValue.Key));
+                this.ruleSetsInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
             }
         }
 
@@ -118,8 +110,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             Debug.Assert(info.NewRuleSetFilePath != null, "Expected to be called after Prepare");
-
-            // At this point we know that the rule set is needed, so we write it to disk (internally will only write the file once)
             return info.NewRuleSetFilePath;
         }
 
@@ -132,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (Project project in this.projectSystem.GetSolutionManagedProjects())
             {
-                var binder = new ProjectBindingOperation(serviceProvider, sourceControlledFileSystem, project, this.projectSystem, this);
+                var binder = new ProjectBindingOperation(serviceProvider, project, this);
                 binder.Initialize();
                 this.childBinder.Add(binder);
             }
@@ -142,6 +132,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.SolutionFullPath != null, "Expected to be initialized");
 
+            var ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
+            ruleSetSerializer.AssertLocalServiceIsNotNull();
+
             foreach (var keyValue in this.ruleSetsInformationMap)
             {
                 if (token.IsCancellationRequested)
@@ -150,13 +143,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
 
                 RuleSetInformation info = keyValue.Value;
-                RuleSetGroup group = keyValue.Key;
-                Debug.Assert(info.NewRuleSetFilePath == null, "Not expected to be called twice");
+                Debug.Assert(!string.IsNullOrWhiteSpace(info.NewRuleSetFilePath), "Expected to be set during registration time");
 
-                info.NewRuleSetFilePath = this.QueueWriteSolutionLevelRuleSet(this.SolutionFullPath, info.RuleSet, fileNameSuffix: group.ToString());
+                this.sourceControlledFileSystem.QueueFileWrite(info.NewRuleSetFilePath, () =>
+                {
+                    string ruleSetDirectoryPath = Path.GetDirectoryName(info.NewRuleSetFilePath);
+                    if (!this.sourceControlledFileSystem.DirectoryExists(ruleSetDirectoryPath))
+                    {
+                        this.sourceControlledFileSystem.CreateDirectory(ruleSetDirectoryPath);
+                    }
 
-                Debug.Assert(!string.IsNullOrWhiteSpace(info.NewRuleSetFilePath) 
-                    && this.sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.NewRuleSetFilePath), "Expected a rule set to pend pended");
+
+                    // Create or overwrite existing rule set
+                    ruleSetSerializer.WriteRuleSetFile(info.RuleSet, info.NewRuleSetFilePath);
+
+                    return true;
+                });
+
+                Debug.Assert(this.sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.NewRuleSetFilePath), "Expected a rule set to pend pended");
             }
 
             foreach (IBindingOperation binder in this.childBinder)
@@ -175,16 +179,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.PendBindingInformation(this.connection); // This is the last pend, so will be executed last
 
             if (this.sourceControlledFileSystem.WriteQueuedFiles())
-        {
+            {
                 // No reason to modify VS state if could not write files
 
-            this.childBinder.ForEach(b => b.Commit());
+                this.childBinder.ForEach(b => b.Commit());
 
                 foreach (RuleSetInformation info in ruleSetsInformationMap.Values)
-            {
+                {
                     Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
-                this.AddFileToSolutionItems(info.NewRuleSetFilePath);
-            }
+                    this.AddFileToSolutionItems(info.NewRuleSetFilePath);
+                }
 
                 return true;
             }
@@ -199,10 +203,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Will bend add/edit the binding information for next time usage
         /// </summary>
-        private void PendBindingInformation(ConnectionInformation connection)
+        private void PendBindingInformation(ConnectionInformation connInfo)
         {
-            BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connection.UserName, connection.Password);
-            this.solutionBinding.WriteSolutionBinding(this.sourceControlledFileSystem, new BoundSonarQubeProject(connection.ServerUri, this.sonarQubeProjectKey, credentials));
+            var binding = this.serviceProvider.GetService<ISolutionBinding>();
+            binding.AssertLocalServiceIsNotNull();
+
+            BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
+            binding.WriteSolutionBinding(this.sourceControlledFileSystem, new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials));
         }
 
         private void AddFileToSolutionItems(string fullFilePath)
@@ -244,5 +251,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             public string NewRuleSetFilePath { get; set; }
         }
         #endregion
+
+        #region Static helper
+
+        public static string GetProjectRuleSetSuffix(RuleSetGroup group)
+        {
+            return group.ToString();
+        }
+        #endregion  
     }
 }

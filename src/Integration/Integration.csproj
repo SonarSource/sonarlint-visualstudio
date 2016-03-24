@@ -112,15 +112,14 @@
   <ItemGroup>
     <Compile Include="Binding\BindingController.cs" />
     <Compile Include="Binding\IBindingOperation.cs" />
-    <Compile Include="Binding\IRuleSetSerializer.cs" />
+    <Compile Include="LocalServices\IRuleSetSerializer.cs" />
     <Compile Include="Binding\ISolutionRuleStore.cs" />
     <Compile Include="Binding\ProjectBindingOperation.cs" />
     <Compile Include="Binding\ProjectBindingOperation.Writer.cs" />
     <Compile Include="Binding\RuleSetGroup.cs" />
-    <Compile Include="Binding\RuleSetFileSystem.cs" />
+    <Compile Include="LocalServices\RuleSetSerializer.cs" />
     <Compile Include="Binding\SolutionBindingOperation.cs" />
     <Compile Include="Binding\NuGetHelper.cs" />
-    <Compile Include="Binding\SolutionBindingOperation.Writer.cs" />
     <Compile Include="Connection\ConnectionController.cs" />
     <Compile Include="Connection\ConnectionWorkflow.cs" />
     <Compile Include="Constants.cs" />
@@ -135,9 +134,12 @@
     <Compile Include="IWebBrowser.cs" />
     <Compile Include="LocalServices\IFileSystem.cs" />
     <Compile Include="LocalServices\IRuleSetInspector.cs" />
+    <Compile Include="LocalServices\ISolutionRuleSetsInformationProvider.cs" />
     <Compile Include="LocalServices\ISourceControlledFileSystem.cs" />
     <Compile Include="LocalServices\RuleConflictInfo.cs" />
+    <Compile Include="LocalServices\RuleSetDeclaration.cs" />
     <Compile Include="LocalServices\RuleSetInspector.cs" />
+    <Compile Include="LocalServices\SolutionRuleSetsInformationProvider.cs" />
     <Compile Include="Persistence\ISolutionBinding.cs" />
     <Compile Include="Progress\IProgressStepRunnerWrapper.cs" />
     <Compile Include="RuleSetHelper.cs" />

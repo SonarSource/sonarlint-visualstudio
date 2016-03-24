@@ -130,7 +130,6 @@
     <Compile Include="Binding\BindingWorkflowTests.cs" />
     <Compile Include="Binding\NuGetHelperTests.cs" />
     <Compile Include="Binding\ProjectBindingOperationTests.cs" />
-    <Compile Include="Binding\SolutionBindingOperation.WriterTests.cs" />
     <Compile Include="Binding\SolutionBindingOperationTests.cs" />
     <Compile Include="Connection\BasicCredentialsValidatorTests.cs" />
     <Compile Include="Connection\ConnectControllerTests.cs" />
@@ -138,6 +137,7 @@
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />
     <Compile Include="IServiceProviderExtensionsTests.cs" />
     <Compile Include="LocalServices\RuleSetInspectorTests.cs" />
+    <Compile Include="LocalServices\SolutionRuleSetsInformationProviderTests.cs" />
     <Compile Include="LocalServices\SourceControlledFileSystemTests.cs" />
     <Compile Include="PathHelperTests.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectTests.cs" />

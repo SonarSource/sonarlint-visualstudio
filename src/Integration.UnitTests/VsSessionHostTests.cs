@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
@@ -238,6 +239,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.AreEqual(boundProject.Key, this.stateManager.BoundProjectKey, "Key was not set, will not be able to mark project as bound after refresh");
             this.stateManager.AssertBoundProject(boundProject);
             Assert.IsTrue(refreshCalled, "Expected the refresh command to be called");
+        }
+
+
+        [TestMethod]
+        public void VsSessionHost_ServiceProviderForLocalSerivce()
+        {
+            // Setup
+            var testSubject = new VsSessionHost(this.serviceProvider,new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker());
+
+            // Act + Verify
+            Assert.IsNotNull(testSubject.GetService<ISolutionRuleSetsInformationProvider>());
+            Assert.IsNotNull(testSubject.GetService<IRuleSetSerializer>());
+            Assert.IsNotNull(testSubject.GetService<ISolutionBinding>());
+            Assert.IsNotNull(testSubject.GetService<ISourceControlledFileSystem>());
+            Assert.IsNotNull(testSubject.GetService<IFileSystem>());
+            Assert.AreSame(testSubject.GetService<IFileSystem>(), testSubject.GetService<ISourceControlledFileSystem>());
         }
         #endregion
 

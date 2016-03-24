@@ -19,7 +19,7 @@ using System.Threading;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     [TestClass]
-    public partial class SolutionBindingOperationTests
+    public class SolutionBindingOperationTests
     {
         private DTEMock dte;
         private ConfigurableServiceProvider serviceProvider;
@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableSourceControlledFileSystem sccFileSystem;
         private ConfigurableRuleSetSerializer ruleFS;
         private ConfigurableSolutionBinding solutionBinding;
+        private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfo;
 
         private const string SolutionRoot = @"c:\solution";
 
@@ -49,19 +50,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.sccFileSystem  = new ConfigurableSourceControlledFileSystem();
             this.ruleFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             this.solutionBinding = new ConfigurableSolutionBinding();
+            this.ruleSetInfo = new ConfigurableSolutionRuleSetsInformationProvider();
+            this.ruleSetInfo.SolutionRootFolder = SolutionRoot;
+
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
+            this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
+            this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleFS);
+            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfo);
         }
 
+        #region Tests
         [TestMethod]
         public void SolutionBindingOpearation_ArgChecks()
         {
             var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, this.projectSystemHelper, connectionInformation, "key"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, connectionInformation, "key"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, null, "key"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, connectionInformation, null));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, connectionInformation, string.Empty));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key"));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key"));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty));
 
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, this.projectSystemHelper, connectionInformation, "key");
+            var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key");
             Assert.IsNotNull(testSubject, "Avoid 'testSubject' not used analysis warning");
         }
 
@@ -155,17 +163,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Binders.Add(binder);
             bool prepareCalledForBinder = false;
             binder.PrepareAction = (ct) => prepareCalledForBinder = true;
+            string sonarQubeRulesDirectory = Path.Combine(SolutionRoot, Constants.SonarQubeManagedFolderName);
 
             // Sanity
-            Assert.IsNull(testSubject.RuleSetsInformationMap[RuleSetGroup.CSharp].NewRuleSetFilePath);
-            Assert.IsNull(testSubject.RuleSetsInformationMap[RuleSetGroup.VB].NewRuleSetFilePath);
-
+            this.sccFileSystem.AssertDirectoryNotExists(sonarQubeRulesDirectory);
+            Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[RuleSetGroup.CSharp].NewRuleSetFilePath);
+            Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[RuleSetGroup.VB].NewRuleSetFilePath);
+            
             // Act
             testSubject.Prepare(CancellationToken.None);
 
             // Verify
-            Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[RuleSetGroup.CSharp].NewRuleSetFilePath);
-            Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[RuleSetGroup.VB].NewRuleSetFilePath);
+            this.sccFileSystem.AssertDirectoryNotExists(sonarQubeRulesDirectory);
             Assert.IsTrue(prepareCalledForBinder, "Expected to propagate the prepare call to binders");
             this.sccFileSystem.AssertFileNotExists(@"c:\solution\SonarQube\keyCSharp.ruleset");
             this.sccFileSystem.AssertFileNotExists(@"c:\solution\SonarQube\keyVB.ruleset");
@@ -176,6 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             this.sccFileSystem.AssertFileExists(@"c:\solution\SonarQube\keyCSharp.ruleset");
             this.sccFileSystem.AssertFileExists(@"c:\solution\SonarQube\keyVB.ruleset");
+            this.sccFileSystem.AssertDirectoryExists(sonarQubeRulesDirectory);
         }
 
         [TestMethod]
@@ -213,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SSolutionBindingOpearation_Prepare_Cancellation_BeforeBindersPrepare()
+        public void SolutionBindingOpearation_Prepare_Cancellation_BeforeBindersPrepare()
         {
             // Setup
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
@@ -242,8 +252,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             }
 
             // Verify
-            Assert.IsNull(testSubject.RuleSetsInformationMap[RuleSetGroup.CSharp].NewRuleSetFilePath);
-            Assert.IsNull(testSubject.RuleSetsInformationMap[RuleSetGroup.VB].NewRuleSetFilePath);
+            Assert.IsNotNull(testSubject.RuleSetsInformationMap[RuleSetGroup.CSharp].NewRuleSetFilePath, "Expected to be set before Prepare is called");
+            Assert.IsNotNull(testSubject.RuleSetsInformationMap[RuleSetGroup.VB].NewRuleSetFilePath, "Expected to be set before Prepare is called");
             Assert.IsFalse(prepareCalledForBinder, "Expected to be cancelled as soon as possible i.e. before the first binder");
         }
 
@@ -251,6 +261,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOpearation_CommitSolutionBinding()
         {
             // Setup
+            this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBinding), this.solutionBinding);
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
             this.projectSystemHelper.ManagedProjects = new[] { csProject };
@@ -287,16 +298,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionBinding.AssertWriteSolutionBindingRequests(1);
             this.solutionBinding.AssertAllPendingWritten();
         }
+        #endregion
 
+        #region Helpers
         private SolutionBindingOperation CreateTestSubject(string projectKey, ConnectionInformation connection = null)
         {
             return new SolutionBindingOperation(this.serviceProvider,
-                this.projectSystemHelper,
                 connection ?? new ConnectionInformation(new Uri("http://host")),
-                projectKey,
-                this.sccFileSystem,
-                this.ruleFS,
-                this.solutionBinding);
+                projectKey);
         }
+        #endregion
     }
 }

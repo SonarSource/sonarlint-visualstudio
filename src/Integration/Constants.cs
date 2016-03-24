@@ -15,6 +15,11 @@ namespace SonarLint.VisualStudio.Integration
         public const string CodeAnalysisRuleSetPropertyKey = "CodeAnalysisRuleSet";
 
         /// <summary>
+        /// The property key which corresponds to the code analysis rule set directories
+        /// </summary>
+        public const string CodeAnalysisRuleSetDirectoriesPropertyKey = "CodeAnalysisRuleSetDirectories";
+
+        /// <summary>
         /// The directory name of the SonarQube specific files that are being created
         /// </summary>
         public const string SonarQubeManagedFolderName = "SonarQube";

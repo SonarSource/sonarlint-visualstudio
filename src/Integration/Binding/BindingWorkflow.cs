@@ -38,12 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         };        
 
         public BindingWorkflow(IHost host, ProjectInformation project)
-            : this(host, project, null)
-        {
-
-        }
-
-        internal /*for testing purposes*/ BindingWorkflow(IHost host, ProjectInformation project, IProjectSystemHelper projectSystemHelper)
         {
             if (host == null)
             {
@@ -57,11 +51,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.host = host;
             this.project = project;
-            this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.host);
+            this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
+            this.projectSystemHelper.AssertLocalServiceIsNotNull();
 
             this.solutionBindingOperation = new SolutionBindingOperation(
                     this.host,
-                    this.projectSystemHelper,
                     this.host.SonarQubeService.CurrentConnection,
                     this.project.Key);
         }

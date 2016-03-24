@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Xml;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -18,7 +17,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal partial class ProjectBindingOperation
     {
         internal const string DefaultProjectRuleSet = "MinimumRecommendedRules.ruleset";
-        private readonly IRuleSetSerializer ruleSetFileSystem;
+        private readonly IRuleSetSerializer ruleSetSerializer;
 
         internal /*for testing purposes*/ IDictionary<string, RuleSet> AlreadyUpdatedExistingRuleSetPaths
         {
@@ -68,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Pend new
             this.sourceControlledFileSystem.QueueFileWrite(newRuleSetPath, () =>
             {
-                this.ruleSetFileSystem.WriteRuleSetFile(newRuleSet, newRuleSetPath);
+                this.ruleSetSerializer.WriteRuleSetFile(newRuleSet, newRuleSetPath);
                 return true;
             });
 
@@ -151,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 try
                 {
-                    return this.ruleSetFileSystem.LoadRuleSet(ruleSetPath);
+                    return this.ruleSetSerializer.LoadRuleSet(ruleSetPath);
                 }
                 catch (Exception ex) when (ex is InvalidRuleSetException || ex is XmlException || ex is IOException)
                 {

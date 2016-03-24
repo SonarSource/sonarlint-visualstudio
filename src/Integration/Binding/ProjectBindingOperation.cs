@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
-using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,37 +20,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IServiceProvider serviceProvider;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly ISolutionRuleStore ruleStore;
-        private readonly IProjectSystemHelper projectSystem;
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider, ISourceControlledFileSystem sccFileSystem, Project project, IProjectSystemHelper projectSystem, ISolutionRuleStore ruleStore)
-            :this(serviceProvider, sccFileSystem, project, projectSystem, ruleStore, null)
-        {
-            
-        }
-
-        internal /*for testing purposes*/ ProjectBindingOperation(IServiceProvider serviceProvider, ISourceControlledFileSystem sccFileSystem, Project project, IProjectSystemHelper projectSystem, ISolutionRuleStore ruleStore, IRuleSetSerializer rsFileSystem)
+        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionRuleStore ruleStore)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            if (sccFileSystem == null)
-            {
-                throw new ArgumentNullException(nameof(sccFileSystem));
-            }
-
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
-            }
-
-            if (projectSystem == null)
-            {
-                throw new ArgumentNullException(nameof(projectSystem));
             }
 
             if (ruleStore == null)
@@ -60,13 +42,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             this.serviceProvider = serviceProvider;
-            this.sourceControlledFileSystem = sccFileSystem;
             this.initializedProject = project;
             this.ruleStore = ruleStore;
-            this.projectSystem = projectSystem;
-            this.ruleSetFileSystem = rsFileSystem ?? new RuleSetFileSystem();
-        }
 
+            this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
+            this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
+
+            this.ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
+            this.ruleSetSerializer.AssertLocalServiceIsNotNull();
+        }
 
         #region State
         internal /*for testing purposes*/ RuleSetGroup ProjectGroup { get; private set; }
@@ -128,42 +112,39 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Helpers
+      
         private void CaptureProjectInformation()
         {
-            Debug.Assert(Integration.ProjectSystemHelper.IsCSharpProject(this.initializedProject) || Integration.ProjectSystemHelper.IsVBProject(this.initializedProject), "Unexpected project kind");
-            this.ProjectGroup = Integration.ProjectSystemHelper.IsCSharpProject(this.initializedProject) ? RuleSetGroup.CSharp : RuleSetGroup.VB;
+            this.ProjectGroup = GetProjectGroup(this.initializedProject);
             this.ProjectFullPath = this.initializedProject.FullName;
         }
 
         private void CalculateRuleSetInformation()
         {
-            Property[] properties = VsShellUtils.EnumerateProjectProperties(this.initializedProject, Constants.CodeAnalysisRuleSetPropertyKey).ToArray();
-            string currentRuleSetValue = properties.FirstOrDefault()?.Value?.ToString();
+            var solutionRuleSetProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
+            RuleSetDeclaration[] ruleSetsInfo = solutionRuleSetProvider.GetProjectRuleSetsDeclarations(this.initializedProject).ToArray();
 
+            string sameRuleSetCandidate = ruleSetsInfo.FirstOrDefault()?.RuleSetPath;
+            
             // Special case: if all the values are the same use project name as the target ruleset name
             bool useSameTargetName = false;
-            if (properties.All(p=>StringComparer.OrdinalIgnoreCase.Equals(currentRuleSetValue, p.Value as string)))
+            if (ruleSetsInfo.All(r=>StringComparer.OrdinalIgnoreCase.Equals(sameRuleSetCandidate, r.RuleSetPath)))
             {
                 useSameTargetName = true;
             }
 
             string projectBasedRuleSetName = Path.GetFileNameWithoutExtension(this.initializedProject.FullName);
-            foreach (Property codeAnalysisRuleProperty in properties)
+            foreach (RuleSetDeclaration singleRuleSetInfo in ruleSetsInfo)
             {
-                if (codeAnalysisRuleProperty == null)
+                string targetRuleSetName = projectBasedRuleSetName;
+                string currentRuleSetValue = useSameTargetName ? sameRuleSetCandidate : singleRuleSetInfo.RuleSetPath;
+               
+                if (!useSameTargetName && !ShouldIgnoreConfigureRuleSetValue(currentRuleSetValue))
                 {
-                    VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.FailedToSetCodeAnalysisRuleSetMessage, this.initializedProject.UniqueName);
+                    targetRuleSetName = string.Join(".", targetRuleSetName, singleRuleSetInfo.ActivationContext);
                 }
-                else
-                {
-                    string targetRuleSetName = projectBasedRuleSetName;
-                    currentRuleSetValue = codeAnalysisRuleProperty.Value as string;
-                    if (!useSameTargetName && !ShouldIgnoreConfigureRuleSetValue(currentRuleSetValue))
-                    {
-                        targetRuleSetName = string.Join(".", targetRuleSetName, TryGetPropertyConfiguration(codeAnalysisRuleProperty)?.ConfigurationName ?? string.Empty);
-                    }
-                    this.propertyInformationMap[codeAnalysisRuleProperty] = new PropertyInformation(targetRuleSetName, currentRuleSetValue);
-                }
+
+                this.propertyInformationMap[singleRuleSetInfo.DeclaringProperty] = new PropertyInformation(targetRuleSetName, currentRuleSetValue);
             }
         }
 
@@ -171,9 +152,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(Path.IsPathRooted(fullFilePath) && File.Exists(fullFilePath), "Expecting a rooted path to existing file");
 
-            if (!this.projectSystem.IsFileInProject(project, fullFilePath))
+            var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
+
+            if (!projectSystem.IsFileInProject(project, fullFilePath))
             {
-                this.projectSystem.AddFileToProject(project, fullFilePath);
+                projectSystem.AddFileToProject(project, fullFilePath);
             }
         }
 
@@ -207,6 +191,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             public string NewRuleSetFilePath { get; set; }
 
+        }
+        #endregion
+
+        #region Static helpers
+        public static RuleSetGroup GetProjectGroup(Project project)
+        {
+            Debug.Assert(Integration.ProjectSystemHelper.IsCSharpProject(project) || Integration.ProjectSystemHelper.IsVBProject(project), "Unexpected project kind");
+            return Integration.ProjectSystemHelper.IsCSharpProject(project) ? RuleSetGroup.CSharp : RuleSetGroup.VB;
         }
         #endregion
     }

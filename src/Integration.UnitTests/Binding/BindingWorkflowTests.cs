@@ -14,12 +14,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGet;
 using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
@@ -44,6 +44,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+
+            var sccFileSystem = new ConfigurableSourceControlledFileSystem();
+            var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem);
+            var solutionBinding = new ConfigurableSolutionBinding();
+
+            this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
+            this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), ruleSerializer);
+            this.serviceProvider.RegisterService(typeof(ISolutionBinding), solutionBinding);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
         }
 
         #region Tests
@@ -280,7 +289,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.SonarQubeService = this.sonarQubeService;
             var useProjectInfo = projectInfo ?? new ProjectInformation() { Key = "key" };
 
-            return new BindingWorkflow(host, useProjectInfo, this.projectSystemHelper);
+            return new BindingWorkflow(host, useProjectInfo);
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] managedProjects)

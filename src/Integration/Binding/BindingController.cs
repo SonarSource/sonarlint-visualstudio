@@ -13,6 +13,7 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
@@ -29,11 +30,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystemHelper;
 
         public BindingController(IHost host)
-            : this(host, null, null)
+            : this(host, null)
         {
         }
 
-        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflowExecutor workflow, IProjectSystemHelper projectSystemHelper)
+        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflowExecutor workflow)
             : base(host)
         {
             if (host == null)
@@ -45,7 +46,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.BindCommand = new RelayCommand<ProjectViewModel>(this.OnBind, this.OnBindStatus);
             this.workflow = workflow ?? this;
-            this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.host);
+            this.projectSystemHelper = this.ServiceProvider.GetService<IProjectSystemHelper>();
+            this.projectSystemHelper.AssertLocalServiceIsNotNull();
         }
 
         public RelayCommand<ProjectViewModel> BindCommand
@@ -53,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         }
 
-        #region Command
+        #region Commands
         internal /*for testing purposes*/ bool IsBindingInProgress
         {
             get
@@ -150,17 +152,32 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 this.host.VisualStateManager.SetBoundProject(projectInformation);
                 VsShellUtils.ActivateSolutionExplorer(this.ServiceProvider);
+                this.CheckForConflicts();
             }
             else
             {
                 IUserNotification notifications = this.host.ActiveSection?.UserNotifications;
-                if (notifications !=null)
+                if (notifications != null)
                 {
                     // Create a command with a fixed argument with the help of ContextualCommandViewModel that creates proxy command for the contextual (fixed) instance and the passed in ICommand that expects it
                     ICommand rebindCommand = new ContextualCommandViewModel(projectInformation, new RelayCommand<ProjectInformation>(this.OnBind, this.OnBindStatus)).Command;
                     notifications.ShowNotificationError(Strings.FailedToToBindSolution, NotificationIds.FailedToBindId, rebindCommand);
                 }
             }
+        }
+
+        internal /*for testing purposes*/ void CheckForConflicts()
+        {
+            // TODO: implement something like: (need to think about perf, and UX part of that work
+            /*
+            var conflictsManager = this.ServiceProvider.GetService<IConflictsManager>();
+            var conflicts = conflictsManager.GetCurrentConflicts();
+
+            if (conflicts.Count > 0)
+            {
+                // Let the user know that he has conflicts
+                this.host.ActiveSection?.UserNotifications?.ShowNotificationWarning("Conflicts detected. Would you like to [fix them]()?", new Guid(), conflictsManager.GetResolveConflictsCommand(conflicts));
+            }*/
         }
         #endregion
     }

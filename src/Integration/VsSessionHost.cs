@@ -13,8 +13,10 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration
@@ -27,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionTracker solutionTacker;
         private readonly ISolutionBinding solutionBinding;
         private readonly IProgressStepRunnerWrapper progressStepRunner;
+        private readonly Dictionary<Type, Lazy<object>> localServices = new Dictionary<Type, Lazy<object>>();
 
         private bool isDisposed;
         private bool resetBindingWhenAttaching = true;
@@ -79,6 +82,8 @@ namespace SonarLint.VisualStudio.Integration
             this.solutionBinding = solutionBinding;
             this.solutionTacker = solutionTacker;
             this.solutionTacker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
+
+            this.RegisterLocalServices();
         }
 
         #region IProgressStepRunnerWrapper
@@ -243,8 +248,28 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region IServiceProvider
+        private void RegisterLocalServices()
+        {
+            // Use Lazy<object> to avoid creating instances needlessly
+            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<object>(() => new SolutionRuleSetsInformationProvider(this)));
+            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<object>(() => new RuleSetSerializer()));
+            this.localServices.Add(typeof(ISolutionBinding), new Lazy<object>(() => new SolutionBinding(this)));
+            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<object>(() => new ProjectSystemHelper(this)));
+
+            var sccFs = new Lazy<object>(() => new SourceControlledFileSystem(this));
+            this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
+            this.localServices.Add(typeof(IFileSystem), sccFs);
+        }
+
         public object GetService(Type type)
         {
+            // We don't expect COM types, otherwise the dictionary would have to use a custom comparer
+            Lazy<object> instanceFactory;
+            if (this.localServices.TryGetValue(type, out instanceFactory))
+            {
+                return instanceFactory.Value;
+            }
+
             return this.serviceProvider.GetService(type);
         }
         #endregion
@@ -257,6 +282,15 @@ namespace SonarLint.VisualStudio.Integration
                 if (disposing)
                 {
                     this.solutionTacker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
+
+                    this.localServices.Values
+                        .Where(v => v.IsValueCreated)
+                        .Select(v => v.Value)
+                        .OfType<IDisposable>()
+                        .ToList()
+                        .ForEach(d => d.Dispose());
+
+                    this.localServices.Clear();
                 }
 
                 this.isDisposed = true;
@@ -268,5 +302,6 @@ namespace SonarLint.VisualStudio.Integration
             Dispose(true);
         }
         #endregion
+
     }
 }

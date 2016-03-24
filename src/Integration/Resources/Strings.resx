@@ -229,10 +229,6 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Rule set generated from SonarQube</value>
     <comment>Generated rule set description.</comment>
   </data>
-  <data name="FailedToSetCodeAnalysisRuleSetMessage" xml:space="preserve">
-    <value>Failed to set the code analysis ruleset for project: {0}.</value>
-    <comment>Output window error message. {0} - project unique name</comment>
-  </data>
   <data name="PathHelperAbsolutePathExpected" xml:space="preserve">
     <value>An absolute file path was expected.</value>
     <comment>Exception message indicating the provided path should be an absolute path.</comment>
@@ -437,5 +433,9 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
     <value>{0}: Unexpected error: {1}. You can help us improve by reporting this bug at {2}.</value>
     <comment>{0} - the class name, {1} - error message, {2} url.
 This is the general format to use when writing errors to output window or when there might not be enough context for the user to understand where is the error comming from.</comment>
+  </data>
+  <data name="CouldNotFindCodeAnalysisRuleSetPropertyOnProject" xml:space="preserve">
+    <value>Warning: could not find CodeAnalysisRuleSet for project '{0}'</value>
+    <comment>Warning message. '{0}' project unique name </comment>
   </data>
 </root>

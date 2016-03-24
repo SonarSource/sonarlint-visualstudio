@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio.ComponentModelHost;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
@@ -57,6 +58,13 @@ namespace SonarLint.VisualStudio.Integration
             IComponentModel componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
             // We don't want to throw in the case of a missing service (don't use GetService<T>)  
             return componentModel?.GetExtensions<T>().SingleOrDefault();
+        }
+
+        [Conditional("DEBUG")]
+        internal static void AssertLocalServiceIsNotNull<T>(this T service)
+            where T : class
+        {
+            Debug.Assert(service != null, $"Local service {typeof(T).FullName} is not registered");
         }
     }
 }
