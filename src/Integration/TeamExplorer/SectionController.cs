@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     /// relevant during the life time of the section (initialized when activated and disposed when navigated to a different section).
     /// </summary>
     [TeamExplorerSection(SectionController.SectionId, SonarQubePage.PageId, SectionController.Priority)]
-    internal class SectionController : TeamExplorerSectionBase, IConnectSection
+    internal class SectionController : TeamExplorerSectionBase, ISectionController
     {
         public const string SectionId = "25AB05EF-8132-453E-A990-55587C0C5CD3";
         public const int Priority = 300;
@@ -35,8 +35,18 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private readonly IWebBrowser webBrowser;
 
         [ImportingConstructor]
-        public SectionController([Import] IHost host, IWebBrowser webBrowser)
+        public SectionController(IHost host, IWebBrowser webBrowser)
         {
+            if (host == null)
+            {
+                throw new ArgumentNullException(nameof(host));
+            }
+
+            if (webBrowser == null)
+            {
+                throw new ArgumentNullException(nameof(webBrowser));
+            }
+
             this.Host = host;
             this.webBrowser = webBrowser;
         }
@@ -46,18 +56,18 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get;
         } = new List<IOleCommandTarget>();
 
-        internal /*for test purposes*/ IHost Host
+        protected IHost Host
         {
             get;
         }
 
         #region IConnectSection
-        IProgressControlHost IConnectSection.ProgressHost
+        IProgressControlHost ISectionController.ProgressHost
         {
             get { return (IProgressControlHost)this.View; }
         }
 
-        ConnectSectionView IConnectSection.View
+        ConnectSectionView ISectionController.View
         {
             get { return (ConnectSectionView)this.View; }
         }
@@ -67,12 +77,12 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             Justification = "The base class is not defined by us, so we can't force the type to be something else", 
             Scope = "member", 
             Target = "~P:SonarLint.VisualStudio.Integration.TeamExplorer.SectionController.SonarLint#VisualStudio#Integration#TeamExplorer#IConnectSection#ViewModel")]
-        ConnectSectionViewModel IConnectSection.ViewModel
+        ConnectSectionViewModel ISectionController.ViewModel
         {
             get { return (ConnectSectionViewModel)this.ViewModel; }
         }
 
-        IUserNotification IConnectSection.UserNotifications
+        IUserNotification ISectionController.UserNotifications
         {
             get { return (IUserNotification)this.ViewModel; }
         }
@@ -94,6 +104,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             // Create the View & ViewModel
             base.Initialize(sender, e);
 
+            this.Host.VisualStateManager.IsBusyChanged += this.OnIsBusyChanged;
+
             this.InitializeControllerCommands();
             this.InitializeProvidedCommands();
             this.SyncCommands();
@@ -105,6 +117,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             this.Host.ClearActiveSection();
 
+            this.Host.VisualStateManager.IsBusyChanged -= this.OnIsBusyChanged;
             this.CleanControllerCommands();
             this.CleanProvidedCommands();
             this.SyncCommands();
@@ -141,6 +154,11 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             }
 
             return result;
+        }
+
+        private void OnIsBusyChanged(object sender, bool isBusy)
+        {
+            ((ISectionController)this).ViewModel.IsBusy = isBusy;
         }
         #endregion
 
@@ -204,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.RefreshCommand = null;
             this.BindCommand = null;
 
-            IConnectSection section = (IConnectSection)this;
+            ISectionController section = (ISectionController)this;
             if (section.ViewModel !=null)
             {
                 section.ViewModel.ConnectCommand = null;
@@ -230,7 +248,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private void SyncCommands()
         {
-            IConnectSection section = (IConnectSection)this;
+            ISectionController section = (ISectionController)this;
             if (section.ViewModel != null)
             {
                 section.ViewModel.ConnectCommand = this.ConnectCommand;
@@ -261,6 +279,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             server.ShowAllProjects = !server.ShowAllProjects;
         }
+
         private bool CanExecBrowseToUrl(string url)
         {
             return Uri.IsWellFormedUriString(url, UriKind.Absolute);

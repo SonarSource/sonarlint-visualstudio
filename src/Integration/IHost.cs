@@ -17,7 +17,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// The UI thread dispatcher. Not null.
         /// </summary>
-        Dispatcher UIDIspatcher { get; }
+        Dispatcher UIDispatcher { get; }
 
         /// <summary>
         /// <see cref="ISonarQubeServiceWrapper"/>. Not null.
@@ -32,13 +32,13 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// The currently active section. Null when no active section.
         /// </summary>
-        IConnectSection ActiveSection { get; }
+        ISectionController ActiveSection { get; }
 
         /// <summary>
         /// Sets the <see cref="ActiveSection"/> with the specified <paramref name="section"/>
         /// </summary>
         /// <param name="section">Required</param>
-        void SetActiveSection(IConnectSection section);
+        void SetActiveSection(ISectionController section);
 
         /// <summary>
         /// Clears the <see cref="ActiveSection"/>

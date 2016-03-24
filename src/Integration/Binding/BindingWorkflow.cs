@@ -95,8 +95,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public IProgressEvents Run()
         {
-            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToBindId);
-
             List<string> languages = new List<string>();
             if (this.projectSystemHelper.GetSolutionManagedProjects().Any(p => ProjectSystemHelper.IsCSharpProject(p)))
             {

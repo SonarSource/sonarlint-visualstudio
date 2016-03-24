@@ -197,7 +197,7 @@
       <DependentUpon>ConnectionInfoDialogView.xaml</DependentUpon>
     </Compile>
     <Compile Include="ActiveSolutionTracker.cs" />
-    <Compile Include="TeamExplorer\IConnectSection.cs" />
+    <Compile Include="TeamExplorer\ISectionController.cs" />
     <Compile Include="TelemetryLoggerAccessor.cs" />
     <Compile Include="VsSessionHost.cs" />
     <Compile Include="WebBrowser.cs" />

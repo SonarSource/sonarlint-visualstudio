@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.serviceProvider = new ConfigurableServiceProvider();
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
+            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             this.host.SonarQubeService = this.sonarQubeService;
 
             this.sonarQubeService.RegisterServerPlugin(new ServerPlugin { Key = ServerPlugin.CSharpPluginKey, Version = ServerPlugin.CSharpPluginMinimumVersion });
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeService.AllowConnections = true;
             this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
             this.sonarQubeService.ClearServerPlugins();
-            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
+            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
 

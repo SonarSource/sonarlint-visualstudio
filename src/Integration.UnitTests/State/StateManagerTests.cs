@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         public void StateManager_SetProjectsUIThread()
         {
             // Setup
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
@@ -116,10 +116,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         public void StateManager_SyncCommandFromActiveSection()
         {
             // Setup
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             ConfigurableHost host = new ConfigurableHost();
-            StateManager testSubject = this.CreateTestSubject(host);
-            section.ViewModel.State = testSubject.ManagedState;
+            StateManager testSubject = this.CreateTestSubject(host, section);
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
             var projects = new ProjectInformation[] { new ProjectInformation(), new ProjectInformation() };
             testSubject.SetProjects(connection1, projects);
@@ -137,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Act
             testSubject.SyncCommandFromActiveSection();
-            VerifyUnlinkedCommands(serverVM);
+            VerifyNoCommands(serverVM);
 
             // Case 3: re-active
             host.SetActiveSection(section);
@@ -152,17 +151,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         public void StateManager_ToggleShowAllProjectsCommand_DynamicText()
         {
             // Setup
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             ConfigurableHost host = new ConfigurableHost();
-            StateManager testSubject = this.CreateTestSubject(host);
-            section.ViewModel.State = testSubject.ManagedState;
+            StateManager testSubject = this.CreateTestSubject(host, section);
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
             var projects = new ProjectInformation[] { new ProjectInformation(), new ProjectInformation() };
             testSubject.SetProjects(connection1, projects);
             ServerViewModel serverVM = testSubject.ManagedState.ConnectedServers.Single();
             host.SetActiveSection(section);
             testSubject.SyncCommandFromActiveSection();
-            ContextualCommandViewModel toggleContextCmd = serverVM.Commands.First(x => x.InternalRealCommand == section.ToggleShowAllProjectsCommand);
+            ContextualCommandViewModel toggleContextCmd = serverVM.Commands.First(x => x.InternalRealCommand.Equals(section.ToggleShowAllProjectsCommand));
 
             // Case 1: No bound projects
             serverVM.ShowAllProjects = true;
@@ -180,17 +178,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         public void StateManager_BindCommand_DynamicText()
         {
             // Setup
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             ConfigurableHost host = new ConfigurableHost();
-            StateManager testSubject = this.CreateTestSubject(host);
-            section.ViewModel.State = testSubject.ManagedState;
+            StateManager testSubject = this.CreateTestSubject(host, section);
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
             var projects = new ProjectInformation[] { new ProjectInformation() };
             testSubject.SetProjects(connection1, projects);
             ProjectViewModel projectVM = testSubject.ManagedState.ConnectedServers.Single().Projects.Single();
             host.SetActiveSection(section);
             testSubject.SyncCommandFromActiveSection();
-            ContextualCommandViewModel bindCmd = projectVM.Commands.First(x => x.InternalRealCommand == section.BindCommand);
+            ContextualCommandViewModel bindCmd = projectVM.Commands.First(x => x.InternalRealCommand.Equals(section.BindCommand));
 
             // Case 1: Bound
             projectVM.IsBound = true;
@@ -208,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         public void StateManager_ClearBoundProject()
         {
             // Setup
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
             host.SetActiveSection(section);
@@ -236,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         public void StateManager_SetBoundProject()
         {
             // Setup
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
             host.SetActiveSection(section);
@@ -269,12 +266,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         }
 
         [TestMethod]
-        public void StateManager_UpdateBusyState()
+        public void StateManager_IsBusyChanged()
         {
             // Setup
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
+            testSubject.IsBusyChanged += (s, isBusy) => section.ViewModel.IsBusy = isBusy;
 
             // Case 1: no active section -> no-op (i.e. no exception)
             testSubject.IsBusy = true;
@@ -305,12 +303,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         #endregion
 
         #region Helpers
-        private StateManager CreateTestSubject(ConfigurableHost host)
+        private StateManager CreateTestSubject(ConfigurableHost host, ConfigurableSectionController section = null)
         {
-            return new StateManager(host, new TransferableVisualState());
+            var testSubject = new StateManager(host, new TransferableVisualState());
+
+            if (section != null)
+            {
+                section.ViewModel.State = testSubject.ManagedState;
+            }
+
+            return testSubject;
         }
 
-        private static void VerifySectionCommands(IConnectSection section, ServerViewModel serverVM)
+        private static void VerifySectionCommands(ISectionController section, ServerViewModel serverVM)
         {
             AssertExpectedNumberOfCommands(serverVM.Commands, 3);
             VerifyServerViewModelCommand(serverVM, section.DisconnectCommand, hasIcon: true);
@@ -323,13 +328,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             }
         }
 
-        private static void VerifyUnlinkedCommands(ServerViewModel serverVM)
+        private static void VerifyNoCommands(ServerViewModel serverVM)
         {
-            AssertExpectedNumberOfCommands(serverVM.Commands, 3);
-            foreach (ContextualCommandViewModel cmd in serverVM.Commands.Concat(serverVM.Projects.SelectMany(p => p.Commands)))
-            {
-                Assert.IsNull(cmd.InternalRealCommand, "Expected to be null since no active section");
-            }
+            AssertExpectedNumberOfCommands(serverVM.Commands, 0);
+            Assert.AreEqual(0, serverVM.Projects.Sum(p => p.Commands.Count), "Not expecting any project commands");
         }
 
         private static void VerifyServerViewModelCommand(ServerViewModel serverVM, ICommand internalCommand, bool hasIcon)
@@ -362,7 +364,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
         private static ContextualCommandViewModel AssertCommandExists(ContextualCommandsCollection commands, ICommand realCommand)
         {
-            ContextualCommandViewModel[] commandsArr = commands.Where(c => c.InternalRealCommand == realCommand).ToArray();
+            ContextualCommandViewModel[] commandsArr = commands.Where(c => c.InternalRealCommand.Equals(realCommand)).ToArray();
             AssertExpectedNumberOfCommands(commandsArr, 1);
             return commandsArr[0];
         }

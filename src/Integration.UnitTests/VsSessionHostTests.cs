@@ -51,8 +51,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Exceptions.Expect<ArgumentNullException>(() => testSubject.SetActiveSection(null));
 
             // Case 2: Valid args
-            var section1 = ConfigurableConnectSection.CreateDefault();
-            var section2 = ConfigurableConnectSection.CreateDefault();
+            var section1 = ConfigurableSectionController.CreateDefault();
+            var section2 = ConfigurableSectionController.CreateDefault();
             bool refresh1Called = false;
             section1.RefreshCommand = new RelayCommand(() => refresh1Called = true);
             bool refresh2Called = false;
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             VsSessionHost testSubject = this.CreateTestSubject(null);
-            IConnectSection section = ConfigurableConnectSection.CreateDefault();
+            ISectionController section = ConfigurableSectionController.CreateDefault();
 
             // Act
             testSubject.SetActiveSection(section);
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             VsSessionHost testSubject = this.CreateTestSubject(null);
-            IConnectSection section = ConfigurableConnectSection.CreateDefault();
+            ISectionController section = ConfigurableSectionController.CreateDefault();
 
             // Sanity
             this.stepRunner.AssertNoCurrentHost();
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             VsSessionHost testSubject = this.CreateTestSubject(null);
-            IConnectSection section = ConfigurableConnectSection.CreateDefault();
+            ISectionController section = ConfigurableSectionController.CreateDefault();
             testSubject.SetActiveSection(section);
 
             // Act
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             VsSessionHost testSubject = this.CreateTestSubject(null);
-            IConnectSection section = ConfigurableConnectSection.CreateDefault();
+            ISectionController section = ConfigurableSectionController.CreateDefault();
             int syncCalled = 0;
             this.stateManager.SyncCommandFromActiveSectionAction = () => syncCalled++;
 
@@ -199,7 +199,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsNull(this.stateManager.BoundProjectKey, "The key should only be set when there's active section to allow marking it once fetched all the projects");
 
             // Act (set active section)
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
             section.RefreshCommand = new RelayCommand(() => refreshCalled = true);
             testSubject.SetActiveSection(section);
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var boundProject = new Integration.Service.ProjectInformation { Key = "bla" };
             this.stateManager.SetBoundProject(boundProject);
             solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
             section.RefreshCommand = new RelayCommand(() => refreshCalled = true);
             testSubject.SetActiveSection(section);

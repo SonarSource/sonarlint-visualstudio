@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             });
             ProjectViewModel projectVM = serverVM.Projects.ToArray()[0];
             BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
-            var section = ConfigurableConnectSection.CreateDefault();
+            var section = ConfigurableSectionController.CreateDefault();
             this.host.SetActiveSection(section);
             var progressEvents = new ConfigurableProgressEvents();
             this.host.ActiveSection.UserNotifications.ShowNotificationError("Need to make sure that this is clear once started", NotificationIds.FailedToBindId, new RelayCommand(() => { }));
@@ -299,7 +299,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private BindingController PrepareCommandForExecution(ConnectionInformation connection)
         {
             BindingController testSubject = this.CreateBindingController();
-            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
+            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             this.sonarQubeService.SetConnection(connection);
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);

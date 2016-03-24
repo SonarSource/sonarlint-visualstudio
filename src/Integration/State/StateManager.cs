@@ -43,6 +43,8 @@ namespace SonarLint.VisualStudio.Integration.State
         }
 
         #region IStateManager
+        public event EventHandler<bool> IsBusyChanged;
+
         public TransferableVisualState ManagedState
         {
             get;
@@ -69,13 +71,13 @@ namespace SonarLint.VisualStudio.Integration.State
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects)
         {
-            if (this.Host.UIDIspatcher.CheckAccess())
+            if (this.Host.UIDispatcher.CheckAccess())
             {
                 this.SetProjectsUIThread(connection, projects);
             }
             else
             {
-                this.Host.UIDIspatcher.BeginInvoke(new Action(() => this.SetProjectsUIThread(connection, projects)));
+                this.Host.UIDispatcher.BeginInvoke(new Action(() => this.SetProjectsUIThread(connection, projects)));
             }
         }
 
@@ -104,15 +106,16 @@ namespace SonarLint.VisualStudio.Integration.State
         #endregion
 
         #region Non public API
+        private void OnIsBusyChanged(bool isBusy)
+        {
+            this.IsBusyChanged?.Invoke(this, isBusy);
+        }
+
         private void OnStatePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(this.ManagedState.IsBusy))
             {
-                var vm = this.Host.ActiveSection?.ViewModel;
-                if (vm != null)
-                {
-                    vm.IsBusy = this.ManagedState.IsBusy;
-                }
+                this.OnIsBusyChanged(this.IsBusy);
             }
         }
 
@@ -182,21 +185,27 @@ namespace SonarLint.VisualStudio.Integration.State
         private void SetServerVMCommands(ServerViewModel serverVM)
         {
             serverVM.Commands.Clear();
-            var refreshContextualCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection?.RefreshCommand)
+            if (this.Host.ActiveSection == null)
+            {
+                // Don't add command (which will be disabled).
+                return;
+            }
+
+            var refreshContextualCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection.RefreshCommand)
             {
                 DisplayText = Strings.RefreshCommandDisplayText,
                 Tooltip = Strings.RefreshCommandTooltip,
                 Icon = new IconViewModel(KnownMonikers.Refresh)
             };
 
-            var disconnectContextualCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection?.DisconnectCommand)
+            var disconnectContextualCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection.DisconnectCommand)
             {
                 DisplayText = Strings.DisconnectCommandDisplayText,
                 Tooltip = Strings.DisconnectCommandTooltip,
                 Icon = new IconViewModel(KnownMonikers.Disconnect)
             };
 
-            var toggleShowAllProjectsCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection?.ToggleShowAllProjectsCommand)
+            var toggleShowAllProjectsCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection.ToggleShowAllProjectsCommand)
             {
                 Tooltip = Strings.ToggleShowAllProjectsCommandTooltip
             };
@@ -218,7 +227,13 @@ namespace SonarLint.VisualStudio.Integration.State
             {
                 projectVM.Commands.Clear();
 
-                var bindContextCommand = new ContextualCommandViewModel(projectVM, this.Host.ActiveSection?.BindCommand);
+                if (this.Host.ActiveSection == null)
+                {
+                    // Don't add command (which will be disabled).
+                    continue;
+                }
+
+                var bindContextCommand = new ContextualCommandViewModel(projectVM, this.Host.ActiveSection.BindCommand);
                 bindContextCommand.SetDynamicDisplayText(x =>
                 {
                     var ctx = x as ProjectViewModel;

@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration
             this.serviceProvider = serviceProvider;
             this.VisualStateManager = state ?? new StateManager(this, new TransferableVisualState());
             this.progressStepRunner = progressStepRunner ?? this;
-            this.UIDIspatcher = uiDispatcher;
+            this.UIDispatcher = uiDispatcher;
             this.SonarQubeService = sonarQubeService;
             this.solutionBinding = solutionBinding;
             this.solutionTacker = solutionTacker;
@@ -94,15 +94,15 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region IHost
-        public Dispatcher UIDIspatcher { get; }
+        public Dispatcher UIDispatcher { get; }
 
         public IStateManager VisualStateManager { get;  }
 
         public ISonarQubeServiceWrapper SonarQubeService { get; }
 
-        public IConnectSection ActiveSection { get; private set; }
+        public ISectionController ActiveSection { get; private set; }
 
-        public void SetActiveSection(IConnectSection section)
+        public void SetActiveSection(ISectionController section)
         {
             if (section == null)
             {

@@ -23,6 +23,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IStateManager
+        public event EventHandler<bool> IsBusyChanged;
+
         public string BoundProjectKey
         {
             get;
@@ -107,6 +109,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 Assert.IsNull(this.Host.ActiveSection, "ActiveSection is not null");
             }
+        }
+
+        public void InvokeBusyChanged(bool value)
+        {
+            this.IsBusyChanged?.Invoke(this, value);
         }
         #endregion  
     }

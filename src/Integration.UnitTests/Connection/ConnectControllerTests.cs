@@ -53,11 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         [TestMethod]
         public void ConnectionController_Ctor_ArgumentChecks()
         {
-            ConnectionController suppressAnalysisIssue;
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                suppressAnalysisIssue = new ConnectionController(null);
-            });
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(null));
         }
 
         [TestMethod]
@@ -270,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
-            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
+            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
             this.connectionProvider.ConnectionInformationToReturn = null;
             var progressEvents = new ConfigurableProgressEvents();
@@ -326,7 +322,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             var testSubject = new ConnectionController(this.host);
-            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
+            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             this.settings.ShowServerNuGetTrustWarning = true;
             this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
 
@@ -347,7 +343,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Setup
             this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel(), replaceExisting: true);
             var testSubject = new ConnectionController(this.host);
-            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
+            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             this.settings.ShowServerNuGetTrustWarning = true;
             this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
 
@@ -360,7 +356,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             var testSubject = new ConnectionController(this.host);
-            this.host.SetActiveSection(ConfigurableConnectSection.CreateDefault());
+            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             this.settings.ShowServerNuGetTrustWarning = true;
             this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
 

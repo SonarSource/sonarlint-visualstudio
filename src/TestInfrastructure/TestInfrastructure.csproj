@@ -131,7 +131,7 @@
     <Compile Include="Framework\ConfigurableCompositionService.cs" />
     <Compile Include="Framework\ConfigurableConnectionInformationProvider.cs" />
     <Compile Include="Framework\ConfigurableConnectionWorkflow.cs" />
-    <Compile Include="Framework\ConfigurableConnectSection.cs" />
+    <Compile Include="Framework\ConfigurableSectionController.cs" />
     <Compile Include="Framework\ConfigurableMenuCommandService.cs" />
     <Compile Include="Framework\ConfigurablePackageInstaller.cs" />
     <Compile Include="Framework\ConfigurableProgressControlHost.cs" />

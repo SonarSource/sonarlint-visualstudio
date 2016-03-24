@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.TeamFoundation.Client.CommandTarget;
+using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -21,6 +22,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
+        private ConfigurableHost host;
 
         [TestInitialize]
         public void TestInitialize()
@@ -28,6 +30,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ThreadHelper.SetCurrentThreadAsUIThread();
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
+            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+            this.host.SonarQubeService = this.sonarQubeService;
         }
 
         #region Tests
@@ -54,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var connection = new ConnectionInformation(new Uri("http://localhost"));
             this.sonarQubeService.SetConnection(connection);
             this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
-            ReInitialize(testSubject);
+            ReInitialize(testSubject, this.host);
 
             // Verify
             AssertCommandsInSync(testSubject);
@@ -64,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Case 3: re-initialization with connection and projects
             var projects = new[] { new ProjectInformation() };
             this.sonarQubeService.ReturnProjectInformation = projects;
-            ReInitialize(testSubject);
+            ReInitialize(testSubject, this.host);
 
             // Verify
             AssertCommandsInSync(testSubject);
@@ -73,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 4: re-initialization with no connection
             this.sonarQubeService.ClearConnection();
-            ReInitialize(testSubject);
+            ReInitialize(testSubject, this.host);
 
             // Verify
             AssertCommandsInSync(testSubject);
@@ -90,6 +94,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsNull(testSubject.BindCommand, "BindCommand is not ;");
             Assert.IsNull(testSubject.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not ;");
             Assert.IsNull(testSubject.BrowseToUrlCommand, "BrowseToUrlCommand is not ;");
+        }
+
+        [TestMethod]
+        public void SectionController_RespondsToIsBusyChanged()
+        {
+            // Setup
+            SectionController testSubject = this.CreateTestSubject();
+            ConfigurableStateManager stateManager = (ConfigurableStateManager)this.host.VisualStateManager;
+            ITeamExplorerSection viewModel = testSubject.ViewModel;
+
+            // Act
+            stateManager.InvokeBusyChanged(true);
+
+            // Verify
+            Assert.IsTrue(viewModel.IsBusy);
+
+            // Act again (different value)
+            stateManager.InvokeBusyChanged(false);
+
+            // Verify (should change)
+            Assert.IsFalse(viewModel.IsBusy);
+
+            // Dispose
+            testSubject.Dispose();
+
+            // Act again(different value)
+            stateManager.InvokeBusyChanged(true);
+
+            // Verify (should remain the same)
+            Assert.IsFalse(viewModel.IsBusy);
         }
 
         [TestMethod]
@@ -226,10 +260,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         #endregion
 
         #region Helpers
-        private static void ReInitialize(SectionController controller)
+        private static void ReInitialize(SectionController controller, IHost host)
         {
-            controller.Host.ClearActiveSection();
-            controller.Host.VisualStateManager.ManagedState.ConnectedServers.Clear();
+            host.ClearActiveSection();
+            host.VisualStateManager.ManagedState.ConnectedServers.Clear();
             controller.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
             bool refreshCalled = false;
             controller.RefreshCommand = new RelayCommand(() => refreshCalled = true);
@@ -270,8 +304,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private SectionController CreateTestSubject(IWebBrowser webBrowser = null)
         {
-            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-            host.SonarQubeService = this.sonarQubeService;
             var controller = new SectionController(host, webBrowser ?? new ConfigurableWebBrowser());
             controller.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
             return controller;

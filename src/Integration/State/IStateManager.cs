@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarLint.VisualStudio.Integration.Service;
+using System;
 using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.State
@@ -20,6 +21,11 @@ namespace SonarLint.VisualStudio.Integration.State
         /// </summary>
         /// <remarks>The state should not be manipulated directly, it exposed only for databinding purposes</remarks>
         TransferableVisualState ManagedState { get; }
+
+        /// <summary>
+        /// Event fired when <see cref="IsBusy"/> is changed. The arguments will include the new value.
+        /// </summary>
+        event EventHandler<bool> IsBusyChanged;
 
         bool IsBusy { get; set; }
 

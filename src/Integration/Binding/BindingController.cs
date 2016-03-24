@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #region Command
-        internal bool IsBindingInProgress
+        internal /*for testing purposes*/ bool IsBindingInProgress
         {
             get
             {

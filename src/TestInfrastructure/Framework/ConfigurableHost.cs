@@ -26,11 +26,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public ConfigurableHost(ConfigurableServiceProvider sp, Dispatcher dispatcher)
         {
             this.serviceProvider = sp;
-            this.UIDIspatcher = dispatcher;
+            this.UIDispatcher = dispatcher;
             this.VisualStateManager = new ConfigurableStateManager { Host = this };
         }
 
-        public IConnectSection ActiveSection
+        public ISectionController ActiveSection
         {
             get;
             private set;
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
-        public Dispatcher UIDIspatcher
+        public Dispatcher UIDispatcher
         {
             get;
             private set;
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.serviceProvider.GetService(serviceType);
         }
 
-        public void SetActiveSection(IConnectSection section)
+        public void SetActiveSection(ISectionController section)
         {
             Assert.IsNotNull(section);
 

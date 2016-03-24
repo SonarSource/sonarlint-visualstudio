@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="ConfigurableConnectSection.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="ConfigurableSectionController.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -12,9 +12,9 @@ using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal class ConfigurableConnectSection : IConnectSection
+    internal class ConfigurableSectionController : ISectionController
     {
-        #region  IConnectSection
+        #region  ISectionController
         public ICommand BindCommand
         {
             get;
@@ -70,9 +70,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
         #endregion
 
-        public static ConfigurableConnectSection CreateDefault()
+        public static ConfigurableSectionController CreateDefault()
         {
-            var section = new ConfigurableConnectSection();
+            var section = new ConfigurableSectionController();
             section.ViewModel = new ConnectSectionViewModel();
             section.View = new ConnectSectionView();
             section.ProgressHost = new ConfigurableProgressControlHost();
