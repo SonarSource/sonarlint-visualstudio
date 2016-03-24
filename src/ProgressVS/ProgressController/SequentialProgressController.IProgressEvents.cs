@@ -16,6 +16,11 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Partial class implementation of <see cref="IProgressEvents"/>
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
+    "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"", 
+        Justification = "cancellationTokenSource is being disposed OnFinish whish is guaranteed (tested) to be called in the end", 
+        Scope = "type",
+        Target = "~T:SonarLint.VisualStudio.Progress.Controller.SequentialProgressController")]
     public partial class SequentialProgressController : IProgressEvents
     {
         /* Dev notes: Events are raised on UI thread, the reason is for simpler management of the order in which could be processed
@@ -111,7 +116,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                     ProgressEventArgs args = new ProgressEventArgs();
                     delegates(this, args);
                     // Verify that the observer handled it since now easy way of testing 
-                    // serialized rasing and handling of the event across the the classes
+                    // serialized raising and handling of the event across the the classes
                     args.CheckHandled();
                 }
             });
@@ -132,7 +137,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                     ProgressControllerFinishedEventArgs args = new ProgressControllerFinishedEventArgs(result);
                     delegates(this, args);
                     // Verify that the observer handled it since now easy way of testing 
-                    // serialized rasing and handling of the event across the the classes
+                    // serialized raising and handling of the event across the the classes
                     args.CheckHandled();
                 }
             });
@@ -151,7 +156,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                             CancellationSupportChangedEventArgs args = new CancellationSupportChangedEventArgs(cancellable);
                             delegates(this, args);
                             // Verify that the observer handled it since now easy way of testing 
-                            // serialized rasing and handling of the event across the the classes
+                            // serialized raising and handling of the event across the the classes
                             args.CheckHandled();
                         }
                     });
@@ -170,7 +175,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                         {
                             delegates(sender, args);
                             // Verify that the observer handled it since now easy way of testing 
-                            // serialized rasing and handling of the event across the the classes
+                            // serialized raising and handling of the event across the the classes
                             args.CheckHandled();
                         }
                     });

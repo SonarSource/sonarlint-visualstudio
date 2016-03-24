@@ -5,12 +5,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
+using System.ComponentModel.Design;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
@@ -22,6 +24,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
         private ConfigurableStateManager stateManager;
         private ConfigurableProgressStepRunner stepRunner;
+        private ConfigurableSolutionBinding solutionBinding;
 
         public TestContext TestContext { get; set; }
 
@@ -32,6 +35,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.stepRunner = new ConfigurableProgressStepRunner();
+            this.solutionBinding = new ConfigurableSolutionBinding();
+
+            ConfigurableVsShell shell = new ConfigurableVsShell();
+            shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
+            this.serviceProvider.RegisterService(typeof(SVsShell), shell);
         }
 
         #region Tests
@@ -48,6 +56,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             {
                 Assert.IsNotNull(host, "Not expecting this to fail, just to make the static analyzer happy");
             }
+        }
+
+        [TestMethod]
+        public void VsSessionHost_IServiceController_ArgChecks()
+        {
+            // Setup
+            IServiceContainer serviceContainer = this.CreateTestSubject(null);
+
+            // Act+ Verify
+            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(null, new object()));
+            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(null, new object(), false));
+            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(typeof(ILocalService), (object)null));
+            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(typeof(ILocalService), (object)null, false));
+            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(typeof(ILocalService), (ServiceCreatorCallback)null));
+            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(typeof(ILocalService), (ServiceCreatorCallback)null, false));
+
+            // Act+ Verify
+            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.RemoveService(null));
+            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.RemoveService(null, false));
         }
 
         [TestMethod]
@@ -189,10 +216,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             var tracker = new ConfigurableActiveSolutionTracker();
-            var solutionBinding = new ConfigurableSolutionBinding();
-            var testSubject = this.CreateTestSubject(tracker, solutionBinding);
+            var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new Integration.Service.ProjectInformation { Key = "bla" };
-            solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
+            this.solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
             this.stateManager.SetBoundProject(boundProject);
 
             // Sanity
@@ -225,11 +251,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             var tracker = new ConfigurableActiveSolutionTracker();
-            var solutionBinding = new ConfigurableSolutionBinding();
-            var testSubject = this.CreateTestSubject(tracker, solutionBinding);
+            var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new Integration.Service.ProjectInformation { Key = "bla" };
             this.stateManager.SetBoundProject(boundProject);
-            solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
+            this.solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
             var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
             section.RefreshCommand = new RelayCommand(() => refreshCalled = true);
@@ -249,29 +274,65 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsTrue(refreshCalled, "Expected the refresh command to be called");
         }
 
+        [TestMethod]
+        public void VsSessionHost_ResetBinding_ErrorInReadingSolutionBinding()
+        {
+            // Setup
+            var tracker = new ConfigurableActiveSolutionTracker();
+            var testSubject = this.CreateTestSubject(tracker);
+            var boundProject = new Integration.Service.ProjectInformation { Key = "bla" };
+            this.stateManager.SetBoundProject(boundProject);
+            this.solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
+            var section = ConfigurableSectionController.CreateDefault();
+            testSubject.SetActiveSection(section);
+
+            // Sanity
+            this.stateManager.AssertBoundProject(boundProject);
+            this.stepRunner.AssertAbortAllCalled(0);
+
+            // Introduce an error
+            this.solutionBinding.ReadSolutionBindingAction = () => { throw new Exception("boom"); };
+
+            // Act (i.e. simulate loading a different solution)
+            using (new AssertIgnoreScope()) // Ignore exception assert
+            {
+                tracker.SimulateActiveSolutionChanged();
+            }
+
+            // Verify
+            this.stateManager.AssertNoBoundProject();
+        }
+
 
         [TestMethod]
-        public void VsSessionHost_ServiceProviderForLocalSerivce()
+        public void VsSessionHost_IServiceProvider_GetService()
         {
             // Setup
             var testSubject = new VsSessionHost(this.serviceProvider,new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker());
 
+            // Local services
             // Act + Verify
-            Assert.IsNotNull(testSubject.GetService<ISolutionRuleSetsInformationProvider>());
-            Assert.IsNotNull(testSubject.GetService<IRuleSetSerializer>());
-            Assert.IsNotNull(testSubject.GetService<ISolutionBinding>());
-            Assert.IsNotNull(testSubject.GetService<ISourceControlledFileSystem>());
-            Assert.IsNotNull(testSubject.GetService<IFileSystem>());
-            Assert.IsNotNull(testSubject.GetService<IConflictsManager>());
-            Assert.IsNotNull(testSubject.GetService<IRuleSetConflictsController>());
-            Assert.IsNotNull(testSubject.GetService<IProjectSystemFilter>());
-            
+            foreach(Type serviceType in VsSessionHost.SupportedLocalServices)
+            {
+                Assert.IsNotNull(testSubject.GetService(serviceType));
+            }
+
             Assert.AreSame(testSubject.GetService<IFileSystem>(), testSubject.GetService<ISourceControlledFileSystem>());
+
+            // VS-services
+            // Sanity
+            Assert.IsNull(testSubject.GetService(typeof(VsSessionHostTests)), "Not expecting any service at this point");
+
+            // Setup
+            this.serviceProvider.RegisterService(typeof(VsSessionHostTests), this);
+
+            // Act + Verify
+            Assert.AreSame(this, testSubject.GetService(typeof(VsSessionHostTests)), "Unexpected service was returned, expected to use the service provider");
         }
         #endregion
 
         #region Helpers
-        private VsSessionHost CreateTestSubject(ConfigurableActiveSolutionTracker tracker, ConfigurableSolutionBinding solutionBinding = null)
+        private VsSessionHost CreateTestSubject(ConfigurableActiveSolutionTracker tracker)
         {
             this.stateManager = new ConfigurableStateManager();
             var host = new VsSessionHost(this.serviceProvider,
@@ -279,13 +340,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.stepRunner,
                 this.sonarQubeService, 
                 tracker?? new ConfigurableActiveSolutionTracker(),
-                solutionBinding?? new ConfigurableSolutionBinding(), 
                 Dispatcher.CurrentDispatcher);
 
             this.stateManager.Host = host;
+
+            ReplaceService<ISolutionBinding>(host, this.solutionBinding);
+
             return host;
         }
 
+        private static void ReplaceService<T>(IServiceContainer container, T instance)
+        {
+            container.RemoveService(typeof(T));
+            container.AddService(typeof(T), instance);
+        }
         #endregion
     }
 }

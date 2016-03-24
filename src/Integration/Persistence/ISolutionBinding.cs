@@ -22,6 +22,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         /// <param name="binding">Required</param>
         /// <param name="sccFileSystem">Required</param>
         /// <returns>The file path to the binding file</returns>
-        string WriteSolutionBinding(ISourceControlledFileSystem sccFileSystem, BoundSonarQubeProject binding);
+        string WriteSolutionBinding(BoundSonarQubeProject binding);
     }
 }

@@ -8,36 +8,27 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using System;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableSolutionBinding : ISolutionBinding
     {
-        private int pendingFiles;
-        private int writeSolutionBindingRequests;
+        private int writtenFiles;
 
         #region ISolutionBinding
         BoundSonarQubeProject ISolutionBinding.ReadSolutionBinding()
         {
+            this.ReadSolutionBindingAction?.Invoke();
             return this.CurrentBinding;
         }
 
-        string ISolutionBinding.WriteSolutionBinding(ISourceControlledFileSystem sccFileSystem, BoundSonarQubeProject binding)
+        string ISolutionBinding.WriteSolutionBinding(BoundSonarQubeProject binding)
         {
-            this.writeSolutionBindingRequests++;
-
-            Assert.IsNotNull(sccFileSystem, "Required argument");
             Assert.IsNotNull(binding, "Required argument");
 
             string filePath = this.WriteSolutionBindingAction?.Invoke(binding) ?? binding.ProjectKey;
-            this.pendingFiles++;
+            this.writtenFiles++;
 
-            sccFileSystem.QueueFileWrite(filePath ,() =>
-            {
-                this.pendingFiles--;
-                return true;
-            });
             return filePath;
         }
         #endregion
@@ -45,22 +36,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test helpers
         public BoundSonarQubeProject CurrentBinding { get; set; }
 
-        public void AssertAllPendingWritten()
+        public void AssertWrittenFiles(int expected)
         {
-            Assert.AreEqual(0, this.pendingFiles, "Not all the pending files were written");
-        }
-
-        public void AssertPendingFiles(int expected)
-        {
-            Assert.AreEqual(expected, this.pendingFiles, "Unexpected number of pending files");
-        }
-
-        public void AssertWriteSolutionBindingRequests(int expectedCount)
-        {
-            Assert.AreEqual(expectedCount, this.writeSolutionBindingRequests, "Unexpected number of calls");
+            Assert.AreEqual(expected, this.writtenFiles, "Unexpected number of pending files");
         }
 
         public Func<BoundSonarQubeProject, string> WriteSolutionBindingAction { get; set; }
+
+        public Action ReadSolutionBindingAction { get; set; }
         #endregion
     }
 }

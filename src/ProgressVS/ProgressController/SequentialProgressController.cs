@@ -5,16 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using SonarLint.VisualStudio.Progress.Threading;
-using Microsoft.VisualStudio.Shell;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Threading;
-using TPL = System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Progress.Controller
 {
@@ -37,12 +28,18 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// ProgressControllerResult result = await controller.Start();
     /// </code>
     /// </example>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable", Justification = "Disposed on finished")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable", 
+        Justification = "cancellationTokenSource is being disposed OnFinish whish is guaranteed (tested) to be called in the end")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+    "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
+        Justification = "cancellationTokenSource is being disposed OnFinish whish is guaranteed (tested) to be called in the end",
+        Scope = "type",
+        Target = "~T:SonarLint.VisualStudio.Progress.Controller.SequentialProgressController")]
     public sealed partial class SequentialProgressController : IProgressEvents
     {
         #region Fields
-        private IServiceProvider serviceProvider;
-        private bool canAbort = false;
+        private readonly IServiceProvider serviceProvider;
+        private bool canAbort;
         #endregion
 
         #region Constructor

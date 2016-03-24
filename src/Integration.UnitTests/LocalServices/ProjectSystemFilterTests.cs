@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, ""); // Should not continue with evaluation if has boolean value
 
             // Act
-            var result = testSubject.IsAccepted(project);
+            bool result = testSubject.IsAccepted(project);
 
             // Verify
             Assert.IsTrue(result, "Project not a known test project");
