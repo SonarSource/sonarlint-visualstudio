@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         protected override void InvokeInternal()
         {
             Debug.Assert(this.teamExplorer != null, "Should only be invocable with a handle to the team explorer controller");
-            this.teamExplorer.ShowConnectionsPage();
+            this.teamExplorer.ShowSonarQubePage();
         }
     }
 }

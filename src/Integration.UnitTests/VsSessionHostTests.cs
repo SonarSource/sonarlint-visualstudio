@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
@@ -254,6 +255,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsNotNull(testSubject.GetService<ISolutionBinding>());
             Assert.IsNotNull(testSubject.GetService<ISourceControlledFileSystem>());
             Assert.IsNotNull(testSubject.GetService<IFileSystem>());
+            Assert.IsNotNull(testSubject.GetService<IConflictsManager>());
+            Assert.IsNotNull(testSubject.GetService<IRuleSetConflictsController>());
+            
             Assert.AreSame(testSubject.GetService<IFileSystem>(), testSubject.GetService<ISourceControlledFileSystem>());
         }
         #endregion

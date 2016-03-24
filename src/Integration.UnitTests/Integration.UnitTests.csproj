@@ -136,7 +136,9 @@
     <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />
     <Compile Include="IServiceProviderExtensionsTests.cs" />
-    <Compile Include="LocalServices\RuleSetInspectorTests.cs" />
+    <Compile Include="ProfileConflicts\ConflictsManagerTests.cs" />
+    <Compile Include="ProfileConflicts\RuleSetConflictsControllerTests.cs" />
+    <Compile Include="ProfileConflicts\RuleSetInspectorTests.cs" />
     <Compile Include="LocalServices\SolutionRuleSetsInformationProviderTests.cs" />
     <Compile Include="LocalServices\SourceControlledFileSystemTests.cs" />
     <Compile Include="PathHelperTests.cs" />

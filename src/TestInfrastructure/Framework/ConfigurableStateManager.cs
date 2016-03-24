@@ -37,6 +37,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
+        public bool HasBoundProject
+        {
+            get
+            {
+                return this.boundProject != null;
+            }
+        }
+
         public void ClearBoundProject()
         {
             this.VerifyActiveSection();

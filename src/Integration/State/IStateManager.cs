@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.Integration.State
 
         bool IsBusy { get; set; }
 
+        bool HasBoundProject { get; }
+
         string BoundProjectKey { get; set; }
 
         void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects);

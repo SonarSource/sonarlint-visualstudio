@@ -8,8 +8,11 @@
 using EnvDTE;
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -32,6 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private SolutionMock solutionMock;
         private ConfigurableVsMonitorSelection monitorSelection;
         private DTEMock dteMock;
+        private ConfigurableRuleSetConflictsController conflictsController;
 
         [TestInitialize]
         public void TestInitialize()
@@ -45,7 +49,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionMock = new SolutionMock();
             this.monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.conflictsController = new ConfigurableRuleSetConflictsController();
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
+            this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
+            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), new ConfigurableVsGeneralOutputWindowPane());
+
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = sonarQubeService;
         }
@@ -226,6 +234,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                     ((ConfigurableStateManager)this.host.VisualStateManager).AssertNoBoundProject();
                 }
             }
+        }
+
+        [TestMethod]
+        public void BindingController_BindingFinished_Navigation()
+        {
+            // Setup
+            ServerViewModel serverVM = CreateServerViewModel();
+            serverVM.SetProjects(new[]
+            {
+                new ProjectInformation { Key = "key1" }
+            });
+            ProjectViewModel projectVM = serverVM.Projects.First();
+            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
+            this.host.VisualStateManager.ManagedState.ConnectedServers.Add(serverVM);
+            var progressEvents = new ConfigurableProgressEvents();
+            var teController = new ConfigurableTeamExplorerController();
+
+            var mefExports = MefTestHelpers.CreateExport<ITeamExplorerController>(teController);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            serviceProvider.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
+
+            // Case 1: On non-successful binding no navigation will occur
+            foreach(ProgressControllerResult nonSuccuess in new[] { ProgressControllerResult.Cancelled, ProgressControllerResult.Failed } )
+            {
+                // Act
+                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+                progressEvents.SimulateFinished(nonSuccuess);
+
+                // Verify
+                teController.AssertExpectedNumCallsShowConnectionsPage(0);
+                Assert.IsFalse(this.dteMock.ToolWindows.SolutionExplorer.Window.Active);
+            }
+
+            // Case 2: Has conflicts (should navigate to team explorer page)
+            this.conflictsController.HasConflicts = true;
+
+            // Act
+            testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+            progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
+
+            // Verify 
+            teController.AssertExpectedNumCallsShowConnectionsPage(1);
+            Assert.IsFalse(this.dteMock.ToolWindows.SolutionExplorer.Window.Active);
+
+            // Case 3: Has no conflicts (should navigate to solution explorer)
+            this.conflictsController.HasConflicts = false;
+
+            // Act
+            testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+            progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
+
+            // Verify 
+            teController.AssertExpectedNumCallsShowConnectionsPage(1);
+            Assert.IsTrue(this.dteMock.ToolWindows.SolutionExplorer.Window.Active);
         }
 
         [TestMethod]

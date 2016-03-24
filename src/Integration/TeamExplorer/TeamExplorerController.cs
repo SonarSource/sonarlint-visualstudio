@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             }
         }
 
-        public void ShowConnectionsPage()
+        public void ShowSonarQubePage()
         {
             Debug.Assert(this.TeamExplorer != null, "Shouldn't be created without the Team Explorer service");
             this.TeamExplorer.NavigateToPage(new Guid(SonarQubePage.PageId), null);

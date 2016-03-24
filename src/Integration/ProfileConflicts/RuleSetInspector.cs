@@ -16,7 +16,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 {
     internal class RuleSetInspector : IRuleSetInspector
     {
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// <see cref="IRuleSetInspector.FindConflictingRules(string, string)"/>
         /// </summary>
-        public RuleSet FixConflictingRules(string baselineRuleSetPath, string targetRuleSetPath, params string[] ruleSetDirectories)
+        public FixedRuleSetInfo FixConflictingRules(string baselineRuleSetPath, string targetRuleSetPath, params string[] ruleSetDirectories)
         {
             if (string.IsNullOrWhiteSpace(baselineRuleSetPath))
             {
@@ -68,15 +68,19 @@ namespace SonarLint.VisualStudio.Integration
             RuleSet target = RuleSet.LoadFromFile(targetRuleSetPath);
 
             RuleConflictInfo conflicts = this.FindConflictsCore(baseline, target, ruleSetDirectories);
+            List<RuleReference> deletedRules = null;
+            string[] includeReset = null;
             if (conflicts.HasConflicts)
             {
+                includeReset = new[] { baseline.FilePath };
+
                 if (!this.TryResolveIncludeConflicts(baseline, target))
                 {
-                    this.DeleteConflictingRules(baseline, target);
+                    deletedRules = this.DeleteConflictingRules(baseline, target);
                 }
             }
 
-            return target;
+            return new FixedRuleSetInfo(target, includeReset, deletedRules?.Select(r => r.FullId));
         }
 
         /// <summary>
@@ -160,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration
             var effectiveRulesMap = targetRuleSet.GetEffectiveRules(directories, providers, this.EffectiveRulesErrorHandler)
                 .ToDictionary(r => r.FullId, StringComparer.OrdinalIgnoreCase);
 
-            var deprioritizedRules = baselineRuleSet.Rules.Select(r =>
+            Dictionary<RuleReference, RuleAction> weakenedRules = baselineRuleSet.Rules.Select(r =>
             {
                 RuleReference reference;
                 if (effectiveRulesMap.TryGetValue(r.FullId, out reference))
@@ -169,16 +173,20 @@ namespace SonarLint.VisualStudio.Integration
 
                     if (IsBaselineWeakend(r.Action, reference.Action))
                     {
-                        return reference;
+                        return new
+                        {
+                            Rule = reference,
+                            ExpectedAction = r.Action
+                        };
                     }
                 }
 
                 return null;
-            }).Where(r => r != null);
+            }).Where(r => r != null).ToDictionary(r => r.Rule, r => r.ExpectedAction);
 
-            var disabledRules = baselineRuleSet.Rules.Where(r => !effectiveRulesMap.ContainsKey(r.FullId));
+            var missingRules = baselineRuleSet.Rules.Where(r => r.Action != RuleAction.None && !effectiveRulesMap.ContainsKey(r.FullId));
 
-            return new RuleConflictInfo(disabledRules, deprioritizedRules);
+            return new RuleConflictInfo(missingRules, weakenedRules);
         }
 
         /// <summary>
@@ -201,8 +209,9 @@ namespace SonarLint.VisualStudio.Integration
         /// Fixes conflicts resulting in having rule overrides in <param name="targetRuleSet" />
         /// </summary>
         /// <remarks>Assumes that <see cref="TryResolveIncludeConflicts"/> executed already to fix the include issues</remarks>
-        private void DeleteConflictingRules(RuleSet baselineRuleSet, RuleSet targetRuleSet)
+        private List<RuleReference> DeleteConflictingRules(RuleSet baselineRuleSet, RuleSet targetRuleSet)
         {
+            List<RuleReference> deletedRules = new List<RuleReference>();
             // At this point the remaining conflicts are the rule overrides directly on target.
             // Removing those issues should fix all the remaining conflicts.
             foreach (RuleReference baselineRule in baselineRuleSet.Rules)
@@ -211,11 +220,13 @@ namespace SonarLint.VisualStudio.Integration
                 if (targetRuleSet.Rules.TryGetRule(baselineRule.FullId, out targetRule)
                     && IsBaselineWeakend(baselineRule.Action, targetRule.Action))
                 {
+                    deletedRules.Add(targetRule);
                     targetRuleSet.Rules.Remove(targetRule);
                 }
             }
 
             Debug.Assert(!this.FindConflictsCore(baselineRuleSet, targetRuleSet).HasConflicts, "Not expecting any conflicts once deleted the conflicting baseline rules on target");
+            return deletedRules;
         }
 
         internal /*for testing purposes*/ static bool IsBaselineWeakend(RuleAction baselineAction, RuleAction targetAction)

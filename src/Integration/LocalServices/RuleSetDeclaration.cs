@@ -17,18 +17,29 @@ namespace SonarLint.VisualStudio.Integration
     /// </summary>
     public class RuleSetDeclaration
     {
-        public RuleSetDeclaration(Property ruleSetProperty, string ruleSetPath, string activationContext, params string[] ruleSetDirectories)
+        public RuleSetDeclaration(Project project, Property ruleSetProperty, string ruleSetPath, string activationContext, params string[] ruleSetDirectories)
         {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             if (ruleSetProperty == null)
             {
                 throw new ArgumentNullException(nameof(ruleSetProperty));
             }
 
+            this.RuleSetProjectFullName = project.FullName;
             this.DeclaringProperty = ruleSetProperty;
             this.ActivationContext = activationContext;
             this.RuleSetPath = ruleSetPath;
             this.RuleSetDirectories = ruleSetDirectories.ToList(); // avoid aliasing bugs
         }
+
+        /// <summary>
+        /// <see cref="Project.FullName"/>
+        /// </summary>
+        public string RuleSetProjectFullName { get; }
 
         /// <summary>
         /// The property declaring the rule set
