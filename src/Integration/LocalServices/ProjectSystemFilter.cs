@@ -13,7 +13,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using DteProject = EnvDTE.Project;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Integration
 {
     internal class ProjectSystemFilter : IProjectSystemFilter
     {
@@ -34,48 +34,35 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region IProjectSystemFilter
 
-        public bool IsAccepted(DteProject dteProject)
+        public bool IsAccepted(DteProject project)
         {
-            if (dteProject == null)
+            if (project == null)
             {
-                throw new ArgumentNullException(nameof(dteProject));
+                throw new ArgumentNullException(nameof(project));
             }
 
-            var projectName = dteProject.Name;
-            var hierarchy = this.projectSystem.GetIVsHierarchy(dteProject);
+            var projectName = project.Name;
+            var hierarchy = this.projectSystem.GetIVsHierarchy(project);
             var propertyStorage = hierarchy as IVsBuildPropertyStorage;
 
             if (hierarchy == null || propertyStorage == null)
             {
-                throw new ArgumentException(Strings.ProjectFilterDteProjectFailedToGetIVs, nameof(dteProject));
+                throw new ArgumentException(Strings.ProjectFilterDteProjectFailedToGetIVs, nameof(project));
             }
 
             // Accept only supported languages
-            var language = Language.ForProject(dteProject);
-            if (language == null || !language.IsSupported)
+            if (IsNotSupportedProject(project))
             {
                 return false;
             }
 
-            // General exclusions
-            // If exclusion property is set, this takes precedence
-            bool? sonarExclude = GetPropertyBool(propertyStorage, Constants.SonarQubeExcludeBuildPropertyKey);
-            if (sonarExclude.HasValue)
+            if (IsExcludedViaProjectProperty(propertyStorage))
             {
-                return !sonarExclude.Value;
-            }
-
-            // Ignore test projects
-            // If specifically marked with test project property, use that to specifiy if test project or not
-            bool? sonarTest = GetPropertyBool(propertyStorage, Constants.SonarQubeTestProjectBuildPropertyKey);
-            if (sonarTest.HasValue)
-            {
-                return !sonarTest.Value;
+                return false;
             }
             
             // Otherwise, try to detect test project using known project types and/or regex match
-            if (ProjectSystemHelper.IsKnownTestProject(hierarchy)
-            || (this.testRegex != null && this.testRegex.IsMatch(projectName)))
+            if (IsTestProject(hierarchy, this.testRegex, projectName))
             {
                 return false;
             }
@@ -85,13 +72,58 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void SetTestRegex(Regex regex)
         {
+            if (regex == null)
+            {
+                throw new ArgumentNullException(nameof(regex));
+            }
+
             this.testRegex = regex;
-            Debug.Assert(this.testRegex == null || (this.testRegex.MatchTimeout != Regex.InfiniteMatchTimeout), "Should have set non-infinite timeout");
+            Debug.Assert(this.testRegex.MatchTimeout != Regex.InfiniteMatchTimeout, "Should have set non-infinite timeout");
         }
 
         #endregion
 
         #region Helpers
+        private static bool IsTestProject(IVsHierarchy projectHierarchy, Regex testProjectNameRegex, string projectName)
+        {
+            // Otherwise, try to detect test project using known project types and/or regex match
+            if (ProjectSystemHelper.IsKnownTestProject(projectHierarchy))
+            {
+                return true;
+            }
+
+            // Heuristically exclude by project name
+            return (testProjectNameRegex != null && testProjectNameRegex.IsMatch(projectName));
+        }
+
+        private static bool IsNotSupportedProject(DteProject project)
+        {
+            var language = Language.ForProject(project);
+            return (language == null || !language.IsSupported);
+        }
+
+        private static bool IsExcludedViaProjectProperty(IVsBuildPropertyStorage propertyStorage)
+        {
+            Debug.Assert(propertyStorage != null);
+
+            // General exclusions
+            // If exclusion property is set, this takes precedence
+            bool? sonarExclude = GetPropertyBool(propertyStorage, Constants.SonarQubeExcludeBuildPropertyKey);
+            if( sonarExclude.HasValue && sonarExclude.Value)
+            {
+                return true;
+            }
+
+            // Ignore test projects
+            // If specifically marked with test project property, use that to specify if test project or not
+            bool? sonarTest = GetPropertyBool(propertyStorage, Constants.SonarQubeTestProjectBuildPropertyKey);
+            if (sonarTest.HasValue && sonarTest.Value)
+            {
+                return true;
+            }
+
+            return false;
+        }
 
         private static bool? GetPropertyBool(IVsBuildPropertyStorage propertyStorage, string propertyName)
         {

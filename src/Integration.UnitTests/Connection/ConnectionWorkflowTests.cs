@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -14,8 +15,10 @@ using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Threading;
 
@@ -28,6 +31,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
         private ConfigurableHost host;
         private ConfigurableIntegrationSettings settings;
+        private ConfigurableProjectSystemFilter filter;
+        private ConfigurableVsGeneralOutputWindowPane outputWindowPane;
 
         [TestInitialize]
         public void TestInit()
@@ -44,6 +49,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var mefExports = MefTestHelpers.CreateExport<IIntegrationSettings>(settings);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
+
+            this.filter = new ConfigurableProjectSystemFilter();
+            this.serviceProvider.RegisterService(typeof(IProjectSystemFilter), this.filter);
+
+            this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
+            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
         }
 
         #region Tests
@@ -166,10 +177,105 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             notifications.AssertNotification(NotificationIds.BadServerPluginId, expectedErrorMsg);
         }
 
+        [TestMethod]
+        public void ConnectionWorkflow_DownloadServiceParameters_RegexPropertyNotSet_SetsFilterWithDefaultExpression()
+        {
+            // Setup
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
+
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), new ConnectedProjectsCallback(AssertIfCalled));
+
+            // Sanity
+            Assert.IsFalse(this.sonarQubeService.ServerProperties.Any(x => x.Key != ServerProperty.TestProjectRegexKey), "Test project regex property should not be set");
+
+            // Act
+            testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
+
+            // Verify
+            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
+            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+        }
+
+        [TestMethod]
+        public void ConnectionWorkflow_DownloadServiceParameters_CustomRegexProperty_SetsFilterWithCorrectExpression()
+        {
+            // Setup
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            var expectedExpression = ".*spoon.*";
+            this.sonarQubeService.RegisterServerProperty(new ServerProperty
+            {
+                Key = ServerProperty.TestProjectRegexKey,
+                Value = expectedExpression
+            });
+
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), new ConnectedProjectsCallback(AssertIfCalled));
+
+            // Act
+            testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
+
+            // Verify
+            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
+            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+        }
+
+        [TestMethod]
+        public void ConnectionWorkflow_DownloadServiceParameters_InvalidRegex_UsesDefault()
+        {
+            // Setup
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            var badExpression = "*-gf/d*-b/try\\*-/r-*yeb/\\";
+            var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
+            this.sonarQubeService.RegisterServerProperty(new ServerProperty
+            {
+                Key = ServerProperty.TestProjectRegexKey,
+                Value = badExpression
+            });
+
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), new ConnectedProjectsCallback(AssertIfCalled));
+
+            // Act
+            testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
+
+            // Verify
+            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
+            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            this.outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.InvalidTestProjectRegexPattern, badExpression));
+        }
+
+        [TestMethod]
+        public void ConnectionWorkflow_DownloadServiceParameters_Cancelled_AbortsWorkflow()
+        {
+            // Setup
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), new ConnectedProjectsCallback(AssertIfCalled));
+
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            // Act
+            testSubject.DownloadServiceParameters(controller, cts.Token, progressEvents);
+
+            // Verify
+            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            controller.AssertNumberOfAbortRequests(1);
+        }
         #endregion
 
         #region Helpers
         private static void AssertIfCalled()
+        {
+            Assert.Fail("Command not expected to be called");
+        }
+
+        private static void AssertIfCalled(ConnectionInformation conn, IEnumerable<ProjectInformation> projects)
         {
             Assert.Fail("Command not expected to be called");
         }

@@ -7,9 +7,9 @@
 
 using System.Text.RegularExpressions;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Integration
 {
-    internal interface IProjectSystemFilter
+    internal interface IProjectSystemFilter : ILocalService
     {
         /// <summary>
         /// Returns true if the given project passed the filter criteria. False otherwise.

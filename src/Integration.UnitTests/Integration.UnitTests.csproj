@@ -147,7 +147,7 @@
     <Compile Include="Persistence\SolutionBindingTests.cs" />
     <Compile Include="Progress\ProgressNotificationListenerTests.cs" />
     <Compile Include="Progress\ProgressStepRunnerTests.cs" />
-    <Compile Include="Binding\ProjectSystemFilterTests.cs" />
+    <Compile Include="LocalServices\ProjectSystemFilterTests.cs" />
     <Compile Include="RuleSetHelperTests.cs" />
     <Compile Include="SanityTests.cs" />
     <Compile Include="Connection\ConnectionWorkflowTests.cs" />
@@ -165,7 +165,7 @@
     <Compile Include="TeamExplorer\ProjectViewModelTests.cs" />
     <Compile Include="TeamExplorer\SectionControllerTests.cs" />
     <Compile Include="TeamExplorer\ServerViewModelTests.cs" />
-    <Compile Include="ProjectSystemHelperTests.cs" />
+    <Compile Include="LocalServices\ProjectSystemHelperTests.cs" />
     <Compile Include="TeamExplorer\SonarQubeNavigationItemTests.cs" />
     <Compile Include="TeamExplorer\SonarQubePageTests.cs" />
     <Compile Include="TeamExplorer\TeamExplorerControllerTests.cs" />

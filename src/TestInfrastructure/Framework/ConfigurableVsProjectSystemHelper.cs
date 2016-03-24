@@ -6,11 +6,11 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -24,14 +24,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IVsProjectSystemHelper
-        IServiceProvider IProjectSystemHelper.ServiceProvider
-        {
-            get
-            {
-                return this.serviceProvider;
-            }
-        }
-
         Project IProjectSystemHelper.GetSolutionItemsProject()
         {
             return this.SolutionItemsProject;
@@ -40,6 +32,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         IEnumerable<Project> IProjectSystemHelper.GetSolutionProjects()
         {
             return this.Projects ?? Enumerable.Empty<Project>();
+        }
+
+        IEnumerable<Project> IProjectSystemHelper.GetFilteredSolutionProjects()
+        {
+            return this.FilteredProjects ?? Enumerable.Empty<Project>();
         }
 
         bool IProjectSystemHelper.IsFileInProject(Project project, string file)
@@ -87,6 +84,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public Project SolutionItemsProject { get; set; }
 
         public IEnumerable<Project> Projects { get; set; }
+
+        public IEnumerable<Project> FilteredProjects { get; set; }
 
         public Func<Project, string, bool> IsFileInProjectAction { get; set; }
 

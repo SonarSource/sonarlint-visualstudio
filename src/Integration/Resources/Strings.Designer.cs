@@ -178,6 +178,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to RuleSet &apos;{0}&apos; has:.
+        /// </summary>
+        public static string ConflictDetailRuleSetInfo {
+            get {
+                return ResourceManager.GetString("ConflictDetailRuleSetInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rule &apos;{0}&apos; action is {1}, instead of {2}..
         /// </summary>
         public static string ConflictDetailWeakenedRulesDetail {
@@ -500,15 +509,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string HideUnboundProjectsCommandText {
             get {
                 return ResourceManager.GetString("HideUnboundProjectsCommandText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Sonar Qube rule set import: Sonar Qube rule with key &apos;{0}&apos; was ignored since it&apos;s missing an internal key. Contact your Sonar Qube administrator..
-        /// </summary>
-        public static string IgnoredSonarQubeRuleDueToMissingInternalKey {
-            get {
-                return ResourceManager.GetString("IgnoredSonarQubeRuleDueToMissingInternalKey", resourceCulture);
             }
         }
         

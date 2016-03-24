@@ -144,6 +144,9 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                             CreateCommaSeparatedString(conflictInfo.RuleSetInfo.ConfigurationContexts));
             output.AppendLine();
 
+            output.AppendFormat(Strings.ConflictDetailRuleSetInfo, conflictInfo.RuleSetInfo.RuleSetFilePath);
+            output.AppendLine();
+
             if (conflictInfo.Conflict.MissingRules.Any())
             {
                 output.AppendLine(Strings.ConflictDetailMissingRules);
@@ -182,7 +185,6 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
             VsShellUtils.WriteToGeneralOutputPane(this.host, builder.ToString());
         }
-
 
         private static void WriteSummaryInformation(FixedRuleSetInfo fixInfo, StringBuilder output)
         {

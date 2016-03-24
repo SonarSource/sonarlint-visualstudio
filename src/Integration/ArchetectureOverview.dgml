@@ -1,108 +1,169 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<DirectedGraph DataVirtualized="True" Layout="Sugiyama" ZoomLevel="-1" xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+<DirectedGraph DataVirtualized="True" FilterState="CodeSchema_Assembly,CodeSchema_Namespace" Layout="Sugiyama" ZoomLevel="-1" xmlns="http://schemas.microsoft.com/vs/2009/dgml">
   <Nodes>
-    <Node Id="@10" Category="CodeSchema_Class" Bounds="323.7225,415,182.716666666667,25" CodeSchemaProperty_IsInternal="True" CommonLabel="TransferableVisualState" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="TransferableVisualState" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/State/TransferableVisualState.cs StartLineNumber=15 StartCharacterOffset=19 EndLineNumber=15 EndCharacterOffset=42)" />
-    <Node Id="@11" Category="CodeSchema_Class" Bounds="346.364166666667,305,137.433333333333,25" CodeSchemaProperty_IsFinal="True" CodeSchemaProperty_IsInternal="True" CommonLabel="VsSessionHost" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="VsSessionHost" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/VsSessionHost.cs StartLineNumber=23 StartCharacterOffset=26 EndLineNumber=23 EndCharacterOffset=39)" />
-    <Node Id="@2" Category="CodeSchema_Class" Bounds="96.5629166666667,52.3911044633456,154.19,25" CodeSchemaProperty_IsInternal="True" CommonLabel="BindingController" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="BindingController" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/Binding/BindingController.cs StartLineNumber=22 StartCharacterOffset=19 EndLineNumber=22 EndCharacterOffset=36)" />
-    <Node Id="@3" Category="CodeSchema_Class" Bounds="97.8179166666662,107.391204463346,151.68,25" CodeSchemaProperty_IsInternal="True" CommonLabel="BindingWorkflow" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="BindingWorkflow" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/Binding/BindingWorkflow.cs StartLineNumber=30 StartCharacterOffset=19 EndLineNumber=30 EndCharacterOffset=34)" />
-    <Node Id="@4" Category="CodeSchema_Class" Bounds="281.439583333332,52.391154463112,174.436666666667,25" CodeSchemaProperty_IsInternal="True" CommonLabel="ConnectionController" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="ConnectionController" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/Connection/ConnectionController.cs StartLineNumber=25 StartCharacterOffset=19 EndLineNumber=25 EndCharacterOffset=39)" />
-    <Node Id="@5" Category="CodeSchema_Class" Bounds="282.694583333333,107.391254462412,171.926666666667,25" CodeSchemaProperty_IsInternal="True" CommonLabel="ConnectionWorkflow" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="ConnectionWorkflow" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/Connection/ConnectionWorkflow.cs StartLineNumber=24 StartCharacterOffset=19 EndLineNumber=24 EndCharacterOffset=37)" />
-    <Node Id="@6" Category="CodeSchema_Interface" Bounds="64.545,332.5,88.9033333333332,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" CommonLabel="IHost" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Interface" Label="IHost" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/IHost.cs StartLineNumber=14 StartCharacterOffset=23 EndLineNumber=14 EndCharacterOffset=28)" />
-    <Node Id="@7" Category="CodeSchema_Interface" Bounds="40,387.5,137.993333333333,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" CommonLabel="IStateManager" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Interface" Label="IStateManager" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/State/IStateManager.cs StartLineNumber=15 StartCharacterOffset=23 EndLineNumber=15 EndCharacterOffset=36)" />
-    <Node Id="@8" Category="CodeSchema_Class" Bounds="292.272916666667,-2.608945536888,152.77,25" CodeSchemaProperty_IsInternal="True" CommonLabel="SectionController" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="SectionController" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/TeamExplorer/SectionController.cs StartLineNumber=27 StartCharacterOffset=19 EndLineNumber=27 EndCharacterOffset=36)" />
-    <Node Id="@9" Category="CodeSchema_Class" Bounds="249.680833333333,360,134.8,25" CodeSchemaProperty_IsFinal="True" CodeSchemaProperty_IsInternal="True" CommonLabel="StateManager" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="StateManager" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/State/StateManager.cs StartLineNumber=23 StartCharacterOffset=26 EndLineNumber=23 EndCharacterOffset=38)" />
-    <Node Id="API" Bounds="20,292.5,177.993333333333,140" Group="Expanded" />
-    <Node Id="Concrete" Bounds="229.680833333333,265,296.758333333333,195" Group="Expanded" />
-    <Node Id="SectionInstanceSpecific" Bounds="76.5629166666667,-42.609045536888,399.313333333333,195.000699999176" Group="Expanded" Label="Section instance specific" LayoutSettings="TopToBottom" UseManualLocation="True" />
-    <Node Id="SharedForAllSectionInstances" Bounds="0,225,546.439166666667,255" Group="Expanded" Label="Shared for all section instances" LayoutSettings="RightToLeft" />
+    <Node Id="(@1 @9)" Category="CodeSchema_Namespace" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="SonarLint.VisualStudio.Integration.TeamExplorer" DelayedChildNodesState="Incomplete" DelayedCrossGroupLinksState="Fetched" Group="Expanded" Label="SonarLint.VisualStudio.Integration.TeamExplorer" />
+    <Node Id="(@1 Namespace=SonarLint.VisualStudio.Integration.Persistence)" Category="CodeSchema_Namespace" Bounds="1201.15158677457,17.5675686386563,297.03,85.0000010816" DelayedChildNodesState="Incomplete" DelayedCrossGroupLinksState="Fetched" Group="Expanded" Label="SonarLint‎.VisualStudio‎.Integration‎.Persistence" />
+    <Node Id="10a401d1-d5b5-4247-bdf0-3110f6cd18051" Category="Comment" Bounds="2007.00127983966,198.545770499939,207.876666666667,57.8799999999999" Label="MEF exported only due to historical reasons. Can be changed to hosted services." />
+    <Node Id="4673cd16-f759-4e04-a08c-12404025db261" Category="Comment" Bounds="1176.5180387424,241.253272148085,247.363333333333,57.88" Label="The dependency on ISourceControlledFileSystem should not be needed (can be consumed as a service). " UseManualLocation="True" />
+    <Node Id="@10" Category="CodeSchema_Namespace" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="SonarLint.VisualStudio.Integration.Vsix" DelayedChildNodesState="Incomplete" DelayedCrossGroupLinksState="Fetched" Group="Expanded" Label="SonarLint.VisualStudio.Integration.Vsix" />
+    <Node Id="@11" Category="CodeSchema_Class" Bounds="1788.61293164686,288.113226276085,174.653333333334,25" CodeSchemaProperty_IsInternal="True" CommonLabel="ActiveSolutionTracker" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="ActiveSolutionTracker" />
+    <Node Id="@12" Category="CodeSchema_Interface" Bounds="1459.78757128219,523.881974757853,157.013333333333,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsPublic="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="IConflictsManager" />
+    <Node Id="@13" Category="CodeSchema_Interface" Bounds="1205.58162368723,399.007636279496,119.746666666668,25.0000000000001" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="IFileSystem" UseManualLocation="True" />
+    <Node Id="@14" Category="CodeSchema_Interface" Bounds="2476.89358751599,234.488267705197,88.9033333333336,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" CommonLabel="IHost" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Interface" Label="IHost" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Source/Repos/sonarlint-visualstudio/src/Integration/IHost.cs StartLineNumber=14 StartCharacterOffset=23 EndLineNumber=14 EndCharacterOffset=28)" UseManualLocation="True" />
+    <Node Id="@15" Category="CodeSchema_Interface" Bounds="1825.29046095772,483.301549498898,165.3,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsPublic="True" CommonLabel="IIntegrationSettings" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Interface" Label="IIntegrationSettings" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Source/Repos/sonarlint-visualstudio/src/Integration/IIntegrationSettings.cs StartLineNumber=9 StartCharacterOffset=21 EndLineNumber=9 EndCharacterOffset=41)" UseManualLocation="True" />
+    <Node Id="@16" Category="CodeSchema_Interface" Bounds="1395.9462300448,400.437841902415,128.726666666666,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ILocalService" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Interface" Label="ILocalService" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Source/Repos/sonarlint-visualstudio/src/Integration/LocalServices/ILocalService.cs StartLineNumber=12 StartCharacterOffset=21 EndLineNumber=12 EndCharacterOffset=34)" />
+    <Node Id="@17" Category="CodeSchema_Class" Bounds="1826.88712762439,428.301549498898,162.106666666666,25" CodeSchemaProperty_IsInternal="True" CommonLabel="IntegrationSettings" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="IntegrationSettings" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Source/Repos/sonarlint-visualstudio/src/Integration.Vsix/IntegrationSettings.cs StartLineNumber=21 StartCharacterOffset=19 EndLineNumber=21 EndCharacterOffset=38)" UseManualLocation="True" />
+    <Node Id="@18" Category="CodeSchema_Interface" Bounds="1489.92142967461,248.487800576616,164.703333333335,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="IProjectSystemFilter" UseManualLocation="True" />
+    <Node Id="@19" Category="CodeSchema_Interface" Bounds="1227.02758056899,523.881974757853,173.720000000001,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="IProjectSystemHelper" UseManualLocation="True" />
+    <Node Id="@2" Category="CodeSchema_Assembly" AssemblyTimestamp="04/04/2016 14:50:17" Bounds="798.662730953683,-63.5116652330169,1103.52,480.0000059488" CodeSchemaProperty_StrongName="SonarLint.VisualStudio.Integration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null" CommonLabel="SonarLint.VisualStudio.Integration" DelayedChildNodesState="Incomplete" DelayedCrossGroupLinksState="Fetched" FilePath="$(03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f.OutputPath)" Group="Expanded" Label="SonarLint.VisualStudio.Integration.dll" />
+    <Node Id="@20" Category="CodeSchema_Interface" Bounds="1483.64085126962,342.233870853593,202.366666666666,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="IRuleSetConflictsController" />
+    <Node Id="@21" Category="CodeSchema_Interface" Bounds="1260.43412459327,186.25316791877,153.280000000001,25.0000000000001" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsPublic="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="IRuleSetInspector" UseManualLocation="True" />
+    <Node Id="@22" Category="CodeSchema_Interface" Bounds="1509.00901467014,456.948327714637,151.586666666666,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="IRuleSetSerializer" />
+    <Node Id="@23" Category="CodeSchema_Interface" Bounds="2394.29866641436,445.987179385592,155.963333333333,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" CommonLabel="ISectionController" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Interface" Label="ISectionController" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Source/Repos/sonarlint-visualstudio/src/Integration/TeamExplorer/ISectionController.cs StartLineNumber=15 StartCharacterOffset=23 EndLineNumber=15 EndCharacterOffset=41)" />
+    <Node Id="@24" Category="CodeSchema_Interface" Bounds="1265.18109611325,344.007536279496,148.493333333333,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="ISolutionBinding" />
+    <Node Id="@25" Category="CodeSchema_Interface" Bounds="1443.71412459327,157.568851380477,259.32,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="ISolutionRuleSetsInformationProvider" UseManualLocation="True" />
+    <Node Id="@26" Category="CodeSchema_Interface" Bounds="1253.26594310491,468.881874757853,211.610000000001,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="ISourceControlledFileSystem" UseManualLocation="True" />
+    <Node Id="@27" Category="CodeSchema_Interface" Bounds="2040.68379429106,433.527950232252,188.003333333333,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ITeamExplorerController" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Interface" Label="ITeamExplorerController" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Source/Repos/sonarlint-visualstudio/src/Integration/TeamExplorer/ITeamExplorerController.cs StartLineNumber=9 StartCharacterOffset=21 EndLineNumber=9 EndCharacterOffset=44)" UseManualLocation="True" />
+    <Node Id="@28" Category="CodeSchema_Class" Bounds="2395.89533308103,390.987079385592,152.77,25" CodeSchemaProperty_IsInternal="True" CommonLabel="SectionController" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="SectionController" SourceLocation="(Assembly=file:///C:/Users/eyalantz/Source/Repos/sonarlint-visualstudio/src/Integration/TeamExplorer/SectionController.cs StartLineNumber=27 StartCharacterOffset=19 EndLineNumber=27 EndCharacterOffset=36)" />
+    <Node Id="@29" Category="CodeSchema_Class" Bounds="2153.28866641436,294.299579385592,203.983333333334,25" CodeSchemaProperty_IsInternal="True" CommonLabel="SonarQubeServiceWrapper" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="SonarQubeServiceWrapper" />
+    <Node Id="@30" Category="CodeSchema_Class" Bounds="2042.28046095773,378.527850232252,184.809999999999,25" CodeSchemaProperty_IsPublic="True" CommonLabel="TeamExplorerController" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="TeamExplorerController" UseManualLocation="True" />
+    <Node Id="@31" Category="CodeSchema_Class" Bounds="2287.5830464536,235.438795668699,137.433333333333,25" CodeSchemaProperty_IsFinal="True" CodeSchemaProperty_IsInternal="True" CommonLabel="VsSessionHost" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="VsSessionHost" UseManualLocation="True" />
+    <Node Id="@32" Category="CodeSchema_Class" Bounds="1994.25459831352,288.113226276085,127.37,25" CodeSchemaProperty_IsInternal="True" CommonLabel="WebBrowser" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Icon="CodeSchema_Class" Label="WebBrowser" />
+    <Node Id="@4" Category="CodeSchema_Assembly" AssemblyTimestamp="04/04/2016 15:22:15" CodeSchemaProperty_StrongName="SonarLint, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null" CommonLabel="SonarLint" DelayedChildNodesState="Incomplete" DelayedCrossGroupLinksState="Fetched" FilePath="$(ff2ad819-28f4-493a-8e9b-1d3f16bd4689.OutputPath)" Group="Expanded" Label="SonarLint.dll">
+      <Category Ref="CodeMap_VsixProject" />
+    </Node>
+    <Node Id="@6" Category="CodeSchema_Namespace" Bounds="817.90658677457,187.567571342656,1063.52,195.0000021632" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="SonarLint.VisualStudio.Integration" DelayedChildNodesState="Incomplete" DelayedCrossGroupLinksState="Fetched" Group="Expanded" Label="SonarLint.VisualStudio.Integration" />
+    <Node Id="@8" Category="CodeSchema_Namespace" Bounds="852.89158677457,-37.4324313613437,317.55,195.0000021632" DelayedChildNodesState="Incomplete" DelayedCrossGroupLinksState="Fetched" Group="Expanded" Label="SonarLint‎.VisualStudio‎.Integration‎.ProfileConflicts" />
+    <Node Id="HostedServices" Bounds="1156.5180387424,117.568751380477,566.516085850866,451.313323377376" Group="Expanded" Label="Hosted services" LayoutSettings="ForceDirected" UseManualLocation="True" />
+    <Node Id="MEFImportedIntoTheTeamExplorerController." Category="Comment" Bounds="2311.46019911049,159.994367912048,146.409999999999,41.9200000000001" Label="MEF imported into the TeamExplorerController." UseManualLocation="True" />
+    <Node Id="OptionsThatWeExposeToTheUser" Category="Comment" Bounds="1805.19713433185,372.341547782653,205.486666666667,25.96" Label="Options that we expose to the user" UseManualLocation="True" />
+    <Node Id="Singletons" Bounds="1754.90121880451,119.994267912048,835.360745434364,408.307519865058" Group="Expanded" Label="MEF exports" LayoutSettings="TopToBottom" UseManualLocation="True" />
+    <Node Id="TEMEFExport" Bounds="2374.29866641436,350.986979385592,195.963333333332,140.0003" Group="Expanded" Label="TE MEF export" />
+    <Node Id="e40ce7cc-8058-4919-ae48-134040f7be031" Category="Comment" Bounds="1774.90121880451,214.505739982361,202.076666666667,25.96" Label="MEF Imported by the VSIX project." />
   </Nodes>
   <Links>
-    <Link Source="@11" Target="@10" Category="CodeSchema_Calls" Bounds="415.080841064453,330,0,76" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="1" />
-    <Link Source="@11" Target="@6" Category="Implements" Bounds="130.337310765554,-35.3435282510988,31.4874405301148,192.805370111203" Weight="1" />
-    <Link Source="@11" Target="@7" Category="References" Bounds="129.660872444316,-35.3435282510988,32.562466363967,247.764533824825" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="10">
+    <Link Source="10a401d1-d5b5-4247-bdf0-3110f6cd18051" Target="@11" Bounds="1924.70277122095,256.425771179199,93.2361359430781,29.0132539957301" />
+    <Link Source="10a401d1-d5b5-4247-bdf0-3110f6cd18051" Target="@29" Bounds="2163.60662904445,256.425771179199,61.0377081427664,33.5396266099876" />
+    <Link Source="10a401d1-d5b5-4247-bdf0-3110f6cd18051" Target="@32" Bounds="2072.28070337304,256.425771179199,17.6843058136751,24.4001387571777" />
+    <Link Source="4673cd16-f759-4e04-a08c-12404025db261" Target="@24" Bounds="1313.35234046785,299.133267836052,16.6706521289022,36.6807662462354" />
+    <Link Source="@12" Target="@16" Category="Implements" Bounds="1473.28018296211,433.469400136571,57.117297081151,90.4125746350688" Weight="1" />
+    <Link Source="@13" Target="@16" Category="Implements" Bounds="1325.3282903539,411.947098201685,61.1181955799314,0.448599023510269" Weight="1" />
+    <Link Source="@14" Target="@23" Category="References" Bounds="1722.0220047434,-491.797171368398,41.2313874326048,177.731735286109" IsSourceVirtualized="True" Weight="2">
+      <Category Ref="CodeSchema_ReturnTypeLink" />
+    </Link>
+    <Link Source="@17" Target="@15" Category="Implements" Bounds="1907.94046095772,453.301588876712,4.54747350886464E-13,20.5001" Weight="1" />
+    <Link Source="@18" Target="@16" Category="Implements" Bounds="1463.70385742188,273.48779296875,90.9658203125,117.562255859375" Weight="1" />
+    <Link Source="@19" Target="@16" Category="Implements" Bounds="1376.11462402344,434.816467285156,95.7713623046875,89.0654907226563" Weight="1" />
+    <Link Source="@2" Target="(@1 @9)" Category="Contains" FetchingParent="@2" />
+    <Link Source="@2" Target="(@1 Namespace=SonarLint.VisualStudio.Integration.Persistence)" Category="Contains" FetchingParent="@2" />
+    <Link Source="@2" Target="@6" Category="Contains" FetchingParent="@2" />
+    <Link Source="@2" Target="@8" Category="Contains" FetchingParent="@2" />
+    <Link Source="@20" Target="@16" Category="Implements" Bounds="1495.65673476756,367.233870853592,62.4264433840522,29.1810461106086" Weight="1" />
+    <Link Source="@21" Target="@16" Category="Implements" Bounds="1374.51379394531,211.253173828125,82.6282958984375,179.782470703125" Weight="1" />
+    <Link Source="@22" Target="@16" Category="Implements" Bounds="1496.4976038842,429.364526836362,60.7672033345812,27.5838008782748" Weight="1" />
+    <Link Source="@24" Target="@16" Category="Implements" Bounds="1366.20455392374,369.007536293283,58.7199915521296,27.4117944326947" Weight="1" />
+    <Link Source="@24" Target="@26" Category="References" Bounds="1341.39405751312,369.007536293283,14.3120558824148,90.983663592813" IsSourceVirtualized="True" Weight="1" />
+    <Link Source="@25" Target="@16" Category="Implements" Bounds="1462.67822265625,182.56884765625,93.313720703125,208.423858642578" Weight="1" />
+    <Link Source="@26" Target="@13" Category="Implements" Bounds="1289.8153491994,429.690042137906,52.5083655773362,39.1918326337337" Weight="1" />
+    <Link Source="@26" Target="@16" Category="Implements" Bounds="1377.56025035881,430.758598511887,56.3898374633609,38.1232762597525" Weight="1" />
+    <Link Source="@28" Target="@14" Category="References" Bounds="1721.00725719578,-483.209339918416,38.534590025163,122.910980230414" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="12">
       <Category Ref="CodeSchema_Calls" />
       <Category Ref="CodeSchema_ReturnTypeLink" />
     </Link>
-    <Link Source="@11" Target="@9" Category="CodeSchema_Calls" Bounds="347.202026367188,330,45.6060791015625,25.5952453613281" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="1" />
-    <Link Source="@2" Target="@3" Category="CodeSchema_Calls" Bounds="173.657913208008,77.3915252685547,0,21.0000610351563" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="2" />
-    <Link Source="@2" Target="@6" Category="References" Bounds="113.906559293411,77.3911044633456,56.8658166500613,246.339517031276" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="12">
+    <Link Source="@28" Target="@23" Category="Implements" Bounds="2472.2802734375,415.987121582031,0,20.5000305175781" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="10">
       <Category Ref="CodeSchema_Calls" />
     </Link>
-    <Link Source="@2" Target="@7" Category="CodeSchema_Calls" Bounds="113.113766267098,77.3911044633456,58.1322012219572,301.271901588735" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="6" />
-    <Link Source="@3" Target="@6" Category="References" Bounds="115.071947055071,132.391204463346,54.9954141067645,191.458585004364" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="9">
-      <Category Ref="CodeSchema_Calls" />
+    <Link Source="@30" Target="@27" Category="Implements" Bounds="2134.68546095772,403.527850232252,4.54747350886464E-13,20.5000999999999" Weight="1" />
+    <Link Source="@31" Target="@14" Category="Implements" Bounds="2425.01637978693,247.298984479264,42.377365274197,0.244059127277268" Weight="1" />
+    <Link Source="@31" Target="@16" Category="References" Bounds="1460.22386104417,-490.846643404895,138.928175430388,887.993419306046" IsSourceVirtualized="True" Weight="45">
+      <Category Ref="CodeSchema_ReturnTypeLink" />
     </Link>
-    <Link Source="@4" Target="@5" Category="CodeSchema_Calls" Bounds="368.657928466797,77.3915252685547,0,21.0000610351563" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="2" />
-    <Link Source="@4" Target="@6" Category="References" Bounds="126.702674865081,77.391154463112,230.367726174297,248.508538827571" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="15">
-      <Category Ref="CodeSchema_Calls" />
-    </Link>
-    <Link Source="@4" Target="@7" Category="CodeSchema_Calls" Bounds="124.194879206778,77.391154463112,234.777331850416,302.994615617941" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="7">
-      <Category Ref="CodeSchema_FunctionPointer" />
-    </Link>
-    <Link Source="@5" Target="@6" Category="References" Bounds="130.215630307286,132.391254462412,224.023630090612,194.213338880848" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="9">
-      <Category Ref="CodeSchema_Calls" />
-    </Link>
-    <Link Source="@6" Target="@7" Category="CodeSchema_ReturnTypeLink" Bounds="108.99666595459,357.5,0,21" IsSourceVirtualized="True" Weight="1" />
-    <Link Source="@7" Target="@10" Category="CodeSchema_ReturnTypeLink" Bounds="129.540681676183,83.4544649005681,29.7330474518699,137.889806848333" IsSourceVirtualized="True" Weight="1" />
-    <Link Source="@8" Target="@2" Category="CodeSchema_Calls" Bounds="226.638153076172,22.3913536071777,97.7015686035156,27.5569458007813" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="2" />
-    <Link Source="@8" Target="@4" Category="CodeSchema_Calls" Bounds="368.657928466797,22.3913536071777,0,21.0000648498535" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="3" />
-    <Link Source="@8" Target="@6" Category="References" Bounds="124.194875288603,22.391054463112,234.777338658908,302.994714821497" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="10">
+    <Link Source="@31" Target="@23" Category="References" Bounds="1607.99331160776,-490.846643404895,97.8669513764357,177.665272341012" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="10">
       <Category Ref="CodeSchema_Calls" />
       <Category Ref="CodeSchema_ReturnTypeLink" />
     </Link>
-    <Link Source="@8" Target="@7" Category="CodeSchema_Calls" Bounds="122.30364919038,22.391054463112,238.034115728592,357.61684844653" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="1" />
-    <Link Source="@9" Target="@10" Category="References" Bounds="339.353546142578,385,45.6061096191406,25.5952453613281" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="14">
+    <Link Source="@31" Target="@24" Category="References" Bounds="1342.45010515835,-490.846643404895,254.834805880198,833.278630329858" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="3">
       <Category Ref="CodeSchema_Calls" />
-      <Category Ref="CodeSchema_ReturnTypeLink" />
     </Link>
-    <Link Source="@9" Target="@6" Category="References" Bounds="70.3058411382911,19.6565717489012,49.0875656568925,138.206649880002" IsSourceVirtualized="True" IsTargetVirtualized="True" Weight="13">
-      <Category Ref="CodeSchema_Calls" />
-      <Category Ref="CodeSchema_ReturnTypeLink" />
-    </Link>
-    <Link Source="@9" Target="@7" Category="Implements" Bounds="69.228661609285,19.6565717489012,51.9162499230974,192.99665657985" Weight="1" />
-    <Link Source="API" Target="@6" Category="Contains" />
-    <Link Source="API" Target="@7" Category="Contains" />
-    <Link Source="Concrete" Target="@10" Category="Contains" />
-    <Link Source="Concrete" Target="@11" Category="Contains" />
-    <Link Source="Concrete" Target="@9" Category="Contains" />
-    <Link Source="SectionInstanceSpecific" Target="@2" Category="Contains" />
-    <Link Source="SectionInstanceSpecific" Target="@3" Category="Contains" />
-    <Link Source="SectionInstanceSpecific" Target="@4" Category="Contains" />
-    <Link Source="SectionInstanceSpecific" Target="@5" Category="Contains" />
-    <Link Source="SectionInstanceSpecific" Target="@8" Category="Contains" />
-    <Link Source="SharedForAllSectionInstances" Target="API" Category="Contains" />
-    <Link Source="SharedForAllSectionInstances" Target="Concrete" Category="Contains" />
+    <Link Source="@31" Target="@29" Category="References" Bounds="2284.50962480865,260.438795668699,50.3370567555994,29.3298039394557" IsSourceVirtualized="True" Weight="1" />
+    <Link Source="@4" Target="@10" Category="Contains" FetchingParent="@4" />
+    <Link Source="@4" Target="@2" Category="CodeMap_ProjectReference" />
+    <Link Source="@6" Target="@16" Category="Contains" FetchingParent="@6" />
+    <Link Source="HostedServices" Target="4673cd16-f759-4e04-a08c-12404025db261" Category="Contains" />
+    <Link Source="HostedServices" Target="@12" Category="Contains" />
+    <Link Source="HostedServices" Target="@13" Category="Contains" />
+    <Link Source="HostedServices" Target="@18" Category="Contains" />
+    <Link Source="HostedServices" Target="@19" Category="Contains" />
+    <Link Source="HostedServices" Target="@2" Category="Contains" />
+    <Link Source="HostedServices" Target="@20" Category="Contains" />
+    <Link Source="HostedServices" Target="@21" Category="Contains" />
+    <Link Source="HostedServices" Target="@22" Category="Contains" />
+    <Link Source="HostedServices" Target="@24" Category="Contains" />
+    <Link Source="HostedServices" Target="@25" Category="Contains" />
+    <Link Source="HostedServices" Target="@26" Category="Contains" />
+    <Link Source="MEFImportedIntoTheTeamExplorerController." Target="@31" Bounds="2365.10247768021,201.914345703125,10.6868952562604,25.2368938528198" />
+    <Link Source="OptionsThatWeExposeToTheUser" Target="@17" Bounds="1907.94047249242,398.301488876711,1.12664999960543E-05,21.0001000000015" />
+    <Link Source="Singletons" Target="10a401d1-d5b5-4247-bdf0-3110f6cd18051" Category="Contains" />
+    <Link Source="Singletons" Target="@11" Category="Contains" />
+    <Link Source="Singletons" Target="@14" Category="Contains" />
+    <Link Source="Singletons" Target="@15" Category="Contains" />
+    <Link Source="Singletons" Target="@17" Category="Contains" />
+    <Link Source="Singletons" Target="@27" Category="Contains" />
+    <Link Source="Singletons" Target="@29" Category="Contains" />
+    <Link Source="Singletons" Target="@30" Category="Contains" />
+    <Link Source="Singletons" Target="@31" Category="Contains" />
+    <Link Source="Singletons" Target="@32" Category="Contains" />
+    <Link Source="Singletons" Target="MEFImportedIntoTheTeamExplorerController." Category="Contains" />
+    <Link Source="Singletons" Target="OptionsThatWeExposeToTheUser" Category="Contains" />
+    <Link Source="Singletons" Target="TEMEFExport" Category="Contains" />
+    <Link Source="Singletons" Target="e40ce7cc-8058-4919-ae48-134040f7be031" Category="Contains" />
+    <Link Source="TEMEFExport" Target="@23" Category="Contains" />
+    <Link Source="TEMEFExport" Target="@28" Category="Contains" />
+    <Link Source="e40ce7cc-8058-4919-ae48-134040f7be031" Target="@11" Bounds="1875.93957929875,240.465673447024,1.2217853054608E-05,38.6474932438583" />
   </Links>
   <Categories>
+    <Category Id="CodeMap_ProjectReference" Label="Project Reference" CanBeDataDriven="True" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Referenced By" OutgoingActionLabel="References" />
+    <Category Id="CodeMap_VsixProject" Label="VSIX Project" CanBeDataDriven="True" IsProviderRoot="False" NavigationActionLabel="VSIX Projects" />
+    <Category Id="CodeSchema_Assembly" Label="Assembly" BasedOn="File" CanBeDataDriven="True" DefaultAction="Microsoft.Contains" Icon="CodeSchema_Assembly" NavigationActionLabel="Assemblies" />
     <Category Id="CodeSchema_Calls" Label="Calls" CanBeDataDriven="True" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Called By" OutgoingActionLabel="Calls" />
     <Category Id="CodeSchema_Class" Label="Class" BasedOn="CodeSchema_Type" CanBeDataDriven="True" DefaultAction="Node:Both:CodeSchema_Member" Icon="CodeSchema_Class" NavigationActionLabel="Classes" />
-    <Category Id="CodeSchema_FunctionPointer" Label="Function Pointer" CanBeDataDriven="True" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Function Pointers" OutgoingActionLabel="Function Pointers" />
     <Category Id="CodeSchema_Interface" Label="Interface" BasedOn="CodeSchema_Type" CanBeDataDriven="True" DefaultAction="Node:Both:CodeSchema_Member" Icon="CodeSchema_Interface" NavigationActionLabel="Interfaces" />
+    <Category Id="CodeSchema_Namespace" Label="Namespace" CanBeDataDriven="True" DefaultAction="Node:Both:CodeSchema_Type" Icon="CodeSchema_Namespace" NavigationActionLabel="Namespaces" />
     <Category Id="CodeSchema_ReturnTypeLink" Label="Return" CanBeDataDriven="True" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Return types" OutgoingActionLabel="Return types" />
     <Category Id="CodeSchema_Type" Label="Type" CanBeDataDriven="True" DefaultAction="Node:Both:CodeSchema_Member" Icon="CodeSchema_Class" NavigationActionLabel="Types" />
+    <Category Id="Comment" Label="Comment" Description="Represents a user defined comment on the diagram" CanBeDataDriven="True" IsProviderRoot="False" NavigationActionLabel="Comments" />
     <Category Id="Contains" Label="Contains" Description="Whether the source of the link contains the target object" CanBeDataDriven="False" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Contained By" IsContainment="True" OutgoingActionLabel="Contains" />
+    <Category Id="File" Label="File" CanBeDataDriven="True" DefaultAction="Microsoft.Contains" Icon="File" NavigationActionLabel="Files" />
     <Category Id="Implements" Label="Implements" CanBeDataDriven="True" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Implemented by" OutgoingActionLabel="Implements" />
     <Category Id="References" Label="References" CanBeDataDriven="True" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Referenced By" OutgoingActionLabel="References" />
   </Categories>
   <Properties>
+    <Property Id="AssemblyTimestamp" DataType="System.DateTime" />
     <Property Id="Bounds" DataType="System.Windows.Rect" />
     <Property Id="CanBeDataDriven" Label="CanBeDataDriven" Description="CanBeDataDriven" DataType="System.Boolean" />
     <Property Id="CanLinkedNodesBeDataDriven" Label="CanLinkedNodesBeDataDriven" Description="CanLinkedNodesBeDataDriven" DataType="System.Boolean" />
     <Property Id="CodeSchemaProperty_IsAbstract" Label="Is Abstract" Description="Flag to indicate member is 'Abstract' does not provide a full implementation" DataType="System.Boolean" />
     <Property Id="CodeSchemaProperty_IsFinal" Label="Is Final" Description="Flag to indicate the member is 'Final' and cannot be derived from" DataType="System.Boolean" />
     <Property Id="CodeSchemaProperty_IsInternal" Label="Is Internal" Description="Flag to indicate the method is 'Internal'" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsPublic" Label="Is Public" Description="Flag to indicate the scope is Public" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsStatic" Label="Is Static" Description="Flag to indicate the member is a static member" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_StrongName" Label="StrongName" Description="StrongName" DataType="System.String" />
     <Property Id="CommonLabel" DataType="System.String" />
     <Property Id="DataVirtualized" Label="Data Virtualized" Description="If true, the graph can contain nodes and links that represent data for virtualized nodes/links (i.e. not actually created in the graph)." DataType="System.Boolean" />
     <Property Id="DefaultAction" Label="DefaultAction" Description="DefaultAction" DataType="System.String" />
     <Property Id="DelayedChildNodesState" Label="Delayed Child Nodes State" Description="Unspecified if the delayed child nodes state is not specified. NotFetched if the group contains child nodes that are not fetched into the graph yet. Fetched if the group has all its delayed child nodes already fetched." DataType="Microsoft.VisualStudio.GraphModel.DelayedDataState" />
     <Property Id="DelayedCrossGroupLinksState" Label="Delayed Cross-Group Links State" Description="Unspecified if the delayed cross-group links state is not specified. NotFetched if delayed cross-group links on this node are not fetched into the graph yet. Fetched if all delayed cross-group links have already fetched." DataType="Microsoft.VisualStudio.GraphModel.DelayedDataState" />
     <Property Id="Expression" DataType="System.String" />
+    <Property Id="FetchingParent" DataType="Microsoft.VisualStudio.GraphModel.GraphNodeId" />
+    <Property Id="FilePath" Label="File Path" Description="File Path" DataType="System.String" />
+    <Property Id="FilterState" DataType="System.String" />
     <Property Id="Group" Label="Group" Description="Display the node as a group" DataType="Microsoft.VisualStudio.GraphModel.GraphGroupStyle" />
     <Property Id="GroupLabel" DataType="System.String" />
     <Property Id="Icon" Label="Icon" Description="Icon" DataType="System.String" />
     <Property Id="IncomingActionLabel" Label="IncomingActionLabel" Description="IncomingActionLabel" DataType="System.String" />
     <Property Id="IsContainment" DataType="System.Boolean" />
     <Property Id="IsEnabled" DataType="System.Boolean" />
+    <Property Id="IsProviderRoot" Label="IsProviderRoot" Description="IsProviderRoot" DataType="System.Boolean" />
     <Property Id="IsSourceVirtualized" Label="Link Source Virtualized" Description="If true, the link source end contains data for virtualized nodes/links (i.e. not actually created in the graph)." DataType="System.Boolean" />
     <Property Id="IsTargetVirtualized" Label="Link Target Virtualized" Description="If true, the link target end contains data for virtualized nodes/links (i.e. not actually created in the graph)." DataType="System.Boolean" />
     <Property Id="Label" Label="Label" Description="Displayable label of an Annotatable object" DataType="System.String" />
@@ -126,16 +187,37 @@
   </QualifiedNames>
   <IdentifierAliases>
     <Alias n="1" Uri="Assembly=$(03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f.OutputPathUri)" />
-    <Alias n="2" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.Binding Type=BindingController)" />
-    <Alias n="3" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.Binding Type=BindingWorkflow)" />
-    <Alias n="4" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.Connection Type=ConnectionController)" />
-    <Alias n="5" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.Connection Type=ConnectionWorkflow)" />
-    <Alias n="6" Id="(@1 Namespace=SonarLint.VisualStudio.Integration Type=IHost)" />
-    <Alias n="7" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.State Type=IStateManager)" />
-    <Alias n="8" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.TeamExplorer Type=SectionController)" />
-    <Alias n="9" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.State Type=StateManager)" />
-    <Alias n="10" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.State Type=TransferableVisualState)" />
-    <Alias n="11" Id="(@1 Namespace=SonarLint.VisualStudio.Integration Type=VsSessionHost)" />
+    <Alias n="2" Id="(@1)" />
+    <Alias n="3" Uri="Assembly=$(ff2ad819-28f4-493a-8e9b-1d3f16bd4689.OutputPathUri)" />
+    <Alias n="4" Id="(@3)" />
+    <Alias n="5" Id="Namespace=SonarLint.VisualStudio.Integration" />
+    <Alias n="6" Id="(@1 @5)" />
+    <Alias n="7" Id="Namespace=SonarLint.VisualStudio.Integration.ProfileConflicts" />
+    <Alias n="8" Id="(@1 @7)" />
+    <Alias n="9" Id="Namespace=SonarLint.VisualStudio.Integration.TeamExplorer" />
+    <Alias n="10" Id="(@3 Namespace=SonarLint.VisualStudio.Integration.Vsix)" />
+    <Alias n="11" Id="(@1 @5 Type=ActiveSolutionTracker)" />
+    <Alias n="12" Id="(@1 @7 Type=IConflictsManager)" />
+    <Alias n="13" Id="(@1 @5 Type=IFileSystem)" />
+    <Alias n="14" Id="(@1 @5 Type=IHost)" />
+    <Alias n="15" Id="(@1 @5 Type=IIntegrationSettings)" />
+    <Alias n="16" Id="(@1 @5 Type=ILocalService)" />
+    <Alias n="17" Id="(@3 Namespace=SonarLint.VisualStudio.Integration.Vsix Type=IntegrationSettings)" />
+    <Alias n="18" Id="(@1 @5 Type=IProjectSystemFilter)" />
+    <Alias n="19" Id="(@1 @5 Type=IProjectSystemHelper)" />
+    <Alias n="20" Id="(@1 @7 Type=IRuleSetConflictsController)" />
+    <Alias n="21" Id="(@1 @7 Type=IRuleSetInspector)" />
+    <Alias n="22" Id="(@1 @5 Type=IRuleSetSerializer)" />
+    <Alias n="23" Id="(@1 @9 Type=ISectionController)" />
+    <Alias n="24" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.Persistence Type=ISolutionBinding)" />
+    <Alias n="25" Id="(@1 @5 Type=ISolutionRuleSetsInformationProvider)" />
+    <Alias n="26" Id="(@1 @5 Type=ISourceControlledFileSystem)" />
+    <Alias n="27" Id="(@1 @9 Type=ITeamExplorerController)" />
+    <Alias n="28" Id="(@1 @9 Type=SectionController)" />
+    <Alias n="29" Id="(@1 Namespace=SonarLint.VisualStudio.Integration.Service Type=SonarQubeServiceWrapper)" />
+    <Alias n="30" Id="(@1 @9 Type=TeamExplorerController)" />
+    <Alias n="31" Id="(@1 @5 Type=VsSessionHost)" />
+    <Alias n="32" Id="(@1 @5 Type=WebBrowser)" />
   </IdentifierAliases>
   <Styles>
     <Style TargetType="Node" GroupLabel="Results" ValueLabel="True">
@@ -175,13 +257,13 @@
       <Condition Expression="HasCategory('CodeMap_ModelingProject')" />
       <Setter Property="Icon" Value="CodeMap_ModelingProject" />
     </Style>
-    <Style TargetType="Node" GroupLabel="Assembly" ValueLabel="Has category">
+    <Style TargetType="Node" IsEnabled="false" GroupLabel="Assembly" ValueLabel="Has category">
       <Condition Expression="HasCategory('CodeSchema_Assembly')" />
       <Setter Property="Background" Value="#FF094167" />
       <Setter Property="Stroke" Value="#FF094167" />
       <Setter Property="Icon" Value="CodeSchema_Assembly" />
     </Style>
-    <Style TargetType="Node" GroupLabel="Namespace" ValueLabel="Has category">
+    <Style TargetType="Node" IsEnabled="false" GroupLabel="Namespace" ValueLabel="Has category">
       <Condition Expression="HasCategory('CodeSchema_Namespace')" />
       <Setter Property="Background" Value="#FF0E619A" />
       <Setter Property="Stroke" Value="#FF0E619A" />
@@ -353,8 +435,19 @@
       <Setter Property="StrokeDashArray" Value="2 2" />
       <Setter Property="DrawArrow" Value="true" />
     </Style>
+    <Style TargetType="Node" GroupLabel="Comment" ValueLabel="Has comment">
+      <Condition Expression="HasCategory('Comment')" />
+      <Setter Property="Background" Value="#FFFFFACD" />
+      <Setter Property="Stroke" Value="#FFE5C365" />
+      <Setter Property="StrokeThickness" Value="1" />
+      <Setter Property="NodeRadius" Value="2" />
+      <Setter Property="MaxWidth" Value="250" />
+    </Style>
   </Styles>
   <Paths>
-    <Path Id="03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f.OutputPathUri" Value="file:///C:/Users/eyalantz/Documents/GitHubVisualStudio/sonarlint-visualstudio/src/Integration/bin/Debug/SonarLint.VisualStudio.Integration.dll" />
+    <Path Id="03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f.OutputPath" Value="C:\Users\eyalantz\Source\Repos\sonarlint-visualstudio\src\Integration\bin\Debug\SonarLint.VisualStudio.Integration.dll" />
+    <Path Id="03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f.OutputPathUri" Value="file:///C:/Users/eyalantz/Source/Repos/sonarlint-visualstudio/src/Integration/bin/Debug/SonarLint.VisualStudio.Integration.dll" />
+    <Path Id="ff2ad819-28f4-493a-8e9b-1d3f16bd4689.OutputPath" Value="C:\Users\eyalantz\Source\Repos\sonarlint-visualstudio\src\Integration.Vsix\bin\Debug\SonarLint.dll" />
+    <Path Id="ff2ad819-28f4-493a-8e9b-1d3f16bd4689.OutputPathUri" Value="file:///C:/Users/eyalantz/Source/Repos/sonarlint-visualstudio/src/Integration.Vsix/bin/Debug/SonarLint.dll" />
   </Paths>
 </DirectedGraph>

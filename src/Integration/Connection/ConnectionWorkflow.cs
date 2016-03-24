@@ -15,6 +15,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Input;
 
@@ -74,10 +75,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
             string connectStepDisplayText = string.Format(CultureInfo.CurrentCulture, Resources.Strings.ConnectingToSever, connection.ServerUri);
             return new[]
             {
-                    new ProgressStepDefinition(connectStepDisplayText, StepAttributes.Indeterminate | StepAttributes.BackgroundThread, (cancellationToken, notifications) =>
-                    {
-                        this.ConnectionStep(controller, cancellationToken, connection, notifications);
-                    }),
+                    new ProgressStepDefinition(connectStepDisplayText, StepAttributes.Indeterminate | StepAttributes.BackgroundThread,
+                        (cancellationToken, notifications) => this.ConnectionStep(controller, cancellationToken, connection, notifications)),
+
+                    new ProgressStepDefinition(connectStepDisplayText, StepAttributes.BackgroundThread,
+                        (token, notifications) => this.DownloadServiceParameters(controller, token, notifications)),
+
                 };
         }
 
@@ -118,8 +121,53 @@ namespace SonarLint.VisualStudio.Integration.Connection
             }
 
             this.OnProjectsChanged(connection, projects);
-                notifications.ProgressChanged(Strings.ConnectionResultSuccess, double.NaN);
+            notifications.ProgressChanged(Strings.ConnectionResultSuccess, double.NaN);
+        }
+
+
+        internal /*for testing purposes*/ void DownloadServiceParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
+        { 
+            // Should never realistically take more than 1 second to match against a project name
+            var timeout = TimeSpan.FromSeconds(1);
+            var defaultRegex = new Regex(ServerProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
+
+            notifications.ProgressChanged(Strings.PreparingBindingWorkflowProgessMessage, double.NaN);
+
+            var properties = this.host.SonarQubeService.GetProperties(token);
+
+            if (token.IsCancellationRequested)
+            {
+                AbortWorkflow(controller, token);
+                return;
             }
+
+            var testProjRegexProperty = properties.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, ServerProperty.TestProjectRegexKey));
+
+            // Using this older API, if the property hasn't been explicitly set no default value is returned.
+            // http://jira.sonarsource.com/browse/SONAR-5891
+            var testProjRegexPattern = testProjRegexProperty?.Value ?? ServerProperty.TestProjectRegexDefaultValue;
+
+            Regex regex = null;
+            if (testProjRegexPattern != null)
+            {
+                // Try and create regex from provided server pattern.
+                // No way to determine a valid pattern other than attempting to construct
+                // the Regex object.
+                try
+                {
+                    regex = new Regex(testProjRegexPattern, RegexOptions.IgnoreCase, timeout);
+                }
+                catch (ArgumentException)
+                {
+                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
+                }
+            }
+
+            var projectFilter = this.host.GetService<IProjectSystemFilter>();
+            projectFilter.AssertLocalServiceIsNotNull();
+            projectFilter.SetTestRegex(regex ?? defaultRegex);
+        }
+
         #endregion
 
         #region Helpers
