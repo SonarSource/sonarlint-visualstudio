@@ -49,6 +49,13 @@
       <HintPath>..\..\Packages\Microsoft.Owin.Testing.3.0.1\lib\net45\Microsoft.Owin.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Imaging, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\Packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
       <Private>True</Private>
@@ -156,11 +163,17 @@
     <Compile Include="Framework\ConfigurableUserNotification.cs" />
     <Compile Include="Framework\ConfigurableVsActivityLog.cs" />
     <Compile Include="Framework\ConfigurableVsGeneralOutputWindowPane.cs" />
+    <Compile Include="Framework\ConfigurableVsInfoBar.cs" />
+    <Compile Include="Framework\ConfigurableVsInfoBarHost.cs" />
+    <Compile Include="Framework\ConfigurableVsInfoBarUIElement.cs" />
+    <Compile Include="Framework\ConfigurableVsInfoBarUIFactory.cs" />
     <Compile Include="Framework\ConfigurableVsMonitorSelection.cs" />
     <Compile Include="Framework\ConfigurableVsProjectSystemHelper.cs" />
     <Compile Include="Framework\ConfigurableTelemetryLogger.cs" />
     <Compile Include="Framework\ConfigurableVsQueryEditQuerySave2.cs" />
     <Compile Include="Framework\ConfigurableVsShell.cs" />
+    <Compile Include="Framework\ConfigurableVsUIShell.cs" />
+    <Compile Include="Framework\ConfigurableVsWindowFrame.cs" />
     <Compile Include="Framework\ConfigurableWebBrowser.cs" />
     <Compile Include="Framework\ConfigurableWritableSettingsStore.cs" />
     <Compile Include="Helpers\AssertIgnoreScope.cs" />
