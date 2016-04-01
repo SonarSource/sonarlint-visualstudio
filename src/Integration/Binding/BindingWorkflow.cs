@@ -72,10 +72,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region Workflow state
 
-        public List<Project> BindingProjects
+        public ISet<Project> BindingProjects
         {
             get;
-        } = new List<Project>();
+        } = new HashSet<Project>();
 
         public Dictionary<RuleSetGroup, RuleSet> Rulesets
         {
@@ -184,6 +184,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void DownloadBindingParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
         {
+            // Should never realistically take more than 1 second to match against a project name
+            var timeout = TimeSpan.FromSeconds(1);
+            var defaultRegex = new Regex(ServerProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
+
             notifications.ProgressChanged(Strings.PreparingBindingWorkflowProgessMessage, double.NaN);
 
             var properties = this.host.SonarQubeService.GetProperties(token);
@@ -195,9 +199,28 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             var testProjRegexProperty = properties.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, ServerProperty.TestProjectRegexKey));
+
+            // Using this older API, if the property hasn't been explicitly set no default value is returned.
+            // http://jira.sonarsource.com/browse/SONAR-5891
             var testProjRegexPattern = testProjRegexProperty?.Value ?? ServerProperty.TestProjectRegexDefaultValue;
 
-            this.projectFilter.SetTestRegex(new Regex(testProjRegexPattern, RegexOptions.IgnoreCase));
+            Regex regex = null;
+            if (testProjRegexPattern != null)
+            {
+                // Try and create regex from provided server pattern.
+                // No way to determine a valid pattern other than attempting to construct
+                // the Regex object.
+                try
+                {
+                    regex = new Regex(testProjRegexPattern, RegexOptions.IgnoreCase, timeout);
+                }
+                catch (ArgumentException)
+                {
+                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
+                }
+            }
+
+            this.projectFilter.SetTestRegex(regex ?? defaultRegex);
         }
 
         internal /*for testing purposes*/ void DiscoverProjects(IProgressController controller, IProgressStepExecutionEvents notifications)
@@ -206,9 +229,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage, double.NaN);
 
-            this.BindingProjects.AddRange(this.projectSystem
-                                              .GetSolutionProjects()
-                                              .Where(x => this.projectFilter.IsAccepted(x)));
+            foreach (var project in this.projectSystem
+                                        .GetSolutionProjects()
+                                        .Where(x => this.projectFilter.IsAccepted(x)))
+            {
+                this.BindingProjects.Add(project);
+            }
             
             if (!this.BindingProjects.Any())
             {

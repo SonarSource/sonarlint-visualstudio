@@ -30,6 +30,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         #region Tests 
 
         [TestMethod]
+        public void ProjectSystemFilter_IsAccepted_ArgumentChecks()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            // Act + Verify
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.IsAccepted(null));
+        }
+
+        [TestMethod]
         public void ProjectSystemFilter_IsAccepted_UnsupportedLanguage_IsFalse()
         {
             // Setup
@@ -54,17 +64,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("supported.csproj");
             project.SetCSProjectKind();
 
-            // Test case 1: property true -> not accepted
-            // Setup
-            project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, "true");
-            
+            // Test case 1: property false -> is accepted
             // Act
             var result = testSubject.IsAccepted(project);
 
             // Verify
-            Assert.IsFalse(result, "Project with SonarExcludeProperty=false should NOT be accepted");
+            Assert.IsTrue(result, "Project with missing property SonarQubeExclude should be accepted");
 
-            // Test case 2: property false -> is accepted
+            // Test case 2: property non-bool -> is accepted
+            // Setup
+            project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, string.Empty);
+
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Verify
+            Assert.IsTrue(result, "Project with non-bool property SonarQubeExclude should be accepted");
+
+            // Test case 3: property true -> not accepted
+            // Setup
+            project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, "true");
+            
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Verify
+            Assert.IsFalse(result, "Project with property SonarQubeExclude=false should NOT be accepted");
+
+            // Test case 4: property false -> is accepted
             // Setup
             project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, "false");
 
@@ -72,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             result = testSubject.IsAccepted(project);
 
             // Verify
-            Assert.IsTrue(result, "Project with SonarExcludeProperty=true should be accepted");
+            Assert.IsTrue(result, "Project with property SonarQubeExclude=true should be accepted");
         }
 
         [TestMethod]
@@ -84,17 +111,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("supported.csproj");
             project.SetCSProjectKind();
 
-            // Test case 1: property true -> not accepted
-            // Setup
-            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "true");
-
+            // Test case 1: missing property -> accepted
             // Act
             var result = testSubject.IsAccepted(project);
 
             // Verify
-            Assert.IsFalse(result, "Project with SonarQubeTestProject=false should NOT be accepted");
+            Assert.IsTrue(result, "Project with missing property SonarQubeTestProject should be accepted");
 
-            // Test case 2: property false -> is accepted
+            // Test case 2: non-bool property -> accepted
+            // Setup
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, string.Empty);
+
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Verify
+            Assert.IsTrue(result, "Project with non-bool property SonarQubeTestProject should be accepted");
+
+            // Test case 3: property true -> not accepted
+            // Setup
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "true");
+
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Verify
+            Assert.IsFalse(result, "Project with property SonarQubeTestProject=false should NOT be accepted");
+
+            // Test case 4: property false -> is accepted
             // Setup
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "false");
 
@@ -102,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             result = testSubject.IsAccepted(project);
 
             // Verify
-            Assert.IsTrue(result, "Project with SonarQubeTestProject=true should be accepted");
+            Assert.IsTrue(result, "Project with property SonarQubeTestProject=true should be accepted");
         }
 
         [TestMethod]
@@ -127,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             var testSubject = this.CreateTestSubject();
-            testSubject.SetTestRegex(new Regex(".*barfoo.*"));
+            testSubject.SetTestRegex(new Regex(".*barfoo.*", RegexOptions.None, TimeSpan.FromSeconds(1)));
 
             var project = new ProjectMock("foobarfoobar.csproj");
             project.SetCSProjectKind();
@@ -144,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             var testSubject = this.CreateTestSubject();
-            testSubject.SetTestRegex(new Regex(".*notfound.*"));
+            testSubject.SetTestRegex(new Regex(".*notfound.*", RegexOptions.None, TimeSpan.FromSeconds(1)));
 
             var project = new ProjectMock("foobarfoobar.csproj");
             project.SetCSProjectKind();

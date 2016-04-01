@@ -7,36 +7,53 @@ using System.Linq;
 namespace SonarLint.VisualStudio.Integration
 {
     [DebuggerDisplay("{Name} (ServerKey: {ServerKey}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
-    public sealed class Language : IEquatable<Language>
+    internal sealed class Language : IEquatable<Language>
     {
         public readonly static Language CSharp = new Language("cs", Strings.CSharpLanguageName, ProjectSystemHelper.CSharpProjectKind);
         public readonly static Language VBNET = new Language("vbnet", Strings.VBNetLanguageName, ProjectSystemHelper.VbProjectKind);
 
+        /// <summary>
+        /// The SonarQube server key.
+        /// </summary>
         public string ServerKey { get; }
 
+        /// <summary>
+        /// The language display name.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// The VS project GUID for this language.
+        /// </summary>
         public Guid ProjectType { get; set; }
 
+        /// <summary>
+        /// Returns whether or not this language is a supported project language for binding.
+        /// </summary>
         public bool IsSupported => SupportedLanguages.Contains(this);
 
+        /// <summary>
+        /// All languages which are supported for project binding.
+        /// </summary>
         public static IEnumerable<Language> SupportedLanguages
         {
             get
             {
-                yield return CSharp;
+                return new[] { CSharp };
                 // We don't support VB.NET as the corresponding VB SonarQube server plugin has been
                 // updated to support the connected experience.
-                // yield return VBNET;
+                //return new[] { CSharp, VBNET };
             }
         }
 
+        /// <summary>
+        /// All known languages.
+        /// </summary>
         public static IEnumerable<Language> KnownLanguages
         {
             get
             {
-                yield return CSharp;
-                yield return VBNET;
+                return new[] { CSharp, VBNET };
             }
         }
 

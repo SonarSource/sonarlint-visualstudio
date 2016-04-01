@@ -432,6 +432,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Test project regular expression pattern &apos;{0}&apos; is invalid. The default will be used instead. Please check your server settings..
+        /// </summary>
+        public static string InvalidTestProjectRegexPattern {
+            get {
+                return ResourceManager.GetString("InvalidTestProjectRegexPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not acquire service: {0}.
         /// </summary>
         public static string MissingService {
@@ -500,6 +509,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string ProductAuthors {
             get {
                 return ResourceManager.GetString("ProductAuthors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not get the IVsHierarchy/IVsBuildPropertyStorage for the given project is IVsBuildPropertyStorage for the given EnvDTE.Project.
+        /// </summary>
+        public static string ProjectFilterDteProjectFailedToGetIVs {
+            get {
+                return ResourceManager.GetString("ProjectFilterDteProjectFailedToGetIVs", resourceCulture);
             }
         }
         

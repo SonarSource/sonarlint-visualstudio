@@ -14,7 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using DteProject = EnvDTE.Project;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -47,22 +46,22 @@ namespace SonarLint.VisualStudio.Integration
             get { return this.serviceProvider; }
         }
 
-        public IEnumerable<DteProject> GetSolutionProjects()
+        public IEnumerable<Project> GetSolutionProjects()
         {
             IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
             foreach (var hierarchy in EnumerateProjects(solution))
             {
-                DteProject dteProject = GetDteProject(hierarchy);
-                if (dteProject != null && Language.ForProject(dteProject) != null)
+                Project Project = GetProject(hierarchy);
+                if (Project != null && Language.ForProject(Project) != null)
                 {
-                    yield return dteProject;
+                    yield return Project;
                 }
             }
         }
 
-        public static DteProject GetDteProject(IVsHierarchy hierarchy)
+        public static Project GetProject(IVsHierarchy hierarchy)
         {
             if (hierarchy == null)
             {
@@ -72,18 +71,18 @@ namespace SonarLint.VisualStudio.Integration
             object project = null;
             if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out project)))
             {
-                return project as DteProject;
+                return project as Project;
             }
             return null;
         }
 
-        public IVsHierarchy GetIVsHierarchy(DteProject dteProject)
+        public IVsHierarchy GetIVsHierarchy(Project Project)
         {
             IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
             IVsHierarchy hierarchy;
-            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(dteProject.UniqueName, out hierarchy)))
+            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(Project.UniqueName, out hierarchy)))
             {
                 return hierarchy;
             }
@@ -91,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration
             return null;
         }
 
-        public bool IsFileInProject(DteProject project, string file)
+        public bool IsFileInProject(Project project, string file)
         {
             if (project == null)
             {
@@ -121,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration
             return false;
         }
 
-        public void AddFileToProject(DteProject project, string fullFilePath)
+        public void AddFileToProject(Project project, string fullFilePath)
         {
             if (project == null)
             {
@@ -139,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public void AddFileToProject(DteProject project, string fullFilePath, string itemType)
+        public void AddFileToProject(Project project, string fullFilePath, string itemType)
         {
             if (project == null)
             {
@@ -179,17 +178,17 @@ namespace SonarLint.VisualStudio.Integration
             return solution;
         }
 
-        public DteProject GetSolutionItemsProject()
+        public Project GetSolutionItemsProject()
         {
             string solutionItemsFolderName = this.GetSolutionItemsFolderName();
 
             Solution2 solution = this.GetCurrentActiveSolution();
 
-            DteProject solutionItemsProject = null;
-            // Enumerating instead of using OfType<DteProject> due to a bug in
+            Project solutionItemsProject = null;
+            // Enumerating instead of using OfType<Project> due to a bug in
             // install shield projects that will throw an exception
 #pragma warning disable S3217
-            foreach (DteProject project in solution.Projects)
+            foreach (Project project in solution.Projects)
 #pragma warning restore S3217
             {
                 // Check if Solution Items folder already exists
@@ -265,22 +264,22 @@ namespace SonarLint.VisualStudio.Integration
             return GetAggregateProjectKinds(vsProject).Contains(TestProjectKindGuid);
         }
 
-        private static bool IsManagedProject(DteProject project)
+        private static bool IsManagedProject(Project project)
         {
             return IsCSharpProject(project) || IsVBProject(project);
         }
 
-        public static bool IsVBProject(DteProject project)
+        public static bool IsVBProject(Project project)
         {
             return IsProjectKind(project, VbProjectKind);
         }
 
-        public static bool IsCSharpProject(DteProject project)
+        public static bool IsCSharpProject(Project project)
         {
             return IsProjectKind(project, CSharpProjectKind);
         }
 
-        private static bool IsProjectKind(DteProject project, string projectKindGuidString)
+        private static bool IsProjectKind(Project project, string projectKindGuidString)
         {
             return StringComparer.OrdinalIgnoreCase.Equals(projectKindGuidString, project.Kind);
         }

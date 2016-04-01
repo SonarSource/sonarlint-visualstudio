@@ -48,12 +48,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SonarQubeServiceWrapper_Connect_Disconnect()
         {
-            ProjectInformation p1 = new ProjectInformation()
+            var p1 = new ProjectInformation
             {
                 Name = "Project 1",
                 Key = "1"
             };
-            ProjectInformation p2 = new ProjectInformation()
+            var p2 = new ProjectInformation
             {
                 Name = "Project 2",
                 Key = "2"
@@ -247,7 +247,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.IsNull(projects, "Not expecting projects");
             }
         }
-        
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_GetProperties()
+        {
+            using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
+            {
+                ConnectToServerWithProjects(testSubject, new ProjectInformation[0]);
+
+                // Setup
+                var property1 = new ServerProperty { Key = "prop1", Value = "val1" };
+                var property2 = new ServerProperty { Key = "prop2", Value = "val2" };
+
+                var expectedProperties = new[] { property1, property2 };
+
+                // Setup test server
+                RequestHandler handler = testSubject.RegisterRequestHandler(
+                    SonarQubeServiceWrapper.PropertiesAPI,
+                    ctx => ServiceServerProperties(ctx, expectedProperties)
+                );
+
+                // Act
+                var actualProperties = testSubject.GetProperties(CancellationToken.None).ToArray();
+
+                // Verify
+                CollectionAssert.AreEqual(expectedProperties.Select(x => x.Key).ToArray(), actualProperties.Select(x => x.Key).ToArray(), "Unexpected server property keys");
+                CollectionAssert.AreEqual(expectedProperties.Select(x => x.Value).ToArray(), actualProperties.Select(x => x.Value).ToArray(), "Unexpected server property values");
+                handler.AssertHandlerCalled(1);
+            }
+        }
+
         [TestMethod]
         public void SonarQubeServiceWrapper_GetExportProfile()
         {
@@ -523,6 +552,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
+        
+        private static void ServiceServerProperties(IOwinContext context, IEnumerable<ServerProperty> serverProperties, bool simulateFault = false)
+        {
+            if (simulateFault)
+            {
+                SimulateServerFault(context);
+            }
+            else
+            {
+                context.Response.Write(Serialize(serverProperties.ToArray()));
+            }
+        }
+
         private static void ServiceProfileExport(IOwinContext context, RoslynExportProfile export, bool simulateFault = false)
         {
             if (simulateFault)
@@ -584,11 +626,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class RequestHandler
         {
-            private int handlerCalled = 0;
+            private int handlerCalled;
 
             public RequestHandler()
             {
-
             }
 
             public RequestHandler(Action<IOwinContext> requestProcessor)

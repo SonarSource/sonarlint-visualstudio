@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -35,12 +36,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public bool IsAccepted(DteProject dteProject)
         {
+            if (dteProject == null)
+            {
+                throw new ArgumentNullException(nameof(dteProject));
+            }
+
             var projectName = dteProject.Name;
             var hierarchy = this.projectSystem.GetIVsHierarchy(dteProject);
             var propertyStorage = hierarchy as IVsBuildPropertyStorage;
 
-            Debug.Assert(hierarchy != null, $"Couldn't get IVsHierarchy for DTE project '{projectName}'");
-            Debug.Assert(propertyStorage != null, $"Couldn't get IVsBuildPropertyStorage for the IVsHierarchy '{projectName}'");
+            if (hierarchy == null || propertyStorage == null)
+            {
+                throw new ArgumentException(Strings.ProjectFilterDteProjectFailedToGetIVs, nameof(dteProject));
+            }
 
             // Accept only supported languages
             var language = Language.ForProject(dteProject);
@@ -64,9 +72,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 return !sonarTest.Value;
             }
+            
             // Otherwise, try to detect test project using known project types and/or regex match
-            else if (ProjectSystemHelper.IsKnownTestProject(hierarchy)
-                 || (this.testRegex != null && this.testRegex.IsMatch(projectName)))
+            if (ProjectSystemHelper.IsKnownTestProject(hierarchy)
+            || (this.testRegex != null && this.testRegex.IsMatch(projectName)))
             {
                 return false;
             }
@@ -77,6 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public void SetTestRegex(Regex regex)
         {
             this.testRegex = regex;
+            Debug.Assert(this.testRegex == null || (this.testRegex.MatchTimeout != Regex.InfiniteMatchTimeout), "Should have set non-infinite timeout");
         }
 
         #endregion
