@@ -332,6 +332,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C#.
+        /// </summary>
+        public static string CSharpLanguageName {
+            get {
+                return ResourceManager.GetString("CSharpLanguageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disconnect.
         /// </summary>
         public static string DisconnectCommandDisplayText {
@@ -346,6 +355,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string DisconnectCommandTooltip {
             get {
                 return ResourceManager.GetString("DisconnectCommandTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discovering solution projects.
+        /// </summary>
+        public static string DiscoveringSolutionProjectsProgressMessage {
+            get {
+                return ResourceManager.GetString("DiscoveringSolutionProjectsProgressMessage", resourceCulture);
             }
         }
         
@@ -513,6 +531,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Test project regular expression pattern &apos;{0}&apos; is invalid. The default will be used instead. Please check your server settings..
+        /// </summary>
+        public static string InvalidTestProjectRegexPattern {
+            get {
+                return ResourceManager.GetString("InvalidTestProjectRegexPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not acquire service: {0}.
         /// </summary>
         public static string MissingService {
@@ -527,6 +554,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string MoreInfoLinkText {
             get {
                 return ResourceManager.GetString("MoreInfoLinkText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No projects in the current solution are applicable to the selected SonarQube project&apos;s quality profile..
+        /// </summary>
+        public static string NoProjectsApplicableForBinding {
+            get {
+                return ResourceManager.GetString("NoProjectsApplicableForBinding", resourceCulture);
             }
         }
         
@@ -558,11 +594,29 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Preparing binding steps.
+        /// </summary>
+        public static string PreparingBindingWorkflowProgessMessage {
+            get {
+                return ResourceManager.GetString("PreparingBindingWorkflowProgessMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarSource and Microsoft.
         /// </summary>
         public static string ProductAuthors {
             get {
                 return ResourceManager.GetString("ProductAuthors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not get the IVsHierarchy/IVsBuildPropertyStorage for the given project is IVsBuildPropertyStorage for the given EnvDTE.Project.
+        /// </summary>
+        public static string ProjectFilterDteProjectFailedToGetIVs {
+            get {
+                return ResourceManager.GetString("ProjectFilterDteProjectFailedToGetIVs", resourceCulture);
             }
         }
         
@@ -861,6 +915,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string UsernameRequired {
             get {
                 return ResourceManager.GetString("UsernameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB.NET.
+        /// </summary>
+        public static string VBNetLanguageName {
+            get {
+                return ResourceManager.GetString("VBNetLanguageName", resourceCulture);
             }
         }
         

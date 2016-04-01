@@ -10,13 +10,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableVsProjectSystemHelper : IProjectSystemHelper
     {
         private readonly IServiceProvider serviceProvider;
-
+        
         public ConfigurableVsProjectSystemHelper(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
@@ -36,9 +37,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.SolutionItemsProject;
         }
 
-        IEnumerable<Project> IProjectSystemHelper.GetSolutionManagedProjects()
+        IEnumerable<Project> IProjectSystemHelper.GetSolutionProjects()
         {
-            return this.ManagedProjects ?? Enumerable.Empty<Project>();
+            return this.Projects ?? Enumerable.Empty<Project>();
         }
 
         bool IProjectSystemHelper.IsFileInProject(Project project, string file)
@@ -74,13 +75,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.CurrentActiveSolution;
         }
 
+        IVsHierarchy IProjectSystemHelper.GetIVsHierarchy(Project dteProject)
+        {
+            return dteProject as IVsHierarchy;
+        }
+
         #endregion
 
         #region Test helpers
 
         public Project SolutionItemsProject { get; set; }
 
-        public IEnumerable<Project> ManagedProjects { get; set; }
+        public IEnumerable<Project> Projects { get; set; }
 
         public Func<Project, string, bool> IsFileInProjectAction { get; set; }
 

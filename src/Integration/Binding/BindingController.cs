@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 && !this.host.VisualStateManager.IsBusy
                 && VsShellUtils.IsSolutionExistsAndFullyLoaded()
                 && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()
-                && (this.projectSystemHelper.GetSolutionManagedProjects()?.Any() ?? false);
+                && (this.projectSystemHelper.GetSolutionProjects()?.Any() ?? false);
         }
 
         private void OnBind(ProjectInformation projectInformation)

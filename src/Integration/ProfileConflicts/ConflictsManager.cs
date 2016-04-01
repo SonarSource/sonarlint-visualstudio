@@ -105,7 +105,10 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
                 var projectRuleSetAggregation = new Dictionary<string, RuleSetAggregate>(StringComparer.OrdinalIgnoreCase);
 
-                foreach (Project project in projectSystem.GetSolutionManagedProjects())
+                // TODO: we need to filter the same as in binding workflow:
+                // it requires various changes and will be done separately.
+
+                foreach (Project project in projectSystem.GetSolutionProjects())
                 {
                     string suffix = SolutionBindingOperation.GetProjectRuleSetSuffix(ProjectBindingOperation.GetProjectGroup(project));
                     string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(bindingInfo.ProjectKey, suffix);

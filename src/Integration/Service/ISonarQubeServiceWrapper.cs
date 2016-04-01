@@ -34,6 +34,11 @@ namespace SonarLint.VisualStudio.Integration.Service
         void Disconnect();
 
         /// <summary>
+        /// Retrieves all properties defined on the server specified by the <see cref="CurrentConnection"/>.
+        /// </summary>
+        IEnumerable<ServerProperty> GetProperties(CancellationToken token);
+
+        /// <summary>
         /// Retrieves the Roslyn Quality Profile export for the specified project using the <see cref="CurrentConnection"/>.
         /// </summary>
         /// <remarks>

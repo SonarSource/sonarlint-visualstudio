@@ -136,6 +136,7 @@
     <Compile Include="IHost.cs" />
     <Compile Include="IProjectSystemHelper.cs" />
     <Compile Include="IActiveSolutionTracker.cs" />
+    <Compile Include="Binding\IProjectSystemFilter.cs" />
     <Compile Include="IServiceProviderExtensions.cs" />
     <Compile Include="IIntegrationSettings.cs" />
     <Compile Include="IWebBrowser.cs" />
@@ -151,7 +152,10 @@
     <Compile Include="Progress\IProgressStepRunnerWrapper.cs" />
     <Compile Include="ProfileConflicts\RuleSetConflictsController.cs" />
     <Compile Include="RuleSetHelper.cs" />
+    <Compile Include="Language.cs" />
+    <Compile Include="Binding\ProjectSystemFilter.cs" />
     <Compile Include="Service\DataModel\ServerPlugin.cs" />
+    <Compile Include="Service\DataModel\ServerProperty.cs" />
     <Compile Include="Service\RoslynExporter\AdditionalFile.cs" />
     <Compile Include="Service\RoslynExporter\Configuration.cs" />
     <Compile Include="Service\RoslynExporter\Deployment.cs" />

@@ -7,6 +7,7 @@
 
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 
@@ -27,6 +28,8 @@ namespace SonarLint.VisualStudio.Integration
 
         void AddFileToProject(Project project, string file, string itemType);
 
-        IEnumerable<Project> GetSolutionManagedProjects();
+        IEnumerable<Project> GetSolutionProjects();
+
+        IVsHierarchy GetIVsHierarchy(Project dteProject);
     }
 }

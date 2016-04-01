@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Service
         public const string ServerPluginsInstalledAPI = "/api/updatecenter/installed_plugins"; // Since 2.10; internal
         public const string QualityProfileListAPI     = "/api/profiles/list";                  // Since 3.3; deprecated in 5.2
         public const string QualityProfileExportAPI   = "/profiles/export";                    // Since ???; internal
+        public const string PropertiesAPI             = "/api/properties/";                    // Since 2.6
 
         public const string RoslynExporter = "roslyn-cs";
 
@@ -42,8 +43,8 @@ namespace SonarLint.VisualStudio.Integration.Service
         public const string VBLanguage = "vbnet";
         public static readonly string[] SupportedLanguages = { CSharpLanguage, VBLanguage };
 
-        private IServiceProvider serviceProvider;
-        private TimeSpan requestTimeout;
+        private readonly IServiceProvider serviceProvider;
+        private readonly TimeSpan requestTimeout;
 
         #region Constructors
 
@@ -95,6 +96,20 @@ namespace SonarLint.VisualStudio.Integration.Service
             this.CurrentConnection?.Dispose();
             this.CurrentConnection = null;
         }
+
+        public IEnumerable<ServerProperty> GetProperties(CancellationToken token)
+        {
+            if (this.CurrentConnection == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            ServerProperty[] properties = this.SafeUseHttpClient<ServerProperty[]>(this.CurrentConnection,
+                client => GetServerProperties(client, token));
+
+            return properties;
+        }
+
 
         public RoslynExportProfile GetExportProfile(ProjectInformation project, string language, CancellationToken token)
         {
@@ -230,6 +245,17 @@ namespace SonarLint.VisualStudio.Integration.Service
             {
                 return RoslynExportProfile.Load(reader);
             }
+        }
+
+        #endregion
+
+        #region Server properties
+
+        private static async Task<ServerProperty[]> GetServerProperties(HttpClient client, CancellationToken token)
+        {
+            HttpResponseMessage response = await InvokeGetRequest(client, PropertiesAPI, token);
+
+            return await ProcessJsonResponse<ServerProperty[]>(response, token);
         }
 
         #endregion

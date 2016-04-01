@@ -122,6 +122,7 @@
     <Compile Include="Framework\ConfigurableHost.cs" />
     <Compile Include="Framework\ConfigurableIntegrationSettings.cs" />
     <Compile Include="Framework\ConfigurableProgressStepRunner.cs" />
+    <Compile Include="Framework\ConfigurableProjectSystemFilter.cs" />
     <Compile Include="Framework\ConfigurableRuleSetConflictsController.cs" />
     <Compile Include="Framework\ConfigurableRuleSetInspector.cs" />
     <Compile Include="Framework\ConfigurableSettingsManager.cs" />

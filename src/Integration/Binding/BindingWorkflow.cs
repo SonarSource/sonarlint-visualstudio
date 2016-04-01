@@ -5,11 +5,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -28,16 +30,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IHost host;
         private readonly ProjectInformation project;
-        private readonly IProjectSystemHelper projectSystemHelper;
+        private readonly IProjectSystemHelper projectSystem;
+        private readonly IProjectSystemFilter projectFilter;
         private readonly SolutionBindingOperation solutionBindingOperation;
 
-        internal readonly Dictionary<string, RuleSetGroup> LanguageToGroupMapping = new Dictionary<string, RuleSetGroup>
+        internal readonly Dictionary<Language, RuleSetGroup> LanguageToGroupMapping = new Dictionary<Language, RuleSetGroup>
         {
-            {SonarQubeServiceWrapper.CSharpLanguage, RuleSetGroup.CSharp },
-            {SonarQubeServiceWrapper.VBLanguage, RuleSetGroup.VB }
+            {Language.CSharp, RuleSetGroup.CSharp },
+            {Language.VBNET, RuleSetGroup.VB }
         };        
 
         public BindingWorkflow(IHost host, ProjectInformation project)
+            : this(host, project, null)
+        {
+        }
+
+        internal /*for testing purposes*/ BindingWorkflow(IHost host, ProjectInformation project, IProjectSystemFilter projectFilter)
         {
             if (host == null)
             {
@@ -51,8 +59,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.host = host;
             this.project = project;
-            this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
-            this.projectSystemHelper.AssertLocalServiceIsNotNull();
+            this.projectSystem = this.host.GetService<IProjectSystemHelper>();
+            this.projectSystem.AssertLocalServiceIsNotNull();
+
+            this.projectFilter = projectFilter ?? new ProjectSystemFilter(this.host);
 
             this.solutionBindingOperation = new SolutionBindingOperation(
                     this.host,
@@ -61,6 +71,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #region Workflow state
+
+        public ISet<Project> BindingProjects
+        {
+            get;
+        } = new HashSet<Project>();
 
         public Dictionary<RuleSetGroup, RuleSet> Rulesets
         {
@@ -89,23 +104,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public IProgressEvents Run()
         {
-            List<string> languages = new List<string>();
-            if (this.projectSystemHelper.GetSolutionManagedProjects().Any(p => ProjectSystemHelper.IsCSharpProject(p)))
-            {
-                languages.Add(SonarQubeServiceWrapper.CSharpLanguage);
-            }
-
-            if (this.projectSystemHelper.GetSolutionManagedProjects().Any(p => ProjectSystemHelper.IsVBProject(p)))
-            {
-                languages.Add(SonarQubeServiceWrapper.VBLanguage);
-            }
-
-            Debug.Assert(languages.Count > 0, "Expecting managed projects in solution");
             Debug.Assert(this.host.ActiveSection != null, "Expect the section to be attached at least until this method returns");
+            Debug.Assert(this.projectSystem.GetSolutionProjects().Any(), "Expecting projects in solution");
 
             IProgressEvents progress = ProgressStepRunner.StartAsync(this.host,
                 this.host.ActiveSection.ProgressHost,
-                (controller) => this.CreateWorkflowSteps(controller, languages));
+                controller => this.CreateWorkflowSteps(controller));
 
             this.DebugOnly_MonitorProgress(progress);
 
@@ -118,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             progress.RunOnFinished(r => VsShellUtils.WriteToGeneralOutputPane(this.host, "DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
         }
 
-        private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller, IEnumerable<string> languages)
+        private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
         {
             StepAttributes IndeterminateNonCancellableUIStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable;
             StepAttributes HiddenIndeterminateNonImpactingNonCancellableUIStep = IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
@@ -133,7 +137,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.PromptSaveSolutionIfDirty(controller, token)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.DownloadQualityProfile(controller, token, notifications, languages)),
+                        (token, notifications) => this.DownloadBindingParameters(controller, token, notifications)),
+
+                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.Indeterminate,
+                        (token, notifications) => this.DiscoverProjects(controller, notifications)),
+
+                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
+                        (token, notifications) => this.DownloadQualityProfile(controller, token, notifications, this.GetBindingLanguages())),
 
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => { NuGetHelper.LoadService(this.host); /*The service needs to be loaded on UI thread*/ }),
@@ -157,9 +167,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.EmitBindingCompleteMessage(notifications))
             };
         }
+
         #endregion
 
         #region Workflow steps
+
         internal /*for testing purposes*/ void PromptSaveSolutionIfDirty(IProgressController controller, CancellationToken token)
         {
             if (!VsShellUtils.SaveSolution(this.host, silent: false))
@@ -170,26 +182,81 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
+        internal /*for testing purposes*/ void DownloadBindingParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
         {
-            bool saved = VsShellUtils.SaveSolution(this.host, silent: true);
-            Debug.Assert(saved, "Should not be cancellable");
+            // Should never realistically take more than 1 second to match against a project name
+            var timeout = TimeSpan.FromSeconds(1);
+            var defaultRegex = new Regex(ServerProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
+
+            notifications.ProgressChanged(Strings.PreparingBindingWorkflowProgessMessage, double.NaN);
+
+            var properties = this.host.SonarQubeService.GetProperties(token);
+
+            if (token.IsCancellationRequested)
+            {
+                AbortWorkflow(controller, token);
+                return;
+            }
+
+            var testProjRegexProperty = properties.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, ServerProperty.TestProjectRegexKey));
+
+            // Using this older API, if the property hasn't been explicitly set no default value is returned.
+            // http://jira.sonarsource.com/browse/SONAR-5891
+            var testProjRegexPattern = testProjRegexProperty?.Value ?? ServerProperty.TestProjectRegexDefaultValue;
+
+            Regex regex = null;
+            if (testProjRegexPattern != null)
+            {
+                // Try and create regex from provided server pattern.
+                // No way to determine a valid pattern other than attempting to construct
+                // the Regex object.
+                try
+                {
+                    regex = new Regex(testProjRegexPattern, RegexOptions.IgnoreCase, timeout);
+                }
+                catch (ArgumentException)
+                {
+                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
+                }
+            }
+
+            this.projectFilter.SetTestRegex(regex ?? defaultRegex);
         }
 
-        internal /*for testing purposes*/ void DownloadQualityProfile(IProgressController controller, CancellationToken cancellationToken, IProgressStepExecutionEvents notificationEvents, IEnumerable<string> languages)
+        internal /*for testing purposes*/ void DiscoverProjects(IProgressController controller, IProgressStepExecutionEvents notifications)
+        {
+            Debug.Assert(ThreadHelper.CheckAccess(), "Expected step to be run on the UI thread");
+
+            notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage, double.NaN);
+
+            foreach (var project in this.projectSystem
+                                        .GetSolutionProjects()
+                                        .Where(x => this.projectFilter.IsAccepted(x)))
+            {
+                this.BindingProjects.Add(project);
+            }
+            
+            if (!this.BindingProjects.Any())
+            {
+                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.NoProjectsApplicableForBinding);
+                AbortWorkflow(controller, CancellationToken.None);
+            }
+        }
+
+        internal /*for testing purposes*/ void DownloadQualityProfile(IProgressController controller, CancellationToken cancellationToken, IProgressStepExecutionEvents notificationEvents, IEnumerable<Language> languages)
         {
             Debug.Assert(controller != null);
             Debug.Assert(notificationEvents != null);
 
             bool failed = false;
-            Dictionary<string, RuleSet> rulesets = new Dictionary<string, RuleSet>();
+            var rulesets = new Dictionary<Language, RuleSet>();
             DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, languages.Count());
 
             foreach (var language in languages)
             {
-                notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language));
+                notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language.Name));
 
-                var export = this.host.SonarQubeService.GetExportProfile(this.project, language, cancellationToken);
+                var export = this.host.SonarQubeService.GetExportProfile(this.project, language.ServerKey, cancellationToken);
 
                 if (export == null)
                 {
@@ -236,7 +303,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage, double.NaN);
 
             this.solutionBindingOperation.RegisterKnownRuleSets(this.Rulesets);
-            this.solutionBindingOperation.Initialize();
+            this.solutionBindingOperation.Initialize(this.BindingProjects);
         }
 
         private void PrepareSolutionBinding(CancellationToken token)
@@ -252,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 AbortWorkflow(controller, token);
                 return;
-        }
+            }
         }
 
         /// <summary>
@@ -269,15 +336,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             Debug.Assert(this.NuGetPackages.Count == this.NuGetPackages.Distinct().Count(), "Duplicate NuGet packages specified");
 
-            var managedProjects = this.projectSystemHelper.GetSolutionManagedProjects().ToArray();
-            if (!managedProjects.Any())
+            if (!this.BindingProjects.Any())
             {
-                Debug.Fail("Not expected to be called when there are no managed projects");
+                Debug.Fail("Not expected to be called when there are no projects");
                 return;
             }
 
-            DeterminateStepProgressNotifier progressNotifier = new DeterminateStepProgressNotifier(notificationEvents, managedProjects.Length * this.NuGetPackages.Count);
-            foreach (var project in managedProjects)
+            DeterminateStepProgressNotifier progressNotifier = new DeterminateStepProgressNotifier(notificationEvents, this.BindingProjects.Count * this.NuGetPackages.Count);
+            foreach (var project in this.BindingProjects)
             {
                 foreach (var packageInfo in this.NuGetPackages)
                 {
@@ -297,6 +363,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
+        internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
+        {
+            bool saved = VsShellUtils.SaveSolution(this.host, silent: true);
+            Debug.Assert(saved, "Should not be cancellable");
+        }
+
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
             {
             var message = this.AllNuGetPackagesInstalled
@@ -304,10 +376,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
             notifications.ProgressChanged(message, double.NaN);
         }
+
         #endregion
 
         #region Helpers
-        private RuleSetGroup LanguageToGroup(string language)
+
+        private RuleSetGroup LanguageToGroup(Language language)
         {
             RuleSetGroup group;
             if (!this.LanguageToGroupMapping.TryGetValue(language, out group))
@@ -323,6 +397,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             bool aborted = controller.TryAbort();
             Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
         }
+
+        internal /*testing purposes*/ IEnumerable<Language> GetBindingLanguages()
+        {
+            return this.BindingProjects.Select(Language.ForProject).Distinct();
+        }
+
         #endregion
 
     }

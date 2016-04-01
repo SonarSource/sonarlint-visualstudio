@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Verify
             Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since the solution baseline is missing");
             this.outputWindow.AssertOutputStrings(1);
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(0, 
+            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(0,
                 words: new[] { Constants.SonarQubeManagedFolderName },
                 splitter: new[] { Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar });
         }
@@ -208,7 +208,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidProjects(3);
             this.SetValidSolutionRuleSetPerProjectKind();
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetValidRuleSetDeclarationPerProjectAndConfiguration(
-                useUniqueProjectRuleSets: true, 
+                useUniqueProjectRuleSets: true,
                 configurationNames: new[] { "Debug", "Release" });
 
             this.ConigureInspectorWithConflicts(knownDeclarations, () =>
@@ -254,20 +254,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void SetValidProjects(int numberOfProjects = 1)
         {
             List<ProjectMock> projects = new List<ProjectMock>();
-            for(int i=0;i< numberOfProjects;i++)
+            for (int i = 0; i < numberOfProjects; i++)
             {
                 ProjectMock project = this.dte.Solution.AddOrGetProject($@"X:\Solution\Project\Project{i}.csproj");
                 project.SetCSProjectKind();
                 projects.Add(project);
             }
 
-            this.projectHelper.ManagedProjects = projects;
+            this.projectHelper.Projects = projects;
         }
 
         private void SetValidSolutionRuleSetPerProjectKind()
         {
             ISolutionRuleSetsInformationProvider rsInfoProvider = this.ruleSetInfoProvider;
-            foreach(var project in this.projectHelper.ManagedProjects)
+            foreach (var project in this.projectHelper.Projects)
             {
                 string suffix = SolutionBindingOperation.GetProjectRuleSetSuffix(ProjectBindingOperation.GetProjectGroup(project));
                 string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(this.solutionBinding.CurrentBinding.ProjectKey, suffix);
@@ -279,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             List<RuleSetDeclaration> declarations = new List<RuleSetDeclaration>();
 
-            foreach (ProjectMock project in this.projectHelper.ManagedProjects.OfType< ProjectMock>())
+            foreach (ProjectMock project in this.projectHelper.Projects.OfType<ProjectMock>())
             {
                 var configuration = new ConfigurationMock(configurationName);
                 project.ConfigurationManager.Configurations.Add(configuration);
@@ -337,15 +337,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                     return false;
                 }));
-               
+
                 return conflictFactory.Invoke();
             };
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", 
-            "S1541:Methods should not be too complex", 
-            Justification = "False positive, nothing complex about it, should not impact Maintainability", 
-            Scope = "member", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability",
+            "S1541:Methods should not be too complex",
+            Justification = "False positive, nothing complex about it, should not impact Maintainability",
+            Scope = "member",
             Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.ConflictsManagerTests.CreateConflictsBasedOnNumberOfCalls(System.Int32)~SonarLint.VisualStudio.Integration.ProfileConflicts.RuleConflictInfo")]
         private static RuleConflictInfo CreateConflictsBasedOnNumberOfCalls(int findConflictCalls)
         {

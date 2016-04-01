@@ -8,6 +8,7 @@
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Flavor;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace SonarLint.VisualStudio.Integration
     {
         internal const string VbProjectKind = "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}";
         internal const string CSharpProjectKind = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
+        internal const string TestProjectKind = "{3AC096D0-A1C2-E12C-1390-A8335801FDAB}";
+        internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);
 
         // This constant is necessary to find the name of the "Solution Items" folder
         // for the CurrentUICulture. They correspond to a resource string in the satellite dll
@@ -43,25 +46,49 @@ namespace SonarLint.VisualStudio.Integration
             get { return this.serviceProvider; }
         }
 
-        public IEnumerable<Project> GetSolutionManagedProjects()
+        public IEnumerable<Project> GetSolutionProjects()
         {
-            IVsSolution solution = this.serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
-            return EnumerateProjects(solution)
-                .Select(h =>
-                    {
-                        Debug.Assert(h != null);
-                        object project = null;
-                        if (ErrorHandler.Succeeded(h.GetProperty((uint)VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out project)))
-                        {
-                            return project as Project;
-                        }
-                        return null;
-                    })
-                .Where(p => p != null && IsManagedProject(p));
+            foreach (var hierarchy in EnumerateProjects(solution))
+            {
+                Project Project = GetProject(hierarchy);
+                if (Project != null && Language.ForProject(Project) != null)
+                {
+                    yield return Project;
+                }
+            }
         }
 
+        public static Project GetProject(IVsHierarchy hierarchy)
+        {
+            if (hierarchy == null)
+            {
+                throw new ArgumentNullException(nameof(hierarchy));
+            }
+
+            object project = null;
+            if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out project)))
+            {
+                return project as Project;
+            }
+            return null;
+        }
+
+        public IVsHierarchy GetIVsHierarchy(Project Project)
+        {
+            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
+            Debug.Assert(solution != null, "Cannot find SVsSolution");
+
+            IVsHierarchy hierarchy;
+            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(Project.UniqueName, out hierarchy)))
+            {
+                return hierarchy;
+            }
+
+            return null;
+        }
 
         public bool IsFileInProject(Project project, string file)
         {
@@ -153,14 +180,16 @@ namespace SonarLint.VisualStudio.Integration
 
         public Project GetSolutionItemsProject()
         {
-            string solutionItemsFolderName = GetSolutionItemsFolderName(this.serviceProvider);
+            string solutionItemsFolderName = this.GetSolutionItemsFolderName();
 
             Solution2 solution = this.GetCurrentActiveSolution();
 
             Project solutionItemsProject = null;
             // Enumerating instead of using OfType<Project> due to a bug in
             // install shield projects that will throw an exception
+#pragma warning disable S3217
             foreach (Project project in solution.Projects)
+#pragma warning restore S3217
             {
                 // Check if Solution Items folder already exists
                 if (project.Name == solutionItemsFolderName)
@@ -179,12 +208,12 @@ namespace SonarLint.VisualStudio.Integration
             return solutionItemsProject;
         }
 
-        private static string GetSolutionItemsFolderName(IServiceProvider serviceProvider)
+        private string GetSolutionItemsFolderName()
         {
             string solutionItemsFolderName = null;
             Guid guid = VSConstants.CLSID.VsEnvironmentPackage_guid;
 
-            IVsShell shell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            IVsShell shell = this.serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
             Debug.Assert(shell != null, "Could not find the SVsShell service");
 
             ErrorHandler.ThrowOnFailure(shell.LoadPackageString(ref guid, SolutionItemResourceId, out solutionItemsFolderName));
@@ -205,10 +234,39 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        public static IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
+        {
+            if (hierarchy == null)
+            {
+                throw new ArgumentNullException(nameof(hierarchy));
+            }
+
+            IVsAggregatableProjectCorrected aggregatableProject = hierarchy as IVsAggregatableProjectCorrected;
+            if (aggregatableProject != null)
+            {
+                string guidStrings;
+                if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out guidStrings)))
+                {
+                    foreach (var guidStr in guidStrings.Split(';'))
+                    {
+                        Guid guid;
+                        if (Guid.TryParse(guidStr, out guid))
+                        {
+                            yield return guid;
+                        }
+                    }
+                }
+            }
+        }
+
+        public static bool IsKnownTestProject(IVsHierarchy vsProject)
+        {
+            return GetAggregateProjectKinds(vsProject).Contains(TestProjectKindGuid);
+        }
+
         private static bool IsManagedProject(Project project)
         {
-            // NB: We only support C# projects currently because the VB.NET plugin hasn't been updated.
-            return IsCSharpProject(project);
+            return IsCSharpProject(project) || IsVBProject(project);
         }
 
         public static bool IsVBProject(Project project)
