@@ -9,6 +9,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
     public interface ITeamExplorerController
     {
-        void ShowConnectionsPage();
+        void ShowSonarQubePage();
     }
 }

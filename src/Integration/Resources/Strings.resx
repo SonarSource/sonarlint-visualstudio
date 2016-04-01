@@ -438,6 +438,67 @@ This is the general format to use when writing errors to output window or when t
     <value>Warning: could not find CodeAnalysisRuleSet for project '{0}'</value>
     <comment>Warning message. '{0}' project unique name </comment>
   </data>
+  <data name="ConflictDetailWeakenedRulesTitle" xml:space="preserve">
+    <value>Weakened rules:</value>
+  </data>
+  <data name="RuleSetConflictsDetected" xml:space="preserve">
+    <value>The applied ruleset is weakening the SonarQube quality profile in one or more projects. See output window (General) for more details. You can also [fix]() that automatically.</value>
+    <comment>[fix]()? - markup (the 'fix' text needs to be formatted [XXX]() for specific reason.</comment>
+  </data>
+  <data name="ConflictsManagerWarningMessage" xml:space="preserve">
+    <value>SonarLint conflicts manager warning: {0}</value>
+    <comment>Output window error message. 
+{0} - message</comment>
+  </data>
+  <data name="ConflictDetailMissingRules" xml:space="preserve">
+    <value>Missing rules (or set to None): </value>
+    <comment>{0} - list of rule ids</comment>
+  </data>
+  <data name="ConflictDetailWeakenedRulesDetail" xml:space="preserve">
+    <value>Rule '{0}' action is {1}, instead of {2}.</value>
+    <comment>{0} - rule id
+{1} - RuleAction (enum)
+{2} - RuleAction (enum)</comment>
+  </data>
+  <data name="ConflictsManagerFailedInFindConflicts" xml:space="preserve">
+    <value>RuleSet '{0}' cannot be analyzed against '{1}' due to error: {2}. </value>
+    <comment>Output window message.
+{0} - file path
+{1} - file path
+{2} - exception message </comment>
+  </data>
+  <data name="ConflictsSummaryHeader" xml:space="preserve">
+    <value>RuleSet conflicts detected for project '{0}', configuration(s): {1}</value>
+    <comment>{0} - project file path
+{1} - configuration names</comment>
+  </data>
+  <data name="ExpectedRuleSetNotFound" xml:space="preserve">
+    <value>The expected RuleSet file '{0}' could not be resolved or the file does not exist. Cannot search conflicts for one or more project configuration of project '{1}'. Please rebind to the relevant SonarQube project from TeamExplorer window.</value>
+    <comment>Output window message. 
+{0} - file path
+{1} - file path</comment>
+  </data>
+  <data name="InconsistedRuleSetDirectoriesWarning" xml:space="preserve">
+    <value>Different CodeAnalysisRuleSetDirectories value '{0}' for RuleSet '{1}'. Using value '{2}'.</value>
+    <comment>Output message
+{0} - msbuild property value
+{1} - rule set path
+{2} - msbuild property value</comment>
+  </data>
+  <data name="ConflictFixHeader" xml:space="preserve">
+    <value>RuleSet conflicts resolution summary for project '{0}', configuration(s): {1}</value>
+    <comment>{0} - project file path
+{1} - configuration names</comment>
+  </data>
+  <data name="ConflictFixResetInclude" xml:space="preserve">
+    <value>RuleSet imports were reset for: '{0}'.</value>
+    <comment>{0} - file path</comment>
+  </data>
+  <data name="ConflictFixRulesDeleted" xml:space="preserve">
+    <value>Conflicting rules were removed from '{0}':</value>
+    <comment>{0} - file path
+</comment>
+  </data>
   <data name="PreparingBindingWorkflowProgessMessage" xml:space="preserve">
     <value>Preparing binding steps</value>
     <comment>Binding progress message about preparing further binding steps</comment>

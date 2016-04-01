@@ -20,7 +20,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         public const string ItemId = "172AF455-5F42-46FC-BFE6-23227A05806B";
         public const int Priority = TeamExplorerNavigationItemPriority.Settings - 1;
 
-        private ITeamExplorerController controller;
+        private readonly ITeamExplorerController controller;
 
         [ImportingConstructor]
         internal SonarQubeNavigationItem([Import] ITeamExplorerController controller)
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         public override void Execute()
         {
-            this.controller.ShowConnectionsPage();
+            this.controller.ShowSonarQubePage();
         }
     }
 }

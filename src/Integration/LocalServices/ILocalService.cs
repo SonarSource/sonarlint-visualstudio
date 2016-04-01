@@ -10,7 +10,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// Marker for local service
     /// </summary>
-    internal interface ILocalService
+    public interface ILocalService
     {
     }
 }

@@ -67,6 +67,14 @@ namespace SonarLint.VisualStudio.Integration.State
             }
         }
 
+        public bool HasBoundProject
+        {
+            get
+            {
+                return this.ManagedState.HasBoundProject;
+            }
+        }
+
         public string BoundProjectKey { get; set; }
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects)
@@ -87,12 +95,14 @@ namespace SonarLint.VisualStudio.Integration.State
             ProjectViewModel projectViewModel = this.ManagedState.ConnectedServers.SelectMany(s => s.Projects).SingleOrDefault(p => p.ProjectInformation == project);
             Debug.Assert(projectViewModel != null, "Expecting a single project mapped to project information");
             this.ManagedState.SetBoundProject(projectViewModel);
+            Debug.Assert(this.HasBoundProject, "Expected to have a bound project");
         }
 
         public void ClearBoundProject()
         {
             this.ClearBindingErrorNotifications();
             this.ManagedState.ClearBoundProject();
+            Debug.Assert(!this.HasBoundProject, "Expected not to have a bound project");
         }
 
         public void SyncCommandFromActiveSection()

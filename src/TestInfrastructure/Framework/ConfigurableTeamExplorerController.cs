@@ -12,9 +12,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableTeamExplorerController : ITeamExplorerController
     {
-        private int showConnectionsPageCalls = 0;
+        private int showConnectionsPageCalls;
 
-        void ITeamExplorerController.ShowConnectionsPage()
+        void ITeamExplorerController.ShowSonarQubePage()
         {
             this.showConnectionsPageCalls++;
         }

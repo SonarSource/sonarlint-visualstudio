@@ -16,5 +16,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         public static readonly Guid FailedToFindBoundProjectKeyId = new Guid("4A92944A-2585-442D-8821-DE235DA9E478");
         public static readonly Guid WarnServerTrustId = new Guid("{F9A383D5-47ED-439E-A1DB-7A1083062CCD}");
         public static readonly Guid BadServerPluginId = new Guid("{F89A8FAB-6EF1-4EB5-A1F7-A197AEF9DC8C}");
+        public static readonly Guid RuleSetConflictsId = new Guid("{D9DBFF58-B6D1-43ED-BDFB-083D4A5ECFF5}");
     }
 }

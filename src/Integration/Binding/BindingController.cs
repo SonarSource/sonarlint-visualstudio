@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.TeamFoundation.Client.CommandTarget;
+using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
@@ -13,7 +14,6 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
@@ -50,12 +50,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
         }
 
-        public RelayCommand<ProjectViewModel> BindCommand
-        {
-            get;
-        }
-
         #region Commands
+        public RelayCommand<ProjectViewModel> BindCommand { get; }
+
+
         internal /*for testing purposes*/ bool IsBindingInProgress
         {
             get
@@ -110,6 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(this.OnBindStatus(projectInformation));
             this.workflow.BindProject(projectInformation);
         }
+
         #endregion
 
         #region IBindingWorkflowExecutor
@@ -151,8 +150,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (isFinishedSuccessfully)
             {
                 this.host.VisualStateManager.SetBoundProject(projectInformation);
-                VsShellUtils.ActivateSolutionExplorer(this.ServiceProvider);
-                this.CheckForConflicts();
+
+                var conflictsController = this.host.GetService<IRuleSetConflictsController>();
+                conflictsController.AssertLocalServiceIsNotNull();
+
+                if (conflictsController.CheckForConflicts())
+                {
+                    // In some cases we will end up navigating to the solution explorer, this will make sure that 
+                    // we're back in team explorer to view the conflicts
+                    this.ServiceProvider.GetMefService<ITeamExplorerController>()?.ShowSonarQubePage();
+                }
+                else
+                {
+                    VsShellUtils.ActivateSolutionExplorer(this.ServiceProvider);
+                }
             }
             else
             {
@@ -164,20 +175,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     notifications.ShowNotificationError(Strings.FailedToToBindSolution, NotificationIds.FailedToBindId, rebindCommand);
                 }
             }
-        }
-
-        internal /*for testing purposes*/ void CheckForConflicts()
-        {
-            // TODO: implement something like: (need to think about perf, and UX part of that work
-            /*
-            var conflictsManager = this.ServiceProvider.GetService<IConflictsManager>();
-            var conflicts = conflictsManager.GetCurrentConflicts();
-
-            if (conflicts.Count > 0)
-            {
-                // Let the user know that he has conflicts
-                this.host.ActiveSection?.UserNotifications?.ShowNotificationWarning("Conflicts detected. Would you like to [fix them]()?", new Guid(), conflictsManager.GetResolveConflictsCommand(conflicts));
-            }*/
         }
         #endregion
     }

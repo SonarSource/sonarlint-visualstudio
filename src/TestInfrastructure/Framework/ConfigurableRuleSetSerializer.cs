@@ -95,6 +95,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.IsNotNull(actualRuleSet, "Expected rule set to be written");
             RuleSetAssert.AreEqual(expectedRuleSet, actualRuleSet);
         }
+
+        public void AssertRuleSetsAreSame(string ruleSetPath, RuleSet expectedRuleSet)
+        {
+            this.AssertRuleSetExists(ruleSetPath);
+
+            RuleSet actualRuleSet = this.savedRuleSets[ruleSetPath];
+            Assert.AreSame(expectedRuleSet, actualRuleSet);
+        }
         #endregion
     }
 }
