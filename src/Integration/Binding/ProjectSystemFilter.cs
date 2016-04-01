@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             // General exclusions
             // If exclusion property is set, this takes precedence
-            bool? sonarExclude = GetPropertyBool(propertyStorage, "SonarQubeExclude");
+            bool? sonarExclude = GetPropertyBool(propertyStorage, Constants.SonarQubeExcludeBuildPropertyKey);
             if (sonarExclude.HasValue)
             {
                 return !sonarExclude.Value;
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             // Ignore test projects
             // If specifically marked with test project property, use that to specifiy if test project or not
-            bool? sonarTest = GetPropertyBool(propertyStorage, "SonarQubeTestProject");
+            bool? sonarTest = GetPropertyBool(propertyStorage, Constants.SonarQubeTestProjectBuildPropertyKey);
             if (sonarTest.HasValue)
             {
                 return !sonarTest.Value;
