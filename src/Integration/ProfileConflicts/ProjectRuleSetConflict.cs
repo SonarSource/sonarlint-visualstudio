@@ -15,7 +15,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     /// <seealso cref="IRuleSetInspector"/>
     public class ProjectRuleSetConflict
     {
-        public ProjectRuleSetConflict(RuleConflictInfo conflict, RuleSetAggregate aggregate)
+        public ProjectRuleSetConflict(RuleConflictInfo conflict, RuleSetInformation aggregate)
         {
             if (conflict == null)
             {
@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             this.RuleSetInfo = aggregate;
         }
 
-        public RuleSetAggregate RuleSetInfo { get; }
+        public RuleSetInformation RuleSetInfo { get; }
 
         public RuleConflictInfo Conflict { get; }
     }

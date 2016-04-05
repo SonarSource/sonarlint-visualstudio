@@ -123,7 +123,7 @@
     <Compile Include="ProfileConflicts\IConflictsManager.cs" />
     <Compile Include="ProfileConflicts\IRuleSetConflictsController.cs" />
     <Compile Include="ProfileConflicts\ProjectRuleSetConflict.cs" />
-    <Compile Include="ProfileConflicts\RuleSetAggregate.cs" />
+    <Compile Include="ProfileConflicts\RuleSetInformation.cs" />
     <Compile Include="LocalServices\RuleSetSerializer.cs" />
     <Compile Include="Binding\SolutionBindingOperation.cs" />
     <Compile Include="Binding\NuGetHelper.cs" />

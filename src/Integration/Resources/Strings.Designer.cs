@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing rules (or set to None): .
+        ///   Looks up a localized string similar to Missing rules (or Action set to None): .
         /// </summary>
         public static string ConflictDetailMissingRules {
             get {
@@ -497,9 +497,9 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Different CodeAnalysisRuleSetDirectories value &apos;{0}&apos; for RuleSet &apos;{1}&apos;. Using value &apos;{2}&apos;..
         /// </summary>
-        public static string InconsistedRuleSetDirectoriesWarning {
+        public static string InconsistentRuleSetDirectoriesWarning {
             get {
-                return ResourceManager.GetString("InconsistedRuleSetDirectoriesWarning", resourceCulture);
+                return ResourceManager.GetString("InconsistentRuleSetDirectoriesWarning", resourceCulture);
             }
         }
         
@@ -675,7 +675,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The applied ruleset is weakening the SonarQube quality profile in one or more projects. See output window (General) for more details. You can also [fix]() that automatically..
+        ///   Looks up a localized string similar to The applied ruleset is weakening the SonarQube quality profile in one or more projects. See output window (General) for more details. [Click here]() to fix automatically..
         /// </summary>
         public static string RuleSetConflictsDetected {
             get {

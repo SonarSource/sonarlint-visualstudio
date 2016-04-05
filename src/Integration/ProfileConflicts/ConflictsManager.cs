@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             // in other cases assuming that the rule set are indeed on disk is not possible, and in fact resyncing 
             // would be required when we have missing rulesets, otherwise finding conflicts will not be possible.
 
-            RuleSetAggregate[] aggregatedRuleSets = GetAggregatedSolutionRuleSets();
+            RuleSetInformation[] aggregatedRuleSets = GetAggregatedSolutionRuleSets();
 
             if (aggregatedRuleSets.Length > 0)
             {
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             return new ProjectRuleSetConflict[0];
         }
 
-        private IReadOnlyList<ProjectRuleSetConflict> FindConflicts(RuleSetAggregate[] aggregatedRuleSet)
+        private IReadOnlyList<ProjectRuleSetConflict> FindConflicts(RuleSetInformation[] aggregatedRuleSet)
         {
             List<ProjectRuleSetConflict> conflicts = new List<ProjectRuleSetConflict>();
 
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             inspector.AssertLocalServiceIsNotNull();
 
             // At the moment single threaded, if needed this could be done in parallel
-            foreach (RuleSetAggregate aggregate in aggregatedRuleSet)
+            foreach (RuleSetInformation aggregate in aggregatedRuleSet)
             {
                 try
                 {
@@ -86,76 +86,71 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             return conflicts;
         }
 
-        private RuleSetAggregate[] GetAggregatedSolutionRuleSets()
+        private RuleSetInformation[] GetAggregatedSolutionRuleSets()
         {
             var solutionBinding = this.serviceProvider.GetService<ISolutionBinding>();
             solutionBinding.AssertLocalServiceIsNotNull();
 
             BoundSonarQubeProject bindingInfo = solutionBinding.ReadSolutionBinding();
-            if (bindingInfo != null)
+            if (bindingInfo == null)
             {
-                var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
-                projectSystem.AssertLocalServiceIsNotNull();
-
-                var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-                ruleSetInfoProvider.AssertLocalServiceIsNotNull();
-
-                var fileSystem = this.serviceProvider.GetService<IFileSystem>();
-                fileSystem.AssertLocalServiceIsNotNull();
-
-                var projectRuleSetAggregation = new Dictionary<string, RuleSetAggregate>(StringComparer.OrdinalIgnoreCase);
-
-                foreach (Project project in projectSystem.GetSolutionManagedProjects())
-                {
-                    string suffix = SolutionBindingOperation.GetProjectRuleSetSuffix(ProjectBindingOperation.GetProjectGroup(project));
-                    string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(bindingInfo.ProjectKey, suffix);
-
-                    if (!fileSystem.FileExist(baselineRuleSet))
-                    {
-                        this.WriteWarning(Strings.ExpectedRuleSetNotFound, baselineRuleSet, project.FullName);
-                        continue;
-                    }
-
-                    foreach (RuleSetDeclaration declaration in ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project))
-                    {
-                        string projectRuleSet = CalculateProjectRuleSetFullPath(fileSystem, project, declaration);
-
-                        if (string.IsNullOrWhiteSpace(projectRuleSet))
-                        {
-                            // Use the original property value to attempt to load the rule set with the directories information, during FindConflicts
-                            projectRuleSet = declaration.RuleSetPath;
-
-                            // We do want to continue and add this rule set rather than skip over it since it maybe the case that
-                            // the user moved it to some other location which is relative to the rule set directories property
-                            // and we will be able to find it during rule set conflicts analysis.
-                        }
-
-                        RuleSetAggregate aggregate;
-                        if (projectRuleSetAggregation.TryGetValue(projectRuleSet, out aggregate))
-                        {
-                            aggregate.ActivationContexts.Add(declaration.ActivationContext);
-
-                            if (!aggregate.RuleSetDirectories.SequenceEqual(declaration.RuleSetDirectories))
-                            {
-                                this.WriteWarning(Strings.InconsistedRuleSetDirectoriesWarning,
-                                    CombineDirectories(declaration.RuleSetDirectories),
-                                    projectRuleSet,
-                                    CombineDirectories(aggregate.RuleSetDirectories));
-                            }
-                        }
-                        else
-                        {
-                            aggregate = new RuleSetAggregate(declaration.RuleSetProjectFullName, baselineRuleSet, projectRuleSet, declaration.RuleSetDirectories);
-                            aggregate.ActivationContexts.Add(declaration.ActivationContext);
-                            projectRuleSetAggregation[projectRuleSet] = aggregate;
-                        }
-                    }
-                }
-
-                return projectRuleSetAggregation.Values.ToArray();
+                return new RuleSetInformation[0];
             }
 
-            return new RuleSetAggregate[0];
+            var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
+
+            var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
+            ruleSetInfoProvider.AssertLocalServiceIsNotNull();
+
+            var fileSystem = this.serviceProvider.GetService<IFileSystem>();
+            fileSystem.AssertLocalServiceIsNotNull();
+
+            var projectRuleSetAggregation = new Dictionary<string, RuleSetInformation>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (Project project in projectSystem.GetSolutionProjects())
+            {
+                string suffix = SolutionBindingOperation.GetProjectRuleSetSuffix(ProjectBindingOperation.GetProjectGroup(project));
+                string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(bindingInfo.ProjectKey, suffix);
+
+                if (!fileSystem.FileExist(baselineRuleSet))
+                {
+                    this.WriteWarning(Strings.ExpectedRuleSetNotFound, baselineRuleSet, project.FullName);
+                    continue;
+                }
+
+                foreach (RuleSetDeclaration declaration in ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project))
+                {
+                    string projectRuleSet = CalculateProjectRuleSetFullPath(fileSystem, project, declaration);
+
+                    this.AddOrUpdateAggregatedRuleSetInformation(projectRuleSetAggregation, baselineRuleSet, declaration, projectRuleSet);
+                }
+            }
+
+            return projectRuleSetAggregation.Values.ToArray();
+        }
+
+        private void AddOrUpdateAggregatedRuleSetInformation(Dictionary<string, RuleSetInformation> projectRuleSetAggregation, string baselineRuleSet, RuleSetDeclaration declaration, string projectRuleSet)
+        {
+            RuleSetInformation aggregate;
+            if (projectRuleSetAggregation.TryGetValue(projectRuleSet, out aggregate))
+            {
+                aggregate.ConfigurationContexts.Add(declaration.ConfigurationContext);
+
+                if (!aggregate.RuleSetDirectories.SequenceEqual(declaration.RuleSetDirectories))
+                {
+                    this.WriteWarning(Strings.InconsistentRuleSetDirectoriesWarning,
+                        CombineDirectories(declaration.RuleSetDirectories),
+                        projectRuleSet,
+                        CombineDirectories(aggregate.RuleSetDirectories));
+                }
+            }
+            else
+            {
+                aggregate = new RuleSetInformation(declaration.RuleSetProjectFullName, baselineRuleSet, projectRuleSet, declaration.RuleSetDirectories);
+                aggregate.ConfigurationContexts.Add(declaration.ConfigurationContext);
+                projectRuleSetAggregation[projectRuleSet] = aggregate;
+            }
         }
 
         private void WriteWarning(string format, params object[] args)
@@ -173,7 +168,19 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             // Note at this stage we don't care about rule set directories, since we expect that 
             // in worst case to get an exception from the rule inspector when it will try to load the rule set
 
-            return options.FirstOrDefault(fileSystem.FileExist);
+            string projectRuleSet = options.FirstOrDefault(fileSystem.FileExist);
+
+            if (string.IsNullOrWhiteSpace(projectRuleSet))
+            {
+                // Use the original property value to attempt to load the rule set with the directories information, during FindConflicts
+                projectRuleSet = declaration.RuleSetPath;
+
+                // We do want to continue and add this rule set rather than skip over it since it maybe the case that
+                // the user moved it to some other location which is relative to the rule set directories property
+                // and we will be able to find it during rule set conflicts analysis.
+            }
+
+            return projectRuleSet;
         }
 
         internal /*for testing purposes*/ static string CombineDirectories(IEnumerable<string> directories)

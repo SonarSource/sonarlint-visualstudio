@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 this.WriteConflictsSummaryToOutputWindow(conflicts);
 
-                // Let the user know that he has conflicts
+                // Let the user know that they have conflicts
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationWarning(
                     Strings.RuleSetConflictsDetected, 
                     NotificationIds.RuleSetConflictsId, 
@@ -94,8 +94,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                 IRuleSetSerializer ruleSetSerializer = this.host.GetService<IRuleSetSerializer>();
                 ruleSetSerializer.AssertLocalServiceIsNotNull();
 
-                var fixedConflictsMap = new Dictionary<RuleSetAggregate, FixedRuleSetInfo>();
-                foreach (RuleSetAggregate ruleSetInfo in conflicts.Select(c => c.RuleSetInfo))
+                var fixedConflictsMap = new Dictionary<RuleSetInformation, FixedRuleSetInfo>();
+                foreach (RuleSetInformation ruleSetInfo in conflicts.Select(c => c.RuleSetInfo))
                 {
                     FixedRuleSetInfo fixInfo = inspector.FixConflictingRules(ruleSetInfo.BaselineFilePath, ruleSetInfo.RuleSetFilePath, ruleSetInfo.RuleSetDirectories);
                     Debug.Assert(fixInfo != null);
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         {
             output.AppendFormat(Strings.ConflictsSummaryHeader,
                             conflictInfo.RuleSetInfo.RuleSetProjectFullName,
-                            CreateCommaSeparatedString(conflictInfo.RuleSetInfo.ActivationContexts));
+                            CreateCommaSeparatedString(conflictInfo.RuleSetInfo.ConfigurationContexts));
             output.AppendLine();
 
             if (conflictInfo.Conflict.MissingRules.Any())
@@ -166,16 +166,16 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             }
         }
 
-        private void WriteFixSummaryToOutputWindow(Dictionary<RuleSetAggregate, FixedRuleSetInfo> fixMap)
+        private void WriteFixSummaryToOutputWindow(Dictionary<RuleSetInformation, FixedRuleSetInfo> fixMap)
         {
             StringBuilder builder = new StringBuilder();
             builder.AppendLine();
             foreach (var keyValue in fixMap)
             {
-                RuleSetAggregate ruleSetInfo = keyValue.Key;
+                RuleSetInformation ruleSetInfo = keyValue.Key;
                 FixedRuleSetInfo fixInfo = keyValue.Value;
 
-                builder.AppendFormat(Strings.ConflictFixHeader, ruleSetInfo.RuleSetProjectFullName, CreateCommaSeparatedString(ruleSetInfo.ActivationContexts));
+                builder.AppendFormat(Strings.ConflictFixHeader, ruleSetInfo.RuleSetProjectFullName, CreateCommaSeparatedString(ruleSetInfo.ConfigurationContexts));
                 builder.AppendLine();
                 WriteSummaryInformation(fixInfo, builder);
             }

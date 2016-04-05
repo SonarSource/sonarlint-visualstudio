@@ -191,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.Inconclusive("Test setup error, expected to have configuration as parent");
             }
 
-            Assert.AreEqual(configuration.ConfigurationName, info.ActivationContext);
+            Assert.AreEqual(configuration.ConfigurationName, info.ConfigurationContext);
 
             Property ruleSetDirectory = configuration.Properties.OfType<Property>().SingleOrDefault(p => p.Name == Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
             string ruleSetDirectoryValue = ruleSetDirectory?.Value as string;

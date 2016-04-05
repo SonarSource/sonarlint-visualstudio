@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.RuleSetProjectFullName = project.FullName;
             this.DeclaringProperty = ruleSetProperty;
-            this.ActivationContext = activationContext;
+            this.ConfigurationContext = activationContext;
             this.RuleSetPath = ruleSetPath;
             this.RuleSetDirectories = ruleSetDirectories.ToList(); // avoid aliasing bugs
         }
@@ -59,6 +59,6 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// In which context the ruleset is active i.e. the configuration name
         /// </summary>
-        public string ActivationContext { get; }
+        public string ConfigurationContext { get; }
     }
 }

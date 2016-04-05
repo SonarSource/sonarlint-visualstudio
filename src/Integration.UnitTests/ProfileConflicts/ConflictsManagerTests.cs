@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetSingleValidRuleSetDeclarationPerProject();
 
             bool findConflictsWasCalled = false;
-            this.ConigureInspectorWithConflicts(knownDeclarations, () =>
+            this.ConfigureInspectorWithConflicts(knownDeclarations, () =>
             {
                 findConflictsWasCalled = true;
                 return new RuleConflictInfo();
@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidSolutionRuleSetPerProjectKind();
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetSingleValidRuleSetDeclarationPerProject();
             int findConflictCalls = 0;
-            this.ConigureInspectorWithConflicts(knownDeclarations, () =>
+            this.ConfigureInspectorWithConflicts(knownDeclarations, () =>
             {
                 findConflictCalls++;
                 throw new Exception($"Hello world{findConflictCalls} ");
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidSolutionRuleSetPerProjectKind();
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetSingleValidRuleSetDeclarationPerProject();
             int findConflictCalls = 0;
-            this.ConigureInspectorWithConflicts(knownDeclarations, () =>
+            this.ConfigureInspectorWithConflicts(knownDeclarations, () =>
             {
                 findConflictCalls++;
                 return CreateConflictsBasedOnNumberOfCalls(findConflictCalls);
@@ -211,7 +211,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 useUniqueProjectRuleSets: true, 
                 configurationNames: new[] { "Debug", "Release" });
 
-            this.ConigureInspectorWithConflicts(knownDeclarations, () =>
+            this.ConfigureInspectorWithConflicts(knownDeclarations, () =>
             {
                 RuleSet temp = TestRuleSetHelper.CreateTestRuleSet(1);
                 return new RuleConflictInfo(temp.Rules); // Missing rules
@@ -234,7 +234,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
               useUniqueProjectRuleSets: false,
               configurationNames: new[] { "Debug", "Release" });
 
-            this.ConigureInspectorWithConflicts(knownDeclarations, () =>
+            this.ConfigureInspectorWithConflicts(knownDeclarations, () =>
             {
                 RuleSet temp = TestRuleSetHelper.CreateTestRuleSet(1);
                 return new RuleConflictInfo(temp.Rules); // Missing rules
@@ -261,13 +261,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 projects.Add(project);
             }
 
-            this.projectHelper.ManagedProjects = projects;
+            this.projectHelper.Projects = projects;
         }
 
         private void SetValidSolutionRuleSetPerProjectKind()
         {
             ISolutionRuleSetsInformationProvider rsInfoProvider = this.ruleSetInfoProvider;
-            foreach(var project in this.projectHelper.ManagedProjects)
+            foreach(var project in this.projectHelper.Projects)
             {
                 string suffix = SolutionBindingOperation.GetProjectRuleSetSuffix(ProjectBindingOperation.GetProjectGroup(project));
                 string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(this.solutionBinding.CurrentBinding.ProjectKey, suffix);
@@ -279,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             List<RuleSetDeclaration> declarations = new List<RuleSetDeclaration>();
 
-            foreach (ProjectMock project in this.projectHelper.ManagedProjects.OfType< ProjectMock>())
+            foreach (ProjectMock project in this.projectHelper.Projects.OfType<ProjectMock>())
             {
                 var configuration = new ConfigurationMock(configurationName);
                 project.ConfigurationManager.Configurations.Add(configuration);
@@ -321,11 +321,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return declarations;
         }
 
-        private void ConigureInspectorWithConflicts(IEnumerable<RuleSetDeclaration> knownDeclarations, Func<RuleConflictInfo> conflictFactory)
+        private void ConfigureInspectorWithConflicts(IEnumerable<RuleSetDeclaration> knownDeclarations, Func<RuleConflictInfo> conflictFactory)
         {
             this.inspector.FindConflictingRulesAction = (baseline, ruleset, directories) =>
             {
                 Assert.IsNotNull(baseline);
+                Assert.IsNotNull(ruleset);
                 this.fileSystem.AssertFileExists(baseline);
 
                 Assert.IsTrue(knownDeclarations.Any(dec =>

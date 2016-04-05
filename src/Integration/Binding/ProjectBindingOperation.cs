@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                
                 if (!useSameTargetName && !ShouldIgnoreConfigureRuleSetValue(currentRuleSetValue))
                 {
-                    targetRuleSetName = string.Join(".", targetRuleSetName, singleRuleSetInfo.ActivationContext);
+                    targetRuleSetName = string.Join(".", targetRuleSetName, singleRuleSetInfo.ConfigurationContext);
                 }
 
                 this.propertyInformationMap[singleRuleSetInfo.DeclaringProperty] = new PropertyInformation(targetRuleSetName, currentRuleSetValue);

@@ -35,11 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindow = new ConfigurableVsGeneralOutputWindowPane();
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindow);
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-        }
 
-        [TestCleanup]
-        public void TestCleanup()
-        {
             this.ruleSetInspector = null;
             this.sccFS = null;
             this.rsSerializer = null;
@@ -155,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = new RuleSetConflictsController(this.host);
-            this.ConfigureServiceProviderForFixConfclitsCommandExecution();
+            this.ConfigureServiceProviderForFixConflictsCommandExecution();
             this.host.VisualStateManager.IsBusy = false;
             this.host.VisualStateManager.SetBoundProject(new Integration.Service.ProjectInformation());
             var section = ConfigurableSectionController.CreateDefault();
@@ -192,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         #region Helpers
-        private void ConfigureServiceProviderForFixConfclitsCommandExecution()
+        private void ConfigureServiceProviderForFixConflictsCommandExecution()
         {
             this.ruleSetInspector = new ConfigurableRuleSetInspector();
             this.serviceProvider.RegisterService(typeof(IRuleSetInspector), this.ruleSetInspector);
@@ -206,6 +202,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class RuleSetInspectorTestDataProvider
         {
+            #region Called by product
             public RuleConflictInfo FindConflictingRulesAction(string baseline, string project, string[] directories)
             {
                 VerifyInputForDefaultConflictInstance(baseline, project, directories);
@@ -219,6 +216,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 return this.FixConflictsResult;
             }
+            #endregion
+
+            #region Helpers
 
             public RuleConflictInfo FindConflictsResult
             {
@@ -239,6 +239,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.AreEqual(expectedConflict.RuleSetInfo.RuleSetFilePath, project, "project argument is not as expected");
                 CollectionAssert.AreEqual(expectedConflict.RuleSetInfo.RuleSetDirectories, directories, "directories argument is not as expected");
             }
+            #endregion
         }
         #endregion
     }

@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var conflict = new ProjectRuleSetConflict(
                     new RuleConflictInfo(ruleSet.Rules, new Dictionary<RuleReference, RuleAction>()),
-                    new RuleSetAggregate(projectFilePath, baselineRuleSet, projectRuleSet, null));
+                    new RuleSetInformation(projectFilePath, baselineRuleSet, projectRuleSet, null));
 
             return conflict;
 
