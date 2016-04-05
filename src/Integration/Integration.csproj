@@ -162,6 +162,8 @@
     <Compile Include="Service\RoslynExporter\NuGetPackageInfo.cs" />
     <Compile Include="Service\RoslynExporter\RoslynExportProfile.cs" />
     <Compile Include="Service\VersionHelper.cs" />
+    <Compile Include="SonarAnalyzer\ActiveSolutionBoundTracker.cs" />
+    <Compile Include="SonarAnalyzer\IActiveSolutionBoundTracker.cs" />
     <Compile Include="State\IStateManager.cs" />
     <Compile Include="State\StateManager.cs" />
     <Compile Include="LocalServices\SourceControlledFileSystem.cs" />

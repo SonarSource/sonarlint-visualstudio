@@ -116,6 +116,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Framework\ConfigurableActiveSolutionBoundTracker.cs" />
     <Compile Include="Framework\ConfigurableBindingOperation.cs" />
     <Compile Include="Framework\ConfigurableConflictsManager.cs" />
     <Compile Include="Framework\ConfigurableFileSystem.cs" />

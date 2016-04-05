@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private BoundSolutionAnalyzer usageAnalyzer;
         private PackageCommandManager commandManager;
-        private SonarAnalyzerCollisionManager sonarAnalyzerCollisionManager;
+        private SonarAnalyzerDeactivationManager sonarAnalyzerDeactivationManager;
 
         protected override void Initialize()
         {
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
             this.commandManager = new PackageCommandManager(serviceProvider);
-            this.sonarAnalyzerCollisionManager = new SonarAnalyzerCollisionManager(serviceProvider);
+            this.sonarAnalyzerDeactivationManager = new SonarAnalyzerDeactivationManager(serviceProvider);
 
             this.commandManager.Initialize();
         }
@@ -51,6 +51,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 this.usageAnalyzer?.Dispose();
                 this.usageAnalyzer = null;
+
+                this.sonarAnalyzerDeactivationManager?.Dispose();
+                this.sonarAnalyzerDeactivationManager = null;
             }
         }
     }
