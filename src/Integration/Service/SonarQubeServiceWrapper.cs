@@ -37,6 +37,8 @@ namespace SonarLint.VisualStudio.Integration.Service
         public const string QualityProfileExportAPI   = "/profiles/export";                    // Since ???; internal
         public const string PropertiesAPI             = "/api/properties/";                    // Since 2.6
 
+        public const string ProjectDashboardRelativeUrl = "/dashboard/index/{0}";
+
         public const string RoslynExporter = "roslyn-cs";
 
         public const string CSharpLanguage = "cs";
@@ -143,6 +145,21 @@ namespace SonarLint.VisualStudio.Integration.Service
                 client => DownloadPluginInformation(client, token));
 
             return plugins;
+        }
+
+        public Uri CreateProjectDashboardUrl(ConnectionInformation connectionInformation, ProjectInformation project)
+        {
+            if (connectionInformation == null)
+            {
+                throw new ArgumentNullException(nameof(connectionInformation));
+            }
+
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
+            return new Uri(connectionInformation.ServerUri, string.Format(ProjectDashboardRelativeUrl, project.Key));
         }
 
         #endregion

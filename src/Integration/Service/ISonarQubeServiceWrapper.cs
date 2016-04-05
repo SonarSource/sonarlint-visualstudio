@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarLint.VisualStudio.Integration.Service.DataModel;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -55,5 +56,12 @@ namespace SonarLint.VisualStudio.Integration.Service
         /// <param name="connectionInformation">Required connecting information</param>
         /// <returns>All server plugins, or null on connection failure</returns>
         IEnumerable<ServerPlugin> GetPlugins(ConnectionInformation connectionInformation, CancellationToken token);
+
+        /// <summary>
+        /// Generate a <see cref="Uri"/> to the dashboard for the given project on the provided <paramref name="connectionInformation"/>.
+        /// </summary>
+        /// <param name="connectionInformation">Server connection</param>
+        /// <param name="project">Project to generate the <see cref="Uri"/> for</param>
+        Uri CreateProjectDashboardUrl(ConnectionInformation connectionInformation, ProjectInformation project);
     }
 }

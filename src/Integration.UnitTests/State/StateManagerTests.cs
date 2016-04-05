@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             section.ViewModel.State = testSubject.ManagedState;
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
             var connection2 = new ConnectionInformation(new Uri("http://127.0.0.2"));
-            var projects = new ProjectInformation[] { new ProjectInformation(), new ProjectInformation() };
+            var projects = new[] { new ProjectInformation(), new ProjectInformation() };
             host.SetActiveSection(section);
             ServerViewModel serverVM;
 
@@ -317,14 +317,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
         private static void VerifySectionCommands(ISectionController section, ServerViewModel serverVM)
         {
-            AssertExpectedNumberOfCommands(serverVM.Commands, 3);
-            VerifyServerViewModelCommand(serverVM, section.DisconnectCommand, hasIcon: true);
-            VerifyServerViewModelCommand(serverVM, section.RefreshCommand, hasIcon: true);
-            VerifyServerViewModelCommand(serverVM, section.ToggleShowAllProjectsCommand, hasIcon: false);
+            AssertExpectedNumberOfCommands(serverVM.Commands, 4);
+            VerifyServerViewModelCommand(serverVM, section.DisconnectCommand, fixedContext: serverVM, hasIcon: true);
+            VerifyServerViewModelCommand(serverVM, section.RefreshCommand, fixedContext: serverVM, hasIcon: true);
+            VerifyServerViewModelCommand(serverVM, section.BrowseToUrlCommand, fixedContext: serverVM.ConnectionInformation.ServerUri, hasIcon: true);
+            VerifyServerViewModelCommand(serverVM, section.ToggleShowAllProjectsCommand, fixedContext: serverVM, hasIcon: false);
 
             foreach (ProjectViewModel project in serverVM.Projects)
             {
-                VerifyServerViewModelCommand(project, section.BindCommand);
+                AssertExpectedNumberOfCommands(project.Commands, 2);
+                VerifyProjectViewModelCommand(project, section.BindCommand, fixedContext: project, hasIcon: true);
+                VerifyProjectViewModelCommand(project, section.BrowseToProjectDashboardCommand, fixedContext: project, hasIcon: true);
             }
         }
 
@@ -334,11 +337,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             Assert.AreEqual(0, serverVM.Projects.Sum(p => p.Commands.Count), "Not expecting any project commands");
         }
 
-        private static void VerifyServerViewModelCommand(ServerViewModel serverVM, ICommand internalCommand, bool hasIcon)
+        private static void VerifyServerViewModelCommand(ServerViewModel serverVM, ICommand internalCommand, object fixedContext, bool hasIcon)
         {
             ContextualCommandViewModel commandVM = AssertCommandExists(serverVM.Commands, internalCommand);
             Assert.IsNotNull(commandVM.DisplayText, "DisplayText expected");
-            Assert.AreEqual(serverVM, commandVM.InternalFixedContext, "The fixed context is incorrect");
+            Assert.AreEqual(fixedContext, commandVM.InternalFixedContext, "The fixed context is incorrect");
             if (hasIcon)
             {
                 Assert.IsNotNull(commandVM.Icon, "Icon expected");
@@ -350,16 +353,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             }
         }
 
-        private static void VerifyServerViewModelCommand(ProjectViewModel projectVM, ICommand internalCommand)
+        private static void VerifyProjectViewModelCommand(ProjectViewModel projectVM, ICommand internalCommand, object fixedContext, bool hasIcon)
         {
-            AssertExpectedNumberOfCommands(projectVM.Commands, 1);
-            ContextualCommandViewModel bindCommand = projectVM.Commands.Single();
-            Assert.AreEqual(projectVM, bindCommand.InternalFixedContext, "BindCommand fixed context is incorrect");
-            Assert.IsNotNull(bindCommand.DisplayText, "BindCommand DisplayText expected");
-            Assert.IsNotNull(bindCommand.Icon, "Icon expected");
-            Assert.IsNotNull(bindCommand.Icon.Moniker, "Icon moniker expected");
-            Assert.IsNotNull(bindCommand.Command, "Unexpected command");
-            Assert.AreEqual(internalCommand, bindCommand.InternalRealCommand, "Unexpected command");
+            ContextualCommandViewModel commandVM = AssertCommandExists(projectVM.Commands, internalCommand);
+            Assert.IsNotNull(commandVM.DisplayText, "DisplayText expected");
+            Assert.AreEqual(fixedContext, commandVM.InternalFixedContext, "The fixed context is incorrect");
+            Assert.AreEqual(internalCommand, commandVM.InternalRealCommand, "Unexpected command");
+            if (hasIcon)
+            {
+                Assert.IsNotNull(commandVM.Icon, "Icon expected");
+                Assert.IsNotNull(commandVM.Icon.Moniker, "Icon moniker expected");
+            }
+            else
+            {
+                Assert.IsNull(commandVM.Icon, "Icon not expected");
+            }
         }
 
         private static ContextualCommandViewModel AssertCommandExists(ContextualCommandsCollection commands, ICommand realCommand)

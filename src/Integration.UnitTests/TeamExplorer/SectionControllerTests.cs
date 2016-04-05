@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsNotNull(testSubject.ConnectCommand, "ConnectCommand is not initialized");
             Assert.IsNotNull(testSubject.BindCommand, "BindCommand is not initialized");
             Assert.IsNotNull(testSubject.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
+            Assert.IsNotNull(testSubject.BrowseToProjectDashboardCommand, "BrowseToProjectDashboardCommand is not initialized");
             Assert.IsNotNull(testSubject.DisconnectCommand, "DisconnectCommand is not initialized");
             Assert.IsNotNull(testSubject.RefreshCommand, "RefreshCommand is not initialized");
             Assert.IsNotNull(testSubject.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not initialized");
@@ -91,10 +92,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Verify
             Assert.IsNull(testSubject.ConnectCommand, "ConnectCommand is not cleared");
             Assert.IsNull(testSubject.RefreshCommand, "RefreshCommand is not cleared");
-            Assert.IsNull(testSubject.DisconnectCommand, "DisconnectCommand is not ;");
+            Assert.IsNull(testSubject.DisconnectCommand, "DisconnectCommand is not cleared");
             Assert.IsNull(testSubject.BindCommand, "BindCommand is not ;");
-            Assert.IsNull(testSubject.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not ;");
-            Assert.IsNull(testSubject.BrowseToUrlCommand, "BrowseToUrlCommand is not ;");
+            Assert.IsNull(testSubject.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not cleared");
+            Assert.IsNull(testSubject.BrowseToUrlCommand, "BrowseToUrlCommand is not cleared");
+            Assert.IsNull(testSubject.BrowseToProjectDashboardCommand, "BrowseToProjectDashboardCommand is not cleared");
+
         }
 
         [TestMethod]
@@ -256,6 +259,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.BrowseToUrlCommand.Execute(goodUrl);
             webBrowser.AssertNavigateToCalls(1);
             webBrowser.AssertRequestToNavigateTo(goodUrl);
+        }
+
+        [TestMethod]
+        public void SectionController_BrowseToProjectDashboardCommand()
+        {
+            // Setup
+            var webBrowser = new ConfigurableWebBrowser();
+            var testSubject = this.CreateTestSubject(webBrowser);
+            var serverUrl = new Uri("http://my-sonar-server:5555");
+            var connectionInfo = new ConnectionInformation(serverUrl);
+            var projectInfo = new ProjectInformation { Key = "p1" };
+
+            Uri expectedUrl = new Uri(serverUrl, string.Format(SonarQubeServiceWrapper.ProjectDashboardRelativeUrl, projectInfo.Key));
+            this.sonarQubeService.RegisterProjectDashboardUrl(connectionInfo, projectInfo, expectedUrl);
+
+            // Case 1: Null parameter
+            // Act + Verify CanExecute
+            Assert.IsFalse(testSubject.BrowseToProjectDashboardCommand.CanExecute(null));
+
+            // Case 2: Project VM
+            var serverViewModel = new ServerViewModel(connectionInfo);
+            var projectViewModel = new ProjectViewModel(serverViewModel, projectInfo);
+
+            // Act + Verify CanExecute
+            Assert.IsTrue(testSubject.BrowseToProjectDashboardCommand.CanExecute(projectViewModel));
+
+            // Act + Verify Execute
+            testSubject.BrowseToProjectDashboardCommand.Execute(projectViewModel);
+            webBrowser.AssertNavigateToCalls(1);
+            webBrowser.AssertRequestToNavigateTo(expectedUrl.ToString());
         }
 
         #endregion

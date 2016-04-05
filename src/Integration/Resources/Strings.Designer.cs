@@ -124,6 +124,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Browser the server in your web browser..
+        /// </summary>
+        public static string BrowserServerMenuItemTooltip {
+            get {
+                return ResourceManager.GetString("BrowserServerMenuItemTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Browse.
+        /// </summary>
+        public static string BrowseServerMenuItemDisplayText {
+            get {
+                return ResourceManager.GetString("BrowseServerMenuItemDisplayText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ca_ncel.
         /// </summary>
         public static string CancelButtonText {
@@ -477,7 +495,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hide unbound projects.
+        ///   Looks up a localized string similar to Hide Unbound Projects.
         /// </summary>
         public static string HideUnboundProjectsCommandText {
             get {
@@ -748,7 +766,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show all projects.
+        ///   Looks up a localized string similar to Show All Projects.
         /// </summary>
         public static string ShowAllProjectsCommandText {
             get {
@@ -924,6 +942,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string VBNetLanguageName {
             get {
                 return ResourceManager.GetString("VBNetLanguageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View in SonarQube.
+        /// </summary>
+        public static string ViewInSonarQubeMenuItemDisplayText {
+            get {
+                return ResourceManager.GetString("ViewInSonarQubeMenuItemDisplayText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open the dashboard for this project in SonarQube using your web browser..
+        /// </summary>
+        public static string ViewInSonarQubeMenuItemTooltip {
+            get {
+                return ResourceManager.GetString("ViewInSonarQubeMenuItemTooltip", resourceCulture);
             }
         }
         

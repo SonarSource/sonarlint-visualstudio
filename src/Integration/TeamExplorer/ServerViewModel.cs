@@ -61,6 +61,11 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #region Properties
 
+        public ConnectionInformation ConnectionInformation
+        {
+            get { return this.connectionInformation; }
+        }
+
         public bool ShowAllProjects
         {
             get { return this.showAllProjects; }

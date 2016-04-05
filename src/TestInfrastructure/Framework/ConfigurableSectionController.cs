@@ -68,6 +68,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
+
+        public ICommand BrowseToUrlCommand
+        {
+            get;
+            set;
+        }
+
+        public ICommand BrowseToProjectDashboardCommand
+        {
+            get;
+            set;
+        }
         #endregion
 
         public static ConfigurableSectionController CreateDefault()
@@ -81,6 +93,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             section.ConnectCommand = new RelayCommand(() => { });
             section.DisconnectCommand = new RelayCommand(() => { });
             section.RefreshCommand = new RelayCommand(() => { });
+            section.BrowseToUrlCommand = new RelayCommand(() => { });
+            section.BrowseToProjectDashboardCommand = new RelayCommand(() => { });
             section.ToggleShowAllProjectsCommand = new RelayCommand(() => { });
             return section;
         }

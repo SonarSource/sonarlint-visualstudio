@@ -296,7 +296,7 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <comment>Button text for syncing an already bound SonarQube project to a VS solution</comment>
   </data>
   <data name="ShowAllProjectsCommandText" xml:space="preserve">
-    <value>Show all projects</value>
+    <value>Show All Projects</value>
     <comment>Server context menu command display text to show all projects (inc. unbound projects)</comment>
   </data>
   <data name="ToggleShowAllProjectsCommandTooltip" xml:space="preserve">
@@ -344,7 +344,7 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <comment>The place holder value in ConnectingToSonarQubePrefixMessageFormat</comment>
   </data>
   <data name="HideUnboundProjectsCommandText" xml:space="preserve">
-    <value>Hide unbound projects</value>
+    <value>Hide Unbound Projects</value>
     <comment>Server context menu command display text to show all projects (inc. unbound projects)</comment>
   </data>
   <data name="DownloadingQualityProfileProgressMessage" xml:space="preserve">
@@ -526,5 +526,21 @@ This is the general format to use when writing errors to output window or when t
     <value>Conflicting rules were removed from '{0}':</value>
     <comment>{0} - file path
 </comment>
+  </data>
+  <data name="ViewInSonarQubeMenuItemDisplayText" xml:space="preserve">
+    <value>View in SonarQube</value>
+    <comment>Menu item display text for the contextual command to view the SonarQube dashboard for the current item in the user's browser.</comment>
+  </data>
+  <data name="ViewInSonarQubeMenuItemTooltip" xml:space="preserve">
+    <value>Open the dashboard for this project in SonarQube using your web browser.</value>
+    <comment>Tooltip text for view project in SonarQube context menu item</comment>
+  </data>
+  <data name="BrowserServerMenuItemTooltip" xml:space="preserve">
+    <value>Browser the server in your web browser.</value>
+    <comment>Tooltip text for browser server context menu item</comment>
+  </data>
+  <data name="BrowseServerMenuItemDisplayText" xml:space="preserve">
+    <value>Browse</value>
+    <comment>Context menu item text for opening the server in the users's browser</comment>
   </data>
 </root>

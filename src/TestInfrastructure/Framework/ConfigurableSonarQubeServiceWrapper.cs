@@ -19,6 +19,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConnectionInformation connection;
         private int connectRequestsCount;
         private int disconnectRequestsCount;
+        private readonly IDictionary<string, IDictionary<string, Uri>> projectDashboardUrls = new Dictionary<string, IDictionary<string, Uri>>();
 
         #region Testing helpers
         public bool AllowConnections { get; set; } = true;
@@ -87,6 +88,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ServerProperties.Clear();
         }
 
+
+        public void RegisterProjectDashboardUrl(ConnectionInformation connectionInfo, ProjectInformation projectInfo, Uri url)
+        {
+            var serverUrl = connectionInfo.ServerUri.ToString();
+            var projectKey = projectInfo.Key;
+            if (!this.projectDashboardUrls.ContainsKey(serverUrl))
+            {
+                this.projectDashboardUrls[serverUrl] = new Dictionary<string, Uri>();
+            }
+
+            this.projectDashboardUrls[serverUrl][projectKey] = url;
+        }
+
         #endregion
 
         #region ISonarQubeServiceWrapper
@@ -142,6 +156,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IEnumerable<ServerProperty> GetProperties(CancellationToken token)
         {
             return this.ServerProperties;
+        }
+
+        public Uri CreateProjectDashboardUrl(ConnectionInformation connectionInformation, ProjectInformation project)
+        {
+            Uri url;
+            IDictionary<string, Uri> projects;
+            if (this.projectDashboardUrls.TryGetValue(connectionInformation.ServerUri.ToString(), out projects) 
+                && projects.TryGetValue(project.Key, out url))
+            {
+                return url;
+            }
+            return null;
         }
 
         #endregion

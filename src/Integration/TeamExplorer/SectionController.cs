@@ -9,6 +9,7 @@ using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Progress;
+using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Collections.Generic;
@@ -181,6 +182,12 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
+        public ICommand BrowseToProjectDashboardCommand
+        {
+            get;
+            private set;
+        }
+
         public ICommand RefreshCommand
         {
             get;
@@ -223,7 +230,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.BindCommand = null;
 
             ISectionController section = (ISectionController)this;
-            if (section.ViewModel !=null)
+            if (section.ViewModel != null)
             {
                 section.ViewModel.ConnectCommand = null;
                 section.ViewModel.BindCommand = null;
@@ -237,6 +244,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.DisconnectCommand = new RelayCommand(this.Disconnect, this.CanDisconnect);
             this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
             this.BrowseToUrlCommand = new RelayCommand<string>(this.ExecBrowseToUrl, this.CanExecBrowseToUrl);
+            this.BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(this.ExecBrowseToProjectDashboard, this.CanExecBrowseToProjectDashboard);
         }
 
         private void CleanProvidedCommands()
@@ -244,6 +252,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.DisconnectCommand = null;
             this.ToggleShowAllProjectsCommand = null;
             this.BrowseToUrlCommand = null;
+            this.BrowseToProjectDashboardCommand = null;
         }
 
         private void SyncCommands()
@@ -291,6 +300,27 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             this.webBrowser.NavigateTo(url);
         }
+
+        private bool CanExecBrowseToProjectDashboard(ProjectViewModel project)
+        {
+            if (project != null)
+            {
+                var url = this.Host.SonarQubeService.CreateProjectDashboardUrl(project.Owner.ConnectionInformation, project.ProjectInformation);
+                return this.CanExecBrowseToUrl(url.ToString());
+            }
+
+            return false;
+        }
+
+        private void ExecBrowseToProjectDashboard(ProjectViewModel project)
+        {
+            Debug.Assert(this.CanExecBrowseToProjectDashboard(project), $"Shouldn't be able to execute {nameof(this.BrowseToProjectDashboardCommand)}");
+
+            var url = this.Host.SonarQubeService.CreateProjectDashboardUrl(project.Owner.ConnectionInformation, project.ProjectInformation);
+            this.ExecBrowseToUrl(url.ToString());
+        }
+
         #endregion
+
     }
 }

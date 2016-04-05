@@ -201,6 +201,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 return;
             }
 
+
             var refreshContextualCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection.RefreshCommand)
             {
                 DisplayText = Strings.RefreshCommandDisplayText,
@@ -213,6 +214,13 @@ namespace SonarLint.VisualStudio.Integration.State
                 DisplayText = Strings.DisconnectCommandDisplayText,
                 Tooltip = Strings.DisconnectCommandTooltip,
                 Icon = new IconViewModel(KnownMonikers.Disconnect)
+            };
+
+            var browseServerContextualCommand = new ContextualCommandViewModel(serverVM.Url.ToString(), this.Host.ActiveSection.BrowseToUrlCommand)
+            {
+                DisplayText = Strings.BrowseServerMenuItemDisplayText,
+                Tooltip = Strings.BrowserServerMenuItemTooltip,
+                Icon = new IconViewModel(KnownMonikers.OpenWebSite)
             };
 
             var toggleShowAllProjectsCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection.ToggleShowAllProjectsCommand)
@@ -228,6 +236,7 @@ namespace SonarLint.VisualStudio.Integration.State
 
             serverVM.Commands.Add(refreshContextualCommand);
             serverVM.Commands.Add(disconnectContextualCommand);
+            serverVM.Commands.Add(browseServerContextualCommand);
             serverVM.Commands.Add(toggleShowAllProjectsCommand);
         }
 
@@ -257,7 +266,15 @@ namespace SonarLint.VisualStudio.Integration.State
                     return new IconViewModel(ctx?.IsBound ?? false ? KnownMonikers.Sync : KnownMonikers.Link);
                 });
 
+                var openProjectDashboardCommand = new ContextualCommandViewModel(projectVM, this.Host.ActiveSection.BrowseToProjectDashboardCommand)
+                {
+                    DisplayText = Strings.ViewInSonarQubeMenuItemDisplayText,
+                    Tooltip = Strings.ViewInSonarQubeMenuItemTooltip,
+                    Icon = new IconViewModel(KnownMonikers.OpenWebSite)
+                };
+
                 projectVM.Commands.Add(bindContextCommand);
+                projectVM.Commands.Add(openProjectDashboardCommand);
             }
         }
         #endregion

@@ -464,6 +464,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
+        [TestMethod]
+        public void SonarQubeServiceWrapper_CreateProjectDashboardUrl()
+        {
+            // Setup
+            var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
+
+            var serverUrl = new Uri("http://my-sonar-server:5555");
+            var connectionInfo = new ConnectionInformation(serverUrl);
+            var projectInfo = new ProjectInformation { Key = "p1" };
+
+            Uri expectedUrl = new Uri("http://my-sonar-server:5555/dashboard/index/p1");
+
+            // Act
+            var actualUrl = testSubject.CreateProjectDashboardUrl(connectionInfo, projectInfo);
+
+            // Verify
+            Assert.AreEqual(expectedUrl, actualUrl, "Unexpected project dashboard URL");
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_CreateProjectDashboardUrl_ArgChecks()
+        {
+            // Setup
+            var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
+
+            var connectionInfo = new ConnectionInformation(new Uri("http://my-sonar-server:5555"));
+            var projectInfo = new ProjectInformation { Key = "p1" };
+
+            // Act + Verify
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.CreateProjectDashboardUrl(null, projectInfo));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.CreateProjectDashboardUrl(connectionInfo, null));
+        }
+
         #endregion
 
         #region Helpers
