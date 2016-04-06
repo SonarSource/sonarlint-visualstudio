@@ -7,8 +7,8 @@
     <MoreInfo>http://vs.sonarlint.org</MoreInfo>
     <License>License.txt</License>
     <GettingStartedGuide>http://vs.sonarlint.org</GettingStartedGuide>
-    <Icon>Resources\sonarqube_32.png</Icon>
-    <PreviewImage>Resources\sonarqube_200.png</PreviewImage>
+    <Icon>Resources\sonarlint_32.png</Icon>
+    <PreviewImage>Resources\sonarlint_200.png</PreviewImage>
     <Tags>SonarLint, SonarQube, Analysis, Roslyn, CodeAnalysis, Analyzer, Code analysis, Sonar, Debt, Technical, Tech, Quality</Tags>
   </Metadata>
   <Installation>
