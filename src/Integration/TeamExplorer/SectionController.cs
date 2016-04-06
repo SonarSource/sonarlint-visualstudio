@@ -9,7 +9,6 @@ using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Progress;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Collections.Generic;
@@ -326,7 +325,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.BrowseToProjectDashboardCommandCommandCalled);
 
             var url = this.Host.SonarQubeService.CreateProjectDashboardUrl(project.Owner.ConnectionInformation, project.ProjectInformation);
-            this.ExecBrowseToUrl(url.ToString());
+            this.webBrowser.NavigateTo(url.ToString());
         }
 
         #endregion

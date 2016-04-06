@@ -75,6 +75,7 @@
     <Compile Include="..\AssemblyInfo.Shared.cs" />
     <Compile Include="SonarLintIntegrationPackage.cs" />
     <Compile Include="BoundSolutionAnalyzer.cs" />
+    <Compile Include="Telemetry\SonarLintIntegrationPackage.IOleCommandTarget.cs" />
     <Compile Include="Telemetry\TelemetryLogger.cs" />
   </ItemGroup>
   <ItemGroup>
