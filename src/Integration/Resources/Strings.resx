@@ -292,7 +292,7 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <comment>A progress notification message</comment>
   </data>
   <data name="SyncButtonText" xml:space="preserve">
-    <value>Sync</value>
+    <value>Update</value>
     <comment>Button text for syncing an already bound SonarQube project to a VS solution</comment>
   </data>
   <data name="ShowAllProjectsCommandText" xml:space="preserve">
