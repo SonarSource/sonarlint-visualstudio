@@ -24,6 +24,15 @@ namespace SonarLint.VisualStudio.Integration
     internal enum SonarLintSqmCommandIds
     {
         BoundSolutionDetectedCommandId = 0x200,
+        ConnectCommandCommandId = 0x300,
+        BindCommandCommandId = 0x301,
+        BrowseToUrlCommandCommandId = 0x302,
+        BrowseToProjectDashboardCommandCommandId = 0x303,
+        RefreshCommandCommandId = 0x304,
+        DisconnectCommandCommandId = 0x305,
+        ToggleShowAllProjectsCommandCommandId = 0x306,
+        DontWarnAgainCommandCommandId = 0x307,
+        FixConflictsCommandCommandId = 0x308,
     }
 
     /// <summary>
@@ -77,6 +86,15 @@ namespace SonarLint.VisualStudio.Integration
                 switch (sqmCommandId)
                 {
                     case SonarLintSqmCommandIds.BoundSolutionDetectedCommandId:
+                    case SonarLintSqmCommandIds.ConnectCommandCommandId:
+                    case SonarLintSqmCommandIds.BindCommandCommandId:
+                    case SonarLintSqmCommandIds.BrowseToUrlCommandCommandId:
+                    case SonarLintSqmCommandIds.BrowseToProjectDashboardCommandCommandId:
+                    case SonarLintSqmCommandIds.RefreshCommandCommandId:
+                    case SonarLintSqmCommandIds.DisconnectCommandCommandId:
+                    case SonarLintSqmCommandIds.ToggleShowAllProjectsCommandCommandId:
+                    case SonarLintSqmCommandIds.DontWarnAgainCommandCommandId:
+                    case SonarLintSqmCommandIds.FixConflictsCommandCommandId:
                     {
                         return true;
                     }

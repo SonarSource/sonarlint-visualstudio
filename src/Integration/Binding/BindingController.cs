@@ -106,6 +106,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private void OnBind(ProjectInformation projectInformation)
         {
             Debug.Assert(this.OnBindStatus(projectInformation));
+
+            TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
+
             this.workflow.BindProject(projectInformation);
         }
 

@@ -107,6 +107,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
             Debug.Assert(this.OnConnectStatus());
             Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
 
+            TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.ConnectCommandCommandCalled);
+
             var connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
             if (connectionInfo != null)
             {
@@ -127,6 +129,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             Debug.Assert(this.OnRefreshStatus(useConnection));
 
+            TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.RefreshCommandCommandCalled);
+
             ConnectionInformation connectionToRefresh = useConnection ?? this.host.SonarQubeService.CurrentConnection;
             Debug.Assert(connectionToRefresh != null, "Expecting either to be connected to get a connection to connect to");
 
@@ -146,6 +150,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private void OnDontWarnAgain()
         {
+            TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.DontWarnAgainCommandCalled);
+
             this.settings.ShowServerNuGetTrustWarning = false;
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.WarnServerTrustId);
         }

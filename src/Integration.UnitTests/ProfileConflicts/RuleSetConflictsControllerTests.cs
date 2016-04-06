@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -39,6 +40,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ruleSetInspector = null;
             this.sccFS = null;
             this.rsSerializer = null;
+
+            // Instead of ignored unexpected service, register one (for telemetry)
+            this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel());
         }
 
         #region Tests

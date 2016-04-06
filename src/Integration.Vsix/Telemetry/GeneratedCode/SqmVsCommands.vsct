@@ -22,17 +22,107 @@
                         <ButtonText>BoundSolutionDetected</ButtonText>
                     </Strings>
                 </Button>
+  
+                <Button guid="guidCmdSet" id="ConnectCommand" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>ConnectCommand</ButtonText>
+                    </Strings>
+                </Button>
+  
+                <Button guid="guidCmdSet" id="BindCommand" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>BindCommand</ButtonText>
+                    </Strings>
+                </Button>
+  
+                <Button guid="guidCmdSet" id="BrowseToUrlCommand" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>BrowseToUrlCommand</ButtonText>
+                    </Strings>
+                </Button>
+  
+                <Button guid="guidCmdSet" id="BrowseToProjectDashboardCommand" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>BrowseToProjectDashboardCommand</ButtonText>
+                    </Strings>
+                </Button>
+  
+                <Button guid="guidCmdSet" id="RefreshCommand" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>RefreshCommand</ButtonText>
+                    </Strings>
+                </Button>
+  
+                <Button guid="guidCmdSet" id="DisconnectCommand" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>DisconnectCommand</ButtonText>
+                    </Strings>
+                </Button>
+  
+                <Button guid="guidCmdSet" id="ToggleShowAllProjectsCommand" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>ToggleShowAllProjectsCommand</ButtonText>
+                    </Strings>
+                </Button>
+  
+                <Button guid="guidCmdSet" id="DontWarnAgainCommand" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>DontWarnAgainCommand</ButtonText>
+                    </Strings>
+                </Button>
+  
+                <Button guid="guidCmdSet" id="FixConflictsCommand" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>FixConflictsCommand</ButtonText>
+                    </Strings>
+                </Button>
             </Buttons>
         </Commands>
         <Symbols>
             <!-- This is the guid used to group the menu commands together -->
             <GuidSymbol name="guidCmdSet" value="{db0701cc-1e44-41f7-97d6-29b160a70bcb}" >
                     <IDSymbol name="BoundSolutionDetected" value="0x200" />
+                    <IDSymbol name="ConnectCommand" value="0x300" />
+                    <IDSymbol name="BindCommand" value="0x301" />
+                    <IDSymbol name="BrowseToUrlCommand" value="0x302" />
+                    <IDSymbol name="BrowseToProjectDashboardCommand" value="0x303" />
+                    <IDSymbol name="RefreshCommand" value="0x304" />
+                    <IDSymbol name="DisconnectCommand" value="0x305" />
+                    <IDSymbol name="ToggleShowAllProjectsCommand" value="0x306" />
+                    <IDSymbol name="DontWarnAgainCommand" value="0x307" />
+                    <IDSymbol name="FixConflictsCommand" value="0x308" />
                 </GuidSymbol>
         </Symbols>
         <!-- Add UsedCommands so that a command table merge does not remove these commands    -->
         <!-- as these are not real commands and do not have commandplacement values           -->
         <UsedCommands>
             <UsedCommand guid="guidCmdSet" id="BoundSolutionDetected" />
+            <UsedCommand guid="guidCmdSet" id="ConnectCommand" />
+            <UsedCommand guid="guidCmdSet" id="BindCommand" />
+            <UsedCommand guid="guidCmdSet" id="BrowseToUrlCommand" />
+            <UsedCommand guid="guidCmdSet" id="BrowseToProjectDashboardCommand" />
+            <UsedCommand guid="guidCmdSet" id="RefreshCommand" />
+            <UsedCommand guid="guidCmdSet" id="DisconnectCommand" />
+            <UsedCommand guid="guidCmdSet" id="ToggleShowAllProjectsCommand" />
+            <UsedCommand guid="guidCmdSet" id="DontWarnAgainCommand" />
+            <UsedCommand guid="guidCmdSet" id="FixConflictsCommand" />
         </UsedCommands>
     </CommandTable>
