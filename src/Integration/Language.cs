@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 return new[] { CSharp };
                 // We don't support VB.NET as the corresponding VB SonarQube server plugin has been
-                // updated to support the connected experience.
+                // updated to support the connected mode.
                 //return new[] { CSharp, VBNET };
             }
         }
