@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentException(Strings.ProjectFilterDteProjectFailedToGetIVs, nameof(project));
             }
 
-            // Accept only supported languages
             if (IsNotSupportedProject(project))
             {
                 return false;
@@ -61,7 +60,6 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
             
-            // Otherwise, try to detect test project using known project types and/or regex match
             if (IsTestProject(hierarchy, this.testRegex, projectName))
             {
                 return false;
@@ -86,6 +84,19 @@ namespace SonarLint.VisualStudio.Integration
         #region Helpers
         private static bool IsTestProject(IVsHierarchy projectHierarchy, Regex testProjectNameRegex, string projectName)
         {
+            IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
+            Debug.Assert(propertyStorage != null);
+
+            // Ignore test projects
+            // If specifically marked with test project property, use that to specify if test project or not
+            bool? sonarTest = GetPropertyBool(propertyStorage, Constants.SonarQubeTestProjectBuildPropertyKey);
+            if (sonarTest.HasValue)
+            {
+                // Event if the project is a test project by the checks below, if this property was set to false
+                // then we treat it as if it's not a test project
+                return sonarTest.Value;
+            }
+
             // Otherwise, try to detect test project using known project types and/or regex match
             if (ProjectSystemHelper.IsKnownTestProject(projectHierarchy))
             {
@@ -107,22 +118,9 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(propertyStorage != null);
 
             // General exclusions
-            // If exclusion property is set, this takes precedence
+            // If exclusion property is set to true, this takes precedence
             bool? sonarExclude = GetPropertyBool(propertyStorage, Constants.SonarQubeExcludeBuildPropertyKey);
-            if( sonarExclude.HasValue && sonarExclude.Value)
-            {
-                return true;
-            }
-
-            // Ignore test projects
-            // If specifically marked with test project property, use that to specify if test project or not
-            bool? sonarTest = GetPropertyBool(propertyStorage, Constants.SonarQubeTestProjectBuildPropertyKey);
-            if (sonarTest.HasValue && sonarTest.Value)
-            {
-                return true;
-            }
-
-            return false;
+            return sonarExclude.HasValue && sonarExclude.Value;
         }
 
         private static bool? GetPropertyBool(IVsBuildPropertyStorage propertyStorage, string propertyName)

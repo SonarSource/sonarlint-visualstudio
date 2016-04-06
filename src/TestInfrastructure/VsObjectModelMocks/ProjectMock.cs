@@ -393,5 +393,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.SetAggregateProjectTypeGuids(ProjectSystemHelper.TestProjectKindGuid);
         }
+
+        public void ClearProjectKind()
+        {
+            this.aggregateProjectTypeGuids = string.Empty;
+        }
     }
 }

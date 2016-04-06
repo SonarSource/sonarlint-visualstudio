@@ -20,7 +20,6 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Returns the current active solution
         /// </summary>
-        /// <returns></returns>
         Solution2 GetCurrentActiveSolution();
 
         /// <summary>

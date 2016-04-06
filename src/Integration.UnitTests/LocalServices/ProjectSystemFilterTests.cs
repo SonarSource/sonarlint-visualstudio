@@ -40,13 +40,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectSystemFilter_IsAccepted_UnsupportedLanguage_IsFalse()
+        public void ProjectSystemFilter_IsAccepted_NoSupportedProject()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
 
             var project = new ProjectMock("unsupported.vbproj");
-            project.SetVBProjectKind();
+            project.SetVBProjectKind(); // VB is not supported
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "False"); // Should not matter
 
             // Act
             var result = testSubject.IsAccepted(project);
@@ -56,13 +57,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectSystemFilter_IsAccepted_SonarExcludeProperty_ReturnsPropertyValue()
+        public void ProjectSystemFilter_IsAccepted_SupportedProject_ProjectExcludedViaProjectProperty()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
-
             var project = new ProjectMock("supported.csproj");
             project.SetCSProjectKind();
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "False"); // Should not matter
 
             // Test case 1: missing property-> is accepted
             // Act
@@ -113,13 +114,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectSystemFilter_IsAccepted_SonarTestProjectProperty_ReturnsPropertyValue()
+        public void ProjectSystemFilter_IsAccepted_SupportedNotExlucdedProject_TestProjectExcludedViaProjectProperty()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
 
             var project = new ProjectMock("supported.csproj");
             project.SetCSProjectKind();
+            project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, "false"); // Should evaluate test projects even if false
 
             // Test case 1: missing property -> accepted
             // Act
@@ -128,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             Assert.IsTrue(result, "Project with missing property SonarQubeTestProject should be accepted");
 
-            // Test case 2: non-bool property -> accepted
+            // Test case 2: empty -> accepted
             // Setup
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, string.Empty);
 
@@ -138,7 +140,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             Assert.IsTrue(result, "Project with non-bool property SonarQubeTestProject should be accepted");
 
-            // Test case 3: property true -> not accepted
+            // Test case 3: non-bool, non-empty -> not accepted
+            // Setup
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "123");
+
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Test case 4: property true -> not accepted
             // Setup
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "true");
 
@@ -148,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             Assert.IsFalse(result, "Project with property SonarQubeTestProject=false should NOT be accepted");
 
-            // Test case 4: property false -> is accepted
+            // Test case 5: property false -> is accepted
             // Setup
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "false");
 
@@ -160,56 +169,80 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectSystemFilter_IsAccepted_IsKnownTestProject_ReturnsFalse()
+        public void ProjectSystemFilter_IsAccepted_SupportedNotExlucdedProject_IsKnownTestProject()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
 
             var project = new ProjectMock("knownproject.csproj");
+            project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, "false"); // Should evaluate test projects even if false
             project.SetCSProjectKind();
-            project.SetTestProject();
+
+            // Case 1: Test not test project kind, test project exclude not set
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, ""); // Should not continue with evaluation if has boolean value
 
             // Act
             var result = testSubject.IsAccepted(project);
 
             // Verify
+            Assert.IsTrue(result, "Project not a known test project");
+
+            // Case 2: Test project kind, test project exclude not set
+            project.SetTestProject();
+
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Verify
             Assert.IsFalse(result, "Project of known test project type should NOT be accepted");
+
+            // Case 3: test project exclude == false, should take precedence over project kind condition
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "false");
+            project.ClearProjectKind();
+
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Verify
+            Assert.IsTrue(result, "Should be accepted since test project is explicitly not-excluded");
+
+            // Case 4: test project exclude == true, should take precedence over project kind condition
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "true");
+            project.ClearProjectKind();
+
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Verify
+            Assert.IsFalse(result, "Should not be accepted since test project is excluded");
         }
 
         [TestMethod]
-        public void ProjectSystemFilter_IsAccepted_MatchesTestRegex_ReturnsFalse()
+        public void ProjectSystemFilter_IsAccepted_SupportedNotExlucdedProject_NotExcludedTestProject_EvaluateRegex()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
-            testSubject.SetTestRegex(new Regex(".*barfoo.*", RegexOptions.None, TimeSpan.FromSeconds(1)));
-
             var project = new ProjectMock("foobarfoobar.csproj");
             project.SetCSProjectKind();
+
+            // Case 1: Regex match
+            testSubject.SetTestRegex(new Regex(".*barfoo.*", RegexOptions.None, TimeSpan.FromSeconds(1)));
 
             // Act
             var result = testSubject.IsAccepted(project);
 
             // Verify
             Assert.IsFalse(result, "Project with name that matches test regex should NOT be accepted");
-        }
 
-        [TestMethod]
-        public void ProjectSystemFilter_IsAccepted_DoesNotMatchTestRegex_ReturnsTrue()
-        {
-            // Setup
-            var testSubject = this.CreateTestSubject();
+            // Case 2: Regex doesn't match
             testSubject.SetTestRegex(new Regex(".*notfound.*", RegexOptions.None, TimeSpan.FromSeconds(1)));
 
-            var project = new ProjectMock("foobarfoobar.csproj");
-            project.SetCSProjectKind();
-
             // Act
-            var result = testSubject.IsAccepted(project);
+            result = testSubject.IsAccepted(project);
 
             // Verify
             Assert.IsTrue(result, "Project with name that does not match test regex should be accepted");
         }
-
         #endregion
 
         #region Helpers
