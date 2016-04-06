@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration
             bool? sonarTest = GetPropertyBool(propertyStorage, Constants.SonarQubeTestProjectBuildPropertyKey);
             if (sonarTest.HasValue)
             {
-                // Event if the project is a test project by the checks below, if this property was set to false
+                // Even if the project is a test project by the checks below, if this property was set to false
                 // then we treat it as if it's not a test project
                 return sonarTest.Value;
             }

@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectSystemFilter_IsAccepted_SupportedNotExlucdedProject_TestProjectExcludedViaProjectProperty()
+        public void ProjectSystemFilter_IsAccepted_SupportedNotExcludedProject_TestProjectExcludedViaProjectProperty()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectSystemFilter_IsAccepted_SupportedNotExlucdedProject_IsKnownTestProject()
+        public void ProjectSystemFilter_IsAccepted_SupportedNotExcludedProject_IsKnownTestProject()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             Assert.IsFalse(result, "Project of known test project type should NOT be accepted");
 
-            // Case 3: test project exclude == false, should take precedence over project kind condition
+            // Case 3: SonarQubeTestProjectBuildPropertyKey == false, should take precedence over project kind condition
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "false");
             project.ClearProjectKind();
 
@@ -206,7 +206,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             Assert.IsTrue(result, "Should be accepted since test project is explicitly not-excluded");
 
-            // Case 4: test project exclude == true, should take precedence over project kind condition
+            // Case 4: SonarQubeTestProjectBuildPropertyKey == true, should take precedence over project kind condition
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "true");
             project.ClearProjectKind();
 
@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectSystemFilter_IsAccepted_SupportedNotExlucdedProject_NotExcludedTestProject_EvaluateRegex()
+        public void ProjectSystemFilter_IsAccepted_SupportedNotExcludedProject_NotExcludedTestProject_EvaluateRegex()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
@@ -242,6 +242,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             Assert.IsTrue(result, "Project with name that does not match test regex should be accepted");
+
+            // Case 3: SonarQubeTestProjectBuildPropertyKey == false, should take precedence over regex condition
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "false");
+
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Verify
+            Assert.IsTrue(result, "Should be accepted since test project is explicitly not-excluded");
+
+            // Case 4: SonarQubeTestProjectBuildPropertyKey == true, should take precedence over regex condition
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "true");
+            project.ClearProjectKind();
+
+            // Act
+            result = testSubject.IsAccepted(project);
+
+            // Verify
+            Assert.IsFalse(result, "Should not be accepted since test project is excluded");
         }
         #endregion
 
