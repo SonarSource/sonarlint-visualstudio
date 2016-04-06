@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Browser the server in your web browser..
+        ///   Looks up a localized string similar to Browse the server in your web browser..
         /// </summary>
         public static string BrowserServerMenuItemTooltip {
             get {

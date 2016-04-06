@@ -532,7 +532,7 @@ This is the general format to use when writing errors to output window or when t
     <comment>Tooltip text for view project in SonarQube context menu item</comment>
   </data>
   <data name="BrowserServerMenuItemTooltip" xml:space="preserve">
-    <value>Browser the server in your web browser.</value>
+    <value>Browse the server in your web browser.</value>
     <comment>Tooltip text for browser server context menu item</comment>
   </data>
   <data name="BrowseServerMenuItemDisplayText" xml:space="preserve">
