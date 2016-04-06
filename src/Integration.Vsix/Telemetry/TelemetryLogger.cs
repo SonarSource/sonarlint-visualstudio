@@ -66,6 +66,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 case TelemetryEvent.DontWarnAgainCommandCalled:
                     SonarLintSqmFacade.DontWarnAgainCommand();
                     break;
+                case TelemetryEvent.FixConflictsCommandCalled:
+                    SonarLintSqmFacade.FixConflictsCommand();
+                    break;
                 default:
                     Debug.Fail("Unsupported event: " + telemetryEvent);
                     break;
