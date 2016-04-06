@@ -17,6 +17,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ProvideBindingPath]
     [ProvideAutoLoad(CommonGuids.PackageActivation)]
     [ProvideOptionPage(typeof(OptionsPage), OptionsPage.CategoryName, OptionsPage.PageName, 901, 902, false, 903)]
+    [ProvideMenuResource("Menus.ctmenu", 1)] // SQM commands
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
          "(HasCSProj | HasVBProj)",
         new string[] { "HasCSProj",
@@ -24,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         new string[] { "SolutionHasProjectCapability:CSharp",
                        "SolutionHasProjectCapability:VB" }
     )]
-    public partial class SonarLintIntegrationPackage : Package
+    public class SonarLintIntegrationPackage : Package
     {
         private BoundSolutionAnalyzer usageAnalyzer;
         private PackageCommandManager commandManager;
@@ -33,7 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         protected override void Initialize()
         {
             base.Initialize();
-            this.InitializeSqm();
 
             IServiceProvider serviceProvider = this;
 

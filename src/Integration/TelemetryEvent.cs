@@ -10,6 +10,17 @@ namespace SonarLint.VisualStudio.Integration
 {
     public enum TelemetryEvent
     {
-        BoundSolutionDetected
+        BoundSolutionDetected,
+
+        // Commands
+        ConnectCommandCommandCalled,
+        BindCommandCommandCalled,
+        BrowseToUrlCommandCommandCalled,
+        BrowseToProjectDashboardCommandCommandCalled,
+        RefreshCommandCommandCalled,
+        DisconnectCommandCommandCalled,
+        ToggleShowAllProjectsCommandCommandCalled,
+        DontWarnAgainCommandCalled,
+        FixConflictsCommandCalled
     }
 }

@@ -28,6 +28,17 @@ IEnumerable<Tuple<string, string, string>> commands = new ReadOnlyCollection <Tu
     {
         // Usage
         Tuple.Create("BoundSolutionDetected",			"0x200", "SonarLint.VisualStudio was used for tech debt management"),
+
+        // Commands
+        Tuple.Create("ConnectCommand",					"0x300", "SonarLint.VisualStudio ConnectCommand was called"),
+        Tuple.Create("BindCommand",						"0x301", "SonarLint.VisualStudio BindCommand was called"),
+        Tuple.Create("BrowseToUrlCommand",				"0x302", "SonarLint.VisualStudio BrowseToUrlCommand was called"),
+        Tuple.Create("BrowseToProjectDashboardCommand",	"0x303", "SonarLint.VisualStudio BrowseToProjectDashboardCommand was called"),
+        Tuple.Create("RefreshCommand",					"0x304", "SonarLint.VisualStudio RefreshCommand was called"),
+        Tuple.Create("DisconnectCommand",				"0x305", "SonarLint.VisualStudio DisconnectCommand was called"),
+        Tuple.Create("ToggleShowAllProjectsCommand",	"0x306", "SonarLint.VisualStudio ToggleShowAllProjectsCommand was called"),
+        Tuple.Create("DontWarnAgainCommand",			"0x307", "SonarLint.VisualStudio DontWarnAgainCommand was called"),
+        Tuple.Create("FixConflictsCommand",				"0x308", "SonarLint.VisualStudio FixConflictsCommand was called"),
     }
 );
 #>

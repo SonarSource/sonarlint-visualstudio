@@ -274,6 +274,9 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private void Disconnect()
         {
             Debug.Assert(this.CanDisconnect());
+
+            TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.DisconnectCommandCommandCalled);
+
             var previous = this.Host.SonarQubeService.CurrentConnection;
             this.Host.SonarQubeService.Disconnect();
             this.Host.VisualStateManager.SetProjects(previous, null);
@@ -286,6 +289,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private void ToggleShowAllProjects(ServerViewModel server)
         {
+            TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.ToggleShowAllProjectsCommandCommandCalled);
+
             server.ShowAllProjects = !server.ShowAllProjects;
         }
 
@@ -297,6 +302,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private void ExecBrowseToUrl(string url)
         {
             Debug.Assert(this.CanExecBrowseToUrl(url), "Should not be able to execute!");
+
+            TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.BrowseToUrlCommandCommandCalled);
 
             this.webBrowser.NavigateTo(url);
         }
@@ -315,6 +322,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private void ExecBrowseToProjectDashboard(ProjectViewModel project)
         {
             Debug.Assert(this.CanExecBrowseToProjectDashboard(project), $"Shouldn't be able to execute {nameof(this.BrowseToProjectDashboardCommand)}");
+
+            TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.BrowseToProjectDashboardCommandCommandCalled);
 
             var url = this.Host.SonarQubeService.CreateProjectDashboardUrl(project.Owner.ConnectionInformation, project.ProjectInformation);
             this.ExecBrowseToUrl(url.ToString());

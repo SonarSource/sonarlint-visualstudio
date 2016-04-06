@@ -53,9 +53,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), new ConfigurableVsGeneralOutputWindowPane());
-
+            
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = sonarQubeService;
+
+            // Instead of ignored unexpected service, register one (for telemetry)
+            this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel());
         }
 
         #region Tests

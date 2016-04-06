@@ -85,6 +85,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         {
             if (this.OnFixConflictsStatus(conflicts))
             {
+                TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.FixConflictsCommandCalled);
+
                 IRuleSetInspector inspector = this.host.GetService<IRuleSetInspector>();
                 inspector.AssertLocalServiceIsNotNull();
 

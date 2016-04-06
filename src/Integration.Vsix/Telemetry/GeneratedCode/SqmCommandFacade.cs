@@ -75,6 +75,87 @@ namespace SonarLint.VisualStudio.Integration
             DEBUG_LogSqmCommandsToOutputWindow("BoundSolutionDetected");
         }
 
+        /// <summary>
+        /// SQM command for ConnectCommand.
+        /// </summary>
+        public static void ConnectCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.ConnectCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("ConnectCommand");
+        }
+
+        /// <summary>
+        /// SQM command for BindCommand.
+        /// </summary>
+        public static void BindCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.BindCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("BindCommand");
+        }
+
+        /// <summary>
+        /// SQM command for BrowseToUrlCommand.
+        /// </summary>
+        public static void BrowseToUrlCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.BrowseToUrlCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("BrowseToUrlCommand");
+        }
+
+        /// <summary>
+        /// SQM command for BrowseToProjectDashboardCommand.
+        /// </summary>
+        public static void BrowseToProjectDashboardCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.BrowseToProjectDashboardCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("BrowseToProjectDashboardCommand");
+        }
+
+        /// <summary>
+        /// SQM command for RefreshCommand.
+        /// </summary>
+        public static void RefreshCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.RefreshCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("RefreshCommand");
+        }
+
+        /// <summary>
+        /// SQM command for DisconnectCommand.
+        /// </summary>
+        public static void DisconnectCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.DisconnectCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("DisconnectCommand");
+        }
+
+        /// <summary>
+        /// SQM command for ToggleShowAllProjectsCommand.
+        /// </summary>
+        public static void ToggleShowAllProjectsCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.ToggleShowAllProjectsCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("ToggleShowAllProjectsCommand");
+        }
+
+        /// <summary>
+        /// SQM command for DontWarnAgainCommand.
+        /// </summary>
+        public static void DontWarnAgainCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.DontWarnAgainCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("DontWarnAgainCommand");
+        }
+
+        /// <summary>
+        /// SQM command for FixConflictsCommand.
+        /// </summary>
+        public static void FixConflictsCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.FixConflictsCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("FixConflictsCommand");
+        }
+
         #region Private methods
         private static void RunCommand(Guid commandGroup, int commandId)
         {

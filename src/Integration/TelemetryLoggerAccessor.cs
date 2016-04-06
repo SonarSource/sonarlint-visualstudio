@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio.ComponentModelHost;
 using System;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -17,7 +18,7 @@ namespace SonarLint.VisualStudio.Integration
             IComponentModel componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             if (componentModel != null)
             {
-                return componentModel.GetService<ITelemetryLogger>();
+                return componentModel.GetExtensions<ITelemetryLogger>().SingleOrDefault();
             }
 
             return null;
