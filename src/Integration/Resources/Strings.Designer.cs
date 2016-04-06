@@ -856,7 +856,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sync.
+        ///   Looks up a localized string similar to Update.
         /// </summary>
         public static string SyncButtonText {
             get {
