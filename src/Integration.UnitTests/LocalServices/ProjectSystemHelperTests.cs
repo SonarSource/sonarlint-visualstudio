@@ -20,6 +20,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private SolutionMock solutionMock;
         private ProjectSystemHelper testSubject;
+        private ConfigurableProjectSystemFilter projectFilter;
 
         [TestInitialize]
         public void TestInitialize()
@@ -28,11 +29,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider = new ConfigurableServiceProvider();
             this.serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
             this.testSubject = new ProjectSystemHelper(this.serviceProvider);
+
+            this.projectFilter = new ConfigurableProjectSystemFilter();
+            this.serviceProvider.RegisterService(typeof(IProjectSystemFilter), this.projectFilter);
         }
 
         #region Tests
         [TestMethod]
-        public void ProjectSystemHelper_GetSolutionManagedProjects_ReturnsOnlyKnownLanguages()
+        public void ProjectSystemHelper_GetSolutionProjects_ReturnsOnlyKnownLanguages()
         {
             // Setup
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
@@ -114,6 +118,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             Assert.AreSame(project1, project2, "Should be the same project as in the first time");
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetFilteredSolutionProjects()
+        {
+            ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
+            csProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, csProject);
+            csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind;
+            ProjectMock vbProject = this.solutionMock.AddOrGetProject("vb.net");
+            vbProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, vbProject);
+            vbProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
+            ProjectMock otherProject = this.solutionMock.AddOrGetProject("other");
+            otherProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, otherProject);
+            otherProject.ProjectKind = "other";
+            ProjectMock erronousProject = this.solutionMock.AddOrGetProject("err");
+            erronousProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, null);
+            erronousProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
+            // Filter out C#, keep VB
+            projectFilter.MatchingProjects.Add(vbProject);
+
+            // Act
+            var actual = this.testSubject.GetFilteredSolutionProjects().ToArray();
+
+            // Verify
+            CollectionAssert.AreEqual(new[] { vbProject }, actual,
+                "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
         }
         #endregion
 

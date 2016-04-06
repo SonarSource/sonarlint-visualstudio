@@ -257,6 +257,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsNotNull(testSubject.GetService<IFileSystem>());
             Assert.IsNotNull(testSubject.GetService<IConflictsManager>());
             Assert.IsNotNull(testSubject.GetService<IRuleSetConflictsController>());
+            Assert.IsNotNull(testSubject.GetService<IProjectSystemFilter>());
             
             Assert.AreSame(testSubject.GetService<IFileSystem>(), testSubject.GetService<ISourceControlledFileSystem>());
         }

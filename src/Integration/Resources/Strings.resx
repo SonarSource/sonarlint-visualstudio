@@ -303,10 +303,6 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>Toggle visibility of unbound projects for this server.</value>
     <comment>Server context menu command tool tip text to show all projects</comment>
   </data>
-  <data name="IgnoredSonarQubeRuleDueToMissingInternalKey" xml:space="preserve">
-    <value>Sonar Qube rule set import: Sonar Qube rule with key '{0}' was ignored since it's missing an internal key. Contact your Sonar Qube administrator.</value>
-    <comment>Output window message. {0} - rule key (string)</comment>
-  </data>
   <data name="FailedToDeserializeSQCOnfiguration" xml:space="preserve">
     <value>Failed loading file: '{0}'. Please rebind solution to create a new configuration file.</value>
     <comment>Output window message in case of deserialization error. {0} file path.</comment>
@@ -542,5 +538,10 @@ This is the general format to use when writing errors to output window or when t
   <data name="BrowseServerMenuItemDisplayText" xml:space="preserve">
     <value>Browse</value>
     <comment>Context menu item text for opening the server in the users's browser</comment>
+  </data>
+  <data name="ConflictDetailRuleSetInfo" xml:space="preserve">
+    <value>RuleSet '{0}' has:</value>
+    <comment>output window message. 
+{0} - rule set file path </comment>
   </data>
 </root>

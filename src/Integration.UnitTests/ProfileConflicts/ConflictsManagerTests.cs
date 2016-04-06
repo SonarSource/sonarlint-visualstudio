@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Verify
             Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since the solution baseline is missing");
             this.outputWindow.AssertOutputStrings(1);
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(0, 
+            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(0,
                 words: new[] { Constants.SonarQubeManagedFolderName },
                 splitter: new[] { Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar });
         }
@@ -208,7 +208,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidProjects(3);
             this.SetValidSolutionRuleSetPerProjectKind();
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetValidRuleSetDeclarationPerProjectAndConfiguration(
-                useUniqueProjectRuleSets: true, 
+                useUniqueProjectRuleSets: true,
                 configurationNames: new[] { "Debug", "Release" });
 
             this.ConfigureInspectorWithConflicts(knownDeclarations, () =>
@@ -261,13 +261,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 projects.Add(project);
             }
 
-            this.projectHelper.Projects = projects;
+            this.projectHelper.FilteredProjects = projects;
         }
 
         private void SetValidSolutionRuleSetPerProjectKind()
         {
             ISolutionRuleSetsInformationProvider rsInfoProvider = this.ruleSetInfoProvider;
-            foreach(var project in this.projectHelper.Projects)
+            foreach (var project in this.projectHelper.FilteredProjects)
             {
                 string suffix = SolutionBindingOperation.GetProjectRuleSetSuffix(ProjectBindingOperation.GetProjectGroup(project));
                 string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(this.solutionBinding.CurrentBinding.ProjectKey, suffix);
@@ -279,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             List<RuleSetDeclaration> declarations = new List<RuleSetDeclaration>();
 
-            foreach (ProjectMock project in this.projectHelper.Projects.OfType<ProjectMock>())
+            foreach (ProjectMock project in this.projectHelper.FilteredProjects.OfType<ProjectMock>())
             {
                 var configuration = new ConfigurationMock(configurationName);
                 project.ConfigurationManager.Configurations.Add(configuration);
@@ -338,15 +338,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                     return false;
                 }));
-               
+
                 return conflictFactory.Invoke();
             };
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", 
-            "S1541:Methods should not be too complex", 
-            Justification = "False positive, nothing complex about it, should not impact Maintainability", 
-            Scope = "member", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability",
+            "S1541:Methods should not be too complex",
+            Justification = "False positive, nothing complex about it, should not impact Maintainability",
+            Scope = "member",
             Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.ConflictsManagerTests.CreateConflictsBasedOnNumberOfCalls(System.Int32)~SonarLint.VisualStudio.Integration.ProfileConflicts.RuleConflictInfo")]
         private static RuleConflictInfo CreateConflictsBasedOnNumberOfCalls(int findConflictCalls)
         {

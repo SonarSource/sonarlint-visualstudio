@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
             var projectRuleSetAggregation = new Dictionary<string, RuleSetInformation>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (Project project in projectSystem.GetSolutionProjects())
+            foreach (Project project in projectSystem.GetFilteredSolutionProjects())
             {
                 string suffix = SolutionBindingOperation.GetProjectRuleSetSuffix(ProjectBindingOperation.GetProjectGroup(project));
                 string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(bindingInfo.ProjectKey, suffix);
@@ -140,9 +140,9 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                 if (!aggregate.RuleSetDirectories.SequenceEqual(declaration.RuleSetDirectories))
                 {
                     this.WriteWarning(Strings.InconsistentRuleSetDirectoriesWarning,
-                        CombineDirectories(declaration.RuleSetDirectories),
-                        projectRuleSet,
-                        CombineDirectories(aggregate.RuleSetDirectories));
+                                    CombineDirectories(declaration.RuleSetDirectories),
+                                    projectRuleSet,
+                                    CombineDirectories(aggregate.RuleSetDirectories));
                 }
             }
             else

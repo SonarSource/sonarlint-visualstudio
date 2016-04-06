@@ -18,7 +18,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -31,7 +30,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IHost host;
         private readonly ProjectInformation project;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly IProjectSystemFilter projectFilter;
         private readonly SolutionBindingOperation solutionBindingOperation;
 
         internal readonly Dictionary<Language, RuleSetGroup> LanguageToGroupMapping = new Dictionary<Language, RuleSetGroup>
@@ -41,11 +39,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         };        
 
         public BindingWorkflow(IHost host, ProjectInformation project)
-            : this(host, project, null)
-        {
-        }
-
-        internal /*for testing purposes*/ BindingWorkflow(IHost host, ProjectInformation project, IProjectSystemFilter projectFilter)
         {
             if (host == null)
             {
@@ -61,8 +54,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.project = project;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
-
-            this.projectFilter = projectFilter ?? new ProjectSystemFilter(this.host);
 
             this.solutionBindingOperation = new SolutionBindingOperation(
                     this.host,
@@ -136,9 +127,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(null, StepAttributes.Indeterminate | StepAttributes.Hidden,
                         (token, notifications) => this.PromptSaveSolutionIfDirty(controller, token)),
 
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.DownloadBindingParameters(controller, token, notifications)),
-
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.Indeterminate,
                         (token, notifications) => this.DiscoverProjects(controller, notifications)),
 
@@ -182,56 +170,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        internal /*for testing purposes*/ void DownloadBindingParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
-        {
-            // Should never realistically take more than 1 second to match against a project name
-            var timeout = TimeSpan.FromSeconds(1);
-            var defaultRegex = new Regex(ServerProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
-
-            notifications.ProgressChanged(Strings.PreparingBindingWorkflowProgessMessage, double.NaN);
-
-            var properties = this.host.SonarQubeService.GetProperties(token);
-
-            if (token.IsCancellationRequested)
-            {
-                AbortWorkflow(controller, token);
-                return;
-            }
-
-            var testProjRegexProperty = properties.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, ServerProperty.TestProjectRegexKey));
-
-            // Using this older API, if the property hasn't been explicitly set no default value is returned.
-            // http://jira.sonarsource.com/browse/SONAR-5891
-            var testProjRegexPattern = testProjRegexProperty?.Value ?? ServerProperty.TestProjectRegexDefaultValue;
-
-            Regex regex = null;
-            if (testProjRegexPattern != null)
-            {
-                // Try and create regex from provided server pattern.
-                // No way to determine a valid pattern other than attempting to construct
-                // the Regex object.
-                try
-                {
-                    regex = new Regex(testProjRegexPattern, RegexOptions.IgnoreCase, timeout);
-                }
-                catch (ArgumentException)
-                {
-                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
-                }
-            }
-
-            this.projectFilter.SetTestRegex(regex ?? defaultRegex);
-        }
-
         internal /*for testing purposes*/ void DiscoverProjects(IProgressController controller, IProgressStepExecutionEvents notifications)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected step to be run on the UI thread");
 
             notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage, double.NaN);
 
-            foreach (var project in this.projectSystem
-                                        .GetSolutionProjects()
-                                        .Where(x => this.projectFilter.IsAccepted(x)))
+            foreach (var project in this.projectSystem.GetFilteredSolutionProjects())
             {
                 this.BindingProjects.Add(project);
             }

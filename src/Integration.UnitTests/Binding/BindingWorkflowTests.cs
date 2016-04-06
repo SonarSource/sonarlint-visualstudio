@@ -21,7 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Threading;
 
@@ -34,7 +33,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
         private ConfigurableVsGeneralOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
-        private ConfigurableProjectSystemFilter projectFilter;
 
         public TestContext TestContext { get; set; }
 
@@ -46,7 +44,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.projectFilter = new ConfigurableProjectSystemFilter();
 
             var sccFileSystem = new ConfigurableSourceControlledFileSystem();
             var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem);
@@ -315,110 +312,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actualLanguages = testSubject.GetBindingLanguages();
 
             // Verify
-            CollectionAssert.AreEquivalent(expectedLanguages, actualLanguages.ToArray(), "Unexpected lanuages for binding projects");
+            CollectionAssert.AreEquivalent(expectedLanguages, actualLanguages.ToArray(), "Unexpected languages for binding projects");
         }
 
-        [TestMethod]
-        public void BindingWorkflow_DownloadBindingParameters_RegexPropertyNotSet_SetsFilterWithDefaultExpression()
-        {
-            // Setup
-            var filter = new ConfigurableProjectSystemFilter();
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
-
-            var testSubject = this.CreateTestSubject(filter: filter);
-
-            // Sanity
-            Assert.IsFalse(this.sonarQubeService.ServerProperties.Any(x => x.Key != ServerProperty.TestProjectRegexKey), "Test project regex property should not be set");
-
-            // Act
-            testSubject.DownloadBindingParameters(controller, CancellationToken.None, progressEvents);
-
-            // Verify
-            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_DownloadBindingParameters_CustomRegexProperty_SetsFilterWithCorrectExpression()
-        {
-            // Setup
-            var filter = new ConfigurableProjectSystemFilter();
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            var expectedExpression = ".*spoon.*";
-            this.sonarQubeService.RegisterServerProperty(new ServerProperty
-            {
-                Key = ServerProperty.TestProjectRegexKey,
-                Value = expectedExpression
-            });
-
-            var testSubject = this.CreateTestSubject(filter: filter);
-
-            // Act
-            testSubject.DownloadBindingParameters(controller, CancellationToken.None, progressEvents);
-
-            // Verify
-            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_DownloadBindingParameters_InvalidRegex_UsesDefault()
-        {
-            // Setup
-            var filter = new ConfigurableProjectSystemFilter();
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            var badExpression = "*-gf/d*-b/try\\*-/r-*yeb/\\";
-            var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
-            this.sonarQubeService.RegisterServerProperty(new ServerProperty
-            {
-                Key = ServerProperty.TestProjectRegexKey,
-                Value = badExpression
-            });
-
-            var testSubject = this.CreateTestSubject(filter: filter);
-
-            // Act
-            testSubject.DownloadBindingParameters(controller, CancellationToken.None, progressEvents);
-
-            // Verify
-            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
-            this.outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.InvalidTestProjectRegexPattern, badExpression));
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_DownloadBindingParameters_Cancelled_AbortsWorkflow()
-        {
-            // Setup
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-            
-            var testSubject = this.CreateTestSubject();
-
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-
-            // Act
-            testSubject.DownloadBindingParameters(controller, cts.Token, progressEvents);
-
-            // Verify
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
-            controller.AssertNumberOfAbortRequests(1);
-        }
+        
 
         [TestMethod]
         public void BindingWorkflow_DiscoverProjects_AddsMatchingProjectsToBinding()
         {
             // Setup
             ThreadHelper.SetCurrentThreadAsUIThread();
-            var filter = new ConfigurableProjectSystemFilter();
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
@@ -428,10 +331,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             csProject2.SetCSProjectKind();
 
             var matchingProjects = new[] { csProject1, csProject2 };
-            this.projectSystemHelper.Projects = matchingProjects;
-            filter.AllProjectsMatchReturn = true;
+            this.projectSystemHelper.FilteredProjects = matchingProjects;
 
-            var testSubject = this.CreateTestSubject(filter: filter);
+            var testSubject = this.CreateTestSubject();
 
             // Act
             testSubject.DiscoverProjects(controller, progressEvents);
@@ -446,13 +348,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             ThreadHelper.SetCurrentThreadAsUIThread();
-            var filter = new ConfigurableProjectSystemFilter();
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            this.projectSystemHelper.FilteredProjects = null;
 
-            filter.AllProjectsMatchReturn = false;
-
-            var testSubject = this.CreateTestSubject(filter: filter);
+            var testSubject = this.CreateTestSubject();
 
             // Act
             testSubject.DiscoverProjects(controller, progressEvents);
@@ -468,14 +368,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null, IProjectSystemFilter filter = null)
+        private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null)
         {
             var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.sonarQubeService.SetConnection(new Uri("http://connected"));
             host.SonarQubeService = this.sonarQubeService;
             var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
 
-            return new BindingWorkflow(host, useProjectInfo, filter);
+            return new BindingWorkflow(host, useProjectInfo);
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] projects)

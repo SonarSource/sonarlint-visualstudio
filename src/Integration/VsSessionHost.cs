@@ -36,7 +36,8 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IFileSystem),
                 typeof(IConflictsManager),
                 typeof(IRuleSetInspector),
-                typeof(IRuleSetConflictsController)
+                typeof(IRuleSetConflictsController),
+                typeof(IProjectSystemFilter)
         };
 
         private readonly IServiceProvider serviceProvider;
@@ -272,6 +273,7 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IConflictsManager), new Lazy<ILocalService>(() => new ConflictsManager(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this)));
             this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this)));
+            this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() => new ProjectSystemFilter(this)));
 
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this));
             this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);

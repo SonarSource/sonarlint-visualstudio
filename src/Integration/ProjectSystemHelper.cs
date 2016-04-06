@@ -41,11 +41,6 @@ namespace SonarLint.VisualStudio.Integration
             this.serviceProvider = serviceProvider;
         }
 
-        public IServiceProvider ServiceProvider
-        {
-            get { return this.serviceProvider; }
-        }
-
         public IEnumerable<Project> GetSolutionProjects()
         {
             IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
@@ -59,6 +54,14 @@ namespace SonarLint.VisualStudio.Integration
                     yield return Project;
                 }
             }
+        }
+
+        public IEnumerable<Project>  GetFilteredSolutionProjects()
+        {
+            var projectFilter = this.serviceProvider.GetService<IProjectSystemFilter>();
+            projectFilter.AssertLocalServiceIsNotNull();
+
+            return GetSolutionProjects().Where(x => projectFilter.IsAccepted(x));
         }
 
         public static Project GetProject(IVsHierarchy hierarchy)
