@@ -886,8 +886,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             private void HandlePathRequest(IOwinContext context)
             {
+                string path = context.Request.Uri.PathAndQuery.TrimStart('/');
+
                 RequestHandler handler;
-                if (this.uriRequestHandler.TryGetValue(context.Request.Uri.PathAndQuery.TrimStart('/'), out handler))
+                if (this.uriRequestHandler.TryGetValue(path, out handler))
                 {
                     try
                     {
@@ -902,7 +904,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
                 else
                 {
-                    Debug.WriteLine("Handler not found", context.Request.Uri.PathAndQuery.TrimStart('/'));
+                    Debug.WriteLine("Handler not found", path);
                     context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                 }
             }
@@ -971,7 +973,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             protected void Dispose(bool disposing)
             {
-                if (!isDisposed)
+                if (!this.isDisposed)
                 {
                     if (disposing)
                     {
@@ -979,14 +981,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                         this.server = null;
                     }
 
-                    isDisposed = true;
+                    this.isDisposed = true;
                 }
             }
 
             public void Dispose()
             {
                 // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-                Dispose(true);
+                this.Dispose(true);
             }
 
             #endregion
