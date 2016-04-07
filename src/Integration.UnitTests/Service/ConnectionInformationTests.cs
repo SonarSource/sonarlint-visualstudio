@@ -21,7 +21,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var userName = "admin";
             var passwordUnsecure = "admin";
             var password = passwordUnsecure.ConvertToSecureString();
-            var serverUri = new Uri("http://localhost");
+            var serverUri = new Uri("http://localhost/");
             var testSubject = new ConnectionInformation(serverUri, userName, password);
 
             // Act
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConnectionInformation_WithoutLoginInformation()
         {
             // Setup
-            var serverUri = new Uri("http://localhost");
+            var serverUri = new Uri("http://localhost/");
 
             // Act
             var testSubject = new ConnectionInformation(serverUri);
@@ -65,9 +65,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject2 = (ConnectionInformation)((ICloneable)testSubject).Clone();
 
             // Verify testSubject2
-            Assert.IsNull(testSubject.Password, "Password wasn't provided");
-            Assert.IsNull(testSubject.UserName, "UserName wasn't provided");
-            Assert.AreEqual(serverUri, testSubject.ServerUri, "ServerUri doesn't match");
+            Assert.IsNull(testSubject2.Password, "Password wasn't provided");
+            Assert.IsNull(testSubject2.UserName, "UserName wasn't provided");
+            Assert.AreEqual(serverUri, testSubject2.ServerUri, "ServerUri doesn't match");
         }
+
+        [TestMethod]
+        public void ConnectionInformation_Ctor_NormalizesServerUri()
+        {
+            // Act
+            var noSlashResult = new ConnectionInformation(new Uri("http://localhost/NoSlash"));
+
+            // Verify
+            Assert.AreEqual("http://localhost/NoSlash/", noSlashResult.ServerUri.ToString(), "Unexpected normalisation of URI without trailing slash");        }
     }
 }
