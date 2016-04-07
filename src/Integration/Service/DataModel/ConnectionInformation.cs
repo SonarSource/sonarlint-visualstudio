@@ -15,7 +15,7 @@ namespace SonarLint.VisualStudio.Integration.Service
     /// </summary>
     internal class ConnectionInformation : ICloneable, IDisposable
     {
-        private bool isDisposed = false;
+        private bool isDisposed;
 
         internal ConnectionInformation(Uri serverUri, string userName, SecureString password)
         {
@@ -24,10 +24,10 @@ namespace SonarLint.VisualStudio.Integration.Service
                 throw new ArgumentNullException(nameof(serverUri));
             }
 
-            this.ServerUri = serverUri;
+            this.ServerUri = serverUri.EnsureTrailingSlash();
             this.UserName = userName;
             this.Password = password?.CopyAsReadOnly();
-            this.Authentication = AuthenticationType.Basic; // Only once supported at this point
+            this.Authentication = AuthenticationType.Basic; // Only one supported at this point
         }
 
         internal ConnectionInformation(Uri serverUri)

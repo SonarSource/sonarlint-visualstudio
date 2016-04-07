@@ -171,6 +171,7 @@
     <Compile Include="TeamExplorer\SonarQubePageTests.cs" />
     <Compile Include="TeamExplorer\TeamExplorerControllerTests.cs" />
     <Compile Include="TelemetryLoggerAccessorTests.cs" />
+    <Compile Include="UriExtensionsTests.cs" />
     <Compile Include="VsSessionHostTests.cs" />
     <Compile Include="VsShellUtilsTests.cs" />
     <Compile Include="WPF\BoolToVisibilityConverterTests.cs" />

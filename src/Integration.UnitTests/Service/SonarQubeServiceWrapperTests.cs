@@ -36,8 +36,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
+            this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
+
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane());
+            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
             this.serviceProvider.RegisterService(typeof(SComponentModel),
                 ConfigurableComponentModel.CreateWithExports(
                     MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger())));
@@ -63,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Setup case 1: first time connect
                 testSubject.AllowAnonymous = true;
-                testSubject.RegisterConnectionHandler(new RequestHandler() { ResponseText = Serialize(new[] { p1 }) });
+                testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new[] { p1 }) });
                 var connectionInfo1 = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
@@ -78,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var connectionInfo2 = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
-                testSubject.RegisterConnectionHandler(new RequestHandler() { ResponseText = Serialize(new[] { p1, p2 }) });
+                testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new[] { p1, p2 }) });
                 projects = testSubject.Connect(connectionInfo2, CancellationToken.None).ToArray();
 
                 // Verify
@@ -104,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Setup 
                 testSubject.AllowAnonymous = true;
-                testSubject.RegisterConnectionHandler(new RequestHandler() { ResponseStatusCode = HttpStatusCode.InternalServerError });
+                testSubject.RegisterConnectionHandler(new RequestHandler { ResponseStatusCode = HttpStatusCode.InternalServerError });
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
@@ -165,7 +167,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Setup
                 testSubject.AllowAnonymous = true;
-                testSubject.RegisterConnectionHandler(new RequestHandler() { ResponseText = Serialize(new ProjectInformation[0]) });
+                testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new ProjectInformation[0]) });
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
@@ -184,7 +186,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Setup
                 testSubject.BasicAuthUsers.Add("admin", "admin");
-                testSubject.RegisterConnectionHandler(new RequestHandler() { ResponseText = Serialize(new ProjectInformation[0]) });
+                testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new ProjectInformation[0]) });
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"), "admin", "admin".ConvertToSecureString());
 
                 // Act
@@ -338,12 +340,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Setup 
                 testSubject.AllowAnonymous = true;
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-                var project = new ProjectInformation() { Key = "proj1" };
-                testSubject.RegisterConnectionHandler(new RequestHandler() { ResponseText = Serialize(new[] { project }) });
+                var project = new ProjectInformation { Key = "proj1" };
+                testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new[] { project }) });
                 string csPath = SonarQubeServiceWrapper.CreateQualityProfileUrl(SonarQubeServiceWrapper.CSharpLanguage, project);
                 string vbPath = SonarQubeServiceWrapper.CreateQualityProfileUrl(SonarQubeServiceWrapper.VBLanguage, project);
-                testSubject.RegisterRequestHandler(csPath, new RequestHandler() { ResponseStatusCode = HttpStatusCode.BadRequest });
-                testSubject.RegisterRequestHandler(vbPath, new RequestHandler() { ResponseStatusCode = HttpStatusCode.BadRequest });
+                testSubject.RegisterRequestHandler(csPath, new RequestHandler { ResponseStatusCode = HttpStatusCode.BadRequest });
+                testSubject.RegisterRequestHandler(vbPath, new RequestHandler { ResponseStatusCode = HttpStatusCode.BadRequest });
                 testSubject.Connect(connectionInfo, CancellationToken.None);
 
                 // Sanity
@@ -497,9 +499,101 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Exceptions.Expect<ArgumentNullException>(() => testSubject.CreateProjectDashboardUrl(connectionInfo, null));
         }
 
+        [TestMethod]
+        public void SonarQubeServiceWrapper_AppendQuery_NoQueryParameters_ReturnsBaseUrl()
+        {
+            // Act + Verify
+            Assert.AreEqual("api/foobar", SonarQubeServiceWrapper.AppendQueryString("api/foobar", ""));
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_AppendQuery_MultipleQueryParameters_ReturnsCorrectQueryString()
+        {
+            // Act
+            var result = SonarQubeServiceWrapper.AppendQueryString(
+                urlBase: "api/foobar",
+                queryFormat: "?a={0}&b={2}&c={1}",
+                args: new[] { "1", "3", "2" });
+
+            // Verify
+            Assert.AreEqual("api/foobar?a=1&b=2&c=3", result);
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_CreateRequestUrl_HostNameOnlyBaseAddress()
+        {
+            // Act
+            var result = SonarQubeServiceWrapper.CreateRequestUrl(
+                client: CreateClientWithAddress("http://hostname/"),
+                apiUrl: "foo/bar/baz");
+
+            // Verify
+            Assert.AreEqual("http://hostname/foo/bar/baz", result.ToString(), "Unexpected request URL for base address with host name only");
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_CreateRequestUrl_HostNameAndPathBaseAddress()
+        {
+            // Act
+            var result = SonarQubeServiceWrapper.CreateRequestUrl(
+                client: CreateClientWithAddress("http://hostname/and/path/"),
+                apiUrl: "foo/bar/baz");
+
+            // Verify
+            Assert.AreEqual("http://hostname/and/path/foo/bar/baz", result.ToString(), "Unexpected request URL for base address with host name and path");
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_CreateRequestUrl_LeadingAndTrailingSlashes()
+        {
+            using (new AssertIgnoreScope())
+            {
+                // Test case 1: base => no slash; api => with slash
+                // Act
+                var result1 = SonarQubeServiceWrapper.CreateRequestUrl(
+                    client: CreateClientWithAddress("http://localhost/no/trailing/slash"),
+                    apiUrl: "/has/starting/slash");
+
+                // Verify
+                Assert.AreEqual("http://localhost/no/trailing/slash/has/starting/slash", result1.ToString());
+
+                // Test case 2: base => with slash; api => no slash
+                // Act
+                var result2 = SonarQubeServiceWrapper.CreateRequestUrl(
+                    client: CreateClientWithAddress("http://localhost/with/trailing/slash/"),
+                    apiUrl: "no/starting/slash");
+
+                // Verify
+                Assert.AreEqual("http://localhost/with/trailing/slash/no/starting/slash", result2.ToString());
+
+                // Test case 3: base => no slash; api => no slash
+                // Act
+                var result3 = SonarQubeServiceWrapper.CreateRequestUrl(
+                    client: CreateClientWithAddress("http://localhost/no/trailing/slash"),
+                    apiUrl: "no/starting/slash");
+
+                // Verify
+                Assert.AreEqual("http://localhost/no/trailing/slash/no/starting/slash", result3.ToString());
+
+                // Test case 3: base => with slash; api => with slash
+                // Act
+                var result4 = SonarQubeServiceWrapper.CreateRequestUrl(
+                    client: CreateClientWithAddress("http://localhost/with/trailing/slash/"),
+                    apiUrl: "/with/starting/slash");
+
+                // Verify
+                Assert.AreEqual("http://localhost/with/trailing/slash/with/starting/slash", result4.ToString());
+            }
+        }
+
         #endregion
 
         #region Helpers
+
+        private static HttpClient CreateClientWithAddress(string baseAddress)
+        {
+            return new HttpClient { BaseAddress = new Uri(baseAddress) };
+        }
 
         private static void ConnectToServerWithProjects(TestableSonarQubeServiceWrapper testSubject, IEnumerable<ProjectInformation> projects)
         {
@@ -702,7 +796,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class TestableSonarQubeServiceWrapper : SonarQubeServiceWrapper, IDisposable
         {
-            private bool disposedValue = false;
+            private bool isDisposed;
             private TestServer server;
             private readonly Dictionary<string, RequestHandler> uriRequestHandler = new Dictionary<string, RequestHandler>(StringComparer.OrdinalIgnoreCase);
             private readonly Dictionary<string, Action<IOwinRequest>> uriRequestValidators = new Dictionary<string, Action<IOwinRequest>>(StringComparer.OrdinalIgnoreCase);
@@ -793,7 +887,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             private void HandlePathRequest(IOwinContext context)
             {
                 RequestHandler handler;
-                if (this.uriRequestHandler.TryGetValue(context.Request.Uri.PathAndQuery, out handler))
+                if (this.uriRequestHandler.TryGetValue(context.Request.Uri.PathAndQuery.TrimStart('/'), out handler))
                 {
                     try
                     {
@@ -808,7 +902,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
                 else
                 {
-                    Debug.WriteLine("Handler not found", context.Request.Uri.PathAndQuery);
+                    Debug.WriteLine("Handler not found", context.Request.Uri.PathAndQuery.TrimStart('/'));
                     context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                 }
             }
@@ -875,9 +969,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             #region IDisposable Support
 
-            protected virtual void Dispose(bool disposing)
+            protected void Dispose(bool disposing)
             {
-                if (!disposedValue)
+                if (!isDisposed)
                 {
                     if (disposing)
                     {
@@ -885,7 +979,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                         this.server = null;
                     }
 
-                    disposedValue = true;
+                    isDisposed = true;
                 }
             }
 
