@@ -24,6 +24,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region IStateManager
         public event EventHandler<bool> IsBusyChanged;
+        public event EventHandler BindingStateChanged;
 
         public string BoundProjectKey
         {
@@ -50,6 +51,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.VerifyActiveSection();
 
             this.boundProject = null;
+
+            this.BindingStateChanged?.Invoke(this, null);
         }
 
         public void SetBoundProject(ProjectInformation project)
@@ -59,6 +62,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.VerifyActiveSection();
 
             this.boundProject = project;
+
+            this.BindingStateChanged?.Invoke(this, null);
         }
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects)
@@ -123,6 +128,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.IsBusyChanged?.Invoke(this, value);
         }
-        #endregion  
+        #endregion
     }
 }

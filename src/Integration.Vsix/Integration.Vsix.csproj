@@ -46,7 +46,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commands\CommandIds.cs" />
-    <Compile Include="SonarAnalyzerCollisionManager.cs" />
     <Compile Include="Commands\VsCommandBase.cs" />
     <Compile Include="Commands\ManageConnectionsCommand.cs" />
     <Compile Include="Commands\PackageCommandManager.cs" />
@@ -60,6 +59,7 @@
     <Compile Include="Settings\OptionsPage.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="SonarAnalyzerDeactivationManager.cs" />
     <Compile Include="Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

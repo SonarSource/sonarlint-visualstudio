@@ -300,6 +300,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             Assert.IsFalse(section.ViewModel.IsBusy);
             Assert.IsFalse(testSubject.ManagedState.IsBusy);
         }
+
+        [TestMethod]
+        public void StateManager_BindingStateChanged()
+        {
+            // Setup
+            ConfigurableHost host = new ConfigurableHost();
+            StateManager testSubject = this.CreateTestSubject(host);
+            var countOnBindingStateChangeFired = 0;
+            testSubject.BindingStateChanged += (sender, e) => countOnBindingStateChangeFired++;
+
+            testSubject.ManagedState.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz1"))));
+            testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new ProjectInformation())));
+            var allProjects = testSubject.ManagedState.ConnectedServers.SelectMany(s => s.Projects).ToList();
+
+            // Sanity
+            Assert.AreEqual(0, countOnBindingStateChangeFired);
+
+            // Act
+            testSubject.SetBoundProject(allProjects.First().ProjectInformation);
+
+            // Verify
+            Assert.AreEqual(1, countOnBindingStateChangeFired);
+
+            // Act
+            testSubject.ClearBoundProject();
+
+            // Verify
+            Assert.AreEqual(2, countOnBindingStateChangeFired);
+        }
         #endregion
 
         #region Helpers

@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private readonly IServiceProvider serviceProvider;
         private readonly CompositionContainer container;
-        
+
         public ConfigurableComponentModel(ComposablePartCatalog defaultCatalog = null)
             :this(new ConfigurableServiceProvider(), defaultCatalog)
         {

@@ -45,6 +45,8 @@ namespace SonarLint.VisualStudio.Integration.State
         #region IStateManager
         public event EventHandler<bool> IsBusyChanged;
 
+        public event EventHandler BindingStateChanged;
+
         public TransferableVisualState ManagedState
         {
             get;
@@ -96,6 +98,8 @@ namespace SonarLint.VisualStudio.Integration.State
             Debug.Assert(projectViewModel != null, "Expecting a single project mapped to project information");
             this.ManagedState.SetBoundProject(projectViewModel);
             Debug.Assert(this.HasBoundProject, "Expected to have a bound project");
+
+            this.OnBindingStateChanged();
         }
 
         public void ClearBoundProject()
@@ -103,6 +107,8 @@ namespace SonarLint.VisualStudio.Integration.State
             this.ClearBindingErrorNotifications();
             this.ManagedState.ClearBoundProject();
             Debug.Assert(!this.HasBoundProject, "Expected not to have a bound project");
+
+            this.OnBindingStateChanged();
         }
 
         public void SyncCommandFromActiveSection()
@@ -119,6 +125,11 @@ namespace SonarLint.VisualStudio.Integration.State
         private void OnIsBusyChanged(bool isBusy)
         {
             this.IsBusyChanged?.Invoke(this, isBusy);
+        }
+
+        private void OnBindingStateChanged()
+        {
+            this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void OnStatePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -178,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 return;
             }
 
-            // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject 
+            // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
             ProjectInformation boundProject = serverViewModel.Projects.FirstOrDefault(pvm => StringComparer.Ordinal.Equals(pvm.Key, this.BoundProjectKey))?.ProjectInformation;
             if (boundProject == null)
             {
@@ -292,7 +303,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 this.isDisposed = true;
             }
         }
- 
+
         public void Dispose()
         {
             Dispose(true);

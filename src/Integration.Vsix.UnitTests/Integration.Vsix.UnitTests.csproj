@@ -42,6 +42,14 @@
       <HintPath>..\..\packages\Microsoft.CodeAnalysis.Common.1.0.0\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.CodeAnalysis.Workspaces.Common.1.0.0\lib\net45\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.CodeAnalysis.Workspaces.Common.1.0.0\lib\net45\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.1.36.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Collections.Immutable.1.1.36\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
@@ -73,6 +81,7 @@
       <HintPath>..\..\packages\System.Reflection.Metadata.1.0.21\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup Label="GAC">
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -85,7 +94,9 @@
   <ItemGroup>
     <Compile Include="Commands\ManageConnectionsCommandTests.cs" />
     <Compile Include="Settings\IntegrationSettingsTests.cs" />
-    <Compile Include="SonarAnalyzerCollisionManagerTests.cs" />
+    <Compile Include="SonarAnalyzer\SonarAnalyzerDeactivationManagerForBoundTests.cs" />
+    <Compile Include="SonarAnalyzer\TestAnalyzerReference.cs" />
+    <Compile Include="SonarAnalyzer\SonarAnalyzerDeactivationManagerTests.cs" />
     <Compile Include="Telemetry\BoundSolutionAnalyzerTests.cs" />
     <Compile Include="Commands\PackageCommandManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

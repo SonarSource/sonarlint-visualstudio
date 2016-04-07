@@ -27,6 +27,11 @@ namespace SonarLint.VisualStudio.Integration.State
         /// </summary>
         event EventHandler<bool> IsBusyChanged;
 
+        /// <summary>
+        /// Event fired when the SonarQube project binding of the solution changes.
+        /// </summary>
+        event EventHandler BindingStateChanged;
+
         bool IsBusy { get; set; }
 
         bool HasBoundProject { get; }
