@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Test case 2: project is not a IVsHierarchy
             // Setup
-            this.projectSystem.GetIVsHierarchyFails = true;
+            this.projectSystem.SimulateIVsHierarchyFailure = true;
 
             // Act + Verify
             Exceptions.Expect<ArgumentException>(() => testSubject.IsAccepted(new ProjectMock("harry.proj")));
