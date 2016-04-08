@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string projectName = "project";
 
             // Sanity
-            this.testSubject.GetIVsHierarchy(new ProjectMock(projectName)); // Not associated with the solution
+            Assert.IsNull(this.testSubject.GetIVsHierarchy(new ProjectMock(projectName)), "Project not associated with the solution");
 
             ProjectMock project = this.solutionMock.AddOrGetProject(projectName);
 
