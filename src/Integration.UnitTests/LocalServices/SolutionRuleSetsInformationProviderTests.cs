@@ -38,6 +38,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Tests
         [TestMethod]
+        public void SolutionRuleSetsInformationProvider_Ctor_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null));
+        }
+
+        [TestMethod]
+        public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ArgChecks()
+        {
+            // Setup
+            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
+
+            // Act + Verify
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectRuleSetsDeclarations(null).ToArray());
+        }
+
+        [TestMethod]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationPropertyWithDefaultValue()
         {
             // Setup

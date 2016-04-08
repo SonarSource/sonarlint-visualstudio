@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Binding;
 using System;
 using System.Text.RegularExpressions;
 using System.Windows.Threading;
@@ -30,13 +29,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         #region Tests 
 
         [TestMethod]
+        public void ProjectSystemFilter_Ctor_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectSystemFilter(null));
+        }
+
+        [TestMethod]
         public void ProjectSystemFilter_IsAccepted_ArgumentChecks()
         {
             // Setup
             var testSubject = this.CreateTestSubject();
 
+            // Test case 1: null
             // Act + Verify
             Exceptions.Expect<ArgumentNullException>(() => testSubject.IsAccepted(null));
+
+            // Test case 2: project is not a IVsHierarchy
+            // Setup
+            this.projectSystem.SimulateIVsHierarchyFailure = true;
+
+            // Act + Verify
+            Exceptions.Expect<ArgumentException>(() => testSubject.IsAccepted(new ProjectMock("harry.proj")));
         }
 
         [TestMethod]
@@ -262,6 +275,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             Assert.IsFalse(result, "Should not be accepted since test project is excluded");
         }
+
+        [TestMethod]
+        public void ProjectSystemFilter_SetTestRegex_ArgCheck()
+        {
+            // Setup
+            ProjectSystemFilter testSubject = this.CreateTestSubject();
+
+            // Act + Verify
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetTestRegex(null));
+        }
+
         #endregion
 
         #region Helpers

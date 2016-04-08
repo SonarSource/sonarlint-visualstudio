@@ -77,6 +77,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var noSlashResult = new ConnectionInformation(new Uri("http://localhost/NoSlash"));
 
             // Verify
-            Assert.AreEqual("http://localhost/NoSlash/", noSlashResult.ServerUri.ToString(), "Unexpected normalisation of URI without trailing slash");        }
+            Assert.AreEqual("http://localhost/NoSlash/", noSlashResult.ServerUri.ToString(), "Unexpected normalisation of URI without trailing slash");
+        }
+
+        [TestMethod]
+        public void ConnectionInformation_Ctor_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionInformation(null));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionInformation(null, "user", "pwd".ConvertToSecureString()));
+        }
     }
 }

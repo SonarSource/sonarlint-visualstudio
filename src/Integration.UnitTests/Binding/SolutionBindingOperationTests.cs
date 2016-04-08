@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         #region Tests
         [TestMethod]
-        public void SolutionBindingOpearation_ArgChecks()
+        public void SolutionBindingOperation_ArgChecks()
         {
             var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key"));
@@ -76,7 +76,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_RegisterKnownRuleSets()
+        public void SolutionBindingOperation_RegisterKnownRuleSets_ArgChecks()
+        {
+            // Setup
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+
+            // Act + Verify
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.RegisterKnownRuleSets(null));
+        }
+
+        [TestMethod]
+        public void SolutionBindingOperation_RegisterKnownRuleSets()
         {
             // Setup
             SolutionBindingOperation testSubject = this.CreateTestSubject("key"); 
@@ -97,11 +107,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_GetRuleSetFilePath()
+        public void SolutionBindingOperation_GetRuleSetFilePath()
         {
             // Setup
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
+            // Test case 1: unknown ruleset map
+            // Act + Verify
+            using (new AssertIgnoreScope())
+            {
+                Assert.IsNull(testSubject.GetRuleSetFilePath(RuleSetGroup.CSharp));
+            }
+
+            // Test case 2: known ruleset map
+            // Setup
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
             ruleSetMap[RuleSetGroup.CSharp] = new RuleSet("cs");
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
@@ -119,7 +138,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_Initialization()
+        public void SolutionBindingOperation_Initialization_ArgChecks()
+        {
+            // Setup
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+
+            // Act + Verify
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.Initialize(null));
+        }
+
+        [TestMethod]
+        public void SolutionBindingOperation_Initialization()
         {
             // Setup
             var cs1Project = this.solutionMock.AddOrGetProject("CS1.csproj");
@@ -143,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_Prepare()
+        public void SolutionBindingOperation_Prepare()
         {
             // Setup
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
@@ -191,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_Prepare_Cancellation_DuringBindersPrepare()
+        public void SolutionBindingOperation_Prepare_Cancellation_DuringBindersPrepare()
         {
             // Setup
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
@@ -225,7 +254,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_Prepare_Cancellation_BeforeBindersPrepare()
+        public void SolutionBindingOperation_Prepare_Cancellation_BeforeBindersPrepare()
         {
             // Setup
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
@@ -260,7 +289,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOpearation_CommitSolutionBinding()
+        public void SolutionBindingOperation_CommitSolutionBinding()
         {
             // Setup
             this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBinding), this.solutionBinding);
@@ -268,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             csProject.SetCSProjectKind();
             var projects = new[] { csProject };
 
-            var connectionInformation = new Integration.Service.ConnectionInformation(new Uri("Http://xyz"));
+            var connectionInformation = new ConnectionInformation(new Uri("http://xyz"));
             SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation);
 
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
@@ -284,22 +313,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionBinding.WriteSolutionBindingAction = b =>
             {
                 Assert.AreEqual(connectionInformation.ServerUri, b.ServerUri);
-                Assert.AreEqual(connectionInformation.ServerUri, b.ServerUri);
 
                 return "Doesn't matter";
             };
 
-            // Act
-
+            // Sanity
             this.solutionBinding.AssertWriteSolutionBindingRequests(0);
-            Assert.IsTrue(testSubject.CommitSolutionBinding());
+
+            // Act
+            var commitResult = testSubject.CommitSolutionBinding();
 
             // Verify
+            Assert.IsTrue(commitResult);
             Assert.IsTrue(commitCalledForBinder);
             Assert.IsTrue(this.solutionItemsProject.Files.ContainsKey(@"c:\solution\SonarQube\keyCSharp.ruleset"), "Ruleset was expected to be added to solution items");
             this.solutionBinding.AssertWriteSolutionBindingRequests(1);
             this.solutionBinding.AssertAllPendingWritten();
         }
+
+        [TestMethod]
+        public void SolutionBindingOperation_RuleSetInformation_Ctor_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation.RuleSetInformation(RuleSetGroup.CSharp, null));
+        }
+
         #endregion
 
         #region Helpers

@@ -137,6 +137,8 @@
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />
     <Compile Include="IServiceProviderExtensionsTests.cs" />
     <Compile Include="ProfileConflicts\ConflictsManagerTests.cs" />
+    <Compile Include="ProfileConflicts\FixedRuleSetInfoTests.cs" />
+    <Compile Include="ProfileConflicts\RuleConflictInfoTests.cs" />
     <Compile Include="ProfileConflicts\RuleSetConflictsControllerTests.cs" />
     <Compile Include="ProfileConflicts\RuleSetInspectorTests.cs" />
     <Compile Include="LanguageTests.cs" />

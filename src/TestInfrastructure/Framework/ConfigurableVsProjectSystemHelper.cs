@@ -74,6 +74,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         IVsHierarchy IProjectSystemHelper.GetIVsHierarchy(Project dteProject)
         {
+            if (this.SimulateIVsHierarchyFailure)
+            {
+                return null;
+            }
+
             return dteProject as IVsHierarchy;
         }
 
@@ -90,6 +95,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public Func<Project, string, bool> IsFileInProjectAction { get; set; }
 
         public Solution2 CurrentActiveSolution { get; set; }
+
+        public bool SimulateIVsHierarchyFailure { get; set; }
 
         #endregion
     }
