@@ -125,6 +125,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         #region FindConflictingRules Tests
+
+        [TestMethod]
+        public void RuleSetInspector_FindConflictingRules_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.FindConflictingRules(null, "notnull", "notnull"));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.FindConflictingRules("notnull", null, "notnull"));
+        }
+
         [TestMethod]
         public void RuleSetInspector_FindConflictingRules_ProjectLevelOverridesOfTheSolutionRuleset()
         {
@@ -384,6 +392,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         #region FixConflictingRules Tests
+
+        [TestMethod]
+        public void RuleSetInspector_FixConflictingRules_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.FixConflictingRules(null, "notnull", "notnull"));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.FixConflictingRules("notnull", null, "notnull"));
+        }
+
         [TestMethod]
         public void RuleSetInspector_FixConflictingRules_NoConflicts()
         {
@@ -487,6 +503,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         #region Other Tests
+
+        [TestMethod]
+        public void RuleSetInspector_Ctor_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInspector(null));
+            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInspector(null, "dir"));
+        }
+
         [TestMethod]
         public void RuleSetInspector_IsBaselineWeakend()
         {

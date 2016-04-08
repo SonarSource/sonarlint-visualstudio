@@ -1,10 +1,14 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿//-----------------------------------------------------------------------
+// <copyright file="LanguageTests.cs" company="SonarSource SA and Microsoft Corporation">
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -53,6 +57,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 Assert.IsFalse(unsupportedLang.IsSupported, "Unsupported langugage should NOT be supported");
             }
+        }
+
+        [TestMethod]
+        public void Language_ForProject_KnownLanguage_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => Language.ForProject(null));
         }
 
         [TestMethod]

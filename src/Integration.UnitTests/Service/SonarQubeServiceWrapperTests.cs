@@ -48,6 +48,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Tests
 
         [TestMethod]
+        public void SonarQubeServiceWrapper_Ctor_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new SonarQubeServiceWrapper(null));
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_Connect_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new SonarQubeServiceWrapper(null));
+        }
+
+        [TestMethod]
         public void SonarQubeServiceWrapper_Connect_Disconnect()
         {
             var p1 = new ProjectInformation
@@ -249,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.IsNull(projects, "Not expecting projects");
             }
         }
-
+        
         [TestMethod]
         public void SonarQubeServiceWrapper_GetProperties()
         {
@@ -277,6 +289,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 CollectionAssert.AreEqual(expectedProperties.Select(x => x.Value).ToArray(), actualProperties.Select(x => x.Value).ToArray(), "Unexpected server property values");
                 handler.AssertHandlerCalled(1);
             }
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_GetProperties_ArgChecks()
+        {
+            // Setup
+            var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
+
+            // Sanity
+            Assert.IsNull(testSubject.CurrentConnection, "Shouldn't be connected for this test");
+
+            // Act + Verify
+            Exceptions.Expect<InvalidOperationException>(() => testSubject.GetProperties(CancellationToken.None));
         }
 
         [TestMethod]
@@ -361,14 +386,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task SonarQubeServiceWrapper_DownloadQualityProfile_ProjectWithoutAnalysis()
+        public async Task SonarQubeServiceWrapper_DownloadQualityProfile_ProjectWithoutAnalysis_MultipleLanguageProfiles_ReturnsDefault()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
                 // Setup
                 HttpClient httpClient = testSubject.CreateHttpClient();
                 string language = SonarQubeServiceWrapper.CSharpLanguage;
-                var expectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
+                var expectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language, IsDefault = true };
+                var unexpectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
+
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 ConnectToServerWithProjects(testSubject, new[] { project });
 
@@ -381,8 +408,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 );
 
                 RequestHandler forLanguageHandler = testSubject.RegisterRequestHandler(
-                    SonarQubeServiceWrapper.CreateQualityProfileUrl(SonarQubeServiceWrapper.CSharpLanguage),
-                    ctx => ServiceQualityProfiles(ctx, new[] { expectedProfile })
+                    SonarQubeServiceWrapper.CreateQualityProfileUrl(language),
+                    ctx => ServiceQualityProfiles(ctx, new[] { expectedProfile, unexpectedProfile })
                 );
 
                 // Act

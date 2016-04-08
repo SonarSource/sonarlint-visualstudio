@@ -36,6 +36,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         }
 
         #region Tests
+
+        [TestMethod]
+        public void SectionController_Ctor_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new SectionController(null, new WebBrowser()));
+            Exceptions.Expect<ArgumentNullException>(() => new SectionController(this.host, null));
+        }
+
         [TestMethod]
         public void SectionController_Initialization()
         {
@@ -54,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Case 1: first time initialization
             // Verify
             Assert.IsNotNull(testSubject.View, "Failed to get the View");
+            Assert.IsNotNull(((ISectionController)testSubject).View, "Failed to get the View as ConnectSectionView");
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
 
             // Case 2: re-initialization with connection but no projects
