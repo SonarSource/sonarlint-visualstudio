@@ -56,6 +56,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+        [TestMethod]
+        public void BindingWorkflow_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(null, new ProjectInformation()));
+            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(new ConfigurableHost(), null));
+        }
 
         [TestMethod]
         public void BindingWorkflow_DownloadQualityProfile_Success()

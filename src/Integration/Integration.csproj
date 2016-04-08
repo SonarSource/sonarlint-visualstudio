@@ -223,7 +223,7 @@
     <Compile Include="TeamExplorer\IUserNotification.cs" />
     <Compile Include="TeamExplorer\NotificationIds.cs" />
     <Compile Include="TeamExplorer\ServerViewModel.cs" />
-    <Compile Include="ProjectSystemHelper.cs" />
+    <Compile Include="LocalServices\ProjectSystemHelper.cs" />
     <Compile Include="VsShellUtils.cs" />
     <Compile Include="TeamExplorer\ProjectViewModel.cs" />
     <Compile Include="WPF\BoolToVisiblityConverter.cs" />

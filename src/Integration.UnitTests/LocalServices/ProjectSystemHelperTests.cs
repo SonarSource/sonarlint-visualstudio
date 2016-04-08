@@ -36,6 +36,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Tests
         [TestMethod]
+        public void ProjectSystemHelper_ArgCheck()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectSystemHelper(null));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetIVsHierarchy_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.GetIVsHierarchy(null));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetIVsHierarchy()
+        {
+            // Setup
+            string projectName = "project";
+
+            // Sanity
+            Assert.IsNull(this.testSubject.GetIVsHierarchy(new ProjectMock(projectName)), "Project not associated with the solution");
+
+            ProjectMock project = this.solutionMock.AddOrGetProject(projectName);
+
+            // Act
+            IVsHierarchy h = this.testSubject.GetIVsHierarchy(project);
+
+            // Verify
+            Assert.AreSame(project, h, "The test implementation of a ProjectMock is also the one for its IVsHierarcy");
+        }
+
+        [TestMethod]
         public void ProjectSystemHelper_GetSolutionProjects_ReturnsOnlyKnownLanguages()
         {
             // Setup
@@ -58,6 +88,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             CollectionAssert.AreEqual(new[] { csProject, vbProject }, actual,
                 "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_IsFileInProject_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(null, "file"));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(new ProjectMock("project"), null));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(new ProjectMock("project"), ""));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(new ProjectMock("project"), "\t\n"));
         }
 
         [TestMethod]
@@ -144,6 +183,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             CollectionAssert.AreEqual(new[] { vbProject }, actual,
                 "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_AddFileToProject_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(null, "file"));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(new ProjectMock("project"), null));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(new ProjectMock("project"), ""));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(new ProjectMock("project"), "\t\n"));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_AddFileToProject()
+        {
+            // Setup
+            ProjectMock project = this.solutionMock.AddOrGetProject("project1");
+            string fileToAdd = @"x:\myFile.txt";
+            
+            // Case 1: file not in project
+            // Act
+            this.testSubject.AddFileToProject(project, fileToAdd);
+
+            // Verify
+            Assert.IsTrue(project.Files.ContainsKey(fileToAdd));
+
+            // Case 2: file already in project
+            // Act
+            this.testSubject.AddFileToProject(project, fileToAdd);
+
+            // Verify
+            Assert.IsTrue(project.Files.ContainsKey(fileToAdd));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_IsKnownTestProject_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => ProjectSystemHelper.IsKnownTestProject(null));
         }
         #endregion
 

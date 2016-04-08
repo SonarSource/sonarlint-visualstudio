@@ -5,19 +5,27 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
+using System.ComponentModel.Design;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {
     [TestClass]
     public class SonarAnalyzerDeactivationManagerTests
     {
+
+        [TestMethod]
+        public void SonarAnalyzerDeactivationManager_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => new SonarAnalyzerDeactivationManager(null));
+            Exceptions.Expect<ArgumentNullException>(() => new SonarAnalyzerDeactivationManager(new ServiceContainer(), null));
+        }
+
         [TestMethod]
         public void SonarAnalyzerDeactivationManager_HasNoCollidingAnalyzerReference_OnEmptyList()
         {

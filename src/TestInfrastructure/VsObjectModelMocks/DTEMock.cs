@@ -16,6 +16,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public DTEMock()
         {
             this.ToolWindows = new ToolWindowsMock(this);
+            this.Commands = new CommandsMock(this);
         }
 
         #region DTE
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get
             {
-                throw new NotImplementedException();
+                return this.Commands;
             }
         }
 
@@ -761,6 +762,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         public ToolWindowsMock ToolWindows
+        {
+            get;
+            set;
+        }
+
+        public CommandsMock Commands
         {
             get;
             set;

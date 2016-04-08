@@ -178,6 +178,7 @@
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs" />
+    <Compile Include="VsObjectModelMocks\CommandsMock.cs" />
     <Compile Include="VsObjectModelMocks\ConfigurationManagerMock.cs" />
     <Compile Include="VsObjectModelMocks\ConfigurationMock.cs" />
     <Compile Include="VsObjectModelMocks\DTEMock.cs" />

@@ -41,6 +41,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(null, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker()));
             Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(this.serviceProvider, null, new ConfigurableActiveSolutionTracker()));
             Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(this.serviceProvider, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), null));
+
+            using (var host = new VsSessionHost(this.serviceProvider,
+                                                new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider),
+                                                new ConfigurableActiveSolutionTracker()))
+            {
+                Assert.IsNotNull(host, "Not expecting this to fail, just to make the static analyzer happy");
+            }
         }
 
         [TestMethod]
