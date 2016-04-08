@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration
             return GetSolutionProjects().Where(x => projectFilter.IsAccepted(x));
         }
 
-        public static Project GetProject(IVsHierarchy hierarchy)
+        private static Project GetProject(IVsHierarchy hierarchy)
         {
             if (hierarchy == null)
             {
@@ -76,16 +76,22 @@ namespace SonarLint.VisualStudio.Integration
             {
                 return project as Project;
             }
+
             return null;
         }
 
-        public IVsHierarchy GetIVsHierarchy(Project Project)
+        public IVsHierarchy GetIVsHierarchy(Project project)
         {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
             IVsHierarchy hierarchy;
-            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(Project.UniqueName, out hierarchy)))
+            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(project.UniqueName, out hierarchy)))
             {
                 return hierarchy;
             }
@@ -99,6 +105,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 throw new ArgumentNullException(nameof(project));
             }
+
             if (string.IsNullOrWhiteSpace(file))
             {
                 throw new ArgumentNullException(nameof(file));
@@ -237,7 +244,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public static IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
+        private static IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
         {
             if (hierarchy == null)
             {
@@ -264,12 +271,12 @@ namespace SonarLint.VisualStudio.Integration
 
         public static bool IsKnownTestProject(IVsHierarchy vsProject)
         {
-            return GetAggregateProjectKinds(vsProject).Contains(TestProjectKindGuid);
-        }
+            if (vsProject == null)
+            {
+                throw new ArgumentNullException(nameof(vsProject));
+            }
 
-        private static bool IsManagedProject(Project project)
-        {
-            return IsCSharpProject(project) || IsVBProject(project);
+            return GetAggregateProjectKinds(vsProject).Contains(TestProjectKindGuid);
         }
 
         public static bool IsVBProject(Project project)

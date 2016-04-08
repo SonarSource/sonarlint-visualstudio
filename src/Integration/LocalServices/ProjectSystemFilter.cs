@@ -84,6 +84,8 @@ namespace SonarLint.VisualStudio.Integration
         #region Helpers
         private static bool IsTestProject(IVsHierarchy projectHierarchy, Regex testProjectNameRegex, string projectName)
         {
+            Debug.Assert(projectHierarchy != null);
+
             IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
             Debug.Assert(propertyStorage != null);
 
