@@ -18,7 +18,7 @@ using System.Windows.Threading;
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {
     [TestClass]
-    public class SonarAnalyzerDeactivationManagerForBoundTests : IDisposable
+    public class SonarAnalyzerDeactivationManagerForBoundTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableHost host;
@@ -152,11 +152,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
                 this.testObject.GetIsBoundWithoutAnalyzer(
                     SonarAnalyzerDeactivationManager.GetProjectAnalyzerConflictStatus(references)),
                 "Bound solution with conflicting analyzer name should never return true");
-        }
-
-        public void Dispose()
-        {
-            this.testObject?.Dispose();
         }
     }
 }
