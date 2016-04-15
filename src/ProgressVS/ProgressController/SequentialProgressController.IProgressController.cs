@@ -19,9 +19,14 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Partial class implementation of <see cref="IProgressController"/>
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+   "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
+       Justification = "cancellationTokenSource is being disposed OnFinish whish is guaranteed (tested) to be called in the end",
+       Scope = "type",
+       Target = "~T:SonarLint.VisualStudio.Progress.Controller.SequentialProgressController")]
     public partial class SequentialProgressController : IProgressController
     {
-        private object locker = new object();
+        private readonly object locker = new object();
         private IEnumerable<IProgressStepOperation> progressStepOperations;
         private IProgressStepFactory stepFactory;
         private ErrorNotificationManager notificationManager;
@@ -48,14 +53,14 @@ namespace SonarLint.VisualStudio.Progress.Controller
         /// which is responsible to convert the specified <see cref="IProgressStepDefinition"/> 
         /// into executable <see cref="IProgressStepOperation"/> 
         /// </summary>
-        /// <param name="stepFactory">An instance of <see cref="IProgressStepFactory"/>. Required.</param>
+        /// <param name="factory">An instance of <see cref="IProgressStepFactory"/>. Required.</param>
         /// <param name="stepsDefinition">set of step definitions. Required.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1500:VariableNamesShouldNotMatchFieldNames", MessageId = "stepFactory", Justification = "Using this to distinguish between them")]
-        public void Initialize(IProgressStepFactory stepFactory, IEnumerable<IProgressStepDefinition> stepsDefinition)
+        public void Initialize(IProgressStepFactory factory, IEnumerable<IProgressStepDefinition> stepsDefinition)
         {
-            if (stepFactory == null)
+            if (factory == null)
             {
-                throw new ArgumentNullException(nameof(stepFactory));
+                throw new ArgumentNullException(nameof(factory));
             }
 
             if (stepsDefinition == null)
@@ -69,7 +74,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
             }
 
             this.notificationManager = new ErrorNotificationManager();
-            this.stepFactory = stepFactory;
+            this.stepFactory = factory;
             this.progressStepOperations = this.CreateStepOperations(stepsDefinition);
         }
         

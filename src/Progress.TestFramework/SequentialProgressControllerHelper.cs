@@ -90,7 +90,6 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private class RestoredUnitTestAssertException : UnitTestAssertException
         {
             public RestoredUnitTestAssertException()
-                : base()
             {
             }
 

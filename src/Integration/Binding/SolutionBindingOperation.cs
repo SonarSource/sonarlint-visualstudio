@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             binding.AssertLocalServiceIsNotNull();
 
             BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
-            binding.WriteSolutionBinding(this.sourceControlledFileSystem, new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials));
+            binding.WriteSolutionBinding(new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials));
         }
 
         private void AddFileToSolutionItems(string fullFilePath)

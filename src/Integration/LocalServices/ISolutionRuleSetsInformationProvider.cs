@@ -20,8 +20,8 @@ namespace SonarLint.VisualStudio.Integration
         IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarations(Project project);
 
         /// <summary>
-        /// For a given <paramref name="project"/> will return a calculate file path to the 
-        /// shared SonarQube RuleSet that corresponds to the <paramref name="sonarQubeProjectKey"/> (with  <paramref name="fileNameSuffix"/>). 
+        /// Will return a calculate file path to the shared SonarQube RuleSet 
+        /// that corresponds to the <paramref name="sonarQubeProjectKey"/> (with  <paramref name="fileNameSuffix"/>). 
         /// </summary>
         /// <param name="sonarQubeProjectKey">Required</param>
         /// <param name="fileNameSuffix">Required</param>

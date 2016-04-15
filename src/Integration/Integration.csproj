@@ -134,7 +134,7 @@
     <Compile Include="Binding\IBindingWorkflowExecutor.cs" />
     <Compile Include="HostedCommandControllerBase.cs" />
     <Compile Include="IHost.cs" />
-    <Compile Include="IProjectSystemHelper.cs" />
+    <Compile Include="LocalServices\IProjectSystemHelper.cs" />
     <Compile Include="IActiveSolutionTracker.cs" />
     <Compile Include="LocalServices\IProjectSystemFilter.cs" />
     <Compile Include="IServiceProviderExtensions.cs" />
@@ -294,6 +294,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="TeamExplorer\Controllers.dgml" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\SonarLint.1.7.0\analyzers\SonarLint.CSharp.dll" />

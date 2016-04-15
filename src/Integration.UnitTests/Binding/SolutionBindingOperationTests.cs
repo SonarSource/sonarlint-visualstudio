@@ -43,7 +43,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.dte = new DTEMock();
             this.serviceProvider = new ConfigurableServiceProvider();
             this.solutionMock = new SolutionMock(dte, Path.Combine(SolutionRoot, "xxx.sln"));
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane = new ConfigurableVsGeneralOutputWindowPane());
+            this.outputPane = new ConfigurableVsGeneralOutputWindowPane();
+            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.projectFilter = new ConfigurableProjectSystemFilter();
             this.solutionItemsProject = this.solutionMock.AddOrGetProject("Solution items");
@@ -318,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             };
 
             // Sanity
-            this.solutionBinding.AssertWriteSolutionBindingRequests(0);
+            this.solutionBinding.AssertWrittenFiles(0);
 
             // Act
             var commitResult = testSubject.CommitSolutionBinding();
@@ -327,8 +328,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Assert.IsTrue(commitResult);
             Assert.IsTrue(commitCalledForBinder);
             Assert.IsTrue(this.solutionItemsProject.Files.ContainsKey(@"c:\solution\SonarQube\keyCSharp.ruleset"), "Ruleset was expected to be added to solution items");
-            this.solutionBinding.AssertWriteSolutionBindingRequests(1);
-            this.solutionBinding.AssertAllPendingWritten();
+            this.solutionBinding.AssertWrittenFiles(1);
         }
 
         [TestMethod]

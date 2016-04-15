@@ -25,20 +25,27 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
 
         public SolutionBinding(IServiceProvider serviceProvider)
-            :this(serviceProvider, null, null)
+            :this(serviceProvider, new SecretStore(StoreNamespace))
         {
         }
 
-        internal /*for testing purposes*/ SolutionBinding(IServiceProvider serviceProvider, ICredentialStore credentialStore = null, IProjectSystemHelper projectSystemHelper = null)
+        internal /*for testing purposes*/ SolutionBinding(IServiceProvider serviceProvider, ICredentialStore store)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
+            if (store == null)
+            {
+                throw new ArgumentNullException(nameof(store));
+            }
+
             this.serviceProvider = serviceProvider;
-            this.credentialStore = credentialStore ?? new SecretStore(StoreNamespace);
-            this.projectSystemHelper = projectSystemHelper ?? new ProjectSystemHelper(this.serviceProvider);
+            this.credentialStore = store;
+
+            this.projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
+            this.projectSystemHelper.AssertLocalServiceIsNotNull();
         }
 
         internal ICredentialStore Store
@@ -57,17 +64,15 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return this.ReadBindingInformation(configFile);
         }
 
-        public string WriteSolutionBinding(ISourceControlledFileSystem sccFileSystem, BoundSonarQubeProject binding)
+        public string WriteSolutionBinding(BoundSonarQubeProject binding)
         {
-            if (sccFileSystem == null)
-            {
-                throw new ArgumentNullException(nameof(sccFileSystem));
-            }
-
             if (binding == null)
             {
                 throw new ArgumentNullException(nameof(binding));
             }
+
+            ISourceControlledFileSystem sccFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
+            sccFileSystem.AssertLocalServiceIsNotNull();
 
             string configFile = this.GetSonarQubeConfigurationFilePath();
             if (string.IsNullOrWhiteSpace(configFile))

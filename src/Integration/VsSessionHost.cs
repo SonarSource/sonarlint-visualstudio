@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTacker;
-        private readonly ISolutionBinding solutionBinding;
         private readonly IProgressStepRunnerWrapper progressStepRunner;
         private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
 
@@ -51,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, SonarQubeServiceWrapper sonarQubeService, IActiveSolutionTracker solutionTacker)
-            : this(serviceProvider, null, null, sonarQubeService, solutionTacker, new SolutionBinding(serviceProvider), Dispatcher.CurrentDispatcher)
+            : this(serviceProvider, null, null, sonarQubeService, solutionTacker, Dispatcher.CurrentDispatcher)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
         }
@@ -61,7 +60,6 @@ namespace SonarLint.VisualStudio.Integration
                                     IProgressStepRunnerWrapper progressStepRunner,
                                     ISonarQubeServiceWrapper sonarQubeService,
                                     IActiveSolutionTracker solutionTacker,
-                                    ISolutionBinding solutionBinding,
                                     Dispatcher uiDispatcher)
         {
             if (serviceProvider == null)
@@ -84,17 +82,11 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(uiDispatcher));
             }
 
-            if (solutionBinding == null)
-            {
-                throw new ArgumentNullException(nameof(solutionBinding));
-            }
-
             this.serviceProvider = serviceProvider;
             this.VisualStateManager = state ?? new StateManager(this, new TransferableVisualState());
             this.progressStepRunner = progressStepRunner ?? this;
             this.UIDispatcher = uiDispatcher;
             this.SonarQubeService = sonarQubeService;
-            this.solutionBinding = solutionBinding;
             this.solutionTacker = solutionTacker;
             this.solutionTacker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
 
@@ -243,10 +235,13 @@ namespace SonarLint.VisualStudio.Integration
 
         private BoundSonarQubeProject SafeReadBindingInformation()
         {
+            ISolutionBinding solutionBinding = this.GetService<ISolutionBinding>();
+            solutionBinding.AssertLocalServiceIsNotNull();
+
             BoundSonarQubeProject bound = null;
             try
             {
-                bound = this.solutionBinding.ReadSolutionBinding();
+                bound = solutionBinding.ReadSolutionBinding();
             }
             catch (Exception ex)
             {
@@ -265,7 +260,6 @@ namespace SonarLint.VisualStudio.Integration
         #region IServiceProvider
         private void RegisterLocalServices()
         {
-            // Use Lazy<object> to avoid creating instances needlessly
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
             this.localServices.Add(typeof(ISolutionBinding), new Lazy<ILocalService>(() => new SolutionBinding(this)));
@@ -275,6 +269,7 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this)));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() => new ProjectSystemFilter(this)));
 
+            // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this));
             this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
             this.localServices.Add(typeof(IFileSystem), sccFs);
@@ -293,6 +288,15 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return this.serviceProvider.GetService(type);
+        }
+
+        internal void ReplaceInternalServiceForTesting<T>(T instance)
+            where T : ILocalService
+        {
+            if (this.localServices.ContainsKey(typeof(T)))
+            {
+                this.localServices[typeof(T)] = new Lazy<ILocalService>(() => instance);
+            }
         }
         #endregion
 
