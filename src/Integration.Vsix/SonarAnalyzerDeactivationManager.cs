@@ -10,15 +10,15 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using SonarLint.Helpers;
+using SonarLint.VisualStudio.Integration.SonarAnalyzer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SonarLint.VisualStudio.Integration.SonarAnalyzer;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public class SonarAnalyzerDeactivationManager : IDisposable
+    public class SonarAnalyzerDeactivationManager
     {
         internal /*for testing purposes*/ enum ProjectAnalyzerStatus
         {
@@ -122,22 +122,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 ? ProjectAnalyzerStatus.DifferentVersion
                 : ProjectAnalyzerStatus.SameVersion;
         }
-
-        #region IDisposable
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                this.activeSolutionBoundTracker?.Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            this.Dispose(true);
-        }
-        #endregion
     }
 }
