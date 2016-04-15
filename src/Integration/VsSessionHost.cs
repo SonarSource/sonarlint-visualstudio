@@ -16,9 +16,7 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Windows.Threading;
 
@@ -26,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IHost))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class VsSessionHost : IHost, IProgressStepRunnerWrapper, IDisposable, IServiceContainer
+    internal sealed class VsSessionHost : IHost, IProgressStepRunnerWrapper, IDisposable
     {
         internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = new Type[]
         {
@@ -262,21 +260,19 @@ namespace SonarLint.VisualStudio.Integration
         #region IServiceProvider
         private void RegisterLocalServices()
         {
-            IServiceContainer container = this;
+            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this)));
+            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
+            this.localServices.Add(typeof(ISolutionBinding), new Lazy<ILocalService>(() => new SolutionBinding(this)));
+            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
+            this.localServices.Add(typeof(IConflictsManager), new Lazy<ILocalService>(() => new ConflictsManager(this)));
+            this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this)));
+            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this)));
+            this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() => new ProjectSystemFilter(this)));
 
-            container.AddService(typeof(ISolutionRuleSetsInformationProvider), (c, t) => new SolutionRuleSetsInformationProvider(this));
-            container.AddService(typeof(IRuleSetSerializer), (c, t) => new RuleSetSerializer());
-            container.AddService(typeof(ISolutionBinding), (c, t) => new SolutionBinding(this));
-            container.AddService(typeof(IProjectSystemHelper), (c, t) => new ProjectSystemHelper(this));
-            container.AddService(typeof(IConflictsManager), (c, t) => new ConflictsManager(this));
-            container.AddService(typeof(IRuleSetInspector), (c, t) => new RuleSetInspector(this));
-            container.AddService(typeof(IRuleSetConflictsController), (c, t) => new RuleSetConflictsController(this));
-            container.AddService(typeof(IProjectSystemFilter), (c, t) => new ProjectSystemFilter(this));
-
-            // Use Lazy<object> to avoid creating instances needlessly
+            // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this));
-            container.AddService(typeof(ISourceControlledFileSystem), (c, t) => sccFs.Value);
-            container.AddService(typeof(IFileSystem), (c, t) => sccFs.Value);
+            this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
+            this.localServices.Add(typeof(IFileSystem), sccFs);
 
             Debug.Assert(SupportedLocalServices.Length == this.localServices.Count, "Unexpected number of local services");
             Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");
@@ -293,64 +289,14 @@ namespace SonarLint.VisualStudio.Integration
 
             return this.serviceProvider.GetService(type);
         }
-        #endregion
 
-        #region IServiceContainer
-        void IServiceContainer.AddService(Type serviceType, object serviceInstance)
+        internal void ReplaceInternalServiceForTesting<T>(T instance)
+            where T : ILocalService
         {
-            ((IServiceContainer)this).AddService(serviceType, serviceInstance, false);
-        }
-
-        void IServiceContainer.AddService(Type serviceType, object serviceInstance, bool promote)
-        {
-            if (serviceInstance == null)
+            if (this.localServices.ContainsKey(typeof(T)))
             {
-                throw new ArgumentNullException(nameof(serviceInstance));
+                this.localServices[typeof(T)] = new Lazy<ILocalService>(() => instance);
             }
-
-            ((IServiceContainer)this).AddService(serviceType, (c,t)=> serviceInstance, promote);
-        }
-
-        void IServiceContainer.AddService(Type serviceType, ServiceCreatorCallback callback)
-        {
-            ((IServiceContainer)this).AddService(serviceType, callback, false);
-        }
-
-        void IServiceContainer.AddService(Type serviceType, ServiceCreatorCallback callback, bool promote)
-        {
-            if (serviceType == null)
-            {
-                throw new ArgumentNullException(nameof(serviceType));
-            }
-
-            if (callback == null)
-            {
-                throw new ArgumentNullException(nameof(callback));
-            }
-
-            Debug.Assert(!promote, "Not expecting to use promote these services");
-            Debug.Assert(!this.localServices.ContainsKey(serviceType), string.Format(CultureInfo.CurrentCulture, $"Service {serviceType.FullName} is already registered"));
-            Debug.Assert(typeof(ILocalService).IsAssignableFrom(serviceType), "Unexpected service registration");
-
-            this.localServices.Add(serviceType, new Lazy<ILocalService>(() => (ILocalService)callback(this, serviceType)));
-        }
-
-        void IServiceContainer.RemoveService(Type serviceType)
-        {
-            ((IServiceContainer)this).RemoveService(serviceType, false);
-        }
-
-        void IServiceContainer.RemoveService(Type serviceType, bool promote)
-        {
-            if (serviceType == null)
-            {
-                throw new ArgumentNullException(nameof(serviceType));
-            }
-
-            Debug.Assert(!promote, "Not expecting to use promote these services");
-            Debug.Assert(this.localServices.ContainsKey(serviceType), string.Format(CultureInfo.CurrentCulture, $"Service {serviceType.FullName} is not registered"));
-
-            this.localServices.Remove(serviceType);
         }
         #endregion
 

@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Runtime.InteropServices;
@@ -27,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
         "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"", 
-        Justification = "False positive. The base class exposes a Dispose override in which the disposable instances will be disposed", 
+        Justification = "By-Design. The base class exposes a Dispose override in which the disposable instances will be disposed", 
         Scope = "type", 
         Target = "~T:SonarLint.VisualStudio.Integration.Vsix.SonarLintIntegrationPackage")]
     public partial class SonarLintIntegrationPackage : Package

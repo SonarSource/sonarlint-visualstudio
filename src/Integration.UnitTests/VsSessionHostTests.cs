@@ -8,11 +8,9 @@
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
-using System.ComponentModel.Design;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
@@ -36,10 +34,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.solutionBinding = new ConfigurableSolutionBinding();
-
-            ConfigurableVsShell shell = new ConfigurableVsShell();
-            shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
-            this.serviceProvider.RegisterService(typeof(SVsShell), shell);
         }
 
         #region Tests
@@ -56,25 +50,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             {
                 Assert.IsNotNull(host, "Not expecting this to fail, just to make the static analyzer happy");
             }
-        }
-
-        [TestMethod]
-        public void VsSessionHost_IServiceController_ArgChecks()
-        {
-            // Setup
-            IServiceContainer serviceContainer = this.CreateTestSubject(null);
-
-            // Act+ Verify
-            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(null, new object()));
-            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(null, new object(), false));
-            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(typeof(ILocalService), (object)null));
-            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(typeof(ILocalService), (object)null, false));
-            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(typeof(ILocalService), (ServiceCreatorCallback)null));
-            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.AddService(typeof(ILocalService), (ServiceCreatorCallback)null, false));
-
-            // Act+ Verify
-            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.RemoveService(null));
-            Exceptions.Expect<ArgumentNullException>(() => serviceContainer.RemoveService(null, false));
         }
 
         [TestMethod]
@@ -309,10 +284,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             var testSubject = new VsSessionHost(this.serviceProvider,new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker());
+            ConfigurableVsShell shell = new ConfigurableVsShell();
+            shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
+            this.serviceProvider.RegisterService(typeof(SVsShell), shell);
 
             // Local services
             // Act + Verify
-            foreach(Type serviceType in VsSessionHost.SupportedLocalServices)
+            foreach (Type serviceType in VsSessionHost.SupportedLocalServices)
             {
                 Assert.IsNotNull(testSubject.GetService(serviceType));
             }
@@ -344,16 +322,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             this.stateManager.Host = host;
 
-            ReplaceService<ISolutionBinding>(host, this.solutionBinding);
+            host.ReplaceInternalServiceForTesting<ISolutionBinding>(this.solutionBinding);
 
             return host;
         }
 
-        private static void ReplaceService<T>(IServiceContainer container, T instance)
-        {
-            container.RemoveService(typeof(T));
-            container.AddService(typeof(T), instance);
-        }
+      
         #endregion
     }
 }

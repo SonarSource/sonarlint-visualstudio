@@ -190,12 +190,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", 
-            "S1854:Dead stores should be removed", 
-            Justification = "False positive, stream is used", 
-            Scope = "member", 
-            Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.SolutionBindingTests.SolutionBinding_ReadSolutionBinding_IOError")]
-        [TestMethod]
         public void SolutionBinding_ReadSolutionBinding_IOError()
         {
             // Setup
@@ -206,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             string output = testSubject.WriteSolutionBinding(written);
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-            using (var stream = new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.None))
+            using (new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 // Act (read)
                 BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
@@ -217,11 +211,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance",
-           "S1854:Dead stores should be removed",
-           Justification = "False positive, stream is used",
-           Scope = "member",
-           Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.SolutionBindingTests.SolutionBinding_WriteSolutionBinding_IOError")]
         [TestMethod]
         public void SolutionBinding_WriteSolutionBinding_IOError()
         {
@@ -234,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string output = testSubject.WriteSolutionBinding(written);
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
 
-            using (var stream = new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.None))
+            using (new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 // Act (write again)
                 string output2 = testSubject.WriteSolutionBinding(written);
