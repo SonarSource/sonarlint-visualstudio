@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="SolutionBindingTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SolutionBindingSerializerTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -15,7 +15,7 @@ using System.IO;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class SolutionBindingTests
+    public class SolutionBindingSerializerTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsGeneralOutputWindowPane outputPane;
@@ -49,27 +49,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBinding_ArgChecks()
+        public void SolutionBindingSerializer_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBinding(null));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBinding(this.serviceProvider, null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(this.serviceProvider, null));
         }
 
         [TestMethod]
-        public void SolutionBinding_WriteSolutionBinding_ArgChecks()
+        public void SolutionBindingSerializer_WriteSolutionBinding_ArgChecks()
         {
             // Setup
-            SolutionBinding testSubject = this.CreateTestSubject();
+            SolutionBindingSerializer testSubject = this.CreateTestSubject();
 
             // Act + Verify
             Exceptions.Expect<ArgumentNullException>(() => testSubject.WriteSolutionBinding(null));
         }
 
         [TestMethod]
-        public void SolutionBinding_WriteSolutionBinding_ReadSolutionBinding()
+        public void SolutionBindingSerializer_WriteSolutionBinding_ReadSolutionBinding()
         {
             // Setup
-            SolutionBinding testSubject = this.CreateTestSubject();
+            SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
@@ -98,10 +98,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBinding_WriteSolutionBinding_ReadSolutionBinding_OnRealStore()
+        public void SolutionBindingSerializer_WriteSolutionBinding_ReadSolutionBinding_OnRealStore()
         {
             // Setup
-            var testSubject = new SolutionBinding(this.serviceProvider);
+            var testSubject = new SolutionBindingSerializer(this.serviceProvider);
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var projectKey = "MyProject Key";
             testSubject.Store.DeleteCredentials(serverUri);
@@ -154,10 +154,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBinding_ReadSolutionBinding_InvalidData()
+        public void SolutionBindingSerializer_ReadSolutionBinding_InvalidData()
         {
             // Setup
-            SolutionBinding testSubject = this.CreateTestSubject();
+            SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
@@ -176,10 +176,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBinding_ReadSolutionBinding_NoFile()
+        public void SolutionBindingSerializer_ReadSolutionBinding_NoFile()
         {
             // Setup
-            SolutionBinding testSubject = this.CreateTestSubject();
+            SolutionBindingSerializer testSubject = this.CreateTestSubject();
 
             // Act (read)
             BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
@@ -189,11 +189,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputPane.AssertOutputStrings(0);
         }
 
-
-        public void SolutionBinding_ReadSolutionBinding_IOError()
+        [TestMethod]
+        public void SolutionBindingSerializer_ReadSolutionBinding_IOError()
         {
             // Setup
-            SolutionBinding testSubject = this.CreateTestSubject();
+            SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
@@ -212,10 +212,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBinding_WriteSolutionBinding_IOError()
+        public void SolutionBindingSerializer_WriteSolutionBinding_IOError()
         {
             // Setup
-            SolutionBinding testSubject = this.CreateTestSubject();
+            SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
@@ -236,10 +236,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBinding_WriteSolutionBinding_AddConfigFileToSolutionItemsFolder()
+        public void SolutionBindingSerializer_WriteSolutionBinding_AddConfigFileToSolutionItemsFolder()
         {
             // Setup
-            SolutionBinding testSubject = this.CreateTestSubject();
+            SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
@@ -271,9 +271,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Helpers
-        private SolutionBinding CreateTestSubject()
+        private SolutionBindingSerializer CreateTestSubject()
         {
-            return new SolutionBinding(this.serviceProvider, this.store);
+            return new SolutionBindingSerializer(this.serviceProvider, this.store);
         }
         #endregion
     }

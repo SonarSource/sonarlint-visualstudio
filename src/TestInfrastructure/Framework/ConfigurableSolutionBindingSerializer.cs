@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ConfigurableSolutionBinding.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="ConfigurableSolutionBindingSerializer.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -11,18 +11,18 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal class ConfigurableSolutionBinding : ISolutionBinding
+    internal class ConfigurableSolutionBindingSerializer : ISolutionBindingSerializer
     {
         private int writtenFiles;
 
-        #region ISolutionBinding
-        BoundSonarQubeProject ISolutionBinding.ReadSolutionBinding()
+        #region ISolutionBindingSerializer
+        BoundSonarQubeProject ISolutionBindingSerializer.ReadSolutionBinding()
         {
             this.ReadSolutionBindingAction?.Invoke();
             return this.CurrentBinding;
         }
 
-        string ISolutionBinding.WriteSolutionBinding(BoundSonarQubeProject binding)
+        string ISolutionBindingSerializer.WriteSolutionBinding(BoundSonarQubeProject binding)
         {
             Assert.IsNotNull(binding, "Required argument");
 

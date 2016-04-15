@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Directory.CreateDirectory(directory);
             }
 
-            File.WriteAllText(Path.Combine(directory, SolutionBinding.SonarQubeSolutionBindingConfigurationFileName), string.Empty);
+            File.WriteAllText(Path.Combine(directory, SolutionBindingSerializer.SonarQubeSolutionBindingConfigurationFileName), string.Empty);
         }
 
         private static void DeleteBindingInformationFile(string directory)

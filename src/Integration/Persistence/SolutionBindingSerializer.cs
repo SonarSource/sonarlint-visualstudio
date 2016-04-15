@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="SolutionBinding.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SolutionBindingSerializer.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -15,21 +15,20 @@ using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal class SolutionBinding : ISolutionBinding
+    internal class SolutionBindingSerializer : ISolutionBindingSerializer
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ICredentialStore credentialStore;
-        private readonly IProjectSystemHelper projectSystemHelper;
 
         public const string SonarQubeSolutionBindingConfigurationFileName = "SolutionBinding.sqconfig";
         public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
 
-        public SolutionBinding(IServiceProvider serviceProvider)
+        public SolutionBindingSerializer(IServiceProvider serviceProvider)
             :this(serviceProvider, new SecretStore(StoreNamespace))
         {
         }
 
-        internal /*for testing purposes*/ SolutionBinding(IServiceProvider serviceProvider, ICredentialStore store)
+        internal /*for testing purposes*/ SolutionBindingSerializer(IServiceProvider serviceProvider, ICredentialStore store)
         {
             if (serviceProvider == null)
             {
@@ -43,9 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
             this.serviceProvider = serviceProvider;
             this.credentialStore = store;
-
-            this.projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
-            this.projectSystemHelper.AssertLocalServiceIsNotNull();
         }
 
         internal ICredentialStore Store
@@ -98,14 +94,17 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid configuration file");
 
-            Project solutionItemsProject = this.projectSystemHelper.GetSolutionItemsProject();
+            var projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystemHelper.AssertLocalServiceIsNotNull();
+
+            Project solutionItemsProject = projectSystemHelper.GetSolutionItemsProject();
             if (solutionItemsProject == null)
             {
                 Debug.Fail("Could not find the solution items project");
             }
             else
             {
-                this.projectSystemHelper.AddFileToProject(solutionItemsProject, configFile);
+                projectSystemHelper.AddFileToProject(solutionItemsProject, configFile);
             }
         }
 

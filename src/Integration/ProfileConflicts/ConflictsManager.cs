@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
         private RuleSetInformation[] GetAggregatedSolutionRuleSets()
         {
-            var solutionBinding = this.serviceProvider.GetService<ISolutionBinding>();
+            var solutionBinding = this.serviceProvider.GetService<ISolutionBindingSerializer>();
             solutionBinding.AssertLocalServiceIsNotNull();
 
             BoundSonarQubeProject bindingInfo = solutionBinding.ReadSolutionBinding();

@@ -148,7 +148,7 @@
     <Compile Include="LocalServices\RuleSetDeclaration.cs" />
     <Compile Include="ProfileConflicts\RuleSetInspector.cs" />
     <Compile Include="LocalServices\SolutionRuleSetsInformationProvider.cs" />
-    <Compile Include="Persistence\ISolutionBinding.cs" />
+    <Compile Include="Persistence\ISolutionBindingSerializer.cs" />
     <Compile Include="Progress\IProgressStepRunnerWrapper.cs" />
     <Compile Include="ProfileConflicts\RuleSetConflictsController.cs" />
     <Compile Include="RuleSetHelper.cs" />
@@ -192,7 +192,7 @@
     <Compile Include="Persistence\Microsoft.Alm.Authentication\TokenType.cs" />
     <Compile Include="PathHelper.cs" />
     <Compile Include="Persistence\ICredentials.cs" />
-    <Compile Include="Persistence\SolutionBinding.cs" />
+    <Compile Include="Persistence\SolutionBindingSerializer.cs" />
     <Compile Include="Progress\IProgressControlHost.cs" />
     <Compile Include="Progress\ProgressNotificationListener.cs" />
     <Compile Include="Service\AuthenticationHeaderProvider.cs" />
@@ -300,6 +300,7 @@
     <Analyzer Include="..\..\packages\SonarLint.1.7.0\analyzers\SonarLint.CSharp.dll" />
     <Analyzer Include="..\..\packages\SonarLint.1.7.0\analyzers\SonarLint.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

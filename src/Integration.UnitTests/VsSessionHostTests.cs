@@ -22,7 +22,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
         private ConfigurableStateManager stateManager;
         private ConfigurableProgressStepRunner stepRunner;
-        private ConfigurableSolutionBinding solutionBinding;
+        private ConfigurableSolutionBindingSerializer solutionBinding;
 
         public TestContext TestContext { get; set; }
 
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.stepRunner = new ConfigurableProgressStepRunner();
-            this.solutionBinding = new ConfigurableSolutionBinding();
+            this.solutionBinding = new ConfigurableSolutionBindingSerializer();
         }
 
         #region Tests
@@ -322,12 +322,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             this.stateManager.Host = host;
 
-            host.ReplaceInternalServiceForTesting<ISolutionBinding>(this.solutionBinding);
+            host.ReplaceInternalServiceForTesting<ISolutionBindingSerializer>(this.solutionBinding);
 
             return host;
         }
 
-      
         #endregion
     }
 }

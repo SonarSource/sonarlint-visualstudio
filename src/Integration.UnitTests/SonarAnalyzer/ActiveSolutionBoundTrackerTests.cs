@@ -54,11 +54,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         public void ActiveSolutionBoundTracker_Unbound()
         {
             // Setup
-            var solutionBinding = new ConfigurableSolutionBinding
+            var solutionBinding = new ConfigurableSolutionBindingSerializer
             {
                 CurrentBinding = null
             };
-            this.serviceProvider.RegisterService(typeof(ISolutionBinding), solutionBinding);
+            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
             host.VisualStateManager.SetBoundProject(new ProjectInformation());
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
 
@@ -70,11 +70,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         public void ActiveSolutionBoundTracker_Bound()
         {
             // Setup
-            var solutionBinding = new ConfigurableSolutionBinding
+            var solutionBinding = new ConfigurableSolutionBindingSerializer
             {
                 CurrentBinding = new BoundSonarQubeProject()
             };
-            this.serviceProvider.RegisterService(typeof(ISolutionBinding), solutionBinding);
+            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
             host.VisualStateManager.SetBoundProject(new ProjectInformation());
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
 
@@ -86,11 +86,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         public void ActiveSolutionBoundTracker_Changes()
         {
             // Setup
-            var solutionBinding = new ConfigurableSolutionBinding
+            var solutionBinding = new ConfigurableSolutionBindingSerializer
             {
                 CurrentBinding = new BoundSonarQubeProject()
             };
-            this.serviceProvider.RegisterService(typeof(ISolutionBinding), solutionBinding);
+            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
 
             // Sanity

@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration
         {
                 typeof(ISolutionRuleSetsInformationProvider),
                 typeof(IRuleSetSerializer),
-                typeof(ISolutionBinding),
+                typeof(ISolutionBindingSerializer),
                 typeof(IProjectSystemHelper),
                 typeof(ISourceControlledFileSystem),
                 typeof(IFileSystem),
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private BoundSonarQubeProject SafeReadBindingInformation()
         {
-            ISolutionBinding solutionBinding = this.GetService<ISolutionBinding>();
+            ISolutionBindingSerializer solutionBinding = this.GetService<ISolutionBindingSerializer>();
             solutionBinding.AssertLocalServiceIsNotNull();
 
             BoundSonarQubeProject bound = null;
@@ -262,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
-            this.localServices.Add(typeof(ISolutionBinding), new Lazy<ILocalService>(() => new SolutionBinding(this)));
+            this.localServices.Add(typeof(ISolutionBindingSerializer), new Lazy<ILocalService>(() => new SolutionBindingSerializer(this)));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IConflictsManager), new Lazy<ILocalService>(() => new ConflictsManager(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this)));
@@ -296,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration
             if (this.localServices.ContainsKey(typeof(T)))
             {
                 this.localServices[typeof(T)] = new Lazy<ILocalService>(() => instance);
-            }
+        }
         }
         #endregion
 

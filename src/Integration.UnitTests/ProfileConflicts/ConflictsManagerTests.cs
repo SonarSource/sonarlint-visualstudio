@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsProjectSystemHelper projectHelper;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private ConfigurableFileSystem fileSystem;
-        private ConfigurableSolutionBinding solutionBinding;
+        private ConfigurableSolutionBindingSerializer solutionBinding;
         private ConfigurableRuleSetInspector inspector;
         private ConfigurableVsGeneralOutputWindowPane outputWindow;
         private DTEMock dte;
@@ -47,8 +47,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.fileSystem = new ConfigurableFileSystem();
             this.serviceProvider.RegisterService(typeof(IFileSystem), this.fileSystem);
 
-            this.solutionBinding = new ConfigurableSolutionBinding();
-            this.serviceProvider.RegisterService(typeof(ISolutionBinding), this.solutionBinding);
+            this.solutionBinding = new ConfigurableSolutionBindingSerializer();
+            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), this.solutionBinding);
 
             this.inspector = new ConfigurableRuleSetInspector();
             this.serviceProvider.RegisterService(typeof(IRuleSetInspector), this.inspector);

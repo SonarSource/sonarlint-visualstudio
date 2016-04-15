@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         private void PendBindingInformation(ConnectionInformation connInfo)
         {
-            var binding = this.serviceProvider.GetService<ISolutionBinding>();
+            var binding = this.serviceProvider.GetService<ISolutionBindingSerializer>();
             binding.AssertLocalServiceIsNotNull();
 
             BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
