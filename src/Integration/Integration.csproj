@@ -133,13 +133,13 @@
     <Compile Include="Binding\BindingWorkflow.cs" />
     <Compile Include="Binding\IBindingWorkflowExecutor.cs" />
     <Compile Include="HostedCommandControllerBase.cs" />
-    <Compile Include="IHost.cs" />
+    <Compile Include="MefServices\IHost.cs" />
     <Compile Include="LocalServices\IProjectSystemHelper.cs" />
-    <Compile Include="IActiveSolutionTracker.cs" />
+    <Compile Include="MefServices\IActiveSolutionTracker.cs" />
     <Compile Include="LocalServices\IProjectSystemFilter.cs" />
     <Compile Include="IServiceProviderExtensions.cs" />
-    <Compile Include="IIntegrationSettings.cs" />
-    <Compile Include="IWebBrowser.cs" />
+    <Compile Include="MefServices\IIntegrationSettings.cs" />
+    <Compile Include="MefServices\IWebBrowser.cs" />
     <Compile Include="LocalServices\IFileSystem.cs" />
     <Compile Include="ProfileConflicts\IRuleSetInspector.cs" />
     <Compile Include="LocalServices\ISolutionRuleSetsInformationProvider.cs" />
@@ -162,8 +162,8 @@
     <Compile Include="Service\RoslynExporter\NuGetPackageInfo.cs" />
     <Compile Include="Service\RoslynExporter\RoslynExportProfile.cs" />
     <Compile Include="Service\VersionHelper.cs" />
-    <Compile Include="SonarAnalyzer\ActiveSolutionBoundTracker.cs" />
-    <Compile Include="SonarAnalyzer\IActiveSolutionBoundTracker.cs" />
+    <Compile Include="MefServices\ActiveSolutionBoundTracker.cs" />
+    <Compile Include="MefServices\IActiveSolutionBoundTracker.cs" />
     <Compile Include="State\IStateManager.cs" />
     <Compile Include="State\StateManager.cs" />
     <Compile Include="LocalServices\SourceControlledFileSystem.cs" />
@@ -175,7 +175,7 @@
     <Compile Include="TeamExplorer\SonarQubePage.cs" />
     <Compile Include="TeamExplorer\TeamExplorerController.cs" />
     <Compile Include="TelemetryEvent.cs" />
-    <Compile Include="ITelemetryLogger.cs" />
+    <Compile Include="MefServices\ITelemetryLogger.cs" />
     <Compile Include="Persistence\BoundSonarQubeProject.cs" />
     <Compile Include="Persistence\BasicAuthCredentials.cs" />
     <Compile Include="Persistence\Microsoft.Alm.Authentication\SecretCache.cs" />
@@ -212,12 +212,12 @@
     <Compile Include="Connection\UI\ConnectionInfoDialogView.xaml.cs">
       <DependentUpon>ConnectionInfoDialogView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ActiveSolutionTracker.cs" />
+    <Compile Include="MefServices\ActiveSolutionTracker.cs" />
     <Compile Include="TeamExplorer\ISectionController.cs" />
     <Compile Include="TelemetryLoggerAccessor.cs" />
     <Compile Include="UriExtensions.cs" />
-    <Compile Include="VsSessionHost.cs" />
-    <Compile Include="WebBrowser.cs" />
+    <Compile Include="MefServices\VsSessionHost.cs" />
+    <Compile Include="MefServices\WebBrowser.cs" />
     <Compile Include="WPF\ContextualCommandsCollection.cs" />
     <Compile Include="WPF\IconViewModel.cs" />
     <Compile Include="TeamExplorer\IUserNotification.cs" />
