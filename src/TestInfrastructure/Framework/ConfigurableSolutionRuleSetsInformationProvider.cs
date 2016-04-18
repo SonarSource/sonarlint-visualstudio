@@ -9,7 +9,6 @@ using EnvDTE;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,11 +30,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return result;
         }
-
-        string ISolutionRuleSetsInformationProvider.CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, string fileNameSuffix)
+        string ISolutionRuleSetsInformationProvider.GetSolutionSonarQubeRulesFolder()
         {
-            return Path.Combine(this.SolutionRootFolder, Constants.SonarQubeManagedFolderName, sonarQubeProjectKey + fileNameSuffix + "." + Constants.RuleSetFileExtension);
+            return Path.Combine(this.SolutionRootFolder, Constants.SonarQubeManagedFolderName);
         }
+
+        string ISolutionRuleSetsInformationProvider.CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, RuleSetGroup group)
+        {
+            string fileName = $"{sonarQubeProjectKey}{group}.{Constants.RuleSetFileExtension}";
+            return Path.Combine(((ISolutionRuleSetsInformationProvider)this).GetSolutionSonarQubeRulesFolder(), fileName);
+        }
+
+        bool ISolutionRuleSetsInformationProvider.TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath)
+        {
+            fullFilePath = declaration.RuleSetPath;
+
+            return true;
+        }
+
         #endregion
 
         #region Test helpers

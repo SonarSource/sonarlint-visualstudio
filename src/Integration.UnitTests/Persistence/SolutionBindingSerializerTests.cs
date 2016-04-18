@@ -7,8 +7,8 @@
 
 using EnvDTE;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.Persistence;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Persistence;
 using System;
 using System.IO;
 
@@ -21,7 +21,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsGeneralOutputWindowPane outputPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableSourceControlledFileSystem sourceControlledFileSystem;
-
+        private ConfigurableSolutionRuleSetsInformationProvider solutionRuleSetsInfoProvider;
         private DTEMock dte;
         private ConfigurableCredentialStore store;
 
@@ -46,6 +46,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.sourceControlledFileSystem = new ConfigurableSourceControlledFileSystem();
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sourceControlledFileSystem);
+
+            this.solutionRuleSetsInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider();
+            this.solutionRuleSetsInfoProvider.SolutionRootFolder = Path.GetDirectoryName(this.dte.Solution.FilePath);
+            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.solutionRuleSetsInfoProvider);
         }
 
         [TestMethod]
@@ -189,6 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputPane.AssertOutputStrings(0);
         }
 
+
         [TestMethod]
         public void SolutionBindingSerializer_ReadSolutionBinding_IOError()
         {
@@ -209,6 +214,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.IsNull(read, "Not expecting any binding information in case of error");
                 this.outputPane.AssertOutputStrings(1);
             }
+        }
+
+        [TestMethod]
+        public void SolutionBindingSerializer_ReadSolutionBinding_OnClosedSolution()
+        {
+            // Setup
+            SolutionBindingSerializer testSubject = this.CreateTestSubject();
+            this.dte.Solution = new SolutionMock(dte, "" /*When the solution is closed the file is empty*/);
+
+            // Act (read)
+            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
+
+            // Verify
+            Assert.IsNull(read);
         }
 
         [TestMethod]

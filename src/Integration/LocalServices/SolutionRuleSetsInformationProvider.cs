@@ -58,24 +58,55 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, string fileNameSuffix)
+        public string GetSolutionSonarQubeRulesFolder()
+        {
+            var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
+            string solutionFullPath = projectSystem.GetCurrentActiveSolution()?.FullName;
+
+            // Solution closed?
+            if (string.IsNullOrWhiteSpace(solutionFullPath))
+            {
+                return null;
+            }
+
+            string solutionRoot = Path.GetDirectoryName(solutionFullPath);
+            string ruleSetDirectoryRoot = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
+
+            return ruleSetDirectoryRoot;
+        }
+
+        public string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, RuleSetGroup ruleSetGroup)
         {
             if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
             {
                 throw new ArgumentNullException(nameof(sonarQubeProjectKey));
             }
 
-            if (string.IsNullOrWhiteSpace(fileNameSuffix))
+            string ruleSetDirectoryRoot = this.GetSolutionSonarQubeRulesFolder();
+
+            if (string.IsNullOrWhiteSpace(ruleSetDirectoryRoot))
             {
-                throw new ArgumentNullException(nameof(fileNameSuffix));
+                throw new InvalidOperationException(Strings.SolutionIsClosed);
             }
 
-            var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
-            string solutionFullPath = projectSystem.GetCurrentActiveSolution().FullName;
-
-            string solutionRoot = Path.GetDirectoryName(solutionFullPath);
-            string ruleSetDirectoryRoot = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
+            string fileNameSuffix = ruleSetGroup.ToString();
             return GenerateSolutionRuleSetPath(ruleSetDirectoryRoot, sonarQubeProjectKey, fileNameSuffix);
+        }
+
+        public bool TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath)
+        {
+            List<string> options = new List<string>();
+            options.Add(declaration.RuleSetPath); // Might be a full path
+            options.Add(PathHelper.ResolveRelativePath(declaration.RuleSetPath, project.FullName)); // Relative to project
+            // Note: currently we don't search in rule set directories since we expect the project rule set 
+            // to be relative to the project. We can add this in the future if it will be needed.
+
+            IFileSystem fileSystem = this.serviceProvider.GetService<IFileSystem>();
+            fileSystem.AssertLocalServiceIsNotNull();
+
+            fullFilePath = options.FirstOrDefault(fileSystem.FileExist);
+
+            return !string.IsNullOrWhiteSpace(fullFilePath);
         }
 
         private static Configuration TryGetPropertyConfiguration(Property property)

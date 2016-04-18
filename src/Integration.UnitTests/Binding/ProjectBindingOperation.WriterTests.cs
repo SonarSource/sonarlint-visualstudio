@@ -20,45 +20,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         #region Tests
 
         [TestMethod]
-        public void ProjectBindingOperation_SafeLoadRuleSet()
-        {
-            // Setup
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
-
-            // Test case 1: load existing, well formed rule set
-            const string goodRuleSetPath = @"X:\good.ruleset";
-            RuleSet goodRuleSet = TestRuleSetHelper.CreateTestRuleSet(numRules: 3);
-            this.ruleSetFS.RegisterRuleSet(goodRuleSet, goodRuleSetPath);
-
-            // Act
-            RuleSet loadedGood = testSubject.SafeLoadRuleSet(goodRuleSetPath);
-
-            // Verify
-            Assert.IsNotNull(loadedGood, "Expected existing well formed ruleset to be loaded");
-            RuleSetAssert.AreEqual(goodRuleSet, loadedGood);
-
-            // Test case 2: load existing, badly formed rule set (empty)
-            const string badRuleSetPath = @"X:\bad.ruleset";
-            this.ruleSetFS.RegisterRuleSet(null, badRuleSetPath);
-
-            // Act
-            RuleSet loadedBad = testSubject.SafeLoadRuleSet(badRuleSetPath);
-
-            // Verify
-            Assert.IsNull(loadedBad, "Expected no ruleset to be loaded");
-
-
-            // Test case 3: load non-existent rule set
-            const string doesNotExistRuleSetPath = @"X:\doesnotexist.ruleset";
-
-            // Act
-            RuleSet loadedNotExists = testSubject.SafeLoadRuleSet(doesNotExistRuleSetPath);
-
-            // Verify
-            Assert.IsNull(loadedNotExists, "Expected no ruleset to be loaded");
-        }
-
-        [TestMethod]
         public void ProjectBindingOperation_GenerateNewProjectRuleSetPath_FileNameHasDot_AppendsExtension()
         {
             // Setup

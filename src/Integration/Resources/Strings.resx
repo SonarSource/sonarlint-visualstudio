@@ -544,4 +544,7 @@ This is the general format to use when writing errors to output window or when t
     <comment>output window message. 
 {0} - rule set file path </comment>
   </data>
+  <data name="SolutionIsClosed" xml:space="preserve">
+    <value>The operation requires an open solution.</value>
+  </data>
 </root>

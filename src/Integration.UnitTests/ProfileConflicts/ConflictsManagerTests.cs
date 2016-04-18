@@ -269,8 +269,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ISolutionRuleSetsInformationProvider rsInfoProvider = this.ruleSetInfoProvider;
             foreach (var project in this.projectHelper.FilteredProjects)
             {
-                string suffix = SolutionBindingOperation.GetProjectRuleSetSuffix(ProjectBindingOperation.GetProjectGroup(project));
-                string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(this.solutionBinding.CurrentBinding.ProjectKey, suffix);
+                string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
+                    this.solutionBinding.CurrentBinding.ProjectKey, 
+                    ProjectBindingOperation.GetProjectGroup(project));
                 this.fileSystem.RegisterFile(solutionRuleSet);
             }
         }

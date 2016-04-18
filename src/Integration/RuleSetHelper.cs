@@ -43,6 +43,25 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         /// <summary>
+        /// Find all the <see cref="RuleSetInclude"/>, for a <paramref name="ruleSet"/>, 
+        /// which are referencing rule sets under <paramref name="rootDirectory"/>
+        /// </summary>
+        public static IEnumerable<RuleSetInclude> FindAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)
+        {
+            Debug.Assert(ruleSet != null);
+            Debug.Assert(!string.IsNullOrWhiteSpace(rootDirectory));
+
+
+            string ruleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(ruleSet.FilePath));
+
+            return ruleSet.RuleSetIncludes.Where(include =>
+                                            {
+                                                string fullIncludePath = PathHelper.ResolveRelativePath(include.FilePath, ruleSetRoot);
+                                                return PathHelper.IsPathRootedUnderRoot(fullIncludePath, rootDirectory);
+                                            });
+        }
+
+        /// <summary>
         /// Remove all rule set inclusions which exist under the specified root directory.
         /// </summary>
         internal /* testing purposes */ static void RemoveAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)
@@ -50,16 +69,8 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(ruleSet != null, "RuleSet expected");
             Debug.Assert(!string.IsNullOrWhiteSpace(rootDirectory), "Root directory expected");
 
-            string ruleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(ruleSet.FilePath));
-
-            // List<T> required as RuleSetIncludes will be modified
-            List<RuleSetInclude> toRemove = ruleSet.RuleSetIncludes
-                                            .Where(include =>
-                                            {
-                                                string fullIncludePath = PathHelper.ResolveRelativePath(include.FilePath, ruleSetRoot);
-                                                return PathHelper.IsPathRootedUnderRoot(fullIncludePath, rootDirectory);
-                                            })
-                                            .ToList();
+            // ToList, since will be removing items and changing the collection
+            List<RuleSetInclude> toRemove = FindAllIncludesUnderRoot(ruleSet, rootDirectory).ToList();
             toRemove.ForEach(x => ruleSet.RuleSetIncludes.Remove(x));
         }
     }
