@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration
         public string GetSolutionSonarQubeRulesFolder()
         {
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
-            string solutionFullPath = projectSystem.GetCurrentActiveSolution().FullName;
+            string solutionFullPath = projectSystem.GetCurrentActiveSolution()?.FullName;
 
             // Solution closed?
             if (string.IsNullOrWhiteSpace(solutionFullPath))
