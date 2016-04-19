@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.IO;
 using System.Linq;
 
@@ -15,6 +16,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class RuleSetHelperTests
     {
+        #region Tests
         [TestMethod]
         public void RuleSetHelper_RemoveAllIncludesUnderRoot()
         {
@@ -112,6 +114,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             RuleSetAssert.AreEqual(expectedRuleSet, existingProjectRuleSet, "Update should delete previous solution rulesets, and replace them with a new one provide");
         }
+
+        [TestMethod]
+        public void RuleSetHelper_FindInclude_ArgChecks()
+        {
+            RuleSet rs = new RuleSet("Name", @"c:\path.ruleset");
+
+            Exceptions.Expect<ArgumentNullException>(() => RuleSetHelper.FindInclude(null, rs));
+            Exceptions.Expect<ArgumentNullException>(() => RuleSetHelper.FindInclude(rs, null));
+        }
+
+        [TestMethod]
+        public void RuleSetHelper_FindInclude()
+        {
+            // Setup
+            RuleSet target = TestRuleSetHelper.CreateTestRuleSet(@"c:\Solution\SomeFolder\fullFilePath.ruleset");
+            RuleSet sourceWithRelativeInclude = TestRuleSetHelper.CreateTestRuleSet(@"c:\fullFilePath.ruleset");
+            string relativeInclude = @"Solution\SomeFolder\fullFilePath.ruleset".ToLowerInvariant(); // Catch casing errors
+            sourceWithRelativeInclude.RuleSetIncludes.Add(new RuleSetInclude(relativeInclude, RuleAction.Error));
+            RuleSet sourceWithAbsoluteInclude = TestRuleSetHelper.CreateTestRuleSet(@"c:\fullFilePath.ruleset");
+            string absoluteInclude = target.FilePath.ToUpperInvariant(); // Catch casing errors
+            sourceWithAbsoluteInclude.RuleSetIncludes.Add(new RuleSetInclude(absoluteInclude, RuleAction.Warning));
+            RuleSetInclude include;
+
+            // Case 1: Relative include
+            // Act
+            include = RuleSetHelper.FindInclude(sourceWithRelativeInclude, target);
+
+            // Verify
+            Assert.IsTrue(StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, relativeInclude), $"Unexpected include {include.FilePath} instead of {relativeInclude}");
+
+            // Case 2: Absolute include
+            // Act
+            include = RuleSetHelper.FindInclude(sourceWithAbsoluteInclude, target);
+
+            // Verify
+            Assert.IsTrue(StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, absoluteInclude), $"Unexpected include {include.FilePath} instead of {absoluteInclude}");
+
+            // Case 3: No includes at all
+            // Act
+            include = RuleSetHelper.FindInclude(target, target);
+            // Verify
+            Assert.IsNull(include, "No includes at all");
+
+            // Case 4: No includes from source to target
+            // Act
+            include = RuleSetHelper.FindInclude(sourceWithRelativeInclude, sourceWithAbsoluteInclude);
+            // Verify
+            Assert.IsNull(include, "No includes from source to target");
+        }
+        #endregion
 
         #region Helpers
 

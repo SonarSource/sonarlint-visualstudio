@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public static bool IsSolutionExistsAndNotBuildingAndNotDebugging(Action onChange = null)
+        public static bool IsSolutionExistsAndNotBuildingAndNotDebugging()
         {
             Debug.Assert(KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext != null, "KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebugging is null");
             if (KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext != null)
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration
             return false;
         }
 
-        public static bool IsSolutionExistsAndFullyLoaded(Action onChange = null)
+        public static bool IsSolutionExistsAndFullyLoaded()
         {
             Debug.Assert(KnownUIContexts.SolutionExistsAndFullyLoadedContext != null, "KnownUIContexts.SolutionExistsAndFullyLoadedContext is null");
             if (KnownUIContexts.SolutionExistsAndFullyLoadedContext != null)

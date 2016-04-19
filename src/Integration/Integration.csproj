@@ -112,6 +112,8 @@
   <ItemGroup>
     <Compile Include="Binding\BindingController.cs" />
     <Compile Include="Binding\IBindingOperation.cs" />
+    <Compile Include="LocalServices\ISolutionBindingInformationProvider.cs" />
+    <Compile Include="LocalServices\SolutionBindingInformationProvider.cs" />
     <Compile Include="MefServices\IInfoBar.cs" />
     <Compile Include="MefServices\IInfoBarManager.cs" />
     <Compile Include="ProfileConflicts\FixedRuleSetInfo.cs" />
