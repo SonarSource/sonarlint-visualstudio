@@ -27,13 +27,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Progress.TestFramework", "P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Progress.UnitTests", "Progress.UnitTests\Progress.UnitTests.csproj", "{33315FCB-3D07-4177-944E-AA45CC3C5539}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A4C88C9A-7C47-47FE-8AB6-8D7588D05EF1}"
-	ProjectSection(SolutionItems) = preProject
-		AssemblyInfo.Shared.cs = AssemblyInfo.Shared.cs
-		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
-		SonarQube\sonarlint-visualstudioCSharp.ruleset = SonarQube\sonarlint-visualstudioCSharp.ruleset
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
