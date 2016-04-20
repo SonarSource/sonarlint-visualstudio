@@ -30,11 +30,12 @@ namespace SonarLint.VisualStudio.Integration.Service
     [Export(typeof(SonarQubeServiceWrapper)), PartCreationPolicy(CreationPolicy.Shared)]
     internal class SonarQubeServiceWrapper : ISonarQubeServiceWrapper
     {
-        public const string ProjectsAPI               = "api/projects/index";                 // Since 2.10
-        public const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins"; // Since 2.10; internal
-        public const string QualityProfileListAPI     = "api/profiles/list";                  // Since 3.3; deprecated in 5.2
-        public const string QualityProfileExportAPI   = "profiles/export";                    // Since ???; internal
-        public const string PropertiesAPI             = "api/properties/";                    // Since 2.6
+        public const string ProjectsAPI                = "api/projects/index";                 // Since 2.10
+        public const string ServerPluginsInstalledAPI  = "api/updatecenter/installed_plugins"; // Since 2.10; internal
+        public const string QualityProfileListAPI      = "api/profiles/list";                  // Since 3.3; deprecated in 5.2
+        public const string QualityProfileExportAPI    = "profiles/export";                    // Since ???; internal
+        public const string PropertiesAPI              = "api/properties/";                    // Since 2.6
+        public const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog";      // Since 5.2
 
         public const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
 
@@ -98,12 +99,36 @@ namespace SonarLint.VisualStudio.Integration.Service
             return properties != null;
         }
 
-
-        public bool TryGetExportProfile(ConnectionInformation connectionInformation, ProjectInformation project, string language, CancellationToken token, out RoslynExportProfile profile)
+        public bool TryGetExportProfile(ConnectionInformation connectionInformation, QualityProfile profile, string language, CancellationToken token, out RoslynExportProfile export)
         {
             if (connectionInformation == null)
             {
                 throw new ArgumentNullException(nameof(connectionInformation));
+            }
+
+            if (profile == null)
+            {
+                throw new ArgumentNullException(nameof(profile));
+            }
+
+
+            if (!SupportedLanguages.Contains(language))
+            {
+                throw new ArgumentOutOfRangeException(nameof(language));
+            }
+
+            export = this.SafeUseHttpClient<RoslynExportProfile>(connectionInformation,
+                client => DownloadQualityProfileExport(client, profile, language, token));
+
+            return export != null;
+        }
+
+
+        public bool TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out QualityProfile profile)
+        {
+            if (serverConnection == null)
+            {
+                throw new ArgumentNullException(nameof(serverConnection));
             }
 
             if (project == null)
@@ -117,8 +142,23 @@ namespace SonarLint.VisualStudio.Integration.Service
             }
 
 
-            profile = this.SafeUseHttpClient<RoslynExportProfile>(connectionInformation,
-                client => this.DownloadExportForProject(client, project, language, token));
+            profile = this.SafeUseHttpClient<QualityProfile>(serverConnection,
+                async client =>
+                {
+                    QualityProfile qp = await DownloadQualityProfile(client, project, language, token);
+                    if (qp == null)
+                    {
+                        return null;
+                    }
+
+                    QualityProfileChangeLog changeLog = await DownloadQualityProfileChangeLog(client, qp, token);
+                    if (changeLog != null)
+                    {
+                        qp.QualityProfileTimestamp = changeLog.Events.SingleOrDefault()?.Date;
+                    }
+
+                    return qp;
+                });
 
             return profile != null;
         }
@@ -222,19 +262,8 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         internal /*for testing purposes*/ static string CreateQualityProfileExportUrl(QualityProfile profile, string language, string exporter)
         {
+            // TODO: why name and not key? why language is needed at all, profiles are per language
             return AppendQueryString(QualityProfileExportAPI, "?name={0}&language={1}&format={2}", profile.Name, language, exporter);
-        }
-
-        private async Task<RoslynExportProfile> DownloadExportForProject(HttpClient client, ProjectInformation project, string language, CancellationToken token)
-        {
-            RoslynExportProfile export = null;
-            var profile = await DownloadQualityProfile(client, project, language, token);
-            if (profile != null)
-            {
-                export = await DownloadQualityProfileExport(client, profile, language, token);
-            }
-
-            return export;
         }
 
         private static async Task<RoslynExportProfile> DownloadQualityProfileExport(HttpClient client, QualityProfile profile, string language, CancellationToken token)
@@ -260,6 +289,22 @@ namespace SonarLint.VisualStudio.Integration.Service
             return await ProcessJsonResponse<ServerProperty[]>(response, token);
         }
 
+        #endregion
+
+        #region Quality profile change log
+        internal /*for testing purposes*/ static string CreateQualityProfileChangeLogUrl(QualityProfile profile)
+        {
+            // Results are in descending order, so setting the page size to 1 will improve perf
+            return AppendQueryString(QualityProfileChangeLogAPI, "?profileKey={0}&ps=1", profile.Key);
+        }
+
+        private static async Task<QualityProfileChangeLog> DownloadQualityProfileChangeLog(HttpClient client, QualityProfile profile, CancellationToken token)
+        {
+            string api = CreateQualityProfileChangeLogUrl(profile);
+            HttpResponseMessage response = await InvokeGetRequest(client, api, token);
+
+            return await ProcessJsonResponse<QualityProfileChangeLog>(response, token);
+        }
         #endregion
 
         #region Helpers

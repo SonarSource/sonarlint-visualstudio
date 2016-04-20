@@ -30,9 +30,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public ISet<ServerProperty> ServerProperties { get; } = new HashSet<ServerProperty>();
 
         /// <summary>
-        /// Language to rules map
+        /// QualityProfile to export map
         /// </summary>
-        public Dictionary<string, RoslynExportProfile> ReturnExport { get; } = new Dictionary<string, RoslynExportProfile>();
+        public Dictionary<QualityProfile, RoslynExportProfile> ReturnExport { get; } = new Dictionary<QualityProfile, RoslynExportProfile>();
+
+        /// Language to quality profile map
+        /// </summary>
+        public Dictionary<string, QualityProfile> ReturnProfile { get; } = new Dictionary<string, QualityProfile>();
 
         public Action GetExportAction { get; set; }
 
@@ -115,18 +119,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        bool ISonarQubeServiceWrapper.TryGetExportProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out RoslynExportProfile profile)
+        bool ISonarQubeServiceWrapper.TryGetExportProfile(ConnectionInformation serverConnection, QualityProfile profile, string language, CancellationToken token, out RoslynExportProfile export)
         {
             this.AssertExpectedConnection(serverConnection);
 
-            Assert.IsNotNull(project, "ProjectInformation is expected");
+            Assert.IsNotNull(profile, "QualityProfile is expected");
 
             this.GetExportAction?.Invoke();
 
-            profile = null;
-            this.ReturnExport?.TryGetValue(language, out profile);
+            export = null;
+            this.ReturnExport.TryGetValue(profile, out export);
 
-            return profile != null;
+            QualityProfile profile2;
+            this.ReturnProfile.TryGetValue(language, out profile2);
+            Assert.AreSame(profile2, profile, "Unexpected profile for language");
+
+            return export != null;
         }
 
         bool ISonarQubeServiceWrapper.TryGetPlugins(ConnectionInformation serverConnection, CancellationToken token, out ServerPlugin[] plugins)
@@ -159,6 +167,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return url;
             }
             return null;
+        }
+
+        bool ISonarQubeServiceWrapper.TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out QualityProfile profile)
+        {
+            this.AssertExpectedConnection(serverConnection);
+
+            Assert.IsNotNull(project, "ProjectInformation is expected");
+
+            profile = null;
+            this.ReturnProfile.TryGetValue(language, out profile);
+
+            return profile != null;
         }
 
         #endregion

@@ -119,6 +119,7 @@
     <Compile Include="MefServices\IProjectPropertyManager.cs" />
     <Compile Include="MefServices\IInfoBar.cs" />
     <Compile Include="MefServices\IInfoBarManager.cs" />
+    <Compile Include="Persistence\ApplicableQualityProfile.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectExtensions.cs" />
     <Compile Include="ProfileConflicts\FixedRuleSetInfo.cs" />
     <Compile Include="LocalServices\ILocalService.cs" />
@@ -163,6 +164,8 @@
     <Compile Include="RuleSetHelper.cs" />
     <Compile Include="Language.cs" />
     <Compile Include="LocalServices\ProjectSystemFilter.cs" />
+    <Compile Include="Service\DataModel\QualityProfileChangeLog.cs" />
+    <Compile Include="Service\DataModel\QualityProfileChangeLogEvent.cs" />
     <Compile Include="Service\DataModel\ServerPlugin.cs" />
     <Compile Include="Service\DataModel\ServerProperty.cs" />
     <Compile Include="Service\RoslynExporter\AdditionalFile.cs" />

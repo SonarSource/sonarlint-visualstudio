@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -27,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
         private readonly Dictionary<RuleSetGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<RuleSetGroup, RuleSetInformation>();
+        private readonly Dictionary<RuleSetGroup, QualityProfile> qualityProfileMap = new Dictionary<RuleSetGroup, QualityProfile>();
         private readonly ConnectionInformation connection;
         private readonly string sonarQubeProjectKey;
 
@@ -114,14 +116,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Public API
-        public void Initialize(IEnumerable<Project> projects)
+        public void Initialize(IEnumerable<Project> projects, Dictionary<RuleSetGroup, QualityProfile> profilesMap)
         {
             if (projects == null)
             {
                 throw new ArgumentNullException(nameof(projects));
             }
 
+            if (profilesMap == null)
+            {
+                throw new ArgumentNullException(nameof(profilesMap));
+            }
+
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
+
+            profilesMap.ToList().ForEach(kv => qualityProfileMap.Add(kv.Key, kv.Value));
 
             foreach (Project project in projects)
             {
@@ -209,7 +218,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
             binding.AssertLocalServiceIsNotNull();
 
             BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
-            binding.WriteSolutionBinding(new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials));
+
+            Dictionary<RuleSetGroup, ApplicableQualityProfile> map = new Dictionary<RuleSetGroup, ApplicableQualityProfile>();
+
+            foreach(var keyValue in this.qualityProfileMap)
+            {
+                map[keyValue.Key] = new ApplicableQualityProfile
+                {
+                    ProfileKey = keyValue.Value.Key,
+                    ProfileTimestamp = keyValue.Value.QualityProfileTimestamp
+                };
+            }
+
+            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials);
+            bound.Profiles = map;
+
+            binding.WriteSolutionBinding(bound);
         }
 
         private void AddFileToSolutionItems(string fullFilePath)

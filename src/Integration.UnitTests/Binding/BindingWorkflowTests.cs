@@ -85,13 +85,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.CSharp;
-            this.ConfigureProfileExport(testSubject, export, language, RuleSetGroup.VB);
+            QualityProfile profile = this.ConfigureProfileExport(testSubject, export, language, RuleSetGroup.VB);
 
             // Act
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
             // Verify
             RuleSetAssert.AreEqual(ruleSet, testSubject.Rulesets[RuleSetGroup.VB], "Unexpected rule set");
+            Assert.AreSame(profile, testSubject.QualityProfiles[RuleSetGroup.VB]);
             VerifyNuGetPackgesDownloaded(nugetPackages, testSubject);
             this.outputWindowPane.AssertOutputStrings(0);
             controller.AssertNumberOfAbortRequests(0);
@@ -433,10 +434,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return packageInstaller;
         }
 
-        private void ConfigureProfileExport(BindingWorkflow testSubject, RoslynExportProfile export, Language language, RuleSetGroup group)
+        private QualityProfile ConfigureProfileExport(BindingWorkflow testSubject, RoslynExportProfile export, Language language, RuleSetGroup group)
         {
-            this.sonarQubeService.ReturnExport[language.ServerKey] = export;
+            var profile = new QualityProfile { Language = language.ServerKey };
+            this.sonarQubeService.ReturnProfile[language.ServerKey] = profile;
+            this.sonarQubeService.ReturnExport[profile] = export;
             testSubject.LanguageToGroupMapping[language] = group;
+
+            return profile;
         }
 
         private static void VerifyNuGetPackgesDownloaded(IEnumerable<PackageName> expectedPackages, BindingWorkflow testSubject)

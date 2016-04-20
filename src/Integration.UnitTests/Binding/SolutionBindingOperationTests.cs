@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -127,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize(new ProjectMock[0]);
+            testSubject.Initialize(new ProjectMock[0], GetQualityProfiles());
             testSubject.Prepare(CancellationToken.None);
 
             // Act
@@ -145,7 +146,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
             // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.Initialize(null));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.Initialize(null, GetQualityProfiles()));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.Initialize(new Project[0], null));
         }
 
         [TestMethod]
@@ -165,7 +167,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Assert.AreEqual(0, testSubject.Binders.Count, "Not expecting any project binders");
 
             // Act
-            testSubject.Initialize(projects);
+            testSubject.Initialize(projects, GetQualityProfiles());
 
             // Verify
             Assert.AreEqual(@"c:\solution\xxx.sln", testSubject.SolutionFullPath);
@@ -189,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize(projects);
+            testSubject.Initialize(projects, GetQualityProfiles());
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             var binder = new ConfigurableBindingOperation();
             testSubject.Binders.Add(binder);
@@ -236,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize(projects);
+            testSubject.Initialize(projects, GetQualityProfiles());
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool prepareCalledForBinder = false;
             using (CancellationTokenSource src = new CancellationTokenSource())
@@ -271,7 +273,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize(projects);
+            testSubject.Initialize(projects, GetQualityProfiles());
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool prepareCalledForBinder = false;
             using (CancellationTokenSource src = new CancellationTokenSource())
@@ -303,17 +305,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var ruleSetMap = new Dictionary<RuleSetGroup, RuleSet>();
             ruleSetMap[RuleSetGroup.CSharp] = new RuleSet("cs");
-            ruleSetMap[RuleSetGroup.VB] = new RuleSet("vb");
-
             testSubject.RegisterKnownRuleSets(ruleSetMap);
-            testSubject.Initialize(projects);
+            var profiles = GetQualityProfiles();
+            profiles[RuleSetGroup.CSharp] = new QualityProfile { Key = "C# Profile", QualityProfileTimestamp = DateTime.Now };
+            testSubject.Initialize(projects, profiles);
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool commitCalledForBinder = false;
             testSubject.Binders.Add(new ConfigurableBindingOperation { CommitAction = () => commitCalledForBinder = true });
             testSubject.Prepare(CancellationToken.None);
-            this.solutionBinding.WriteSolutionBindingAction = b =>
+            this.solutionBinding.WriteSolutionBindingAction = bindingInfo =>
             {
-                Assert.AreEqual(connectionInformation.ServerUri, b.ServerUri);
+                Assert.AreEqual(connectionInformation.ServerUri, bindingInfo.ServerUri);
+                Assert.AreEqual(1, bindingInfo.Profiles.Count);
+
+                QualityProfile csProfile = profiles[RuleSetGroup.CSharp];
+                Assert.AreEqual(csProfile.Key, bindingInfo.Profiles[RuleSetGroup.CSharp].ProfileKey);
+                Assert.AreEqual(csProfile.QualityProfileTimestamp, bindingInfo.Profiles[RuleSetGroup.CSharp].ProfileTimestamp);
 
                 return "Doesn't matter";
             };
@@ -345,6 +352,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return new SolutionBindingOperation(this.serviceProvider,
                 connection ?? new ConnectionInformation(new Uri("http://host")),
                 projectKey);
+        }
+
+        private static Dictionary<RuleSetGroup, QualityProfile> GetQualityProfiles()
+        {
+            return new Dictionary<RuleSetGroup, QualityProfile>();
         }
         #endregion
     }

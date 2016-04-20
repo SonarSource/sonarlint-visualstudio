@@ -91,6 +91,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new Dictionary<RuleSetGroup, string>();
 
+        public Dictionary<RuleSetGroup, QualityProfile> QualityProfiles
+        {
+            get;
+        } = new Dictionary<RuleSetGroup, QualityProfile>();
+
         internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
         {
             get;
@@ -207,8 +212,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             foreach (var language in languages)
             {
                 notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language.Name));
+
+                QualityProfile qualityProfileInfo;
+                if (!host.SonarQubeService.TryGetQualityProfile(this.connectionInformation, this.project, language.ServerKey, cancellationToken, out qualityProfileInfo))
+                {
+                    failed = true;
+                    break;
+                }
+                this.QualityProfiles[this.LanguageToGroup(language)] = qualityProfileInfo;
+
                 RoslynExportProfile export;
-                if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, this.project, language.ServerKey, cancellationToken, out export))
+                if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, qualityProfileInfo, language.ServerKey, cancellationToken, out export))
                 {
                     failed = true;
                     break;
@@ -253,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage, double.NaN);
 
             this.solutionBindingOperation.RegisterKnownRuleSets(this.Rulesets);
-            this.solutionBindingOperation.Initialize(this.BindingProjects);
+            this.solutionBindingOperation.Initialize(this.BindingProjects, this.QualityProfiles);
         }
 
         private void PrepareSolutionBinding(CancellationToken token)
