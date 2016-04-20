@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -59,6 +60,31 @@ namespace SonarLint.VisualStudio.Integration
                                                 string fullIncludePath = PathHelper.ResolveRelativePath(include.FilePath, ruleSetRoot);
                                                 return PathHelper.IsPathRootedUnderRoot(fullIncludePath, rootDirectory);
                                             });
+        }
+
+        /// <summary>
+        /// Return a non-nested include from source to target
+        /// </summary>
+        /// <param name="source">Required</param>
+        /// <param name="target">Required</param>
+        /// <returns><see cref="RuleSetInclude"/> or null if not found</returns>
+        public static RuleSetInclude FindInclude(RuleSet source, RuleSet target)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+
+            string relativeTargetFilePath = PathHelper.CalculateRelativePath(source.FilePath, target.FilePath);
+
+            return source.RuleSetIncludes.SingleOrDefault(i =>
+                StringComparer.OrdinalIgnoreCase.Equals(i.FilePath, relativeTargetFilePath)
+                || StringComparer.OrdinalIgnoreCase.Equals(i.FilePath, target.FilePath));
         }
 
         /// <summary>

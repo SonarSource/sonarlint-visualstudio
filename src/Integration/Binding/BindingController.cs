@@ -53,7 +53,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region Commands
         public RelayCommand<ProjectViewModel> BindCommand { get; }
 
-
         internal /*for testing purposes*/ bool IsBindingInProgress
         {
             get
