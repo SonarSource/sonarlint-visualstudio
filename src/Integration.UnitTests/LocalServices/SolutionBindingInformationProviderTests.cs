@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_ProjectRuleSetncludsSolutionRuleSet()
+        public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_ProjectRuleSetIncludesSolutionRuleSet()
         {
             // Setup
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_ProjectRuleSetncludsSolutionRuleSet_RuleSetAggregation()
+        public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_ProjectRuleSetIncludesSolutionRuleSet_RuleSetAggregation()
         {
             // Setup
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
