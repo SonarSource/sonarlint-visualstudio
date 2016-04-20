@@ -15,7 +15,8 @@ namespace SonarLint.VisualStudio.Integration
         void Refresh();
 
         /// <summary>
-        /// Clears the info bar, if any
+        /// Detaches the info bar.
+        /// Any state/events handling that may have configured for the info bar handling will be cleared
         /// </summary>
         void Reset();
     }

@@ -119,6 +119,7 @@
     <Compile Include="MefServices\IProjectPropertyManager.cs" />
     <Compile Include="MefServices\IInfoBar.cs" />
     <Compile Include="MefServices\IInfoBarManager.cs" />
+    <Compile Include="Persistence\BoundSonarQubeProjectExtensions.cs" />
     <Compile Include="ProfileConflicts\FixedRuleSetInfo.cs" />
     <Compile Include="LocalServices\ILocalService.cs" />
     <Compile Include="LocalServices\IRuleSetSerializer.cs" />
@@ -208,7 +209,6 @@
     <Compile Include="Service\DataModel\ConnectionInformation.cs" />
     <Compile Include="JsonHelper.cs" />
     <Compile Include="Service\DataModel\ProjectInformation.cs" />
-    <Compile Include="Service\ConnectedProjectsCallback.cs" />
     <Compile Include="Service\DataModel\QualityProfile.cs" />
     <Compile Include="Service\SonarQubeServiceWrapper.cs" />
     <Compile Include="Service\ISonarQubeServiceWrapper.cs" />

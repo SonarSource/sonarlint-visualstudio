@@ -8,6 +8,8 @@
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarLint.VisualStudio.Progress.Controller;
+using System;
 using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -82,6 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
         #endregion
 
+        #region Test helpers
         public static ConfigurableSectionController CreateDefault()
         {
             var section = new ConfigurableSectionController();
@@ -98,5 +101,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             section.ToggleShowAllProjectsCommand = new RelayCommand(() => { });
             return section;
         }
+        #endregion
     }
 }

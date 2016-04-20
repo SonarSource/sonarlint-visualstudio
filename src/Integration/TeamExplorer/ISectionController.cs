@@ -6,6 +6,8 @@
 //-----------------------------------------------------------------------
 
 using SonarLint.VisualStudio.Integration.Progress;
+using SonarLint.VisualStudio.Progress.Controller;
+using System;
 using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer

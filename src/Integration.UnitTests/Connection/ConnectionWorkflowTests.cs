@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
             this.sonarQubeService.ReturnProjectInformation = projects;
             bool projectChangedCallbackCalled = false;
-            ConnectedProjectsCallback projectsChanged = (c, p) =>
+            ((ConfigurableStateManager)this.host.VisualStateManager).SetProjectsAction = (c, p) =>
             {
                 projectChangedCallbackCalled = true;
                 Assert.AreSame(connectionInfo, c, "Unexpected connection");
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
-            var testSubject= new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), projectsChanged);
+            var testSubject= new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
 
             // Act
             testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Setup
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
             bool projectChangedCallbackCalled = false;
-            ConnectedProjectsCallback projectsChanged = (c, p) =>
+            ((ConfigurableStateManager)this.host.VisualStateManager).SetProjectsAction = (c, p) =>
             {
                 projectChangedCallbackCalled = true;
                 Assert.AreSame(connectionInfo, c, "Unexpected connection");
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeService.AllowConnections = false;
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
-            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), projectsChanged);
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
 
             // Act
             testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
@@ -153,8 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            ConnectedProjectsCallback projectsChanged = (c, p) => { };
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(() => { }), projectsChanged);
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(() => { }));
             var controller = new ConfigurableProgressController();
             this.sonarQubeService.AllowConnections = true;
             this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
@@ -185,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
             var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
 
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), new ConnectedProjectsCallback(AssertIfCalled));
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
 
             // Sanity
             Assert.IsFalse(this.sonarQubeService.ServerProperties.Any(x => x.Key != ServerProperty.TestProjectRegexKey), "Test project regex property should not be set");
@@ -212,7 +211,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Value = expectedExpression
             });
 
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), new ConnectedProjectsCallback(AssertIfCalled));
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
 
             // Act
             testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
@@ -237,7 +236,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Value = badExpression
             });
 
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), new ConnectedProjectsCallback(AssertIfCalled));
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
 
             // Act
             testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
@@ -255,7 +254,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled), new ConnectedProjectsCallback(AssertIfCalled));
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
 
             var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -275,10 +274,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.Fail("Command not expected to be called");
         }
 
-        private static void AssertIfCalled(ConnectionInformation conn, IEnumerable<ProjectInformation> projects)
-        {
-            Assert.Fail("Command not expected to be called");
-        }
         #endregion
     }
 }

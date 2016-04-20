@@ -564,4 +564,42 @@ This is the general format to use when writing errors to output window or when t
     <value>Unknown</value>
     <comment>Name of any unknown languages</comment>
   </data>
+  <data name="SonarLintInfoBarUpdateCommandIsBusyRetry" xml:space="preserve">
+    <value>SonarLint: Could not update the binding since the command is not available at the moment. Please try again and make sure that not building or debugging.</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="SonarLintInfoBarUnboundProjectsMessage" xml:space="preserve">
+    <value>SonarLint: One or more RuleSet is out of date or not linked to the SonarQube profile-based RuleSet (see General Output for affected projects)</value>
+    <comment>Info bar message</comment>
+  </data>
+  <data name="SonarLintInfoBarUpdateCommandText" xml:space="preserve">
+    <value>Update</value>
+    <comment>Info bar command text</comment>
+  </data>
+  <data name="SonarLintCheckingForUnboundProjects" xml:space="preserve">
+    <value>SonarLint: Checking for unbound projects.</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="SonarLintFailedToAttachInfoBarToErrorList" xml:space="preserve">
+    <value>SonarLint: Failed to attach info bar to error list tool window.</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="SonarLintFoundUnboundProjects" xml:space="preserve">
+    <value>SonarLint: {0} unbound projects were found ({1}).</value>
+    <comment>Output window message
+{0} the number of unbound projects
+{1} projects unique names</comment>
+  </data>
+  <data name="SonarLintNoUnboundProjectWereFound" xml:space="preserve">
+    <value>SonarLint: No unbound projects were found.</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="SonarLintInfoBarUpdateCommandRetryNoActiveSection" xml:space="preserve">
+    <value>The SonarQube active section was closed and we cannot proceed with the update. Please try again.</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="SonarLintInfoBarUpdateCommandInvalidSolutionBindings" xml:space="preserve">
+    <value>SonarLint: The current solution is not bound to the expected SonarQube project, aborting.</value>
+    <comment>Output window message</comment>
+  </data>
 </root>

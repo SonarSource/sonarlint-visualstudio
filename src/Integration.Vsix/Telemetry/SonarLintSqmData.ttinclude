@@ -39,8 +39,10 @@ IEnumerable<Tuple<string, string, string>> commands = new ReadOnlyCollection <Tu
         Tuple.Create("ToggleShowAllProjectsCommand",		"0x306", "SonarLint.VisualStudio ToggleShowAllProjectsCommand was called"),
         Tuple.Create("DontWarnAgainCommand",				"0x307", "SonarLint.VisualStudio DontWarnAgainCommand was called"),
         Tuple.Create("FixConflictsCommand",					"0x308", "SonarLint.VisualStudio FixConflictsCommand was called"),
+        Tuple.Create("FixConflictsShow",					"0x309", "SonarLint.VisualStudio FixConflicts UX popped up"),
         // Info bar
-        Tuple.Create("UpdateBindingCommandFromErrorList",	"0x400", "SonarLint.VisualStudio ErrorList info bar Update button was clicked"),
+        Tuple.Create("ErrorListInfoBarShow",				"0x400", "SonarLint.VisualStudio ErrorList info bar UX popped up"),
+        Tuple.Create("ErrorListInfoBarUpdateCommand",		"0x401", "SonarLint.VisualStudio ErrorList info bar Update button was clicked"),
     }
 );
 #>

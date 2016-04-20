@@ -47,7 +47,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.eventLoggerMap[TelemetryEvent.ToggleShowAllProjectsCommandCommandCalled] = SonarLintSqmFacade.ToggleShowAllProjectsCommand;
             this.eventLoggerMap[TelemetryEvent.DontWarnAgainCommandCalled] = SonarLintSqmFacade.DontWarnAgainCommand;
             this.eventLoggerMap[TelemetryEvent.FixConflictsCommandCalled] = SonarLintSqmFacade.FixConflictsCommand;
-            this.eventLoggerMap[TelemetryEvent.InfoBarUpdateBindingFromErrorList] = SonarLintSqmFacade.UpdateBindingCommandFromErrorList;
+            this.eventLoggerMap[TelemetryEvent.FixConflictShow] = SonarLintSqmFacade.FixConflictsShow;
+            this.eventLoggerMap[TelemetryEvent.ErrorListInfoBarUpdateCalled] = SonarLintSqmFacade.ErrorListInfoBarUpdateCommand;
+            this.eventLoggerMap[TelemetryEvent.ErrorListInfoBarShow] = SonarLintSqmFacade.ErrorListInfoBarShow;
         }
 
         public void ReportEvent(TelemetryEvent telemetryEvent)

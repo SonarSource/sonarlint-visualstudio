@@ -189,8 +189,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 return;
             }
 
-            // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-            ProjectInformation boundProject = serverViewModel.Projects.FirstOrDefault(pvm => StringComparer.Ordinal.Equals(pvm.Key, this.BoundProjectKey))?.ProjectInformation;
+            ProjectInformation boundProject = serverViewModel.Projects.FirstOrDefault(pvm => ProjectViewModel.KeyComparer.Equals(pvm.Key, this.BoundProjectKey))?.ProjectInformation;
             if (boundProject == null)
             {
                 // Defensive coding: invoked asynchronous and it's safer to assume that value could be null

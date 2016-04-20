@@ -130,11 +130,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             ProgressNotificationListener progressListener = new ProgressNotificationListener(this.ServiceProvider, progressEvents);
             progressListener.MessageFormat = Strings.BindingSolutionPrefixMessageFormat;
 
-            progressEvents.RunOnFinished(r =>
+            progressEvents.RunOnFinished(result =>
             {
                 progressListener.Dispose();
 
-                this.OnBindingFinished(projectInformation, r == ProgressControllerResult.Succeeded);
+                this.OnBindingFinished(projectInformation, result == ProgressControllerResult.Succeeded);
             });
         }
 
@@ -151,11 +151,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (isFinishedSuccessfully)
             {
-                //if (projectInformation.Key != this.host.VisualStateManager.BoundProjectKey)
-                {
-                    //this.host.VisualStateManager.ClearBoundProject();
-                    this.host.VisualStateManager.SetBoundProject(projectInformation);
-                }
+                this.host.VisualStateManager.SetBoundProject(projectInformation);
 
                 var conflictsController = this.host.GetService<IRuleSetConflictsController>();
                 conflictsController.AssertLocalServiceIsNotNull();
@@ -173,8 +169,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
             else
             {
-                //this.host.VisualStateManager.ClearBoundProject();
-
                 IUserNotification notifications = this.host.ActiveSection?.UserNotifications;
                 if (notifications != null)
                 {

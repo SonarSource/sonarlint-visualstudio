@@ -10,6 +10,7 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;

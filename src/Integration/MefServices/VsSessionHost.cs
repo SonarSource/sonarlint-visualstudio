@@ -231,9 +231,7 @@ namespace SonarLint.VisualStudio.Integration
             this.VisualStateManager.BoundProjectKey = bound.ProjectKey;
 
             // Recreate the connection information from what was persisted
-            ConnectionInformation connectionInformation = bound.Credentials == null ?
-                new ConnectionInformation(bound.ServerUri)
-                : bound.Credentials.CreateConnectionInformation(bound.ServerUri);
+            ConnectionInformation connectionInformation = bound.CreateConnectionInformation();
 
             Debug.Assert(this.ActiveSection != null, "Expected ActiveSection to be set");
             Debug.Assert(this.ActiveSection?.RefreshCommand != null, "Refresh command is not set");
