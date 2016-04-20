@@ -59,8 +59,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void BindingWorkflow_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(null, new ProjectInformation()));
-            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(new ConfigurableHost(), null));
+            var validConnection = new ConnectionInformation(new Uri("http://server"));
+            var validProjectInfo = new ProjectInformation();
+            var validHost = new ConfigurableHost();
+
+            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(null, validConnection, validProjectInfo));
+            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(validHost, null, validProjectInfo));
+            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(validHost, validConnection, null));
         }
 
         [TestMethod]
@@ -402,11 +407,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null)
         {
             var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-            this.sonarQubeService.SetConnection(new Uri("http://connected"));
+            ConnectionInformation connected = new ConnectionInformation(new Uri("http://connected"));
             host.SonarQubeService = this.sonarQubeService;
             var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
-
-            return new BindingWorkflow(host, useProjectInfo);
+            return new BindingWorkflow(host, connected, useProjectInfo);
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] projects)

@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var testSubject = new ConnectionController(this.host);
 
             // Case 1: has connection, is busy
-            this.sonarQubeService.SetConnection(new Uri("http://www.dummy.com"));
+            this.host.TestStateManager.IsConnected = true;
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Verify
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Connected already");
 
             // Case 3: no connection, is busy
-            this.sonarQubeService.ClearConnection();
+            this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Verify
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Case 2: connection provider returns a valid connection
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
             this.connectionProvider.ConnectionInformationToReturn = expectedConnection;
-
+            this.sonarQubeService.ExpectedConnection = expectedConnection;
             // Sanity
             Assert.IsNull(testSubject.LastAttemptedConnection, "Previous attempt returned null");
 
@@ -138,13 +138,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Verify
             this.connectionWorkflow.AssertEstablishConnectionCalled(1);
             this.sonarQubeService.AssertConnectRequests(1);
-            Assert.AreSame(expectedConnection, ((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
 
             // Case 3: existing connection, change to a different one
             var existingConnection = expectedConnection;
-            expectedConnection = new ConnectionInformation(new Uri("https://128.0.0.0"));
-            this.connectionProvider.ConnectionInformationToReturn = expectedConnection;
-            this.connectionProvider.ExpectExistingConnection = true;
+            this.sonarQubeService.ExpectedConnection = expectedConnection;
+            this.host.TestStateManager.IsConnected = true;
 
             // Sanity
             Assert.AreEqual(existingConnection, testSubject.LastAttemptedConnection, "Unexpected last attempted connection");
@@ -161,14 +159,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connection = new ConnectionInformation(new Uri("http://connection"));
 
             // Case 1: Has connection and busy
-            this.sonarQubeService.SetConnection(connection);
+            this.host.TestStateManager.IsConnected = true;
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Verify
             Assert.IsFalse(testSubject.RefreshCommand.CanExecute(null), "Busy");
 
             // Case 2: no connection, not busy, no connection argument
-            this.sonarQubeService.ClearConnection();
+            this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Verify
@@ -187,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connection), "Has connection argument and not busy");
 
             // Case 5: has connection, not busy, no connection argument
-            this.sonarQubeService.SetConnection(connection);
+            this.host.TestStateManager.IsConnected = true;
             // Act + Verify
             Assert.IsTrue(testSubject.RefreshCommand.CanExecute(null), "Has connection and not busy");
 
@@ -203,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
             this.connectionProvider.ConnectionInformationToReturn = new ConnectionInformation(new Uri("http://notExpected"));
             var connection = new ConnectionInformation(new Uri("http://Expected"));
-
+            this.sonarQubeService.ExpectedConnection = connection;
             // Sanity
             Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connection), "Should be possible to execute");
 

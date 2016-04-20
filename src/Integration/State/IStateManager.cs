@@ -36,7 +36,13 @@ namespace SonarLint.VisualStudio.Integration.State
 
         bool HasBoundProject { get; }
 
+        bool IsConnected { get; }
+
         string BoundProjectKey { get; set; }
+
+        IEnumerable<ConnectionInformation> GetConnectedServers();
+
+        ConnectionInformation GetConnectedServer(ProjectInformation project);
 
         void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects);
 

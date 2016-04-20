@@ -46,7 +46,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
-
         [TestMethod]
         public void SonarQubeServiceWrapper_Ctor_ArgChecks()
         {
@@ -54,13 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_Connect_ArgChecks()
-        {
-            Exceptions.Expect<ArgumentNullException>(() => new SonarQubeServiceWrapper(null));
-        }
-
-        [TestMethod]
-        public void SonarQubeServiceWrapper_Connect_Disconnect()
+        public void SonarQubeServiceWrapper_TryGetProjects()
         {
             var p1 = new ProjectInformation
             {
@@ -81,38 +74,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var connectionInfo1 = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
-                ProjectInformation[] projects = testSubject.Connect(connectionInfo1, CancellationToken.None).ToArray();
+                ProjectInformation[] projects = null;
+                Assert.IsTrue(testSubject.TryGetProjects(connectionInfo1, CancellationToken.None, out projects), "Expected to get the projects");
 
                 // Verify
                 AssertEqualProjects(new[] { p1 }, projects);
                 this.outputWindowPane.AssertOutputStrings(0);
-                Assert.AreSame(connectionInfo1, testSubject.CurrentConnection, "Expected to be connected");
 
                 // Setup case 2: second time connect
                 var connectionInfo2 = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
                 testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new[] { p1, p2 }) });
-                projects = testSubject.Connect(connectionInfo2, CancellationToken.None).ToArray();
+                Assert.IsTrue(testSubject.TryGetProjects(connectionInfo2, CancellationToken.None, out projects), "Expected to get the projects");
 
                 // Verify
                 AssertEqualProjects(new[] { p1, p2 }, projects);
                 this.outputWindowPane.AssertOutputStrings(0);
-                Assert.AreSame(connectionInfo2, testSubject.CurrentConnection, "Expected to be connected");
-                Assert.IsTrue(connectionInfo1.IsDisposed, "The first connection is expected to be disposed");
-
-                // Disconnect
-                // Act
-                testSubject.Disconnect();
-
-                // Verify
-                Assert.IsNull(testSubject.CurrentConnection, "Disconnected, not expecting any current connection");
-                Assert.IsTrue(connectionInfo2.IsDisposed, "The second connection is expected to be disposed");
             }
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_Connect_InvalidStatusCode()
+        public void SonarQubeServiceWrapper_TryGetProjects_InvalidStatusCode()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
@@ -122,16 +105,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
-                testSubject.Connect(connectionInfo, CancellationToken.None);
+                ProjectInformation[] projects = null;
+                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should fail");
 
                 // Verify
+                Assert.IsNull(projects);
                 this.outputWindowPane.AssertOutputStrings(1);
-                Assert.IsNull(testSubject.CurrentConnection, "Invalid request was made");
             }
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_Connect_Timeout()
+        public void SonarQubeServiceWrapper_TryGetProjects_Timeout()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider, timeoutInMilliseconds: 1))
             {
@@ -141,16 +125,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
-                testSubject.Connect(connectionInfo, CancellationToken.None);
+                ProjectInformation[] projects = null;
+                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should timout");
 
                 // Verify
                 this.outputWindowPane.AssertOutputStrings(1);
-                Assert.IsNull(testSubject.CurrentConnection, "Request timeout");
+                Assert.IsNull(projects);
             }
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_Connect_Cancellation()
+        public void SonarQubeServiceWrapper_TryGetProjects_Cancellation()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider, timeoutInMilliseconds: 100))
             {
@@ -163,17 +148,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     tokenSource.CancelAfter(20);
 
                     // Act
-                    testSubject.Connect(connectionInfo, tokenSource.Token);
+                    ProjectInformation[] projects = null;
+                    Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should be cancelled");
 
                     // Verify
                     this.outputWindowPane.AssertOutputStrings(1);
-                    Assert.IsNull(testSubject.CurrentConnection, "Request cancelled");
+                    Assert.IsNull(projects);
                 }
             }
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_Connect_Authentication_Anonymous()
+        public void SonarQubeServiceWrapper_TryGetProjects_Authentication_Anonymous()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
@@ -183,16 +169,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
-                var projects = testSubject.Connect(connectionInfo, CancellationToken.None);
+                ProjectInformation[] projects = null;
+                Assert.IsTrue(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should be get an empty array of projects");
 
                 // Verify
-                Assert.AreSame(connectionInfo, testSubject.CurrentConnection, "Expected to be connected");
+                this.outputWindowPane.AssertOutputStrings(0);
                 Assert.IsNotNull(projects, "Expected projects");
+                Assert.AreEqual(0, projects.Length, "Expected an empty array");
             }
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_Connect_Authentication_Basic_Valid()
+        public void SonarQubeServiceWrapper_TryGetProjects_Authentication_Basic_Valid()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
@@ -202,17 +190,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"), "admin", "admin".ConvertToSecureString());
 
                 // Act
-                var projects = testSubject.Connect(connectionInfo, CancellationToken.None);
+                ProjectInformation[] projects = null;
+                Assert.IsTrue(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should be get an empty array of projects");
 
                 // Verify
                 this.outputWindowPane.AssertOutputStrings(0);
-                Assert.AreSame(connectionInfo, testSubject.CurrentConnection, "Expected to be connected");
                 Assert.IsNotNull(projects, "Expected projects");
+                Assert.AreEqual(0, projects.Length, "Expected an empty array");
             }
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_Connect_Authentication_Basic_Invalid()
+        public void SonarQubeServiceWrapper_TryGetProjects_Authentication_Basic_Invalid()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
@@ -221,11 +210,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"), "admin", "admin".ConvertToSecureString());
 
                 // Act
-                var projects = testSubject.Connect(connectionInfo, CancellationToken.None);
+                ProjectInformation[] projects = null;
+                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Auth failed");
 
                 // Verify
                 this.outputWindowPane.AssertOutputStrings(1);
-                Assert.IsNull(testSubject.CurrentConnection, "Invalid credentials");
                 Assert.IsNull(projects, "Not expecting projects");
 
                 // Setup case 2: Invalid user name
@@ -233,17 +222,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 testSubject.BasicAuthUsers.Add("admin1", "admin");
 
                 // Act
-                projects = testSubject.Connect(connectionInfo, CancellationToken.None);
+                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Auth failed");
 
                 // Verify
                 this.outputWindowPane.AssertOutputStrings(2);
-                Assert.IsNull(testSubject.CurrentConnection, "Invalid credentials");
                 Assert.IsNull(projects, "Not expecting projects");
             }
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_UnhandledExceptions()
+        public void SonarQubeServiceWrapper_TryGetProjects_ArgChecks()
+        {
+            // Setup
+            var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
+            ProjectInformation[] projects;
+
+            // Act + Verify
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetProjects(null, CancellationToken.None, out projects));
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_TryGetProjects_UnhandledExceptions()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
@@ -253,21 +252,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
-                var projects = testSubject.Connect(connectionInfo, CancellationToken.None);
+                ProjectInformation[] projects = null;
+                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Exception been thrown");
 
                 // Verify
                 this.outputWindowPane.AssertOutputStrings(1);
-                Assert.IsNull(testSubject.CurrentConnection, "Exception been thrown");
                 Assert.IsNull(projects, "Not expecting projects");
             }
         }
         
         [TestMethod]
-        public void SonarQubeServiceWrapper_GetProperties()
+        public void SonarQubeServiceWrapper_TryGetProperties()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                ConnectToServerWithProjects(testSubject, new ProjectInformation[0]);
+                ConnectionInformation conn = ConfigureValidConnection(testSubject, new ProjectInformation[0]);
 
                 // Setup
                 var property1 = new ServerProperty { Key = "prop1", Value = "val1" };
@@ -282,7 +281,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 );
 
                 // Act
-                var actualProperties = testSubject.GetProperties(CancellationToken.None).ToArray();
+                ServerProperty[] actualProperties;
+                Assert.IsTrue(testSubject.TryGetProperties(conn, CancellationToken.None, out actualProperties), "TryGetProperties failed unepxectendly");
 
                 // Verify
                 CollectionAssert.AreEqual(expectedProperties.Select(x => x.Key).ToArray(), actualProperties.Select(x => x.Key).ToArray(), "Unexpected server property keys");
@@ -292,20 +292,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_GetProperties_ArgChecks()
+        public void SonarQubeServiceWrapper_TryGetProperties_ArgChecks()
         {
             // Setup
             var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
-
-            // Sanity
-            Assert.IsNull(testSubject.CurrentConnection, "Shouldn't be connected for this test");
+            ServerProperty[] properties;
 
             // Act + Verify
-            Exceptions.Expect<InvalidOperationException>(() => testSubject.GetProperties(CancellationToken.None));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetProperties(null, CancellationToken.None, out properties));
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_GetExportProfile()
+        public void SonarQubeServiceWrapper_TryGetExportProfile()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
@@ -314,7 +312,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var profile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 var expectedExport = RoslynExportProfileHelper.CreateExport(ruleSet: TestRuleSetHelper.CreateTestRuleSet(3));
-                ConnectToServerWithProjects(testSubject, new[] { project });
+                ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
                 // Setup test server
                 RegisterProfileExportQueryValidator(testSubject);
@@ -329,28 +327,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 );
 
                 // Act
-                RoslynExportProfile actualExport = testSubject.GetExportProfile(project, language, CancellationToken.None);
+                RoslynExportProfile actualExport;
+                Assert.IsTrue(testSubject.TryGetExportProfile(conn, project, language, CancellationToken.None, out actualExport), "TryGetExportProfile failed unexpectendly");
 
                 // Verify
                 Assert.IsNotNull(actualExport, "Expected a profile export to be returned");
                 RoslynExportProfileHelper.AssertAreEqual(expectedExport, actualExport);
+                getProfileHandler.AssertHandlerCalled(1);
                 getExportHandler.AssertHandlerCalled(1);
             }
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_GetExportProfile_Exceptions()
+        public void SonarQubeServiceWrapper_TryGetExportProfile_ArgChecks()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider, timeoutInMilliseconds: 1))
             {
-                // No project information
-                Exceptions.Expect<ArgumentNullException>(() => testSubject.GetExportProfile(null, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None));
+                RoslynExportProfile actualExport;
+                ConnectionInformation connection = new ConnectionInformation(new Uri("http://valid"));
+                ProjectInformation project = new ProjectInformation();
 
-                // Not connected
-                Exceptions.Expect<InvalidOperationException>(() => testSubject.GetExportProfile(new ProjectInformation(), SonarQubeServiceWrapper.VBLanguage, CancellationToken.None));
+                // No connection information
+                Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetExportProfile(null, project, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out actualExport));
+
+                // No project information
+                Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetExportProfile(connection, null, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out actualExport));
 
                 // Invalid language
-                Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.GetExportProfile(new ProjectInformation(), "Pascal", CancellationToken.None));
+                Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.TryGetExportProfile(connection, project, "Pascal", CancellationToken.None, out actualExport));
 
                 // Those are API usage issue which we don't report to the output pane
                 this.outputWindowPane.AssertOutputStrings(0);
@@ -358,7 +362,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_GetExportProfile_ServiceErrors()
+        public void SonarQubeServiceWrapper_TryGetExportProfile_ServiceErrors()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
@@ -366,22 +370,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 testSubject.AllowAnonymous = true;
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
                 var project = new ProjectInformation { Key = "proj1" };
-                testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new[] { project }) });
                 string csPath = SonarQubeServiceWrapper.CreateQualityProfileUrl(SonarQubeServiceWrapper.CSharpLanguage, project);
                 string vbPath = SonarQubeServiceWrapper.CreateQualityProfileUrl(SonarQubeServiceWrapper.VBLanguage, project);
                 testSubject.RegisterRequestHandler(csPath, new RequestHandler { ResponseStatusCode = HttpStatusCode.BadRequest });
                 testSubject.RegisterRequestHandler(vbPath, new RequestHandler { ResponseStatusCode = HttpStatusCode.BadRequest });
-                testSubject.Connect(connectionInfo, CancellationToken.None);
 
                 // Sanity
                 this.outputWindowPane.AssertOutputStrings(0);
 
                 // Act
-                var rules = testSubject.GetExportProfile(project, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None);
+                RoslynExportProfile profile;
+                Assert.IsFalse(testSubject.TryGetExportProfile(connectionInfo, project, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out profile), "Bas request");
 
                 // Verify
                 this.outputWindowPane.AssertOutputStrings(1);
-                Assert.IsNull(rules, "Request cancelled");
+                Assert.IsNull(profile, "Bad request");
             }
         }
 
@@ -397,7 +400,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var unexpectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
 
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
-                ConnectToServerWithProjects(testSubject, new[] { project });
+                ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
                 // Setup test server
                 RegisterQualityProfileQueryValidator(testSubject);
@@ -433,7 +436,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 string language = SonarQubeServiceWrapper.CSharpLanguage;
                 var expectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
-                ConnectToServerWithProjects(testSubject, new[] { project });
+                ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
                 // Setup test server
                 RegisterQualityProfileQueryValidator(testSubject);
@@ -454,12 +457,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_GetPlugins_ArgChecks()
+        public void SonarQubeServiceWrapper_TryGetPlugins_ArgChecks()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider, timeoutInMilliseconds: 1))
             {
+                ServerPlugin[] plugins;
+
                 // Null connection information
-                Exceptions.Expect<ArgumentNullException>(() => testSubject.GetPlugins(null, CancellationToken.None));
+                Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetPlugins(null, CancellationToken.None, out plugins));
 
                 // Those are API usage issue which we don't report to the output pane
                 this.outputWindowPane.AssertOutputStrings(0);
@@ -467,7 +472,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_GetPlugins()
+        public void SonarQubeServiceWrapper_TryGetPlugins()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
@@ -485,7 +490,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 );
 
                 // Act
-                var actualPlugins = testSubject.GetPlugins(connectionInfo, CancellationToken.None).ToArray();
+                ServerPlugin[] actualPlugins;
+                Assert.IsTrue(testSubject.TryGetPlugins(connectionInfo, CancellationToken.None, out actualPlugins), "TryGetPlugins failed unexpectedly");
 
                 // Verify
                 CollectionAssert.AreEqual(expectedPlugins.Select(x => x.Key).ToArray(), actualPlugins.Select(x => x.Key).ToArray(), "Unexpected server plugins");
@@ -622,13 +628,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return new HttpClient { BaseAddress = new Uri(baseAddress) };
         }
 
-        private static void ConnectToServerWithProjects(TestableSonarQubeServiceWrapper testSubject, IEnumerable<ProjectInformation> projects)
+        private static ConnectionInformation ConfigureValidConnection(TestableSonarQubeServiceWrapper testSubject, IEnumerable<ProjectInformation> projects)
         {
             var connectionInfo = new ConnectionInformation(new Uri("http://test-server"));
 
             testSubject.AllowAnonymous = true;
             testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(projects) });
-            testSubject.Connect(connectionInfo, CancellationToken.None);
+
+            return connectionInfo;
         }
 
         private static void RegisterQualityProfileQueryValidator(TestableSonarQubeServiceWrapper testSubject)

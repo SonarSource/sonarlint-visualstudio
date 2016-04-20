@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
             this.sonarQubeService.ReturnProjectInformation = projects;
             bool projectChangedCallbackCalled = false;
-            ((ConfigurableStateManager)this.host.VisualStateManager).SetProjectsAction = (c, p) =>
+            this.host.TestStateManager.SetProjectsAction = (c, p) =>
             {
                 projectChangedCallbackCalled = true;
                 Assert.AreSame(connectionInfo, c, "Unexpected connection");
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultSuccess);
             Assert.IsTrue(projectChangedCallbackCalled, "ConnectedProjectsCallaback was not called");
             sonarQubeService.AssertConnectRequests(1);
-            Assert.AreSame(connectionInfo, ((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
+            Assert.AreEqual(connectionInfo, testSubject.ConnectedServer);
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
         }
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Setup
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
             bool projectChangedCallbackCalled = false;
-            ((ConfigurableStateManager)this.host.VisualStateManager).SetProjectsAction = (c, p) =>
+            this.host.TestStateManager.SetProjectsAction = (c, p) =>
             {
                 projectChangedCallbackCalled = true;
                 Assert.AreSame(connectionInfo, c, "Unexpected connection");
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
             Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(1);
-            Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
+            Assert.IsFalse(this.host.VisualStateManager.IsConnected);
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
             // Act (reconnect with same bad connection)
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultFailure);
             Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(2);
-            Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
+            Assert.IsFalse(this.host.VisualStateManager.IsConnected);
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
             // Cancelled connections
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             executionEvents.AssertProgressMessages(connectionMessage, Strings.ConnectionResultCancellation);
             Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(3);
-            Assert.IsNull(((ISonarQubeServiceWrapper)this.sonarQubeService).CurrentConnection, "Unexpected connection");
+            Assert.IsFalse(this.host.VisualStateManager.IsConnected);
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
         }
 
@@ -185,6 +185,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
 
             ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+            testSubject.ConnectedServer = connectionInfo;
 
             // Sanity
             Assert.IsFalse(this.sonarQubeService.ServerProperties.Any(x => x.Key != ServerProperty.TestProjectRegexKey), "Test project regex property should not be set");
@@ -212,6 +214,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             });
 
             ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+            testSubject.ConnectedServer = connectionInfo;
 
             // Act
             testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
@@ -237,6 +241,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             });
 
             ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+            testSubject.ConnectedServer = connectionInfo;
 
             // Act
             testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
@@ -255,6 +261,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
             ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+            testSubject.ConnectedServer = connectionInfo;
 
             var cts = new CancellationTokenSource();
             cts.Cancel();

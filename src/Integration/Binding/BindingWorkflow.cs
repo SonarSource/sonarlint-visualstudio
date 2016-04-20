@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal class BindingWorkflow
     {
         private readonly IHost host;
+        private readonly ConnectionInformation connectionInformation;
         private readonly ProjectInformation project;
         private readonly IProjectSystemHelper projectSystem;
         private readonly SolutionBindingOperation solutionBindingOperation;
@@ -39,11 +40,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {Language.VBNET, RuleSetGroup.VB }
         };        
 
-        public BindingWorkflow(IHost host, ProjectInformation project)
+        public BindingWorkflow(IHost host, ConnectionInformation connectionInformation, ProjectInformation project)
         {
             if (host == null)
             {
                 throw new ArgumentNullException(nameof(host));
+            }
+
+            if (connectionInformation == null)
+            {
+                throw new ArgumentNullException(nameof(connectionInformation));
             }
 
             if (project == null)
@@ -52,13 +58,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             this.host = host;
+            this.connectionInformation = connectionInformation;
             this.project = project;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
 
             this.solutionBindingOperation = new SolutionBindingOperation(
                     this.host,
-                    this.host.SonarQubeService.CurrentConnection,
+                    this.connectionInformation,
                     this.project.Key);
         }
 
@@ -200,10 +207,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             foreach (var language in languages)
             {
                 notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language.Name));
-
-                var export = this.host.SonarQubeService.GetExportProfile(this.project, language.ServerKey, cancellationToken);
-
-                if (export == null)
+                RoslynExportProfile export;
+                if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, this.project, language.ServerKey, cancellationToken, out export))
                 {
                     failed = true;
                     break;

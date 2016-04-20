@@ -13,6 +13,7 @@ using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
@@ -98,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private bool OnConnectStatus()
         {
-            return this.host.SonarQubeService.CurrentConnection == null
+            return !this.host.VisualStateManager.IsConnected
                 && !this.host.VisualStateManager.IsBusy;
         }
 
@@ -122,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private bool OnRefreshStatus(ConnectionInformation useConnection)
         {
             return !this.host.VisualStateManager.IsBusy
-                && (useConnection != null || this.host.SonarQubeService.CurrentConnection != null);
+                && (useConnection != null || this.host.VisualStateManager.IsConnected);
         }
 
         private void OnRefresh(ConnectionInformation useConnection)
@@ -131,10 +132,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.RefreshCommandCommandCalled);
 
-            ConnectionInformation connectionToRefresh = useConnection ?? this.host.SonarQubeService.CurrentConnection;
+            // We're currently only connected to one server. when this will change we will need to refresh all the connected servers
+            ConnectionInformation currentlyConnectedServer = this.host.VisualStateManager.GetConnectedServers().SingleOrDefault();
+            ConnectionInformation connectionToRefresh = useConnection ?? currentlyConnectedServer;
             Debug.Assert(connectionToRefresh != null, "Expecting either to be connected to get a connection to connect to");
 
-            // Any existing connection will be disconnected and disposed, so create a copy and use it to connect
+            // Any existing connection will be disposed, so create a copy and use it to connect
             this.EstablishConnection(connectionToRefresh.Clone());
         }
         #endregion

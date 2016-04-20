@@ -10,15 +10,14 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableSonarQubeServiceWrapper : ISonarQubeServiceWrapper
     {
-        private ConnectionInformation connection;
         private int connectRequestsCount;
-        private int disconnectRequestsCount;
         private readonly IDictionary<string, IDictionary<string, Uri>> projectDashboardUrls = new Dictionary<string, IDictionary<string, Uri>>();
 
         #region Testing helpers
@@ -40,32 +39,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ResetCounters()
         {
             this.connectRequestsCount = 0;
-            this.disconnectRequestsCount = 0;
         }
 
         public void AssertConnectRequests(int expectedCount)
         {
             Assert.AreEqual(expectedCount, this.connectRequestsCount, "Connect was not called the expected number of times");
-        }
-
-        public void AssertDisconnectRequests(int expectedCount)
-        {
-            Assert.AreEqual(expectedCount, this.disconnectRequestsCount, "Disconnect was not called the expected number of times");
-        }
-
-        public void SetConnection(Uri serverUri)
-        {
-            this.SetConnection(new ConnectionInformation(serverUri));
-        }
-
-        public void SetConnection(ConnectionInformation connectionInformation)
-        {
-            this.connection = connectionInformation;
-        }
-
-        public void ClearConnection()
-        {
-            this.connection = null;
         }
 
         public void RegisterServerPlugin(ServerPlugin plugin)
@@ -88,7 +66,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ServerProperties.Clear();
         }
 
-
         public void RegisterProjectDashboardUrl(ConnectionInformation connectionInfo, ProjectInformation projectInfo, Uri url)
         {
             var serverUrl = connectionInfo.ServerUri.ToString();
@@ -101,68 +78,82 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.projectDashboardUrls[serverUrl][projectKey] = url;
         }
 
+        public ConnectionInformation ExpectedConnection
+        {
+            get;
+            set;
+        }
+
+        private void AssertExpectedConnection(ConnectionInformation connection)
+        {
+            Assert.IsNotNull(connection, "The API requires a connection information");
+
+            if (this.ExpectedConnection != null)
+            {
+                Assert.AreEqual(this.ExpectedConnection?.ServerUri, connection.ServerUri, "The connection is not as expected");
+            }
+        }
         #endregion
 
         #region ISonarQubeServiceWrapper
 
-        ConnectionInformation ISonarQubeServiceWrapper.CurrentConnection
-        {
-            get
-            {
-                return this.connection;
-            }
-        }
 
-        IEnumerable<ProjectInformation> ISonarQubeServiceWrapper.Connect(ConnectionInformation connectionInformation, CancellationToken token)
+        bool ISonarQubeServiceWrapper.TryGetProjects(ConnectionInformation serverConnection, CancellationToken token, out ProjectInformation[] serverProjects)
         {
-            Assert.IsNotNull(connectionInformation, "Not expected a null as the argument");
+            this.AssertExpectedConnection(serverConnection);
             this.connectRequestsCount++;
 
             if (this.AllowConnections && !token.IsCancellationRequested)
             {
-                this.connection = connectionInformation;
-                return this.ReturnProjectInformation;
+                serverProjects = this.ReturnProjectInformation;
+                return true;
             }
             else
             {
-                this.connection = null;
-                return null;
+                serverProjects = null;
+                return false;
             }
         }
 
-        void ISonarQubeServiceWrapper.Disconnect()
+        bool ISonarQubeServiceWrapper.TryGetExportProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out RoslynExportProfile profile)
         {
-            this.disconnectRequestsCount++;
-            this.connection = null;
-        }
+            this.AssertExpectedConnection(serverConnection);
 
-
-        RoslynExportProfile ISonarQubeServiceWrapper.GetExportProfile(ProjectInformation project, string language, CancellationToken token)
-        {
             Assert.IsNotNull(project, "ProjectInformation is expected");
 
             this.GetExportAction?.Invoke();
 
-            RoslynExportProfile export = null;
-            this.ReturnExport?.TryGetValue(language, out export);
-            return export;
+            profile = null;
+            this.ReturnExport?.TryGetValue(language, out profile);
+
+            return profile != null;
         }
 
-        public IEnumerable<ServerPlugin> GetPlugins(ConnectionInformation connectionInformation, CancellationToken token)
+        bool ISonarQubeServiceWrapper.TryGetPlugins(ConnectionInformation serverConnection, CancellationToken token, out ServerPlugin[] plugins)
         {
-            return this.ServerPlugins;
+            this.AssertExpectedConnection(serverConnection);
+
+            plugins = this.ServerPlugins.ToArray();
+
+            return true;
         }
 
-        public IEnumerable<ServerProperty> GetProperties(CancellationToken token)
+        bool ISonarQubeServiceWrapper.TryGetProperties(ConnectionInformation serverConnection, CancellationToken token, out ServerProperty[] properties)
         {
-            return this.ServerProperties;
+            this.AssertExpectedConnection(serverConnection);
+
+            properties = this.ServerProperties.ToArray();
+
+            return true;
         }
 
-        public Uri CreateProjectDashboardUrl(ConnectionInformation connectionInformation, ProjectInformation project)
+        Uri ISonarQubeServiceWrapper.CreateProjectDashboardUrl(ConnectionInformation serverConnection, ProjectInformation project)
         {
+            this.AssertExpectedConnection(serverConnection);
+
             Uri url;
             IDictionary<string, Uri> projects;
-            if (this.projectDashboardUrls.TryGetValue(connectionInformation.ServerUri.ToString(), out projects) 
+            if (this.projectDashboardUrls.TryGetValue(serverConnection.ServerUri.ToString(), out projects) 
                 && projects.TryGetValue(project.Key, out url))
             {
                 return url;

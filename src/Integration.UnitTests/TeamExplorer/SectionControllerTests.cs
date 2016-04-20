@@ -66,8 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
 
             // Case 2: re-initialization with connection but no projects
-            var connection = new ConnectionInformation(new Uri("http://localhost"));
-            this.sonarQubeService.SetConnection(connection);
+            this.host.TestStateManager.IsConnected = true;
             this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
             ReInitialize(testSubject, this.host);
 
@@ -87,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
 
             // Case 4: re-initialization with no connection
-            this.sonarQubeService.ClearConnection();
+            this.host.TestStateManager.IsConnected = false;
             ReInitialize(testSubject, this.host);
 
             // Verify
@@ -114,17 +113,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             SectionController testSubject = this.CreateTestSubject();
-            ConfigurableStateManager stateManager = (ConfigurableStateManager)this.host.VisualStateManager;
             ITeamExplorerSection viewModel = testSubject.ViewModel;
 
             // Act
-            stateManager.SetAndInvokeBusyChanged(true);
+            this.host.TestStateManager.SetAndInvokeBusyChanged(true);
 
             // Verify
             Assert.IsTrue(viewModel.IsBusy);
 
             // Act again (different value)
-            stateManager.SetAndInvokeBusyChanged(false);
+            this.host.TestStateManager.SetAndInvokeBusyChanged(false);
 
             // Verify (should change)
             Assert.IsFalse(viewModel.IsBusy);
@@ -133,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.Dispose();
 
             // Act again(different value)
-            stateManager.SetAndInvokeBusyChanged(true);
+            this.host.TestStateManager.SetAndInvokeBusyChanged(true);
 
             // Verify (should remain the same)
             Assert.IsFalse(viewModel.IsBusy);
@@ -186,22 +184,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Setup
             var testSubject = this.CreateTestSubject();
+            var connection = new ConnectionInformation(new Uri("http://connected"));
+            int setProjectsCalled = 0;
+            this.host.TestStateManager.SetProjectsAction = (conn, projects) =>
+            {
+                setProjectsCalled++;
+                Assert.AreSame(connection, conn);
+                Assert.IsNull(projects, "Expecting the project to be reset to null");
+            };
 
             // Case 1: No connection
             // Act + Verify CanExecute
             Assert.IsFalse(testSubject.DisconnectCommand.CanExecute(null));
-            this.sonarQubeService.AssertDisconnectRequests(0);
+            Assert.AreEqual(0, setProjectsCalled);
 
             // Case 2: Connected
-            this.sonarQubeService.SetConnection(new Uri("http://connected"));
+            this.host.TestStateManager.ConnectedServers.Add(connection);
 
             // Act + Verify CanExecute
             Assert.IsTrue(testSubject.DisconnectCommand.CanExecute(null));
-            this.sonarQubeService.AssertDisconnectRequests(0);
+            Assert.AreEqual(0, setProjectsCalled);
 
             // Act + Verify Execute
             testSubject.DisconnectCommand.Execute(null);
-            this.sonarQubeService.AssertDisconnectRequests(1);
+            Assert.AreEqual(1, setProjectsCalled);
         }
 
         [TestMethod]

@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             ProjectViewModel projectVM = CreateProjectViewModel();
-            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindingController testSubject = this.PrepareCommandForExecution();
 
             // Case 1: All the requirements are set
             // Act + Verify
@@ -99,12 +99,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Assert.IsFalse(testSubject.BindCommand.CanExecute(null), "Project is null");
 
             // Case 3: No connection
-            this.sonarQubeService.ClearConnection();
+            this.host.TestStateManager.IsConnected = false;
             // Act + Verify
             Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "No connection");
 
             // Case 4: busy
-            this.sonarQubeService.SetConnection(new Uri("http://127.0.0.0"));
+            this.host.TestStateManager.IsConnected = true;
             this.host.VisualStateManager.IsBusy = true;
             // Act + Verify
             Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "Connecting");
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             ProjectViewModel projectVM = CreateProjectViewModel();
-            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindingController testSubject = this.PrepareCommandForExecution();
             ProjectMock project1 = this.solutionMock.Projects.Single();
 
             // Case 1: SolutionExistsAndFullyLoaded is not active
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void BindingController_BindCommand_Execution()
         {
             // Setup
-            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindingController testSubject = this.PrepareCommandForExecution();
 
             // Act
             var projectToBind1 = new ProjectInformation { Key = "1" };
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             ProjectViewModel projectVM = CreateProjectViewModel();
-            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(new Uri("http://127.0.0.0")));
+            BindingController testSubject = this.PrepareCommandForExecution();
             var progressEvents = new ConfigurableProgressEvents();
 
             foreach (var controllerResult in (ProgressControllerResult[])Enum.GetValues(typeof(ProgressControllerResult)))
@@ -211,7 +211,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 new ProjectInformation { Key = "key1" }
             });
             ProjectViewModel projectVM = serverVM.Projects.First();
-            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
+            BindingController testSubject = this.PrepareCommandForExecution();
             this.host.VisualStateManager.ManagedState.ConnectedServers.Add(serverVM);
             var progressEvents = new ConfigurableProgressEvents();
 
@@ -230,11 +230,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 if (result == ProgressControllerResult.Succeeded)
                 {
-                    ((ConfigurableStateManager)this.host.VisualStateManager).AssertBoundProject(projectVM.ProjectInformation);
+                    this.host.TestStateManager.AssertBoundProject(projectVM.ProjectInformation);
                 }
                 else
                 {
-                    ((ConfigurableStateManager)this.host.VisualStateManager).AssertNoBoundProject();
+                    this.host.TestStateManager.AssertNoBoundProject();
                 }
             }
         }
@@ -249,7 +249,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 new ProjectInformation { Key = "key1" }
             });
             ProjectViewModel projectVM = serverVM.Projects.First();
-            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
+            BindingController testSubject = this.PrepareCommandForExecution();
             this.host.VisualStateManager.ManagedState.ConnectedServers.Add(serverVM);
             var progressEvents = new ConfigurableProgressEvents();
             var teController = new ConfigurableTeamExplorerController();
@@ -303,7 +303,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 new ProjectInformation { Key = "key1" }
             });
             ProjectViewModel projectVM = serverVM.Projects.ToArray()[0];
-            BindingController testSubject = this.PrepareCommandForExecution(new ConnectionInformation(serverVM.Url));
+            BindingController testSubject = this.PrepareCommandForExecution();
             var section = ConfigurableSectionController.CreateDefault();
             this.host.SetActiveSection(section);
             var progressEvents = new ConfigurableProgressEvents();
@@ -362,11 +362,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return new ServerViewModel(new ConnectionInformation(new Uri("http://123")));
         }
 
-        private BindingController PrepareCommandForExecution(ConnectionInformation connection)
+        private BindingController PrepareCommandForExecution()
         {
+            this.host.TestStateManager.IsConnected = true;
             BindingController testSubject = this.CreateBindingController();
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.sonarQubeService.SetConnection(connection);
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
             this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
             ProjectMock project1 = this.solutionMock.AddOrGetProject("project1");

@@ -37,8 +37,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.numberOfCalls++;
             Assert.IsNotNull(information, "Should not request to establish to a null connection");
-            Assert.AreNotSame(this.sonarQubeService.CurrentConnection, information, "Should not use the same instance to establish to connection, since it will be disposed part way through the logic");
-            this.lastConnectedProjects = this.sonarQubeService.Connect(information, CancellationToken.None)?.ToArray(); // Simulate the expected behavior in product
+            // Simulate the expected behavior in product
+            if (!this.sonarQubeService.TryGetProjects(information, CancellationToken.None, out this.lastConnectedProjects))
+            {
+                Assert.Fail("Failed to establish connection");
+            }
         }
 
         #endregion

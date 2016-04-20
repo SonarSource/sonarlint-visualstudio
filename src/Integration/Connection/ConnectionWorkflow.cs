@@ -45,11 +45,16 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.parentCommand = parentCommand;
         }
 
+        internal /*for testing purposes*/ ConnectionInformation ConnectedServer
+        {
+            get;
+            set;
+        }
+
         #region Start the workflow
         public IProgressEvents Run(ConnectionInformation information)
         {
             Debug.Assert(this.host.ActiveSection != null, "Expect the section to be attached at least until this method returns");
-            Debug.Assert(!ReferenceEquals(information, this.host.SonarQubeService.CurrentConnection), "Using the same connection instance - it will be disposed during the execution, so clone it before calling this method");
 
             this.OnProjectsChanged(information, null);
             IProgressEvents progress = ProgressStepRunner.StartAsync(this.host, this.host.ActiveSection.ProgressHost, (controller) => this.CreateConnectionSteps(controller, information));
@@ -102,9 +107,10 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 return;
             }
 
-            ProjectInformation[] projects = this.host.SonarQubeService.Connect(connection, cancellationToken)?.ToArray();
+            this.ConnectedServer = connection;
 
-            if (this.host.SonarQubeService.CurrentConnection == null)
+            ProjectInformation[] projects;
+            if (!this.host.SonarQubeService.TryGetProjects(connection, cancellationToken, out projects))
             {
                 notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure, double.NaN);
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);
@@ -119,16 +125,17 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
 
         internal /*for testing purposes*/ void DownloadServiceParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
-        { 
+        {
+            Debug.Assert(this.ConnectedServer != null);
+
             // Should never realistically take more than 1 second to match against a project name
             var timeout = TimeSpan.FromSeconds(1);
             var defaultRegex = new Regex(ServerProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
 
             notifications.ProgressChanged(Strings.PreparingBindingWorkflowProgessMessage, double.NaN);
 
-            var properties = this.host.SonarQubeService.GetProperties(token);
-
-            if (token.IsCancellationRequested)
+            ServerProperty[] properties;
+            if (!this.host.SonarQubeService.TryGetProperties(this.ConnectedServer, token, out properties) || token.IsCancellationRequested)
             {
                 AbortWorkflow(controller, token);
                 return;
@@ -167,9 +174,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private bool VerifyCSharpPlugin(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
         {
-            var plugins = this.host.SonarQubeService.GetPlugins(connection, cancellationToken);
-
-            if (plugins == null)
+            ServerPlugin[] plugins;
+            if (!this.host.SonarQubeService.TryGetPlugins(connection, cancellationToken, out plugins))
             {
                 notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure, double.NaN);
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);

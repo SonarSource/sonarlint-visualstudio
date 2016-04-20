@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Globalization;
@@ -73,48 +72,40 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         #region ISonarQubeServiceWrapper
 
-        public ConnectionInformation CurrentConnection
-        {
-            get;
-            private set;
-        }
-
-        public IEnumerable<ProjectInformation> Connect(ConnectionInformation connectionInformation, CancellationToken token)
+        public bool TryGetProjects(ConnectionInformation connectionInformation, CancellationToken token, out ProjectInformation[] serverProjects)
         {
             if (connectionInformation == null)
             {
                 throw new ArgumentNullException(nameof(connectionInformation));
             }
 
-            // Only support one "active" connection
-            this.Disconnect();
+            serverProjects = this.SafeUseHttpClient<ProjectInformation[]>(connectionInformation,
+                client => this.DownloadProjects(client, token));
 
-            return this.SafeUseHttpClient<ProjectInformation[]>(connectionInformation,
-                client => this.DownloadProjects(client, connectionInformation, token));
+            return serverProjects != null;
         }
 
-        public void Disconnect()
+        public bool TryGetProperties(ConnectionInformation connectionInformation, CancellationToken token, out ServerProperty[] properties)
         {
-            this.CurrentConnection?.Dispose();
-            this.CurrentConnection = null;
-        }
-
-        public IEnumerable<ServerProperty> GetProperties(CancellationToken token)
-        {
-            if (this.CurrentConnection == null)
+            if (connectionInformation == null)
             {
-                throw new InvalidOperationException();
+                throw new ArgumentNullException(nameof(connectionInformation));
             }
 
-            ServerProperty[] properties = this.SafeUseHttpClient<ServerProperty[]>(this.CurrentConnection,
+            properties = this.SafeUseHttpClient<ServerProperty[]>(connectionInformation,
                 client => GetServerProperties(client, token));
 
-            return properties;
+            return properties != null;
         }
 
 
-        public RoslynExportProfile GetExportProfile(ProjectInformation project, string language, CancellationToken token)
+        public bool TryGetExportProfile(ConnectionInformation connectionInformation, ProjectInformation project, string language, CancellationToken token, out RoslynExportProfile profile)
         {
+            if (connectionInformation == null)
+            {
+                throw new ArgumentNullException(nameof(connectionInformation));
+            }
+
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
@@ -125,26 +116,24 @@ namespace SonarLint.VisualStudio.Integration.Service
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 
-            if (this.CurrentConnection == null)
-            {
-                throw new InvalidOperationException();
-            }
 
-            return this.SafeUseHttpClient<RoslynExportProfile>(this.CurrentConnection,
+            profile = this.SafeUseHttpClient<RoslynExportProfile>(connectionInformation,
                 client => this.DownloadExportForProject(client, project, language, token));
+
+            return profile != null;
         }
 
-        public IEnumerable<ServerPlugin> GetPlugins(ConnectionInformation connectionInformation, CancellationToken token)
+        public bool TryGetPlugins(ConnectionInformation connectionInformation, CancellationToken token, out ServerPlugin[] plugins)
         {
             if (connectionInformation == null)
             {
                 throw new ArgumentNullException(nameof(connectionInformation));
             }
 
-            ServerPlugin[] plugins = this.SafeUseHttpClient<ServerPlugin[]>(connectionInformation,
+            plugins = this.SafeUseHttpClient<ServerPlugin[]>(connectionInformation,
                 client => DownloadPluginInformation(client, token));
 
-            return plugins;
+            return plugins != null;
         }
 
         public Uri CreateProjectDashboardUrl(ConnectionInformation connectionInformation, ProjectInformation project)
@@ -171,14 +160,9 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         #region Download projects
 
-        private async Task<ProjectInformation[]> DownloadProjects(HttpClient configuredClient, ConnectionInformation connectionInformation, CancellationToken token)
+        private async Task<ProjectInformation[]> DownloadProjects(HttpClient configuredClient, CancellationToken token)
         {
             HttpResponseMessage downloadProjectsResponse = await InvokeGetRequest(configuredClient, ProjectsAPI, token);
-            if (downloadProjectsResponse != null)
-            {
-                this.CurrentConnection = connectionInformation;
-            }
-
             return await ProcessJsonResponse<ProjectInformation[]>(downloadProjectsResponse, token);
         }
 
@@ -218,8 +202,9 @@ namespace SonarLint.VisualStudio.Integration.Service
             {
                 // Special handling for the case when a project was not analyzed yet, in which case a 404 is returned
                 // Request the profile without the project
+                bool ensureSuccess = true;
                 apiUrl = CreateQualityProfileUrl(language);
-                response = await InvokeGetRequest(client, apiUrl, token, ensureSuccess: true);
+                response = await InvokeGetRequest(client, apiUrl, token, ensureSuccess);
             }
 
             response.EnsureSuccessStatusCode(); // Bubble up the rest of the errors
