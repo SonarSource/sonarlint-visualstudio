@@ -1,4 +1,4 @@
 {
-  "ServerUri": "https://dory.sonarsource.com/",
+  "ServerUri": "https://dory.sonarsource.com/sonarqube/",
   "ProjectKey": "sonarlint-visualstudio"
 }
