@@ -5,8 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Integration.SonarAnalyzer;
-
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
@@ -15,6 +13,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void Dispose()
         {
+            // Default interface implementation
         }
     }
 }

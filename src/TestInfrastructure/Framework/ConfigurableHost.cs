@@ -31,6 +31,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.VisualStateManager = new ConfigurableStateManager { Host = this };
         }
 
+        #region IHost
+
+        public event EventHandler ActiveSectionChanged;
+
         public ISectionController ActiveSection
         {
             get;
@@ -82,5 +86,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Simulate product code
             this.VisualStateManager.SyncCommandFromActiveSection();
         }
+        #endregion
+
+        #region Test helpers
+        public void SimulateActiveSectionChanged()
+        {
+            this.ActiveSectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+        #endregion
     }
 }

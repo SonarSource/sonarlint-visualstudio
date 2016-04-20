@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 
@@ -15,6 +16,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class ConfigurableVsWindowFrame : IVsWindowFrame
     {
         private readonly Dictionary<int, object> properties = new Dictionary<int, object>();
+        private int showNoActivateCalled;
 
         #region IVsWindowFrame
         int IVsWindowFrame.CloseFrame(uint grfSaveOptions)
@@ -84,6 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsWindowFrame.ShowNoActivate()
         {
+            this.showNoActivateCalled++;
             return VSConstants.S_OK;
         }
         #endregion
@@ -92,6 +95,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RegisterProperty(int propertyId, object value)
         {
             this.properties[propertyId] = value;
+        }
+
+        public void AssertShowNoActivateCalled(int expectedNumberOfTimes)
+        {
+            Assert.AreEqual(expectedNumberOfTimes, this.showNoActivateCalled, "ShowNoActivate called unexpected number of times");
         }
         #endregion
     }

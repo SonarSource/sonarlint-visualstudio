@@ -21,6 +21,9 @@ namespace SonarLint.VisualStudio.Integration
         DisconnectCommandCommandCalled,
         ToggleShowAllProjectsCommandCommandCalled,
         DontWarnAgainCommandCalled,
-        FixConflictsCommandCalled
+        FixConflictsCommandCalled,
+
+        // Info bar
+        InfoBarUpdateBindingFromErrorList
     }
 }

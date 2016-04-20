@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.SonarAnalyzer;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
@@ -18,6 +17,11 @@ using System.Windows.Threading;
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {
     [TestClass]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
+        "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"", 
+        Justification = "By-design. Test classes will do it part of the test clean up", 
+        Scope = "type", 
+        Target = "~T:SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer.SonarAnalyzerDeactivationManagerForBoundTests")]
     public class SonarAnalyzerDeactivationManagerForBoundTests
     {
         private ConfigurableServiceProvider serviceProvider;
@@ -40,6 +44,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             this.serviceProvider.RegisterService(typeof (SComponentModel), mefModel, replaceExisting: true);
 
             this.testObject = new SonarAnalyzerDeactivationManager(this.serviceProvider, new AdhocWorkspace());
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            this.activeSolutionBoundTracker.Dispose(); // be nice. and dispose
         }
 
         [TestMethod]

@@ -9,14 +9,15 @@ using SonarLint.VisualStudio.Integration.Persistence;
 using System;
 using System.ComponentModel.Composition;
 
-namespace SonarLint.VisualStudio.Integration.SonarAnalyzer
+namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionBoundTracker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker
+    internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker
     {
         private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
+        private readonly IErrorListInfoBarController errorListInfoBarController;
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker)
@@ -34,17 +35,34 @@ namespace SonarLint.VisualStudio.Integration.SonarAnalyzer
             this.extensionHost = host;
             this.solutionTracker = activeSolutionTracker;
 
-            this.extensionHost.VisualStateManager.BindingStateChanged += this.SolutionTracker_ActiveSolutionChanged;
-            this.solutionTracker.ActiveSolutionChanged += this.SolutionTracker_ActiveSolutionChanged;
-            this.CalculateSolutionBinding();
+            this.extensionHost.VisualStateManager.BindingStateChanged += this.OnBindingStateChanged;
+            this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
+
+            this.errorListInfoBarController = this.extensionHost.GetService<IErrorListInfoBarController>();
+            this.errorListInfoBarController.AssertLocalServiceIsNotNull();
+
+            this.CalcualteSolutionBinding();
         }
 
-        private void SolutionTracker_ActiveSolutionChanged(object sender, EventArgs e)
+        public bool IsActiveSolutionBound { get; private set; } = false;
+
+        private void OnActiveSolutionChanged(object sender, EventArgs e)
         {
-            this.CalculateSolutionBinding();
+            this.CalcualteSolutionBinding();
         }
 
-        private void CalculateSolutionBinding()
+        private void OnBindingStateChanged(object sender, EventArgs e)
+        {
+            this.CalculatCurrentBinding();
+        }
+
+        private void CalcualteSolutionBinding()
+        {
+            this.CalculatCurrentBinding();
+            this.errorListInfoBarController.Refresh();
+        }
+
+        private void CalculatCurrentBinding()
         {
             ISolutionBindingSerializer solutionBinding = this.extensionHost.GetService<ISolutionBindingSerializer>();
             solutionBinding.AssertLocalServiceIsNotNull();
@@ -53,23 +71,15 @@ namespace SonarLint.VisualStudio.Integration.SonarAnalyzer
             this.IsActiveSolutionBound = bindingInfo != null;
         }
 
-        public bool IsActiveSolutionBound { get; private set; } = false;
-
         #region IDisposable
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (disposing)
             {
-                if (this.solutionTracker != null)
-                {
-                    this.solutionTracker.ActiveSolutionChanged -= this.SolutionTracker_ActiveSolutionChanged;
-                }
-
-                if (this.extensionHost?.VisualStateManager != null)
-                {
-                    this.extensionHost.VisualStateManager.BindingStateChanged -= this.SolutionTracker_ActiveSolutionChanged;
-                }
+                this.errorListInfoBarController.Reset();
+                this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
+                this.extensionHost.VisualStateManager.BindingStateChanged -= this.OnBindingStateChanged;
             }
         }
 

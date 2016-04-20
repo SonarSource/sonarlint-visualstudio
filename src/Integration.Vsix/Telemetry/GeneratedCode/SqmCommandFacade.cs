@@ -156,6 +156,15 @@ namespace SonarLint.VisualStudio.Integration
             DEBUG_LogSqmCommandsToOutputWindow("FixConflictsCommand");
         }
 
+        /// <summary>
+        /// SQM command for UpdateBindingCommandFromErrorList.
+        /// </summary>
+        public static void UpdateBindingCommandFromErrorList()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.UpdateBindingCommandFromErrorListCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("UpdateBindingCommandFromErrorList");
+        }
+
         #region Private methods
         private static void RunCommand(Guid commandGroup, int commandId)
         {

@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 
@@ -15,8 +16,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Export(typeof(ITelemetryLogger)), PartCreationPolicy(CreationPolicy.Shared)]
     internal class TelemetryLogger : ITelemetryLogger
     {
-        private readonly System.IServiceProvider serviceProvider;
-        private readonly SonarLintSqmCommandTarget sqmCommandHandler;
+        private readonly IServiceProvider serviceProvider;
+        private readonly Dictionary<TelemetryEvent, Action> eventLoggerMap = new Dictionary<TelemetryEvent, Action>();
 
         [ImportingConstructor]
         public TelemetryLogger([Import(typeof(SVsServiceProvider))] System.IServiceProvider serviceProvider)
@@ -30,45 +31,35 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Initialize SQM, can be initialized from multiple places (will no-op once initialized)
             SonarLintSqmFacade.Initialize(serviceProvider);
+
+            this.Initialize();
+        }
+
+        private void Initialize()
+        {
+            this.eventLoggerMap[TelemetryEvent.BoundSolutionDetected] = SonarLintSqmFacade.BoundSolutionDetected;
+            this.eventLoggerMap[TelemetryEvent.ConnectCommandCommandCalled] = SonarLintSqmFacade.ConnectCommand;
+            this.eventLoggerMap[TelemetryEvent.BindCommandCommandCalled] = SonarLintSqmFacade.BindCommand;
+            this.eventLoggerMap[TelemetryEvent.BrowseToProjectDashboardCommandCommandCalled] = SonarLintSqmFacade.BrowseToProjectDashboardCommand;
+            this.eventLoggerMap[TelemetryEvent.BrowseToUrlCommandCommandCalled] = SonarLintSqmFacade.BrowseToUrlCommand;
+            this.eventLoggerMap[TelemetryEvent.DisconnectCommandCommandCalled] = SonarLintSqmFacade.DisconnectCommand;
+            this.eventLoggerMap[TelemetryEvent.RefreshCommandCommandCalled] = SonarLintSqmFacade.RefreshCommand;
+            this.eventLoggerMap[TelemetryEvent.ToggleShowAllProjectsCommandCommandCalled] = SonarLintSqmFacade.ToggleShowAllProjectsCommand;
+            this.eventLoggerMap[TelemetryEvent.DontWarnAgainCommandCalled] = SonarLintSqmFacade.DontWarnAgainCommand;
+            this.eventLoggerMap[TelemetryEvent.FixConflictsCommandCalled] = SonarLintSqmFacade.FixConflictsCommand;
+            this.eventLoggerMap[TelemetryEvent.InfoBarUpdateBindingFromErrorList] = SonarLintSqmFacade.UpdateBindingCommandFromErrorList;
         }
 
         public void ReportEvent(TelemetryEvent telemetryEvent)
         {
-            switch(telemetryEvent)
+            Action logTelemetry;
+            if (this.eventLoggerMap.TryGetValue(telemetryEvent, out logTelemetry))
             {
-                case TelemetryEvent.BoundSolutionDetected:
-                    SonarLintSqmFacade.BoundSolutionDetected();
-                    break;
-                case TelemetryEvent.ConnectCommandCommandCalled:
-                    SonarLintSqmFacade.ConnectCommand();
-                    break;
-                case TelemetryEvent.BindCommandCommandCalled:
-                    SonarLintSqmFacade.BindCommand();
-                    break;
-                case TelemetryEvent.BrowseToProjectDashboardCommandCommandCalled:
-                    SonarLintSqmFacade.BrowseToProjectDashboardCommand();
-                    break;
-                case TelemetryEvent.BrowseToUrlCommandCommandCalled:
-                    SonarLintSqmFacade.BrowseToUrlCommand();
-                    break;
-                case TelemetryEvent.DisconnectCommandCommandCalled:
-                    SonarLintSqmFacade.DisconnectCommand();
-                    break;
-                case TelemetryEvent.RefreshCommandCommandCalled:
-                    SonarLintSqmFacade.RefreshCommand();
-                    break;
-                case TelemetryEvent.ToggleShowAllProjectsCommandCommandCalled:
-                    SonarLintSqmFacade.ToggleShowAllProjectsCommand();
-                    break;
-                case TelemetryEvent.DontWarnAgainCommandCalled:
-                    SonarLintSqmFacade.DontWarnAgainCommand();
-                    break;
-                case TelemetryEvent.FixConflictsCommandCalled:
-                    SonarLintSqmFacade.FixConflictsCommand();
-                    break;
-                default:
-                    Debug.Fail("Unsupported event: " + telemetryEvent);
-                    break;
+                logTelemetry();
+            }
+            else
+            {
+                Debug.Fail("Unsupported event: " + telemetryEvent);
             }
         }
     }

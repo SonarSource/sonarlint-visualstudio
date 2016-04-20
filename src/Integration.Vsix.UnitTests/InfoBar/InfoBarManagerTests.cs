@@ -69,6 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act
             IInfoBar infoBarWrapper = testSubject.AttachInfoBar(windowGuid, "Hello", "world", KnownMonikers.UserWarning);
+            frame.AssertShowNoActivateCalled(1);
             bool actionClicked = false;
             bool closed = false;
             infoBarWrapper.ButtonClick += (s, e) => actionClicked = true;
@@ -110,6 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             Assert.IsFalse(actionClicked);
             Assert.IsFalse(closed);
+            frame.AssertShowNoActivateCalled(1); // Should only be called once in all this flow
         }
 
         [TestMethod]
@@ -117,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             Guid windowGuid = new Guid();
-            this.shell.RegisterToolWindow(windowGuid);
+            ConfigurableVsWindowFrame frame = this.shell.RegisterToolWindow(windowGuid);
             var testSubject = new InfoBarManager(this.serviceProvider);
 
             // Case 1: No service
@@ -125,12 +127,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.IsNull(testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)));
+            frame.AssertShowNoActivateCalled(0);
 
             // Case 2: Service exists, no host for frame
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
 
             // Act + Verify
             Assert.IsNull(testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)));
+            frame.AssertShowNoActivateCalled(0);
         }
 
         [TestMethod]
