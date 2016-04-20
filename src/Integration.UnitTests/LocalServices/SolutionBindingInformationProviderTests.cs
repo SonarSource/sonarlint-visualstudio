@@ -149,6 +149,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             Assert.AreSame(boundProject, projects.SingleOrDefault(), "Unexpected bound project");
+            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
+        }
+
+        [TestMethod]
+        public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_ProjectRuleSetncludsSolutionRuleSet_RuleSetAggregation()
+        {
+            // Setup
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            this.SetValidSolutionBinding();
+            this.SetValidFilteredProjects();
+            // Duplicate the configurations, which will create duplicate rule sets
+            this.projectSystemHelper.FilteredProjects.OfType<ProjectMock>().ToList().ForEach(p => this.SetValidProjectConfiguration(p, "AnotherConfiguration"));
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets();
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetBoundProjects();
+
+            // Verify
+            Assert.AreSame(boundProject, projects.SingleOrDefault(), "Unexpected bound project");
+            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
 
         [TestMethod]

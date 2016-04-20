@@ -46,8 +46,16 @@ namespace SonarLint.VisualStudio.Integration
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
+            // Projects will be using the same solution ruleset in most of the cases,
+            // projects could have multiple configurations all of which using the same rule set,
+            // we want to minimize the number of disk operations since the 
+            // method ca be called from the UI thread, hence this short-lived cache 
+            Dictionary<string, RuleSet> cache = new Dictionary<string, RuleSet>(StringComparer.OrdinalIgnoreCase);
+
+            // Note: we will still may end up analyzing the same project rule set
+            // but that should in marginal since it will be already loaded into memory
             return projectSystem.GetFilteredSolutionProjects()
-                .Where(p => this.IsFullyBoundProject(binding, p));
+                .Where(p => this.IsFullyBoundProject(cache, binding, p));
         }
 
         public IEnumerable<Project> GetUnboundProjects()
@@ -60,13 +68,13 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region Non-public API
-        private bool IsFullyBoundProject(BoundSonarQubeProject binding, Project project)
+        private bool IsFullyBoundProject(Dictionary<string, RuleSet> cache, BoundSonarQubeProject binding, Project project)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
 
             // If solution is not bound/has a missing ruleset, no need to go further
-            RuleSet sonarQubeRuleSet = this.FindSonarQubeSolutionRuleSet(binding, project);
+            RuleSet sonarQubeRuleSet = this.FindSonarQubeSolutionRuleSet(cache, binding, project);
             if (sonarQubeRuleSet == null)
             {
                 return false;
@@ -77,32 +85,39 @@ namespace SonarLint.VisualStudio.Integration
 
             RuleSetDeclaration[] declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
             return declarations.Length > 0 // Need at least one
-                && declarations.All(declaration => this.IsRuleSetBound(project, declaration, sonarQubeRuleSet));
+                && declarations.All(declaration => this.IsRuleSetBound(cache, project, declaration, sonarQubeRuleSet));
         }
 
-        private bool IsRuleSetBound(Project project, RuleSetDeclaration declaration, RuleSet sonarQubeRuleSet)
+        private bool IsRuleSetBound(Dictionary<string, RuleSet> cache, Project project, RuleSetDeclaration declaration, RuleSet sonarQubeRuleSet)
         {
-            RuleSet projectRuleSet = this.FindDeclarationRuleSet(project, declaration);
+            RuleSet projectRuleSet = this.FindDeclarationRuleSet(cache, project, declaration);
 
             return (projectRuleSet != null && RuleSetHelper.FindInclude(projectRuleSet, sonarQubeRuleSet) != null);
         }
 
-        private RuleSet FindSonarQubeSolutionRuleSet(BoundSonarQubeProject binding, Project project)
+        private RuleSet FindSonarQubeSolutionRuleSet(Dictionary<string, RuleSet> cache, BoundSonarQubeProject binding, Project project)
         {
             var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
-
-            var ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
-            ruleSetSerializer.AssertLocalServiceIsNotNull();
 
             string expectedSolutionRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                          binding.ProjectKey,
                          ProjectBindingOperation.GetProjectGroup(project));
 
-            return ruleSetSerializer.LoadRuleSet(expectedSolutionRuleSet);
+            RuleSet solutionRuleSet;
+            if (!cache.TryGetValue(expectedSolutionRuleSet, out solutionRuleSet))
+            {
+                var ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
+                ruleSetSerializer.AssertLocalServiceIsNotNull();
+
+                solutionRuleSet = ruleSetSerializer.LoadRuleSet(expectedSolutionRuleSet);
+                cache[expectedSolutionRuleSet] = solutionRuleSet;
+            }
+
+            return solutionRuleSet;
         }
 
-        private RuleSet FindDeclarationRuleSet(Project project, RuleSetDeclaration declaration)
+        private RuleSet FindDeclarationRuleSet(Dictionary<string, RuleSet> cache, Project project, RuleSetDeclaration declaration)
         {
             var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
@@ -118,8 +133,15 @@ namespace SonarLint.VisualStudio.Integration
                 return null;
             }
 
-            // We treat corrupted rulesets as not found
-            return ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
+            RuleSet projectRuleSet;
+            if (!cache.TryGetValue(ruleSetFilePath, out projectRuleSet))
+            {
+                // We treat corrupted rulesets as not found
+                projectRuleSet = ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
+                cache[ruleSetFilePath] = projectRuleSet;
+            }
+
+            return projectRuleSet;
         }
         #endregion
     }
