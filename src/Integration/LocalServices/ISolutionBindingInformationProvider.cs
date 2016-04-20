@@ -32,5 +32,10 @@ namespace SonarLint.VisualStudio.Integration
         /// <seealso cref="IProjectSystemHelper.GetFilteredSolutionProjects"/></remarks>
         /// <returns>Will always return an instance, never a null</returns>
         IEnumerable<Project> GetUnboundProjects();
+
+        /// <summary>
+        /// Returns whether the solution is bound to SonarQube
+        /// </summary>
+        bool IsSolutionBound();
     }
 }

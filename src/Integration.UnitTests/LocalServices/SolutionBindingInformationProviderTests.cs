@@ -49,6 +49,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void SolutionBindingInformationProvider_IsSolutionBound()
+        {
+            // Setup
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+
+            // Case 1: Not bound
+            this.bindingSerializer.CurrentBinding = null;
+
+            // Act + Verify
+            Assert.IsFalse(testSubject.IsSolutionBound());
+
+            // Case 2: Bound
+            this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject();
+
+            // Act + Verify
+            Assert.IsTrue(testSubject.IsSolutionBound());
+        }
+
+        [TestMethod]
         public void SolutionBindingInformationProvider_GetBoundProjects_SolutionNotBound()
         {
             // Setup
@@ -61,7 +80,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             AssertEmptyResult(projects);
-
         }
 
         [TestMethod]
@@ -170,6 +188,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             Assert.AreSame(boundProject, projects.SingleOrDefault(), "Unexpected bound project");
             this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
+        }
+
+
+        [TestMethod]
+        public void SolutionBindingInformationProvider_GetUnboundProjects_SolutionNotBound()
+        {
+            // Setup
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            this.bindingSerializer.CurrentBinding = null;
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Verify
+            AssertEmptyResult(projects);
         }
 
         [TestMethod]
