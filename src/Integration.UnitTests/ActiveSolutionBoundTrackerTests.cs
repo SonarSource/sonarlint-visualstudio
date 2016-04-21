@@ -11,9 +11,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Service;
 using System;
+using System.Linq;
 using System.Windows.Threading;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
+namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class ActiveSolutionBoundTrackerTests
@@ -23,6 +24,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         private ConfigurableActiveSolutionTracker activeSolutionTracker;
         private ConfigurableHost host;
         private ConfigurableErrorListInfoBarController errorListController;
+        private ConfigurableSolutionBindingInformationProvider solutionBindingInformationProvider;
 
         [TestInitialize]
         public void TestInitialize()
@@ -43,26 +45,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 
             this.errorListController = new ConfigurableErrorListInfoBarController();
             this.serviceProvider.RegisterService(typeof(IErrorListInfoBarController), this.errorListController);
+
+            this.solutionBindingInformationProvider = new ConfigurableSolutionBindingInformationProvider();
+            this.serviceProvider.RegisterService(typeof(ISolutionBindingInformationProvider), this.solutionBindingInformationProvider);
         }
 
         [TestMethod]
         public void ActiveSolutionBoundTracker_ArgChecls()
         {
             // Setup
-            Exceptions.Expect<ArgumentNullException>(() => new ActiveSolutionBoundTracker(null, new ConfigurableActiveSolutionTracker()));
-            Exceptions.Expect<ArgumentNullException>(() => new ActiveSolutionBoundTracker(this.host, null));
+            Exceptions.Expect<ArgumentNullException>(() =>
+                new ActiveSolutionBoundTracker(null, new ConfigurableActiveSolutionTracker()));
+            Exceptions.Expect<ArgumentNullException>(() =>
+                new ActiveSolutionBoundTracker(this.host, null));
         }
 
         [TestMethod]
         public void ActiveSolutionBoundTracker_Unbound()
         {
             // Setup
-            var solutionBinding = new ConfigurableSolutionBindingSerializer
-            {
-                CurrentBinding = null
-            };
-            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
-            host.VisualStateManager.SetBoundProject(new ProjectInformation());
+            host.VisualStateManager.ClearBoundProject();
 
             // Act
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
@@ -77,12 +79,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         public void ActiveSolutionBoundTracker_Bound()
         {
             // Setup
-            var solutionBinding = new ConfigurableSolutionBindingSerializer
-            {
-                CurrentBinding = new BoundSonarQubeProject()
-            };
-            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
-            host.VisualStateManager.SetBoundProject(new ProjectInformation());
+            this.solutionBindingInformationProvider.SolutionBound = true;
+            this.host.VisualStateManager.SetBoundProject(new ProjectInformation());
 
             // Act
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
@@ -96,31 +94,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void ActiveSolutionBoundTracker_Changes()
         {
-            // Setup
             var solutionBinding = new ConfigurableSolutionBindingSerializer
             {
                 CurrentBinding = new BoundSonarQubeProject()
             };
             this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
+            this.solutionBindingInformationProvider.SolutionBound = true;
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
+            var reanalysisEventCalledCount = 0;
+            testSubject.SolutionBindingChanged += (obj, args) => { reanalysisEventCalledCount++; };
 
             // Sanity
             Assert.IsTrue(testSubject.IsActiveSolutionBound, "Initially bound");
             this.errorListController.AssertRefreshCalled(1);
             this.errorListController.AssertResetCalled(0);
+            Assert.AreEqual(0, reanalysisEventCalledCount, "No reanalysis forced");
 
             // Case 1: Clear bound project
-            // Act
             solutionBinding.CurrentBinding = null;
+            this.solutionBindingInformationProvider.SolutionBound = false;
+            // Act
             host.VisualStateManager.ClearBoundProject();
 
             // Verify
             Assert.IsFalse(testSubject.IsActiveSolutionBound, "Unbound solution should report false activation");
             this.errorListController.AssertRefreshCalled(1);
             this.errorListController.AssertResetCalled(0);
+            Assert.AreEqual(1, reanalysisEventCalledCount, "Unbind should trigger reanalysis");
 
             // Case 2: Set bound project
             solutionBinding.CurrentBinding = new BoundSonarQubeProject();
+            this.solutionBindingInformationProvider.SolutionBound = true;
             // Act
             host.VisualStateManager.SetBoundProject(new ProjectInformation());
 
@@ -128,9 +132,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             Assert.IsTrue(testSubject.IsActiveSolutionBound, "Bound solution should report true activation");
             this.errorListController.AssertRefreshCalled(1);
             this.errorListController.AssertResetCalled(0);
+            Assert.AreEqual(2, reanalysisEventCalledCount, "Bind should trigger reanalysis");
 
             // Case 3: Solution unloaded
             solutionBinding.CurrentBinding = null;
+            this.solutionBindingInformationProvider.SolutionBound = false;
             // Act
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
@@ -138,9 +144,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             Assert.IsFalse(testSubject.IsActiveSolutionBound, "Should respond to solution change event and report unbound");
             this.errorListController.AssertRefreshCalled(2);
             this.errorListController.AssertResetCalled(0);
+            Assert.AreEqual(3, reanalysisEventCalledCount, "Solution change should trigger reanalysis");
 
             // Case 4: Solution loaded
             solutionBinding.CurrentBinding = new BoundSonarQubeProject();
+            this.solutionBindingInformationProvider.SolutionBound = true;
             // Act
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
@@ -148,15 +156,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             Assert.IsTrue(testSubject.IsActiveSolutionBound, "Bound respond to solution change event and report bound");
             this.errorListController.AssertRefreshCalled(3);
             this.errorListController.AssertResetCalled(0);
+            Assert.AreEqual(4, reanalysisEventCalledCount, "Solution change should trigger reanalysis");
 
             // Case 5: Dispose and change
             // Act
             testSubject.Dispose();
             solutionBinding.CurrentBinding = null;
+            this.solutionBindingInformationProvider.SolutionBound = true;
             host.VisualStateManager.ClearBoundProject();
 
             // Verify
-            Assert.IsTrue(testSubject.IsActiveSolutionBound, "Once disposed should stop tracking and remain as it was");
+            Assert.AreEqual(4, reanalysisEventCalledCount, "Once disposed should stop raising the event");
             this.errorListController.AssertRefreshCalled(3);
             this.errorListController.AssertResetCalled(1);
         }

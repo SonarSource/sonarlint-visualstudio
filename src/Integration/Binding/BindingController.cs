@@ -151,14 +151,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (isFinishedSuccessfully)
             {
-                this.host.VisualStateManager.SetBoundProject(projectInformation);
+                //if (projectInformation.Key != this.host.VisualStateManager.BoundProjectKey)
+                {
+                    //this.host.VisualStateManager.ClearBoundProject();
+                    this.host.VisualStateManager.SetBoundProject(projectInformation);
+                }
 
                 var conflictsController = this.host.GetService<IRuleSetConflictsController>();
                 conflictsController.AssertLocalServiceIsNotNull();
 
                 if (conflictsController.CheckForConflicts())
                 {
-                    // In some cases we will end up navigating to the solution explorer, this will make sure that 
+                    // In some cases we will end up navigating to the solution explorer, this will make sure that
                     // we're back in team explorer to view the conflicts
                     this.ServiceProvider.GetMefService<ITeamExplorerController>()?.ShowSonarQubePage();
                 }
@@ -169,6 +173,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
             else
             {
+                //this.host.VisualStateManager.ClearBoundProject();
+
                 IUserNotification notifications = this.host.ActiveSection?.UserNotifications;
                 if (notifications != null)
                 {

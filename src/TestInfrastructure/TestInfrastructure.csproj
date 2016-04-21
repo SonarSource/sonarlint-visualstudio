@@ -125,6 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Framework\ConfigurableActiveSolutionBoundTracker.cs" />
+    <Compile Include="Framework\ConfigurableSolutionBindingInformationProvider.cs" />
     <Compile Include="Framework\ConfigurableBindingOperation.cs" />
     <Compile Include="Framework\ConfigurableConflictsManager.cs" />
     <Compile Include="Framework\ConfigurableErrorListInfoBarController.cs" />

@@ -77,5 +77,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
                 return ResourceManager.GetString("InvalidInfoBarInstance", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} could not be found in {1}.
+        /// </summary>
+        internal static string MissingResourceAtLocation {
+            get {
+                return ResourceManager.GetString("MissingResourceAtLocation", resourceCulture);
+            }
+        }
     }
 }

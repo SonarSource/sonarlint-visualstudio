@@ -38,8 +38,8 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IRuleSetInspector),
                 typeof(IRuleSetConflictsController),
                 typeof(IProjectSystemFilter),
-                typeof(ISolutionBindingInformationProvider),
-                typeof(IErrorListInfoBarController)
+                typeof(IErrorListInfoBarController),
+                typeof(ISolutionBindingInformationProvider)
         };
 
         private readonly IServiceProvider serviceProvider;
@@ -135,9 +135,9 @@ namespace SonarLint.VisualStudio.Integration
             {
                 this.resetBindingWhenAttaching = false;
 
-                // The connect section activated after the solution is opened, 
+                // The connect section activated after the solution is opened,
                 // so reset the binding if applicable. No reason to abort since
-                // this is the first time after the solution was opened so that 
+                // this is the first time after the solution was opened so that
                 // we switched to the connect section.
                 this.ResetBinding(abortCurrentlyRunningWorklows: false);
             }

@@ -82,8 +82,8 @@ namespace SonarLint.VisualStudio.Integration
 
             // Projects will be using the same solution ruleset in most of the cases,
             // projects could have multiple configurations all of which using the same rule set,
-            // we want to minimize the number of disk operations since the 
-            // method ca be called from the UI thread, hence this short-lived cache 
+            // we want to minimize the number of disk operations since the
+            // method ca be called from the UI thread, hence this short-lived cache
             Dictionary<string, RuleSet> cache = new Dictionary<string, RuleSet>(StringComparer.OrdinalIgnoreCase);
 
             // Note: we will still may end up analyzing the same project rule set

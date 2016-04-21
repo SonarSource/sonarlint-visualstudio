@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Integration.Persistence;
 using System;
 using System.ComponentModel.Composition;
 
@@ -13,11 +12,16 @@ namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionBoundTracker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker
+    internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IDisposable
     {
         private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IErrorListInfoBarController errorListInfoBarController;
+        private readonly ISolutionBindingInformationProvider solutionBindingInformationProvider;
+
+        public event EventHandler<bool> SolutionBindingChanged;
+
+        public bool IsActiveSolutionBound { get; private set; }
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker)
@@ -35,40 +39,48 @@ namespace SonarLint.VisualStudio.Integration
             this.extensionHost = host;
             this.solutionTracker = activeSolutionTracker;
 
-            this.extensionHost.VisualStateManager.BindingStateChanged += this.OnBindingStateChanged;
-            this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
+            this.solutionBindingInformationProvider = this.extensionHost.GetService<ISolutionBindingInformationProvider>();
+            this.solutionBindingInformationProvider.AssertLocalServiceIsNotNull();
 
             this.errorListInfoBarController = this.extensionHost.GetService<IErrorListInfoBarController>();
             this.errorListInfoBarController.AssertLocalServiceIsNotNull();
+            this.errorListInfoBarController.Refresh();
 
-            this.CalculateSolutionBinding();
+            // The user changed the binding through the Team Explorer
+            this.extensionHost.VisualStateManager.BindingStateChanged += this.OnBindingStateChanged;
+
+            // The solution changed inside the IDE
+            this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
+
+            this.IsActiveSolutionBound = this.solutionBindingInformationProvider.IsSolutionBound();
         }
-
-        public bool IsActiveSolutionBound { get; private set; } = false;
 
         private void OnActiveSolutionChanged(object sender, EventArgs e)
         {
-            this.CalculateSolutionBinding();
+            this.RaiseAnalyzersChangedIfBindingChanged();
+            this.errorListInfoBarController.Refresh();
         }
 
         private void OnBindingStateChanged(object sender, EventArgs e)
         {
-            this.CalculateCurrentBinding();
+            this.RaiseAnalyzersChangedIfBindingChanged();
         }
 
-        private void CalculateSolutionBinding()
+        private void RaiseAnalyzersChangedIfBindingChanged()
         {
-            this.CalculateCurrentBinding();
-            this.errorListInfoBarController.Refresh();
+            bool isSolutionCurrentlyBound = this.solutionBindingInformationProvider.IsSolutionBound();
+            if (this.IsActiveSolutionBound == isSolutionCurrentlyBound)
+            {
+                return;
+            }
+
+            this.IsActiveSolutionBound = isSolutionCurrentlyBound;
+            this.OnAnalyzersChanged(isBound: this.IsActiveSolutionBound);
         }
 
-        private void CalculateCurrentBinding()
+        private void OnAnalyzersChanged(bool isBound)
         {
-            ISolutionBindingSerializer solutionBinding = this.extensionHost.GetService<ISolutionBindingSerializer>();
-            solutionBinding.AssertLocalServiceIsNotNull();
-
-            BoundSonarQubeProject bindingInfo = solutionBinding.ReadSolutionBinding();
-            this.IsActiveSolutionBound = bindingInfo != null;
+            this.SolutionBindingChanged?.Invoke(this, isBound);
         }
 
         #region IDisposable

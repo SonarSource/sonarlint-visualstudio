@@ -104,9 +104,9 @@
     <Compile Include="Commands\ManageConnectionsCommandTests.cs" />
     <Compile Include="InfoBar\InfoBarManagerTests.cs" />
     <Compile Include="Settings\IntegrationSettingsTests.cs" />
-    <Compile Include="SonarAnalyzer\SonarAnalyzerDeactivationManagerForBoundTests.cs" />
+    <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.ForBound.cs" />
     <Compile Include="SonarAnalyzer\TestAnalyzerReference.cs" />
-    <Compile Include="SonarAnalyzer\SonarAnalyzerDeactivationManagerTests.cs" />
+    <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.cs" />
     <Compile Include="Telemetry\BoundSolutionAnalyzerTests.cs" />
     <Compile Include="Commands\PackageCommandManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

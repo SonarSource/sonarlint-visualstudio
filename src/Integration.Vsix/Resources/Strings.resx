@@ -125,4 +125,8 @@
     <value>The specified argument is of a valid type.</value>
     <comment>Exception message</comment>
   </data>
+  <data name="MissingResourceAtLocation" xml:space="preserve">
+    <value>{0} could not be found in {1}</value>
+    <comment>Error message in output window, {0} assembly/type name, {1} lookup location</comment>
+  </data>
 </root>

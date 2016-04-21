@@ -65,7 +65,8 @@
     <Compile Include="Settings\OptionsPage.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="SonarAnalyzerDeactivationManager.cs" />
+    <Compile Include="SonarAnalyzerManager.cs" />
+    <Compile Include="SolutionAnalysisRequester.cs" />
     <Compile Include="Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

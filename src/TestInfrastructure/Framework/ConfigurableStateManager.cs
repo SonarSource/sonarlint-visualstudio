@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.boundProject = null;
 
-            this.BindingStateChanged?.Invoke(this, null);
+            this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void SetBoundProject(ProjectInformation project)
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.boundProject = project;
 
-            this.BindingStateChanged?.Invoke(this, null);
+            this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects)

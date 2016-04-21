@@ -5,15 +5,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
     {
         public bool IsActiveSolutionBound { get; set; }
 
-        public void Dispose()
-        {
-            // Default interface implementation
-        }
+        public event EventHandler<bool> SolutionBindingChanged;
     }
 }

@@ -24,16 +24,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                        "SolutionHasProjectCapability:VB" }
     )]
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
-        "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"", 
-        Justification = "By-Design. The base class exposes a Dispose override in which the disposable instances will be disposed", 
-        Scope = "type", 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+        "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
+        Justification = "By-Design. The base class exposes a Dispose override in which the disposable instances will be disposed",
+        Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Integration.Vsix.SonarLintIntegrationPackage")]
     public partial class SonarLintIntegrationPackage : Package
     {
         private BoundSolutionAnalyzer usageAnalyzer;
         private PackageCommandManager commandManager;
-        private SonarAnalyzerDeactivationManager sonarAnalyzerDeactivationManager;
+        private SonarAnalyzerManager sonarAnalyzerManager;
 
         protected override void Initialize()
         {
@@ -42,9 +42,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             IServiceProvider serviceProvider = this;
 
+            this.sonarAnalyzerManager = new SonarAnalyzerManager(serviceProvider);
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
             this.commandManager = new PackageCommandManager(serviceProvider);
-            this.sonarAnalyzerDeactivationManager = new SonarAnalyzerDeactivationManager(serviceProvider);
 
             this.commandManager.Initialize();
         }

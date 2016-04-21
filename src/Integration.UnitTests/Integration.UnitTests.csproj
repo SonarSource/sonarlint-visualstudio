@@ -162,7 +162,7 @@
     <Compile Include="Binding\ProjectBindingOperation.WriterTests.cs" />
     <Compile Include="ActiveSolutionTrackerTests.cs" />
     <Compile Include="Service\VersionHelperTests.cs" />
-    <Compile Include="SonarAnalyzer\ActiveSolutionBoundTrackerTests.cs" />
+    <Compile Include="ActiveSolutionBoundTrackerTests.cs" />
     <Compile Include="State\StateManagerTests.cs" />
     <Compile Include="State\TransferableVisualStateTests.cs" />
     <Compile Include="TeamExplorer\ConnectSectionViewModelTests.cs" />

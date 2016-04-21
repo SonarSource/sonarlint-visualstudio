@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SonarAnalyzerDeactivationManager.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SonarAnalyzerManager.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -12,12 +12,13 @@ using Microsoft.VisualStudio.LanguageServices;
 using SonarLint.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public class SonarAnalyzerDeactivationManager
+    public sealed class SonarAnalyzerManager : IDisposable
     {
         internal /*for testing purposes*/ enum ProjectAnalyzerStatus
         {
@@ -28,13 +29,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly Workspace workspace;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly SolutionAnalysisRequester solutionAnalysisRequester;
 
         private static readonly AssemblyName AnalyzerAssemblyName =
             new AssemblyName(typeof(SonarAnalysisContext).Assembly.FullName);
         internal /*for testing purposes*/ static readonly Version AnalyzerVersion = AnalyzerAssemblyName.Version;
         internal /*for testing purposes*/ static readonly string AnalyzerName = AnalyzerAssemblyName.Name;
 
-        internal /*for testing purposes*/ SonarAnalyzerDeactivationManager(IServiceProvider serviceProvider, Workspace workspace)
+        internal /*for testing purposes*/ SonarAnalyzerManager(IServiceProvider serviceProvider, Workspace workspace)
         {
             if (serviceProvider == null)
             {
@@ -49,11 +51,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.workspace = workspace;
             this.activeSolutionBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
 
+            if (this.activeSolutionBoundTracker == null)
+            {
+                Debug.Fail($"Could not get {nameof(IActiveSolutionBoundTracker)}");
+            }
+
+            this.solutionAnalysisRequester = new SolutionAnalysisRequester(serviceProvider, this.workspace);
+            this.activeSolutionBoundTracker.SolutionBindingChanged += this.ActiveSolutionBoundTracker_SolutionBindingChanged;
+
             SonarAnalysisContext.ShouldAnalysisBeDisabled =
                 tree => ShouldAnalysisBeDisabledOnTree(tree);
         }
 
-        public SonarAnalyzerDeactivationManager(IServiceProvider serviceProvider):
+        public SonarAnalyzerManager(IServiceProvider serviceProvider):
             this(serviceProvider, GetWorkspace(serviceProvider))
         {
         }
@@ -121,5 +131,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 ? ProjectAnalyzerStatus.DifferentVersion
                 : ProjectAnalyzerStatus.SameVersion;
         }
+
+        private void ActiveSolutionBoundTracker_SolutionBindingChanged(object sender, bool e)
+        {
+            this.solutionAnalysisRequester.ReanalyzeSolution();
+        }
+
+        #region IDisposable
+
+        private void Dispose(bool disposing)
+        {
+            if (!disposing)
+            {
+                return;
+            }
+
+            if (this.activeSolutionBoundTracker != null)
+            {
+                this.activeSolutionBoundTracker.SolutionBindingChanged -= this.ActiveSolutionBoundTracker_SolutionBindingChanged;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            this.Dispose(true);
+        }
+        #endregion
     }
 }

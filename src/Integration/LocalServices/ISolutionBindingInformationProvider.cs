@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration
         IEnumerable<Project> GetBoundProjects();
 
         /// <summary>
-        /// Return all the SonarQube unbound projects in the current solution. 
+        /// Return all the SonarQube unbound projects in the current solution.
         /// It's up to the caller to make sure that the solution is fully loaded before calling this method.
         /// </summary>
         /// <remarks>Internally projects are filtered using the <see cref="IProjectSystemFilter"/> service.
