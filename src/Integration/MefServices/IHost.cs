@@ -41,6 +41,11 @@ namespace SonarLint.VisualStudio.Integration
         void SetActiveSection(ISectionController section);
 
         /// <summary>
+        /// Change event when the <see cref="ActiveSection"/> changed
+        /// </summary>
+        event EventHandler ActiveSectionChanged;
+
+        /// <summary>
         /// Clears the <see cref="ActiveSection"/>
         /// </summary>
         void ClearActiveSection();

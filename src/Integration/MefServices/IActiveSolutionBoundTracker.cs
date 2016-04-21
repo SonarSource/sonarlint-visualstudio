@@ -7,7 +7,7 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Integration.SonarAnalyzer
+namespace SonarLint.VisualStudio.Integration
 {
     /// <summary>
     /// Allows checking if the current Visual Studio solution is bound to a SonarQube project or not

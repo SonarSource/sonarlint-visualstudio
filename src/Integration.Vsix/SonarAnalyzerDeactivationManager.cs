@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using SonarLint.Helpers;
-using SonarLint.VisualStudio.Integration.SonarAnalyzer;
 using System;
 using System.Collections.Generic;
 using System.Linq;

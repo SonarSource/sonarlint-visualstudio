@@ -94,6 +94,14 @@
                         <ButtonText>FixConflictsCommand</ButtonText>
                     </Strings>
                 </Button>
+  
+                <Button guid="guidCmdSet" id="UpdateBindingCommandFromErrorList" priority="0x00" type="Button">
+                    <CommandFlag>NoButtonCustomize</CommandFlag>
+                    <CommandFlag>NoKeyCustomize</CommandFlag>
+                    <Strings>
+                        <ButtonText>UpdateBindingCommandFromErrorList</ButtonText>
+                    </Strings>
+                </Button>
             </Buttons>
         </Commands>
         <Symbols>
@@ -109,6 +117,7 @@
                     <IDSymbol name="ToggleShowAllProjectsCommand" value="0x306" />
                     <IDSymbol name="DontWarnAgainCommand" value="0x307" />
                     <IDSymbol name="FixConflictsCommand" value="0x308" />
+                    <IDSymbol name="UpdateBindingCommandFromErrorList" value="0x400" />
                 </GuidSymbol>
         </Symbols>
         <!-- Add UsedCommands so that a command table merge does not remove these commands    -->
@@ -124,5 +133,6 @@
             <UsedCommand guid="guidCmdSet" id="ToggleShowAllProjectsCommand" />
             <UsedCommand guid="guidCmdSet" id="DontWarnAgainCommand" />
             <UsedCommand guid="guidCmdSet" id="FixConflictsCommand" />
+            <UsedCommand guid="guidCmdSet" id="UpdateBindingCommandFromErrorList" />
         </UsedCommands>
     </CommandTable>

@@ -37,7 +37,9 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IConflictsManager),
                 typeof(IRuleSetInspector),
                 typeof(IRuleSetConflictsController),
-                typeof(IProjectSystemFilter)
+                typeof(IProjectSystemFilter),
+                typeof(ISolutionBindingInformationProvider),
+                typeof(IErrorListInfoBarController)
         };
 
         private readonly IServiceProvider serviceProvider;
@@ -106,6 +108,8 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region IHost
+        public event EventHandler ActiveSectionChanged;
+
         public Dispatcher UIDispatcher { get; }
 
         public IStateManager VisualStateManager { get;  }
@@ -137,6 +141,8 @@ namespace SonarLint.VisualStudio.Integration
                 // we switched to the connect section.
                 this.ResetBinding(abortCurrentlyRunningWorklows: false);
             }
+
+            this.OnActiveSectionChanged();
         }
 
         public void ClearActiveSection()
@@ -149,6 +155,8 @@ namespace SonarLint.VisualStudio.Integration
             this.ActiveSection.ViewModel.State = null;
             this.ActiveSection = null;
             this.VisualStateManager.SyncCommandFromActiveSection();
+
+            this.OnActiveSectionChanged();
         }
 
         private void TransferState()
@@ -165,6 +173,10 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        private void OnActiveSectionChanged()
+        {
+            this.ActiveSectionChanged?.Invoke(this, EventArgs.Empty);
+        }
         #endregion
 
         #region Active solution changed event handler
@@ -268,6 +280,8 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this)));
             this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this)));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() => new ProjectSystemFilter(this)));
+            this.localServices.Add(typeof(ISolutionBindingInformationProvider), new Lazy<ILocalService>(() => new SolutionBindingInformationProvider(this)));
+            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this)));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this));

@@ -174,6 +174,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
                 this.InfoBarUIElement = uiElement;
                 this.Frame = frame;
+
+                this.Frame.ShowNoActivate();
+
                 this.Advise();
             }
 

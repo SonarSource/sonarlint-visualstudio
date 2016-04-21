@@ -31,13 +31,47 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         #region ISolutionBindingInformationProvider
+        public bool IsSolutionBound()
+        {
+            return this.GetSolutionBinding() != null;
+        }
+
         public IEnumerable<Project> GetBoundProjects()
+        {
+            return this.GetBoundProjects(this.GetSolutionBinding());
+        }
+
+        public IEnumerable<Project> GetUnboundProjects()
+        {
+            return this.GetUnboundProjects(this.GetSolutionBinding());
+        }
+        #endregion
+
+        #region Non-public API
+        private BoundSonarQubeProject GetSolutionBinding()
         {
             var bindingSerializer = this.serviceProvider.GetService<ISolutionBindingSerializer>();
             bindingSerializer.AssertLocalServiceIsNotNull();
 
-            // We only have bound projects if the solution has persisted solution binding
-            BoundSonarQubeProject binding = bindingSerializer.ReadSolutionBinding();
+            return bindingSerializer.ReadSolutionBinding();
+        }
+
+        private IEnumerable<Project> GetUnboundProjects(BoundSonarQubeProject binding)
+        {
+            if (binding == null)
+            {
+                return Enumerable.Empty<Project>();
+            }
+
+            var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
+
+            // Reuse the binding information passed in to avoid reading it more than once
+            return projectSystem.GetFilteredSolutionProjects().Except(this.GetBoundProjects(binding));
+        }
+
+        private IEnumerable<Project> GetBoundProjects(BoundSonarQubeProject binding)
+        {
             if (binding == null)
             {
                 return Enumerable.Empty<Project>();
@@ -54,20 +88,12 @@ namespace SonarLint.VisualStudio.Integration
 
             // Note: we will still may end up analyzing the same project rule set
             // but that should in marginal since it will be already loaded into memory
+
+            // Reuse the binding information passed in to avoid reading it more than once
             return projectSystem.GetFilteredSolutionProjects()
                 .Where(p => this.IsFullyBoundProject(cache, binding, p));
         }
 
-        public IEnumerable<Project> GetUnboundProjects()
-        {
-            var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystem.AssertLocalServiceIsNotNull();
-
-            return projectSystem.GetFilteredSolutionProjects().Except(this.GetBoundProjects());
-        }
-        #endregion
-
-        #region Non-public API
         private bool IsFullyBoundProject(Dictionary<string, RuleSet> cache, BoundSonarQubeProject binding, Project project)
         {
             Debug.Assert(binding != null);

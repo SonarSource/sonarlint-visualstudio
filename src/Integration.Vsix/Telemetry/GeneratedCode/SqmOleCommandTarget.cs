@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.Integration
         ToggleShowAllProjectsCommandCommandId = 0x306,
         DontWarnAgainCommandCommandId = 0x307,
         FixConflictsCommandCommandId = 0x308,
+        UpdateBindingCommandFromErrorListCommandId = 0x400,
     }
 
     /// <summary>
@@ -95,6 +96,7 @@ namespace SonarLint.VisualStudio.Integration
                     case SonarLintSqmCommandIds.ToggleShowAllProjectsCommandCommandId:
                     case SonarLintSqmCommandIds.DontWarnAgainCommandCommandId:
                     case SonarLintSqmCommandIds.FixConflictsCommandCommandId:
+                    case SonarLintSqmCommandIds.UpdateBindingCommandFromErrorListCommandId:
                     {
                         return true;
                     }

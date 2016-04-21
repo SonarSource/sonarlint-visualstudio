@@ -11,7 +11,6 @@ using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
-using System.ComponentModel.Design;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
@@ -133,6 +132,47 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Verify
             Assert.IsNull(testSubject.ActiveSection);
             Assert.IsNull(section.ViewModel.State);
+        }
+
+        [TestMethod]
+        public void VsSessionHost_ActiveSectionChangedEvent()
+        {
+            // Setup
+            VsSessionHost testSubject = this.CreateTestSubject(null);
+            ISectionController section = ConfigurableSectionController.CreateDefault();
+            ISectionController otherSection = ConfigurableSectionController.CreateDefault();
+            int changed = 0;
+            testSubject.ActiveSectionChanged += (o, e) => changed++;
+
+            // Act (1st set)
+            testSubject.SetActiveSection(section);
+
+            // Verify
+            Assert.AreEqual(1, changed, "ActiveSectionChanged event was expected to fire");
+
+            // Act (clear)
+            testSubject.ClearActiveSection();
+
+            // Verify
+            Assert.AreEqual(2, changed, "ActiveSectionChanged event was expected to fire");
+
+            // Act (2nd set)
+            testSubject.SetActiveSection(otherSection);
+
+            // Verify
+            Assert.AreEqual(3, changed, "ActiveSectionChanged event was expected to fire");
+
+            // Act (clear)
+            testSubject.ClearActiveSection();
+
+            // Verify
+            Assert.AreEqual(4, changed, "ActiveSectionChanged event was expected to fire");
+
+            // Act (clear again)
+            testSubject.ClearActiveSection();
+
+            // Verify
+            Assert.AreEqual(4, changed, "ActiveSectionChanged event was not expected to fire, since already cleared");
         }
 
         [TestMethod]
