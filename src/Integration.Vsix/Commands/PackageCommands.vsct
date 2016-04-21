@@ -2,6 +2,12 @@
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable"
               xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <Commands package="guidVsPackagePkgString">
+    <Groups>
+      <Group guid="guidCmdSet" id="groupidProjectProperties" priority="0x100">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE"/>
+      </Group>
+    </Groups>
+    
     <Buttons>
       <Button guid="guidCmdSet" id="cmdidManageConnections" type="Button">
         <Icon guid="guidIcons" id="bmpSonarQube"/>
@@ -9,8 +15,15 @@
           <ButtonText>Manage SonarQube Connections...</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidCmdSet" id="cmdidProjectExcludePropertyToggle" type="Button" priority="0x100">
+        <Parent guid="guidCmdSet" id="groupidProjectProperties"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Exclude from SonarQube</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
-
+    
     <Bitmaps>
       <Bitmap guid="guidIcons" href="..\Resources\CommandIcons.png" usedList="bmpSonarQube"/>
     </Bitmaps>
@@ -30,6 +43,8 @@
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
       <IDSymbol name="cmdidManageConnections" value="0x100"/>
+      <IDSymbol name="cmdidProjectExcludePropertyToggle" value="0x101"/>
+      <IDSymbol name="groupidProjectProperties" value="0x800"/>
     </GuidSymbol>
 
     <!-- Menu command icons -->

@@ -9,6 +9,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal enum PackageCommandId
     {
-        ManageConnections = 0x100
+        ManageConnections = 0x100,
+        ProjectExcludePropertyToggle = 0x101
     }
 }

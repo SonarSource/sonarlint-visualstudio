@@ -46,6 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commands\CommandIds.cs" />
+    <Compile Include="Commands\ProjectExcludePropertyToggleCommand.cs" />
     <Compile Include="Commands\VsCommandBase.cs" />
     <Compile Include="Commands\ManageConnectionsCommand.cs" />
     <Compile Include="Commands\PackageCommandManager.cs" />
