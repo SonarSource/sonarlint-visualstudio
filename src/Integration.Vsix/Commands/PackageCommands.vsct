@@ -6,7 +6,19 @@
       <Group guid="guidCmdSet" id="groupidProjectProperties" priority="0x100">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE"/>
       </Group>
+      <Group guid="guidCmdSet" id="groupidProjectTestPropertyOptions" priority="0x100">
+        <Parent guid="guidCmdSet" id="menuidProjectTestProperty"/>
+      </Group>
     </Groups>
+
+    <Menus>
+      <Menu guid="guidCmdSet" id="menuidProjectTestProperty" priority="0x200">
+        <Parent guid="guidCmdSet" id="groupidProjectProperties"/>
+        <Strings>
+          <ButtonText>SonarQube Project Type</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
     
     <Buttons>
       <Button guid="guidCmdSet" id="cmdidManageConnections" type="Button">
@@ -20,6 +32,24 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Exclude from SonarQube</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="cmdidProjectTestPropertyAutoOption" priority="0x100">
+        <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
+        <Strings>
+          <ButtonText>Automatically Detect</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="cmdidProjectTestPropertyTrueOption" priority="0x100">
+        <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
+        <Strings>
+          <ButtonText>Test Project</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="cmdidProjectTestPropertyFalseOption" priority="0x100">
+        <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
+        <Strings>
+          <ButtonText>Non-Test Project</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -42,9 +72,19 @@
   <Symbols>
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+      <!-- Groups -->
+      <IDSymbol name="groupidProjectProperties" value="0x800"/>
+      <IDSymbol name="groupidProjectTestPropertyOptions" value="0x801"/>
+      
+      <!-- Menus -->
+      <IDSymbol name="menuidProjectTestProperty" value="0x850"/>
+      
+      <!-- Commands -->
       <IDSymbol name="cmdidManageConnections" value="0x100"/>
       <IDSymbol name="cmdidProjectExcludePropertyToggle" value="0x101"/>
-      <IDSymbol name="groupidProjectProperties" value="0x800"/>
+      <IDSymbol name="cmdidProjectTestPropertyAutoOption" value="0x102"/>
+      <IDSymbol name="cmdidProjectTestPropertyTrueOption" value="0x103"/>
+      <IDSymbol name="cmdidProjectTestPropertyFalseOption" value="0x104"/>
     </GuidSymbol>
 
     <!-- Menu command icons -->
@@ -56,6 +96,7 @@
     <GuidSymbol name="guidCodeAnalysisMenuGroup" value="{FBC1A65B-A334-4EC8-8FBE-DB1C56335FB6}">
       <IDSymbol name="IDG_CODEANALYSIS_TOPLEVEL" value="0x208"/>
       <IDSymbol name="IDG_SOLUTION_ANALYZE" value="0x217"/>
+      <IDSymbol name="IDG_ANALYZE_PROJECTS" value="0x212"/>
     </GuidSymbol>
   </Symbols>
   

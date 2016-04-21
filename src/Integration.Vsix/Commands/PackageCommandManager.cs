@@ -38,6 +38,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             this.RegisterCommand((int)PackageCommandId.ManageConnections, new ManageConnectionsCommand(this.serviceProvider));
             this.RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(this.serviceProvider));
+            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(this.serviceProvider, null));
+            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(this.serviceProvider, true));
+            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyFalse, new ProjectTestPropertySetCommand(this.serviceProvider, false));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
