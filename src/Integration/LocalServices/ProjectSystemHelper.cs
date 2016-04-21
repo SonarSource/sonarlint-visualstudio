@@ -24,6 +24,12 @@ namespace SonarLint.VisualStudio.Integration
         internal const string TestProjectKind = "{3AC096D0-A1C2-E12C-1390-A8335801FDAB}";
         internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);
 
+        /// <summary>
+        /// This is the HResult returned by IVsBuildPropertyStorage when attempting to
+        /// read a property that does not exist.
+        /// </summary>
+        private const int E_XML_ATTRIBUTE_NOT_FOUND = unchecked((int)0x8004C738);
+
         // This constant is necessary to find the name of the "Solution Items" folder
         // for the CurrentUICulture. They correspond to a resource string in the satellite dll
         // for the msenv.dll package. The ID is the resource ID, and the guid is the package guid.
@@ -237,8 +243,19 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public bool TryGetProjectProperty(Project dteProject, string propertyName, out string value)
+        public string GetProjectProperty(Project dteProject, string propertyName)
         {
+            if (dteProject == null)
+            {
+                throw new ArgumentNullException(nameof(dteProject));
+            }
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
+            string value = null;
             IVsHierarchy projectHierarchy = this.GetIVsHierarchy(dteProject);
             IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
 
@@ -248,20 +265,26 @@ namespace SonarLint.VisualStudio.Integration
                 var hr = propertyStorage.GetPropertyValue(propertyName, string.Empty,
                     (uint)_PersistStorageType.PST_PROJECT_FILE, out value);
 
-                if (!ErrorHandler.Succeeded(hr))
-            {
-
+                // E_XML_ATTRIBUTE_NOT_FOUND is returned when the property does not exist - this is OK.
+                Debug.Assert(!ErrorHandler.Succeeded(hr) || hr != E_XML_ATTRIBUTE_NOT_FOUND,
+                    $"Failed to get the property '{propertyName}' for project '{dteProject.Name}'.");
             }
 
-                return true;
-            }
-
-            value = null;
-            return false;
+            return value;
         }
 
         public void SetProjectProperty(Project dteProject, string propertyName, string value)
         {
+            if (dteProject == null)
+            {
+                throw new ArgumentNullException(nameof(dteProject));
+            }
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
             IVsHierarchy projectHierarchy = this.GetIVsHierarchy(dteProject);
             IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
 
@@ -275,8 +298,18 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public void RemoveProjectProperty(Project dteProject, string propertyName)
+        public void ClearProjectProperty(Project dteProject, string propertyName)
         {
+            if (dteProject == null)
+            {
+                throw new ArgumentNullException(nameof(dteProject));
+            }
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
             IVsHierarchy projectHierarchy = this.GetIVsHierarchy(dteProject);
             IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
 

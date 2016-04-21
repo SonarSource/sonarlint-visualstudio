@@ -55,12 +55,12 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
 
-            if (IsExcludedViaProjectProperty(propertyStorage))
+            if (IsExcludedViaProjectProperty(project))
             {
                 return false;
             }
             
-            if (IsTestProject(hierarchy, this.testRegex, projectName))
+            if (IsTestProject(project, hierarchy, this.testRegex, projectName))
             {
                 return false;
             }
@@ -82,16 +82,14 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region Helpers
-        private static bool IsTestProject(IVsHierarchy projectHierarchy, Regex testProjectNameRegex, string projectName)
+        private bool IsTestProject(DteProject dteProject, IVsHierarchy projectHierarchy, Regex testProjectNameRegex, string projectName)
         {
+            Debug.Assert(dteProject != null);
             Debug.Assert(projectHierarchy != null);
-
-            IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
-            Debug.Assert(propertyStorage != null);
 
             // Ignore test projects
             // If specifically marked with test project property, use that to specify if test project or not
-            bool? sonarTest = GetPropertyBool(propertyStorage, Constants.SonarQubeTestProjectBuildPropertyKey);
+            bool? sonarTest = this.GetPropertyBool(dteProject, Constants.SonarQubeTestProjectBuildPropertyKey);
             if (sonarTest.HasValue)
             {
                 // Even if the project is a test project by the checks below, if this property was set to false
@@ -115,29 +113,24 @@ namespace SonarLint.VisualStudio.Integration
             return (language == null || !language.IsSupported);
         }
 
-        private static bool IsExcludedViaProjectProperty(IVsBuildPropertyStorage propertyStorage)
+        private bool IsExcludedViaProjectProperty(DteProject dteProject)
         {
-            Debug.Assert(propertyStorage != null);
+            Debug.Assert(dteProject != null);
 
             // General exclusions
             // If exclusion property is set to true, this takes precedence
-            bool? sonarExclude = GetPropertyBool(propertyStorage, Constants.SonarQubeExcludeBuildPropertyKey);
+            bool? sonarExclude = this.GetPropertyBool(dteProject, Constants.SonarQubeExcludeBuildPropertyKey);
             return sonarExclude.HasValue && sonarExclude.Value;
         }
 
-        private static bool? GetPropertyBool(IVsBuildPropertyStorage propertyStorage, string propertyName)
+        private bool? GetPropertyBool(DteProject dteProject, string propertyName)
         {
-            string valueString = null;
-            var hr = propertyStorage.GetPropertyValue(propertyName, string.Empty,
-                (uint)_PersistStorageType.PST_PROJECT_FILE, out valueString);
+            string valueString = this.projectSystem.GetProjectProperty(dteProject, propertyName);
 
-            if (ErrorHandler.Succeeded(hr))
+            bool value;
+            if (bool.TryParse(valueString, out value))
             {
-                bool value;
-                if (bool.TryParse(valueString, out value))
-                {
-                    return value;
-                }
+                return value;
             }
 
             return null;

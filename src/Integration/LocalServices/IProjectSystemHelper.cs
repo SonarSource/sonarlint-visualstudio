@@ -69,14 +69,8 @@ namespace SonarLint.VisualStudio.Integration
         /// Get the value of a given MSBuild project property.
         /// </summary>
         /// <param name="propertyName">Name of the property to get</param>
-        /// <param name="value">The returned value of the property</param>
-        /// <remarks>
-        /// The out parameter <paramref name="value"/> will be null in two cases:<br/>
-        ///  1. The property does not exist (method returns false), or<br/>
-        ///  2. The property exists but has not been set (method returns true)
-        /// </remarks>
-        /// <returns>True if the property exists, false if it does not</returns>
-        bool TryGetProjectProperty(Project dteProject, string propertyName, out string value);
+        /// <returns>The value of the property or null if the property does not exist/has not been set.</returns>
+        string GetProjectProperty(Project dteProject, string propertyName);
 
         /// <summary>
         /// Set the value of the given MSBuild project property.
@@ -88,7 +82,8 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Remove an MSBuild project project if it exists.
         /// </summary>
+        /// <remarks>This does not remove the property from the project, it only removes the value.</remarks>
         /// <param name="propertyName">Name of the property to remove</param>
-        void RemoveProjectProperty(Project dteProject, string propertyName);
+        void ClearProjectProperty(Project dteProject, string propertyName);
     }
 }

@@ -45,10 +45,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private bool GetIsExcluded(Project dteProject)
         {
-            string propertyString;
+            string propertyString = this.projectSystem.GetProjectProperty(dteProject, PropertyName);
+
             bool propertyValue;
-            bool hasProperty = this.projectSystem.TryGetProjectProperty(dteProject, PropertyName, out propertyString);
-            if (hasProperty && bool.TryParse(propertyString, out propertyValue))
+            if (bool.TryParse(propertyString, out propertyValue))
             {
                 return propertyValue;
             }
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             else
             {
-                this.projectSystem.RemoveProjectProperty(dteProject, PropertyName);
+                this.projectSystem.ClearProjectProperty(dteProject, PropertyName);
             }
         }
 
