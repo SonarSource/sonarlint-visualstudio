@@ -13,7 +13,7 @@ namespace SonarLint.VisualStudio.Integration.Service
     /// <summary>
     /// Represents the connection information needed to connect to SonarQube service
     /// </summary>
-    internal class ConnectionInformation : ICloneable, IDisposable
+    public class ConnectionInformation : ICloneable, IDisposable
     {
         private bool isDisposed;
 

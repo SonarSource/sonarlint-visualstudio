@@ -11,7 +11,7 @@ using System.Diagnostics;
 namespace SonarLint.VisualStudio.Integration.Service
 {
     [DebuggerDisplay("Name: {Name}, Key: {Key}")]
-    internal class ProjectInformation
+    public class ProjectInformation
     {
         [JsonProperty("k")]
         public string Key { get; set; }

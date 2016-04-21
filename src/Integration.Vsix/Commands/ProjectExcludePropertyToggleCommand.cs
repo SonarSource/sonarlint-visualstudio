@@ -2,30 +2,27 @@
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class ProjectExcludePropertyToggleCommand : VsCommandBase
     {
-        private readonly IDictionary<string, bool> props = new Dictionary<string, bool>();
+        private const string PropertyName = Constants.SonarQubeExcludeBuildPropertyKey;
+
+        private readonly IProjectSystemHelper projectSystem;
 
         public ProjectExcludePropertyToggleCommand(IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
+            this.projectSystem = this.ServiceProvider.GetMefService<IHost>()?.GetService<IProjectSystemHelper>();
         }
 
         protected override void InvokeInternal()
         {
-            Project selectedProject = this.GetSelectedSingleProject();
-            if (selectedProject != null)
+            foreach (Project project in this.projectSystem.GetSelectedProjects())
             {
-                // todo: implement
-                if (!this.props.ContainsKey(selectedProject.UniqueName))
-                {
-                    this.props.Add(selectedProject.UniqueName, false);
-                }
-
-                this.props[selectedProject.UniqueName] = !this.props[selectedProject.UniqueName];
+                this.SetIsExcluded(project, !this.GetIsExcluded(project));
             }
         }
 
@@ -34,46 +31,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             command.Enabled = false;
             command.Visible = false;
 
-            Project selectedProject = this.GetSelectedSingleProject();
-            if (selectedProject != null)
+            IList<bool> properties = this.projectSystem.GetSelectedProjects()
+                                         .Select(this.GetIsExcluded)
+                                         .ToList();
+
+            if (properties.Any())
             {
                 command.Enabled = true;
                 command.Visible = true;
-
-                // todo: implement
-                if (!this.props.ContainsKey(selectedProject.UniqueName))
-                {
-                    this.props.Add(selectedProject.UniqueName, false);
-                }
-
-                command.Checked = this.props[selectedProject.UniqueName];
+                command.Checked = properties.AllEqual() && properties.First();
             }
         }
 
-        private Project GetSelectedSingleProject()
+        private bool GetIsExcluded(Project dteProject)
         {
-            var dte = this.ServiceProvider.GetService<DTE>();
-            if (dte == null)
+            string propertyString;
+            bool propertyValue;
+            bool hasProperty = this.projectSystem.TryGetProjectProperty(dteProject, PropertyName, out propertyString);
+            if (hasProperty && bool.TryParse(propertyString, out propertyValue))
             {
-                return null;
+                return propertyValue;
             }
 
-            var selectedProjects = new List<Project>();
-            foreach (object projectObj in dte.ActiveSolutionProjects as Array ?? new object[0])
-            {
-                var project = projectObj as Project;
-                if (project != null)
-                {
-                    selectedProjects.Add(project);
-                }
-            }
-
-            if (selectedProjects.Count == 1)
-            {
-                return selectedProjects[0];
-            }
-
-            return null;
+            return false;
         }
+
+        private void SetIsExcluded(Project dteProject, bool value)
+        {
+            if (value)
+            {
+                this.projectSystem.SetProjectProperty(dteProject, PropertyName, true.ToString());
+            }
+            else
+            {
+                this.projectSystem.RemoveProjectProperty(dteProject, PropertyName);
+            }
+        }
+
     }
 }

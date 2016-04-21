@@ -11,7 +11,7 @@ using System.Diagnostics;
 namespace SonarLint.VisualStudio.Integration.Service
 {
     [DebuggerDisplay("Key = {key}, Value = {value}")]
-    internal class ServerProperty
+    public class ServerProperty
     {
         #region Known properties
 

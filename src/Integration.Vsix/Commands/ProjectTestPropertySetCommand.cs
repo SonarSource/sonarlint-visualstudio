@@ -2,33 +2,29 @@
 using Microsoft.VisualStudio.Shell;
 using EnvDTE;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class ProjectTestPropertySetCommand : VsCommandBase
     {
-        private static readonly IDictionary<string, bool?> s_props = new Dictionary<string, bool?>();
+        private const string PropertyName = Constants.SonarQubeTestProjectBuildPropertyKey;
 
+        private readonly IProjectSystemHelper projectSystem;
         private readonly bool? setPropertyValue;
 
         public ProjectTestPropertySetCommand(IServiceProvider serviceProvider, bool? setPropertyValue)
             : base(serviceProvider)
         {
+            this.projectSystem = this.ServiceProvider.GetMefService<IHost>()?.GetService<IProjectSystemHelper>();
             this.setPropertyValue = setPropertyValue;
         }
 
         protected override void InvokeInternal()
         {
-            Project selectedProject = this.GetSelectedSingleProject();
-            if (selectedProject != null)
+            foreach (Project project in this.projectSystem.GetSelectedProjects())
             {
-                // todo: implement
-                if (!s_props.ContainsKey(selectedProject.UniqueName))
-                {
-                    s_props.Add(selectedProject.UniqueName, null);
-                }
-
-                s_props[selectedProject.UniqueName] = this.setPropertyValue;
+                this.SetTestProperty(project, this.setPropertyValue);
             }
         }
 
@@ -37,46 +33,40 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             command.Enabled = false;
             command.Visible = false;
 
-            Project selectedProject = this.GetSelectedSingleProject();
-            if (selectedProject != null)
+            IList<bool?> properties = this.projectSystem.GetSelectedProjects()
+                                                        .Select(this.GetTestProperty)
+                                                        .ToList();
+            if (properties.Any())
             {
                 command.Enabled = true;
                 command.Visible = true;
-
-                // todo: implement
-                if (!s_props.ContainsKey(selectedProject.UniqueName))
-                {
-                    s_props.Add(selectedProject.UniqueName, null);
-                }
-
-                command.Checked = s_props[selectedProject.UniqueName] == this.setPropertyValue;
+                command.Checked = properties.AllEqual() && (properties.First() == this.setPropertyValue);
             }
         }
 
-        private Project GetSelectedSingleProject()
+        private bool? GetTestProperty(Project dteProject)
         {
-            var dte = this.ServiceProvider.GetService<DTE>();
-            if (dte == null)
+            string propertyString;
+            bool propertyValue;
+            bool hasProperty = this.projectSystem.TryGetProjectProperty(dteProject, PropertyName, out propertyString);
+            if (hasProperty && bool.TryParse(propertyString, out propertyValue))
             {
-                return null;
-            }
-
-            var selectedProjects = new List<Project>();
-            foreach (object projectObj in dte.ActiveSolutionProjects as Array ?? new object[0])
-            {
-                var project = projectObj as Project;
-                if (project != null)
-                {
-                    selectedProjects.Add(project);
-                }
-            }
-
-            if (selectedProjects.Count == 1)
-            {
-                return selectedProjects[0];
+                return propertyValue;
             }
 
             return null;
+        }
+
+        private void SetTestProperty(Project dteProject, bool? value)
+        {
+            if (value.HasValue)
+            {
+                this.projectSystem.SetProjectProperty(dteProject, PropertyName, value.Value.ToString());
+            }
+            else
+            {
+                this.projectSystem.RemoveProjectProperty(dteProject, PropertyName);
+            }
         }
     }
 }

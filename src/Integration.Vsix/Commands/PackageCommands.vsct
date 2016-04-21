@@ -3,9 +3,7 @@
               xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <Commands package="guidVsPackagePkgString">
     <Groups>
-      <Group guid="guidCmdSet" id="groupidProjectProperties" priority="0x100">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE"/>
-      </Group>
+      <Group guid="guidCmdSet" id="groupidProjectProperties"/>
       <Group guid="guidCmdSet" id="groupidProjectTestPropertyOptions" priority="0x100">
         <Parent guid="guidCmdSet" id="menuidProjectTestProperty"/>
       </Group>
@@ -67,6 +65,14 @@
     <CommandPlacement guid="guidCmdSet" id="cmdidManageConnections" priority="0x900">
       <Parent guid="guidCodeAnalysisMenuGroup" id="IDG_SOLUTION_ANALYZE"/>
     </CommandPlacement>
+
+    <!-- groupidProjectProperties -->
+    <CommandPlacement guid="guidCmdSet" id="groupidProjectProperties" priority="0x100">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidCmdSet" id="groupidProjectProperties" priority="0x100">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_XPROJ_MULTIPROJ"/>
+    </CommandPlacement>
   </CommandPlacements>
   
   <Symbols>
@@ -96,7 +102,6 @@
     <GuidSymbol name="guidCodeAnalysisMenuGroup" value="{FBC1A65B-A334-4EC8-8FBE-DB1C56335FB6}">
       <IDSymbol name="IDG_CODEANALYSIS_TOPLEVEL" value="0x208"/>
       <IDSymbol name="IDG_SOLUTION_ANALYZE" value="0x217"/>
-      <IDSymbol name="IDG_ANALYZE_PROJECTS" value="0x212"/>
     </GuidSymbol>
   </Symbols>
   

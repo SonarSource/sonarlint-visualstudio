@@ -16,7 +16,7 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
-    internal class ServerViewModel : ViewModelBase
+    public class ServerViewModel : ViewModelBase
     {
         private readonly ConnectionInformation connectionInformation;
         private readonly ObservableCollection<ProjectViewModel> projects = new ObservableCollection<ProjectViewModel>();

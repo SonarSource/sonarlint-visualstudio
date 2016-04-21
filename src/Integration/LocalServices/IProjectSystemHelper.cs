@@ -15,7 +15,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// Wrapper service to abstract the VS related API handling
     /// </summary>
-    internal interface IProjectSystemHelper : ILocalService
+    public interface IProjectSystemHelper : ILocalService
     {
         /// <summary>
         /// Returns the current active solution
@@ -59,5 +59,36 @@ namespace SonarLint.VisualStudio.Integration
         /// Returns the <seealso cref="IVsHierarchy"/> for a <see cref="Project"/>
         /// </summary>
         IVsHierarchy GetIVsHierarchy(Project dteProject);
+
+        /// <summary>
+        /// Returns the currently selected projects in the active solution.
+        /// </summary>
+        IEnumerable<Project> GetSelectedProjects();
+
+        /// <summary>
+        /// Get the value of a given MSBuild project property.
+        /// </summary>
+        /// <param name="propertyName">Name of the property to get</param>
+        /// <param name="value">The returned value of the property</param>
+        /// <remarks>
+        /// The out parameter <paramref name="value"/> will be null in two cases:<br/>
+        ///  1. The property does not exist (method returns false), or<br/>
+        ///  2. The property exists but has not been set (method returns true)
+        /// </remarks>
+        /// <returns>True if the property exists, false if it does not</returns>
+        bool TryGetProjectProperty(Project dteProject, string propertyName, out string value);
+
+        /// <summary>
+        /// Set the value of the given MSBuild project property.
+        /// </summary>
+        /// <remarks>The property is created if it does not already exist</remarks>
+        /// <param name="propertyName">Name of the property to set</param>
+        void SetProjectProperty(Project dteProject, string propertyName, string value);
+
+        /// <summary>
+        /// Remove an MSBuild project project if it exists.
+        /// </summary>
+        /// <param name="propertyName">Name of the property to remove</param>
+        void RemoveProjectProperty(Project dteProject, string propertyName);
     }
 }

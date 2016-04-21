@@ -11,7 +11,7 @@ using System.Diagnostics;
 namespace SonarLint.VisualStudio.Integration.Service.DataModel
 {
     [DebuggerDisplay("Key: {Key}, Version: {Version}")]
-    internal class ServerPlugin
+    public class ServerPlugin
     {
         #region Known plugins
 
