@@ -25,12 +25,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             // Nulls
-            Exceptions.Expect<ArgumentNullException>(() => new Language(null, name, guid));
-            Exceptions.Expect<ArgumentNullException>(() => new Language(key, null, guid));
-            Exceptions.Expect<ArgumentNullException>(() => new Language(key, name, null));
+            Exceptions.Expect<ArgumentNullException>(() => new Language(name, null, guid));
+            Exceptions.Expect<ArgumentNullException>(() => new Language(null, key, guid));
+            Exceptions.Expect<ArgumentNullException>(() => new Language(name, key, null));
 
             // Bad GUID
-            Exceptions.Expect<FormatException>(() => new Language(key, name, "thisisnotaguid"));
+            Exceptions.Expect<FormatException>(() => new Language(name, key, "thisisnotaguid"));
         }
 
         [TestMethod]
@@ -105,9 +105,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Language_Equality()
         {
             // Setup
-            var lang1a = new Language("lang1", "Language 1", "{4FE75C7D-F43F-4A72-940C-47C97710BCCA}");
-            var lang1b = new Language("lang1", "Language 1", "{4FE75C7D-F43F-4A72-940C-47C97710BCCA}");
-            var lang2 = new Language("lang2", "Language 2", "{7A128822-05AA-49D0-A3C7-16F03F3A92E5}");
+            var lang1a = new Language("Language 1", "lang1", "{4FE75C7D-F43F-4A72-940C-47C97710BCCA}");
+            var lang1b = new Language("Language 1", "lang1", "{4FE75C7D-F43F-4A72-940C-47C97710BCCA}");
+            var lang2 = new Language("Language 2", "lang2", "{7A128822-05AA-49D0-A3C7-16F03F3A92E5}");
 
             // Act + Verify
             Assert.AreEqual(lang1a, lang1b, "Languages with the same keys and GUIDs should be equal");

@@ -547,4 +547,8 @@ This is the general format to use when writing errors to output window or when t
   <data name="SolutionIsClosed" xml:space="preserve">
     <value>The operation requires an open solution.</value>
   </data>
+  <data name="UnknownLanguageName" xml:space="preserve">
+    <value>Unknown</value>
+    <comment>Name of any unknown languages</comment>
+  </data>
 </root>

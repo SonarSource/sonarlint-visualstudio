@@ -919,6 +919,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown.
+        /// </summary>
+        public static string UnknownLanguageName {
+            get {
+                return ResourceManager.GetString("UnknownLanguageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unpacking additional file: {0}.
         /// </summary>
         public static string UnpackingAdditionalFile {

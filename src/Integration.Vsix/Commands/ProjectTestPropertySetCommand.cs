@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.Shell;
 using EnvDTE;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -22,7 +23,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         protected override void InvokeInternal()
         {
-            foreach (Project project in this.projectSystem.GetSelectedProjects())
+            IList<Project> projects = this.projectSystem.GetSelectedProjects().ToList();
+
+            Debug.Assert(projects.All(x => Language.ForProject(x).IsSupported), "Unsupported projects");
+
+            foreach (Project project in projects)
             {
                 this.SetTestProperty(project, this.setPropertyValue);
             }
@@ -33,11 +38,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             command.Enabled = false;
             command.Visible = false;
 
-            IList<bool?> properties = this.projectSystem.GetSelectedProjects()
-                                                        .Select(this.GetTestProperty)
-                                                        .ToList();
-            if (properties.Any())
+            IDictionary<Language, Project> projects = this.projectSystem
+                                                          .GetSelectedProjects()
+                                                          .ToDictionary(x => Language.ForProject(x), x => x);
+
+            if (projects.Any() && projects.Keys.All(x => x.IsSupported))
             {
+                IList<bool?> properties = projects.Values
+                                                  .Select(this.GetTestProperty)
+                                                  .ToList();
+                
                 command.Enabled = true;
                 command.Visible = true;
                 command.Checked = properties.AllEqual() && (properties.First() == this.setPropertyValue);
