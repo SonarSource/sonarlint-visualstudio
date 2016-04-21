@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<Project> GetUnboundProjects()
         {
-            return this.GetUnBoundProject(this.GetSolutionBinding());
+            return this.GetUnboundProjects(this.GetSolutionBinding());
         }
         #endregion
 
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration
             return bindingSerializer.ReadSolutionBinding();
         }
 
-        private IEnumerable<Project> GetUnBoundProject(BoundSonarQubeProject binding)
+        private IEnumerable<Project> GetUnboundProjects(BoundSonarQubeProject binding)
         {
             if (binding == null)
             {
@@ -66,6 +66,7 @@ namespace SonarLint.VisualStudio.Integration
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
+            // Reuse the binding information passed in to avoid reading it more than once
             return projectSystem.GetFilteredSolutionProjects().Except(this.GetBoundProjects(binding));
         }
 
@@ -87,6 +88,8 @@ namespace SonarLint.VisualStudio.Integration
 
             // Note: we will still may end up analyzing the same project rule set
             // but that should in marginal since it will be already loaded into memory
+
+            // Reuse the binding information passed in to avoid reading it more than once
             return projectSystem.GetFilteredSolutionProjects()
                 .Where(p => this.IsFullyBoundProject(cache, binding, p));
         }

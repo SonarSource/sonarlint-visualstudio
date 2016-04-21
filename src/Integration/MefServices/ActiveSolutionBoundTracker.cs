@@ -41,28 +41,28 @@ namespace SonarLint.VisualStudio.Integration
             this.errorListInfoBarController = this.extensionHost.GetService<IErrorListInfoBarController>();
             this.errorListInfoBarController.AssertLocalServiceIsNotNull();
 
-            this.CalcualteSolutionBinding();
+            this.CalculateSolutionBinding();
         }
 
         public bool IsActiveSolutionBound { get; private set; } = false;
 
         private void OnActiveSolutionChanged(object sender, EventArgs e)
         {
-            this.CalcualteSolutionBinding();
+            this.CalculateSolutionBinding();
         }
 
         private void OnBindingStateChanged(object sender, EventArgs e)
         {
-            this.CalculatCurrentBinding();
+            this.CalculateCurrentBinding();
         }
 
-        private void CalcualteSolutionBinding()
+        private void CalculateSolutionBinding()
         {
-            this.CalculatCurrentBinding();
+            this.CalculateCurrentBinding();
             this.errorListInfoBarController.Refresh();
         }
 
-        private void CalculatCurrentBinding()
+        private void CalculateCurrentBinding()
         {
             ISolutionBindingSerializer solutionBinding = this.extensionHost.GetService<ISolutionBindingSerializer>();
             solutionBinding.AssertLocalServiceIsNotNull();
