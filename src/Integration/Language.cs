@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration
             Guid projectKind;
             if (!Guid.TryParse(dteProject.Kind, out projectKind))
             {
-                return null;
+                return Unknown;
             }
 
             return KnownLanguages.FirstOrDefault(x => x.ProjectType == projectKind) ?? Unknown;

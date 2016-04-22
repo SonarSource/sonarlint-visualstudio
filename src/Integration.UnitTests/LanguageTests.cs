@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var otherProjectLanguage = Language.ForProject(otherProject);
 
             // Verify
-            Assert.IsNull(otherProjectLanguage, "Expected Language to be null for unknown project");
+            Assert.AreEqual(Language.Unknown, otherProjectLanguage, "Unexpected Language for unknown project");
 
             // Test case 2: C#
             // Setup

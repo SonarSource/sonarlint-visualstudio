@@ -82,6 +82,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return dteProject as IVsHierarchy;
         }
 
+        public IEnumerable<Project> GetSelectedProjects()
+        {
+            return this.SelectedProjects;
+        }
+
+#pragma warning disable S3215 // "interface" instances should not be cast to concrete types
+        public string GetProjectProperty(Project dteProject, string propertyName)
+        {
+            return (dteProject as ProjectMock)?.GetBuildProperty(propertyName);
+        }
+
+        public void SetProjectProperty(Project dteProject, string propertyName, string value)
+        {
+            (dteProject as ProjectMock)?.SetBuildProperty(propertyName, value);
+        }
+
+        public void ClearProjectProperty(Project dteProject, string propertyName)
+        {
+            (dteProject as ProjectMock)?.ClearBuildProperty(propertyName);
+        }
+#pragma warning restore S3215 // "interface" instances should not be cast to concrete types
+
         #endregion
 
         #region Test helpers
@@ -91,6 +113,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IEnumerable<Project> Projects { get; set; }
 
         public IEnumerable<Project> FilteredProjects { get; set; }
+
+        public IEnumerable<Project> SelectedProjects { get; set; }
 
         public Func<Project, string, bool> IsFileInProjectAction { get; set; }
 
