@@ -61,23 +61,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.projectSystem.SelectedProjects = new[] { project };
 
             // Test case 1: true --toggle--> clears property
-            project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, true.ToString());
+            this.SetExcludeProperty(project, true);
 
             // Act
             testSubject.Invoke(command, null);
 
             // Verify
-            Assert.IsNull(project.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey), "Expected property to be cleared");
+            this.VerifyExcludeProperty(project, null);
 
             // Test case 2: no property --toggle--> true
-            project.ClearBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey);
+            this.SetExcludeProperty(project, null);
 
             // Act
             testSubject.Invoke(command, null);
 
             // Verify
-            bool propValue = bool.Parse(project.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey));
-            Assert.IsTrue(propValue, "Expected property to be true");
+            this.VerifyExcludeProperty(project, true);
         }
 
         [TestMethod]
@@ -100,25 +99,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             testSubject.Invoke(command, null);
 
             // Verify
-            bool p1PropValue = bool.Parse(p1.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey));
-            bool p2PropValue = bool.Parse(p2.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey));
-
-            Assert.IsTrue(p1PropValue, "Expected exclusison property to be set true for project 1");
-            Assert.IsTrue(p2PropValue, "Expected exclusison property to be set true for project 2");
+            this.VerifyExcludeProperty(p1, true);
+            this.VerifyExcludeProperty(p2, true);
 
             // Test case 2: all true --toggle--> all not set
             // Setup
-            p1.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, true.ToString());
-            p1.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, true.ToString());
+            this.SetExcludeProperty(p1, true);
+            this.SetExcludeProperty(p2, true);
 
             // Act
             testSubject.Invoke(command, null);
 
             // Verify
-            Assert.IsNull(p1.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey),
-                "Expected exclusison property to cleared for project 1");
-            Assert.IsNull(p2.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey),
-                "Expected exclusison property to cleared for project 2");
+            this.VerifyExcludeProperty(p1, null);
+            this.VerifyExcludeProperty(p2, null);
         }
 
         [TestMethod]
@@ -136,18 +130,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             p2.SetCSProjectKind();
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
-            p1.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, true.ToString());
-            /* p2 property not set */
+            this.SetExcludeProperty(p1, true);
+            this.SetExcludeProperty(p2, null);
 
             // Act
             testSubject.Invoke(command, null);
 
             // Verify
-            bool p1PropValue = bool.Parse(p1.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey));
-            bool p2PropValue = bool.Parse(p1.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey));
-
-            Assert.IsTrue(p1PropValue, "Expected exclusison property to be set true for project 1");
-            Assert.IsTrue(p2PropValue, "Expected exclusison property to be set true for project 2");
+            this.VerifyExcludeProperty(p1, true);
+            this.VerifyExcludeProperty(p2, true);
         }
 
         [TestMethod]
@@ -214,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             Assert.IsFalse(command.Checked, "Expected command to be unchecked");
 
             // Test case 1: true -> is checked
-            project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, true.ToString());
+            this.SetExcludeProperty(project, true);
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -246,8 +237,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             Assert.IsFalse(command.Checked, "Expected command to be unchecked");
 
             // Test case 2: all true -> is checked
-            p1.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, true.ToString());
-            p2.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, true.ToString());
+            this.SetExcludeProperty(p1, true);
+            this.SetExcludeProperty(p2, true);
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -270,8 +261,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             p2.SetCSProjectKind();
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
-            p1.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, true.ToString());
-            /* p2 property not set */
+            this.SetExcludeProperty(p1, true);
+            this.SetExcludeProperty(p1, null);
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -323,6 +314,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Verify
             Assert.IsFalse(command.Enabled, "Expected command to be disabled");
             Assert.IsFalse(command.Visible, "Expected command to be hidden");
+        }
+
+        #endregion
+
+        #region Test helpers
+
+        private void VerifyExcludeProperty(ProjectMock project, bool? expected)
+        {
+            bool? actual = this.GetExcludeProperty(project);
+            Assert.AreEqual(expected, actual, $"Expected property to be {expected}");
+        }
+
+        private bool? GetExcludeProperty(ProjectMock project)
+        {
+            string valueString = project.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey);
+            bool value;
+            if (bool.TryParse(valueString, out value))
+            {
+                return value;
+            }
+
+            return null;
+        }
+
+        private void SetExcludeProperty(ProjectMock project, bool? value)
+        {
+            if (value.GetValueOrDefault(false))
+            {
+                project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, value.Value.ToString());
+            }
+            else
+            {
+                project.ClearBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey);
+            }
         }
 
         #endregion

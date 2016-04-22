@@ -19,7 +19,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private const string PropertyName = Constants.SonarQubeTestProjectBuildPropertyKey;
 
         private readonly IProjectSystemHelper projectSystem;
-        private readonly bool? setPropertyValue;
+        private readonly bool? commandPropertyValue;
+
+        internal /*for testing purposes*/ bool? CommandPropertyValue => this.commandPropertyValue;
 
         public ProjectTestPropertySetCommand(IServiceProvider serviceProvider, bool? setPropertyValue)
             : base(serviceProvider)
@@ -27,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.projectSystem = this.ServiceProvider.GetMefService<IHost>()?.GetService<IProjectSystemHelper>();
             Debug.Assert(this.projectSystem != null, $"Failed to get {nameof(IProjectSystemHelper)}");
 
-            this.setPropertyValue = setPropertyValue;
+            this.commandPropertyValue = setPropertyValue;
         }
 
         protected override void InvokeInternal()
@@ -40,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             foreach (Project project in projects)
             {
-                this.SetTestProperty(project, this.setPropertyValue);
+                this.SetTestProperty(project, this.commandPropertyValue);
             }
         }
 
@@ -59,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 
                 command.Enabled = true;
                 command.Visible = true;
-                command.Checked = properties.AllEqual() && (properties.First() == this.setPropertyValue);
+                command.Checked = properties.AllEqual() && (properties.First() == this.commandPropertyValue);
             }
         }
 
