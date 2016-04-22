@@ -105,6 +105,7 @@
     <Compile Include="Commands\ManageConnectionsCommandTests.cs" />
     <Compile Include="Commands\ProjectTestPropertySetCommandTests.cs" />
     <Compile Include="Commands\ProjectExcludePropertyToggleCommandTests.cs" />
+    <Compile Include="IEnumerableExtensionsTests.cs" />
     <Compile Include="InfoBar\InfoBarManagerTests.cs" />
     <Compile Include="Settings\IntegrationSettingsTests.cs" />
     <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.ForBound.cs" />
