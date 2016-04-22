@@ -3,15 +3,19 @@
               xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <Commands package="guidVsPackagePkgString">
     <Groups>
-      <Group guid="guidCmdSet" id="groupidProjectProperties"/>
+      <Group guid="guidCmdSet" id="groupidProjectProperties">
+        <GroupFlag>Dynamic</GroupFlag>
+      </Group>
       <Group guid="guidCmdSet" id="groupidProjectTestPropertyOptions" priority="0x100">
         <Parent guid="guidCmdSet" id="menuidProjectTestProperty"/>
+        <GroupFlag>Dynamic</GroupFlag>
       </Group>
     </Groups>
 
     <Menus>
       <Menu guid="guidCmdSet" id="menuidProjectTestProperty" priority="0x200">
         <Parent guid="guidCmdSet" id="groupidProjectProperties"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>SonarQube Project Type</ButtonText>
         </Strings>
@@ -34,18 +38,21 @@
       </Button>
       <Button guid="guidCmdSet" id="cmdidProjectTestPropertyAutoOption" priority="0x100">
         <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Automatically Detect</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="cmdidProjectTestPropertyTrueOption" priority="0x100">
         <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Test Project</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="cmdidProjectTestPropertyFalseOption" priority="0x100">
         <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Non-Test Project</ButtonText>
         </Strings>

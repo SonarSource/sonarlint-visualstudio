@@ -17,17 +17,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             : base(serviceProvider)
         {
             this.projectSystem = this.ServiceProvider.GetMefService<IHost>()?.GetService<IProjectSystemHelper>();
+            Debug.Assert(this.projectSystem != null, $"Failed to get {nameof(IProjectSystemHelper)}");
         }
 
         protected override void InvokeInternal()
         {
+            Debug.Assert(this.projectSystem != null, "Should not be invokable with no project system");
+
             IList<Project> projects = this.projectSystem.GetSelectedProjects().ToList();
+            Debug.Assert(projects.Any(), "No projects selected");
+            Debug.Assert(projects.All(x => Language.ForProject(x).IsSupported), "Unsupported projects");
 
-            Debug.Assert(projects.All(x =>Language.ForProject(x).IsSupported), "Unsupported projects");
-
-            foreach (Project project in projects)
+            if (projects.Count == 1 || projects.Select(this.GetIsExcluded).AllEqual()) 
             {
-                this.SetIsExcluded(project, !this.GetIsExcluded(project));
+                // Single project, or multiple projects & consistent property values
+                foreach (Project project in projects)
+                {
+                    // Toggle value
+                    this.SetIsExcluded(project, !this.GetIsExcluded(project));
+                }
+            }
+            else
+            {
+                // Multiple projects & mixed property values
+                foreach (Project project in projects)
+                {
+                    // Set excluded = true
+                    this.SetIsExcluded(project, true);
+                }
             }
         }
 
@@ -35,15 +52,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             command.Enabled = false;
             command.Visible = false;
-
-            IDictionary<Language, Project> projects = this.projectSystem
-                                                          .GetSelectedProjects()
-                                                          .ToDictionary(x => Language.ForProject(x), x => x);
-
-            if (projects.Any() && projects.Keys.All(x => x.IsSupported))
+            if (this.projectSystem == null)
             {
-                IList<bool> properties = projects.Values
-                                                 .Select(this.GetIsExcluded)
+                return;
+            }
+
+            IList<Project> projects = this.projectSystem.GetSelectedProjects()
+                                                        .ToList();
+
+            if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
+            {
+                IList<bool> properties = projects.Select(this.GetIsExcluded)
                                                  .ToList();
 
                 command.Enabled = true;
@@ -51,6 +70,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 command.Checked = properties.AllEqual() && properties.First();
             }
         }
+
+        #region Property helpers
 
         private bool GetIsExcluded(Project dteProject)
         {
@@ -77,5 +98,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
+        #endregion
     }
 }

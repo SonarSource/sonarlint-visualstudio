@@ -18,13 +18,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             : base(serviceProvider)
         {
             this.projectSystem = this.ServiceProvider.GetMefService<IHost>()?.GetService<IProjectSystemHelper>();
+            Debug.Assert(this.projectSystem != null, $"Failed to get {nameof(IProjectSystemHelper)}");
+
             this.setPropertyValue = setPropertyValue;
         }
 
         protected override void InvokeInternal()
         {
-            IList<Project> projects = this.projectSystem.GetSelectedProjects().ToList();
+            Debug.Assert(this.projectSystem != null, "Should not be invokable with no project system");
 
+            IList<Project> projects = this.projectSystem.GetSelectedProjects().ToList();
+            Debug.Assert(projects.Any(), "No projects selected");
             Debug.Assert(projects.All(x => Language.ForProject(x).IsSupported), "Unsupported projects");
 
             foreach (Project project in projects)
@@ -38,14 +42,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             command.Enabled = false;
             command.Visible = false;
 
-            IDictionary<Language, Project> projects = this.projectSystem
-                                                          .GetSelectedProjects()
-                                                          .ToDictionary(x => Language.ForProject(x), x => x);
+            IList<Project> projects = this.projectSystem.GetSelectedProjects()
+                                                        .ToList();
 
-            if (projects.Any() && projects.Keys.All(x => x.IsSupported))
+            if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
             {
-                IList<bool?> properties = projects.Values
-                                                  .Select(this.GetTestProperty)
+                IList<bool?> properties = projects.Select(this.GetTestProperty)
                                                   .ToList();
                 
                 command.Enabled = true;
@@ -53,6 +55,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 command.Checked = properties.AllEqual() && (properties.First() == this.setPropertyValue);
             }
         }
+
+        #region Property helpers
 
         private bool? GetTestProperty(Project dteProject)
         {
@@ -78,5 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.projectSystem.ClearProjectProperty(dteProject, PropertyName);
             }
         }
+
+        #endregion
     }
 }
