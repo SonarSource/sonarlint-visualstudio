@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -176,11 +177,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage, double.NaN);
 
-            foreach (var project in this.projectSystem.GetFilteredSolutionProjects())
-            {
-                this.BindingProjects.Add(project);
-            }
-            
+            this.BindingProjects.UnionWith(this.projectSystem.GetFilteredSolutionProjects());
+
+            this.InformAboutFilteredOutProjects(this.projectSystem.GetSolutionProjects().Except(this.BindingProjects));
+
             if (!this.BindingProjects.Any())
             {
                 VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.NoProjectsApplicableForBinding);
@@ -348,6 +348,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return this.BindingProjects.Select(Language.ForProject).Distinct();
         }
 
+        private void InformAboutFilteredOutProjects(IEnumerable<Project> filteredOut)
+        {
+            List<Project> projects = filteredOut.ToList();
+            if (projects.Count == 0)
+            {
+                return;
+            }
+
+            StringBuilder output = new StringBuilder();
+            output.AppendLine(Strings.FilteredOutProjectFromBindingHeader);
+            projects.ForEach(p => output.AppendFormat(Strings.FilteredOutProjectFormat, p.UniqueName).AppendLine());
+            VsShellUtils.WriteToGeneralOutputPane(this.host, output.ToString());
+        }
         #endregion
 
     }

@@ -547,6 +547,15 @@ This is the general format to use when writing errors to output window or when t
   <data name="SolutionIsClosed" xml:space="preserve">
     <value>The operation requires an open solution.</value>
   </data>
+  <data name="FilteredOutProjectFormat" xml:space="preserve">
+    <value>* {0}</value>
+    <comment>Output window message
+{0} Unique project name</comment>
+  </data>
+  <data name="FilteredOutProjectFromBindingHeader" xml:space="preserve">
+    <value>The following projects have been marked as excluded, are not currently supported or excluded according to SonarQube specification:</value>
+    <comment>Output window message</comment>
+  </data>
   <data name="UnknownLanguageName" xml:space="preserve">
     <value>Unknown</value>
     <comment>Name of any unknown languages</comment>

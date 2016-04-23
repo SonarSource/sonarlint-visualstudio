@@ -486,6 +486,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to * {0}.
+        /// </summary>
+        public static string FilteredOutProjectFormat {
+            get {
+                return ResourceManager.GetString("FilteredOutProjectFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following projects have been marked as excluded, are not currently supported or excluded according to SonarQube specification:.
+        /// </summary>
+        public static string FilteredOutProjectFromBindingHeader {
+            get {
+                return ResourceManager.GetString("FilteredOutProjectFromBindingHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not all NuGet packages were installed. Please see output above for more information..
         /// </summary>
         public static string FinishedSolutionBindingWorkflowNotAllPackagesInstalled {
