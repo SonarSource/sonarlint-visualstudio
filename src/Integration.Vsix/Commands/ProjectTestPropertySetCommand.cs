@@ -14,13 +14,22 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    /// <summary>
+    /// Command handler to set the &lt;SonarQubeTestProject/&gt; project property to a specific value.
+    /// </summary>
     internal class ProjectTestPropertySetCommand : VsCommandBase
     {
         private readonly IProjectPropertyManager propertyManager;
+        
         private readonly bool? commandPropertyValue;
 
         internal /*for testing purposes*/ bool? CommandPropertyValue => this.commandPropertyValue;
 
+        /// <summary>
+        /// Construct a new command handler to set the &lt;SonarQubeTestProject/&gt;
+        /// project property to a specified value.
+        /// </summary>
+        /// <param name="setPropertyValue">Value this instance will set the project properties to.</param>
         public ProjectTestPropertySetCommand(IServiceProvider serviceProvider, bool? setPropertyValue)
             : base(serviceProvider)
         {
@@ -63,6 +72,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 
                 command.Enabled = true;
                 command.Visible = true;
+                // Checked iif all projects have the same value, and that value is
+                // the same as the value this instance is responsible for.
                 command.Checked = properties.AllEqual() && (properties.First() == this.commandPropertyValue);
             }
         }

@@ -14,6 +14,9 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    /// <summary>
+    /// Command handler to toggle the &lt;SonarQubeExclude/&gt; project property.
+    /// </summary>
     internal class ProjectExcludePropertyToggleCommand : VsCommandBase
     {
         private readonly IProjectPropertyManager propertyManager;
