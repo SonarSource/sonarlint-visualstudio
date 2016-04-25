@@ -23,6 +23,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void IEnumerableExtensions_AllEqual_Empty_IsTrue()
+        {
+            // Act + Verify
+            Assert.IsTrue(IEnumerableExtensions.AllEqual(new int[0]), "Expected empty enumerable to be AllEqual");
+        }
+
+        [TestMethod]
         public void IEnumerableExtensions_AllEqual_DefaultComparator_ValueTypes()
         {
             // Test case 1: same values

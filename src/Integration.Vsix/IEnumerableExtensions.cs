@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 throw new ArgumentNullException(nameof(comparer));
             }
 
-            return values.Distinct(comparer).Count() == 1;
+            return values.Distinct(comparer).Count() == 1 || !values.Any();
         }
     }
 }
