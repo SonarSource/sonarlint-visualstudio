@@ -36,7 +36,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.solutionBinding = new ConfigurableSolutionBindingSerializer();
 
-            var propertyManager = new ProjectPropertyManager(new ConfigurableVsProjectSystemHelper(this.serviceProvider));
+            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
+
+            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+
+            var propertyManager = new ProjectPropertyManager(host);
             var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
@@ -330,7 +335,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void VsSessionHost_IServiceProvider_GetService()
         {
             // Setup
-            var testSubject = new VsSessionHost(this.serviceProvider,new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker());
+            var testSubject = new VsSessionHost(this.serviceProvider, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker());
             ConfigurableVsShell shell = new ConfigurableVsShell();
             shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);

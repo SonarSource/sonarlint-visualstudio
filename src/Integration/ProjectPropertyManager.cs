@@ -34,11 +34,6 @@ namespace SonarLint.VisualStudio.Integration
             this.projectSystem.AssertLocalServiceIsNotNull();
         }
 
-        internal /*for testing purposes*/ ProjectPropertyManager(IProjectSystemHelper projectSystem)
-        {
-            this.projectSystem = projectSystem;
-        }
-
         #region IProjectPropertyManager
 
         public IEnumerable<Project> GetSelectedProjects()

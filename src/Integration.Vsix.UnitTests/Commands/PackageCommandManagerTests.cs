@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -26,19 +27,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
+
             this.menuService = new ConfigurableMenuCommandService();
+            this.serviceProvider.RegisterService(typeof(IMenuCommandService), this.menuService);
+
+            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
+
+            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+
+            var propManager = new ProjectPropertyManager(host);
+            var propManagerExport = MefTestHelpers.CreateExport<IProjectPropertyManager>(propManager);
 
             var teController = new ConfigurableTeamExplorerController();
             var teExport = MefTestHelpers.CreateExport<ITeamExplorerController>(teController);
 
-            var propertyManager = new ProjectPropertyManager(new ConfigurableVsProjectSystemHelper(this.serviceProvider));
-            var propManagerExport = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
-
             var mefModel = ConfigurableComponentModel.CreateWithExports(teExport, propManagerExport);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
-
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), new ConfigurableVsProjectSystemHelper(this.serviceProvider));
-            this.serviceProvider.RegisterService(typeof(IMenuCommandService), this.menuService);
         }
 
         #region Tests

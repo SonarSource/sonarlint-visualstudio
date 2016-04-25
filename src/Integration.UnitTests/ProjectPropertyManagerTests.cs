@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using EnvDTE;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
@@ -19,12 +20,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test boilerplate
 
         private ConfigurableVsProjectSystemHelper projectSystem;
+        private IHost host;
 
         [TestInitialize]
         public void TestInitialize()
         {
             var provider = new ConfigurableServiceProvider();
             this.projectSystem = new ConfigurableVsProjectSystemHelper(provider);
+
+            provider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
+            this.host = new ConfigurableHost(provider, Dispatcher.CurrentDispatcher);
+            var propertyManager = new ProjectPropertyManager(host);
+            var mefModel = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
+
+            provider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
         #endregion
@@ -241,7 +250,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private ProjectPropertyManager CreateTestSubject()
         {
-            return new ProjectPropertyManager(this.projectSystem);
+            return new ProjectPropertyManager(this.host);
         }
 
         #endregion

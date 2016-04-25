@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
+using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -25,10 +26,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         public void TestInitialize()
         {
             var provider = new ConfigurableServiceProvider();
-            this.projectSystem = new ConfigurableVsProjectSystemHelper(provider);
+            this.projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             provider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
 
-            var propertyManager = new ProjectPropertyManager(this.projectSystem);
+            var host = new ConfigurableHost(provider, Dispatcher.CurrentDispatcher);
+            var propertyManager = new ProjectPropertyManager(host);
             var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             provider.RegisterService(typeof(SComponentModel), mefModel);
