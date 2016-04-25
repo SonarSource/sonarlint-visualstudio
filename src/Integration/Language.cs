@@ -9,7 +9,7 @@ namespace SonarLint.VisualStudio.Integration
     [DebuggerDisplay("{Name} (ServerKey: {ServerKey}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
     public sealed class Language : IEquatable<Language>
     {
-        public readonly static Language Unknown = new Language(Strings.UnknownLanguageName);
+        public readonly static Language Unknown = new Language(Strings.UnknownLanguageName, string.Empty, Guid.Empty.ToString());
         public readonly static Language CSharp = new Language(Strings.CSharpLanguageName, "cs", ProjectSystemHelper.CSharpProjectKind);
         public readonly static Language VBNET = new Language(Strings.VBNetLanguageName, "vbnet", ProjectSystemHelper.VbProjectKind);
 
@@ -58,21 +58,13 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private Language(string name)
+        public Language(string name, string serverKey, string projectTypeGuid)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name));
             }
 
-            this.Name = name;
-            this.ServerKey = string.Empty;
-            this.ProjectType = Guid.Empty;
-        }
-
-        public Language(string name, string serverKey, string projectTypeGuid)
-            : this(name)
-        {
             if (string.IsNullOrWhiteSpace(serverKey))
             {
                 throw new ArgumentNullException(nameof(serverKey));
@@ -83,6 +75,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(projectTypeGuid));
             }
 
+            this.Name = name;
             this.ServerKey = serverKey;
             this.ProjectType = new Guid(projectTypeGuid);
         }
