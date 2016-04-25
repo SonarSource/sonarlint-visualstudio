@@ -21,14 +21,14 @@
         <Parent guid="guidCmdSet" id="groupidProjectSonarLint"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>SonarLint</ButtonText>
+          <ButtonText>&amp;SonarLint</ButtonText>
         </Strings>
       </Menu>
       <Menu guid="guidCmdSet" id="menuidProjectTestProperty" priority="0x200">
         <Parent guid="guidCmdSet" id="groupidProjectProperties"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Set Project Type</ButtonText>
+          <ButtonText>Set Project &amp;Type</ButtonText>
         </Strings>
       </Menu>
     </Menus>
@@ -44,28 +44,28 @@
         <Parent guid="guidCmdSet" id="groupidProjectProperties"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Exclude from Analysis</ButtonText>
+          <ButtonText>E&amp;xclude from Analysis</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="cmdidProjectTestPropertyAutoOption" priority="0x100">
         <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Automatically Detect</ButtonText>
+          <ButtonText>&amp;Automatically Detect</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="cmdidProjectTestPropertyTrueOption" priority="0x100">
         <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Test Project</ButtonText>
+          <ButtonText>&amp;Test Project</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="cmdidProjectTestPropertyFalseOption" priority="0x100">
         <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Non-Test Project</ButtonText>
+          <ButtonText>&amp;Non-Test Project</ButtonText>
         </Strings>
       </Button>
     </Buttons>
