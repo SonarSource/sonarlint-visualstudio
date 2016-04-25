@@ -44,7 +44,7 @@
         <Parent guid="guidCmdSet" id="groupidProjectProperties"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Exclude from SonarQube</ButtonText>
+          <ButtonText>Exclude from Analysis</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="cmdidProjectTestPropertyAutoOption" priority="0x100">
