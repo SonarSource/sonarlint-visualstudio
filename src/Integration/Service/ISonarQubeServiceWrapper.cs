@@ -15,7 +15,7 @@ namespace SonarLint.VisualStudio.Integration.Service
     /// <summary>
     /// SonarQube service abstraction for testing purposes
     /// </summary>
-    public interface ISonarQubeServiceWrapper
+    internal interface ISonarQubeServiceWrapper
     {
         /// <summary>
         /// When connected this property will contain the connection information, null otherwise.

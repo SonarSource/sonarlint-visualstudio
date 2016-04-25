@@ -18,30 +18,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private const string PropertyName = Constants.SonarQubeExcludeBuildPropertyKey;
 
-        private readonly IProjectSystemHelper projectSystem;
+        private readonly IProjectPropertyManager propertyManager;
 
         public ProjectExcludePropertyToggleCommand(IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
-            this.projectSystem = this.ServiceProvider.GetMefService<IHost>()?.GetService<IProjectSystemHelper>();
-            Debug.Assert(this.projectSystem != null, $"Failed to get {nameof(IProjectSystemHelper)}");
+            this.propertyManager = this.ServiceProvider.GetMefService<IProjectPropertyManager>();
+            Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
         }
 
         protected override void InvokeInternal()
         {
-            Debug.Assert(this.projectSystem != null, "Should not be invokable with no project system");
+            Debug.Assert(this.propertyManager != null, "Should not be invokable with no property manager");
 
-            IList<Project> projects = this.projectSystem.GetSelectedProjects().ToList();
+            IList<Project> projects = this.propertyManager
+                                          .GetSupportedSelectedProjects()
+                                          .ToList();
+
             Debug.Assert(projects.Any(), "No projects selected");
-            Debug.Assert(projects.All(x => Language.ForProject(x).IsSupported), "Unsupported projects");
 
-            if (projects.Count == 1 || projects.Select(this.GetIsExcluded).AllEqual()) 
+            if (projects.Count == 1 || projects.Select(this.propertyManager.GetExcludedProperty).AllEqual()) 
             {
                 // Single project, or multiple projects & consistent property values
                 foreach (Project project in projects)
                 {
                     // Toggle value
-                    this.SetIsExcluded(project, !this.GetIsExcluded(project));
+                    this.propertyManager.SetExcludedProperty(project, !this.propertyManager.GetExcludedProperty(project));
                 }
             }
             else
@@ -50,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 foreach (Project project in projects)
                 {
                     // Set excluded = true
-                    this.SetIsExcluded(project, true);
+                    this.propertyManager.SetExcludedProperty(project, true);
                 }
             }
         }
@@ -59,17 +61,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             command.Enabled = false;
             command.Visible = false;
-            if (this.projectSystem == null)
+            if (this.propertyManager == null)
             {
                 return;
             }
 
-            IList<Project> projects = this.projectSystem.GetSelectedProjects()
-                                                        .ToList();
+            IList<Project> projects = this.propertyManager
+                                          .GetSupportedSelectedProjects()
+                                          .ToList();
 
-            if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
+            if (projects.Any())
             {
-                IList<bool> properties = projects.Select(this.GetIsExcluded)
+                IList<bool> properties = projects.Select(this.propertyManager.GetExcludedProperty)
                                                  .ToList();
 
                 command.Enabled = true;
@@ -77,34 +80,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 command.Checked = properties.AllEqual() && properties.First();
             }
         }
-
-        #region Property helpers
-
-        private bool GetIsExcluded(Project dteProject)
-        {
-            string propertyString = this.projectSystem.GetProjectProperty(dteProject, PropertyName);
-
-            bool propertyValue;
-            if (bool.TryParse(propertyString, out propertyValue))
-            {
-                return propertyValue;
-            }
-
-            return false;
-        }
-
-        private void SetIsExcluded(Project dteProject, bool value)
-        {
-            if (value)
-            {
-                this.projectSystem.SetProjectProperty(dteProject, PropertyName, true.ToString());
-            }
-            else
-            {
-                this.projectSystem.ClearProjectProperty(dteProject, PropertyName);
-            }
-        }
-
-        #endregion
     }
 }

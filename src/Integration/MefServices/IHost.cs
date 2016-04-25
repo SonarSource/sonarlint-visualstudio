@@ -12,7 +12,7 @@ using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface IHost : IServiceProvider
+    internal interface IHost : IServiceProvider
     {
         /// <summary>
         /// The UI thread dispatcher. Not null.

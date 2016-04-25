@@ -1,21 +1,26 @@
-﻿using System;
+﻿//-----------------------------------------------------------------------
+// <copyright file="ProjectSonarLintMenuCommand.cs" company="SonarSource SA and Microsoft Corporation">
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
+// </copyright>
+//-----------------------------------------------------------------------
+
 using Microsoft.VisualStudio.Shell;
+using System;
 using System.Diagnostics;
-using EnvDTE;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class ProjectSonarLintMenuCommand : VsCommandBase
     {
-        private readonly IProjectSystemHelper projectSystem;
+        private readonly IProjectPropertyManager propertyManager;
 
         public ProjectSonarLintMenuCommand(IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
-            this.projectSystem = this.ServiceProvider.GetMefService<IHost>()?.GetService<IProjectSystemHelper>();
-            Debug.Assert(this.projectSystem != null, $"Failed to get {nameof(IProjectSystemHelper)}");
+            this.propertyManager = this.ServiceProvider.GetMefService<IProjectPropertyManager>();
+            Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
         }
 
         protected override void InvokeInternal()
@@ -27,15 +32,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             command.Enabled = false;
             command.Visible = false;
-            if (this.projectSystem == null)
+            if (this.propertyManager == null)
             {
                 return;
             }
 
-            IList<Project> projects = this.projectSystem.GetSelectedProjects()
-                                            .ToList();
-
-            if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
+            if (this.propertyManager.GetSupportedSelectedProjects().Any())
             {
                 command.Enabled = true;
                 command.Visible = true;

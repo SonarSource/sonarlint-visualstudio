@@ -5,12 +5,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using Microsoft.VisualStudio.Shell;
 using EnvDTE;
+using Microsoft.VisualStudio.Shell;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -18,7 +18,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private const string PropertyName = Constants.SonarQubeTestProjectBuildPropertyKey;
 
-        private readonly IProjectSystemHelper projectSystem;
+        private readonly IProjectPropertyManager propertyManager;
         private readonly bool? commandPropertyValue;
 
         internal /*for testing purposes*/ bool? CommandPropertyValue => this.commandPropertyValue;
@@ -26,23 +26,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public ProjectTestPropertySetCommand(IServiceProvider serviceProvider, bool? setPropertyValue)
             : base(serviceProvider)
         {
-            this.projectSystem = this.ServiceProvider.GetMefService<IHost>()?.GetService<IProjectSystemHelper>();
-            Debug.Assert(this.projectSystem != null, $"Failed to get {nameof(IProjectSystemHelper)}");
+            this.propertyManager = this.ServiceProvider.GetMefService<IProjectPropertyManager>();
+            Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
 
             this.commandPropertyValue = setPropertyValue;
         }
 
         protected override void InvokeInternal()
         {
-            Debug.Assert(this.projectSystem != null, "Should not be invokable with no project system");
+            Debug.Assert(this.propertyManager != null, "Should not be invokable with no property manager");
 
-            IList<Project> projects = this.projectSystem.GetSelectedProjects().ToList();
+            IList<Project> projects = this.propertyManager
+                                          .GetSupportedSelectedProjects()
+                                          .ToList();
+
             Debug.Assert(projects.Any(), "No projects selected");
-            Debug.Assert(projects.All(x => Language.ForProject(x).IsSupported), "Unsupported projects");
 
             foreach (Project project in projects)
             {
-                this.SetTestProperty(project, this.commandPropertyValue);
+                this.propertyManager.SetTestProjectProperty(project, this.commandPropertyValue);
             }
         }
 
@@ -51,12 +53,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             command.Enabled = false;
             command.Visible = false;
 
-            IList<Project> projects = this.projectSystem.GetSelectedProjects()
-                                                        .ToList();
+            IList<Project> projects = this.propertyManager
+                                          .GetSupportedSelectedProjects()
+                                          .ToList();
 
-            if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
+            if (projects.Any())
             {
-                IList<bool?> properties = projects.Select(this.GetTestProperty)
+                IList<bool?> properties = projects.Select(this.propertyManager.GetTestProjectProperty)
                                                   .ToList();
                 
                 command.Enabled = true;
@@ -64,34 +67,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 command.Checked = properties.AllEqual() && (properties.First() == this.commandPropertyValue);
             }
         }
-
-        #region Property helpers
-
-        private bool? GetTestProperty(Project dteProject)
-        {
-            string propertyString = this.projectSystem.GetProjectProperty(dteProject, PropertyName);
-
-            bool propertyValue;
-            if (bool.TryParse(propertyString, out propertyValue))
-            {
-                return propertyValue;
-            }
-
-            return null;
-        }
-
-        private void SetTestProperty(Project dteProject, bool? value)
-        {
-            if (value.HasValue)
-            {
-                this.projectSystem.SetProjectProperty(dteProject, PropertyName, value.Value.ToString());
-            }
-            else
-            {
-                this.projectSystem.ClearProjectProperty(dteProject, PropertyName);
-            }
-        }
-
-        #endregion
     }
 }
