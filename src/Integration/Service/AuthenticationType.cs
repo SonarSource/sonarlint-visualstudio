@@ -7,7 +7,7 @@
 
 namespace SonarLint.VisualStudio.Integration.Service
 {
-    public enum AuthenticationType
+    internal enum AuthenticationType
     {
         Basic
     }

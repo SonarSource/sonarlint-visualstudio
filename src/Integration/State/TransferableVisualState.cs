@@ -13,7 +13,7 @@ using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.State
 {
-    public class TransferableVisualState : ViewModelBase
+    internal class TransferableVisualState : ViewModelBase
     {
         private readonly ObservableCollection<ServerViewModel> connectedServers = new ObservableCollection<ServerViewModel>();
         private ProjectViewModel boundProject;

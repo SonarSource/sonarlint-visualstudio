@@ -14,7 +14,7 @@ namespace SonarLint.VisualStudio.Integration.State
     /// <summary>
     /// Manages the view model state (also encapsulates it)
     /// </summary>
-    public interface IStateManager
+    internal interface IStateManager
     {
         /// <summary>
         /// The underlying managed visual state

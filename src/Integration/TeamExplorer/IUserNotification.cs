@@ -13,7 +13,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     /// <summary>
     /// Show notifications to the user
     /// </summary>
-    public interface IUserNotification
+    internal interface IUserNotification
     {
         /// <summary>
         /// <see cref="TeamFoundation.Controls.WPF.TeamExplorer.TeamExplorerSectionViewModelBase.ShowBusy"/>

@@ -13,7 +13,7 @@ using System.Globalization;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
-    public class ProjectViewModel : ViewModelBase
+    internal class ProjectViewModel : ViewModelBase
     {
         private readonly ContextualCommandsCollection commands = new ContextualCommandsCollection();
         private bool isBound;

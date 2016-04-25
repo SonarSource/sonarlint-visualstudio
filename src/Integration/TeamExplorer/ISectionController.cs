@@ -13,7 +13,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     /// <summary>
     /// Representation of the connect section
     /// </summary>
-    public interface ISectionController
+    internal interface ISectionController
     {
         /// <summary>
         /// The progress host

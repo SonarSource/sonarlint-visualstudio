@@ -13,7 +13,7 @@ using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
-    public class ConnectSectionViewModel : TeamExplorerSectionViewModelBase,
+    internal class ConnectSectionViewModel : TeamExplorerSectionViewModelBase,
                                         IUserNotification /* Most of it implemented by TeamExplorerSectionViewModelBase */
     {
         private TransferableVisualState state;

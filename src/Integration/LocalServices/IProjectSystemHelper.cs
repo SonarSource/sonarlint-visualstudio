@@ -15,7 +15,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// Wrapper service to abstract the VS related API handling
     /// </summary>
-    public interface IProjectSystemHelper : ILocalService
+    internal interface IProjectSystemHelper : ILocalService
     {
         /// <summary>
         /// Returns the current active solution

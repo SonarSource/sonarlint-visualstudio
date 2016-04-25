@@ -7,7 +7,7 @@
 
 namespace SonarLint.VisualStudio.Integration.Progress
 {
-    public interface IProgressControlHost
+    internal interface IProgressControlHost
     {
         /// <summary>
         /// Request to host the <see cref="ProgressControl"/> for display purposes
