@@ -19,6 +19,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     internal class ProjectExcludePropertyToggleCommand : VsCommandBase
     {
+        public const string PropertyName = Constants.SonarQubeExcludeBuildPropertyKey;
+
         private readonly IProjectPropertyManager propertyManager;
 
         public ProjectExcludePropertyToggleCommand(IServiceProvider serviceProvider)
@@ -39,13 +41,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(projects.Any(), "No projects selected");
             Debug.Assert(projects.All(x => Language.ForProject(x).IsSupported), "Unsupported projects");
 
-            if (projects.Count == 1 || projects.Select(this.propertyManager.GetExcludedProperty).AllEqual()) 
+            if (projects.Count == 1 ||
+                projects.Select(x => this.propertyManager.GetBooleanProperty(x, PropertyName)).AllEqual()) 
             {
                 // Single project, or multiple projects & consistent property values
                 foreach (Project project in projects)
                 {
-                    // Toggle value
-                    this.propertyManager.SetExcludedProperty(project, !this.propertyManager.GetExcludedProperty(project));
+                    this.ToggleProperty(project);
                 }
             }
             else
@@ -53,9 +55,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // Multiple projects & mixed property values
                 foreach (Project project in projects)
                 {
-                    // Set excluded = true
-                    this.propertyManager.SetExcludedProperty(project, true);
+                    this.propertyManager.SetBooleanProperty(project, PropertyName, true);
                 }
+            }
+        }
+
+        private void ToggleProperty(Project project)
+        {
+            bool currentValue = this.propertyManager.GetBooleanProperty(project, PropertyName)
+                                                            .GetValueOrDefault(false);
+            if (currentValue)
+            {
+                this.propertyManager.SetBooleanProperty(project, PropertyName, null);
+            }
+            else
+            {
+                this.propertyManager.SetBooleanProperty(project, PropertyName, true);
             }
         }
 
@@ -74,8 +89,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
             {
-                IList<bool> properties = projects.Select(this.propertyManager.GetExcludedProperty)
-                                                 .ToList();
+                IList<bool> properties = projects.Select(x =>
+                    this.propertyManager.GetBooleanProperty(x, PropertyName) ?? false).ToList();
 
                 command.Enabled = true;
                 command.Visible = true;

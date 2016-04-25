@@ -12,14 +12,31 @@ namespace SonarLint.VisualStudio.Integration
 {
     public interface IProjectPropertyManager
     {
+        /// <summary>
+        /// Get all currently selected projects in the Solution Explorer.
+        /// </summary>
+        /// <returns></returns>
         IEnumerable<Project> GetSelectedProjects();
 
-        bool? GetTestProjectProperty(Project project);
+        /// <summary>
+        /// Get the project property value with the given name.
+        /// </summary>
+        /// <remarks>Will only look in unconditional ItemGroups</remarks>
+        /// <param name="project">Project to get the property value for</param>
+        /// <param name="propertyName">Property name</param>
+        /// <returns>Null if the property is undefined or not a boolean, true/false otherwise</returns>
+        bool? GetBooleanProperty(Project project, string propertyName);
 
-        void SetTestProjectProperty(Project project, bool? value);
-
-        bool GetExcludedProperty(Project project);
-
-        void SetExcludedProperty(Project project, bool value);
+        /// <summary>
+        /// Set the project property value with the given name.
+        /// </summary>
+        /// <remarks>
+        /// Will only look in unconditional ItemGroups.<para/>
+        /// Using null as the <paramref name="value"/> will clear the property.
+        /// </remarks>
+        /// <param name="project">Project to set the property value for</param>
+        /// <param name="propertyName">Property name</param>
+        /// <param name="value">Property value</param>
+        void SetBooleanProperty(Project project, string propertyName, bool? value);
     }
 }

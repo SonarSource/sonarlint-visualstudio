@@ -19,6 +19,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     internal class ProjectTestPropertySetCommand : VsCommandBase
     {
+        public const string PropertyName = Constants.SonarQubeTestProjectBuildPropertyKey;
         private readonly IProjectPropertyManager propertyManager;
         
         private readonly bool? commandPropertyValue;
@@ -52,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             foreach (Project project in projects)
             {
-                this.propertyManager.SetTestProjectProperty(project, this.commandPropertyValue);
+                this.propertyManager.SetBooleanProperty(project, PropertyName, this.commandPropertyValue);
             }
         }
 
@@ -67,8 +68,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
             {
-                IList<bool?> properties = projects.Select(this.propertyManager.GetTestProjectProperty)
-                                                  .ToList();
+                IList<bool?> properties = projects.Select(x =>
+                    this.propertyManager.GetBooleanProperty(x, PropertyName)).ToList();
                 
                 command.Enabled = true;
                 command.Visible = true;

@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration
 
             // Ignore test projects
             // If specifically marked with test project property, use that to specify if test project or not
-            bool? sonarTest = this.propertyManager.GetTestProjectProperty(dteProject);
+            bool? sonarTest = this.propertyManager.GetBooleanProperty(dteProject, Constants.SonarQubeTestProjectBuildPropertyKey);
             if (sonarTest.HasValue)
             {
                 // Even if the project is a test project by the checks below, if this property was set to false
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration
 
             // General exclusions
             // If exclusion property is set to true, this takes precedence
-            bool? sonarExclude = this.propertyManager.GetExcludedProperty(dteProject);
+            bool? sonarExclude = this.propertyManager.GetBooleanProperty(dteProject, Constants.SonarQubeExcludeBuildPropertyKey);
             return sonarExclude.HasValue && sonarExclude.Value;
         }
 

@@ -323,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         private void VerifyExcludeProperty(ProjectMock project, bool? expected)
         {
             bool? actual = this.GetExcludeProperty(project);
-            Assert.AreEqual(expected, actual, $"Expected property to be {expected}");
+            Assert.AreEqual(expected, actual);
         }
 
         private bool? GetExcludeProperty(ProjectMock project)

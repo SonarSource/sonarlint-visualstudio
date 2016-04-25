@@ -17,9 +17,6 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ProjectPropertyManager : IProjectPropertyManager
     {
-        public const string TestProperty = Constants.SonarQubeTestProjectBuildPropertyKey;
-        public const string ExcludeProperty = Constants.SonarQubeExcludeBuildPropertyKey;
-
         private readonly IProjectSystemHelper projectSystem;
 
         [ImportingConstructor]
@@ -43,49 +40,14 @@ namespace SonarLint.VisualStudio.Integration
                 ?? Enumerable.Empty<Project>();
         }
 
-        public bool GetExcludedProperty(Project project)
+        public bool? GetBooleanProperty(Project project, string propertyName)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            string propertyString = this.projectSystem.GetProjectProperty(project, ExcludeProperty);
-
-            bool propertyValue;
-            if (bool.TryParse(propertyString, out propertyValue))
-            {
-                return propertyValue;
-            }
-
-            return false;
-        }
-
-        public void SetExcludedProperty(Project project, bool value)
-        {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (value)
-            {
-                this.projectSystem.SetProjectProperty(project, ExcludeProperty, true.ToString());
-            }
-            else
-            {
-                this.projectSystem.ClearProjectProperty(project, ExcludeProperty);
-            }
-        }
-
-        public bool? GetTestProjectProperty(Project project)
-        {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            string propertyString = this.projectSystem.GetProjectProperty(project, TestProperty);
+            string propertyString = this.projectSystem.GetProjectProperty(project, propertyName);
 
             bool propertyValue;
             if (bool.TryParse(propertyString, out propertyValue))
@@ -96,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration
             return null;
         }
 
-        public void SetTestProjectProperty(Project project, bool? value)
+        public void SetBooleanProperty(Project project, string propertyName, bool? value)
         {
             if (project == null)
             {
@@ -105,11 +67,11 @@ namespace SonarLint.VisualStudio.Integration
 
             if (value.HasValue)
             {
-                this.projectSystem.SetProjectProperty(project, TestProperty, value.Value.ToString());
+                this.projectSystem.SetProjectProperty(project, propertyName, value.Value.ToString());
             }
             else
             {
-                this.projectSystem.ClearProjectProperty(project, TestProperty);
+                this.projectSystem.ClearProjectProperty(project, propertyName);
             }
         }
 

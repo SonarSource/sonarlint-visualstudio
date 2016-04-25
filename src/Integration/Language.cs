@@ -9,7 +9,7 @@ namespace SonarLint.VisualStudio.Integration
     [DebuggerDisplay("{Name} (ServerKey: {ServerKey}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
     public sealed class Language : IEquatable<Language>
     {
-        public readonly static Language Unknown = new Language(Strings.UnknownLanguageName, string.Empty, Guid.Empty.ToString());
+        public readonly static Language Unknown = new Language();
         public readonly static Language CSharp = new Language(Strings.CSharpLanguageName, "cs", ProjectSystemHelper.CSharpProjectKind);
         public readonly static Language VBNET = new Language(Strings.VBNetLanguageName, "vbnet", ProjectSystemHelper.VbProjectKind);
 
@@ -56,6 +56,16 @@ namespace SonarLint.VisualStudio.Integration
             {
                 return new[] { CSharp, VBNET };
             }
+        }
+
+        /// <summary>
+        /// Private constructor reserved for the <seealso cref="Unknown"/>.
+        /// </summary>
+        private Language()
+        {
+            this.Name = Strings.UnknownLanguageName;
+            this.ServerKey = string.Empty;
+            this.ProjectType = Guid.Empty;
         }
 
         public Language(string name, string serverKey, string projectTypeGuid)

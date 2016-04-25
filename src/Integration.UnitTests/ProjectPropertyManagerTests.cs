@@ -19,6 +19,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         #region Test boilerplate
 
+        private const string TestPropertyName = "MyTestProperty";
+
         private ConfigurableVsProjectSystemHelper projectSystem;
         private IHost host;
 
@@ -54,11 +56,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Test case 2: missing IHost's local services does not fail, only asserts
             // Setup
-            var host = new ConfigurableHost(new ConfigurableServiceProvider(false), Dispatcher.CurrentDispatcher);
+            var emptyHost = new ConfigurableHost(new ConfigurableServiceProvider(false), Dispatcher.CurrentDispatcher);
             using (new AssertIgnoreScope())
             {
                 // Act + Verify
-                new ProjectPropertyManager(host);
+                new ProjectPropertyManager(emptyHost);
             }
         }
 
@@ -82,61 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectPropertyManager_GetExcludedProperty()
-        {
-            // Setup
-            var project = new ProjectMock("foo.proj");
-
-            ProjectPropertyManager testSubject = this.CreateTestSubject();
-
-            // Test case 1: no property -> false
-            // Setup
-            project.ClearBuildProperty(ProjectPropertyManager.ExcludeProperty);
-
-            // Act + Verify
-            Assert.IsFalse(testSubject.GetExcludedProperty(project), "Expected exclude false for missing exclude property value");
-
-            // Test case 2: bad property -> false
-            // Setup
-            project.SetBuildProperty(ProjectPropertyManager.ExcludeProperty, "NotABool");
-
-            // Act + Verify
-            Assert.IsFalse(testSubject.GetExcludedProperty(project), "Expected exclude false for bad exclude property value");
-
-            // Test case 3: true property -> true
-            // Setup
-            project.SetBuildProperty(ProjectPropertyManager.ExcludeProperty, true.ToString());
-
-            // Act + Verify
-            Assert.IsTrue(testSubject.GetExcludedProperty(project), "Expected exclude true for 'true' exclude property value");
-        }
-
-        [TestMethod]
-        public void ProjectPropertyManager_SetExcludedProperty()
-        {
-            // Setup
-            var project = new ProjectMock("foo.proj");
-
-            ProjectPropertyManager testSubject = this.CreateTestSubject();
-
-            // Test case 1: false -> property is cleared
-            // Setup
-            testSubject.SetExcludedProperty(project, false);
-
-            // Act + Verify
-            Assert.IsNull(project.GetBuildProperty(ProjectPropertyManager.ExcludeProperty), "Expected property value null for exclude false");
-
-            // Test case 2: true -> property is set true
-            // Setup
-            testSubject.SetExcludedProperty(project, true);
-
-            // Act + Verify
-            Assert.AreEqual(true.ToString(), project.GetBuildProperty(ProjectPropertyManager.ExcludeProperty),
-                ignoreCase: true, message: "Expected property value true for exclude true");
-        }
-
-        [TestMethod]
-        public void ProjectPropertyManager_GetTestProjectProperty()
+        public void ProjectPropertyManager_GetBooleanProperty()
         {
             // Setup
             var project = new ProjectMock("foo.proj");
@@ -145,35 +93,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Test case 1: no property -> null
             // Setup
-            project.ClearBuildProperty(ProjectPropertyManager.TestProperty);
+            project.ClearBuildProperty(TestPropertyName);
 
             // Act + Verify
-            Assert.IsNull(testSubject.GetTestProjectProperty(project), "Expected null for missing test property value");
+            Assert.IsNull(testSubject.GetBooleanProperty(project, TestPropertyName), "Expected null for missing property value");
 
             // Test case 2: bad property -> null
             // Setup
-            project.SetBuildProperty(ProjectPropertyManager.TestProperty, "NotABool");
+            project.SetBuildProperty(TestPropertyName, "NotABool");
 
             // Act + Verify
-            Assert.IsNull(testSubject.GetTestProjectProperty(project), "Expected null for bad test property value");
+            Assert.IsNull(testSubject.GetBooleanProperty(project, TestPropertyName), "Expected null for bad property value");
 
             // Test case 3: true property -> true
             // Setup
-            project.SetBuildProperty(ProjectPropertyManager.TestProperty, true.ToString());
+            project.SetBuildProperty(TestPropertyName, true.ToString());
 
             // Act + Verify
-            Assert.IsTrue(testSubject.GetTestProjectProperty(project).Value, "Expected true for 'true' test property value");
+            Assert.IsTrue(testSubject.GetBooleanProperty(project, TestPropertyName).Value, "Expected true for 'true' property value");
 
             // Test case 4: false property -> false 
             // Setup
-            project.SetBuildProperty(ProjectPropertyManager.TestProperty, false.ToString());
+            project.SetBuildProperty(TestPropertyName, false.ToString());
 
             // Act + Verify
-            Assert.IsFalse(testSubject.GetTestProjectProperty(project).Value, "Expected true for 'true' test property value");
+            Assert.IsFalse(testSubject.GetBooleanProperty(project, TestPropertyName).Value, "Expected true for 'true' property value");
         }
 
         [TestMethod]
-        public void ProjectPropertyManager_SetTestProjectProperty()
+        public void ProjectPropertyManager_SetBooleanProperty()
         {
             // Setup
             var project = new ProjectMock("foo.proj");
@@ -182,66 +130,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Test case 1: true -> property is set true
             // Setup
-            testSubject.SetTestProjectProperty(project, true);
+            testSubject.SetBooleanProperty(project, TestPropertyName, true);
 
             // Act + Verify
-            Assert.AreEqual(true.ToString(), project.GetBuildProperty(ProjectPropertyManager.TestProperty),
-                ignoreCase: true, message: "Expected property value true for test property true");
+            Assert.AreEqual(true.ToString(), project.GetBuildProperty(TestPropertyName),
+                ignoreCase: true, message: "Expected property value true for property true");
 
             // Test case 2: false -> property is set false
             // Setup
-            testSubject.SetTestProjectProperty(project, false);
+            testSubject.SetBooleanProperty(project, TestPropertyName, false);
 
             // Act + Verify
-            Assert.AreEqual(false.ToString(), project.GetBuildProperty(ProjectPropertyManager.TestProperty),
-                ignoreCase: false, message: "Expected property value true for test property true");
+            Assert.AreEqual(false.ToString(), project.GetBuildProperty(TestPropertyName),
+                ignoreCase: false, message: "Expected property value true for property true");
 
             // Test case 3: null -> property is cleared
             // Setup
-            testSubject.SetTestProjectProperty(project, null);
+            testSubject.SetBooleanProperty(project, TestPropertyName, null);
 
             // Act + Verify
-            Assert.IsNull(project.GetBuildProperty(ProjectPropertyManager.TestProperty), "Expected property value null for test property false");
+            Assert.IsNull(project.GetBuildProperty(TestPropertyName), "Expected property value null for property false");
         }
 
         [TestMethod]
-        public void ProjectPropertyManager_GetExcludedProperty_NullArgChecks()
+        public void ProjectPropertyManager_GetBooleanProperty_NullArgChecks()
         {
             // Setup
+            var project = new ProjectMock("foo.proj");
             ProjectPropertyManager testSubject = this.CreateTestSubject();
 
             // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetExcludedProperty(null));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetBooleanProperty(null, "prop"));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetBooleanProperty(project, null));
         }
 
         [TestMethod]
-        public void ProjectPropertyManager_SetExcludedProperty_NullArgChecks()
+        public void ProjectPropertyManager_SetBooleanProperty_NullArgChecks()
         {
             // Setup
+            var project = new ProjectMock("foo.proj");
             ProjectPropertyManager testSubject = this.CreateTestSubject();
 
             // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetExcludedProperty(null, true));
-        }
-
-        [TestMethod]
-        public void ProjectPropertyManager_GetTestProjectProperty_NullArgChecks()
-        {
-            // Setup
-            ProjectPropertyManager testSubject = this.CreateTestSubject();
-
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetTestProjectProperty(null));
-        }
-
-        [TestMethod]
-        public void ProjectPropertyManager_SetTestProjectProperty_NullArgChecks()
-        {
-            // Setup
-            ProjectPropertyManager testSubject = this.CreateTestSubject();
-
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetTestProjectProperty(null, true));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetBooleanProperty(null, "prop", true));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetBooleanProperty(project, null, true));
         }
 
         #endregion
