@@ -229,6 +229,7 @@ namespace SonarLint.VisualStudio.Integration
             var dte = this.serviceProvider.GetService<DTE>();
             if (dte == null)
             {
+                Debug.Fail("Failed to get DTE");
                 yield break;
             }
 
