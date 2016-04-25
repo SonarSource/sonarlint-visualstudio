@@ -5,8 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -37,7 +39,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            if (this.propertyManager.GetSupportedSelectedProjects().Any())
+            IList<Project> projects = this.propertyManager
+                                          .GetSelectedProjects()
+                                          .ToList();
+
+            if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
             {
                 command.Enabled = true;
                 command.Visible = true;

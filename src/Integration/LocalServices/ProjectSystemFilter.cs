@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Resources;
 using System;
@@ -18,6 +17,7 @@ namespace SonarLint.VisualStudio.Integration
     internal class ProjectSystemFilter : IProjectSystemFilter
     {
         private readonly IProjectSystemHelper projectSystem;
+        private readonly IProjectPropertyManager propertyManager;
 
         private Regex testRegex;
 
@@ -30,6 +30,9 @@ namespace SonarLint.VisualStudio.Integration
 
             this.projectSystem = host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
+
+            this.propertyManager = host.GetMefService<IProjectPropertyManager>();
+            Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
         }
 
         #region IProjectSystemFilter
@@ -89,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration
 
             // Ignore test projects
             // If specifically marked with test project property, use that to specify if test project or not
-            bool? sonarTest = this.GetPropertyBool(dteProject, Constants.SonarQubeTestProjectBuildPropertyKey);
+            bool? sonarTest = this.propertyManager.GetTestProjectProperty(dteProject);
             if (sonarTest.HasValue)
             {
                 // Even if the project is a test project by the checks below, if this property was set to false
@@ -119,21 +122,8 @@ namespace SonarLint.VisualStudio.Integration
 
             // General exclusions
             // If exclusion property is set to true, this takes precedence
-            bool? sonarExclude = this.GetPropertyBool(dteProject, Constants.SonarQubeExcludeBuildPropertyKey);
+            bool? sonarExclude = this.propertyManager.GetExcludedProperty(dteProject);
             return sonarExclude.HasValue && sonarExclude.Value;
-        }
-
-        private bool? GetPropertyBool(DteProject dteProject, string propertyName)
-        {
-            string valueString = this.projectSystem.GetProjectProperty(dteProject, propertyName);
-
-            bool value;
-            if (bool.TryParse(valueString, out value))
-            {
-                return value;
-            }
-
-            return null;
         }
 
         #endregion

@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,12 +30,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var teController = new ConfigurableTeamExplorerController();
             var teExport = MefTestHelpers.CreateExport<ITeamExplorerController>(teController);
-            var hostExport = MefTestHelpers.CreateExport<IHost>(new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher));
-            var mefModel = ConfigurableComponentModel.CreateWithExports(teExport, hostExport);
+
+            var propertyManager = new ProjectPropertyManager(new ConfigurableVsProjectSystemHelper(this.serviceProvider));
+            var propManagerExport = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
+
+            var mefModel = ConfigurableComponentModel.CreateWithExports(teExport, propManagerExport);
+            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), new ConfigurableVsProjectSystemHelper(this.serviceProvider));
             this.serviceProvider.RegisterService(typeof(IMenuCommandService), this.menuService);
-            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
         #region Tests

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using EnvDTE;
+using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -16,30 +17,44 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ProjectPropertyManager : IProjectPropertyManager
     {
-        private const string TestProperty = Constants.SonarQubeTestProjectBuildPropertyKey;
-        private const string ExcludeProperty = Constants.SonarQubeExcludeBuildPropertyKey;
+        public const string TestProperty = Constants.SonarQubeTestProjectBuildPropertyKey;
+        public const string ExcludeProperty = Constants.SonarQubeExcludeBuildPropertyKey;
 
         private readonly IProjectSystemHelper projectSystem;
 
         [ImportingConstructor]
         public ProjectPropertyManager(IHost host)
         {
+            if (host == null)
+            {
+                throw new ArgumentNullException(nameof(host));
+            }
+
             this.projectSystem = host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
         }
 
+        internal /*for testing purposes*/ ProjectPropertyManager(IProjectSystemHelper projectSystem)
+        {
+            this.projectSystem = projectSystem;
+        }
+
         #region IProjectPropertyManager
 
-        public IEnumerable<Project> GetSupportedSelectedProjects()
+        public IEnumerable<Project> GetSelectedProjects()
         {
             return this.projectSystem?
                 .GetSelectedProjects()
-                .Where(x => Language.ForProject(x).IsSupported)
                 ?? Enumerable.Empty<Project>();
         }
 
         public bool GetExcludedProperty(Project project)
         {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             string propertyString = this.projectSystem.GetProjectProperty(project, ExcludeProperty);
 
             bool propertyValue;
@@ -53,6 +68,11 @@ namespace SonarLint.VisualStudio.Integration
 
         public void SetExcludedProperty(Project project, bool value)
         {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             if (value)
             {
                 this.projectSystem.SetProjectProperty(project, ExcludeProperty, true.ToString());
@@ -65,6 +85,11 @@ namespace SonarLint.VisualStudio.Integration
 
         public bool? GetTestProjectProperty(Project project)
         {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             string propertyString = this.projectSystem.GetProjectProperty(project, TestProperty);
 
             bool propertyValue;
@@ -78,6 +103,11 @@ namespace SonarLint.VisualStudio.Integration
 
         public void SetTestProjectProperty(Project project, bool? value)
         {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             if (value.HasValue)
             {
                 this.projectSystem.SetProjectProperty(project, TestProperty, value.Value.ToString());

@@ -232,7 +232,6 @@ namespace SonarLint.VisualStudio.Integration
                 yield break;
             }
 
-            var selectedProjects = new List<Project>();
             foreach (object projectObj in dte.ActiveSolutionProjects as Array ?? new object[0])
             {
                 var project = projectObj as Project;

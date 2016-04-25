@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
-using System.Windows.Threading;
 using System.Collections;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
@@ -28,13 +27,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         public void TestInitialize()
         {
             var provider = new ConfigurableServiceProvider();
-            var host = new ConfigurableHost(provider, Dispatcher.CurrentDispatcher);
             this.projectSystem = new ConfigurableVsProjectSystemHelper(provider);
-
-            var mefExports = MefTestHelpers.CreateExport<IHost>(host);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
-
             provider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
+
+            var propertyManager = new ProjectPropertyManager(this.projectSystem);
+            var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             provider.RegisterService(typeof(SComponentModel), mefModel);
 
             this.serviceProvider = provider;

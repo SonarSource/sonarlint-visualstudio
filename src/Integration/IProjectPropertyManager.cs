@@ -12,7 +12,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     public interface IProjectPropertyManager
     {
-        IEnumerable<Project> GetSupportedSelectedProjects();
+        IEnumerable<Project> GetSelectedProjects();
 
         bool? GetTestProjectProperty(Project project);
 

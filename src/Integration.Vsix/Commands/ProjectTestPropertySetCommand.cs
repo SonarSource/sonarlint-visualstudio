@@ -37,10 +37,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(this.propertyManager != null, "Should not be invokable with no property manager");
 
             IList<Project> projects = this.propertyManager
-                                          .GetSupportedSelectedProjects()
+                                          .GetSelectedProjects()
                                           .ToList();
 
             Debug.Assert(projects.Any(), "No projects selected");
+            Debug.Assert(projects.All(x => Language.ForProject(x).IsSupported), "Unsupported projects");
 
             foreach (Project project in projects)
             {
@@ -54,10 +55,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             command.Visible = false;
 
             IList<Project> projects = this.propertyManager
-                                          .GetSupportedSelectedProjects()
+                                          .GetSelectedProjects()
                                           .ToList();
 
-            if (projects.Any())
+            if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
             {
                 IList<bool?> properties = projects.Select(this.propertyManager.GetTestProjectProperty)
                                                   .ToList();

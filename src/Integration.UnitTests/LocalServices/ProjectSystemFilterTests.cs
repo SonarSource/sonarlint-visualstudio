@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Text.RegularExpressions;
@@ -22,8 +23,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void TestInitialize()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
+
             this.projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
+
+            var propertyManager = new ProjectPropertyManager(this.projectSystem);
+            var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
         #region Tests 
