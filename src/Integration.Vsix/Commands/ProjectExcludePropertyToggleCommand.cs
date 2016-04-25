@@ -16,8 +16,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class ProjectExcludePropertyToggleCommand : VsCommandBase
     {
-        private const string PropertyName = Constants.SonarQubeExcludeBuildPropertyKey;
-
         private readonly IProjectPropertyManager propertyManager;
 
         public ProjectExcludePropertyToggleCommand(IServiceProvider serviceProvider)

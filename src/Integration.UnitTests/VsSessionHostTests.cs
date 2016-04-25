@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -34,6 +35,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.solutionBinding = new ConfigurableSolutionBindingSerializer();
+
+            var propertyManager = new ProjectPropertyManager(new ConfigurableVsProjectSystemHelper(this.serviceProvider));
+            var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
         #region Tests

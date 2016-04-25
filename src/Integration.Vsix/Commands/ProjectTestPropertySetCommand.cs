@@ -16,8 +16,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class ProjectTestPropertySetCommand : VsCommandBase
     {
-        private const string PropertyName = Constants.SonarQubeTestProjectBuildPropertyKey;
-
         private readonly IProjectPropertyManager propertyManager;
         private readonly bool? commandPropertyValue;
 
