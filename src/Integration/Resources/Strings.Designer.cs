@@ -486,6 +486,33 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to * {0}.
+        /// </summary>
+        public static string FilteredOutProjectFormat {
+            get {
+                return ResourceManager.GetString("FilteredOutProjectFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can change the exclusion options via the SonarLint project-level context menu i.e. Solution Explorer -&gt; Select project(s).
+        /// </summary>
+        public static string FilteredOutProjectFromBindingEnding {
+            get {
+                return ResourceManager.GetString("FilteredOutProjectFromBindingEnding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following projects are either not currently supported, excluded according to server specifications, or have been explicitly marked as excluded:.
+        /// </summary>
+        public static string FilteredOutProjectFromBindingHeader {
+            get {
+                return ResourceManager.GetString("FilteredOutProjectFromBindingHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not all NuGet packages were installed. Please see output above for more information..
         /// </summary>
         public static string FinishedSolutionBindingWorkflowNotAllPackagesInstalled {

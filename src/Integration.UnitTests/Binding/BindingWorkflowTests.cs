@@ -321,8 +321,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CollectionAssert.AreEquivalent(expectedLanguages, actualLanguages.ToArray(), "Unexpected languages for binding projects");
         }
 
-        
-
         [TestMethod]
         public void BindingWorkflow_DiscoverProjects_AddsMatchingProjectsToBinding()
         {
@@ -347,6 +345,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             CollectionAssert.AreEqual(matchingProjects, testSubject.BindingProjects.ToArray(), "Unexpected projects selected for binding");
             progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DiscoverProjects_OutputsExcludedProjects()
+        {
+            // Setup
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            List<Project> projects = new List<Project>();
+            for (int i = 0; i < 4; i++)
+            {
+                projects.Add(new ProjectMock($"cs{i}.csproj"));
+            }
+
+            this.projectSystemHelper.FilteredProjects = projects.Take(2);
+            this.projectSystemHelper.Projects = projects;
+
+            var testSubject = this.CreateTestSubject();
+
+            // Act
+            testSubject.DiscoverProjects(controller, progressEvents);
+
+            // Verify
+            this.outputWindowPane.AssertOutputStrings(1);
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0, new[] { projects[2].UniqueName, projects[3].UniqueName });
         }
 
         [TestMethod]
