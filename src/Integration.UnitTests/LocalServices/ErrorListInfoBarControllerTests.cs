@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Act
-            infoBar.SimulatClosedEvent();
+            infoBar.SimulateClosedEvent();
 
             // Verify
             infoBar.VerifyAllEventsUnregistered();
@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Act
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(1);
@@ -243,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Act
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(1);
@@ -271,7 +271,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionBindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey");
 
             // Act
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(0);
@@ -314,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Act (kick off connection)
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             Assert.AreEqual(1, refreshCalled, "Expected to connect once");
@@ -364,7 +364,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Act (kick off connection)
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             Assert.AreEqual(0, refreshCalled, "Expected to connect once");
@@ -409,7 +409,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Act (command disabled)
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(1);
@@ -418,7 +418,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act (command enabled)
             canExecute = true;
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(2);
@@ -454,7 +454,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Act (command enabled)
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             Assert.AreEqual(0, executed, "Busy, should not be executed");
@@ -494,7 +494,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Act (command enabled)
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             Assert.AreEqual(0, executed, "Busy, should not be executed");
@@ -536,7 +536,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(0);
 
             // Act (command enabled)
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             Assert.AreEqual(0, executed, "Busy, should not be executed");
@@ -592,7 +592,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProjectViewModel(section, new Uri("http://SomeOtherServer"), "someOtherProjectKey");
 
             // Act 
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             Assert.AreEqual(1, disconnectCalled, "Should have been disconnected");
@@ -633,13 +633,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(0);
 
             // Act (command enabled)
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(1);
 
             // Act (click again)
-            infoBar.SimulatButtonClickEvent();
+            infoBar.SimulateButtonClickEvent();
 
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(1);
@@ -677,6 +677,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act 
             testSubject.Reset();
+
+            // Verify
+            this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
+            infoBar.VerifyAllEventsUnregistered();
+            this.outputWindow.AssertOutputStrings(0);
+            this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(0);
+        }
+
+        [TestMethod]
+        public void ErrorListInfoBarController_Dispose()
+        {
+            // Setup
+            this.IsActiveSolutionBound = true;
+            var testSubject = new ErrorListInfoBarController(this.host);
+            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
+            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
+            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm => { });
+            this.ConfigureProjectViewModel(section);
+            testSubject.Refresh();
+            RunAsyncAction();
+            this.outputWindow.Reset();
+
+            // Sanity
+            ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
+            VerifyInfoBar(infoBar);
+
+            // Act 
+            testSubject.Dispose();
 
             // Verify
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);

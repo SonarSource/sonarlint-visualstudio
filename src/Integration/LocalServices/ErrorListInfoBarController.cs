@@ -21,7 +21,7 @@ using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal class ErrorListInfoBarController : IErrorListInfoBarController
+    internal class ErrorListInfoBarController : IErrorListInfoBarController, IDisposable
     {
         internal /*for testing purposes*/ static readonly Guid ErrorListToolWindowGuid = new Guid(ToolWindowGuids80.ErrorList);
 
@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration
         private IInfoBar currentErrorWindowInfoBar;
         private bool currentErrorWindowInfoBarHandlingClick;
         private BoundSonarQubeProject infoBarBinding;
+        private bool isDisposed;
 
         public ErrorListInfoBarController(IHost host)
         {
@@ -198,7 +199,7 @@ namespace SonarLint.VisualStudio.Integration
             if (this.currentErrorWindowInfoBarHandlingClick)
             {
                 // Info bar doesn't expose a way to disable the command
-                // and since the code in asynchronous the user can click 
+                // and since the code is asynchronous the user can click 
                 // on the button multiple times and get multiple binds
                 return;
             }
@@ -460,6 +461,26 @@ namespace SonarLint.VisualStudio.Integration
                 ServerViewModel serverVM = this.State.ConnectedServers.SingleOrDefault(s => s.Url == serverUri);
                 return serverVM?.Projects.SingleOrDefault(p => ProjectInformation.KeyComparer.Equals(p.Key, projectKey));
             }
+        }
+        #endregion
+
+        #region IDisposable Support
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.isDisposed)
+            {
+                if (disposing)
+                {
+                    this.Reset();
+                }
+
+                this.isDisposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
         }
         #endregion
     }

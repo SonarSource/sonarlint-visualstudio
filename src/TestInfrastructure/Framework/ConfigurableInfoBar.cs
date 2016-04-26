@@ -47,20 +47,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.AreEqual(expectedNumberOfTimes, this.closedCalled, $"{nameof(Close)} was called unexpected number of times");
         }
 
-        public void SimulatButtonClickEvent()
+        public void SimulateButtonClickEvent()
         {
             this.ButtonClick?.Invoke(this, EventArgs.Empty);
         }
 
-        public void SimulatClosedEvent()
+        public void SimulateClosedEvent()
         {
             this.Closed?.Invoke(this, EventArgs.Empty);
         }
 
         public void VerifyAllEventsUnregistered()
         {
-            Assert.IsNull(this.ButtonClick, $"{nameof(this.ButtonClick)} event was remained registered");
-            Assert.IsNull(this.Closed, $"{nameof(this.Closed)} event was remained registered");
+            Assert.IsNull(this.ButtonClick, $"{nameof(this.ButtonClick)} event remained registered");
+            Assert.IsNull(this.Closed, $"{nameof(this.Closed)} event remained registered");
         }
 
         public void VerifyAllEventsRegistered()

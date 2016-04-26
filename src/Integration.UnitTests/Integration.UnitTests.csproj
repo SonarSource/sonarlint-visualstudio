@@ -143,6 +143,7 @@
     <Compile Include="LocalServices\ErrorListInfoBarControllerTests.cs" />
     <Compile Include="LocalServices\RuleSetSerializerTests.cs" />
     <Compile Include="LocalServices\SolutionBindingInformationProviderTests.cs" />
+    <Compile Include="Persistence\BoundSonarQubeProjectExtensionsTests.cs" />
     <Compile Include="Persistence\SolutionBindingSerializerTests.cs" />
     <Compile Include="ProfileConflicts\ConflictsManagerTests.cs" />
     <Compile Include="ProfileConflicts\FixedRuleSetInfoTests.cs" />
