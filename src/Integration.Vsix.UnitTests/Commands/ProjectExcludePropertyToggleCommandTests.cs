@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_Supported_IsEnabledIsVisible()
+        public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_SupportedProject_IsEnabledIsVisible()
         {
             // Setup
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_Unsupported_IsDisabledIsHidden()
+        public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_UnsupportedProject_IsDisabledIsHidden()
         {
             // Setup
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
@@ -261,12 +261,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
+            var p3 = new ProjectMock("good3.proj");
             p1.SetCSProjectKind();
             p2.SetCSProjectKind();
-            this.projectSystem.SelectedProjects = new[] { p1, p2 };
+            p3.SetCSProjectKind();
+            this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
             this.SetExcludeProperty(p1, true);
-            this.SetExcludeProperty(p1, null);
+            this.SetExcludeProperty(p2, null);
+            this.SetExcludeProperty(p3, false);
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -276,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_AllSupported_IsEnabledIsVisible()
+        public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_AllSupportedProjects_IsEnabledIsVisible()
         {
             // Setup
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
@@ -299,7 +302,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_MixedSupport_IsDisabledIsHidden()
+        public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_MixedSupportedProject_IsDisabledIsHidden()
         {
             // Setup
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
