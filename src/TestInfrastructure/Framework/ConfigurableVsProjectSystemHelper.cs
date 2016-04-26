@@ -8,6 +8,7 @@
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,17 +90,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public string GetProjectProperty(Project dteProject, string propertyName)
         {
-            return (dteProject as ProjectMock)?.GetBuildProperty(propertyName);
+            var projMock = dteProject as ProjectMock;
+            if (projMock == null)
+            {
+                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+            }
+
+            return projMock.GetBuildProperty(propertyName);
         }
 
         public void SetProjectProperty(Project dteProject, string propertyName, string value)
         {
-            (dteProject as ProjectMock)?.SetBuildProperty(propertyName, value);
+            var projMock = dteProject as ProjectMock;
+            if (projMock == null)
+            {
+                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+            }
+
+            projMock.SetBuildProperty(propertyName, value);
         }
 
         public void ClearProjectProperty(Project dteProject, string propertyName)
         {
-            (dteProject as ProjectMock)?.ClearBuildProperty(propertyName);
+            var projMock = dteProject as ProjectMock;
+            if (projMock == null)
+            {
+                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+            }
+
+            projMock.ClearBuildProperty(propertyName);
         }
 
         #endregion
