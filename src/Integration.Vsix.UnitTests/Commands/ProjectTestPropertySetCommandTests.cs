@@ -157,11 +157,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         }
 
         [TestMethod]
+        public void ProjectTestPropertySetCommand_QueryStatus_MissingPropertyManager_IsDisabledIsHidden()
+        {
+            // Setup
+            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
+
+            var localProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
+
+            ProjectTestPropertySetCommand testSubject;
+            using (new AssertIgnoreScope()) // we want to be missing the MEF service
+            {
+                testSubject = new ProjectTestPropertySetCommand(localProvider, null);
+            }
+
+            // Act
+            testSubject.QueryStatus(command, null);
+
+            // Verify
+            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
+            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+        }
+
+        [TestMethod]
         public void ProjectTestPropertySetCommand_QueryStatus_SingleProject_SupportedProject_IsEnabledIsVisible()
         {
             // Setup
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
-            command.Enabled = true;
 
             var testSubject = new ProjectTestPropertySetCommand(serviceProvider, null);
 
@@ -183,7 +204,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         {
             // Setup
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
-            command.Enabled = true;
 
             var testSubject = new ProjectTestPropertySetCommand(serviceProvider, null);
 
