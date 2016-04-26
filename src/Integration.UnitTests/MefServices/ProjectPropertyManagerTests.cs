@@ -9,6 +9,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Threading;
 
@@ -65,12 +66,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectPropertyManager_GetSelectedProjects()
+        public void ProjectPropertyManager_GetSelectedProject_NoSelectedProjects_ReturnsEmpty()
+        {
+            // Setup
+            ProjectPropertyManager testSubject = this.CreateTestSubject();
+
+            // Act
+            IEnumerable<Project> actualProjects = testSubject.GetSelectedProjects();
+
+            // Verify
+            Assert.IsFalse(actualProjects.Any(), "Expected no projects to be returned");
+        }
+
+        [TestMethod]
+        public void ProjectPropertyManager_GetSelectedProjects_HasSelectedProjects_ReturnsProjects()
         {
             // Setup
             var p1 = new ProjectMock("p1.proj");
             var p2 = new ProjectMock("p2.proj");
             var p3 = new ProjectMock("p3.proj");
+            p1.SetCSProjectKind();
+            p2.SetVBProjectKind();
+            // p3 is unknown kind
             var expectedProjects = new ProjectMock[] { p1, p2, p3 };
             this.projectSystem.SelectedProjects = expectedProjects;
 

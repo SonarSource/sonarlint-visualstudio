@@ -116,7 +116,7 @@
     <Compile Include="LocalServices\ErrorListInfoBarController.cs" />
     <Compile Include="LocalServices\ISolutionBindingInformationProvider.cs" />
     <Compile Include="LocalServices\SolutionBindingInformationProvider.cs" />
-    <Compile Include="IProjectPropertyManager.cs" />
+    <Compile Include="MefServices\IProjectPropertyManager.cs" />
     <Compile Include="MefServices\IInfoBar.cs" />
     <Compile Include="MefServices\IInfoBarManager.cs" />
     <Compile Include="ProfileConflicts\FixedRuleSetInfo.cs" />
@@ -125,7 +125,7 @@
     <Compile Include="Binding\ISolutionRuleStore.cs" />
     <Compile Include="Binding\ProjectBindingOperation.cs" />
     <Compile Include="Binding\ProjectBindingOperation.Writer.cs" />
-    <Compile Include="ProjectPropertyManager.cs" />
+    <Compile Include="MefServices\ProjectPropertyManager.cs" />
     <Compile Include="RuleSetGroup.cs" />
     <Compile Include="ProfileConflicts\ConflictsManager.cs" />
     <Compile Include="ProfileConflicts\IConflictsManager.cs" />
