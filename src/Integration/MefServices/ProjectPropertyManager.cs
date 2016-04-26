@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<Project> GetSelectedProjects()
         {
-            return this.projectSystem?
+            return this.projectSystem
                 .GetSelectedProjects()
                 ?? Enumerable.Empty<Project>();
         }
