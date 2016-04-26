@@ -10,8 +10,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -25,13 +27,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
+
             this.menuService = new ConfigurableMenuCommandService();
+            this.serviceProvider.RegisterService(typeof(IMenuCommandService), this.menuService);
+
+            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
+
+            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+
+            var propManager = new ProjectPropertyManager(host);
+            var propManagerExport = MefTestHelpers.CreateExport<IProjectPropertyManager>(propManager);
 
             var teController = new ConfigurableTeamExplorerController();
-            var mefExports = MefTestHelpers.CreateExport<ITeamExplorerController>(teController);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            var teExport = MefTestHelpers.CreateExport<ITeamExplorerController>(teController);
 
-            this.serviceProvider.RegisterService(typeof(IMenuCommandService), this.menuService);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(teExport, propManagerExport);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
@@ -54,14 +65,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = new PackageCommandManager(serviceProvider);
-            var expectedCommandId = new CommandID(new Guid(CommonGuids.CommandSet), (int)PackageCommandId.ManageConnections);
+
+            var cmdSet = new Guid(CommonGuids.CommandSet);
+            IList<CommandID> allCommands = Enum.GetValues(typeof(PackageCommandId))
+                                               .Cast<int>()
+                                               .Select(x => new CommandID(cmdSet, x))
+                                               .ToList();
             
             // Act
             testSubject.Initialize();
 
             // Verify
-            var command = menuService.Commands.Single();
-            Assert.AreEqual(expectedCommandId, command.Key, "Unexpected CommandID");
+            Assert.AreEqual(allCommands.Count, menuService.Commands.Count, "Unexpected number of commands");
+
+            IList<CommandID> missingCommands = allCommands.Except(menuService.Commands.Select(x => x.Key)).ToList();
+            IEnumerable<string> missingCommandNames = missingCommands.Select(x => Enum.GetName(typeof(PackageCommandId), x));
+            Assert.IsTrue(!missingCommands.Any(), $"Missing commands: {string.Join(", ", missingCommandNames)}");
         }
 
         [TestMethod]

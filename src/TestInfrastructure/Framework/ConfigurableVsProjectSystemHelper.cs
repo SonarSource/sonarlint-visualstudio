@@ -8,6 +8,7 @@
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -82,6 +83,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return dteProject as IVsHierarchy;
         }
 
+        public IEnumerable<Project> GetSelectedProjects()
+        {
+            return this.SelectedProjects ?? Enumerable.Empty<Project>();
+        }
+
+        public string GetProjectProperty(Project dteProject, string propertyName)
+        {
+            var projMock = dteProject as ProjectMock;
+            if (projMock == null)
+            {
+                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+            }
+
+            return projMock.GetBuildProperty(propertyName);
+        }
+
+        public void SetProjectProperty(Project dteProject, string propertyName, string value)
+        {
+            var projMock = dteProject as ProjectMock;
+            if (projMock == null)
+            {
+                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+            }
+
+            projMock.SetBuildProperty(propertyName, value);
+        }
+
+        public void ClearProjectProperty(Project dteProject, string propertyName)
+        {
+            var projMock = dteProject as ProjectMock;
+            if (projMock == null)
+            {
+                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+            }
+
+            projMock.ClearBuildProperty(propertyName);
+        }
+
         #endregion
 
         #region Test helpers
@@ -91,6 +130,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IEnumerable<Project> Projects { get; set; }
 
         public IEnumerable<Project> FilteredProjects { get; set; }
+
+        public IEnumerable<Project> SelectedProjects { get; set; }
 
         public Func<Project, string, bool> IsFileInProjectAction { get; set; }
 

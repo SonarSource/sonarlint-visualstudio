@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
-using System.ComponentModel.Design;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -28,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         public void ManageConnectionsCommand_Invoke()
         {
             // Setup
-            OleMenuCommand command = CreateRandomOleMenuCommand();
+            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             var teController = new ConfigurableTeamExplorerController();
             var serviceProvider = CreateServiceProviderWithMefExports<ITeamExplorerController>(teController);
 
@@ -62,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         public void ManageConnectionsCommand_QueryStatus()
         {
             // Setup
-            OleMenuCommand command = CreateRandomOleMenuCommand();
+            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             // Test case 1: no TE controller
             // Setup
@@ -117,12 +116,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             serviceProvider.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
 
             return serviceProvider;
-        }
-
-        private static Random random = new Random();
-        private static OleMenuCommand CreateRandomOleMenuCommand()
-        {
-            return new OleMenuCommand((s, e) => { }, new CommandID(Guid.NewGuid(), random.Next()));
         }
 
         #endregion

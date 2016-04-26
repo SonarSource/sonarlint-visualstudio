@@ -24,6 +24,12 @@ namespace SonarLint.VisualStudio.Integration
         internal const string TestProjectKind = "{3AC096D0-A1C2-E12C-1390-A8335801FDAB}";
         internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);
 
+        /// <summary>
+        /// This is the HResult returned by IVsBuildPropertyStorage when attempting to
+        /// read a property that does not exist.
+        /// </summary>
+        public const int E_XML_ATTRIBUTE_NOT_FOUND = unchecked((int)0x8004C738);
+
         // This constant is necessary to find the name of the "Solution Items" folder
         // for the CurrentUICulture. They correspond to a resource string in the satellite dll
         // for the msenv.dll package. The ID is the resource ID, and the guid is the package guid.
@@ -49,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration
             foreach (var hierarchy in EnumerateProjects(solution))
             {
                 Project Project = GetProject(hierarchy);
-                if (Project != null && Language.ForProject(Project) != null)
+                if (Project != null && Language.ForProject(Project) != Language.Unknown)
                 {
                     yield return Project;
                 }
@@ -216,6 +222,105 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return solutionItemsProject;
+        }
+
+        public IEnumerable<Project> GetSelectedProjects()
+        {
+            var dte = this.serviceProvider.GetService<DTE>();
+            if (dte == null)
+            {
+                Debug.Fail("Failed to get DTE");
+                yield break;
+            }
+
+            foreach (object projectObj in dte.ActiveSolutionProjects as Array ?? new object[0])
+            {
+                var project = projectObj as Project;
+                if (project != null)
+                {
+                    yield return project;
+                }
+            }
+        }
+
+        public string GetProjectProperty(Project dteProject, string propertyName)
+        {
+            if (dteProject == null)
+            {
+                throw new ArgumentNullException(nameof(dteProject));
+            }
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
+            string value = null;
+            IVsHierarchy projectHierarchy = this.GetIVsHierarchy(dteProject);
+            IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
+
+            Debug.Assert(propertyStorage != null, "Could not get IVsBuildPropertyStorage for EnvDTE.Project");
+            if (propertyStorage != null)
+            {
+                var hr = propertyStorage.GetPropertyValue(propertyName, string.Empty,
+                    (uint)_PersistStorageType.PST_PROJECT_FILE, out value);
+
+                // E_XML_ATTRIBUTE_NOT_FOUND is returned when the property does not exist - this is OK.
+                Debug.Assert(!ErrorHandler.Succeeded(hr) || hr != E_XML_ATTRIBUTE_NOT_FOUND,
+                    $"Failed to get the property '{propertyName}' for project '{dteProject.Name}'.");
+            }
+
+            return value;
+        }
+
+        public void SetProjectProperty(Project dteProject, string propertyName, string value)
+        {
+            if (dteProject == null)
+            {
+                throw new ArgumentNullException(nameof(dteProject));
+            }
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
+            IVsHierarchy projectHierarchy = this.GetIVsHierarchy(dteProject);
+            IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
+
+            Debug.Assert(propertyStorage != null, "Could not get IVsBuildPropertyStorage for EnvDTE.Project");
+            if (propertyStorage != null)
+            {
+                var hr = propertyStorage.SetPropertyValue(propertyName, string.Empty,
+                    (uint)_PersistStorageType.PST_PROJECT_FILE, value);
+
+                Debug.Assert(ErrorHandler.Succeeded(hr), $"Failed to set property '{propertyName}' to '{value}' for project '{dteProject.Name}'.");
+            }
+        }
+
+        public void ClearProjectProperty(Project dteProject, string propertyName)
+        {
+            if (dteProject == null)
+            {
+                throw new ArgumentNullException(nameof(dteProject));
+            }
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
+            IVsHierarchy projectHierarchy = this.GetIVsHierarchy(dteProject);
+            IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
+
+            Debug.Assert(propertyStorage != null, "Could not get IVsBuildPropertyStorage for EnvDTE.Project");
+            if (propertyStorage != null)
+            {
+                var hr = propertyStorage.RemoveProperty(propertyName, string.Empty,
+                    (uint)_PersistStorageType.PST_PROJECT_FILE);
+
+                Debug.Assert(ErrorHandler.Succeeded(hr), $"Failed to remove property '{propertyName}' for project '{dteProject.Name}'.");
+            }
         }
 
         private string GetSolutionItemsFolderName()

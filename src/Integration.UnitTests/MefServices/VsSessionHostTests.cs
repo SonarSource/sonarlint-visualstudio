@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -34,6 +35,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.solutionBinding = new ConfigurableSolutionBindingSerializer();
+
+            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
+
+            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+
+            var propertyManager = new ProjectPropertyManager(host);
+            var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
         #region Tests
@@ -324,7 +335,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void VsSessionHost_IServiceProvider_GetService()
         {
             // Setup
-            var testSubject = new VsSessionHost(this.serviceProvider,new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker());
+            var testSubject = new VsSessionHost(this.serviceProvider, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker());
             ConfigurableVsShell shell = new ConfigurableVsShell();
             shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);

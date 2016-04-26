@@ -59,5 +59,31 @@ namespace SonarLint.VisualStudio.Integration
         /// Returns the <seealso cref="IVsHierarchy"/> for a <see cref="Project"/>
         /// </summary>
         IVsHierarchy GetIVsHierarchy(Project dteProject);
+
+        /// <summary>
+        /// Returns the currently selected projects in the active solution.
+        /// </summary>
+        IEnumerable<Project> GetSelectedProjects();
+
+        /// <summary>
+        /// Get the value of a given MSBuild project property.
+        /// </summary>
+        /// <param name="propertyName">Name of the property to get</param>
+        /// <returns>The value of the property or null if the property does not exist/has not been set.</returns>
+        string GetProjectProperty(Project dteProject, string propertyName);
+
+        /// <summary>
+        /// Set the value of the given MSBuild project property.
+        /// </summary>
+        /// <remarks>The property is created if it does not already exist</remarks>
+        /// <param name="propertyName">Name of the property to set</param>
+        void SetProjectProperty(Project dteProject, string propertyName, string value);
+
+        /// <summary>
+        /// Remove an MSBuild project project if it exists.
+        /// </summary>
+        /// <remarks>This does not remove the property from the project, it only removes the value.</remarks>
+        /// <param name="propertyName">Name of the property to remove</param>
+        void ClearProjectProperty(Project dteProject, string propertyName);
     }
 }

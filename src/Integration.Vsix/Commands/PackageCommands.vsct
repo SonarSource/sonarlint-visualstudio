@@ -2,6 +2,37 @@
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable"
               xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <Commands package="guidVsPackagePkgString">
+    <Groups>
+      <Group guid="guidCmdSet" id="groupidProjectSonarLint">
+        <GroupFlag>Dynamic</GroupFlag>
+      </Group>
+      <Group guid="guidCmdSet" id="groupidProjectProperties">
+        <Parent guid="guidCmdSet" id="menuidProjectSonarLint"/>
+        <GroupFlag>Dynamic</GroupFlag>
+      </Group>
+      <Group guid="guidCmdSet" id="groupidProjectTestPropertyOptions" priority="0x100">
+        <Parent guid="guidCmdSet" id="menuidProjectTestProperty"/>
+        <GroupFlag>Dynamic</GroupFlag>
+      </Group>
+    </Groups>
+
+    <Menus>
+      <Menu guid="guidCmdSet" id="menuidProjectSonarLint" priority="0x100">
+        <Parent guid="guidCmdSet" id="groupidProjectSonarLint"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;SonarLint</ButtonText>
+        </Strings>
+      </Menu>
+      <Menu guid="guidCmdSet" id="menuidProjectTestProperty" priority="0x200">
+        <Parent guid="guidCmdSet" id="groupidProjectProperties"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Set Project &amp;Type</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
+    
     <Buttons>
       <Button guid="guidCmdSet" id="cmdidManageConnections" type="Button">
         <Icon guid="guidIcons" id="bmpSonarQube"/>
@@ -9,8 +40,36 @@
           <ButtonText>Manage SonarQube Connections...</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidCmdSet" id="cmdidProjectExcludePropertyToggle" type="Button" priority="0x100">
+        <Parent guid="guidCmdSet" id="groupidProjectProperties"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>E&amp;xclude from Analysis</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="cmdidProjectTestPropertyAutoOption" priority="0x100">
+        <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Automatically Detect</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="cmdidProjectTestPropertyTrueOption" priority="0x100">
+        <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Test Project</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="cmdidProjectTestPropertyFalseOption" priority="0x100">
+        <Parent guid="guidCmdSet" id="groupidProjectTestPropertyOptions"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Non-Test Project</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
-
+    
     <Bitmaps>
       <Bitmap guid="guidIcons" href="..\Resources\CommandIcons.png" usedList="bmpSonarQube"/>
     </Bitmaps>
@@ -24,12 +83,34 @@
     <CommandPlacement guid="guidCmdSet" id="cmdidManageConnections" priority="0x900">
       <Parent guid="guidCodeAnalysisMenuGroup" id="IDG_SOLUTION_ANALYZE"/>
     </CommandPlacement>
+
+    <!-- groupidProjectSonarLint -->
+    <CommandPlacement guid="guidCmdSet" id="groupidProjectSonarLint" priority="0x100">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidCmdSet" id="groupidProjectSonarLint" priority="0x100">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_XPROJ_MULTIPROJ"/>
+    </CommandPlacement>
   </CommandPlacements>
   
   <Symbols>
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+      <!-- Groups -->
+      <IDSymbol name="groupidProjectSonarLint" value="0x800"/>
+      <IDSymbol name="groupidProjectProperties" value="0x801"/>
+      <IDSymbol name="groupidProjectTestPropertyOptions" value="0x802"/>
+      
+      <!-- Menus -->
+      <IDSymbol name="menuidProjectSonarLint" value="0x850"/>
+      <IDSymbol name="menuidProjectTestProperty" value="0x851"/>
+      
+      <!-- Commands -->
       <IDSymbol name="cmdidManageConnections" value="0x100"/>
+      <IDSymbol name="cmdidProjectExcludePropertyToggle" value="0x101"/>
+      <IDSymbol name="cmdidProjectTestPropertyAutoOption" value="0x102"/>
+      <IDSymbol name="cmdidProjectTestPropertyTrueOption" value="0x103"/>
+      <IDSymbol name="cmdidProjectTestPropertyFalseOption" value="0x104"/>
     </GuidSymbol>
 
     <!-- Menu command icons -->

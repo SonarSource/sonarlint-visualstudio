@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Resources;
 using System;
@@ -18,6 +17,7 @@ namespace SonarLint.VisualStudio.Integration
     internal class ProjectSystemFilter : IProjectSystemFilter
     {
         private readonly IProjectSystemHelper projectSystem;
+        private readonly IProjectPropertyManager propertyManager;
 
         private Regex testRegex;
 
@@ -30,6 +30,9 @@ namespace SonarLint.VisualStudio.Integration
 
             this.projectSystem = host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
+
+            this.propertyManager = host.GetMefService<IProjectPropertyManager>();
+            Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
         }
 
         #region IProjectSystemFilter
@@ -55,12 +58,12 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
 
-            if (IsExcludedViaProjectProperty(propertyStorage))
+            if (IsExcludedViaProjectProperty(project))
             {
                 return false;
             }
             
-            if (IsTestProject(hierarchy, this.testRegex, projectName))
+            if (IsTestProject(project, hierarchy, this.testRegex, projectName))
             {
                 return false;
             }
@@ -82,16 +85,14 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region Helpers
-        private static bool IsTestProject(IVsHierarchy projectHierarchy, Regex testProjectNameRegex, string projectName)
+        private bool IsTestProject(DteProject dteProject, IVsHierarchy projectHierarchy, Regex testProjectNameRegex, string projectName)
         {
+            Debug.Assert(dteProject != null);
             Debug.Assert(projectHierarchy != null);
-
-            IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
-            Debug.Assert(propertyStorage != null);
 
             // Ignore test projects
             // If specifically marked with test project property, use that to specify if test project or not
-            bool? sonarTest = GetPropertyBool(propertyStorage, Constants.SonarQubeTestProjectBuildPropertyKey);
+            bool? sonarTest = this.propertyManager.GetBooleanProperty(dteProject, Constants.SonarQubeTestProjectBuildPropertyKey);
             if (sonarTest.HasValue)
             {
                 // Even if the project is a test project by the checks below, if this property was set to false
@@ -115,32 +116,14 @@ namespace SonarLint.VisualStudio.Integration
             return (language == null || !language.IsSupported);
         }
 
-        private static bool IsExcludedViaProjectProperty(IVsBuildPropertyStorage propertyStorage)
+        private bool IsExcludedViaProjectProperty(DteProject dteProject)
         {
-            Debug.Assert(propertyStorage != null);
+            Debug.Assert(dteProject != null);
 
             // General exclusions
             // If exclusion property is set to true, this takes precedence
-            bool? sonarExclude = GetPropertyBool(propertyStorage, Constants.SonarQubeExcludeBuildPropertyKey);
+            bool? sonarExclude = this.propertyManager.GetBooleanProperty(dteProject, Constants.SonarQubeExcludeBuildPropertyKey);
             return sonarExclude.HasValue && sonarExclude.Value;
-        }
-
-        private static bool? GetPropertyBool(IVsBuildPropertyStorage propertyStorage, string propertyName)
-        {
-            string valueString = null;
-            var hr = propertyStorage.GetPropertyValue(propertyName, string.Empty,
-                (uint)_PersistStorageType.PST_PROJECT_FILE, out valueString);
-
-            if (ErrorHandler.Succeeded(hr))
-            {
-                bool value;
-                if (bool.TryParse(valueString, out value))
-                {
-                    return value;
-                }
-            }
-
-            return null;
         }
 
         #endregion

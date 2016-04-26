@@ -7,10 +7,11 @@ using System.Linq;
 namespace SonarLint.VisualStudio.Integration
 {
     [DebuggerDisplay("{Name} (ServerKey: {ServerKey}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
-    internal sealed class Language : IEquatable<Language>
+    public sealed class Language : IEquatable<Language>
     {
-        public readonly static Language CSharp = new Language("cs", Strings.CSharpLanguageName, ProjectSystemHelper.CSharpProjectKind);
-        public readonly static Language VBNET = new Language("vbnet", Strings.VBNetLanguageName, ProjectSystemHelper.VbProjectKind);
+        public readonly static Language Unknown = new Language();
+        public readonly static Language CSharp = new Language(Strings.CSharpLanguageName, "cs", ProjectSystemHelper.CSharpProjectKind);
+        public readonly static Language VBNET = new Language(Strings.VBNetLanguageName, "vbnet", ProjectSystemHelper.VbProjectKind);
 
         /// <summary>
         /// The SonarQube server key.
@@ -25,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// The VS project GUID for this language.
         /// </summary>
-        public Guid ProjectType { get; set; }
+        public Guid ProjectType { get; }
 
         /// <summary>
         /// Returns whether or not this language is a supported project language for binding.
@@ -57,16 +58,26 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public Language(string serverKey, string name, string projectTypeGuid)
+        /// <summary>
+        /// Private constructor reserved for the <seealso cref="Unknown"/>.
+        /// </summary>
+        private Language()
         {
-            if (string.IsNullOrWhiteSpace(serverKey))
-            {
-                throw new ArgumentNullException(nameof(serverKey));
-            }
+            this.Name = Strings.UnknownLanguageName;
+            this.ServerKey = string.Empty;
+            this.ProjectType = Guid.Empty;
+        }
 
+        public Language(string name, string serverKey, string projectTypeGuid)
+        {
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name));
+            }
+
+            if (string.IsNullOrWhiteSpace(serverKey))
+            {
+                throw new ArgumentNullException(nameof(serverKey));
             }
 
             if (string.IsNullOrWhiteSpace(projectTypeGuid))
@@ -74,8 +85,8 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(projectTypeGuid));
             }
 
-            this.ServerKey = serverKey;
             this.Name = name;
+            this.ServerKey = serverKey;
             this.ProjectType = new Guid(projectTypeGuid);
         }
 
@@ -89,10 +100,10 @@ namespace SonarLint.VisualStudio.Integration
             Guid projectKind;
             if (!Guid.TryParse(dteProject.Kind, out projectKind))
             {
-                return null;
+                return Unknown;
             }
 
-            return KnownLanguages.FirstOrDefault(x => x.ProjectType == projectKind);
+            return KnownLanguages.FirstOrDefault(x => x.ProjectType == projectKind) ?? Unknown;
         }
 
         #region IEquatable<Language> and Equals

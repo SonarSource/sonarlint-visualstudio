@@ -180,6 +180,7 @@
     <Compile Include="Framework\ConfigurableWebBrowser.cs" />
     <Compile Include="Framework\ConfigurableWritableSettingsStore.cs" />
     <Compile Include="Helpers\AssertIgnoreScope.cs" />
+    <Compile Include="Helpers\CommandHelper.cs" />
     <Compile Include="Helpers\DispatcherHelper.cs" />
     <Compile Include="Helpers\Exceptions.cs" />
     <Compile Include="Helpers\KnownUIContextsAccessor.cs" />

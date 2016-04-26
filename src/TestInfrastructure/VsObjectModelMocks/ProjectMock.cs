@@ -294,9 +294,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         int IVsBuildPropertyStorage.GetPropertyValue(string pszPropName, string pszConfigName, uint storage, out string pbstrPropValue)
         {
             pbstrPropValue = null;
-            return this.buildProperties.TryGetValue(pszPropName, out pbstrPropValue)
-                ? VSConstants.S_OK
-                : VSConstants.E_FAIL;
+            if (this.buildProperties.ContainsKey(pszPropName))
+            {
+                pbstrPropValue = this.buildProperties[pszPropName];
+                return VSConstants.S_OK;
+            }
+
+            return ProjectSystemHelper.E_XML_ATTRIBUTE_NOT_FOUND;
         }
 
         int IVsBuildPropertyStorage.SetPropertyValue(string pszPropName, string pszConfigName, uint storage, string pszPropValue)
@@ -307,7 +311,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsBuildPropertyStorage.RemoveProperty(string pszPropName, string pszConfigName, uint storage)
         {
-            throw new NotImplementedException();
+            if (this.buildProperties.ContainsKey(pszPropName))
+            {
+                this.buildProperties.Remove(pszPropName);
+            }
+
+            return VSConstants.S_OK;
         }
 
         int IVsBuildPropertyStorage.GetItemAttribute(uint item, string pszAttributeName, out string pbstrAttributeValue)
@@ -379,9 +388,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ProjectKind = ProjectSystemHelper.VbProjectKind;
         }
 
+        public string GetBuildProperty(string propertyName)
+        {
+            string value;
+            ((IVsBuildPropertyStorage)this).GetPropertyValue(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, out value);
+            return value;
+        }
+
         public void SetBuildProperty(string propertyName, string value)
         {
             ((IVsBuildPropertyStorage)this).SetPropertyValue(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
+        }
+
+        public void ClearBuildProperty(string propertyName)
+        {
+            ((IVsBuildPropertyStorage)this).RemoveProperty(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE);
         }
 
         public void SetAggregateProjectTypeGuids(params Guid[] guids)
