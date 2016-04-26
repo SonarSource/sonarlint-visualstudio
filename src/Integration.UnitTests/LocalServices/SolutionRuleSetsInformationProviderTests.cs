@@ -152,8 +152,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
 
             // Act Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, RuleSetGroup.CSharp));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, RuleSetGroup.VB));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, LanguageGroup.CSharp));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, LanguageGroup.VB));
         }
 
         [TestMethod]
@@ -168,14 +168,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 1: VB + invalid path characters
             // Act
-            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(), RuleSetGroup.VB);
+            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(), LanguageGroup.VB);
 
             // Verify
             Assert.AreEqual(@"z:\folder\solution\SonarQube\MyKey_VB.ruleset", ruleSetPath);
 
             // Case 2: C# + valid path characters
             // Act
-            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", RuleSetGroup.CSharp);
+            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", LanguageGroup.CSharp);
 
             // Verify
             Assert.AreEqual(@"z:\folder\solution\SonarQube\MyKeyCSharp.ruleset", ruleSetPath);
@@ -191,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
 
             // Act + Verify
-            Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", RuleSetGroup.CSharp));
+            Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", LanguageGroup.CSharp));
         }
 
         [TestMethod]

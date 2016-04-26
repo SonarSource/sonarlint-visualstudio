@@ -27,8 +27,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
-        private readonly Dictionary<RuleSetGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<RuleSetGroup, RuleSetInformation>();
-        private readonly Dictionary<RuleSetGroup, QualityProfile> qualityProfileMap = new Dictionary<RuleSetGroup, QualityProfile>();
+        private readonly Dictionary<LanguageGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<LanguageGroup, RuleSetInformation>();
+        private readonly Dictionary<LanguageGroup, QualityProfile> qualityProfileMap = new Dictionary<LanguageGroup, QualityProfile>();
         private readonly ConnectionInformation connection;
         private readonly string sonarQubeProjectKey;
 
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             private set;
         }
 
-        internal /*for testing purposes*/ IReadOnlyDictionary<RuleSetGroup, RuleSetInformation> RuleSetsInformationMap
+        internal /*for testing purposes*/ IReadOnlyDictionary<LanguageGroup, RuleSetInformation> RuleSetsInformationMap
         {
             get { return this.ruleSetsInformationMap; }
         }
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region ISolutionRuleStore
 
-        public void RegisterKnownRuleSets(IDictionary<RuleSetGroup, RuleSet> ruleSets)
+        public void RegisterKnownRuleSets(IDictionary<LanguageGroup, RuleSet> ruleSets)
         {
             if (ruleSets == null)
             {
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        public string GetRuleSetFilePath(RuleSetGroup group)
+        public string GetRuleSetFilePath(LanguageGroup group)
         {
             RuleSetInformation info;
 
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Public API
-        public void Initialize(IEnumerable<Project> projects, Dictionary<RuleSetGroup, QualityProfile> profilesMap)
+        public void Initialize(IEnumerable<Project> projects, Dictionary<LanguageGroup, QualityProfile> profilesMap)
         {
             if (projects == null)
             {
@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
 
-            Dictionary<RuleSetGroup, ApplicableQualityProfile> map = new Dictionary<RuleSetGroup, ApplicableQualityProfile>();
+            Dictionary<LanguageGroup, ApplicableQualityProfile> map = new Dictionary<LanguageGroup, ApplicableQualityProfile>();
 
             foreach(var keyValue in this.qualityProfileMap)
             {
@@ -260,7 +260,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         internal class RuleSetInformation
         {
-            public RuleSetInformation(RuleSetGroup group, RuleSet ruleSet)
+            public RuleSetInformation(LanguageGroup group, RuleSet ruleSet)
             {
                 if (ruleSet == null)
                 {

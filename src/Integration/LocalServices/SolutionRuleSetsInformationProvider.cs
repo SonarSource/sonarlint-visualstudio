@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration
             return ruleSetDirectoryRoot;
         }
 
-        public string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, RuleSetGroup ruleSetGroup)
+        public string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, LanguageGroup ruleSetGroup)
         {
             if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
             {

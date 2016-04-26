@@ -14,19 +14,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableSolutionRuleStore: ISolutionRuleStore
     {
-        private readonly Dictionary<RuleSetGroup, string> registeredPaths = new Dictionary<RuleSetGroup, string>();
-        private IDictionary<RuleSetGroup, RuleSet> availableRuleSets;
+        private readonly Dictionary<LanguageGroup, string> registeredPaths = new Dictionary<LanguageGroup, string>();
+        private IDictionary<LanguageGroup, RuleSet> availableRuleSets;
 
         #region ISolutionRuleStore
 
-        string ISolutionRuleStore.GetRuleSetFilePath(RuleSetGroup group)
+        string ISolutionRuleStore.GetRuleSetFilePath(LanguageGroup group)
         {
             string path;
             Assert.IsTrue(this.registeredPaths.TryGetValue(group, out path), "No path for group: " + group);
             return path;
         }
 
-        void ISolutionRuleStore.RegisterKnownRuleSets(IDictionary<RuleSetGroup, RuleSet> ruleSets)
+        void ISolutionRuleStore.RegisterKnownRuleSets(IDictionary<LanguageGroup, RuleSet> ruleSets)
         {
             Assert.IsNotNull(ruleSets, "Not expecting nulls");
 
@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        public void RegisterRuleSetPath(RuleSetGroup group, string path)
+        public void RegisterRuleSetPath(LanguageGroup group, string path)
         {
             this.registeredPaths[group] = path;
         }

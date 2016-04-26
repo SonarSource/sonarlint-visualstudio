@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
         public string ProjectKey { get; set; }
 
-        public Dictionary<RuleSetGroup, ApplicableQualityProfile> Profiles { get; set; }
+        public Dictionary<LanguageGroup, ApplicableQualityProfile> Profiles { get; set; }
 
         [JsonIgnore]
         public ICredentials Credentials { get; set; }

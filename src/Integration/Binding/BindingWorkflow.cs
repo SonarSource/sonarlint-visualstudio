@@ -34,12 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystem;
         private readonly SolutionBindingOperation solutionBindingOperation;
 
-        internal readonly Dictionary<Language, RuleSetGroup> LanguageToGroupMapping = new Dictionary<Language, RuleSetGroup>
-        {
-            {Language.CSharp, RuleSetGroup.CSharp },
-            {Language.VBNET, RuleSetGroup.VB }
-        };        
-
         public BindingWorkflow(IHost host, ConnectionInformation connectionInformation, ProjectInformation project)
         {
             if (host == null)
@@ -76,25 +70,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new HashSet<Project>();
 
-        public Dictionary<RuleSetGroup, RuleSet> Rulesets
+        public Dictionary<LanguageGroup, RuleSet> Rulesets
         {
             get;
-        } = new Dictionary<RuleSetGroup, RuleSet>();
+        } = new Dictionary<LanguageGroup, RuleSet>();
 
         public List<NuGetPackageInfo> NuGetPackages
         {
             get;
         } = new List<NuGetPackageInfo>();
 
-        public Dictionary<RuleSetGroup, string> SolutionRulesetPaths
+        public Dictionary<LanguageGroup, string> SolutionRulesetPaths
         {
             get;
-        } = new Dictionary<RuleSetGroup, string>();
+        } = new Dictionary<LanguageGroup, string>();
 
-        public Dictionary<RuleSetGroup, QualityProfile> QualityProfiles
+        public Dictionary<LanguageGroup, QualityProfile> QualityProfiles
         {
             get;
-        } = new Dictionary<RuleSetGroup, QualityProfile>();
+        } = new Dictionary<LanguageGroup, QualityProfile>();
 
         internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
         {
@@ -345,10 +339,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region Helpers
 
-        private RuleSetGroup LanguageToGroup(Language language)
+        private LanguageGroup LanguageToGroup(Language language)
         {
-            RuleSetGroup group;
-            if (!this.LanguageToGroupMapping.TryGetValue(language, out group))
+            LanguageGroup group = LanguageGroupHelper.GetLanguageGroup(language);
+            if (group == LanguageGroup.Unknown)
             {
                 Debug.Fail("Unsupported language: " + language);
                 throw new InvalidOperationException();

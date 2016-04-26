@@ -112,9 +112,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
-            written.Profiles = new Dictionary<RuleSetGroup, ApplicableQualityProfile>();
-            written.Profiles[RuleSetGroup.VB] = new ApplicableQualityProfile { ProfileKey = "VB" };
-            written.Profiles[RuleSetGroup.CSharp] = new ApplicableQualityProfile { ProfileKey = "CS", ProfileTimestamp = DateTime.Now };
+            written.Profiles = new Dictionary<LanguageGroup, ApplicableQualityProfile>();
+            written.Profiles[LanguageGroup.VB] = new ApplicableQualityProfile { ProfileKey = "VB" };
+            written.Profiles[LanguageGroup.CSharp] = new ApplicableQualityProfile { ProfileKey = "CS", ProfileTimestamp = DateTime.Now };
 
             // Act (write)
             string output = testSubject.WriteSolutionBinding(written);
@@ -136,10 +136,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.AreEqual(creds.Password.ConvertToUnsecureString(), newCreds.Password.ConvertToUnsecureString());
             Assert.AreEqual(written.ServerUri, read.ServerUri);
             Assert.AreEqual(2, read.Profiles?.Count ?? 0);
-            Assert.AreEqual(written.Profiles[RuleSetGroup.VB].ProfileKey, read.Profiles[RuleSetGroup.VB].ProfileKey);
-            Assert.AreEqual(written.Profiles[RuleSetGroup.VB].ProfileTimestamp, read.Profiles[RuleSetGroup.VB].ProfileTimestamp);
-            Assert.AreEqual(written.Profiles[RuleSetGroup.CSharp].ProfileKey, read.Profiles[RuleSetGroup.CSharp].ProfileKey);
-            Assert.AreEqual(written.Profiles[RuleSetGroup.CSharp].ProfileTimestamp, read.Profiles[RuleSetGroup.CSharp].ProfileTimestamp);
+            Assert.AreEqual(written.Profiles[LanguageGroup.VB].ProfileKey, read.Profiles[LanguageGroup.VB].ProfileKey);
+            Assert.AreEqual(written.Profiles[LanguageGroup.VB].ProfileTimestamp, read.Profiles[LanguageGroup.VB].ProfileTimestamp);
+            Assert.AreEqual(written.Profiles[LanguageGroup.CSharp].ProfileKey, read.Profiles[LanguageGroup.CSharp].ProfileKey);
+            Assert.AreEqual(written.Profiles[LanguageGroup.CSharp].ProfileTimestamp, read.Profiles[LanguageGroup.CSharp].ProfileTimestamp);
             this.outputPane.AssertOutputStrings(0);
         }
 

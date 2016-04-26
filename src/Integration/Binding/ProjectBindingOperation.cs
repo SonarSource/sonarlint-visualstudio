@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #region State
-        internal /*for testing purposes*/ RuleSetGroup ProjectGroup { get; private set; }
+        internal /*for testing purposes*/ LanguageGroup ProjectGroup { get; private set; }
 
         internal /*for testing purposes*/ string ProjectFullPath { get; private set; }
 
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
       
         private void CaptureProjectInformation()
         {
-            this.ProjectGroup = GetProjectGroup(this.initializedProject);
+            this.ProjectGroup = LanguageGroupHelper.GetProjectGroup(this.initializedProject);
             this.ProjectFullPath = this.initializedProject.FullName;
         }
 
@@ -191,14 +191,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             public string NewRuleSetFilePath { get; set; }
 
-        }
-        #endregion
-
-        #region Static helpers
-        public static RuleSetGroup GetProjectGroup(Project project)
-        {
-            Debug.Assert(Integration.ProjectSystemHelper.IsCSharpProject(project) || Integration.ProjectSystemHelper.IsVBProject(project), "Unexpected project kind");
-            return Integration.ProjectSystemHelper.IsCSharpProject(project) ? RuleSetGroup.CSharp : RuleSetGroup.VB;
         }
         #endregion
     }
