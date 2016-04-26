@@ -17,6 +17,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <summary>
     /// Command handler to toggle the &lt;SonarQubeExclude/&gt; project property.
     /// </summary>
+    /// <remarks>Will toggle between removing the property, and setting it to 'true'.</remarks>
     internal class ProjectExcludePropertyToggleCommand : VsCommandBase
     {
         public const string PropertyName = Constants.SonarQubeExcludeBuildPropertyKey;
