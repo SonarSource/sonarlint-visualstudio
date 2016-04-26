@@ -106,15 +106,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
+            var p3 = new ProjectMock("good2.proj");
             p1.SetCSProjectKind();
             p2.SetCSProjectKind();
-            this.projectSystem.SelectedProjects = new[] { p1, p2 };
+            p3.SetCSProjectKind();
+            this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
             // Test case 1: test (true)
             // Setup
             var testSubject1 = new ProjectTestPropertySetCommand(serviceProvider, true);
             this.SetTestProperty(p1, null);
             this.SetTestProperty(p2, true);
+            this.SetTestProperty(p3, false);
 
             // Act
             testSubject1.Invoke(command, null);
@@ -122,11 +125,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Verify
             this.VerifyTestProperty(p1, true);
             this.VerifyTestProperty(p2, true);
+            this.VerifyTestProperty(p3, true);
 
             // Test case 2: non-test (false)
             var testSubject2 = new ProjectTestPropertySetCommand(serviceProvider, false);
-            this.SetTestProperty(p1, true);
-            this.SetTestProperty(p2, false);
+            this.SetTestProperty(p1, null);
+            this.SetTestProperty(p2, true);
+            this.SetTestProperty(p3, false);
 
             // Act
             testSubject2.Invoke(command, null);
@@ -134,11 +139,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Verify
             this.VerifyTestProperty(p1, false);
             this.VerifyTestProperty(p2, false);
+            this.VerifyTestProperty(p3, false);
 
             // Test case 3: auto detect (null)
             var testSubject3 = new ProjectTestPropertySetCommand(serviceProvider, null);
-            this.SetTestProperty(p1, true);
-            this.SetTestProperty(p2, null);
+            this.SetTestProperty(p1, null);
+            this.SetTestProperty(p2, true);
+            this.SetTestProperty(p3, false);
 
             // Act
             testSubject3.Invoke(command, null);
@@ -146,6 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Verify
             this.VerifyTestProperty(p1, null);
             this.VerifyTestProperty(p2, null);
+            this.VerifyTestProperty(p3, null);
         }
 
         [TestMethod]
