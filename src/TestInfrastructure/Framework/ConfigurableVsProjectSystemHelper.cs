@@ -87,7 +87,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.SelectedProjects;
         }
 
-#pragma warning disable S3215 // "interface" instances should not be cast to concrete types
         public string GetProjectProperty(Project dteProject, string propertyName)
         {
             return (dteProject as ProjectMock)?.GetBuildProperty(propertyName);
@@ -102,7 +101,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             (dteProject as ProjectMock)?.ClearBuildProperty(propertyName);
         }
-#pragma warning restore S3215 // "interface" instances should not be cast to concrete types
 
         #endregion
 
