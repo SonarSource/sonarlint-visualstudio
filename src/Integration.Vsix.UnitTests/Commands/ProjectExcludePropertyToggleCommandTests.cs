@@ -124,14 +124,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
 
-            var p1 = new ProjectMock("good1.proj");
-            var p2 = new ProjectMock("good2.proj");
+            var p1 = new ProjectMock("trueProj.proj");
+            var p2 = new ProjectMock("nullProj.proj");
+            var p3 = new ProjectMock("trueProj.proj");
             p1.SetCSProjectKind();
             p2.SetCSProjectKind();
-            this.projectSystem.SelectedProjects = new[] { p1, p2 };
+            p3.SetCSProjectKind();
+            this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
             this.SetExcludeProperty(p1, true);
             this.SetExcludeProperty(p2, null);
+            this.SetExcludeProperty(p3, false);
 
             // Act
             testSubject.Invoke(command, null);
@@ -139,6 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Verify
             this.VerifyExcludeProperty(p1, true);
             this.VerifyExcludeProperty(p2, true);
+            this.VerifyExcludeProperty(p3, true);
         }
 
         [TestMethod]
