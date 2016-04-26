@@ -553,7 +553,11 @@ This is the general format to use when writing errors to output window or when t
 {0} Unique project name</comment>
   </data>
   <data name="FilteredOutProjectFromBindingHeader" xml:space="preserve">
-    <value>The following projects have been marked as excluded, are not currently supported or excluded according to SonarQube specification:</value>
+    <value>The following projects are either not currently supported, excluded according to server specifications, or have been explicitly marked as excluded:</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="FilteredOutProjectFromBindingEnding" xml:space="preserve">
+    <value>You can change the exclusion options via the SonarLint project-level context menu i.e. Solution Explorer -&gt; Select project(s)</value>
     <comment>Output window message</comment>
   </data>
   <data name="UnknownLanguageName" xml:space="preserve">

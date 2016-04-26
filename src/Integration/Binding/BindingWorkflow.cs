@@ -359,6 +359,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             StringBuilder output = new StringBuilder();
             output.AppendLine(Strings.FilteredOutProjectFromBindingHeader);
             projects.ForEach(p => output.AppendFormat(Strings.FilteredOutProjectFormat, p.UniqueName).AppendLine());
+            output.AppendLine(Strings.FilteredOutProjectFromBindingEnding);
             VsShellUtils.WriteToGeneralOutputPane(this.host, output.ToString());
         }
         #endregion

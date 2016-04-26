@@ -495,7 +495,16 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following projects have been marked as excluded, are not currently supported or excluded according to SonarQube specification:.
+        ///   Looks up a localized string similar to You can change the exclusion options via the SonarLint project-level context menu i.e. Solution Explorer -&gt; Select project(s).
+        /// </summary>
+        public static string FilteredOutProjectFromBindingEnding {
+            get {
+                return ResourceManager.GetString("FilteredOutProjectFromBindingEnding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following projects are either not currently supported, excluded according to server specifications, or have been explicitly marked as excluded:.
         /// </summary>
         public static string FilteredOutProjectFromBindingHeader {
             get {
