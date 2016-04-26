@@ -323,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act (connected)
             this.ConfigureProjectViewModel(section);
-            this.stateManager.InvokeBusyChanged(false);
+            this.stateManager.SetAndInvokeBusyChanged(false);
 
             // Verify
             Assert.AreEqual(1, refreshCalled, "Expected to connect once");
@@ -447,7 +447,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             project = this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.stateManager.InvokeBusyChanged(true);
+            this.stateManager.SetAndInvokeBusyChanged(true);
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -460,7 +460,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.AreEqual(0, executed, "Busy, should not be executed");
 
             // Act
-            this.stateManager.InvokeBusyChanged(false);
+            this.stateManager.SetAndInvokeBusyChanged(false);
 
             // Verify
             Assert.AreEqual(1, executed, "Update was expected to be executed");
@@ -487,7 +487,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             project = this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.stateManager.InvokeBusyChanged(true);
+            this.stateManager.SetAndInvokeBusyChanged(true);
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -501,7 +501,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act (close the current info bar)
             testSubject.Reset();
-            this.stateManager.InvokeBusyChanged(false);
+            this.stateManager.SetAndInvokeBusyChanged(false);
 
             // Verify
             Assert.AreEqual(1, executed, "Once started, the process can only be cancelled from team explorer, closing the info bar should not impact the running update execution");
@@ -528,7 +528,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             project = this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.stateManager.InvokeBusyChanged(true);
+            this.stateManager.SetAndInvokeBusyChanged(true);
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -543,7 +543,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act (close the current section)
             this.host.ClearActiveSection();
-            this.stateManager.InvokeBusyChanged(false);
+            this.stateManager.SetAndInvokeBusyChanged(false);
             RunAsyncAction();
 
             // Verify
@@ -603,7 +603,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProjectViewModel(section);
 
             // Act
-            this.stateManager.InvokeBusyChanged(false);
+            this.stateManager.SetAndInvokeBusyChanged(false);
 
             // Verify
             Assert.AreEqual(1, bindCalled, "Should be bound");
@@ -625,7 +625,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.stateManager.InvokeBusyChanged(true);
+            this.stateManager.SetAndInvokeBusyChanged(true);
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -647,7 +647,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             infoBar.VerifyAllEventsRegistered(); // Should be usable
 
             // Act (not busy anymore)
-            this.stateManager.InvokeBusyChanged(false);
+            this.stateManager.SetAndInvokeBusyChanged(false);
 
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(1);
@@ -699,7 +699,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             section.BindCommand = new RelayCommand<ProjectViewModel>(pvm=>
             {
                 commandAction(pvm);
-                this.stateManager.InvokeBusyChanged(true);// Simulate product
+                this.stateManager.SetAndInvokeBusyChanged(true);// Simulate product
             }, canExecuteCommand);
             this.host.SetActiveSection(section);
 
@@ -717,7 +717,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             section.RefreshCommand = new RelayCommand<ConnectionInformation>(ci =>
             {
                 commandAction(ci);
-                this.stateManager.InvokeBusyChanged(true);// Simulate product
+                this.stateManager.SetAndInvokeBusyChanged(true);// Simulate product
             }, canExecuteCommand);
             this.host.SetActiveSection(section);
 

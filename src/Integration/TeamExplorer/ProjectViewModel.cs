@@ -18,9 +18,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private readonly ContextualCommandsCollection commands = new ContextualCommandsCollection();
         private bool isBound;
 
-        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
-
         public ProjectViewModel(ServerViewModel owner, ProjectInformation projectInformation)
         {
             if (owner == null)

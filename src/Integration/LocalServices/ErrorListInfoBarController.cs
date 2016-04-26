@@ -72,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region Non-public API
+        [Conditional("DEBUG")]
         private void AssertOnUIThread()
         {
             Debug.Assert(this.host.UIDispatcher.CheckAccess(), "The controller needs to run on the UI thread");
@@ -212,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration
             if (binding == null 
                 || this.infoBarBinding == null 
                 || binding.ServerUri != this.infoBarBinding.ServerUri
-                || !ProjectViewModel.KeyComparer.Equals(binding.ProjectKey, this.infoBarBinding.ProjectKey))
+                || !ProjectInformation.KeyComparer.Equals(binding.ProjectKey, this.infoBarBinding.ProjectKey))
             {
                 // Not bound anymore, or bound to something else entirely
                 this.ClearCurrentInfoBar();
@@ -457,7 +458,7 @@ namespace SonarLint.VisualStudio.Integration
             private ProjectViewModel FindProject(Uri serverUri, string projectKey)
             {
                 ServerViewModel serverVM = this.State.ConnectedServers.SingleOrDefault(s => s.Url == serverUri);
-                return serverVM?.Projects.SingleOrDefault(p => ProjectViewModel.KeyComparer.Equals(p.Key, projectKey));
+                return serverVM?.Projects.SingleOrDefault(p => ProjectInformation.KeyComparer.Equals(p.Key, projectKey));
             }
         }
         #endregion

@@ -865,7 +865,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: One or more RuleSet is out of date or not linked to the SonarQube profile-based RuleSet (see General Output for affected projects).
+        ///   Looks up a localized string similar to SonarLint: One or more rule sets are out of date or not linked to the SonarQube quality profile rule set (see General Output for affected projects).
         /// </summary>
         public static string SonarLintInfoBarUnboundProjectsMessage {
             get {
@@ -883,7 +883,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Could not update the binding since the command is not available at the moment. Please try again and make sure that not building or debugging..
+        ///   Looks up a localized string similar to SonarLint: Could not update the binding because the command is not currently available. Please try again and ensure that the solution is not building or currently being debugged..
         /// </summary>
         public static string SonarLintInfoBarUpdateCommandIsBusyRetry {
             get {
@@ -892,7 +892,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarQube active section was closed and we cannot proceed with the update. Please try again..
+        ///   Looks up a localized string similar to The SonarQube Team Explorer page was closed and we cannot proceed with the update. Please try again..
         /// </summary>
         public static string SonarLintInfoBarUpdateCommandRetryNoActiveSection {
             get {

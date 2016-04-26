@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 return;
             }
 
-            ProjectInformation boundProject = serverViewModel.Projects.FirstOrDefault(pvm => ProjectViewModel.KeyComparer.Equals(pvm.Key, this.BoundProjectKey))?.ProjectInformation;
+            ProjectInformation boundProject = serverViewModel.Projects.FirstOrDefault(pvm => ProjectInformation.KeyComparer.Equals(pvm.Key, this.BoundProjectKey))?.ProjectInformation;
             if (boundProject == null)
             {
                 // Defensive coding: invoked asynchronous and it's safer to assume that value could be null

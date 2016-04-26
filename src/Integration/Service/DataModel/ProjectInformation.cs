@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.Service
@@ -13,6 +14,9 @@ namespace SonarLint.VisualStudio.Integration.Service
     [DebuggerDisplay("Name: {Name}, Key: {Key}")]
     internal class ProjectInformation
     {
+        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
+        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+
         [JsonProperty("k")]
         public string Key { get; set; }
 
