@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public IEnumerable<Project> GetSelectedProjects()
         {
-            return this.SelectedProjects;
+            return this.SelectedProjects ?? Enumerable.Empty<Project>();
         }
 
         public string GetProjectProperty(Project dteProject, string propertyName)

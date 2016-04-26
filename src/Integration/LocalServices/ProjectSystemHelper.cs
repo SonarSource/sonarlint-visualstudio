@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration
         /// This is the HResult returned by IVsBuildPropertyStorage when attempting to
         /// read a property that does not exist.
         /// </summary>
-        private const int E_XML_ATTRIBUTE_NOT_FOUND = unchecked((int)0x8004C738);
+        public const int E_XML_ATTRIBUTE_NOT_FOUND = unchecked((int)0x8004C738);
 
         // This constant is necessary to find the name of the "Solution Items" folder
         // for the CurrentUICulture. They correspond to a resource string in the satellite dll

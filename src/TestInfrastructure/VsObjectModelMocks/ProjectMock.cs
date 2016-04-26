@@ -297,9 +297,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             if (this.buildProperties.ContainsKey(pszPropName))
             {
                 pbstrPropValue = this.buildProperties[pszPropName];
+                return VSConstants.S_OK;
             }
 
-            return VSConstants.S_OK;
+            return ProjectSystemHelper.E_XML_ATTRIBUTE_NOT_FOUND;
         }
 
         int IVsBuildPropertyStorage.SetPropertyValue(string pszPropName, string pszConfigName, uint storage, string pszPropValue)
