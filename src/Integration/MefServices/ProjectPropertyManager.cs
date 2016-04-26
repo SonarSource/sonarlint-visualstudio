@@ -36,8 +36,7 @@ namespace SonarLint.VisualStudio.Integration
         public IEnumerable<Project> GetSelectedProjects()
         {
             return this.projectSystem
-                .GetSelectedProjects()
-                ?? Enumerable.Empty<Project>();
+                .GetSelectedProjects();
         }
 
         public bool? GetBooleanProperty(Project project, string propertyName)
