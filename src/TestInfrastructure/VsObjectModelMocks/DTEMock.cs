@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get
             {
-                throw new NotImplementedException();
+                return this.ActiveSolutionProjects;
             }
         }
 
@@ -772,6 +772,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
+        public Project[] ActiveSolutionProjects
+        {
+            get;
+            set;
+        } = new Project[0];
+
         #endregion
     }
 }
