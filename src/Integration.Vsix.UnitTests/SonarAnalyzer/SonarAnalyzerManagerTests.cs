@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
             {
-                new TestAnalyzerReference(
+                new ConfigurableAnalyzerReference(
                     new AssemblyIdentity(SonarAnalyzerManager.AnalyzerName, version),
                     SonarAnalyzerManager.AnalyzerName)
             };
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         {
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
             {
-                new TestAnalyzerReference(
+                new ConfigurableAnalyzerReference(
                     new AssemblyIdentity(SonarAnalyzerManager.AnalyzerName, SonarAnalyzerManager.AnalyzerVersion),
                     SonarAnalyzerManager.AnalyzerName)
             };
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
             {
-                new TestAnalyzerReference(
+                new ConfigurableAnalyzerReference(
                     new AssemblyIdentity(name, SonarAnalyzerManager.AnalyzerVersion), name)
             };
 
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
             {
-                new TestAnalyzerReference(
+                new ConfigurableAnalyzerReference(
                     new AssemblyIdentity(SonarAnalyzerManager.AnalyzerName, version),
                     null)
             };
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         {
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
             {
-                new TestAnalyzerReference(
+                new ConfigurableAnalyzerReference(
                     new object(),
                     SonarAnalyzerManager.AnalyzerName)
             };
@@ -139,10 +139,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
             {
-                new TestAnalyzerReference(
+                new ConfigurableAnalyzerReference(
                     new AssemblyIdentity(SonarAnalyzerManager.AnalyzerName, version),
                     SonarAnalyzerManager.AnalyzerName),
-                new TestAnalyzerReference(
+                new ConfigurableAnalyzerReference(
                     new AssemblyIdentity(SonarAnalyzerManager.AnalyzerName, SonarAnalyzerManager.AnalyzerVersion),
                     SonarAnalyzerManager.AnalyzerName),
             };
@@ -165,10 +165,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
             {
-                new TestAnalyzerReference(
+                new ConfigurableAnalyzerReference(
                     new AssemblyIdentity(SonarAnalyzerManager.AnalyzerName, version1),
                     SonarAnalyzerManager.AnalyzerName),
-                new TestAnalyzerReference(
+                new ConfigurableAnalyzerReference(
                     new AssemblyIdentity(SonarAnalyzerManager.AnalyzerName, version2),
                     SonarAnalyzerManager.AnalyzerName),
             };

@@ -15,17 +15,21 @@ using System.Reflection;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal class SolutionAnalysisRequester
+    internal class SolutionAnalysisRequester : ISolutionAnalysisRequester
     {
+        internal const string OptionNameFullSolutionAnalysis = "Full Solution Analysis";
+        internal const string OptionFeatureRuntime = "Runtime";
+
         private readonly Workspace workspace;
         private readonly IServiceProvider serviceProvider;
 
         private object optionService;
-        private Option<bool> option;
+        private readonly Option<bool> fullSolutionAnalysisOption;
         private MethodInfo optionServiceSetOptionsMethod;
         private MethodInfo optionServiceGetOptionsMethod;
 
-        public SolutionAnalysisRequester(IServiceProvider serviceProvider, Workspace workspace)
+        internal /* for testing */ SolutionAnalysisRequester(IServiceProvider serviceProvider, Workspace workspace,
+            Option<bool> fullSolutionAnalysisOption)
         {
             if (serviceProvider == null)
             {
@@ -39,8 +43,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.serviceProvider = serviceProvider;
             this.workspace = workspace;
+            this.fullSolutionAnalysisOption = fullSolutionAnalysisOption;
+
             this.FindOptionService();
-            this.FindFullSolutionAnalysisOption();
+        }
+
+        public SolutionAnalysisRequester(IServiceProvider serviceProvider, Workspace workspace)
+            : this(serviceProvider, workspace, GetFullSolutionAnalysisOption(serviceProvider))
+        {
         }
 
         private void FindOptionService()
@@ -71,20 +81,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(this.optionServiceGetOptionsMethod != null, "IOptionService.GetOptions method is not found");
         }
 
-        private void FindFullSolutionAnalysisOption()
+        private static Option<bool> GetFullSolutionAnalysisOption(IServiceProvider serviceProvider)
         {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             string codeAnalysisDllPath = typeof(Accessibility).Assembly.Location;
             if (string.IsNullOrEmpty(codeAnalysisDllPath))
             {
                 Debug.Fail("Microsoft.CodeAnalysis.dll could not be located");
-                return;
+                return null;
             }
 
             FileInfo codeAnalysisAssembly = new FileInfo(codeAnalysisDllPath);
             if (!codeAnalysisAssembly.Exists)
             {
                 Debug.Fail("Microsoft.CodeAnalysis.dll could not be located");
-                return;
+                return null;
             }
 
             string codeAnalysisFolderPath = codeAnalysisAssembly.Directory.FullName;
@@ -95,39 +110,50 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (!File.Exists(path))
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.MissingResourceAtLocation,
+                VsShellUtils.WriteToGeneralOutputPane(serviceProvider, Strings.MissingResourceAtLocation,
                     codeAnalysisFeaturesDllName, codeAnalysisFolderPath);
-                return;
+                return null;
             }
 
             // This is only part of Visual Studio 2015 Update 2
-            this.option = (Option<bool>)Assembly.LoadFile(path)
+            Option<bool> option = (Option<bool>)Assembly.LoadFile(path)
                 .GetType("Microsoft.CodeAnalysis.Shared.Options.RuntimeOptions", false)
                 ?.GetField("FullSolutionAnalysis")
                 ?.GetValue(null);
 
-            Debug.Assert(this.option != null, "RuntimeOptions is not found");
+            Debug.Assert(option != null, "RuntimeOptions is not found");
+            Debug.Assert(option.Name == OptionNameFullSolutionAnalysis, OptionNameFullSolutionAnalysis + " option name changed to " + option.Name);
+            Debug.Assert(option.Name == OptionFeatureRuntime, OptionFeatureRuntime + " option feature changed to " + option.Feature);
+
+            return option;
         }
 
-        private void FlipFullSolutionAnalysisFlag()
+        internal /* for testing */ void FlipFullSolutionAnalysisFlag()
         {
             if (this.optionService == null ||
-                this.option == null ||
+                this.fullSolutionAnalysisOption == null ||
                 this.optionServiceGetOptionsMethod == null ||
                 this.optionServiceSetOptionsMethod == null)
             {
                 return;
             }
 
-            var options = this.optionServiceGetOptionsMethod.Invoke(optionService, null) as OptionSet;
+            var options = this.optionServiceGetOptionsMethod.Invoke(this.optionService, null) as OptionSet;
             if (options == null)
             {
                 return;
             }
 
-            var optionValue = options.GetOption(this.option);
-            var newOptions = options.WithChangedOption(this.option, !optionValue);
+            var optionValue = options.GetOption(this.fullSolutionAnalysisOption);
+            var newOptions = options.WithChangedOption(this.fullSolutionAnalysisOption, !optionValue);
             this.optionServiceSetOptionsMethod.Invoke(this.optionService, new object[] { newOptions });
+        }
+
+        // This method is only required for testing
+        internal bool GetOptionValue()
+        {
+            var options = this.optionServiceGetOptionsMethod.Invoke(this.optionService, null) as OptionSet;
+            return options.GetOption(this.fullSolutionAnalysisOption);
         }
 
         /// <summary>

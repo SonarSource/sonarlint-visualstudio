@@ -14,5 +14,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public bool IsActiveSolutionBound { get; set; }
 
         public event EventHandler<bool> SolutionBindingChanged;
+
+        public void SimulateSolutionBindingChanged(bool bound)
+        {
+            SolutionBindingChanged(this, bound);
+        }
     }
 }

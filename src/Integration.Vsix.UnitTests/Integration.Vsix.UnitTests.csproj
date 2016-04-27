@@ -109,8 +109,10 @@
     <Compile Include="IEnumerableExtensionsTests.cs" />
     <Compile Include="InfoBar\InfoBarManagerTests.cs" />
     <Compile Include="Settings\IntegrationSettingsTests.cs" />
+    <Compile Include="SonarAnalyzer\ConfigurableSolutionAnalysisRequester.cs" />
+    <Compile Include="SonarAnalyzer\SolutionAnalysisRequesterTests.cs" />
     <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.ForBound.cs" />
-    <Compile Include="SonarAnalyzer\TestAnalyzerReference.cs" />
+    <Compile Include="SonarAnalyzer\ConfigurableAnalyzerReference.cs" />
     <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.cs" />
     <Compile Include="Telemetry\BoundSolutionAnalyzerTests.cs" />
     <Compile Include="Commands\PackageCommandManagerTests.cs" />

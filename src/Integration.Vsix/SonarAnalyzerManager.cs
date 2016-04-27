@@ -29,14 +29,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly Workspace workspace;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly SolutionAnalysisRequester solutionAnalysisRequester;
+        private readonly ISolutionAnalysisRequester solutionAnalysisRequester;
 
         private static readonly AssemblyName AnalyzerAssemblyName =
             new AssemblyName(typeof(SonarAnalysisContext).Assembly.FullName);
         internal /*for testing purposes*/ static readonly Version AnalyzerVersion = AnalyzerAssemblyName.Version;
         internal /*for testing purposes*/ static readonly string AnalyzerName = AnalyzerAssemblyName.Name;
 
-        internal /*for testing purposes*/ SonarAnalyzerManager(IServiceProvider serviceProvider, Workspace workspace)
+        internal /*for testing purposes*/ SonarAnalyzerManager(IServiceProvider serviceProvider, Workspace workspace,
+            ISolutionAnalysisRequester solutionAnalysisRequester)
         {
             if (serviceProvider == null)
             {
@@ -56,11 +57,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Debug.Fail($"Could not get {nameof(IActiveSolutionBoundTracker)}");
             }
 
-            this.solutionAnalysisRequester = new SolutionAnalysisRequester(serviceProvider, this.workspace);
+            this.solutionAnalysisRequester = solutionAnalysisRequester;
             this.activeSolutionBoundTracker.SolutionBindingChanged += this.ActiveSolutionBoundTracker_SolutionBindingChanged;
 
             SonarAnalysisContext.ShouldAnalysisBeDisabled =
                 tree => ShouldAnalysisBeDisabledOnTree(tree);
+        }
+
+        internal /*for testing purposes*/ SonarAnalyzerManager(IServiceProvider serviceProvider, Workspace workspace)
+            : this(serviceProvider, workspace, new SolutionAnalysisRequester(serviceProvider, workspace))
+        {
         }
 
         public SonarAnalyzerManager(IServiceProvider serviceProvider):
