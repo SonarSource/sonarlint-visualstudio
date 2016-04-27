@@ -124,8 +124,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        public void InvokeBusyChanged(bool value)
+        public void SetAndInvokeBusyChanged(bool value)
         {
+            this.IsBusy = value;
             this.IsBusyChanged?.Invoke(this, value);
         }
         #endregion

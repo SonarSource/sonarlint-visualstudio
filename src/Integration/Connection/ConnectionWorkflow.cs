@@ -28,9 +28,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
     {
         private readonly IHost host;
         private readonly ICommand parentCommand;
-        private readonly ConnectedProjectsCallback connectedProjectsChanged;
 
-        public ConnectionWorkflow(IHost host, ICommand parentCommand, ConnectedProjectsCallback connectedProjectsChanged)
+        public ConnectionWorkflow(IHost host, ICommand parentCommand)
         {
             if (host == null)
             {
@@ -42,14 +41,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 throw new ArgumentNullException(nameof(parentCommand));
             }
 
-            if (connectedProjectsChanged == null)
-            {
-                throw new ArgumentNullException(nameof(connectedProjectsChanged));
-            }
-
             this.host = host;
             this.parentCommand = parentCommand;
-            this.connectedProjectsChanged = connectedProjectsChanged;
         }
 
         #region Start the workflow
@@ -90,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private void OnProjectsChanged(ConnectionInformation connection, ProjectInformation[] projects)
         {
-            this.connectedProjectsChanged.Invoke(connection, projects);
+            this.host.VisualStateManager.SetProjects(connection, projects);
         }
 
         #endregion

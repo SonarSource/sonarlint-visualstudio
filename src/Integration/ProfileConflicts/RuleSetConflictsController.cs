@@ -48,6 +48,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 this.WriteConflictsSummaryToOutputWindow(conflicts);
 
+                TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.FixConflictShow);
+
                 // Let the user know that they have conflicts
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationWarning(
                     Strings.RuleSetConflictsDetected, 

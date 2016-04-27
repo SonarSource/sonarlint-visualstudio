@@ -18,7 +18,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private readonly ISonarQubeServiceWrapper sonarQubeService;
 
-        private int numberOfCalls = 0;
+        private int numberOfCalls;
         private ProjectInformation[] lastConnectedProjects;
 
         public ConfigurableConnectionWorkflow(ISonarQubeServiceWrapper sonarQubeService)
@@ -33,13 +33,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region IConnectionWorkflowExecutor
 
-        void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information, ConnectedProjectsCallback connectedProjectsChanged)
+        void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information)
         {
             this.numberOfCalls++;
             Assert.IsNotNull(information, "Should not request to establish to a null connection");
             Assert.AreNotSame(this.sonarQubeService.CurrentConnection, information, "Should not use the same instance to establish to connection, since it will be disposed part way through the logic");
             this.lastConnectedProjects = this.sonarQubeService.Connect(information, CancellationToken.None)?.ToArray(); // Simulate the expected behavior in product
-            connectedProjectsChanged(information, this.lastConnectedProjects); // Simulate the expected behavior in the product
         }
 
         #endregion

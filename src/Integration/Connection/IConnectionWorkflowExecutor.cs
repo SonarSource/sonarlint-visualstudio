@@ -12,6 +12,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
     // Test only interface
     internal interface IConnectionWorkflowExecutor
     {
-        void EstablishConnection(ConnectionInformation information, ConnectedProjectsCallback connectedProjectsChanged);
+        void EstablishConnection(ConnectionInformation information);
     }
 }

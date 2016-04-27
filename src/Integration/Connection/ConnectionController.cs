@@ -179,12 +179,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             this.LastAttemptedConnection = connectionInfo;
 
-            this.WorkflowExecutor.EstablishConnection(connectionInfo, this.host.VisualStateManager.SetProjects);
+            this.WorkflowExecutor.EstablishConnection(connectionInfo);
         }
 
-        void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information, ConnectedProjectsCallback connectedProjectsChanged)
+        void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information)
         {
-            ConnectionWorkflow workflow = new ConnectionWorkflow(this.host, this.ConnectCommand, connectedProjectsChanged);
+            ConnectionWorkflow workflow = new ConnectionWorkflow(this.host, this.ConnectCommand);
             IProgressEvents progressEvents = workflow.Run(information);
             this.SetConnectionInProgress(progressEvents);
         }

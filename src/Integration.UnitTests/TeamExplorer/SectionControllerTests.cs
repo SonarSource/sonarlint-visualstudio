@@ -118,13 +118,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ITeamExplorerSection viewModel = testSubject.ViewModel;
 
             // Act
-            stateManager.InvokeBusyChanged(true);
+            stateManager.SetAndInvokeBusyChanged(true);
 
             // Verify
             Assert.IsTrue(viewModel.IsBusy);
 
             // Act again (different value)
-            stateManager.InvokeBusyChanged(false);
+            stateManager.SetAndInvokeBusyChanged(false);
 
             // Verify (should change)
             Assert.IsFalse(viewModel.IsBusy);
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.Dispose();
 
             // Act again(different value)
-            stateManager.InvokeBusyChanged(true);
+            stateManager.SetAndInvokeBusyChanged(true);
 
             // Verify (should remain the same)
             Assert.IsFalse(viewModel.IsBusy);

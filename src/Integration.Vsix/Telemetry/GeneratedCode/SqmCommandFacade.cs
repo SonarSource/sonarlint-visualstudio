@@ -157,12 +157,30 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         /// <summary>
-        /// SQM command for UpdateBindingCommandFromErrorList.
+        /// SQM command for FixConflictsShow.
         /// </summary>
-        public static void UpdateBindingCommandFromErrorList()
+        public static void FixConflictsShow()
         {
-            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.UpdateBindingCommandFromErrorListCommandId);
-            DEBUG_LogSqmCommandsToOutputWindow("UpdateBindingCommandFromErrorList");
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.FixConflictsShowCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("FixConflictsShow");
+        }
+
+        /// <summary>
+        /// SQM command for ErrorListInfoBarShow.
+        /// </summary>
+        public static void ErrorListInfoBarShow()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.ErrorListInfoBarShowCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("ErrorListInfoBarShow");
+        }
+
+        /// <summary>
+        /// SQM command for ErrorListInfoBarUpdateCommand.
+        /// </summary>
+        public static void ErrorListInfoBarUpdateCommand()
+        {
+            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.ErrorListInfoBarUpdateCommandCommandId);
+            DEBUG_LogSqmCommandsToOutputWindow("ErrorListInfoBarUpdateCommand");
         }
 
         #region Private methods

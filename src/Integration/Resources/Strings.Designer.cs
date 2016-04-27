@@ -838,6 +838,87 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarLint: Checking for unbound projects..
+        /// </summary>
+        public static string SonarLintCheckingForUnboundProjects {
+            get {
+                return ResourceManager.GetString("SonarLintCheckingForUnboundProjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: Failed to attach info bar to error list tool window..
+        /// </summary>
+        public static string SonarLintFailedToAttachInfoBarToErrorList {
+            get {
+                return ResourceManager.GetString("SonarLintFailedToAttachInfoBarToErrorList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: {0} unbound projects were found ({1})..
+        /// </summary>
+        public static string SonarLintFoundUnboundProjects {
+            get {
+                return ResourceManager.GetString("SonarLintFoundUnboundProjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: One or more rule sets are out of date or not linked to the SonarQube quality profile rule set (see General Output for affected projects).
+        /// </summary>
+        public static string SonarLintInfoBarUnboundProjectsMessage {
+            get {
+                return ResourceManager.GetString("SonarLintInfoBarUnboundProjectsMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: The current solution is not bound to the expected SonarQube project, aborting..
+        /// </summary>
+        public static string SonarLintInfoBarUpdateCommandInvalidSolutionBindings {
+            get {
+                return ResourceManager.GetString("SonarLintInfoBarUpdateCommandInvalidSolutionBindings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: Could not update the binding because the command is not currently available. Please try again and ensure that the solution is not building or currently being debugged..
+        /// </summary>
+        public static string SonarLintInfoBarUpdateCommandIsBusyRetry {
+            get {
+                return ResourceManager.GetString("SonarLintInfoBarUpdateCommandIsBusyRetry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The SonarQube Team Explorer page was closed and we cannot proceed with the update. Please try again..
+        /// </summary>
+        public static string SonarLintInfoBarUpdateCommandRetryNoActiveSection {
+            get {
+                return ResourceManager.GetString("SonarLintInfoBarUpdateCommandRetryNoActiveSection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update.
+        /// </summary>
+        public static string SonarLintInfoBarUpdateCommandText {
+            get {
+                return ResourceManager.GetString("SonarLintInfoBarUpdateCommandText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: No unbound projects were found..
+        /// </summary>
+        public static string SonarLintNoUnboundProjectWereFound {
+            get {
+                return ResourceManager.GetString("SonarLintNoUnboundProjectWereFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube is an open source platform to manage code quality. Connect your solution to an existing SonarQube Server to get the same issues in Visual Studio and in your SonarQube server..
         /// </summary>
         public static string SonarQubeDescription {
