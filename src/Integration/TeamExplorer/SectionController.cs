@@ -10,7 +10,6 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
-using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -268,7 +267,9 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private bool CanDisconnect()
         {
-            return this.Host.SonarQubeService.CurrentConnection != null;
+            // We just support one at the moment, will need to pass in the server as an argument to this 
+            // command once we will want to support more than once connected server
+            return this.Host.VisualStateManager.GetConnectedServers().Any();
         }
 
         private void Disconnect()
@@ -276,10 +277,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             Debug.Assert(this.CanDisconnect());
 
             TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.DisconnectCommandCommandCalled);
-
-            var previous = this.Host.SonarQubeService.CurrentConnection;
-            this.Host.SonarQubeService.Disconnect();
-            this.Host.VisualStateManager.SetProjects(previous, null);
+            // Disconnect all (all being one)
+            this.Host.VisualStateManager.GetConnectedServers().ToList().ForEach(c => this.Host.VisualStateManager.SetProjects(c, null));
         }
 
         private bool CanToggleShowAllProjects(ServerViewModel server)

@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private bool OnBindStatus(ProjectInformation projectInformation)
         {
             return projectInformation != null
-                && this.host.SonarQubeService.CurrentConnection != null
+                && this.host.VisualStateManager.IsConnected
                 && !this.host.VisualStateManager.IsBusy
                 && VsShellUtils.IsSolutionExistsAndFullyLoaded()
                 && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()
@@ -117,7 +117,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflowExecutor.BindProject(ProjectInformation projectInformation)
         {
-            BindingWorkflow workflowExecutor = new BindingWorkflow(this.host, projectInformation);
+            ConnectionInformation connection = this.host.VisualStateManager.GetConnectedServer(projectInformation);
+            Debug.Assert(connection != null, "Could not find a connected server for project: " + projectInformation?.Key);
+
+            BindingWorkflow workflowExecutor = new BindingWorkflow(this.host, connection, projectInformation);
             IProgressEvents progressEvents = workflowExecutor.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
             this.SetBindingInProgress(progressEvents, projectInformation);

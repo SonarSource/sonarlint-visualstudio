@@ -299,6 +299,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             // Verify
             Assert.IsFalse(section.ViewModel.IsBusy);
             Assert.IsFalse(testSubject.ManagedState.IsBusy);
+
+            // Dispose (should stop updated the view model)
+            testSubject.Dispose();
+            testSubject.IsBusy = true;
+
+            // Verify
+            Assert.IsFalse(section.ViewModel.IsBusy);
+            Assert.IsTrue(testSubject.ManagedState.IsBusy);
         }
 
         [TestMethod]
@@ -328,6 +336,103 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Verify
             Assert.AreEqual(2, countOnBindingStateChangeFired);
+        }
+
+        [TestMethod]
+        public void StateManager_IsConnected()
+        {
+            // Setup
+            ConfigurableHost host = new ConfigurableHost();
+            StateManager testSubject = this.CreateTestSubject(host);
+
+            // Sanity
+            Assert.IsFalse(testSubject.IsConnected);
+
+            // Act (connect)
+            testSubject.SetProjects(new ConnectionInformation(new Uri("http://qwerty")), new ProjectInformation[0]);
+
+            // Verify
+            Assert.IsTrue(testSubject.IsConnected);
+
+            // Act (disconnect)
+            testSubject.SetProjects(new ConnectionInformation(new Uri("http://qwerty")), null);
+
+            // Verify
+            Assert.IsFalse(testSubject.IsConnected);
+        }
+
+        [TestMethod]
+        public void StateManager_GetConnectedServers()
+        {
+            // Setup
+            ConfigurableHost host = new ConfigurableHost();
+            StateManager testSubject = this.CreateTestSubject(host);
+            var connection1 = new ConnectionInformation(new Uri("http://conn1"));
+            var connection2 = new ConnectionInformation(new Uri("http://conn2"));
+
+            // Sanity
+            Assert.IsFalse(testSubject.GetConnectedServers().Any());
+
+            // Act (connect)
+            testSubject.SetProjects(connection1, new ProjectInformation[0]);
+
+            // Verify
+            CollectionAssert.AreEquivalent(new[] { connection1 } , testSubject.GetConnectedServers().ToArray());
+
+            // Act (connect another one)
+            testSubject.SetProjects(connection2, new ProjectInformation[0]);
+
+            // Verify
+            CollectionAssert.AreEquivalent(new[] { connection1, connection2 }, testSubject.GetConnectedServers().ToArray());
+
+            // Act (disconnect)
+            testSubject.SetProjects(connection1, null);
+            testSubject.SetProjects(connection2, null);
+
+            // Verify
+            Assert.IsFalse(testSubject.GetConnectedServers().Any());
+            Assert.IsTrue(connection1.IsDisposed, "Leaking connections?");
+            Assert.IsTrue(connection2.IsDisposed, "Leaking connections?");
+        }
+
+        [TestMethod]
+        public void StateManager_Dispose()
+        {
+            // Setup
+            ConfigurableHost host = new ConfigurableHost();
+            StateManager testSubject = this.CreateTestSubject(host);
+            var connection1 = new ConnectionInformation(new Uri("http://conn1"));
+            testSubject.SetProjects(connection1, new ProjectInformation[0]);
+
+            // Act
+            testSubject.Dispose();
+
+            // Verify
+            Assert.IsTrue(connection1.IsDisposed, "Leaking connections?");
+        }
+
+        [TestMethod]
+        public void StateManager_GetConnectedServer()
+        {
+            // Setup
+            const string SharedKey = "Key"; // The key is the same for all projects on purpose
+            ConfigurableHost host = new ConfigurableHost();
+            StateManager testSubject = this.CreateTestSubject(host);
+            var connection1 = new ConnectionInformation(new Uri("http://conn1"));
+            var project1 = new ProjectInformation { Key = SharedKey };
+            var connection2 = new ConnectionInformation(new Uri("http://conn2"));
+            var project2 = new ProjectInformation { Key = SharedKey };
+            testSubject.SetProjects(connection1, new ProjectInformation[] { project1 });
+            testSubject.SetProjects(connection2, new ProjectInformation[] { project2 });
+
+            // Case 1: Exists
+            // Act+Verify
+            Assert.AreEqual(connection1, testSubject.GetConnectedServer(project1));
+            Assert.AreEqual(connection2, testSubject.GetConnectedServer(project2));
+
+            // Case 2: Doesn't exist
+            // Act+Verify
+            Assert.IsNull(testSubject.GetConnectedServer(new ProjectInformation { Key = SharedKey }));
         }
         #endregion
 

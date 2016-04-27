@@ -77,10 +77,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.VerifyActiveSection();
             this.SyncCommandFromActiveSectionAction?.Invoke();
         }
+
+
+        public bool IsConnected { get; set; }
+
+        public IEnumerable<ConnectionInformation> GetConnectedServers()
+        {
+            return this.ConnectedServers;
+        }
+
+        public ConnectionInformation GetConnectedServer(ProjectInformation project)
+        {
+            ConnectionInformation conn;
+            if (!this.ProjectServerMap.TryGetValue(project, out conn))
+            {
+                Assert.Inconclusive("Test setup: project-server mapping is not available for the specified project");
+            }
+
+            return conn;
+        }
         #endregion
 
         #region Test helpers
         public IHost Host { get; set; }
+
+        public HashSet<ConnectionInformation> ConnectedServers { get; } = new HashSet<ConnectionInformation>();
+
+        public Dictionary<ProjectInformation, ConnectionInformation> ProjectServerMap { get; } = new Dictionary<ProjectInformation, ConnectionInformation>();
 
         public TransferableVisualState ManagedState { get; set; }
 

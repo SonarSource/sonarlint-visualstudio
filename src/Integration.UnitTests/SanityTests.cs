@@ -26,10 +26,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane());
+            this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
+            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
+
+            this.logger = new ConfigurableTelemetryLogger();
             this.serviceProvider.RegisterService(typeof(SComponentModel),
                 ConfigurableComponentModel.CreateWithExports(
-                    MefTestHelpers.CreateExport<ITelemetryLogger>(this.logger = new ConfigurableTelemetryLogger())));
+                    MefTestHelpers.CreateExport<ITelemetryLogger>(this.logger)));
         }
 
         [TestCleanup]
@@ -49,15 +52,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup the service used to interact with SQ
             var s = new SonarQubeServiceWrapper(this.serviceProvider);
+            var connection = new ConnectionInformation(new Uri("http://nemo.sonarqube.org"));
 
             // Step 1: Connect anonymously
-            var projects = RetryAction(() => s.Connect(new ConnectionInformation(new Uri("http://nemo.sonarqube.org")), CancellationToken.None),
+            ProjectInformation[] projects = null;
+
+            RetryAction(() => s.TryGetProjects(connection, CancellationToken.None, out projects),
                                         "Get projects from SonarQube server");
-            Assert.AreNotEqual(0, projects.Count(), "No projects were returned");
+            Assert.AreNotEqual(0, projects.Length, "No projects were returned");
 
             // Step 2: Get quality profile export for the first project
             var project = projects.FirstOrDefault();
-            var export = RetryAction(() => s.GetExportProfile(project, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None),
+            RoslynExportProfile export = null;
+            RetryAction(() => s.TryGetExportProfile(connection, project, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out export),
                                         "Get quality profile export from SonarQube server");
             Assert.IsNotNull(export, "No quality profile export was returned");
 
@@ -65,24 +72,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
-        private static T RetryAction<T>(Func<T> action, string description, int maxAttempts = 3)
-            where T: class
+        private static void RetryAction(Func<bool> action, string description, int maxAttempts = 3)
         {
             for (int attempt = 0; attempt < maxAttempts; attempt++)
             {
-                T value = action();
-                if (value == null)
+                if (!action())
                 {
                     Thread.Sleep(100);
                 }
                 else
                 { 
-                    return value;
+                    return;
                 }
             }
 
             Assert.Fail("Failed executing the action (with retries): {0}", description);
-            return null;
         }
     }
 }

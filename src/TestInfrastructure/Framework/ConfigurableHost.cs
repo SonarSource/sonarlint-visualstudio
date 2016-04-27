@@ -93,6 +93,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.ActiveSectionChanged?.Invoke(this, EventArgs.Empty);
         }
+
+        public ConfigurableStateManager TestStateManager
+        {
+            get { return (ConfigurableStateManager)this.VisualStateManager; }
+        }
         #endregion
     }
 }

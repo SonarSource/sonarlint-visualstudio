@@ -7,7 +7,6 @@
 
 using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Service
@@ -18,29 +17,17 @@ namespace SonarLint.VisualStudio.Integration.Service
     internal interface ISonarQubeServiceWrapper
     {
         /// <summary>
-        /// When connected this property will contain the connection information, null otherwise.
+        /// Retrieves all the server projects
         /// </summary>
-        ConnectionInformation CurrentConnection { get; }
+        bool TryGetProjects(ConnectionInformation serverConnection, CancellationToken token, out ProjectInformation[] serverProjects);
 
         /// <summary>
-        /// Connects using the provided information.
-        /// If the connection is successful <see cref="CurrentConnection"/> will be set and the project information will be returned.
+        /// Retrieves all the server properties.
         /// </summary>
-        /// <param name="connectionInformation">Required connecting information</param>
-        IEnumerable<ProjectInformation> Connect(ConnectionInformation connectionInformation, CancellationToken token);
+        bool TryGetProperties(ConnectionInformation serverConnection, CancellationToken token, out ServerProperty[] properties);
 
         /// <summary>
-        /// Disconnects from the <see cref="CurrentConnection"/>
-        /// </summary>
-        void Disconnect();
-
-        /// <summary>
-        /// Retrieves all properties defined on the server specified by the <see cref="CurrentConnection"/>.
-        /// </summary>
-        IEnumerable<ServerProperty> GetProperties(CancellationToken token);
-
-        /// <summary>
-        /// Retrieves the Roslyn Quality Profile export for the specified project using the <see cref="CurrentConnection"/>.
+        /// Retrieves the server's Roslyn Quality Profile export for the specified project and language
         /// </summary>
         /// <remarks>
         /// The export contains everything required to configure the solution to match the SonarQube server analysis,
@@ -48,20 +35,18 @@ namespace SonarLint.VisualStudio.Integration.Service
         /// </remarks>
         /// <param name="project">Required project information for which to retrieve the export</param>
         /// <param name="language">Language scope. Required.</param>
-        RoslynExportProfile GetExportProfile(ProjectInformation project, string language, CancellationToken token);
+        bool TryGetExportProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out RoslynExportProfile profile);
 
         /// <summary>
-        /// Retrieves all server plugins for the given <paramref name="connectionInformation"/>.
+        /// Retrieves all server plugins
         /// </summary>
-        /// <param name="connectionInformation">Required connecting information</param>
         /// <returns>All server plugins, or null on connection failure</returns>
-        IEnumerable<ServerPlugin> GetPlugins(ConnectionInformation connectionInformation, CancellationToken token);
+        bool TryGetPlugins(ConnectionInformation serverConnection, CancellationToken token, out ServerPlugin[] plugins);
 
         /// <summary>
-        /// Generate a <see cref="Uri"/> to the dashboard for the given project on the provided <paramref name="connectionInformation"/>.
+        /// Generate a <see cref="Uri"/> to the dashboard for the given project on the provided <paramref name="serverConnection"/>.
         /// </summary>
-        /// <param name="connectionInformation">Server connection</param>
         /// <param name="project">Project to generate the <see cref="Uri"/> for</param>
-        Uri CreateProjectDashboardUrl(ConnectionInformation connectionInformation, ProjectInformation project);
+        Uri CreateProjectDashboardUrl(ConnectionInformation serverConnection, ProjectInformation project);
     }
 }

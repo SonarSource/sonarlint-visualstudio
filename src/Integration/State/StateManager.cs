@@ -77,6 +77,25 @@ namespace SonarLint.VisualStudio.Integration.State
             }
         }
 
+        public bool IsConnected
+        {
+            get
+            {
+                return this.GetConnectedServers().Any();
+            }
+        }
+
+        public IEnumerable<ConnectionInformation> GetConnectedServers()
+        {
+            return this.ManagedState.ConnectedServers.Select(s => s.ConnectionInformation);
+        }
+
+        public ConnectionInformation GetConnectedServer(ProjectInformation project)
+        {
+            return this.ManagedState.ConnectedServers
+                .SingleOrDefault(s => s.Projects.Any(p => p.ProjectInformation == project))?.ConnectionInformation;
+        }
+
         public string BoundProjectKey { get; set; }
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects)
@@ -150,6 +169,7 @@ namespace SonarLint.VisualStudio.Integration.State
             {
                 // Disconnected, clear all
                 this.ClearBoundProject();
+                this.DisposeConnections();
                 this.ManagedState.ConnectedServers.Clear();
             }
             else
@@ -174,6 +194,14 @@ namespace SonarLint.VisualStudio.Integration.State
                 this.SetServerProjectsVMCommands(serverViewModel);
                 this.RestoreBoundProject(serverViewModel);
             }
+        }
+
+        private void DisposeConnections()
+        {
+            this.ManagedState.ConnectedServers
+                .Select(s => s.ConnectionInformation)
+                .ToList()
+                .ForEach(c => c.Dispose());
         }
 
         private void ClearBindingErrorNotifications()
@@ -297,6 +325,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 if (disposing)
                 {
                     this.ManagedState.PropertyChanged -= this.OnStatePropertyChanged;
+                    this.DisposeConnections();
                 }
 
                 this.isDisposed = true;
