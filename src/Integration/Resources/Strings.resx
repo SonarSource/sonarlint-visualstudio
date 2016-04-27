@@ -434,8 +434,8 @@ This is the general format to use when writing errors to output window or when t
     <value>Warning: could not find CodeAnalysisRuleSet for project '{0}'</value>
     <comment>Warning message. '{0}' project unique name </comment>
   </data>
-  <data name="PreparingBindingWorkflowProgessMessage" xml:space="preserve">
-    <value>Preparing binding steps</value>
+  <data name="DownloadingServerSettingsProgessMessage" xml:space="preserve">
+    <value>Downloading server settings.</value>
     <comment>Binding progress message about preparing further binding steps</comment>
   </data>
   <data name="NoProjectsApplicableForBinding" xml:space="preserve">
@@ -565,11 +565,11 @@ This is the general format to use when writing errors to output window or when t
     <comment>Name of any unknown languages</comment>
   </data>
   <data name="SonarLintInfoBarUpdateCommandIsBusyRetry" xml:space="preserve">
-    <value>SonarLint: Could not update the binding because the command is not currently available. Please try again and ensure that the solution is not building or currently being debugged.</value>
+    <value>Could not update the binding because the command is not currently available. Please try again and ensure that the solution is not building or currently being debugged.</value>
     <comment>Output window message</comment>
   </data>
   <data name="SonarLintInfoBarUnboundProjectsMessage" xml:space="preserve">
-    <value>SonarLint: One or more rule sets are out of date or not linked to the SonarQube quality profile rule set. See output window (SonarLint) for affected projects.</value>
+    <value>One or more rule sets are out of date or not linked to the SonarQube quality profile rule set. See output window (SonarLint) for affected projects.</value>
     <comment>Info bar message</comment>
   </data>
   <data name="SonarLintInfoBarUpdateCommandText" xml:space="preserve">
@@ -577,21 +577,21 @@ This is the general format to use when writing errors to output window or when t
     <comment>Info bar command text</comment>
   </data>
   <data name="SonarLintCheckingForUnboundProjects" xml:space="preserve">
-    <value>SonarLint: Checking for unbound projects.</value>
+    <value>Checking for unbound projects.</value>
     <comment>Output window message</comment>
   </data>
   <data name="SonarLintFailedToAttachInfoBarToErrorList" xml:space="preserve">
-    <value>SonarLint: Failed to attach info bar to error list tool window.</value>
+    <value>Failed to attach info bar to error list tool window.</value>
     <comment>Output window message</comment>
   </data>
   <data name="SonarLintFoundUnboundProjects" xml:space="preserve">
-    <value>SonarLint: {0} unbound projects were found ({1}).</value>
+    <value>{0} unbound projects were found ({1}).</value>
     <comment>Output window message
 {0} the number of unbound projects
 {1} projects unique names</comment>
   </data>
   <data name="SonarLintNoUnboundProjectWereFound" xml:space="preserve">
-    <value>SonarLint: No unbound projects were found.</value>
+    <value>No unbound projects were found.</value>
     <comment>Output window message</comment>
   </data>
   <data name="SonarLintInfoBarUpdateCommandRetryNoActiveSection" xml:space="preserve">
@@ -599,7 +599,7 @@ This is the general format to use when writing errors to output window or when t
     <comment>Output window message</comment>
   </data>
   <data name="SonarLintInfoBarUpdateCommandInvalidSolutionBindings" xml:space="preserve">
-    <value>SonarLint: The current solution is not bound to the expected SonarQube project, aborting.</value>
+    <value>The current solution is not bound to the expected SonarQube project, aborting.</value>
     <comment>Output window message</comment>
   </data>
   <data name="SonarLintOutputPaneTitle" xml:space="preserve">

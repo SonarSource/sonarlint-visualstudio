@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var timeout = TimeSpan.FromSeconds(1);
             var defaultRegex = new Regex(ServerProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
 
-            notifications.ProgressChanged(Strings.PreparingBindingWorkflowProgessMessage, double.NaN);
+            notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage, double.NaN);
 
             ServerProperty[] properties;
             if (!this.host.SonarQubeService.TryGetProperties(this.ConnectedServer, token, out properties) || token.IsCancellationRequested)
