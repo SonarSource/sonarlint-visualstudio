@@ -61,6 +61,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             command.Enabled = false;
             command.Visible = false;
+            if (this.propertyManager == null)
+            {
+                return;
+            }
 
             IList<Project> projects = this.propertyManager
                                           .GetSelectedProjects()

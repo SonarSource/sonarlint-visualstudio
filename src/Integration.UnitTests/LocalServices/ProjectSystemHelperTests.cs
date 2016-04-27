@@ -221,6 +221,120 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             Exceptions.Expect<ArgumentNullException>(() => ProjectSystemHelper.IsKnownTestProject(null));
         }
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetSelectedProjects_ReturnsActiveProjects()
+        {
+            // Setup
+            var dte = new DTEMock();
+            this.serviceProvider.RegisterService(typeof(DTE), dte);
+
+            var p1 = new ProjectMock("p1.proj");
+            var p2 = new ProjectMock("p1.proj");
+
+            var expectedProjects = new Project[] { p1, p2 };
+            dte.ActiveSolutionProjects = expectedProjects;
+
+            // Act
+            Project[] actualProjects = testSubject.GetSelectedProjects().ToArray();
+
+            // Verify
+            CollectionAssert.AreEquivalent(expectedProjects, actualProjects, "Unexpected projects");
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetProjectProperty_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectProperty(null, "prop"));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectProperty(new ProjectMock("a.proj"), null));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectProperty(new ProjectMock("a.proj"), string.Empty));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetProjectProperty_PropertyDoesNotExist_ReturnsNull()
+        {
+            // Setup
+            ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
+
+            // Act
+            var actualValue = testSubject.GetProjectProperty(project, "myprop");
+
+            // Verify
+            Assert.IsNull(actualValue, "Expected no property value to be returned");
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetProjectProperty_PropertyExists_ReturnsValue()
+        {
+            // Setup
+            ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
+
+            project.SetBuildProperty("myprop", "myval");
+
+            // Act
+            var actualValue = testSubject.GetProjectProperty(project, "myprop");
+
+            // Verify
+            Assert.AreEqual("myval", actualValue, "Unexpected property value");
+        }
+        [TestMethod]
+        public void ProjectSystemHelper_SetProjectProperty_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetProjectProperty(null, "prop", "val"));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetProjectProperty(new ProjectMock("a.proj"), null, "val"));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetProjectProperty(new ProjectMock("a.proj"), string.Empty, "val"));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_SetProjectProperty_PropertyDoesNotExist_AddsPropertyWithValue()
+        {
+            // Setup
+            ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
+
+            // Act
+            testSubject.SetProjectProperty(project, "myprop", "myval");
+
+            // Verify
+            Assert.AreEqual("myval", project.GetBuildProperty("myprop"), "Unexpected property value");
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_SetProjectProperty_PropertyExists_OverwritesValue()
+        {
+            // Setup
+            ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
+
+            project.SetBuildProperty("myprop", "oldval");
+
+            // Act
+            testSubject.SetProjectProperty(project, "myprop", "newval");
+
+            // Verify
+            Assert.AreEqual("newval", project.GetBuildProperty("myprop"), "Unexpected property value");
+        }
+        [TestMethod]
+        public void ProjectSystemHelper_ClearProjectProperty_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.ClearProjectProperty(null, "prop"));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), null));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), string.Empty));
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_ClearProjectProperty_PropertyExists_ClearsProperty()
+        {
+            // Setup
+            ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
+
+            project.SetBuildProperty("myprop", "val");
+
+            // Act
+            testSubject.ClearProjectProperty(project, "myprop");
+
+            // Verify
+            Assert.IsNull(project.GetBuildProperty("myprop"), "Expected property value to be cleared");
+        }
+
         #endregion
 
         #region Helpers
