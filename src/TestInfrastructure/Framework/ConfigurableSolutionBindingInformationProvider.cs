@@ -1,4 +1,3 @@
-﻿
 //-----------------------------------------------------------------------
 // <copyright file="ConfigurableSolutionBindingInformationProvider.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
