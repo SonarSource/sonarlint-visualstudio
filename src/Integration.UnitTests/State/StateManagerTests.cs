@@ -299,6 +299,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             // Verify
             Assert.IsFalse(section.ViewModel.IsBusy);
             Assert.IsFalse(testSubject.ManagedState.IsBusy);
+
+            // Dispose (should stop updated the view model)
+            testSubject.Dispose();
+            testSubject.IsBusy = true;
+
+            // Verify
+            Assert.IsFalse(section.ViewModel.IsBusy);
+            Assert.IsTrue(testSubject.ManagedState.IsBusy);
         }
 
         [TestMethod]
@@ -385,6 +393,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             Assert.IsFalse(testSubject.GetConnectedServers().Any());
             Assert.IsTrue(connection1.IsDisposed, "Leaking connections?");
             Assert.IsTrue(connection2.IsDisposed, "Leaking connections?");
+        }
+
+        [TestMethod]
+        public void StateManager_Dispose()
+        {
+            // Setup
+            ConfigurableHost host = new ConfigurableHost();
+            StateManager testSubject = this.CreateTestSubject(host);
+            var connection1 = new ConnectionInformation(new Uri("http://conn1"));
+            testSubject.SetProjects(connection1, new ProjectInformation[0]);
+
+            // Act
+            testSubject.Dispose();
+
+            // Verify
+            Assert.IsTrue(connection1.IsDisposed, "Leaking connections?");
         }
 
         [TestMethod]

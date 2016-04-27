@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
-        private static bool RetryAction(Func<bool> action, string description, int maxAttempts = 3)
+        private static void RetryAction(Func<bool> action, string description, int maxAttempts = 3)
         {
             for (int attempt = 0; attempt < maxAttempts; attempt++)
             {
@@ -82,12 +82,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
                 else
                 { 
-                    return true;
+                    return;
                 }
             }
 
             Assert.Fail("Failed executing the action (with retries): {0}", description);
-            return false;
         }
     }
 }

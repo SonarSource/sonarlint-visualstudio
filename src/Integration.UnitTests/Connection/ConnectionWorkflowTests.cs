@@ -183,10 +183,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
             var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
-
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
-            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            testSubject.ConnectedServer = connectionInfo;
+            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
 
             // Sanity
             Assert.IsFalse(this.sonarQubeService.ServerProperties.Any(x => x.Key != ServerProperty.TestProjectRegexKey), "Test project regex property should not be set");
@@ -213,9 +210,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Value = expectedExpression
             });
 
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
-            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            testSubject.ConnectedServer = connectionInfo;
+            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
 
             // Act
             testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
@@ -240,9 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Value = badExpression
             });
 
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
-            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            testSubject.ConnectedServer = connectionInfo;
+            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
 
             // Act
             testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
@@ -260,9 +253,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
-            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            testSubject.ConnectedServer = connectionInfo;
+            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
 
             var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -282,6 +273,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.Fail("Command not expected to be called");
         }
 
+        private ConnectionWorkflow SetTestSubjectWithConnectedServer()
+        {
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+            testSubject.ConnectedServer = connectionInfo;
+            return testSubject;
+        }
         #endregion
     }
 }

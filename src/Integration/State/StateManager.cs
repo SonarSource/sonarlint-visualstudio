@@ -325,6 +325,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 if (disposing)
                 {
                     this.ManagedState.PropertyChanged -= this.OnStatePropertyChanged;
+                    this.DisposeConnections();
                 }
 
                 this.isDisposed = true;
