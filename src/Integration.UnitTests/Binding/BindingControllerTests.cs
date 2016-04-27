@@ -9,7 +9,6 @@ using EnvDTE;
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;

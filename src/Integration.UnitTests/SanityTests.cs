@@ -26,8 +26,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.logger = new ConfigurableTelemetryLogger();
             this.serviceProvider.RegisterService(typeof(SComponentModel),
