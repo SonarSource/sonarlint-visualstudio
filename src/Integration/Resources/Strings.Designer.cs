@@ -296,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot connect to the SonarQube server. Make sure you provided the correct connection information, including your sign-in credentials, and [try again](). 
-        ///See more information in the output window..
+        ///See more information in the output window (SonarLint)..
         /// </summary>
         public static string ConnectionFailed {
             get {
@@ -468,7 +468,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to Failed to bind the solution to SonarQube project, [try again](). 
-        ///See more information in the output window..
+        ///See more information in the output window (SonarLint)..
         /// </summary>
         public static string FailedToToBindSolution {
             get {
@@ -720,7 +720,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The applied ruleset is weakening the SonarQube quality profile in one or more projects. See output window (General) for more details. [Click here]() to fix automatically..
+        ///   Looks up a localized string similar to The applied ruleset is weakening the SonarQube quality profile in one or more projects. See output window (SonarLint) for more details. [Click here]() to fix automatically..
         /// </summary>
         public static string RuleSetConflictsDetected {
             get {
@@ -865,7 +865,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: One or more rule sets are out of date or not linked to the SonarQube quality profile rule set (see General Output for affected projects).
+        ///   Looks up a localized string similar to SonarLint: One or more rule sets are out of date or not linked to the SonarQube quality profile rule set. See output window (SonarLint) for affected projects..
         /// </summary>
         public static string SonarLintInfoBarUnboundProjectsMessage {
             get {
