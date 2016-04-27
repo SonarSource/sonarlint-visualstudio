@@ -154,21 +154,32 @@ namespace SonarLint.VisualStudio.Integration
         internal /*for testing purposes*/ static IVsOutputWindowPane GetOrCreateSonarLintOutputPane(IServiceProvider serviceProvider)
         {
             IVsOutputWindow outputWindow = serviceProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
+            if (outputWindow == null)
+            {
+                Debug.Fail("Could not get IVsOutputWindow");
+                return null;
+            }
+
+            // Try and get pane if it already exists
             IVsOutputWindowPane pane;
+            if (ErrorHandler.Failed(outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane)))
+            {
+                // Create new pane
+                const bool makeVisible = true;
+                const bool clearWithSolution = true;
 
-            const bool makeVisible = true;
-            const bool clearWithSolution = true;
-
-            int hrCreatePane = outputWindow.CreatePane(
+                int hrCreatePane = outputWindow.CreatePane(
                 ref SonarLintOutputPaneGuid,
-                Strings.SonarLintOutputPaneGuidTitle,
+                Strings.SonarLintOutputPaneTitle,
                 Convert.ToInt32(makeVisible),
                 Convert.ToInt32(clearWithSolution));
-            Debug.Assert(ErrorHandler.Succeeded(hrCreatePane), "Failed in outputWindow.CreatePane: " + hrCreatePane.ToString());
-
-            int hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
-            Debug.Assert(ErrorHandler.Succeeded(hrGetPane), "Failed in outputWindow.GetPane: " + hrGetPane.ToString());
-
+                Debug.Assert(ErrorHandler.Succeeded(hrCreatePane), "Failed in outputWindow.CreatePane: " + hrCreatePane.ToString());
+                
+                // Get newly created pane
+                int hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
+                Debug.Assert(ErrorHandler.Succeeded(hrGetPane), "Failed in outputWindow.GetPane: " + hrGetPane.ToString());
+            }
+            
             return pane;
         }
 

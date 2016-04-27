@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class SanityTests
     {
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsGeneralOutputWindowPane outputWindowPane;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableTelemetryLogger logger;
 
         [TestInitialize]

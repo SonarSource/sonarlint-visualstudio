@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="ConfigurableVsGeneralOutputWindowPane.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="ConfigurableVsOutputWindowPane.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -14,19 +14,36 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsGeneralOutputWindowPane : IVsOutputWindowPane
+    public class ConfigurableVsOutputWindowPane : IVsOutputWindowPane
     {
         private readonly List<string> outputStrings = new List<string>();
+
+        public bool IsActivated { get; private set; }
+
+        public string Name { get; private set; }
+
+        public bool ClearOnSolutionEvents { get; private set; }
+
+        public ConfigurableVsOutputWindowPane() { }
+
+        public ConfigurableVsOutputWindowPane(string name, bool initVisible, bool clearOnSolutionEvents)
+        {
+            this.Name = name;
+            this.IsActivated = true;
+            this.ClearOnSolutionEvents = clearOnSolutionEvents;
+        }
 
         #region IVsOutputWindowPane
         int IVsOutputWindowPane.Activate()
         {
-            throw new NotImplementedException();
+            this.IsActivated = true;
+            return VSConstants.S_OK;
         }
 
         int IVsOutputWindowPane.Clear()
         {
-            throw new NotImplementedException();
+            this.outputStrings.Clear();
+            return VSConstants.S_OK;
         }
 
         int IVsOutputWindowPane.FlushToTaskList()
@@ -36,17 +53,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsOutputWindowPane.GetName(ref string pbstrPaneName)
         {
-            throw new NotImplementedException();
+            pbstrPaneName = Name;
+            return VSConstants.S_OK;
         }
 
         int IVsOutputWindowPane.Hide()
         {
-            throw new NotImplementedException();
+            this.IsActivated = false;
+            return VSConstants.S_OK;
         }
 
         int IVsOutputWindowPane.OutputString(string pszOutputString)
         {
-            throw new NotImplementedException();
+            this.outputStrings.Add(pszOutputString);
+            return VSConstants.S_OK;
         }
 
         int IVsOutputWindowPane.OutputStringThreadSafe(string pszOutputString)
@@ -67,8 +87,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsOutputWindowPane.SetName(string pszPaneName)
         {
-            throw new NotImplementedException();
+            this.Name = pszPaneName;
+            return VSConstants.S_OK;
         }
+
         #endregion
 
         public void AssertOutputStrings(int expectedOutputMessages)

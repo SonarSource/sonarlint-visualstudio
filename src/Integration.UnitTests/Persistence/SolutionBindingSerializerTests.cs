@@ -18,7 +18,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class SolutionBindingSerializerTests
     {
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsGeneralOutputWindowPane outputPane;
+        private ConfigurableVsOutputWindowPane outputPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableSourceControlledFileSystem sourceControlledFileSystem;
         private ConfigurableSolutionRuleSetsInformationProvider solutionRuleSetsInfoProvider;
@@ -36,8 +36,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.dte.Solution = new SolutionMock(dte, Path.Combine(this.TestContext.TestRunDirectory, this.TestContext.TestName, "solution.sln"));
             this.serviceProvider.RegisterService(typeof(DTE), this.dte);
 
-            this.outputPane = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.store = new ConfigurableCredentialStore();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);

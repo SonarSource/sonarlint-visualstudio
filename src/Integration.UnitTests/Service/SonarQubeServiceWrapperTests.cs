@@ -31,15 +31,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class SonarQubeServiceWrapperTests
     {
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsGeneralOutputWindowPane outputWindowPane;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
-
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
+
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+
             this.serviceProvider.RegisterService(typeof(SComponentModel),
                 ConfigurableComponentModel.CreateWithExports(
                     MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger())));

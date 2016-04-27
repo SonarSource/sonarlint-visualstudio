@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableConnectionWorkflow connectionWorkflow;
         private ConfigurableConnectionInformationProvider connectionProvider;
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsGeneralOutputWindowPane outputWindowPane;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableIntegrationSettings settings;
 
         [TestInitialize]
@@ -38,8 +38,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.connectionWorkflow = new ConfigurableConnectionWorkflow(this.sonarQubeService);
             this.connectionProvider = new ConfigurableConnectionInformationProvider();
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.settings = new ConfigurableIntegrationSettings();
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = this.sonarQubeService;

@@ -133,6 +133,7 @@
     <Compile Include="Framework\ConfigurableInfoBar.cs" />
     <Compile Include="Framework\ConfigurableInfoBarManager.cs" />
     <Compile Include="Framework\ConfigurableIntegrationSettings.cs" />
+    <Compile Include="Framework\ConfigurableVsOutputWindow.cs" />
     <Compile Include="Framework\ConfigurableProgressStepRunner.cs" />
     <Compile Include="Framework\ConfigurableProjectSystemFilter.cs" />
     <Compile Include="Framework\ConfigurableRuleSetConflictsController.cs" />
@@ -167,7 +168,7 @@
     <Compile Include="Framework\ConfigurableUriValidator.cs" />
     <Compile Include="Framework\ConfigurableUserNotification.cs" />
     <Compile Include="Framework\ConfigurableVsActivityLog.cs" />
-    <Compile Include="Framework\ConfigurableVsGeneralOutputWindowPane.cs" />
+    <Compile Include="Framework\ConfigurableVsOutputWindowPane.cs" />
     <Compile Include="Framework\ConfigurableVsInfoBar.cs" />
     <Compile Include="Framework\ConfigurableVsInfoBarHost.cs" />
     <Compile Include="Framework\ConfigurableVsInfoBarUIElement.cs" />

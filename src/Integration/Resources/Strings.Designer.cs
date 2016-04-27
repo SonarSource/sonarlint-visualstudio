@@ -921,9 +921,9 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         /// <summary>
         ///   Looks up a localized string similar to SonarLint.
         /// </summary>
-        public static string SonarLintOutputPaneGuidTitle {
+        public static string SonarLintOutputPaneTitle {
             get {
-                return ResourceManager.GetString("SonarLintOutputPaneGuidTitle", resourceCulture);
+                return ResourceManager.GetString("SonarLintOutputPaneTitle", resourceCulture);
             }
         }
         

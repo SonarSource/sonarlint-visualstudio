@@ -602,7 +602,7 @@ This is the general format to use when writing errors to output window or when t
     <value>SonarLint: The current solution is not bound to the expected SonarQube project, aborting.</value>
     <comment>Output window message</comment>
   </data>
-  <data name="SonarLintOutputPaneGuidTitle" xml:space="preserve">
+  <data name="SonarLintOutputPaneTitle" xml:space="preserve">
     <value>SonarLint</value>
     <comment>Output pane title</comment>
   </data>

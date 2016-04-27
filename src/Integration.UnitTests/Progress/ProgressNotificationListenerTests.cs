@@ -27,8 +27,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var serviceProvider = new ConfigurableServiceProvider();
-            var outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
-            serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), outputWindowPane);
+
+            var outputWindow = new ConfigurableVsOutputWindow();
+            var outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+
             var progressEvents = new ConfigurableProgressEvents();
             var testSubject = new ProgressNotificationListener(serviceProvider, progressEvents);
             string message1 = "Hello world";
