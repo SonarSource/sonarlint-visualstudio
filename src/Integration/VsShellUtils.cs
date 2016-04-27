@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration
 
         #region Output pane helpers
 
-        internal /*for testing purposes*/ static IVsOutputWindowPane GetOrCreateSonarLintOutputPane(IServiceProvider serviceProvider)
+        public static IVsOutputWindowPane GetOrCreateSonarLintOutputPane(IServiceProvider serviceProvider)
         {
             IVsOutputWindow outputWindow = serviceProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
             if (outputWindow == null)

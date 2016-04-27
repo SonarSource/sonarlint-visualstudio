@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration
         #region Fields
         private static readonly Guid CommandSetIdentifier = new Guid("{DB0701CC-1E44-41F7-97D6-29B160A70BCB}");
         private static DTE dte;
-        private static IVsOutputWindowPane generalPane;
+        private static IVsOutputWindowPane outputPane;
         #endregion
 
         /// <summary>
@@ -245,9 +245,9 @@ namespace SonarLint.VisualStudio.Integration
         [System.Diagnostics.Conditional("DEBUG")]
         private static void DEBUG_InitializeOutputPane(IServiceProvider serviceProvider)
         {
-            if (generalPane == null)
+            if (outputPane == null)
             {
-                generalPane = serviceProvider.GetService(typeof(SVsGeneralOutputWindowPane)) as IVsOutputWindowPane;
+                outputPane = VsShellUtils.GetOrCreateSonarLintOutputPane(serviceProvider);
             }
 
         }
@@ -256,7 +256,7 @@ namespace SonarLint.VisualStudio.Integration
         private static void DEBUG_Reset()
         {
             initialized = false;
-            generalPane = null;
+            outputPane = null;
         }
 
         /// <summary>
@@ -265,9 +265,9 @@ namespace SonarLint.VisualStudio.Integration
         [System.Diagnostics.Conditional("DEBUG")]
         private static void DEBUG_LogSqmCommandsToOutputWindow(string messageFormat)
         {
-            if (generalPane != null)
+            if (outputPane != null)
             {
-                generalPane.OutputStringThreadSafe(string.Format(CultureInfo.CurrentCulture, "[DEBUG SonarLintSqmFacade] " + messageFormat) + Environment.NewLine);
+                outputPane.OutputStringThreadSafe(string.Format(CultureInfo.CurrentCulture, "[DEBUG SonarLintSqmFacade] " + messageFormat) + Environment.NewLine);
             }
         }
 
