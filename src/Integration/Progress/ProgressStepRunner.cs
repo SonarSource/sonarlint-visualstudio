@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.Progress
 {
@@ -57,11 +58,20 @@ namespace SonarLint.VisualStudio.Integration.Progress
             // Initialize a controller and an observer
             var controller = new SequentialProgressController(sp);
             controller.Initialize(stepFactory(controller));
+
+            IVsOutputWindowPane sonarLintPane = VsShellUtils.GetOrCreateSonarLintOutputPane(sp);
+
+            bool logFullMessage;
 #if DEBUG
-            controller.ErrorNotificationManager.AddNotifier(new VsGeneralOutputWindowNotifier(sp, ensureOutputVisible: true, messageFormat: Strings.UnexpectedWorkflowError, logWholeMessage: true));
-#else
-            controller.ErrorNotificationManager.AddNotifier(new VsGeneralOutputWindowNotifier(sp,  ensureOutputVisible: true, messageFormat: Strings.UnexpectedWorkflowError, logWholeMessage: false));
+            logFullMessage = true;
 #endif
+            var notifier = new VsOutputWindowPaneNotifier(sp,
+                sonarLintPane,
+                ensureOutputVisible: true,
+                messageFormat: Strings.UnexpectedWorkflowError,
+                logWholeMessage: logFullMessage);
+            controller.ErrorNotificationManager.AddNotifier(notifier);
+
             Observe(controller, host);
             controller.RunOnFinished(r => observedControllersMap.Remove(controller));
 #pragma warning disable 4014 // We do want to start and forget. All the errors will be forwarded via the error notification manager

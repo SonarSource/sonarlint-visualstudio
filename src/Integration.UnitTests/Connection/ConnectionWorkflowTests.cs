@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
         }
 
         [TestMethod]
@@ -217,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
         }
 
         [TestMethod]
@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
             this.outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.InvalidTestProjectRegexPattern, badExpression));
         }
 
@@ -262,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.DownloadServiceParameters(controller, cts.Token, progressEvents);
 
             // Verify
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
             controller.AssertNumberOfAbortRequests(1);
         }
         #endregion

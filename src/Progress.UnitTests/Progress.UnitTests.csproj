@@ -70,6 +70,7 @@
     <Compile Include="ProgessController\ProgressControllerStepTests.cs" />
     <Compile Include="ProgessController\SequentialProgressControllerTests.cs" />
     <Compile Include="ProgessController\VsActivityLogNotifierTests.cs" />
+    <Compile Include="ProgessController\VsOutputWindowPaneNotifierTests.cs" />
     <Compile Include="ProgessController\VsGeneralOutputWindowNotifierTests.cs" />
     <Compile Include="ProgessController\VsMessageBoxNotifierTests.cs" />
     <Compile Include="ProgressObserver\ProgressControllerViewModelTests.cs" />

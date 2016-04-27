@@ -118,11 +118,10 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 AbortWorkflow(controller, cancellationToken);
                 return;
             }
-
+            
             this.OnProjectsChanged(connection, projects);
             notifications.ProgressChanged(Strings.ConnectionResultSuccess, double.NaN);
         }
-
 
         internal /*for testing purposes*/ void DownloadServiceParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
         {

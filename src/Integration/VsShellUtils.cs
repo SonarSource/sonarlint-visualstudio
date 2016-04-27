@@ -160,26 +160,20 @@ namespace SonarLint.VisualStudio.Integration
                 return null;
             }
 
-            // Try and get pane if it already exists
-            IVsOutputWindowPane pane;
-            if (ErrorHandler.Failed(outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane)))
-            {
-                // Create new pane
-                const bool makeVisible = true;
-                const bool clearWithSolution = true;
+            const bool makeVisible = true;
+            const bool clearWithSolution = true;
 
-                int hrCreatePane = outputWindow.CreatePane(
+            IVsOutputWindowPane pane;
+            int hrCreatePane = outputWindow.CreatePane(
                 ref SonarLintOutputPaneGuid,
                 Strings.SonarLintOutputPaneTitle,
                 Convert.ToInt32(makeVisible),
                 Convert.ToInt32(clearWithSolution));
-                Debug.Assert(ErrorHandler.Succeeded(hrCreatePane), "Failed in outputWindow.CreatePane: " + hrCreatePane.ToString());
+            Debug.Assert(ErrorHandler.Succeeded(hrCreatePane), "Failed in outputWindow.CreatePane: " + hrCreatePane.ToString());
                 
-                // Get newly created pane
-                int hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
-                Debug.Assert(ErrorHandler.Succeeded(hrGetPane), "Failed in outputWindow.GetPane: " + hrGetPane.ToString());
-            }
-            
+            int hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
+            Debug.Assert(ErrorHandler.Succeeded(hrGetPane), "Failed in outputWindow.GetPane: " + hrGetPane.ToString());
+
             return pane;
         }
 

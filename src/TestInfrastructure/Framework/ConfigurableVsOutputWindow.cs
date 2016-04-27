@@ -21,11 +21,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsOutputWindow.CreatePane(ref Guid rguidPane, string pszPaneName, int fInitVisible, int fClearWithSolution)
         {
-            var pane = new ConfigurableVsOutputWindowPane(pszPaneName,
-                Convert.ToBoolean(fInitVisible),
-                Convert.ToBoolean(fClearWithSolution));
+            if (!this.HasPane(rguidPane))
+            {
+                var pane = new ConfigurableVsOutputWindowPane(pszPaneName,
+                    Convert.ToBoolean(fInitVisible),
+                    Convert.ToBoolean(fClearWithSolution));
 
-            this.panes.Add(rguidPane, pane);
+                this.panes[rguidPane] = pane;
+            }
 
             return VSConstants.S_OK;
         }
