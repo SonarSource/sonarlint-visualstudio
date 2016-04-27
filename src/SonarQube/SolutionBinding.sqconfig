@@ -1,4 +1,10 @@
 {
   "ServerUri": "https://dory.sonarsource.com/sonarqube/",
-  "ProjectKey": "sonarlint-visualstudio"
+  "ProjectKey": "sonarlint-visualstudio",
+  "Profiles": {
+    "CSharp": {
+      "ProfileKey": "cs-c-qp-for-sonarsource-73109",
+      "ProfileTimestamp": "2016-04-08T10:15:44+01:00"
+    }
+  }
 }

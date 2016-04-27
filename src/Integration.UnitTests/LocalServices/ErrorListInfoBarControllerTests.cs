@@ -83,6 +83,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new ErrorListInfoBarController(this.host);
             this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            // Set project system with no filtered project, to quickly stop SonarQubeQualityProfileBackgroundProcessor
+            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
 
             // Act
             testSubject.Refresh();
@@ -176,6 +179,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             this.outputWindowPane.AssertOutputStrings(0);
+            this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
+        }
+
+        [TestMethod]
+        public void ErrorListInfoBarController_CurrentBackgroundProcessorCancellation()
+        {
+            // Setup
+            this.IsActiveSolutionBound = true;
+            var testSubject = new ErrorListInfoBarController(this.host);
+            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
+            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
+            var project = new ProjectMock("project.proj");
+            project.SetCSProjectKind();
+            projectSystem.FilteredProjects = new[] { project };
+            this.solutionBindingSerializer.CurrentBinding.Profiles = new System.Collections.Generic.Dictionary<LanguageGroup, Persistence.ApplicableQualityProfile>();
+            this.solutionBindingSerializer.CurrentBinding.Profiles[LanguageGroup.CSharp] = new Persistence.ApplicableQualityProfile { ProfileKey = "Profile", ProfileTimestamp = DateTime.Now };
+            var sqService = new ConfigurableSonarQubeServiceWrapper();
+            this.host.SonarQubeService = sqService;
+            sqService.ReturnProfile[Language.CSharp.ServerKey] = new QualityProfile();
+
+            // Act
+            testSubject.Refresh();
+            RunAsyncAction();
+
+            // Verify
+            Assert.IsNotNull(testSubject.CurrentBackgroundProcessor?.BackgroundTask, "Background task is expected");
+            this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
+
+            // Act (refresh again and  let the blocked UI thread run to completion)
+            System.Threading.Thread.Sleep(1000); // only sleeping to make sure that the background process finished and called BeginInvoke on the UI thread.
+            testSubject.Refresh();
+            DispatcherHelper.DispatchFrame(DispatcherPriority.Normal);
+            this.IsActiveSolutionBound = false;
+            RunAsyncAction();
+
+            // Verify that no info bar was added (due to the last action in which the state will not cause the info bar to appear)
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
 

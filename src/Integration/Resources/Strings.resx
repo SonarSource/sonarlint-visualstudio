@@ -606,4 +606,38 @@ This is the general format to use when writing errors to output window or when t
     <value>SonarLint</value>
     <comment>Output pane title</comment>
   </data>
+  <data name="SonarQubeOptionalServiceFailed" xml:space="preserve">
+    <value>Warning failed calling '{0}' (http error code={1}). Some of the functionality will be reduced.</value>
+    <comment>Output window message. 
+{0} - service
+{1} - http error code</comment>
+  </data>
+  <data name="SonarLintProfileCheck" xml:space="preserve">
+    <value>SonarLint: Checking if SonarQube Quality profile has changed.</value>
+    <comment>Ouput window message</comment>
+  </data>
+  <data name="SonarLintProfileCheckDifferentProfile" xml:space="preserve">
+    <value>SonarLint: The SonarQube project is using a different Quality Profile. Update is required.</value>
+    <comment>Ouput window message</comment>
+  </data>
+  <data name="SonarLintProfileCheckFailed" xml:space="preserve">
+    <value>SonarLint: Unexpected failure getting quality profile information. Automatic quality profile update will not be performed.</value>
+    <comment>Ouput window message</comment>
+  </data>
+  <data name="SonarLintProfileCheckNoProfiles" xml:space="preserve">
+    <value>SonarLint: The binding information is out of date. Update is required.</value>
+    <comment>Ouput window message</comment>
+  </data>
+  <data name="SonarLintProfileCheckProfileUpdated" xml:space="preserve">
+    <value>SonarLint: The Quality Profile for the SonarQube project has changed. Update is required.</value>
+    <comment>Ouput window message</comment>
+  </data>
+  <data name="SonarLintProfileCheckQualityProfileIsUpToDate" xml:space="preserve">
+    <value>SonarLint: Quality Profile is up-to-date.</value>
+    <comment>Ouput window message</comment>
+  </data>
+  <data name="SonarLintProfileCheckSolutionRequiresMoreProfiles" xml:space="preserve">
+    <value>SonarLint: The solution has changed and now requires additional Quality Profiles to be included. Update is required.</value>
+    <comment>Ouput window message</comment>
+  </data>
 </root>

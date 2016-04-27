@@ -298,12 +298,21 @@ namespace SonarLint.VisualStudio.Integration.Service
             return AppendQueryString(QualityProfileChangeLogAPI, "?profileKey={0}&ps=1", profile.Key);
         }
 
-        private static async Task<QualityProfileChangeLog> DownloadQualityProfileChangeLog(HttpClient client, QualityProfile profile, CancellationToken token)
+        private async Task<QualityProfileChangeLog> DownloadQualityProfileChangeLog(HttpClient client, QualityProfile profile, CancellationToken token)
         {
             string api = CreateQualityProfileChangeLogUrl(profile);
-            HttpResponseMessage response = await InvokeGetRequest(client, api, token);
-
-            return await ProcessJsonResponse<QualityProfileChangeLog>(response, token);
+            HttpResponseMessage response = await InvokeGetRequest(client, api, token, ensureSuccess: false);
+            // The service doesn't exist on older versions, and it's not absolutely mandatory since we can work 
+            // without the information provided, only with reduced functionality.
+            if (response.IsSuccessStatusCode)
+            {
+                return await ProcessJsonResponse<QualityProfileChangeLog>(response, token);
+            }
+            else
+            {
+                VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.SonarQubeOptionalServiceFailed, QualityProfileChangeLogAPI, (int)response.StatusCode);
+                return null;
+            }
         }
         #endregion
 

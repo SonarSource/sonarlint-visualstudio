@@ -88,6 +88,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
+        public string ExpectedProjectKey
+        {
+            get;
+            set;
+        }
+
         private void AssertExpectedConnection(ConnectionInformation connection)
         {
             Assert.IsNotNull(connection, "The API requires a connection information");
@@ -95,6 +101,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             if (this.ExpectedConnection != null)
             {
                 Assert.AreEqual(this.ExpectedConnection?.ServerUri, connection.ServerUri, "The connection is not as expected");
+            }
+        }
+
+        private void AssertExpectedProjectInformation(ProjectInformation projectInformation)
+        {
+            Assert.IsNotNull(projectInformation, "The API requires project information");
+
+            if (this.ExpectedProjectKey != null)
+            {
+                Assert.AreEqual(this.ExpectedProjectKey, projectInformation.Key, "Unexpected project key");
             }
         }
         #endregion
@@ -171,12 +187,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         bool ISonarQubeServiceWrapper.TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out QualityProfile profile)
         {
-            this.AssertExpectedConnection(serverConnection);
-
-            Assert.IsNotNull(project, "ProjectInformation is expected");
-
             profile = null;
-            this.ReturnProfile.TryGetValue(language, out profile);
+
+            if (this.AllowConnections && !token.IsCancellationRequested)
+            {
+                this.AssertExpectedConnection(serverConnection);
+
+                this.AssertExpectedProjectInformation(project);
+
+                this.ReturnProfile.TryGetValue(language, out profile);
+            }
 
             return profile != null;
         }
