@@ -270,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void OutputMessage(string messageFormat, params object[] args)
         {
-            VsShellUtils.WriteToGeneralOutputPane(this.host, messageFormat, args);
+            VsShellUtils.WriteToSonarLintOutputPane(this.host, messageFormat, args);
         }
 
         private enum BindingRequestResult { StartedUpdating, CommandIsBusy, RequestIsIrrelevant, NoActiveSection };

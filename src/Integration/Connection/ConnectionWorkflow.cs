@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         [Conditional("DEBUG")]
         private void DebugOnly_MonitorProgress(IProgressEvents progress)
         {
-            progress.RunOnFinished(r => VsShellUtils.WriteToGeneralOutputPane(this.host, "DEBUGONLY: Connect workflow finished, Execution result: {0}", r));
+            progress.RunOnFinished(r => VsShellUtils.WriteToSonarLintOutputPane(this.host, "DEBUGONLY: Connect workflow finished, Execution result: {0}", r));
         }
 
         private ProgressStepDefinition[] CreateConnectionSteps(IProgressController controller, ConnectionInformation connection)
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 }
                 catch (ArgumentException)
                 {
-                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
                 }
             }
 

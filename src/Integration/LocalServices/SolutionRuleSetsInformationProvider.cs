@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration
 
             if (!found)
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.CouldNotFindCodeAnalysisRuleSetPropertyOnProject, project.UniqueName);
+                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.CouldNotFindCodeAnalysisRuleSetPropertyOnProject, project.UniqueName);
             }
         }
 

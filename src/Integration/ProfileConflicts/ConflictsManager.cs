@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         private void WriteWarning(string format, params object[] args)
         {
             string message = string.Format(CultureInfo.CurrentCulture, format, args);
-            VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.ConflictsManagerWarningMessage, message);
+            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.ConflictsManagerWarningMessage, message);
         }
 
         private static string CalculateProjectRuleSetFullPath(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, Project project, RuleSetDeclaration declaration)

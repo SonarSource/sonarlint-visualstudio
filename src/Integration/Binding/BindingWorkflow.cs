@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         [Conditional("DEBUG")]
         private void DebugOnly_MonitorProgress(IProgressEvents progress)
         {
-            progress.RunOnFinished(r => VsShellUtils.WriteToGeneralOutputPane(this.host, "DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
+            progress.RunOnFinished(r => VsShellUtils.WriteToSonarLintOutputPane(this.host, "DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
         }
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
@@ -172,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             if (!VsShellUtils.SaveSolution(this.host, silent: false))
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SolutionSaveCancelledBindAborted);
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SolutionSaveCancelledBindAborted);
 
                 this.AbortWorkflow(controller, token);
             }
@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (!this.BindingProjects.Any())
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.NoProjectsApplicableForBinding);
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.NoProjectsApplicableForBinding);
                 AbortWorkflow(controller, CancellationToken.None);
             }
         }
@@ -231,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (failed)
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.QualityProfileDownloadFailedMessage);
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.QualityProfileDownloadFailedMessage);
                 this.AbortWorkflow(controller, cancellationToken);
             }
             else
@@ -365,7 +365,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             output.AppendLine(Strings.FilteredOutProjectFromBindingHeader);
             projects.ForEach(p => output.AppendFormat(Strings.FilteredOutProjectFormat, p.UniqueName).AppendLine());
             output.AppendLine(Strings.FilteredOutProjectFromBindingEnding);
-            VsShellUtils.WriteToGeneralOutputPane(this.host, output.ToString());
+            VsShellUtils.WriteToSonarLintOutputPane(this.host, output.ToString());
         }
         #endregion
 

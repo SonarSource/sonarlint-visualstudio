@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 }
                 catch (JsonException)
                 {
-                    VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.FailedToDeserializeSQCOnfiguration, configFilePath);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.FailedToDeserializeSQCOnfiguration, configFilePath);
                 }
             }
             return null;
@@ -216,7 +216,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                                     || e is IOException
                                     || e is System.Security.SecurityException)
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, e.Message);
+                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, e.Message);
                 return false;
             }
         }

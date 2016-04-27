@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Type optionServiceType = typeof(PerLanguageOption<int>).Assembly.GetType(optionServiceTypeName, false);
             if (optionServiceType == null)
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.MissingResourceAtLocation,
+                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.MissingResourceAtLocation,
                     optionServiceTypeName, CodeAnalysisWorkspacesAssemblyName);
                 Debug.Fail($"{optionServiceTypeName} could not be found in {CodeAnalysisWorkspacesAssemblyName}");
                 return;
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (!File.Exists(path))
             {
-                VsShellUtils.WriteToGeneralOutputPane(serviceProvider, Strings.MissingResourceAtLocation,
+                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.MissingResourceAtLocation,
                     codeAnalysisFeaturesDllName, codeAnalysisFolderPath);
                 return null;
             }

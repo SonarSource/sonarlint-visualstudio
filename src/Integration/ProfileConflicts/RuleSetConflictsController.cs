@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                 WriteSummaryInformation(conflictInfo, builder);
             }
 
-            VsShellUtils.WriteToGeneralOutputPane(this.host, builder.ToString());
+            VsShellUtils.WriteToSonarLintOutputPane(this.host, builder.ToString());
         }
 
         private static void WriteSummaryInformation(ProjectRuleSetConflict conflictInfo, StringBuilder output)
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                 WriteSummaryInformation(fixInfo, builder);
             }
 
-            VsShellUtils.WriteToGeneralOutputPane(this.host, builder.ToString());
+            VsShellUtils.WriteToSonarLintOutputPane(this.host, builder.ToString());
         }
 
         private static void WriteSummaryInformation(FixedRuleSetInfo fixInfo, StringBuilder output)

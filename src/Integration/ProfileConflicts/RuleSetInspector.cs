@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
         private void EffectiveRulesErrorHandler(string message, Exception error)
         {
-            VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.UnexpectedErrorMessageFormat, typeof(RuleSetInspector).FullName, message, Constants.SonarLintIssuesWebUrl);
+            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.UnexpectedErrorMessageFormat, typeof(RuleSetInspector).FullName, message, Constants.SonarLintIssuesWebUrl);
             Debug.Fail(message, error.ToString());
         }
 
