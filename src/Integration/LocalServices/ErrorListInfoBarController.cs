@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration
             this.CurrentBackgroundProcessor = null;
         }
 
-        private void ProcessSolutionBinding()
+        internal /*for testing purposes*/ void ProcessSolutionBinding()
         {
             // No need to do anything if by the time got here the solution was closed (or unbound)
             if (!this.IsActiveSolutionBound)
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 this.OutputMessage(Strings.SonarLintFoundUnboundProjects, unboundProjects.Length, String.Join(", ", unboundProjects.Select(p => p.UniqueName)));
 
-                UpdateRequired();
+                this.UpdateRequired();
             }
             else
             {
@@ -182,8 +182,15 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private void UpdateRequired()
+        private enum UpdateMessage { OldBindingFile, General };
+
+        /// <summary>
+        /// Update
+        /// </summary>
+        /// <param name="customInfoBarMessage">Optional. If provided than this will be the message that will appear in info bar, otherwise a standard one will appear instead</param>
+        private void UpdateRequired(string customInfoBarMessage = null)
         {
+            this.AssertOnUIThread();
             IInfoBarManager manager = this.host.GetMefService<IInfoBarManager>();
             if (manager == null)
             {
@@ -193,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.currentErrorWindowInfoBar = manager.AttachInfoBar(
                 ErrorListToolWindowGuid,
-                Strings.SonarLintInfoBarUnboundProjectsMessage,
+                customInfoBarMessage ?? Strings.SonarLintInfoBarUnboundProjectsMessage,
                 Strings.SonarLintInfoBarUpdateCommandText,
                 KnownMonikers.RuleWarning);
 
@@ -492,6 +499,10 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        /// <summary>
+        /// The class is responsible for quality profile related checks in determining whether
+        /// to suggest the user to update his solution with the rule set.
+        /// </summary>
         internal /*testing purposes*/ class QualityProfileBackgroundProcessor : IDisposable
         {
             private readonly IHost host;
@@ -519,7 +530,7 @@ namespace SonarLint.VisualStudio.Integration
                 private set;
             }
 
-            public void QueueCheckIfUpdateIsRequired(Action updateAction)
+            public void QueueCheckIfUpdateIsRequired(Action<string> updateAction)
             {
                 if (updateAction == null)
                 {
@@ -553,7 +564,7 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     // Old binding, force refresh immediately
                     VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SonarLintProfileCheckNoProfiles);
-                    updateAction();
+                    updateAction(Strings.SonarLintInfoBarOldBindingFile);
                     return;
                 }
 
@@ -562,21 +573,21 @@ namespace SonarLint.VisualStudio.Integration
                 CancellationToken token = this.TokenSource.Token;
                 this.BackgroundTask = System.Threading.Tasks.Task.Run(() =>
                 {
-                    if (this.ProcessQualityProfileChanges(binding, languages, token))
+                    if (this.IsUpdateRequired(binding, languages, token))
                     {
                         this.host.UIDispatcher.BeginInvoke(new Action(()=>
                         {
                             // We mustn't update if was cancelled
                             if(!token.IsCancellationRequested)
                             {
-                                updateAction();
+                                updateAction(null);
                             }
                         }));
                     }
                 }, token);
             }
 
-            private bool ProcessQualityProfileChanges(BoundSonarQubeProject binding, IEnumerable<LanguageGroup> projectLanguageGroups, CancellationToken token)
+            private bool IsUpdateRequired(BoundSonarQubeProject binding, IEnumerable<LanguageGroup> projectLanguageGroups, CancellationToken token)
             {
                 Debug.Assert(binding != null);
 
@@ -606,7 +617,7 @@ namespace SonarLint.VisualStudio.Integration
                     }
 
                     QualityProfile newProfileInfo = newProfiles[group];
-                    if (IsNewProfileRequriesAnUpdate(newProfileInfo, oldProfileInfo))
+                    if (this.HasProfileChanged(newProfileInfo, oldProfileInfo))
                     {
                         return true;
                     }
@@ -616,7 +627,7 @@ namespace SonarLint.VisualStudio.Integration
                 return false; // Up-to-date
             }
 
-            private bool IsNewProfileRequriesAnUpdate(QualityProfile newProfileInfo, ApplicableQualityProfile oldProfileInfo)
+            private bool HasProfileChanged(QualityProfile newProfileInfo, ApplicableQualityProfile oldProfileInfo)
             {
                 if (!QualityProfile.KeyComparer.Equals(oldProfileInfo.ProfileKey, newProfileInfo.Key))
                 {
@@ -638,7 +649,7 @@ namespace SonarLint.VisualStudio.Integration
                 newProfiles = new Dictionary<LanguageGroup, QualityProfile>();
                 foreach (LanguageGroup group in projectLanguageGroups)
                 {
-                    Language language = LanguageGroupHelper.GerLanguage(group);
+                    Language language = LanguageGroupHelper.GetLanguage(group);
                     QualityProfile profile;
                     if (this.host.SonarQubeService.TryGetQualityProfile(connection, new ProjectInformation { Key = binding.ProjectKey }, language.ServerKey, token, out profile))
                     {

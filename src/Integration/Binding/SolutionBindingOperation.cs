@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
         private readonly Dictionary<LanguageGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<LanguageGroup, RuleSetInformation>();
-        private readonly Dictionary<LanguageGroup, QualityProfile> qualityProfileMap = new Dictionary<LanguageGroup, QualityProfile>();
+        private Dictionary<LanguageGroup, QualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string sonarQubeProjectKey;
 
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Public API
-        public void Initialize(IEnumerable<Project> projects, Dictionary<LanguageGroup, QualityProfile> profilesMap)
+        public void Initialize(IEnumerable<Project> projects, IDictionary<LanguageGroup, QualityProfile> profilesMap)
         {
             if (projects == null)
             {
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
 
-            profilesMap.ToList().ForEach(kv => qualityProfileMap.Add(kv.Key, kv.Value));
+            this.qualityProfileMap = new Dictionary<LanguageGroup, QualityProfile>(profilesMap);
 
             foreach (Project project in projects)
             {
@@ -214,6 +214,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         private void PendBindingInformation(ConnectionInformation connInfo)
         {
+            Debug.Assert(this.qualityProfileMap != null, "Initialize was expected to be called first");
+
             var binding = this.serviceProvider.GetService<ISolutionBindingSerializer>();
             binding.AssertLocalServiceIsNotNull();
 

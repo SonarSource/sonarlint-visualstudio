@@ -97,11 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = this.GetTestSubject();
-            var project1 = new ProjectMock("validProject1.csproj");
-            project1.SetCSProjectKind();
-            var project2 = new ProjectMock("validProject2.csproj");
-            project2.SetCSProjectKind();
-            this.projectSystem.FilteredProjects = new[] { project1, project2 };
+            this.SetFilteredProjects();
 
             // Act
             testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
@@ -115,16 +111,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = this.GetTestSubject();
-            var project1 = new ProjectMock("validProject1.csproj");
-            project1.SetCSProjectKind();
-            var project2 = new ProjectMock("validProject2.csproj");
-            project2.SetCSProjectKind();
-            this.projectSystem.FilteredProjects = new[] { project1, project2 };
+            this.SetFilteredProjects();
             this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject();
             int called = 0;
 
             // Act
-            testSubject.QueueCheckIfUpdateIsRequired(() => called++);
+            testSubject.QueueCheckIfUpdateIsRequired((customMessage) =>
+            {
+                Assert.AreEqual(Strings.SonarLintInfoBarOldBindingFile, customMessage);
+                called++;
+            });
 
             // Verify
             Assert.AreEqual(1, called, "Expected the update action to be called");
@@ -136,11 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = this.GetTestSubject();
-            var project1 = new ProjectMock("validProject1.csproj");
-            project1.SetCSProjectKind();
-            var project2 = new ProjectMock("validProject2.csproj");
-            project2.SetCSProjectKind();
-            this.projectSystem.FilteredProjects = new[] { project1, project2 };
+            this.SetFilteredProjects();
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -165,11 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = this.GetTestSubject();
-            var project1 = new ProjectMock("validProject1.csproj");
-            project1.SetCSProjectKind();
-            var project2 = new ProjectMock("validProject2.csproj");
-            project2.SetCSProjectKind();
-            this.projectSystem.FilteredProjects = new[] { project1, project2 };
+            this.SetFilteredProjects();
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -194,11 +182,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = this.GetTestSubject();
-            var project1 = new ProjectMock("validProject1.csproj");
-            project1.SetCSProjectKind();
-            var project2 = new ProjectMock("validProject2.csproj");
-            project2.SetCSProjectKind();
-            this.projectSystem.FilteredProjects = new[] { project1, project2 };
+            this.SetFilteredProjects();
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -224,11 +208,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = this.GetTestSubject();
-            var project1 = new ProjectMock("validProject1.csproj");
-            project1.SetCSProjectKind();
-            var project2 = new ProjectMock("validProject2.csproj");
-            project2.SetVBProjectKind();
-            this.projectSystem.FilteredProjects = new[] { project1, project2 };
+            this.SetFilteredProjects(secondProjectLangauge: LanguageGroup.VB);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -254,11 +234,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = this.GetTestSubject();
-            var project1 = new ProjectMock("validProject1.csproj");
-            project1.SetCSProjectKind();
-            var project2 = new ProjectMock("validProject2.csproj");
-            project2.SetCSProjectKind();
-            this.projectSystem.FilteredProjects = new[] { project1, project2 };
+            this.SetFilteredProjects();
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -290,9 +266,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = this.GetTestSubject();
-            var project1 = new ProjectMock("validProject1.csproj");
-            project1.SetVBProjectKind();
-            this.projectSystem.FilteredProjects = new[] { project1 };
+            this.SetFilteredProjects(firstProjectLangauge: LanguageGroup.VB, secondProjectLangauge: LanguageGroup.VB);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -319,7 +293,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Act
             int called = 0;
-            testSubject.QueueCheckIfUpdateIsRequired(() => called++);
+            testSubject.QueueCheckIfUpdateIsRequired((customMessage) =>
+            {
+                Assert.IsNull(customMessage, "Not expecting any message customizations");
+                called++;
+            });
 
             // Verify
             Assert.AreEqual(0, called, "Not expected to be immediate");
@@ -367,7 +345,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             foreach (LanguageGroup group in expectedLanguageProfiles)
             {
-                sqService.ReturnProfile[LanguageGroupHelper.GerLanguage(group).ServerKey] = new Integration.Service.QualityProfile
+                sqService.ReturnProfile[LanguageGroupHelper.GetLanguage(group).ServerKey] = new Integration.Service.QualityProfile
                 {
                     Key = group.ToString(),
                     Language = group.ToString(),
@@ -376,9 +354,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        private void AssertIfCalled()
+        private void AssertIfCalled(string customMessage)
         {
             Assert.Fail("Not expected to be called");
+        }
+
+
+        private void SetFilteredProjects(LanguageGroup firstProjectLangauge = LanguageGroup.CSharp, LanguageGroup secondProjectLangauge = LanguageGroup.CSharp)
+        {
+            var project1 = new ProjectMock("validProject1.csproj");
+            SetProjectLanguage(project1, firstProjectLangauge);
+            var project2 = new ProjectMock("validProject2.csproj");
+            SetProjectLanguage(project2, secondProjectLangauge);
+            this.projectSystem.FilteredProjects = new[] { project1, project2 };
+        }
+
+        private static void SetProjectLanguage(ProjectMock project, LanguageGroup lang)
+        {
+            switch (lang)
+            {
+                case LanguageGroup.CSharp:
+                    project.SetCSProjectKind();
+                    break;
+                case LanguageGroup.VB:
+                    project.SetVBProjectKind();
+                    break;
+                default:
+                    break;
+            }
         }
         #endregion
 

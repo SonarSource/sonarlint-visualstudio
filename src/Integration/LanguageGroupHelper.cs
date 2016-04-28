@@ -13,7 +13,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal static class LanguageGroupHelper
     {
-        public static Language GerLanguage(LanguageGroup group)
+        public static Language GetLanguage(LanguageGroup group)
         {
             switch(group)
             {

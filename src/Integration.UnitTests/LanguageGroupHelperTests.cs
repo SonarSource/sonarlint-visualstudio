@@ -14,15 +14,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class LanguageGroupHelperTests
     {
         [TestMethod]
-        public void LanguageGroupHelper_GerLanguage()
+        public void LanguageGroupHelper_GetLanguage()
         {
-            Assert.AreSame(Language.CSharp, LanguageGroupHelper.GerLanguage(LanguageGroup.CSharp));
-            Assert.AreSame(Language.VBNET, LanguageGroupHelper.GerLanguage(LanguageGroup.VB));
-            Assert.AreSame(Language.Unknown, LanguageGroupHelper.GerLanguage(LanguageGroup.Unknown));
+            Assert.AreSame(Language.CSharp, LanguageGroupHelper.GetLanguage(LanguageGroup.CSharp));
+            Assert.AreSame(Language.VBNET, LanguageGroupHelper.GetLanguage(LanguageGroup.VB));
+            Assert.AreSame(Language.Unknown, LanguageGroupHelper.GetLanguage(LanguageGroup.Unknown));
 
             using (new AssertIgnoreScope())
             {
-                Exceptions.Expect<InvalidOperationException>(()=>LanguageGroupHelper.GerLanguage((LanguageGroup)int.MinValue));
+                Exceptions.Expect<InvalidOperationException>(()=>LanguageGroupHelper.GetLanguage((LanguageGroup)int.MinValue));
             }
         }
 

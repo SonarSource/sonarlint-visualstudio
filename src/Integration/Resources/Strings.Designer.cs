@@ -865,7 +865,16 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One or more rule sets are out of date or not linked to the SonarQube quality profile rule set. See output window (SonarLint) for affected projects..
+        ///   Looks up a localized string similar to SonarLint can now tell you when the quality profile in SonarQube profject is updated. Press Update to enable this feature now..
+        /// </summary>
+        public static string SonarLintInfoBarOldBindingFile {
+            get {
+                return ResourceManager.GetString("SonarLintInfoBarOldBindingFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: One or more rule sets are out of date or not linked to the SonarQube quality profile rule set (see General Output for affected projects).
         /// </summary>
         public static string SonarLintInfoBarUnboundProjectsMessage {
             get {

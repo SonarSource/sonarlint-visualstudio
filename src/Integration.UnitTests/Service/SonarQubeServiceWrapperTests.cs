@@ -345,7 +345,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
                 // Setup test server
-                RegisterQualityProfileChangeLogValidatorValidator(testSubject);
+                RegisterQualityProfileChangeLogValidator(testSubject);
 
                 RequestHandler getProfileHandler = testSubject.RegisterRequestHandler(
                     SonarQubeServiceWrapper.CreateQualityProfileUrl(language, project),
@@ -384,7 +384,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
                 // Setup test server
-                RegisterQualityProfileChangeLogValidatorValidator(testSubject);
+                RegisterQualityProfileChangeLogValidator(testSubject);
 
                 RequestHandler getProfileHandler = testSubject.RegisterRequestHandler(
                     SonarQubeServiceWrapper.CreateQualityProfileUrl(language, project),
@@ -749,7 +749,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             });
         }
 
-        private static void RegisterQualityProfileChangeLogValidatorValidator(TestableSonarQubeServiceWrapper testSubject)
+        private static void RegisterQualityProfileChangeLogValidator(TestableSonarQubeServiceWrapper testSubject)
         {
             testSubject.RegisterQueryValidator(SonarQubeServiceWrapper.QualityProfileChangeLogAPI, request =>
             {

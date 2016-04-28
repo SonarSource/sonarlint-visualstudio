@@ -640,4 +640,8 @@ This is the general format to use when writing errors to output window or when t
     <value>SonarLint: The solution has changed and now requires additional Quality Profiles to be included. Update is required.</value>
     <comment>Ouput window message</comment>
   </data>
+  <data name="SonarLintInfoBarOldBindingFile" xml:space="preserve">
+    <value>SonarLint can now tell you when the quality profile in SonarQube profject is updated. Press Update to enable this feature now.</value>
+    <comment>Info bar message</comment>
+  </data>
 </root>
