@@ -436,7 +436,7 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="DownloadingServerSettingsProgessMessage" xml:space="preserve">
     <value>Downloading server settings.</value>
-    <comment>Binding progress message about preparing further binding steps</comment>
+    <comment>Progress message about downloading server settings</comment>
   </data>
   <data name="NoProjectsApplicableForBinding" xml:space="preserve">
     <value>No projects in the current solution are applicable to the selected SonarQube project's quality profile.</value>
