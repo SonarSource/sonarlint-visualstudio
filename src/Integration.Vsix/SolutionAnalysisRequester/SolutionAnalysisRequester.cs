@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             Debug.Assert(option != null, "RuntimeOptions is not found");
             Debug.Assert(option.Name == OptionNameFullSolutionAnalysis, OptionNameFullSolutionAnalysis + " option name changed to " + option.Name);
-            Debug.Assert(option.Name == OptionFeatureRuntime, OptionFeatureRuntime + " option feature changed to " + option.Feature);
+            Debug.Assert(option.Feature == OptionFeatureRuntime, OptionFeatureRuntime + " option feature changed to " + option.Feature);
 
             return option;
         }
