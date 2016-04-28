@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Progress
             {
                 previousProgressDetail = e.ProgressDetailText;
                 string format = string.IsNullOrWhiteSpace(this.MessageFormat) ? "{0}" : this.MessageFormat;
-                VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, format, e.ProgressDetailText);
+                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, format, e.ProgressDetailText);
             }
         }
 

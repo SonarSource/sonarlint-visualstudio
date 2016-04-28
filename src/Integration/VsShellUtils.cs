@@ -10,6 +10,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,10 +21,17 @@ namespace SonarLint.VisualStudio.Integration
 {
     public static class VsShellUtils
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+            "S2223:Non-constant static fields should not be visible",
+            Justification = "Internal for testing purposes. Cannot make const. Cannot make readonly as is being passed by ref.",
+            Scope = "member",
+            Target = "~F:SonarLint.VisualStudio.Integration.VsShellUtils.SonarLintOutputPaneGuid")]
+        internal static Guid SonarLintOutputPaneGuid = new Guid("EB476B82-D73A-44A6-AFEF-830F7BBA73DB");
+
         /// <summary>
-        /// Writes a message to the general output pane. Will append a new line after the message.
+        /// Writes a message to the SonarLint output pane. Will append a new line after the message.
         /// </summary>
-        public static void WriteToGeneralOutputPane(IServiceProvider serviceProvider, String messageFormat, params object[] args)
+        public static void WriteToSonarLintOutputPane(IServiceProvider serviceProvider, string messageFormat, params object[] args)
         {
             if (serviceProvider == null)
             {
@@ -35,11 +43,10 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(messageFormat));
             }
 
-            IVsOutputWindowPane generalPanel = serviceProvider.GetService(typeof(SVsGeneralOutputWindowPane)) as IVsOutputWindowPane;
-            if (generalPanel != null)
+            IVsOutputWindowPane sonarLintPane = GetOrCreateSonarLintOutputPane(serviceProvider);
+            if (sonarLintPane != null)
             {
-                int hr = generalPanel.OutputStringThreadSafe(Environment.NewLine + string.Format(CultureInfo.CurrentCulture, messageFormat, args: args));
-                Debug.Assert(ErrorHandler.Succeeded(hr), "Failed in OutputStringThreadSafe: " + hr.ToString());
+                WriteLineToPane(sonarLintPane, messageFormat, args);
             }
         }
 
@@ -118,5 +125,42 @@ namespace SonarLint.VisualStudio.Integration
             // True if user clicked Yes, false otherwise (No/Cancel/Esc/Close dialog)
             return hr != VSConstants.E_ABORT && ErrorHandler.ThrowOnFailure(hr) == VSConstants.S_OK;
         }
+
+
+        #region Output pane helpers
+
+        public static IVsOutputWindowPane GetOrCreateSonarLintOutputPane(IServiceProvider serviceProvider)
+        {
+            IVsOutputWindow outputWindow = serviceProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
+            if (outputWindow == null)
+            {
+                Debug.Fail("Could not get IVsOutputWindow");
+                return null;
+            }
+
+            const bool makeVisible = true;
+            const bool clearWithSolution = true;
+
+            IVsOutputWindowPane pane;
+            int hrCreatePane = outputWindow.CreatePane(
+                ref SonarLintOutputPaneGuid,
+                Strings.SonarLintOutputPaneTitle,
+                Convert.ToInt32(makeVisible),
+                Convert.ToInt32(clearWithSolution));
+            Debug.Assert(ErrorHandler.Succeeded(hrCreatePane), "Failed in outputWindow.CreatePane: " + hrCreatePane.ToString());
+                
+            int hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
+            Debug.Assert(ErrorHandler.Succeeded(hrGetPane), "Failed in outputWindow.GetPane: " + hrGetPane.ToString());
+
+            return pane;
+        }
+
+        private static void WriteLineToPane(IVsOutputWindowPane pane, string messageFormat, params object[] args)
+        {
+            int hr = pane.OutputStringThreadSafe(string.Format(CultureInfo.CurrentCulture, messageFormat, args: args) + Environment.NewLine);
+            Debug.Assert(ErrorHandler.Succeeded(hr), "Failed in OutputStringThreadSafe: " + hr.ToString());
+        }
+
+        #endregion
     }
 }

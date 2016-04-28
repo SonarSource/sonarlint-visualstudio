@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         [Conditional("DEBUG")]
         private void DebugOnly_MonitorProgress(IProgressEvents progress)
         {
-            progress.RunOnFinished(r => VsShellUtils.WriteToGeneralOutputPane(this.host, "DEBUGONLY: Connect workflow finished, Execution result: {0}", r));
+            progress.RunOnFinished(r => VsShellUtils.WriteToSonarLintOutputPane(this.host, "DEBUGONLY: Connect workflow finished, Execution result: {0}", r));
         }
 
         private ProgressStepDefinition[] CreateConnectionSteps(IProgressController controller, ConnectionInformation connection)
@@ -118,11 +118,10 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 AbortWorkflow(controller, cancellationToken);
                 return;
             }
-
+            
             this.OnProjectsChanged(connection, projects);
             notifications.ProgressChanged(Strings.ConnectionResultSuccess, double.NaN);
         }
-
 
         internal /*for testing purposes*/ void DownloadServiceParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
         {
@@ -132,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var timeout = TimeSpan.FromSeconds(1);
             var defaultRegex = new Regex(ServerProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
 
-            notifications.ProgressChanged(Strings.PreparingBindingWorkflowProgessMessage, double.NaN);
+            notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage, double.NaN);
 
             ServerProperty[] properties;
             if (!this.host.SonarQubeService.TryGetProperties(this.ConnectedServer, token, out properties) || token.IsCancellationRequested)
@@ -159,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 }
                 catch (ArgumentException)
                 {
-                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
                 }
             }
 

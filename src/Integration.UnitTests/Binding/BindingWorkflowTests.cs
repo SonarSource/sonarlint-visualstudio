@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
-        private ConfigurableVsGeneralOutputWindowPane outputWindowPane;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
 
         public TestContext TestContext { get; set; }
@@ -40,8 +40,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
+
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
 

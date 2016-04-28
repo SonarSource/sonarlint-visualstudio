@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private RuleSetInspector testSubject;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsShell shell;
-        private ConfigurableVsGeneralOutputWindowPane outputPane;
+        private ConfigurableVsOutputWindowPane outputPane;
         private TempFileCollection temporaryFiles;
 
         #region Test plumbing
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.serviceProvider = new ConfigurableServiceProvider();
 
-            this.outputPane = new ConfigurableVsGeneralOutputWindowPane();
+            this.outputPane = new ConfigurableVsOutputWindowPane();
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
 
             this.shell = new ConfigurableVsShell();

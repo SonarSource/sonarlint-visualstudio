@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableProjectSystemFilter projectFilter;
-        private ConfigurableVsGeneralOutputWindowPane outputPane;
+        private ConfigurableVsOutputWindowPane outputPane;
         private ProjectMock solutionItemsProject;
         private SolutionMock solutionMock;
         private ConfigurableSourceControlledFileSystem sccFileSystem;
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.dte = new DTEMock();
             this.serviceProvider = new ConfigurableServiceProvider();
             this.solutionMock = new SolutionMock(dte, Path.Combine(SolutionRoot, "xxx.sln"));
-            this.outputPane = new ConfigurableVsGeneralOutputWindowPane();
+            this.outputPane = new ConfigurableVsOutputWindowPane();
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.projectFilter = new ConfigurableProjectSystemFilter();

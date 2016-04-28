@@ -9,7 +9,6 @@ using EnvDTE;
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -52,7 +51,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.conflictsController = new ConfigurableRuleSetConflictsController();
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), new ConfigurableVsGeneralOutputWindowPane());
             
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = sonarQubeService;

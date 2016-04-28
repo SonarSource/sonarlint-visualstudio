@@ -9,6 +9,7 @@ using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -92,6 +93,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.IsFalse(VsShellUtils.SaveSolution(serviceProvider, silent: false));
+        }
+
+        [TestMethod]
+        public void VsShellUtils_GetOrCreateSonarLintOutputPane()
+        {
+            // Setup
+            var outputWindow = new ConfigurableVsOutputWindow();
+
+            var serviceProvider = new ConfigurableServiceProvider();
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+
+            // Act
+            IVsOutputWindowPane pane = VsShellUtils.GetOrCreateSonarLintOutputPane(serviceProvider);
+
+            // Verify
+            outputWindow.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
+            Assert.IsNotNull(pane);
+
+            var sonarLintPane = pane as ConfigurableVsOutputWindowPane;
+            if (sonarLintPane == null)
+            {
+                Assert.Inconclusive($"Expected returned pane to be of type {nameof(ConfigurableVsOutputWindowPane)}");
+            }
+
+            Assert.IsTrue(sonarLintPane.IsActivated, "Expected pane to be activated");
+            Assert.AreEqual(Strings.SonarLintOutputPaneTitle, sonarLintPane.Name, "Unexpected pane name.");
         }
     }
 }

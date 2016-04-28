@@ -32,8 +32,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             ConfigurableServiceProvider sp = CreateServiceProvider();
-            var outputPane = new ConfigurableVsGeneralOutputWindowPane();
-            sp.RegisterService(typeof(SVsGeneralOutputWindowPane), outputPane);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            var outputPane = outputWindow.GetOrCreateSonarLintPane();
+            sp.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             // Case 1: No MEF service
             // Act + Verify

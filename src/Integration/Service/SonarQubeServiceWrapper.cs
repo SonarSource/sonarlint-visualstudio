@@ -327,12 +327,12 @@ namespace SonarLint.VisualStudio.Integration.Service
                     // For some errors we will get an inner exception which will have a more specific information
                     // that we would like to show i.e.when the host could not be resolved
                     System.Net.WebException innerException = e.InnerException as System.Net.WebException;
-                    VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
                 }
                 catch (TaskCanceledException)
                 {
                     // Cancelled or timeout
-                    VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.SonarQubeRequestTimeoutOrCancelled);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.SonarQubeRequestTimeoutOrCancelled);
                 }
                 catch (Exception ex)
                 {
@@ -341,7 +341,7 @@ namespace SonarLint.VisualStudio.Integration.Service
                         throw;
                     }
 
-                    VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.SonarQubeRequestFailed, ex.Message, null);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.SonarQubeRequestFailed, ex.Message, null);
                 }
                 
                 return result;

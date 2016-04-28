@@ -7,11 +7,11 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {
@@ -21,8 +21,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void SonarAnalyzerManager_ArgChecks()
         {
+            // Setup
+            var serviceProvider = new ConfigurableServiceProvider();
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), new ConfigurableVsOutputWindow());
+
+            // Act + Verify
             Exceptions.Expect<ArgumentNullException>(() => new SonarAnalyzerManager(null));
-            Exceptions.Expect<ArgumentNullException>(() => new SonarAnalyzerManager(new ServiceContainer(), null));
+            Exceptions.Expect<ArgumentNullException>(() => new SonarAnalyzerManager(serviceProvider, null));
         }
 
         [TestMethod]

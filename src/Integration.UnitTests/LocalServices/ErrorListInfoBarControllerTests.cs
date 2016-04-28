@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableTeamExplorerController teamExplorerController;
         private ConfigurableInfoBarManager infoBarManager;
         private ConfigurableSolutionBindingInformationProvider solutionBindingInformationProvider;
-        private ConfigurableVsGeneralOutputWindowPane outputWindow;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableSolutionBindingSerializer solutionBindingSerializer;
         private ConfigurableStateManager stateManager;
 
@@ -55,8 +55,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionBindingInformationProvider = new ConfigurableSolutionBindingInformationProvider();
             this.serviceProvider.RegisterService(typeof(ISolutionBindingInformationProvider), this.solutionBindingInformationProvider);
 
-            this.outputWindow = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindow);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.solutionBindingSerializer = new ConfigurableSolutionBindingSerializer();
             this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBindingSerializer), this.solutionBindingSerializer);
@@ -88,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Verify
-            this.outputWindow.AssertOutputStrings(2);
+            this.outputWindowPane.AssertOutputStrings(2);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
 
@@ -107,8 +108,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Verify
-            this.outputWindow.AssertOutputStrings(2);
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "unbound.csproj" }, splitter: "\r\n\t ()".ToArray());
+            this.outputWindowPane.AssertOutputStrings(2);
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "unbound.csproj" }, splitter: "\r\n\t ()".ToArray());
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
         }
@@ -128,15 +129,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Verify
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
 
             // Act (simulate solution fully loaded event)
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
 
             // Verify
-            this.outputWindow.AssertOutputStrings(2);
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "unbound.csproj" }, splitter: "\r\n\t ()".ToArray());
+            this.outputWindowPane.AssertOutputStrings(2);
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "unbound.csproj" }, splitter: "\r\n\t ()".ToArray());
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
         }
@@ -155,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Verify
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
 
@@ -174,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Verify
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
 
@@ -261,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindow.Reset();
+            this.outputWindowPane.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -276,7 +277,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
-            this.outputWindow.AssertOutputStrings(1);
+            this.outputWindowPane.AssertOutputStrings(1);
         }
 
         [TestMethod]
@@ -307,7 +308,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.IsActiveSolutionBound = true;
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindow.Reset();
+            this.outputWindowPane.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -331,7 +332,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.AreEqual(0, disconnectCalled, "Not expected to disconnect");
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             infoBar.VerifyAllEventsUnregistered();
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -357,7 +358,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }, connection => false);
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindow.Reset();
+            this.outputWindowPane.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -369,7 +370,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             Assert.AreEqual(0, refreshCalled, "Expected to connect once");
             Assert.AreEqual(0, bindingCalled, "Not expected to bind yet");
-            this.outputWindow.AssertOutputStrings(1);
+            this.outputWindowPane.AssertOutputStrings(1);
             infoBar.VerifyAllEventsRegistered();
             this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
@@ -402,7 +403,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             project = this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindow.Reset();
+            this.outputWindowPane.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -414,7 +415,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(1);
             Assert.AreEqual(0, bindExecuted, "Update was not expected to be executed");
-            this.outputWindow.AssertOutputStrings(1);
+            this.outputWindowPane.AssertOutputStrings(1);
 
             // Act (command enabled)
             canExecute = true;
@@ -425,7 +426,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.AreEqual(1, bindExecuted, "Update was expected to be executed");
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             infoBar.VerifyAllEventsUnregistered();
-            this.outputWindow.AssertOutputStrings(1);
+            this.outputWindowPane.AssertOutputStrings(1);
         }
 
         [TestMethod]
@@ -669,7 +670,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindow.Reset();
+            this.outputWindowPane.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -681,7 +682,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             infoBar.VerifyAllEventsUnregistered();
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(0);
         }
 
@@ -698,7 +699,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindow.Reset();
+            this.outputWindowPane.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -710,7 +711,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             infoBar.VerifyAllEventsUnregistered();
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(0);
         }
 

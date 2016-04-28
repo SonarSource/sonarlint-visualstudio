@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableFileSystem fileSystem;
         private ConfigurableSolutionBindingSerializer solutionBinding;
         private ConfigurableRuleSetInspector inspector;
-        private ConfigurableVsGeneralOutputWindowPane outputWindow;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
         private DTEMock dte;
 
         public TestContext TestContext { get; set; }
@@ -53,8 +53,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.inspector = new ConfigurableRuleSetInspector();
             this.serviceProvider.RegisterService(typeof(IRuleSetInspector), this.inspector);
 
-            this.outputWindow = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindow);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.dte = new DTEMock();
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since solution is not bound");
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -91,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since there are no projects");
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -104,8 +105,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since the solution baseline is missing");
-            this.outputWindow.AssertOutputStrings(1);
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(0,
+            this.outputWindowPane.AssertOutputStrings(1);
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0,
                 words: new[] { Constants.SonarQubeManagedFolderName },
                 splitter: new[] { Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar });
         }
@@ -121,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since there are no project rulesets specified");
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -143,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since there are no conflicts");
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
             Assert.IsTrue(findConflictsWasCalled);
         }
 
@@ -171,9 +172,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             Assert.AreEqual(0, conflicts, "Expect 0 conflicts since failed each time");
-            this.outputWindow.AssertOutputStrings(2);
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(0, new[] { "Hello", "world1" });
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "Hello", "world2" });
+            this.outputWindowPane.AssertOutputStrings(2);
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0, new[] { "Hello", "world1" });
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "Hello", "world2" });
             Assert.AreEqual(2, findConflictCalls);
         }
 
@@ -195,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.AreEqual(3, testSubject.GetCurrentConflicts().Count, "Expect 3 conflicts (1st call is not a conflict)");
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
             Assert.AreEqual(4, findConflictCalls);
         }
 
@@ -219,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.AreEqual(6, testSubject.GetCurrentConflicts().Count, "Expecting 6 conflicts (3 projects x 2 configuration)");
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -242,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Verify
             Assert.AreEqual(3, testSubject.GetCurrentConflicts().Count, "Expecting 3 conflicts (1 per project) since the ruleset declaration for project configuration are the same");
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
         }
 
         #region Helpers

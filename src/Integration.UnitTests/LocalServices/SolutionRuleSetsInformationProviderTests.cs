@@ -20,7 +20,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private DTEMock dte;
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsGeneralOutputWindowPane outputPane;
+        private ConfigurableVsOutputWindowPane outputPane;
         private SolutionMock solutionMock;
         private ProjectMock projectMock;
         private const string SolutionRoot = @"c:\solution";
@@ -32,8 +32,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider = new ConfigurableServiceProvider();
             this.solutionMock = new SolutionMock(dte, Path.Combine(SolutionRoot, "xxx.sln"));
             this.projectMock = this.solutionMock.AddOrGetProject(Path.Combine(SolutionRoot, @"Project\project.proj"));
-            this.outputPane = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
+
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
         }
 
         #region Tests

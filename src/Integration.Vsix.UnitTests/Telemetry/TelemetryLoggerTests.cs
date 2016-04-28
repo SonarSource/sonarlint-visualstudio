@@ -20,7 +20,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
 
         private ConfigurableServiceProvider serviceProvider;
         private DTEMock dte;
-        private ConfigurableVsGeneralOutputWindowPane outputPane;
+        private ConfigurableVsOutputWindowPane outputPane;
         private TelemetryLogger testSubject;
 
         [TestInitialize]
@@ -31,8 +31,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             this.dte = new DTEMock();
             this.serviceProvider.RegisterService(typeof(EnvDTE.DTE), this.dte);
 
-            this.outputPane = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.testSubject = new TelemetryLogger(this.serviceProvider);
         }

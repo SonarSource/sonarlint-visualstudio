@@ -15,7 +15,6 @@ using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -32,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableHost host;
         private ConfigurableIntegrationSettings settings;
         private ConfigurableProjectSystemFilter filter;
-        private ConfigurableVsGeneralOutputWindowPane outputWindowPane;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
 
         [TestInitialize]
         public void TestInit()
@@ -53,8 +52,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.filter = new ConfigurableProjectSystemFilter();
             this.serviceProvider.RegisterService(typeof(IProjectSystemFilter), this.filter);
 
-            this.outputWindowPane = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindowPane);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
         }
 
         #region Tests
@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
         }
 
         [TestMethod]
@@ -217,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
         }
 
         [TestMethod]
@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Verify
             filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
             this.outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.InvalidTestProjectRegexPattern, badExpression));
         }
 
@@ -262,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.DownloadServiceParameters(controller, cts.Token, progressEvents);
 
             // Verify
-            progressEvents.AssertProgressMessages(Strings.PreparingBindingWorkflowProgessMessage);
+            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
             controller.AssertNumberOfAbortRequests(1);
         }
         #endregion

@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private ConfigurableHost host;
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsGeneralOutputWindowPane outputWindow;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableRuleSetInspector ruleSetInspector;
         private ConfigurableSourceControlledFileSystem sccFS;
         private ConfigurableRuleSetSerializer rsSerializer;
@@ -33,8 +33,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInit()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.outputWindow = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindow);
+
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
 
             this.ruleSetInspector = null;
@@ -92,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify 
             Assert.IsFalse(result, "Not expecting any conflicts");
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
 
             // Case 2: Has conflicts, no active section
             ProjectRuleSetConflict conflict = conflictsMananger.AddConflict();
@@ -102,8 +105,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify 
             Assert.IsTrue(result, "Conflicts expected");
-            this.outputWindow.AssertOutputStrings(1);
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(0, new[] { conflict.Conflict.MissingRules.Single().FullId });
+            this.outputWindowPane.AssertOutputStrings(1);
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0, new[] { conflict.Conflict.MissingRules.Single().FullId });
 
             // Case 3: Has conflicts, has active section
             var section = ConfigurableSectionController.CreateDefault();
@@ -115,8 +118,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify 
             Assert.IsTrue(result, "Conflicts expected");
             ((ConfigurableUserNotification)section.UserNotifications).AssertNotification(NotificationIds.RuleSetConflictsId);
-            this.outputWindow.AssertOutputStrings(2);
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(1, new[] { conflict.Conflict.MissingRules.Single().FullId });
+            this.outputWindowPane.AssertOutputStrings(2);
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { conflict.Conflict.MissingRules.Single().FullId });
         }
 
         [TestMethod]
@@ -183,8 +186,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             this.sccFS.AssertFileExists(fixedRuleSet.FilePath);
             this.rsSerializer.AssertRuleSetsAreSame(fixedRuleSet.FilePath, fixedRuleSet);
-            this.outputWindow.AssertOutputStrings(1);
-            this.outputWindow.AssertMessageContainsAllWordsCaseSensitive(0, 
+            this.outputWindowPane.AssertOutputStrings(1);
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0, 
                 words: new[] { fixedRuleSet.FilePath, "deletedRuleId1", "reset.ruleset" },
                 splitter:new[] {'\n', '\r', '\t', '\'', ':' });
             notifications.AssertNoNotification(NotificationIds.RuleSetConflictsId);

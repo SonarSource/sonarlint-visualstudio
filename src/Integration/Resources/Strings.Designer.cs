@@ -296,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot connect to the SonarQube server. Make sure you provided the correct connection information, including your sign-in credentials, and [try again](). 
-        ///See more information in the output window..
+        ///See more information in the output window (SonarLint)..
         /// </summary>
         public static string ConnectionFailed {
             get {
@@ -404,6 +404,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading server settings..
+        /// </summary>
+        public static string DownloadingServerSettingsProgessMessage {
+            get {
+                return ResourceManager.GetString("DownloadingServerSettingsProgessMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Installing NuGet package {0} for project: {1}.
         /// </summary>
         public static string EnsuringNugetPackagesProgressMessage {
@@ -468,7 +477,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to Failed to bind the solution to SonarQube project, [try again](). 
-        ///See more information in the output window..
+        ///See more information in the output window (SonarLint)..
         /// </summary>
         public static string FailedToToBindSolution {
             get {
@@ -639,15 +648,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Preparing binding steps.
-        /// </summary>
-        public static string PreparingBindingWorkflowProgessMessage {
-            get {
-                return ResourceManager.GetString("PreparingBindingWorkflowProgessMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarSource and Microsoft.
         /// </summary>
         public static string ProductAuthors {
@@ -720,7 +720,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The applied ruleset is weakening the SonarQube quality profile in one or more projects. See output window (General) for more details. [Click here]() to fix automatically..
+        ///   Looks up a localized string similar to The applied ruleset is weakening the SonarQube quality profile in one or more projects. See output window (SonarLint) for more details. [Click here]() to fix automatically..
         /// </summary>
         public static string RuleSetConflictsDetected {
             get {
@@ -838,7 +838,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Checking for unbound projects..
+        ///   Looks up a localized string similar to Checking for unbound projects..
         /// </summary>
         public static string SonarLintCheckingForUnboundProjects {
             get {
@@ -847,7 +847,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Failed to attach info bar to error list tool window..
+        ///   Looks up a localized string similar to Failed to attach info bar to error list tool window..
         /// </summary>
         public static string SonarLintFailedToAttachInfoBarToErrorList {
             get {
@@ -856,7 +856,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: {0} unbound projects were found ({1})..
+        ///   Looks up a localized string similar to {0} unbound projects were found ({1})..
         /// </summary>
         public static string SonarLintFoundUnboundProjects {
             get {
@@ -865,7 +865,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: One or more rule sets are out of date or not linked to the SonarQube quality profile rule set (see General Output for affected projects).
+        ///   Looks up a localized string similar to One or more rule sets are out of date or not linked to the SonarQube quality profile rule set. See output window (SonarLint) for affected projects..
         /// </summary>
         public static string SonarLintInfoBarUnboundProjectsMessage {
             get {
@@ -874,7 +874,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: The current solution is not bound to the expected SonarQube project, aborting..
+        ///   Looks up a localized string similar to The current solution is not bound to the expected SonarQube project, aborting..
         /// </summary>
         public static string SonarLintInfoBarUpdateCommandInvalidSolutionBindings {
             get {
@@ -883,7 +883,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Could not update the binding because the command is not currently available. Please try again and ensure that the solution is not building or currently being debugged..
+        ///   Looks up a localized string similar to Could not update the binding because the command is not currently available. Please try again and ensure that the solution is not building or currently being debugged..
         /// </summary>
         public static string SonarLintInfoBarUpdateCommandIsBusyRetry {
             get {
@@ -910,11 +910,20 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: No unbound projects were found..
+        ///   Looks up a localized string similar to No unbound projects were found..
         /// </summary>
         public static string SonarLintNoUnboundProjectWereFound {
             get {
                 return ResourceManager.GetString("SonarLintNoUnboundProjectWereFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint.
+        /// </summary>
+        public static string SonarLintOutputPaneTitle {
+            get {
+                return ResourceManager.GetString("SonarLintOutputPaneTitle", resourceCulture);
             }
         }
         
