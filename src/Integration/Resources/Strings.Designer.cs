@@ -865,7 +865,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint can now tell you when the quality profile in SonarQube profject is updated. Press Update to enable this feature now..
+        ///   Looks up a localized string similar to SonarLint can now tell you when the quality profile in SonarQube project is updated. Press Update to enable this feature now..
         /// </summary>
         public static string SonarLintInfoBarOldBindingFile {
             get {
