@@ -50,28 +50,6 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        /// <summary>
-        /// Writes a message to the general output pane. Will append a new line after the message.
-        /// </summary>
-        public static void WriteToGeneralOutputPane(IServiceProvider serviceProvider, string messageFormat, params object[] args)
-        {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (messageFormat == null)
-            {
-                throw new ArgumentNullException(nameof(messageFormat));
-            }
-
-            IVsOutputWindowPane generalPane = serviceProvider.GetService(typeof(SVsGeneralOutputWindowPane)) as IVsOutputWindowPane;
-            if (generalPane != null)
-            {
-                WriteLineToPane(generalPane, messageFormat, args);
-            }
-        }
-
         public static bool IsSolutionExistsAndNotBuildingAndNotDebugging()
         {
             Debug.Assert(KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext != null, "KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebugging is null");
@@ -179,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private static void WriteLineToPane(IVsOutputWindowPane pane, string messageFormat, params object[] args)
         {
-            int hr = pane.OutputStringThreadSafe(Environment.NewLine + string.Format(CultureInfo.CurrentCulture, messageFormat, args: args));
+            int hr = pane.OutputStringThreadSafe(string.Format(CultureInfo.CurrentCulture, messageFormat, args: args) + Environment.NewLine);
             Debug.Assert(ErrorHandler.Succeeded(hr), "Failed in OutputStringThreadSafe: " + hr.ToString());
         }
 

@@ -16,7 +16,6 @@ using EnvDTE;
 using System;
 using System.Globalization;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -30,20 +29,22 @@ namespace SonarLint.VisualStudio.Integration
     {
         #region Fields
         private static readonly Guid CommandSetIdentifier = new Guid("{DB0701CC-1E44-41F7-97D6-29B160A70BCB}");
+        private static IServiceProvider serviceProvider;
         private static DTE dte;
-        private static IVsOutputWindowPane outputPane;
         #endregion
 
         /// <summary>
         /// Initialize the SQM facade.
         /// </summary>
         /// <remarks>This method can be called multiple times, but any calls after the first successful call will be no-ops.</remarks>
-        public static void Initialize(IServiceProvider serviceProvider)
+        public static void Initialize(IServiceProvider provider)
         {
-            if (serviceProvider == null)
+            if (provider == null)
             {
-                throw new ArgumentNullException("serviceProvider");
+                throw new ArgumentNullException(nameof(provider));
             }
+            
+            serviceProvider = provider;
 
             DEBUG_SetSqmInitialized();
 
@@ -51,8 +52,6 @@ namespace SonarLint.VisualStudio.Integration
             {
                 dte = serviceProvider.GetService(typeof(DTE)) as DTE;
             }
-
-            DEBUG_InitializeOutputPane(serviceProvider);
         }
 
         /// <summary>
@@ -243,32 +242,18 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         [System.Diagnostics.Conditional("DEBUG")]
-        private static void DEBUG_InitializeOutputPane(IServiceProvider serviceProvider)
-        {
-            if (outputPane == null)
-            {
-                outputPane = VsShellUtils.GetOrCreateSonarLintOutputPane(serviceProvider);
-            }
-
-        }
-
-        [System.Diagnostics.Conditional("DEBUG")]
         private static void DEBUG_Reset()
         {
             initialized = false;
-            outputPane = null;
         }
 
         /// <summary>
         /// Log to output window to enable manual verification of the sequence of SQM commands that are fired.
         /// </summary>
         [System.Diagnostics.Conditional("DEBUG")]
-        private static void DEBUG_LogSqmCommandsToOutputWindow(string messageFormat)
+        private static void DEBUG_LogSqmCommandsToOutputWindow(string command)
         {
-            if (outputPane != null)
-            {
-                outputPane.OutputStringThreadSafe(string.Format(CultureInfo.CurrentCulture, "[DEBUG SonarLintSqmFacade] " + messageFormat) + Environment.NewLine);
-            }
+            VsShellUtils.WriteToSonarLintOutputPane(serviceProvider, "[DEBUG SonarLintSqmFacade] {0}", command);
         }
 
         #endregion

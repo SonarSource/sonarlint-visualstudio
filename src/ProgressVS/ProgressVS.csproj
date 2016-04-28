@@ -59,7 +59,6 @@
     <Compile Include="ProgressController\DefaultProgressStepFactory.cs" />
     <Compile Include="ProgressController\ErrorNotification\VsActivityLogNotifier.cs" />
     <Compile Include="ProgressController\ErrorNotification\VsOutputWindowPaneNotifier.cs" />
-    <Compile Include="ProgressController\ErrorNotification\VsGeneralOutputWindowNotifier.cs" />
     <Compile Include="ProgressController\ErrorNotification\VsMessageBoxNotifier.cs" />
     <Compile Include="ProgressController\ProgressControllerStep.cs" />
     <Compile Include="ProgressController\ProgressControllerStep.IProgressStep.cs" />

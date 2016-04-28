@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertOutputStrings(params string[] orderedOutputMessages)
         {
-            string[] expected = orderedOutputMessages.Select(o => Environment.NewLine + o).ToArray(); // All messages are prefixed by a newline
+            string[] expected = orderedOutputMessages.Select(o => o + Environment.NewLine).ToArray(); // All messages are postfixed by a newline
             CollectionAssert.AreEqual(expected, this.outputStrings.ToArray(), "Unexpected messages: '{0}'", string.Join(", ", this.outputStrings));
         }
 

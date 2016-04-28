@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
         private readonly IVsOutputWindowPane pane;
         private readonly bool ensureOutputVisible;
         private readonly string messageFormat;
-        private readonly bool logWholeMessage;
+        private readonly bool logFullException;
 
         /// <summary>
         /// Constructor for <see cref="VsOutputWindowPaneNotifier"/>
@@ -33,8 +33,8 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
         /// <param name="pane">The <seealso cref="IVsOutputWindowPane"/> to use</param>
         /// <param name="ensureOutputVisible">Whether to shown and activate the output window</param>
         /// <param name="messageFormat">Required. Expected to have only one placeholder</param>
-        /// <param name="logWholeMessage">Whether to shown the exception message or the whole exception</param>
-        public VsOutputWindowPaneNotifier(IServiceProvider serviceProvider, IVsOutputWindowPane pane, bool ensureOutputVisible, string messageFormat, bool logWholeMessage)
+        /// <param name="logFullException">Whether to shown the exception message or the whole exception</param>
+        public VsOutputWindowPaneNotifier(IServiceProvider serviceProvider, IVsOutputWindowPane pane, bool ensureOutputVisible, string messageFormat, bool logFullException)
         {
             if (serviceProvider == null)
             {
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
             this.pane = pane;
             this.ensureOutputVisible = ensureOutputVisible;
             this.messageFormat = messageFormat;
-            this.logWholeMessage = logWholeMessage;
+            this.logFullException = logFullException;
         }
 
         void IProgressErrorNotifier.Notify(Exception ex)
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
 
             VsThreadingHelper.RunInline(this.serviceProvider, VsTaskRunContext.UIThreadNormalPriority, () =>
             {
-                int hr = this.pane.OutputStringThreadSafe(ProgressControllerHelper.FormatErrorMessage(ex, this.messageFormat, this.logWholeMessage) + Environment.NewLine);
+                int hr = this.pane.OutputStringThreadSafe(ProgressControllerHelper.FormatErrorMessage(ex, this.messageFormat, this.logFullException) + Environment.NewLine);
 
                 if (this.ensureOutputVisible && ErrorHandler.Succeeded(hr) && ErrorHandler.Succeeded(pane.Activate()))
                 {

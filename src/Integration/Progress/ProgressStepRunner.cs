@@ -64,12 +64,14 @@ namespace SonarLint.VisualStudio.Integration.Progress
             bool logFullMessage;
 #if DEBUG
             logFullMessage = true;
+#else
+            logFullMessage = false;
 #endif
             var notifier = new VsOutputWindowPaneNotifier(sp,
                 sonarLintPane,
                 ensureOutputVisible: true,
                 messageFormat: Strings.UnexpectedWorkflowError,
-                logWholeMessage: logFullMessage);
+                logFullException: logFullMessage);
             controller.ErrorNotificationManager.AddNotifier(notifier);
 
             Observe(controller, host);

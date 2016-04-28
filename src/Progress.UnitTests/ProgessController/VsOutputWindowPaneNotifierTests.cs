@@ -20,35 +20,25 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     public class VsOutputWindowPaneNotifierTests
     {
         private ConfigurableServiceProvider serviceProvider;
-        private StubVsUIShell uiSHell;
-        private VsOutputWindowPaneNotifier testSubject;
-        private StubVsOutputWindowPane outputWindowPane;
-        private Exception generatedException;
+        private Exception expectedException;
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
         public void TestInitialize()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.uiSHell = new StubVsUIShell();
-            this.outputWindowPane = new StubVsOutputWindowPane();
             this.serviceProvider.RegisterService(typeof(SVsTaskSchedulerService), new SingleThreadedTaskSchedulerService());
-            this.serviceProvider.RegisterService(typeof(SVsUIShell), this.uiSHell);
-        }
 
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            this.outputWindowPane = null;
-            this.uiSHell = null;
-            this.serviceProvider = null;
-            this.testSubject = null;
+            this.expectedException = new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
         }
+        
         #endregion
 
         #region Tests
+
         [TestMethod]
         [Description("Arg check tests")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
@@ -58,20 +48,24 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             Target = "~M:SonarLint.VisualStudio.Progress.UnitTests.VsOutputWindowPaneNotifierTests.VsGeneralOutputWindowNotifier_Args")]
         public void VsOutputWindowPaneNotifier_Args()
         {
-            // 1st Argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(null, this.outputWindowPane, true, "{0}", false));
+            // Setup
+            var outputWindowPane = this.CreateOutputPane(true);
 
-            // 2nd Argument invalid
+            // Act + Verify
+            // Test case: 1st argument invalid
+            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(null, outputWindowPane, true, "{0}", false));
+
+            // Test case: 2nd argument invalid
             Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, null, true, "{0}", false));
 
-            // 4th Argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, this.outputWindowPane, false, null, false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, this.outputWindowPane, false, string.Empty, false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, this.outputWindowPane, false, " \t", false));
+            // Test case: 4th argument invalid
+            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, null, false));
+            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, string.Empty, false));
+            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, " \t", false));
 
-            // Valid
-            new VsOutputWindowPaneNotifier(this.serviceProvider, this.outputWindowPane, true, "{0}", false);
-            new VsOutputWindowPaneNotifier(this.serviceProvider, this.outputWindowPane, false, "{0}", true);
+            // Test case: All valid
+            new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, true, "{0}", false);
+            new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, "{0}", true);
         }
 
         [TestMethod]
@@ -79,16 +73,21 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         public void VsOutputWindowPaneNotifier_MessageOnly()
         {
             // Setup
-            bool logWholeMessage = true;
-            StubVsUIShell.StubWindowFrame frame = this.Setup(false, logWholeMessage);
+            bool logFullException = true;
+            bool ensureOutputVisible = false;
+
+            StubVsOutputWindowPane outputPane = this.CreateOutputPane(logFullException);
+            StubVsUIShell.StubWindowFrame frame = this.CreateAndRegisterFrame();
+
+            IProgressErrorNotifier testSubject = this.CreateTestSubject(outputPane, ensureOutputVisible, logFullException);
 
             // Execute
-            ((IProgressErrorNotifier)this.testSubject).Notify(this.generatedException);
+            testSubject.Notify(this.expectedException);
 
             // Verify
             frame.AssertNotShown();
-            this.outputWindowPane.AssertNotActivated();
-            this.outputWindowPane.AssertWrittenToOutputWindow();
+            outputPane.AssertNotActivated();
+            outputPane.AssertWrittenToOutputWindow();
         }
 
         [TestMethod]
@@ -96,16 +95,21 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         public void VsOutputWindowPaneNotifier_FullException()
         {
             // Setup
-            bool logWholeMessage = true;
-            StubVsUIShell.StubWindowFrame frame = this.Setup(false, logWholeMessage);
+            bool logFullException = true;
+            bool ensureOutputVisible = false;
+
+            StubVsOutputWindowPane outputPane = this.CreateOutputPane(logFullException);
+            StubVsUIShell.StubWindowFrame frame = this.CreateAndRegisterFrame();
+
+            IProgressErrorNotifier testSubject = this.CreateTestSubject(outputPane, ensureOutputVisible, logFullException);
 
             // Execute
-            ((IProgressErrorNotifier)this.testSubject).Notify(this.generatedException);
+            testSubject.Notify(this.expectedException);
 
             // Verify
             frame.AssertNotShown();
-            this.outputWindowPane.AssertNotActivated();
-            this.outputWindowPane.AssertWrittenToOutputWindow();
+            outputPane.AssertNotActivated();
+            outputPane.AssertWrittenToOutputWindow();
         }
 
         [TestMethod]
@@ -113,43 +117,66 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         public void VsOutputWindowPaneNotifier_EnsureOutputVisible()
         {
             // Setup
-            bool logWholeMessage = true;
-            StubVsUIShell.StubWindowFrame frame = this.Setup(true, logWholeMessage);
+            bool logFullException = true;
+            bool ensureOutputVisible = true;
+
+            StubVsOutputWindowPane outputPane = this.CreateOutputPane(logFullException);
+            StubVsUIShell.StubWindowFrame frame = this.CreateAndRegisterFrame();
+
+            IProgressErrorNotifier testSubject = this.CreateTestSubject(outputPane, ensureOutputVisible, logFullException);
 
             // Execute
-            ((IProgressErrorNotifier)this.testSubject).Notify(this.generatedException);
+            testSubject.Notify(this.expectedException);
 
             // Verify
             frame.AssertShown();
-            this.outputWindowPane.AssertActivated();
-            this.outputWindowPane.AssertWrittenToOutputWindow();
+            outputPane.AssertActivated();
+            outputPane.AssertWrittenToOutputWindow();
         }
         #endregion
 
         #region Helpers
-        
-        private StubVsUIShell.StubWindowFrame Setup(bool ensureOutputVisible, bool logWholeMessage)
+
+        private string CreateTestMessageFormat()
         {
-            string format = this.TestContext.TestName + "{0}";
-            this.testSubject = new VsOutputWindowPaneNotifier(this.serviceProvider, this.outputWindowPane, ensureOutputVisible, format, logWholeMessage);
-            Exception ex = this.GenerateException();
-            StubVsUIShell.StubWindowFrame frame = new StubVsUIShell.StubWindowFrame();
-            this.outputWindowPane.OutputStringThreadSafeAction = (actualMessage) =>
+            return this.TestContext.TestName + "{0}";
+        }
+
+        private VsOutputWindowPaneNotifier CreateTestSubject(IVsOutputWindowPane pane, bool ensureOutputVisible, bool logFullException)
+        {
+            return new VsOutputWindowPaneNotifier(this.serviceProvider, pane, ensureOutputVisible, this.CreateTestMessageFormat(), logFullException);
+        }
+
+        private StubVsUIShell.StubWindowFrame CreateAndRegisterFrame()
+        {
+            var frame = new StubVsUIShell.StubWindowFrame();
+
+            var uiShell = new StubVsUIShell
             {
-                MessageVerificationHelper.VerifyNotificationMessage(actualMessage, format + Environment.NewLine, ex, logWholeMessage);
+                FindToolWindowAction = (windowSlotGuid) =>
+                {
+                    Assert.AreEqual(VSConstants.StandardToolWindows.Output, windowSlotGuid, "Unexpected window slot guid");
+                    return frame;
+                }
             };
-            this.uiSHell.FindToolWindowAction = (windowSlotGuid) =>
-            {
-                Assert.AreEqual(VSConstants.StandardToolWindows.Output, windowSlotGuid, "Unexpected window slot guid");
-                return frame;
-            };
+
+            this.serviceProvider.RegisterService(typeof(SVsUIShell), uiShell);
+
             return frame;
         }
 
-        private Exception GenerateException()
+        private StubVsOutputWindowPane CreateOutputPane(bool logFullException)
         {
-            return this.generatedException = new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
+            return new StubVsOutputWindowPane
+            {
+                OutputStringThreadSafeAction = (actualMessage) =>
+                {
+                    string expectedFormat = this.CreateTestMessageFormat() + Environment.NewLine;
+                    MessageVerificationHelper.VerifyNotificationMessage(actualMessage, expectedFormat, this.expectedException, logFullException);
+                }
+            };
         }
+
         #endregion
     }
 }
