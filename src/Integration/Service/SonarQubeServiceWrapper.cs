@@ -310,7 +310,7 @@ namespace SonarLint.VisualStudio.Integration.Service
             }
             else
             {
-                VsShellUtils.WriteToGeneralOutputPane(this.serviceProvider, Strings.SonarQubeOptionalServiceFailed, QualityProfileChangeLogAPI, (int)response.StatusCode);
+                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.SonarQubeOptionalServiceFailed, QualityProfileChangeLogAPI, (int)response.StatusCode);
                 return null;
             }
         }

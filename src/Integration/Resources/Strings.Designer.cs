@@ -874,7 +874,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: One or more rule sets are out of date or not linked to the SonarQube quality profile rule set (see General Output for affected projects).
+        ///   Looks up a localized string similar to One or more rule sets are out of date or not linked to the SonarQube quality profile rule set. See output window (SonarLint) for affected projects..
         /// </summary>
         public static string SonarLintInfoBarUnboundProjectsMessage {
             get {
@@ -937,7 +937,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Checking if SonarQube Quality profile has changed..
+        ///   Looks up a localized string similar to Checking if SonarQube Quality profile has changed..
         /// </summary>
         public static string SonarLintProfileCheck {
             get {
@@ -946,7 +946,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: The SonarQube project is using a different Quality Profile. Update is required..
+        ///   Looks up a localized string similar to The SonarQube project is using a different Quality Profile. Update is required..
         /// </summary>
         public static string SonarLintProfileCheckDifferentProfile {
             get {
@@ -955,7 +955,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Unexpected failure getting quality profile information. Automatic quality profile update will not be performed..
+        ///   Looks up a localized string similar to Unexpected failure getting quality profile information. Automatic quality profile update will not be performed..
         /// </summary>
         public static string SonarLintProfileCheckFailed {
             get {
@@ -964,7 +964,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: The binding information is out of date. Update is required..
+        ///   Looks up a localized string similar to The binding information is out of date. Update is required..
         /// </summary>
         public static string SonarLintProfileCheckNoProfiles {
             get {
@@ -973,7 +973,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: The Quality Profile for the SonarQube project has changed. Update is required..
+        ///   Looks up a localized string similar to The Quality Profile for the SonarQube project has changed. Update is required..
         /// </summary>
         public static string SonarLintProfileCheckProfileUpdated {
             get {
@@ -982,7 +982,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Quality Profile is up-to-date..
+        ///   Looks up a localized string similar to Quality Profile is up-to-date..
         /// </summary>
         public static string SonarLintProfileCheckQualityProfileIsUpToDate {
             get {
@@ -991,7 +991,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: The solution has changed and now requires additional Quality Profiles to be included. Update is required..
+        ///   Looks up a localized string similar to The solution has changed and now requires additional Quality Profiles to be included. Update is required..
         /// </summary>
         public static string SonarLintProfileCheckSolutionRequiresMoreProfiles {
             get {

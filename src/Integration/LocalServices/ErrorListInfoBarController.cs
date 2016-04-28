@@ -563,12 +563,12 @@ namespace SonarLint.VisualStudio.Integration
                 if (binding.Profiles == null || binding.Profiles.Count == 0)
                 {
                     // Old binding, force refresh immediately
-                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SonarLintProfileCheckNoProfiles);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckNoProfiles);
                     updateAction(Strings.SonarLintInfoBarOldBindingFile);
                     return;
                 }
 
-                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SonarLintProfileCheck);
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheck);
 
                 CancellationToken token = this.TokenSource.Token;
                 this.BackgroundTask = System.Threading.Tasks.Task.Run(() =>
@@ -593,15 +593,15 @@ namespace SonarLint.VisualStudio.Integration
 
                 ConnectionInformation connection = binding.CreateConnectionInformation();
                 Dictionary<LanguageGroup, QualityProfile> newProfiles;
-                if (!this.TryGetNewProfiles(binding, projectLanguageGroups, token, connection, out newProfiles))
+                if (!this.TryGetLatestProfiles(binding, projectLanguageGroups, token, connection, out newProfiles))
                 {
-                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SonarLintProfileCheckFailed);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckFailed);
                     return false; // Error, can't proceed
                 }
 
                 if (!newProfiles.Keys.All(binding.Profiles.ContainsKey))
                 {
-                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SonarLintProfileCheckSolutionRequiresMoreProfiles);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckSolutionRequiresMoreProfiles);
                     return true; // Missing profile, refresh
                 }
 
@@ -623,7 +623,7 @@ namespace SonarLint.VisualStudio.Integration
                     }
                 }
 
-                VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SonarLintProfileCheckQualityProfileIsUpToDate);
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckQualityProfileIsUpToDate);
                 return false; // Up-to-date
             }
 
@@ -631,20 +631,20 @@ namespace SonarLint.VisualStudio.Integration
             {
                 if (!QualityProfile.KeyComparer.Equals(oldProfileInfo.ProfileKey, newProfileInfo.Key))
                 {
-                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SonarLintProfileCheckDifferentProfile);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckDifferentProfile);
                     return true; // The profile change to a different one
                 }
 
                 if (oldProfileInfo.ProfileTimestamp != newProfileInfo.QualityProfileTimestamp)
                 {
-                    VsShellUtils.WriteToGeneralOutputPane(this.host, Strings.SonarLintProfileCheckProfileUpdated);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckProfileUpdated);
                     return true; // The profile was updated
                 }
 
                 return false;
             }
 
-            private bool TryGetNewProfiles(BoundSonarQubeProject binding, IEnumerable<LanguageGroup> projectLanguageGroups, CancellationToken token, ConnectionInformation connection, out Dictionary<LanguageGroup, QualityProfile> newProfiles)
+            private bool TryGetLatestProfiles(BoundSonarQubeProject binding, IEnumerable<LanguageGroup> projectLanguageGroups, CancellationToken token, ConnectionInformation connection, out Dictionary<LanguageGroup, QualityProfile> newProfiles)
             {
                 newProfiles = new Dictionary<LanguageGroup, QualityProfile>();
                 foreach (LanguageGroup group in projectLanguageGroups)

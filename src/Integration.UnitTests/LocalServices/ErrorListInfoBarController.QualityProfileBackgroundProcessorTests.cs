@@ -22,7 +22,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableHost host;
         private ConfigurableVsProjectSystemHelper projectSystem;
-        private ConfigurableVsGeneralOutputWindowPane outputWindow;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableSolutionBindingSerializer bindingSerializer;
 
         [TestInitialize]
@@ -34,8 +34,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
 
-            this.outputWindow = new ConfigurableVsGeneralOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputWindow);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.bindingSerializer = new ConfigurableSolutionBindingSerializer();
             this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBindingSerializer), this.bindingSerializer);
@@ -89,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
 
             // Verify
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -103,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
 
             // Verify
-            this.outputWindow.AssertOutputStrings(0);
+            this.outputWindowPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -124,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             Assert.AreEqual(1, called, "Expected the update action to be called");
-            this.outputWindow.AssertOutputStrings(Strings.SonarLintProfileCheckNoProfiles);
+            this.outputWindowPane.AssertOutputStrings(Strings.SonarLintProfileCheckNoProfiles);
         }
 
         [TestMethod]
@@ -319,7 +320,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.AreEqual(0, called, "Not expected to call the update action");
             }
 
-            this.outputWindow.AssertOutputStrings(expectedOutput);
+            this.outputWindowPane.AssertOutputStrings(expectedOutput);
         }
 
         private ErrorListInfoBarController.QualityProfileBackgroundProcessor GetTestSubject()
