@@ -7,6 +7,7 @@
 
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
@@ -37,6 +38,8 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public Uri ServerUri { get; set; }
 
         public string ProjectKey { get; set; }
+
+        public Dictionary<LanguageGroup, ApplicableQualityProfile> Profiles { get; set; }
 
         [JsonIgnore]
         public ICredentials Credentials { get; set; }

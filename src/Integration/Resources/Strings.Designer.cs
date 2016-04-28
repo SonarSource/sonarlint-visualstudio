@@ -865,6 +865,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarLint can now tell you when the quality profile in SonarQube profject is updated. Press Update to enable this feature now..
+        /// </summary>
+        public static string SonarLintInfoBarOldBindingFile {
+            get {
+                return ResourceManager.GetString("SonarLintInfoBarOldBindingFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to One or more rule sets are out of date or not linked to the SonarQube quality profile rule set. See output window (SonarLint) for affected projects..
         /// </summary>
         public static string SonarLintInfoBarUnboundProjectsMessage {
@@ -928,6 +937,69 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Checking if SonarQube Quality profile has changed..
+        /// </summary>
+        public static string SonarLintProfileCheck {
+            get {
+                return ResourceManager.GetString("SonarLintProfileCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The SonarQube project is using a different Quality Profile. Update is required..
+        /// </summary>
+        public static string SonarLintProfileCheckDifferentProfile {
+            get {
+                return ResourceManager.GetString("SonarLintProfileCheckDifferentProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected failure getting quality profile information. Automatic quality profile update will not be performed..
+        /// </summary>
+        public static string SonarLintProfileCheckFailed {
+            get {
+                return ResourceManager.GetString("SonarLintProfileCheckFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The binding information is out of date. Update is required..
+        /// </summary>
+        public static string SonarLintProfileCheckNoProfiles {
+            get {
+                return ResourceManager.GetString("SonarLintProfileCheckNoProfiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Quality Profile for the SonarQube project has changed. Update is required..
+        /// </summary>
+        public static string SonarLintProfileCheckProfileUpdated {
+            get {
+                return ResourceManager.GetString("SonarLintProfileCheckProfileUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Quality Profile is up-to-date..
+        /// </summary>
+        public static string SonarLintProfileCheckQualityProfileIsUpToDate {
+            get {
+                return ResourceManager.GetString("SonarLintProfileCheckQualityProfileIsUpToDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The solution has changed and now requires additional Quality Profiles to be included. Update is required..
+        /// </summary>
+        public static string SonarLintProfileCheckSolutionRequiresMoreProfiles {
+            get {
+                return ResourceManager.GetString("SonarLintProfileCheckSolutionRequiresMoreProfiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube is an open source platform to manage code quality. Connect your solution to an existing SonarQube Server to get the same issues in Visual Studio and in your SonarQube server..
         /// </summary>
         public static string SonarQubeDescription {
@@ -942,6 +1014,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string SonarQubeName {
             get {
                 return ResourceManager.GetString("SonarQubeName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning failed calling &apos;{0}&apos; (http error code={1}). Some of the functionality will be reduced..
+        /// </summary>
+        public static string SonarQubeOptionalServiceFailed {
+            get {
+                return ResourceManager.GetString("SonarQubeOptionalServiceFailed", resourceCulture);
             }
         }
         

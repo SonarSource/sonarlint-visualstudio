@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -99,6 +100,46 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.AreEqual(creds.UserName, newCreds.UserName);
             Assert.AreEqual(creds.Password.ConvertToUnsecureString(), newCreds.Password.ConvertToUnsecureString());
             Assert.AreEqual(written.ServerUri, read.ServerUri);
+            this.outputPane.AssertOutputStrings(0);
+        }
+
+        [TestMethod]
+        public void SolutionBindingSerializer_WriteSolutionBinding_ReadSolutionBinding_WithProfiles()
+        {
+            // Setup
+            SolutionBindingSerializer testSubject = this.CreateTestSubject();
+            var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
+            var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
+            var projectKey = "MyProject Key";
+            var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
+            written.Profiles = new Dictionary<LanguageGroup, ApplicableQualityProfile>();
+            written.Profiles[LanguageGroup.VB] = new ApplicableQualityProfile { ProfileKey = "VB" };
+            written.Profiles[LanguageGroup.CSharp] = new ApplicableQualityProfile { ProfileKey = "CS", ProfileTimestamp = DateTime.Now };
+
+            // Act (write)
+            string output = testSubject.WriteSolutionBinding(written);
+            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
+            Assert.IsNotNull(output, "Expected a real file");
+            this.TestContext.AddResultFile(output);
+            Assert.IsTrue(File.Exists(output), "Expected a real file");
+
+            // Verify
+            this.store.AssertHasCredentials(serverUri);
+
+            // Act (read)
+            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
+
+            // Verify
+            var newCreds = read.Credentials as BasicAuthCredentials;
+            Assert.AreNotEqual(creds, newCreds, "Different credential instance were expected");
+            Assert.AreEqual(creds.UserName, newCreds.UserName);
+            Assert.AreEqual(creds.Password.ConvertToUnsecureString(), newCreds.Password.ConvertToUnsecureString());
+            Assert.AreEqual(written.ServerUri, read.ServerUri);
+            Assert.AreEqual(2, read.Profiles?.Count ?? 0);
+            Assert.AreEqual(written.Profiles[LanguageGroup.VB].ProfileKey, read.Profiles[LanguageGroup.VB].ProfileKey);
+            Assert.AreEqual(written.Profiles[LanguageGroup.VB].ProfileTimestamp, read.Profiles[LanguageGroup.VB].ProfileTimestamp);
+            Assert.AreEqual(written.Profiles[LanguageGroup.CSharp].ProfileKey, read.Profiles[LanguageGroup.CSharp].ProfileKey);
+            Assert.AreEqual(written.Profiles[LanguageGroup.CSharp].ProfileTimestamp, read.Profiles[LanguageGroup.CSharp].ProfileTimestamp);
             this.outputPane.AssertOutputStrings(0);
         }
 

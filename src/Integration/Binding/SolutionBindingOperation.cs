@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -26,7 +27,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
-        private readonly Dictionary<RuleSetGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<RuleSetGroup, RuleSetInformation>();
+        private readonly Dictionary<LanguageGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<LanguageGroup, RuleSetInformation>();
+        private Dictionary<LanguageGroup, QualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string sonarQubeProjectKey;
 
@@ -70,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             private set;
         }
 
-        internal /*for testing purposes*/ IReadOnlyDictionary<RuleSetGroup, RuleSetInformation> RuleSetsInformationMap
+        internal /*for testing purposes*/ IReadOnlyDictionary<LanguageGroup, RuleSetInformation> RuleSetsInformationMap
         {
             get { return this.ruleSetsInformationMap; }
         }
@@ -78,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region ISolutionRuleStore
 
-        public void RegisterKnownRuleSets(IDictionary<RuleSetGroup, RuleSet> ruleSets)
+        public void RegisterKnownRuleSets(IDictionary<LanguageGroup, RuleSet> ruleSets)
         {
             if (ruleSets == null)
             {
@@ -97,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        public string GetRuleSetFilePath(RuleSetGroup group)
+        public string GetRuleSetFilePath(LanguageGroup group)
         {
             RuleSetInformation info;
 
@@ -114,14 +116,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Public API
-        public void Initialize(IEnumerable<Project> projects)
+        public void Initialize(IEnumerable<Project> projects, IDictionary<LanguageGroup, QualityProfile> profilesMap)
         {
             if (projects == null)
             {
                 throw new ArgumentNullException(nameof(projects));
             }
 
+            if (profilesMap == null)
+            {
+                throw new ArgumentNullException(nameof(profilesMap));
+            }
+
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
+
+            this.qualityProfileMap = new Dictionary<LanguageGroup, QualityProfile>(profilesMap);
 
             foreach (Project project in projects)
             {
@@ -205,11 +214,28 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         private void PendBindingInformation(ConnectionInformation connInfo)
         {
+            Debug.Assert(this.qualityProfileMap != null, "Initialize was expected to be called first");
+
             var binding = this.serviceProvider.GetService<ISolutionBindingSerializer>();
             binding.AssertLocalServiceIsNotNull();
 
             BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
-            binding.WriteSolutionBinding(new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials));
+
+            Dictionary<LanguageGroup, ApplicableQualityProfile> map = new Dictionary<LanguageGroup, ApplicableQualityProfile>();
+
+            foreach(var keyValue in this.qualityProfileMap)
+            {
+                map[keyValue.Key] = new ApplicableQualityProfile
+                {
+                    ProfileKey = keyValue.Value.Key,
+                    ProfileTimestamp = keyValue.Value.QualityProfileTimestamp
+                };
+            }
+
+            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials);
+            bound.Profiles = map;
+
+            binding.WriteSolutionBinding(bound);
         }
 
         private void AddFileToSolutionItems(string fullFilePath)
@@ -236,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         internal class RuleSetInformation
         {
-            public RuleSetInformation(RuleSetGroup group, RuleSet ruleSet)
+            public RuleSetInformation(LanguageGroup group, RuleSet ruleSet)
             {
                 if (ruleSet == null)
                 {

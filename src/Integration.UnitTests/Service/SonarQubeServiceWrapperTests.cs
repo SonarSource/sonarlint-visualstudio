@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Act
                 ProjectInformation[] projects = null;
-                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should timout");
+                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should timeout");
 
                 // Verify
                 this.outputWindowPane.AssertOutputStrings(1);
@@ -305,6 +305,113 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void SonarQubeServiceWrapper_TryGetQualityProfile_ArgChecks()
+        {
+            // Setup
+            var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
+            QualityProfile profile;
+            var validConnection = new ConnectionInformation(new Uri("http://valid"));
+            var validProject = new ProjectInformation();
+            string validLanguage = Language.CSharp.ServerKey;
+
+            // Act + Verify
+            Exceptions.Expect<ArgumentNullException>(()=>testSubject.TryGetQualityProfile(null, validProject, validLanguage, CancellationToken.None, out profile));
+            Exceptions.Expect<ArgumentNullException>(()=>testSubject.TryGetQualityProfile(validConnection, null, validLanguage, CancellationToken.None, out profile));
+            Exceptions.Expect<ArgumentOutOfRangeException>(()=>testSubject.TryGetQualityProfile(validConnection, validProject, null, CancellationToken.None, out profile));
+            Exceptions.Expect<ArgumentOutOfRangeException>(()=>testSubject.TryGetQualityProfile(validConnection, validProject, "Binary", CancellationToken.None, out profile));
+
+            this.outputWindowPane.AssertOutputStrings(0);
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_TryGetQualityProfile_FullFunctionality()
+        {
+            using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
+            {
+                // Setup
+                string language = SonarQubeServiceWrapper.CSharpLanguage;
+                var profile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
+                var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
+                var changeLog = new QualityProfileChangeLog
+                {
+                    Page = 1,
+                    PageSize = 1,
+                    Total = 1,
+                    Events = new QualityProfileChangeLogEvent[] 
+                    {
+                        new QualityProfileChangeLogEvent { Date = DateTime.Now }
+                    }
+                };
+                ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
+
+                // Setup test server
+                RegisterQualityProfileChangeLogValidator(testSubject);
+
+                RequestHandler getProfileHandler = testSubject.RegisterRequestHandler(
+                    SonarQubeServiceWrapper.CreateQualityProfileUrl(language, project),
+                    ctx => ServiceQualityProfiles(ctx, new[] { profile })
+                );
+                RequestHandler changeLogHandler = testSubject.RegisterRequestHandler(
+                    SonarQubeServiceWrapper.CreateQualityProfileChangeLogUrl(profile),
+                    ctx => ServiceChangeLog(ctx, changeLog)
+                );
+
+                // Act
+                QualityProfile actualProfile;
+                Assert.IsTrue(testSubject.TryGetQualityProfile(conn, project, language, CancellationToken.None, out actualProfile), "TryGetExportProfile failed unexpectedly");
+
+                // Verify
+                Assert.IsNotNull(actualProfile, "Expected a profile to be returned");
+                Assert.AreEqual(profile.Key, actualProfile.Key);
+                Assert.AreEqual(profile.Name, actualProfile.Name);
+                Assert.AreEqual(changeLog.Events[0].Date, actualProfile.QualityProfileTimestamp);
+
+                getProfileHandler.AssertHandlerCalled(1);
+                changeLogHandler.AssertHandlerCalled(1);
+                this.outputWindowPane.AssertOutputStrings(0);
+            }
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_TryGetQualityProfile_ReducedFunctionality()
+        {
+            using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
+            {
+                // Setup
+                string language = SonarQubeServiceWrapper.CSharpLanguage;
+                var profile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
+                var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
+                ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
+
+                // Setup test server
+                RegisterQualityProfileChangeLogValidator(testSubject);
+
+                RequestHandler getProfileHandler = testSubject.RegisterRequestHandler(
+                    SonarQubeServiceWrapper.CreateQualityProfileUrl(language, project),
+                    ctx => ServiceQualityProfiles(ctx, new[] { profile })
+                );
+                RequestHandler changeLogHandler = testSubject.RegisterRequestHandler(
+                    SonarQubeServiceWrapper.CreateQualityProfileChangeLogUrl(profile),
+                    ctx => ServiceChangeLog(ctx, null, simulateFault: true)
+                );
+
+                // Act
+                QualityProfile actualProfile;
+                Assert.IsTrue(testSubject.TryGetQualityProfile(conn, project, language, CancellationToken.None, out actualProfile), "TryGetExportProfile failed unexpectedly");
+
+                // Verify
+                Assert.IsNotNull(actualProfile, "Expected a profile to be returned");
+                Assert.AreEqual(profile.Key, actualProfile.Key);
+                Assert.AreEqual(profile.Name, actualProfile.Name);
+                Assert.IsNull(actualProfile.QualityProfileTimestamp);
+
+                getProfileHandler.AssertHandlerCalled(1);
+                changeLogHandler.AssertHandlerCalled(1);
+                this.outputWindowPane.AssertOutputStrings(1);
+            }
+        }
+
+        [TestMethod]
         public void SonarQubeServiceWrapper_TryGetExportProfile()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
@@ -319,10 +426,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Setup test server
                 RegisterProfileExportQueryValidator(testSubject);
 
-                RequestHandler getProfileHandler = testSubject.RegisterRequestHandler(
-                    SonarQubeServiceWrapper.CreateQualityProfileUrl(language, project),
-                    ctx => ServiceQualityProfiles(ctx, new[] { profile })
-                );
                 RequestHandler getExportHandler = testSubject.RegisterRequestHandler(
                     SonarQubeServiceWrapper.CreateQualityProfileExportUrl(profile, language, SonarQubeServiceWrapper.RoslynExporter),
                     ctx => ServiceProfileExport(ctx, expectedExport)
@@ -330,12 +433,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Act
                 RoslynExportProfile actualExport;
-                Assert.IsTrue(testSubject.TryGetExportProfile(conn, project, language, CancellationToken.None, out actualExport), "TryGetExportProfile failed unexpectendly");
+                Assert.IsTrue(testSubject.TryGetExportProfile(conn, profile, language, CancellationToken.None, out actualExport), "TryGetExportProfile failed unexpectedly");
 
                 // Verify
                 Assert.IsNotNull(actualExport, "Expected a profile export to be returned");
                 RoslynExportProfileHelper.AssertAreEqual(expectedExport, actualExport);
-                getProfileHandler.AssertHandlerCalled(1);
                 getExportHandler.AssertHandlerCalled(1);
             }
         }
@@ -347,46 +449,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 RoslynExportProfile actualExport;
                 ConnectionInformation connection = new ConnectionInformation(new Uri("http://valid"));
-                ProjectInformation project = new ProjectInformation();
+                QualityProfile profile = new QualityProfile();
 
                 // No connection information
-                Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetExportProfile(null, project, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out actualExport));
+                Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetExportProfile(null, profile, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out actualExport));
 
                 // No project information
                 Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetExportProfile(connection, null, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out actualExport));
 
                 // Invalid language
-                Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.TryGetExportProfile(connection, project, "Pascal", CancellationToken.None, out actualExport));
+                Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.TryGetExportProfile(connection, profile, "Pascal", CancellationToken.None, out actualExport));
 
                 // Those are API usage issue which we don't report to the output pane
                 this.outputWindowPane.AssertOutputStrings(0);
-            }
-        }
-
-        [TestMethod]
-        public void SonarQubeServiceWrapper_TryGetExportProfile_ServiceErrors()
-        {
-            using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
-            {
-                // Setup 
-                testSubject.AllowAnonymous = true;
-                var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-                var project = new ProjectInformation { Key = "proj1" };
-                string csPath = SonarQubeServiceWrapper.CreateQualityProfileUrl(SonarQubeServiceWrapper.CSharpLanguage, project);
-                string vbPath = SonarQubeServiceWrapper.CreateQualityProfileUrl(SonarQubeServiceWrapper.VBLanguage, project);
-                testSubject.RegisterRequestHandler(csPath, new RequestHandler { ResponseStatusCode = HttpStatusCode.BadRequest });
-                testSubject.RegisterRequestHandler(vbPath, new RequestHandler { ResponseStatusCode = HttpStatusCode.BadRequest });
-
-                // Sanity
-                this.outputWindowPane.AssertOutputStrings(0);
-
-                // Act
-                RoslynExportProfile profile;
-                Assert.IsFalse(testSubject.TryGetExportProfile(connectionInfo, project, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out profile), "Bas request");
-
-                // Verify
-                this.outputWindowPane.AssertOutputStrings(1);
-                Assert.IsNull(profile, "Bad request");
             }
         }
 
@@ -402,7 +477,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var unexpectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
 
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
-                ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
+                ConfigureValidConnection(testSubject, new[] { project });
 
                 // Setup test server
                 RegisterQualityProfileQueryValidator(testSubject);
@@ -438,7 +513,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 string language = SonarQubeServiceWrapper.CSharpLanguage;
                 var expectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
-                ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
+                ConfigureValidConnection(testSubject, new[] { project });
 
                 // Setup test server
                 RegisterQualityProfileQueryValidator(testSubject);
@@ -674,6 +749,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             });
         }
 
+        private static void RegisterQualityProfileChangeLogValidator(TestableSonarQubeServiceWrapper testSubject)
+        {
+            testSubject.RegisterQueryValidator(SonarQubeServiceWrapper.QualityProfileChangeLogAPI, request =>
+            {
+                var queryMap = ParseQuery(request.Uri.Query);
+                Assert.AreEqual(2, queryMap.Count, "Unexpected query params.: {0}", string.Join(", ", queryMap.Keys));
+                Assert.IsNotNull(queryMap["profileKey"], "Missing query param: profileKey");
+                Assert.AreEqual("1", queryMap["ps"], "Expecting always page size 1");
+            });
+        }
+
         private static void SimulateServerFault(IOwinContext context)
         {
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
@@ -725,6 +811,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             else
             {
                 context.Response.Write(Serialize(serverProperties.ToArray()));
+            }
+        }
+
+        private static void ServiceChangeLog(IOwinContext context, QualityProfileChangeLog changeLog, bool simulateFault = false)
+        {
+            if (simulateFault)
+            {
+                SimulateServerFault(context);
+            }
+            else
+            {
+                context.Response.Write(Serialize(changeLog));
             }
         }
 

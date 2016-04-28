@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <param name="sonarQubeProjectKey">Required</param>
         /// <param name="ruleSetGroup">The logical group of RuleSets that the solution RuleSet is created for</param>
         /// <returns>Full file path. The file may not actually exist on disk</returns>
-        string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, RuleSetGroup ruleSetGroup);
+        string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, LanguageGroup ruleSetGroup);
 
         /// <summary>
         /// Will return a calculated file path to the expected project RuleSet 

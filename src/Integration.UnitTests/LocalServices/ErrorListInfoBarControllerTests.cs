@@ -81,8 +81,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution(hasUnboundProject: false);
+            // Set project system with no filtered project, to quickly stop SonarQubeQualityProfileBackgroundProcessor
+            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
 
             // Act
             testSubject.Refresh();
@@ -120,8 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
+            this.ConfigureLoadedSolution();
             SetSolutionExistsAndFullyLoadedContextState(isActive: false);
 
             // Act
@@ -148,8 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = false;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution(hasUnboundProject: false);
 
             // Act
             testSubject.Refresh();
@@ -166,8 +166,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution(hasUnboundProject: false);
 
             // Act
             testSubject.Refresh();
@@ -180,14 +179,47 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void ErrorListInfoBarController_CurrentBackgroundProcessorCancellation()
+        {
+            // Setup
+            this.IsActiveSolutionBound = true;
+            var testSubject = new ErrorListInfoBarController(this.host);
+            this.ConfigureLoadedSolution(hasUnboundProject: false);
+            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
+            var project = new ProjectMock("project.proj");
+            project.SetCSProjectKind();
+            projectSystem.FilteredProjects = new[] { project };
+            this.solutionBindingSerializer.CurrentBinding.Profiles = new System.Collections.Generic.Dictionary<LanguageGroup, Persistence.ApplicableQualityProfile>();
+            this.solutionBindingSerializer.CurrentBinding.Profiles[LanguageGroup.CSharp] = new Persistence.ApplicableQualityProfile { ProfileKey = "Profile", ProfileTimestamp = DateTime.Now };
+            var sqService = new ConfigurableSonarQubeServiceWrapper();
+            this.host.SonarQubeService = sqService;
+            sqService.ReturnProfile[Language.CSharp.ServerKey] = new QualityProfile();
+
+            // Act
+            testSubject.ProcessSolutionBinding();
+
+            // Verify
+            Assert.IsNotNull(testSubject.CurrentBackgroundProcessor?.BackgroundTask, "Background task is expected");
+            Assert.IsTrue(testSubject.CurrentBackgroundProcessor.BackgroundTask.Wait(TimeSpan.FromSeconds(2)), "Timeout waiting for the background task");
+            this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
+
+            // Act (refresh again and  let the blocked UI thread run to completion)
+            testSubject.ProcessSolutionBinding();
+            DispatcherHelper.DispatchFrame(DispatcherPriority.Normal);
+            this.IsActiveSolutionBound = false;
+
+            // Verify that no info bar was added (due to the last action in which the state will not cause the info bar to appear)
+            this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
+        }
+
+        [TestMethod]
         public void ErrorListInfoBarController_RefreshShowInfoBar_ClickClose_UnregisterEvents()
         {
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             testSubject.Refresh();
             RunAsyncAction();
 
@@ -209,9 +241,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             testSubject.Refresh();
             RunAsyncAction();
 
@@ -232,9 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             testSubject.Refresh();
             RunAsyncAction();
@@ -256,9 +284,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             testSubject.Refresh();
             RunAsyncAction();
@@ -285,9 +311,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             int bindingCalled = 0;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
             {
@@ -341,9 +365,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             int bindingCalled = 0;
             ProjectViewModel project = null;
             this.ConfigureActiveSectionWithBindCommand(vm =>
@@ -381,9 +403,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             int bindExecuted = 0;
             bool canExecute = false;
             ProjectViewModel project = null;
@@ -435,9 +455,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             int executed = 0;
             ProjectViewModel project = null;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
@@ -475,9 +493,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             int executed = 0;
             ProjectViewModel project = null;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
@@ -516,9 +532,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             int executed = 0;
             ProjectViewModel project = null;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
@@ -559,9 +573,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             int refreshCalled = 0;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithRefreshCommand(c =>
             {
@@ -618,9 +630,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             int bindCommandExecuted = 0;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm => { bindCommandExecuted++; });
             this.ConfigureProjectViewModel(section);
@@ -663,9 +673,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm => { });
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
@@ -692,9 +700,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             this.IsActiveSolutionBound = true;
             var testSubject = new ErrorListInfoBarController(this.host);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            this.ConfigureLoadedSolution();
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm => { });
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
@@ -792,9 +798,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             section.ViewModel.State.ConnectedServers.Clear();
-            var serverVM = new ServerViewModel(new Integration.Service.ConnectionInformation(serverUri));
+            var serverVM = new ServerViewModel(new ConnectionInformation(serverUri));
             section.ViewModel.State.ConnectedServers.Add(serverVM);
-            var projectVM = new ProjectViewModel(serverVM, new Integration.Service.ProjectInformation { Key = projectKey });
+            var projectVM = new ProjectViewModel(serverVM, new ProjectInformation { Key = projectKey });
             serverVM.Projects.Add(projectVM);
 
             return projectVM;
@@ -827,6 +833,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     return null;
                 }), frame);
             Dispatcher.PushFrame(frame);
+        }
+
+        private void ConfigureLoadedSolution(bool hasBoundProject = true, bool hasUnboundProject = true)
+        {
+            if (hasBoundProject)
+            {
+                this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
+            }
+
+            if (hasUnboundProject)
+            {
+                this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
+            }
+
+            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
         }
 
         private static void SetSolutionExistsAndFullyLoadedContextState(bool isActive)

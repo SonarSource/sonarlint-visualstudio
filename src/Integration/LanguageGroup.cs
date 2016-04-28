@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="RuleSetGroup.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="LanguageGroup.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -7,8 +7,9 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public enum RuleSetGroup
+    public enum LanguageGroup
     {
+        Unknown,
         CSharp,
         VB
     }

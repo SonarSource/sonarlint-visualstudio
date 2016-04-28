@@ -34,12 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystem;
         private readonly SolutionBindingOperation solutionBindingOperation;
 
-        internal readonly Dictionary<Language, RuleSetGroup> LanguageToGroupMapping = new Dictionary<Language, RuleSetGroup>
-        {
-            {Language.CSharp, RuleSetGroup.CSharp },
-            {Language.VBNET, RuleSetGroup.VB }
-        };        
-
         public BindingWorkflow(IHost host, ConnectionInformation connectionInformation, ProjectInformation project)
         {
             if (host == null)
@@ -76,20 +70,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new HashSet<Project>();
 
-        public Dictionary<RuleSetGroup, RuleSet> Rulesets
+        public Dictionary<LanguageGroup, RuleSet> Rulesets
         {
             get;
-        } = new Dictionary<RuleSetGroup, RuleSet>();
+        } = new Dictionary<LanguageGroup, RuleSet>();
 
         public List<NuGetPackageInfo> NuGetPackages
         {
             get;
         } = new List<NuGetPackageInfo>();
 
-        public Dictionary<RuleSetGroup, string> SolutionRulesetPaths
+        public Dictionary<LanguageGroup, string> SolutionRulesetPaths
         {
             get;
-        } = new Dictionary<RuleSetGroup, string>();
+        } = new Dictionary<LanguageGroup, string>();
+
+        public Dictionary<LanguageGroup, QualityProfile> QualityProfiles
+        {
+            get;
+        } = new Dictionary<LanguageGroup, QualityProfile>();
 
         internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
         {
@@ -207,8 +206,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             foreach (var language in languages)
             {
                 notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language.Name));
+
+                QualityProfile qualityProfileInfo;
+                if (!host.SonarQubeService.TryGetQualityProfile(this.connectionInformation, this.project, language.ServerKey, cancellationToken, out qualityProfileInfo))
+                {
+                    failed = true;
+                    break;
+                }
+                this.QualityProfiles[this.LanguageToGroup(language)] = qualityProfileInfo;
+
                 RoslynExportProfile export;
-                if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, this.project, language.ServerKey, cancellationToken, out export))
+                if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, qualityProfileInfo, language.ServerKey, cancellationToken, out export))
                 {
                     failed = true;
                     break;
@@ -253,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage, double.NaN);
 
             this.solutionBindingOperation.RegisterKnownRuleSets(this.Rulesets);
-            this.solutionBindingOperation.Initialize(this.BindingProjects);
+            this.solutionBindingOperation.Initialize(this.BindingProjects, this.QualityProfiles);
         }
 
         private void PrepareSolutionBinding(CancellationToken token)
@@ -331,10 +339,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region Helpers
 
-        private RuleSetGroup LanguageToGroup(Language language)
+        private LanguageGroup LanguageToGroup(Language language)
         {
-            RuleSetGroup group;
-            if (!this.LanguageToGroupMapping.TryGetValue(language, out group))
+            LanguageGroup group = LanguageGroupHelper.GetLanguageGroup(language);
+            if (group == LanguageGroup.Unknown)
             {
                 Debug.Fail("Unsupported language: " + language);
                 throw new InvalidOperationException();

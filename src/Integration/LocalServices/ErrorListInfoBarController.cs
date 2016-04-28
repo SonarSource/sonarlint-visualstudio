@@ -15,8 +15,10 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration
@@ -49,12 +51,16 @@ namespace SonarLint.VisualStudio.Integration
         public void Reset()
         {
             this.AssertOnUIThread();
+
             this.ClearCurrentInfoBar();
         }
 
         public void Refresh()
         {
             this.AssertOnUIThread();
+
+            // As soon as refresh is called, cancel the ongoing work
+            this.CancelQualityProfileProcessing();
 
             // TODO: part of SVS-72, need to call IProjectSystemFilter.SetTestRegex
             // and specify the regex that you get from IHost.SonarQubeService.GetProperties
@@ -73,6 +79,12 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region Non-public API
+        internal /*for testing purposes*/ QualityProfileBackgroundProcessor CurrentBackgroundProcessor
+        {
+            get;
+            private set;
+        }
+
         [Conditional("DEBUG")]
         private void AssertOnUIThread()
         {
@@ -98,6 +110,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private void ClearCurrentInfoBar()
         {
+            this.CancelQualityProfileProcessing();
+
             this.infoBarBinding = null;
             this.currentErrorWindowInfoBarHandlingClick = false;
             if (this.currentErrorWindowInfoBar == null)
@@ -118,7 +132,13 @@ namespace SonarLint.VisualStudio.Integration
             this.currentErrorWindowInfoBar = null;
         }
 
-        private void ProcessSolutionBinding()
+        private void CancelQualityProfileProcessing()
+        {
+            this.CurrentBackgroundProcessor?.Dispose();
+            this.CurrentBackgroundProcessor = null;
+        }
+
+        internal /*for testing purposes*/ void ProcessSolutionBinding()
         {
             // No need to do anything if by the time got here the solution was closed (or unbound)
             if (!this.IsActiveSolutionBound)
@@ -143,13 +163,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private void ProcessSolutionBindingCore()
         {
-            IInfoBarManager manager = this.host.GetMefService<IInfoBarManager>();
-            if (manager == null)
-            {
-                Debug.Fail("Cannot find IInfoBarManager");
-                return;
-            }
-
             this.OutputMessage(Strings.SonarLintCheckingForUnboundProjects);
 
             Project[] unboundProjects = this.bindingInformationProvider.GetUnboundProjects().ToArray();
@@ -157,35 +170,58 @@ namespace SonarLint.VisualStudio.Integration
             {
                 this.OutputMessage(Strings.SonarLintFoundUnboundProjects, unboundProjects.Length, String.Join(", ", unboundProjects.Select(p => p.UniqueName)));
 
-                this.currentErrorWindowInfoBar = manager.AttachInfoBar(
-                    ErrorListToolWindowGuid,
-                    Strings.SonarLintInfoBarUnboundProjectsMessage,
-                    Strings.SonarLintInfoBarUpdateCommandText,
-                    KnownMonikers.RuleWarning);
-
-                if (this.currentErrorWindowInfoBar == null)
-                {
-                    this.OutputMessage(Strings.SonarLintFailedToAttachInfoBarToErrorList);
-                    Debug.Fail("Failed to add an info bar to the error list tool window");
-                }
-                else
-                {
-                    TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.ErrorListInfoBarShow);
-
-                    this.currentErrorWindowInfoBar.Closed += this.CurrentErrorWindowInfoBar_Closed;
-                    this.currentErrorWindowInfoBar.ButtonClick += this.CurrentErrorWindowInfoBar_ButtonClick;
-
-                    // Need to capture the current binding information since the user can change the binding
-                    // and running the Update should just no-op in that case.
-                    var solutionBinding = this.host.GetService<ISolutionBindingSerializer>();
-                    solutionBinding.AssertLocalServiceIsNotNull();
-
-                    this.infoBarBinding = solutionBinding.ReadSolutionBinding();
-                }
+                this.UpdateRequired();
             }
             else
             {
                 this.OutputMessage(Strings.SonarLintNoUnboundProjectWereFound);
+
+                Debug.Assert(this.CurrentBackgroundProcessor == null);
+                this.CurrentBackgroundProcessor = new QualityProfileBackgroundProcessor(this.host);
+                this.CurrentBackgroundProcessor.QueueCheckIfUpdateIsRequired(this.UpdateRequired);
+            }
+        }
+
+        private enum UpdateMessage { OldBindingFile, General };
+
+        /// <summary>
+        /// Update
+        /// </summary>
+        /// <param name="customInfoBarMessage">Optional. If provided than this will be the message that will appear in info bar, otherwise a standard one will appear instead</param>
+        private void UpdateRequired(string customInfoBarMessage = null)
+        {
+            this.AssertOnUIThread();
+            IInfoBarManager manager = this.host.GetMefService<IInfoBarManager>();
+            if (manager == null)
+            {
+                Debug.Fail("Cannot find IInfoBarManager");
+                return;
+            }
+
+            this.currentErrorWindowInfoBar = manager.AttachInfoBar(
+                ErrorListToolWindowGuid,
+                customInfoBarMessage ?? Strings.SonarLintInfoBarUnboundProjectsMessage,
+                Strings.SonarLintInfoBarUpdateCommandText,
+                KnownMonikers.RuleWarning);
+
+            if (this.currentErrorWindowInfoBar == null)
+            {
+                this.OutputMessage(Strings.SonarLintFailedToAttachInfoBarToErrorList);
+                Debug.Fail("Failed to add an info bar to the error list tool window");
+            }
+            else
+            {
+                TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.ErrorListInfoBarShow);
+
+                this.currentErrorWindowInfoBar.Closed += this.CurrentErrorWindowInfoBar_Closed;
+                this.currentErrorWindowInfoBar.ButtonClick += this.CurrentErrorWindowInfoBar_ButtonClick;
+
+                // Need to capture the current binding information since the user can change the binding
+                // and running the Update should just no-op in that case.
+                var solutionBinding = this.host.GetService<ISolutionBindingSerializer>();
+                solutionBinding.AssertLocalServiceIsNotNull();
+
+                this.infoBarBinding = solutionBinding.ReadSolutionBinding();
             }
         }
 
@@ -461,6 +497,194 @@ namespace SonarLint.VisualStudio.Integration
                 ServerViewModel serverVM = this.State.ConnectedServers.SingleOrDefault(s => s.Url == serverUri);
                 return serverVM?.Projects.SingleOrDefault(p => ProjectInformation.KeyComparer.Equals(p.Key, projectKey));
             }
+        }
+
+        /// <summary>
+        /// The class is responsible for quality profile related checks in determining whether
+        /// to suggest the user to update his solution with the rule set.
+        /// </summary>
+        internal /*testing purposes*/ class QualityProfileBackgroundProcessor : IDisposable
+        {
+            private readonly IHost host;
+            private bool isDisposed;
+
+            public QualityProfileBackgroundProcessor(IHost host)
+            {
+                if (host == null)
+                {
+                    throw new ArgumentNullException(nameof(host));
+                }
+
+                this.host = host;
+                this.TokenSource = new CancellationTokenSource();
+            }
+
+            internal /*for testing purposes*/ CancellationTokenSource TokenSource
+            {
+                get;
+            }
+
+            internal /*for testing purpose*/ System.Threading.Tasks.Task BackgroundTask
+            {
+                get;
+                private set;
+            }
+
+            public void QueueCheckIfUpdateIsRequired(Action<string> updateAction)
+            {
+                if (updateAction == null)
+                {
+                    throw new ArgumentNullException(nameof(updateAction));
+                }
+
+                Debug.Assert(this.BackgroundTask == null, "Not expecting this method to be called more than once");
+
+                var projectSystem = this.host.GetService<IProjectSystemHelper>();
+                projectSystem.AssertLocalServiceIsNotNull();
+
+                IEnumerable<LanguageGroup> languages = projectSystem.GetFilteredSolutionProjects()
+                    .Select(p => LanguageGroupHelper.GetProjectGroup(p))
+                    .Distinct();
+
+                if(!languages.Any())
+                {
+                    return;
+                }
+
+                var solutionBinding = this.host.GetService<ISolutionBindingSerializer>();
+                solutionBinding.AssertLocalServiceIsNotNull();
+
+                var binding = solutionBinding.ReadSolutionBinding();
+                if (binding == null)
+                {
+                    return;
+                }
+
+                if (binding.Profiles == null || binding.Profiles.Count == 0)
+                {
+                    // Old binding, force refresh immediately
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckNoProfiles);
+                    updateAction(Strings.SonarLintInfoBarOldBindingFile);
+                    return;
+                }
+
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheck);
+
+                CancellationToken token = this.TokenSource.Token;
+                this.BackgroundTask = System.Threading.Tasks.Task.Run(() =>
+                {
+                    if (this.IsUpdateRequired(binding, languages, token))
+                    {
+                        this.host.UIDispatcher.BeginInvoke(new Action(()=>
+                        {
+                            // We mustn't update if was cancelled
+                            if(!token.IsCancellationRequested)
+                            {
+                                updateAction(null);
+                            }
+                        }));
+                    }
+                }, token);
+            }
+
+            private bool IsUpdateRequired(BoundSonarQubeProject binding, IEnumerable<LanguageGroup> projectLanguageGroups, CancellationToken token)
+            {
+                Debug.Assert(binding != null);
+
+                ConnectionInformation connection = binding.CreateConnectionInformation();
+                Dictionary<LanguageGroup, QualityProfile> newProfiles;
+                if (!this.TryGetLatestProfiles(binding, projectLanguageGroups, token, connection, out newProfiles))
+                {
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckFailed);
+                    return false; // Error, can't proceed
+                }
+
+                if (!newProfiles.Keys.All(binding.Profiles.ContainsKey))
+                {
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckSolutionRequiresMoreProfiles);
+                    return true; // Missing profile, refresh
+                }
+
+                foreach (var keyValue in binding.Profiles)
+                {
+                    LanguageGroup group = keyValue.Key;
+                    ApplicableQualityProfile oldProfileInfo = keyValue.Value;
+
+                    if (!newProfiles.ContainsKey(group))
+                    {
+                        // Not a relevant profile, we should just ignore it.
+                        continue;
+                    }
+
+                    QualityProfile newProfileInfo = newProfiles[group];
+                    if (this.HasProfileChanged(newProfileInfo, oldProfileInfo))
+                    {
+                        return true;
+                    }
+                }
+
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckQualityProfileIsUpToDate);
+                return false; // Up-to-date
+            }
+
+            private bool HasProfileChanged(QualityProfile newProfileInfo, ApplicableQualityProfile oldProfileInfo)
+            {
+                if (!QualityProfile.KeyComparer.Equals(oldProfileInfo.ProfileKey, newProfileInfo.Key))
+                {
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckDifferentProfile);
+                    return true; // The profile change to a different one
+                }
+
+                if (oldProfileInfo.ProfileTimestamp != newProfileInfo.QualityProfileTimestamp)
+                {
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckProfileUpdated);
+                    return true; // The profile was updated
+                }
+
+                return false;
+            }
+
+            private bool TryGetLatestProfiles(BoundSonarQubeProject binding, IEnumerable<LanguageGroup> projectLanguageGroups, CancellationToken token, ConnectionInformation connection, out Dictionary<LanguageGroup, QualityProfile> newProfiles)
+            {
+                newProfiles = new Dictionary<LanguageGroup, QualityProfile>();
+                foreach (LanguageGroup group in projectLanguageGroups)
+                {
+                    Language language = LanguageGroupHelper.GetLanguage(group);
+                    QualityProfile profile;
+                    if (this.host.SonarQubeService.TryGetQualityProfile(connection, new ProjectInformation { Key = binding.ProjectKey }, language.ServerKey, token, out profile))
+                    {
+                        newProfiles[group] = profile;
+                    }
+                    else
+                    {
+                        return false; // Failed
+                    }
+                }
+
+                return true;
+            }
+
+            #region IDisposable Support
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!this.isDisposed)
+                {
+                    if (disposing)
+                    {
+                        this.TokenSource.Cancel();
+                        this.TokenSource.Dispose();
+                    }
+
+                    this.isDisposed = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                this.Dispose(true);
+            }
+            #endregion
         }
         #endregion
 

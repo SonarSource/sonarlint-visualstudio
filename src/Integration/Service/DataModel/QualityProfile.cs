@@ -6,13 +6,17 @@
 //-----------------------------------------------------------------------
 
 using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
 
-namespace SonarLint.VisualStudio.Integration.Service.DataModel
+namespace SonarLint.VisualStudio.Integration.Service
 {
     [DebuggerDisplay("Name: {Name}, Key: {Key}, Language: {Language}, IsDefault: {IsDefault}")]
     internal class QualityProfile
     {
+        // Ordinal comparer, similar to project key comparer
+        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+
         [JsonProperty("key")]
         public string Key { get; set; }
 
@@ -24,5 +28,9 @@ namespace SonarLint.VisualStudio.Integration.Service.DataModel
 
         [JsonProperty("default")]
         public bool IsDefault { get; set; }
+
+        [JsonIgnore] // Not set by JSON
+        public DateTime? QualityProfileTimestamp { get; set; }
+
     }
 }

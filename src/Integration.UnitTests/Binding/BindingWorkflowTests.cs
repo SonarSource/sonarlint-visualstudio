@@ -84,14 +84,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
             RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
-            var language = Language.CSharp;
-            this.ConfigureProfileExport(testSubject, export, language, RuleSetGroup.VB);
+            var language = Language.VBNET;
+            QualityProfile profile = this.ConfigureProfileExport(testSubject, export, language, LanguageGroup.VB);
 
             // Act
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
             // Verify
-            RuleSetAssert.AreEqual(ruleSet, testSubject.Rulesets[RuleSetGroup.VB], "Unexpected rule set");
+            RuleSetAssert.AreEqual(ruleSet, testSubject.Rulesets[LanguageGroup.VB], "Unexpected rule set");
+            Assert.AreSame(profile, testSubject.QualityProfiles[LanguageGroup.VB]);
             VerifyNuGetPackgesDownloaded(nugetPackages, testSubject);
             this.outputWindowPane.AssertOutputStrings(0);
             controller.AssertNumberOfAbortRequests(0);
@@ -113,14 +114,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurableProgressController controller = new ConfigurableProgressController();
 
             var language = Language.CSharp;
-            this.ConfigureProfileExport(testSubject, null, language, RuleSetGroup.VB);
+            this.ConfigureProfileExport(testSubject, null, language, LanguageGroup.VB);
 
             // Act
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, new ConfigurableProgressStepExecutionEvents(), new[] { language });
 
             // Verify
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(RuleSetGroup.VB), "Not expecting any rules for this language");
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(RuleSetGroup.CSharp), "Not expecting any rules");
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(LanguageGroup.VB), "Not expecting any rules for this language");
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(LanguageGroup.CSharp), "Not expecting any rules");
             this.outputWindowPane.AssertOutputStrings(1);
             controller.AssertNumberOfAbortRequests(1);
         }
@@ -433,10 +434,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return packageInstaller;
         }
 
-        private void ConfigureProfileExport(BindingWorkflow testSubject, RoslynExportProfile export, Language language, RuleSetGroup group)
+        private QualityProfile ConfigureProfileExport(BindingWorkflow testSubject, RoslynExportProfile export, Language language, LanguageGroup group)
         {
-            this.sonarQubeService.ReturnExport[language.ServerKey] = export;
-            testSubject.LanguageToGroupMapping[language] = group;
+            var profile = new QualityProfile { Language = language.ServerKey };
+            this.sonarQubeService.ReturnProfile[language.ServerKey] = profile;
+            this.sonarQubeService.ReturnExport[profile] = export;
+
+            return profile;
         }
 
         private static void VerifyNuGetPackgesDownloaded(IEnumerable<PackageName> expectedPackages, BindingWorkflow testSubject)

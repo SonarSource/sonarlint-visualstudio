@@ -14,7 +14,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     internal class ConfigurableSolutionBindingInformationProvider : ISolutionBindingInformationProvider
     {
         public IEnumerable<Project> BoundProjects { get; set; } = Enumerable.Empty<Project>();
+
         public IEnumerable<Project> UnboundProjects { get; set; } = Enumerable.Empty<Project>();
+
         public bool SolutionBound { get; set; }
 
         public IEnumerable<Project> GetBoundProjects()

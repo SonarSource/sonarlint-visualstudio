@@ -27,21 +27,28 @@ namespace SonarLint.VisualStudio.Integration.Service
         bool TryGetProperties(ConnectionInformation serverConnection, CancellationToken token, out ServerProperty[] properties);
 
         /// <summary>
-        /// Retrieves the server's Roslyn Quality Profile export for the specified project and language
+        /// Retrieves the server's Roslyn Quality Profile export for the specified profile and language
         /// </summary>
         /// <remarks>
         /// The export contains everything required to configure the solution to match the SonarQube server analysis,
         /// including: the Code Analysis rule set, analyzer NuGet packages, and any other additional files for the analyzers.
         /// </remarks>
-        /// <param name="project">Required project information for which to retrieve the export</param>
+        /// <param name="profile">Quality profile. Required.</param>
         /// <param name="language">Language scope. Required.</param>
-        bool TryGetExportProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out RoslynExportProfile profile);
+        bool TryGetExportProfile(ConnectionInformation serverConnection, QualityProfile profile, string language, CancellationToken token, out RoslynExportProfile export);
 
         /// <summary>
         /// Retrieves all server plugins
         /// </summary>
         /// <returns>All server plugins, or null on connection failure</returns>
         bool TryGetPlugins(ConnectionInformation serverConnection, CancellationToken token, out ServerPlugin[] plugins);
+
+        /// <summary>
+        /// Retrieves the quality profile information for the specified project and language
+        /// </summary>
+        /// <param name="project">Required project information for which to retrieve the export</param>
+        /// <param name="language">Language scope. Required.</param>
+        bool TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out QualityProfile profile);
 
         /// <summary>
         /// Generate a <see cref="Uri"/> to the dashboard for the given project on the provided <paramref name="serverConnection"/>.
