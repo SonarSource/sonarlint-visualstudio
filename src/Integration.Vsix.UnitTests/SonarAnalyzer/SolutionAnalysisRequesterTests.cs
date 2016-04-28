@@ -8,11 +8,11 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.ComponentModel.Composition.Primitives;
-using System.ComponentModel.Design;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
@@ -20,15 +20,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
     [TestClass]
     public class SolutionAnalysisRequesterTests
     {
+        private ConfigurableServiceProvider serviceProvider;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), new ConfigurableVsOutputWindow());
+        }
+
         [TestMethod]
         public void SolutionAnalysisRequester_ArgChecks()
         {
             Exceptions.Expect<ArgumentNullException>(() => new SolutionAnalysisRequester(null, null));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionAnalysisRequester(null, new AdhocWorkspace()));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionAnalysisRequester(new ServiceContainer(), null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionAnalysisRequester(this.serviceProvider, null));
             try
             {
-                new SolutionAnalysisRequester(new ServiceContainer(), new AdhocWorkspace());
+#pragma warning disable S1848 // Only testing ctor does not throw exceptions; no need to keep resulting instance.
+                new SolutionAnalysisRequester(this.serviceProvider, new AdhocWorkspace());
+#pragma warning restore S1848
             }
             catch (Exception)
             {
@@ -42,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             Option<bool> option = new Option<bool>(SolutionAnalysisRequester.OptionFeatureRuntime,
                 SolutionAnalysisRequester.OptionNameFullSolutionAnalysis, true);
 
-            SolutionAnalysisRequester testSubject = new SolutionAnalysisRequester(new ServiceContainer(), new AdhocWorkspace(), option);
+            SolutionAnalysisRequester testSubject = new SolutionAnalysisRequester(this.serviceProvider, new AdhocWorkspace(), option);
             bool optionInitialValue = testSubject.GetOptionValue();
 
             // Act
@@ -60,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             Option<bool> option = new Option<bool>(SolutionAnalysisRequester.OptionFeatureRuntime,
                 SolutionAnalysisRequester.OptionNameFullSolutionAnalysis, true);
 
-            SolutionAnalysisRequester testSubject = new SolutionAnalysisRequester(new ServiceContainer(), new AdhocWorkspace(), option);
+            SolutionAnalysisRequester testSubject = new SolutionAnalysisRequester(this.serviceProvider, new AdhocWorkspace(), option);
             bool optionInitialValue = testSubject.GetOptionValue();
 
             // Act
@@ -75,20 +86,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void SonarAnalyzerManager_Triggers_SolutionBindingChanged_ReanalyzeSolution()
         {
-            ConfigurableServiceProvider serviceProvider = new ConfigurableServiceProvider(false);
-
-            ConfigurableHost host = new ConfigurableHost(serviceProvider, Dispatcher.CurrentDispatcher);
+            ConfigurableHost host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             Export mefExport1 = MefTestHelpers.CreateExport<IHost>(host);
 
             ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
             Export mefExport2 = MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(activeSolutionBoundTracker);
 
             IComponentModel mefModel = ConfigurableComponentModel.CreateWithExports(mefExport1, mefExport2);
-            serviceProvider.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
+            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 
             ConfigurableSolutionAnalysisRequester solutionAnalysisRequester = new ConfigurableSolutionAnalysisRequester();
 
-            using (new SonarAnalyzerManager(serviceProvider, new AdhocWorkspace(), solutionAnalysisRequester))
+            using (new SonarAnalyzerManager(this.serviceProvider, new AdhocWorkspace(), solutionAnalysisRequester))
             {
                 // Sanity
                 Assert.AreEqual(0, solutionAnalysisRequester.ReanalyzeSolutionCallCount);
