@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (!File.Exists(path))
             {
-                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.MissingResourceAtLocation,
+                VsShellUtils.WriteToSonarLintOutputPane(serviceProvider, Strings.MissingResourceAtLocation,
                     codeAnalysisFeaturesDllName, codeAnalysisFolderPath);
                 return null;
             }
