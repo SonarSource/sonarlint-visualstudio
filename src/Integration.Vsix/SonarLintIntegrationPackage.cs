@@ -56,6 +56,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 this.usageAnalyzer?.Dispose();
                 this.usageAnalyzer = null;
+
+                this.sonarAnalyzerManager?.Dispose();
+                this.sonarAnalyzerManager = null;
             }
         }
     }
