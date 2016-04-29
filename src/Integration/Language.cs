@@ -1,22 +1,31 @@
-﻿using SonarLint.VisualStudio.Integration.Resources;
+﻿//-----------------------------------------------------------------------
+// <copyright file="Language.cs" company="SonarSource SA and Microsoft Corporation">
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    [DebuggerDisplay("{Name} (ServerKey: {ServerKey}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
+    [DebuggerDisplay("{Name} (ID: {Id}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
+    [TypeConverter(typeof(LanguageConverter))]
     public sealed class Language : IEquatable<Language>
     {
         public readonly static Language Unknown = new Language();
-        public readonly static Language CSharp = new Language(Strings.CSharpLanguageName, "cs", ProjectSystemHelper.CSharpProjectKind);
-        public readonly static Language VBNET = new Language(Strings.VBNetLanguageName, "vbnet", ProjectSystemHelper.VbProjectKind);
+        public readonly static Language CSharp = new Language("CSharp", Strings.CSharpLanguageName, ProjectSystemHelper.CSharpProjectKind);
+        public readonly static Language VBNET = new Language("VB", Strings.VBNetLanguageName, ProjectSystemHelper.VbProjectKind);
 
         /// <summary>
-        /// The SonarQube server key.
+        /// A stable identifer for this language.
         /// </summary>
-        public string ServerKey { get; }
+        public string Id { get; }
 
         /// <summary>
         /// The language display name.
@@ -29,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration
         public Guid ProjectType { get; }
 
         /// <summary>
-        /// Returns whether or not this language is a supported project language for binding.
+        /// Returns whether or not this language is a supported project language.
         /// </summary>
         public bool IsSupported => SupportedLanguages.Contains(this);
 
@@ -63,21 +72,21 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         private Language()
         {
+            this.Id = string.Empty;
             this.Name = Strings.UnknownLanguageName;
-            this.ServerKey = string.Empty;
             this.ProjectType = Guid.Empty;
         }
 
-        public Language(string name, string serverKey, string projectTypeGuid)
+        public Language(string id, string name, string projectTypeGuid)
         {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name));
-            }
-
-            if (string.IsNullOrWhiteSpace(serverKey))
-            {
-                throw new ArgumentNullException(nameof(serverKey));
             }
 
             if (string.IsNullOrWhiteSpace(projectTypeGuid))
@@ -85,8 +94,8 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(projectTypeGuid));
             }
 
+            this.Id = id;
             this.Name = name;
-            this.ServerKey = serverKey;
             this.ProjectType = new Guid(projectTypeGuid);
         }
 
@@ -116,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return other != null
-                && other.ServerKey == this.ServerKey
+                && other.Id == this.Id
                 && other.ProjectType == this.ProjectType;
         }
 
@@ -127,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public override int GetHashCode()
         {
-            return this.ServerKey.GetHashCode();
+            return this.Id.GetHashCode();
         }
 
         #endregion

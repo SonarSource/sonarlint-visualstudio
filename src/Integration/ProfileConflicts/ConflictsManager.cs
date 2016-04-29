@@ -111,8 +111,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             foreach (Project project in projectSystem.GetFilteredSolutionProjects())
             {
                 string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
-                    bindingInfo.ProjectKey, 
-                    LanguageGroupHelper.GetProjectGroup(project));
+                    bindingInfo.ProjectKey,
+                    Language.ForProject(project));
 
                 if (!fileSystem.FileExist(baselineRuleSet))
                 {

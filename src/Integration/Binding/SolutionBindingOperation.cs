@@ -27,8 +27,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
-        private readonly Dictionary<LanguageGroup, RuleSetInformation> ruleSetsInformationMap = new Dictionary<LanguageGroup, RuleSetInformation>();
-        private Dictionary<LanguageGroup, QualityProfile> qualityProfileMap;
+        private readonly Dictionary<Language, RuleSetInformation> ruleSetsInformationMap = new Dictionary<Language, RuleSetInformation>();
+        private Dictionary<Language, QualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string sonarQubeProjectKey;
 
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             private set;
         }
 
-        internal /*for testing purposes*/ IReadOnlyDictionary<LanguageGroup, RuleSetInformation> RuleSetsInformationMap
+        internal /*for testing purposes*/ IReadOnlyDictionary<Language, RuleSetInformation> RuleSetsInformationMap
         {
             get { return this.ruleSetsInformationMap; }
         }
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region ISolutionRuleStore
 
-        public void RegisterKnownRuleSets(IDictionary<LanguageGroup, RuleSet> ruleSets)
+        public void RegisterKnownRuleSets(IDictionary<Language, RuleSet> ruleSets)
         {
             if (ruleSets == null)
             {
@@ -99,11 +99,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        public string GetRuleSetFilePath(LanguageGroup group)
+        public string GetRuleSetFilePath(Language language)
         {
             RuleSetInformation info;
 
-            if (!this.ruleSetsInformationMap.TryGetValue(group, out info) || info == null)
+            if (!this.ruleSetsInformationMap.TryGetValue(language, out info) || info == null)
             {
                 Debug.Fail("Expected to be called by the ProjectBinder after the known rulesets were registered");
                 return null;
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Public API
-        public void Initialize(IEnumerable<Project> projects, IDictionary<LanguageGroup, QualityProfile> profilesMap)
+        public void Initialize(IEnumerable<Project> projects, IDictionary<Language, QualityProfile> profilesMap)
         {
             if (projects == null)
             {
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
 
-            this.qualityProfileMap = new Dictionary<LanguageGroup, QualityProfile>(profilesMap);
+            this.qualityProfileMap = new Dictionary<Language, QualityProfile>(profilesMap);
 
             foreach (Project project in projects)
             {
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
 
-            Dictionary<LanguageGroup, ApplicableQualityProfile> map = new Dictionary<LanguageGroup, ApplicableQualityProfile>();
+            Dictionary<Language, ApplicableQualityProfile> map = new Dictionary<Language, ApplicableQualityProfile>();
 
             foreach(var keyValue in this.qualityProfileMap)
             {
@@ -262,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         internal class RuleSetInformation
         {
-            public RuleSetInformation(LanguageGroup group, RuleSet ruleSet)
+            public RuleSetInformation(Language language, RuleSet ruleSet)
             {
                 if (ruleSet == null)
                 {

@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Service
         /// </remarks>
         /// <param name="profile">Quality profile. Required.</param>
         /// <param name="language">Language scope. Required.</param>
-        bool TryGetExportProfile(ConnectionInformation serverConnection, QualityProfile profile, string language, CancellationToken token, out RoslynExportProfile export);
+        bool TryGetExportProfile(ConnectionInformation serverConnection, QualityProfile profile, Language language, CancellationToken token, out RoslynExportProfile export);
 
         /// <summary>
         /// Retrieves all server plugins
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Service
         /// </summary>
         /// <param name="project">Required project information for which to retrieve the export</param>
         /// <param name="language">Language scope. Required.</param>
-        bool TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out QualityProfile profile);
+        bool TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, Language language, CancellationToken token, out QualityProfile profile);
 
         /// <summary>
         /// Generate a <see cref="Uri"/> to the dashboard for the given project on the provided <paramref name="serverConnection"/>.

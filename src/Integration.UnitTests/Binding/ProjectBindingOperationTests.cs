@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(LanguageGroup.VB, testSubject.ProjectGroup);
+            Assert.AreEqual(LanguageGroup.VB, testSubject.ProjectLanguage);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             foreach (var prop in new[] { prop1, prop2 })
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(LanguageGroup.VB, testSubject.ProjectGroup);
+            Assert.AreEqual(LanguageGroup.VB, testSubject.ProjectLanguage);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             foreach (var prop in new[] { prop1, prop2 })
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(LanguageGroup.VB, testSubject.ProjectGroup);
+            Assert.AreEqual(LanguageGroup.VB, testSubject.ProjectLanguage);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             foreach (var prop in new[] { prop1, prop2 })
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(LanguageGroup.CSharp, testSubject.ProjectGroup);
+            Assert.AreEqual(LanguageGroup.CSharp, testSubject.ProjectLanguage);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             Assert.AreEqual(ProjectBindingOperation.DefaultProjectRuleSet, testSubject.PropertyInformationMap[prop1].CurrentRuleSetFilePath);

@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration
             return ruleSetDirectoryRoot;
         }
 
-        public string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, LanguageGroup ruleSetGroup)
+        public string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, Language language)
         {
             if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
             {
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new InvalidOperationException(Strings.SolutionIsClosed);
             }
 
-            string fileNameSuffix = ruleSetGroup.ToString();
+            string fileNameSuffix = language.Id;
             return GenerateSolutionRuleSetPath(ruleSetDirectoryRoot, sonarQubeProjectKey, fileNameSuffix);
         }
 
