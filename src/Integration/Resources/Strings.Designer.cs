@@ -1135,7 +1135,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Username:.
+        ///   Looks up a localized string similar to Username/Token:.
         /// </summary>
         public static string UsernameLabel {
             get {
