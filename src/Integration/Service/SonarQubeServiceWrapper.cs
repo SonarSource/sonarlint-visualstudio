@@ -42,11 +42,8 @@ namespace SonarLint.VisualStudio.Integration.Service
         public const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
 
         public const string RoslynExporter = "roslyn-cs";
-
-        public const string CSharpLanguage = "cs";
-        public const string VBLanguage = "vbnet";
-
-        public static readonly IReadOnlyDictionary<Language, string> LanguageKeys = new ReadOnlyDictionary<Language, string>(
+        
+        private static readonly IReadOnlyDictionary<Language, string> languageKeys = new ReadOnlyDictionary<Language, string>(
             new Dictionary<Language, string>
             {
                 { Language.CSharp, "cs" },
@@ -236,14 +233,13 @@ namespace SonarLint.VisualStudio.Integration.Service
         internal /*for testing purposes*/ static string CreateQualityProfileUrl(Language language, ProjectInformation project = null)
         {
             string languageKey = GetServerLanguageKey(language);
-            if (project == null)
-            {
-                return AppendQueryString(QualityProfileListAPI, "?language={0}", languageKey);
-            }
-            else
-            {
-                return AppendQueryString(QualityProfileListAPI, "?language={0}&project={1}", languageKey, project.Key);
-            }
+            string projectKey = project?.Key;
+
+            string apiFormat = string.IsNullOrWhiteSpace(projectKey)
+                ? "?language={0}"
+                : "?language={0}&project={1}";
+
+            return AppendQueryString(QualityProfileListAPI, apiFormat, languageKey, projectKey);           
         }
 
         internal /*for testing purposes*/ static async Task<QualityProfile> DownloadQualityProfile(HttpClient client, ProjectInformation project, Language language, CancellationToken token)
@@ -332,7 +328,7 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         internal /*for testing purposes*/ static string GetServerLanguageKey(Language language)
         {
-            return LanguageKeys[language];
+            return languageKeys[language];
         }
 
         internal /*for testing purposes*/ static string AppendQueryString(string urlBase, string queryFormat, params string[] args)
