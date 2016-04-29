@@ -16,6 +16,7 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using System.Windows.Threading;
@@ -190,11 +191,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project = new ProjectMock("project.proj");
             project.SetCSProjectKind();
             projectSystem.FilteredProjects = new[] { project };
-            this.solutionBindingSerializer.CurrentBinding.Profiles = new System.Collections.Generic.Dictionary<LanguageGroup, Persistence.ApplicableQualityProfile>();
-            this.solutionBindingSerializer.CurrentBinding.Profiles[LanguageGroup.CSharp] = new Persistence.ApplicableQualityProfile { ProfileKey = "Profile", ProfileTimestamp = DateTime.Now };
+            this.solutionBindingSerializer.CurrentBinding.Profiles = new Dictionary<Language, Persistence.ApplicableQualityProfile>();
+            this.solutionBindingSerializer.CurrentBinding.Profiles[Language.CSharp] = new Persistence.ApplicableQualityProfile
+            {
+                ProfileKey = "Profile",
+                ProfileTimestamp = DateTime.Now
+            };
             var sqService = new ConfigurableSonarQubeServiceWrapper();
             this.host.SonarQubeService = sqService;
-            sqService.ReturnProfile[Language.CSharp.ServerKey] = new QualityProfile();
+            sqService.ReturnProfile[Language.CSharp] = new QualityProfile();
 
             // Act
             testSubject.ProcessSolutionBinding();

@@ -78,6 +78,11 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         public Language(string id, string name, string projectTypeGuid)
+            : this(id, name, new Guid(projectTypeGuid))
+        {
+        }
+
+        public Language(string id, string name, Guid projectType)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -89,14 +94,9 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (string.IsNullOrWhiteSpace(projectTypeGuid))
-            {
-                throw new ArgumentNullException(nameof(projectTypeGuid));
-            }
-
             this.Id = id;
             this.Name = name;
-            this.ProjectType = new Guid(projectTypeGuid);
+            this.ProjectType = projectType;
         }
 
         public static Language ForProject(EnvDTE.Project dteProject)

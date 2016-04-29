@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(LanguageGroup.VB, testSubject.ProjectLanguage);
+            Assert.AreEqual(Language.VBNET, testSubject.ProjectLanguage);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             foreach (var prop in new[] { prop1, prop2 })
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(LanguageGroup.VB, testSubject.ProjectLanguage);
+            Assert.AreEqual(Language.VBNET, testSubject.ProjectLanguage);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             foreach (var prop in new[] { prop1, prop2 })
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(LanguageGroup.VB, testSubject.ProjectLanguage);
+            Assert.AreEqual(Language.VBNET, testSubject.ProjectLanguage);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             foreach (var prop in new[] { prop1, prop2 })
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(LanguageGroup.CSharp, testSubject.ProjectLanguage);
+            Assert.AreEqual(Language.CSharp, testSubject.ProjectLanguage);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             Assert.AreEqual(ProjectBindingOperation.DefaultProjectRuleSet, testSubject.PropertyInformationMap[prop1].CurrentRuleSetFilePath);
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Prepare_VariousRuleSetsInProjects()
         {
             // Setup
-            this.ruleStore.RegisterRuleSetPath(LanguageGroup.VB, @"c:\Solution\sln.ruleset");
+            this.ruleStore.RegisterRuleSetPath(Language.VBNET, @"c:\Solution\sln.ruleset");
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
             PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Prepare_SameNonDefaultRuleSetsInProject()
         {
             // Setup
-            this.ruleStore.RegisterRuleSetPath(LanguageGroup.VB, @"c:\Solution\sln.ruleset");
+            this.ruleStore.RegisterRuleSetPath(Language.VBNET, @"c:\Solution\sln.ruleset");
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
             PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
@@ -224,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Prepare_SameDefaultRuleSetsInProject()
         {
             // Setup
-            this.ruleStore.RegisterRuleSetPath(LanguageGroup.VB, @"c:\Solution\sln.ruleset");
+            this.ruleStore.RegisterRuleSetPath(Language.VBNET, @"c:\Solution\sln.ruleset");
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
             PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
@@ -251,7 +251,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Prepare_Cancellation()
         {
             // Setup
-            this.ruleStore.RegisterRuleSetPath(LanguageGroup.CSharp, @"c:\Solution\sln.ruleset");
+            this.ruleStore.RegisterRuleSetPath(Language.CSharp, @"c:\Solution\sln.ruleset");
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
             PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
@@ -279,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            this.ruleStore.RegisterRuleSetPath(LanguageGroup.CSharp, @"c:\Solution\sln.ruleset");
+            this.ruleStore.RegisterRuleSetPath(Language.CSharp, @"c:\Solution\sln.ruleset");
             PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);

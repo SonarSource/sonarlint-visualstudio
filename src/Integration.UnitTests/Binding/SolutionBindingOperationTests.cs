@@ -92,9 +92,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Setup
             SolutionBindingOperation testSubject = this.CreateTestSubject("key"); 
-            var ruleSetMap = new Dictionary<LanguageGroup, RuleSet>();
-            ruleSetMap[LanguageGroup.CSharp] = new RuleSet("cs");
-            ruleSetMap[LanguageGroup.VB] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, RuleSet>();
+            ruleSetMap[Language.CSharp] = new RuleSet("cs");
+            ruleSetMap[Language.VBNET] = new RuleSet("vb");
 
             // Sanity
             Assert.AreEqual(0, testSubject.RuleSetsInformationMap.Count, "Not expecting any registered rulesets");
@@ -104,8 +104,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             CollectionAssert.AreEquivalent(ruleSetMap.Keys.ToArray(), testSubject.RuleSetsInformationMap.Keys.ToArray());
-            Assert.AreSame(ruleSetMap[LanguageGroup.CSharp], testSubject.RuleSetsInformationMap[LanguageGroup.CSharp].RuleSet);
-            Assert.AreSame(ruleSetMap[LanguageGroup.VB], testSubject.RuleSetsInformationMap[LanguageGroup.VB].RuleSet);
+            Assert.AreSame(ruleSetMap[Language.CSharp], testSubject.RuleSetsInformationMap[Language.CSharp].RuleSet);
+            Assert.AreSame(ruleSetMap[Language.VBNET], testSubject.RuleSetsInformationMap[Language.VBNET].RuleSet);
         }
 
         [TestMethod]
@@ -118,25 +118,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Act + Verify
             using (new AssertIgnoreScope())
             {
-                Assert.IsNull(testSubject.GetRuleSetFilePath(LanguageGroup.CSharp));
+                Assert.IsNull(testSubject.GetRuleSetFilePath(Language.CSharp));
             }
 
             // Test case 2: known ruleset map
             // Setup
-            var ruleSetMap = new Dictionary<LanguageGroup, RuleSet>();
-            ruleSetMap[LanguageGroup.CSharp] = new RuleSet("cs");
-            ruleSetMap[LanguageGroup.VB] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, RuleSet>();
+            ruleSetMap[Language.CSharp] = new RuleSet("cs");
+            ruleSetMap[Language.VBNET] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(new ProjectMock[0], GetQualityProfiles());
             testSubject.Prepare(CancellationToken.None);
 
             // Act
-            string filePath = testSubject.GetRuleSetFilePath(LanguageGroup.CSharp);
+            string filePath = testSubject.GetRuleSetFilePath(Language.CSharp);
 
             // Verify
             Assert.IsFalse(string.IsNullOrWhiteSpace(filePath));
-            Assert.AreEqual(testSubject.RuleSetsInformationMap[LanguageGroup.CSharp].NewRuleSetFilePath, filePath, "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
+            Assert.AreEqual(testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath, filePath, "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
         }
 
         [TestMethod]
@@ -186,9 +186,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
-            var ruleSetMap = new Dictionary<LanguageGroup, RuleSet>();
-            ruleSetMap[LanguageGroup.CSharp] = new RuleSet("cs");
-            ruleSetMap[LanguageGroup.VB] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, RuleSet>();
+            ruleSetMap[Language.CSharp] = new RuleSet("cs");
+            ruleSetMap[Language.VBNET] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
@@ -201,8 +201,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Sanity
             this.sccFileSystem.AssertDirectoryNotExists(sonarQubeRulesDirectory);
-            Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[LanguageGroup.CSharp].NewRuleSetFilePath);
-            Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[LanguageGroup.VB].NewRuleSetFilePath);
+            Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath);
+            Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath);
             
             // Act
             testSubject.Prepare(CancellationToken.None);
@@ -233,9 +233,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projects = new[] { csProject, vbProject };
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
-            var ruleSetMap = new Dictionary<LanguageGroup, RuleSet>();
-            ruleSetMap[LanguageGroup.CSharp] = new RuleSet("cs");
-            ruleSetMap[LanguageGroup.VB] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, RuleSet>();
+            ruleSetMap[Language.CSharp] = new RuleSet("cs");
+            ruleSetMap[Language.VBNET] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
@@ -251,8 +251,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             }
 
             // Verify
-            Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[LanguageGroup.CSharp].NewRuleSetFilePath);
-            Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[LanguageGroup.VB].NewRuleSetFilePath);
+            Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath);
+            Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath);
             Assert.IsFalse(prepareCalledForBinder, "Expected to be cancelled as soon as possible i.e. after the first binder");
         }
 
@@ -268,9 +268,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
-            var ruleSetMap = new Dictionary<LanguageGroup, RuleSet>();
-            ruleSetMap[LanguageGroup.CSharp] = new RuleSet("cs");
-            ruleSetMap[LanguageGroup.VB] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, RuleSet>();
+            ruleSetMap[Language.CSharp] = new RuleSet("cs");
+            ruleSetMap[Language.VBNET] = new RuleSet("vb");
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
@@ -286,8 +286,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             }
 
             // Verify
-            Assert.IsNotNull(testSubject.RuleSetsInformationMap[LanguageGroup.CSharp].NewRuleSetFilePath, "Expected to be set before Prepare is called");
-            Assert.IsNotNull(testSubject.RuleSetsInformationMap[LanguageGroup.VB].NewRuleSetFilePath, "Expected to be set before Prepare is called");
+            Assert.IsNotNull(testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath, "Expected to be set before Prepare is called");
+            Assert.IsNotNull(testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath, "Expected to be set before Prepare is called");
             Assert.IsFalse(prepareCalledForBinder, "Expected to be cancelled as soon as possible i.e. before the first binder");
         }
 
@@ -303,11 +303,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var connectionInformation = new ConnectionInformation(new Uri("http://xyz"));
             SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation);
 
-            var ruleSetMap = new Dictionary<LanguageGroup, RuleSet>();
-            ruleSetMap[LanguageGroup.CSharp] = new RuleSet("cs");
+            var ruleSetMap = new Dictionary<Language, RuleSet>();
+            ruleSetMap[Language.CSharp] = new RuleSet("cs");
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             var profiles = GetQualityProfiles();
-            profiles[LanguageGroup.CSharp] = new QualityProfile { Key = "C# Profile", QualityProfileTimestamp = DateTime.Now };
+            profiles[Language.CSharp] = new QualityProfile { Key = "C# Profile", QualityProfileTimestamp = DateTime.Now };
             testSubject.Initialize(projects, profiles);
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool commitCalledForBinder = false;
@@ -318,9 +318,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 Assert.AreEqual(connectionInformation.ServerUri, bindingInfo.ServerUri);
                 Assert.AreEqual(1, bindingInfo.Profiles.Count);
 
-                QualityProfile csProfile = profiles[LanguageGroup.CSharp];
-                Assert.AreEqual(csProfile.Key, bindingInfo.Profiles[LanguageGroup.CSharp].ProfileKey);
-                Assert.AreEqual(csProfile.QualityProfileTimestamp, bindingInfo.Profiles[LanguageGroup.CSharp].ProfileTimestamp);
+                QualityProfile csProfile = profiles[Language.CSharp];
+                Assert.AreEqual(csProfile.Key, bindingInfo.Profiles[Language.CSharp].ProfileKey);
+                Assert.AreEqual(csProfile.QualityProfileTimestamp, bindingInfo.Profiles[Language.CSharp].ProfileTimestamp);
 
                 return "Doesn't matter";
             };
@@ -341,7 +341,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void SolutionBindingOperation_RuleSetInformation_Ctor_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation.RuleSetInformation(LanguageGroup.CSharp, null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation.RuleSetInformation(Language.CSharp, null));
         }
 
         #endregion
@@ -354,9 +354,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey);
         }
 
-        private static Dictionary<LanguageGroup, QualityProfile> GetQualityProfiles()
+        private static Dictionary<Language, QualityProfile> GetQualityProfiles()
         {
-            return new Dictionary<LanguageGroup, QualityProfile>();
+            return new Dictionary<Language, QualityProfile>();
         }
         #endregion
     }
