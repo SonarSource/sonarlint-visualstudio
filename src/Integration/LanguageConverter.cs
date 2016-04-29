@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             Debug.Fail("Expected string input object");
-            return base.ConvertFrom(context, culture, value);
+            return Language.Unknown;
         }
 
         #endregion
