@@ -8,6 +8,8 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+
+// Note: keep the version number in sync with the VSIX (source.extension.manifest)
 [assembly: AssemblyVersion("2.2.0.0")]
 [assembly: AssemblyFileVersion("2.2.0.0")]
 
