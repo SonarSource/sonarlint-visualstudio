@@ -542,8 +542,8 @@ namespace SonarLint.VisualStudio.Integration
                 var projectSystem = this.host.GetService<IProjectSystemHelper>();
                 projectSystem.AssertLocalServiceIsNotNull();
 
-                IEnumerable<LanguageGroup> languages = projectSystem.GetFilteredSolutionProjects()
-                    .Select(p => LanguageGroupHelper.GetProjectGroup(p))
+                IEnumerable<Language> languages = projectSystem.GetFilteredSolutionProjects()
+                    .Select(Language.ForProject)
                     .Distinct();
 
                 if(!languages.Any())
@@ -587,13 +587,13 @@ namespace SonarLint.VisualStudio.Integration
                 }, token);
             }
 
-            private bool IsUpdateRequired(BoundSonarQubeProject binding, IEnumerable<LanguageGroup> projectLanguageGroups, CancellationToken token)
+            private bool IsUpdateRequired(BoundSonarQubeProject binding, IEnumerable<Language> projectLanguages, CancellationToken token)
             {
                 Debug.Assert(binding != null);
 
                 ConnectionInformation connection = binding.CreateConnectionInformation();
-                Dictionary<LanguageGroup, QualityProfile> newProfiles;
-                if (!this.TryGetLatestProfiles(binding, projectLanguageGroups, token, connection, out newProfiles))
+                Dictionary<Language, QualityProfile> newProfiles;
+                if (!this.TryGetLatestProfiles(binding, projectLanguages, token, connection, out newProfiles))
                 {
                     VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckFailed);
                     return false; // Error, can't proceed
@@ -607,16 +607,16 @@ namespace SonarLint.VisualStudio.Integration
 
                 foreach (var keyValue in binding.Profiles)
                 {
-                    LanguageGroup group = keyValue.Key;
+                    Language language = keyValue.Key;
                     ApplicableQualityProfile oldProfileInfo = keyValue.Value;
 
-                    if (!newProfiles.ContainsKey(group))
+                    if (!newProfiles.ContainsKey(language))
                     {
                         // Not a relevant profile, we should just ignore it.
                         continue;
                     }
 
-                    QualityProfile newProfileInfo = newProfiles[group];
+                    QualityProfile newProfileInfo = newProfiles[language];
                     if (this.HasProfileChanged(newProfileInfo, oldProfileInfo))
                     {
                         return true;
@@ -644,16 +644,15 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
 
-            private bool TryGetLatestProfiles(BoundSonarQubeProject binding, IEnumerable<LanguageGroup> projectLanguageGroups, CancellationToken token, ConnectionInformation connection, out Dictionary<LanguageGroup, QualityProfile> newProfiles)
+            private bool TryGetLatestProfiles(BoundSonarQubeProject binding, IEnumerable<Language> projectLanguages, CancellationToken token, ConnectionInformation connection, out Dictionary<Language, QualityProfile> newProfiles)
             {
-                newProfiles = new Dictionary<LanguageGroup, QualityProfile>();
-                foreach (LanguageGroup group in projectLanguageGroups)
+                newProfiles = new Dictionary<Language, QualityProfile>();
+                foreach (Language language in projectLanguages)
                 {
-                    Language language = LanguageGroupHelper.GetLanguage(group);
                     QualityProfile profile;
-                    if (this.host.SonarQubeService.TryGetQualityProfile(connection, new ProjectInformation { Key = binding.ProjectKey }, language.ServerKey, token, out profile))
+                    if (this.host.SonarQubeService.TryGetQualityProfile(connection, new ProjectInformation { Key = binding.ProjectKey }, language, token, out profile))
                     {
-                        newProfiles[group] = profile;
+                        newProfiles[language] = profile;
                     }
                     else
                     {

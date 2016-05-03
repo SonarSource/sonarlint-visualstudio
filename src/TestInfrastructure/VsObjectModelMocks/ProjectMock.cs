@@ -378,6 +378,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.files.Remove(filePath);
         }
 
+        public void SetProjectKind(Guid kind)
+        {
+            this.ProjectKind = kind.ToString("N");
+        }
+
         public void SetCSProjectKind()
         {
             this.ProjectKind = ProjectSystemHelper.CSharpProjectKind;

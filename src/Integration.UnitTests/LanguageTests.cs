@@ -16,18 +16,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class LanguageTests
     {
         [TestMethod]
-        public void Language_Ctor_ArgChecks()
+        public void Language_Ctor_Guid_ArgChecks()
         {
             // Setup
             var key = "k";
             var name = "MyName";
-            var guid = Guid.NewGuid().ToString("N");
+            var guid = Guid.NewGuid();
 
             // Act + Verify
             // Nulls
             Exceptions.Expect<ArgumentNullException>(() => new Language(name, null, guid));
             Exceptions.Expect<ArgumentNullException>(() => new Language(null, key, guid));
-            Exceptions.Expect<ArgumentNullException>(() => new Language(name, key, null));
+        }
+
+        [TestMethod]
+        public void Language_Ctor_GuidString_ArgChecks()
+        {
+            // Setup
+            var key = "k";
+            var name = "MyName";
+            var guidString = Guid.NewGuid().ToString("N");
+
+            // Act + Verify
+            // Nulls
+            Exceptions.Expect<ArgumentNullException>(() => new Language(name, null, guidString));
+            Exceptions.Expect<ArgumentNullException>(() => new Language(null, key, guidString));
+            Exceptions.Expect<ArgumentNullException>(() => new Language(name, key, (string)null));
 
             // Bad GUID
             Exceptions.Expect<FormatException>(() => new Language(name, key, "thisisnotaguid"));

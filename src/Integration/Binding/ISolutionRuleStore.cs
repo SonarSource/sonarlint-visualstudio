@@ -16,14 +16,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal interface ISolutionRuleStore
     {
         /// <summary>
-        /// Registers a mapping of <see cref="LanguageGroup"/> to <see cref="RuleSet"/>.
+        /// Registers a mapping of <see cref="Language"/> to <see cref="RuleSet"/>.
         /// </summary>
         /// <param name="ruleSets">Required</param>
-        void RegisterKnownRuleSets(IDictionary<LanguageGroup, RuleSet> ruleSets);
+        void RegisterKnownRuleSets(IDictionary<Language, RuleSet> ruleSets);
 
         /// <summary>
-        /// Retrieves the path for the solution-level <see cref="RuleSet"/> mapped to the <see cref="LanguageGroup"/>.
+        /// Retrieves the path for the solution-level <see cref="RuleSet"/> mapped to the <see cref="Language"/>.
         /// </summary>
-        string GetRuleSetFilePath(LanguageGroup group);
+        string GetRuleSetFilePath(Language language);
     }
 }

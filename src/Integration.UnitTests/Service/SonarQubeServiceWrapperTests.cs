@@ -312,13 +312,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             QualityProfile profile;
             var validConnection = new ConnectionInformation(new Uri("http://valid"));
             var validProject = new ProjectInformation();
-            string validLanguage = Language.CSharp.ServerKey;
+            var validLanguage = Language.CSharp;
+            var cppLanguage = new Language("Cpp", "C++", Guid.NewGuid());
 
             // Act + Verify
             Exceptions.Expect<ArgumentNullException>(()=>testSubject.TryGetQualityProfile(null, validProject, validLanguage, CancellationToken.None, out profile));
             Exceptions.Expect<ArgumentNullException>(()=>testSubject.TryGetQualityProfile(validConnection, null, validLanguage, CancellationToken.None, out profile));
-            Exceptions.Expect<ArgumentOutOfRangeException>(()=>testSubject.TryGetQualityProfile(validConnection, validProject, null, CancellationToken.None, out profile));
-            Exceptions.Expect<ArgumentOutOfRangeException>(()=>testSubject.TryGetQualityProfile(validConnection, validProject, "Binary", CancellationToken.None, out profile));
+            Exceptions.Expect<ArgumentNullException>(()=>testSubject.TryGetQualityProfile(validConnection, validProject, null, CancellationToken.None, out profile));
+            Exceptions.Expect<ArgumentOutOfRangeException>(()=>testSubject.TryGetQualityProfile(validConnection, validProject, cppLanguage, CancellationToken.None, out profile));
 
             this.outputWindowPane.AssertOutputStrings(0);
         }
@@ -329,8 +330,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
                 // Setup
-                string language = SonarQubeServiceWrapper.CSharpLanguage;
-                var profile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
+                Language language = Language.CSharp;
+                QualityProfile profile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 var changeLog = new QualityProfileChangeLog
                 {
@@ -378,8 +379,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
                 // Setup
-                string language = SonarQubeServiceWrapper.CSharpLanguage;
-                var profile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
+                var language = Language.CSharp;
+                QualityProfile profile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
@@ -417,8 +418,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
                 // Setup
-                string language = SonarQubeServiceWrapper.CSharpLanguage;
-                var profile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
+                var language = Language.CSharp;
+                QualityProfile profile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 var expectedExport = RoslynExportProfileHelper.CreateExport(ruleSet: TestRuleSetHelper.CreateTestRuleSet(3));
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
@@ -452,13 +453,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 QualityProfile profile = new QualityProfile();
 
                 // No connection information
-                Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetExportProfile(null, profile, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out actualExport));
+                Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetExportProfile(null, profile, Language.CSharp, CancellationToken.None, out actualExport));
 
                 // No project information
-                Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetExportProfile(connection, null, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out actualExport));
+                Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetExportProfile(connection, null, Language.CSharp, CancellationToken.None, out actualExport));
 
                 // Invalid language
-                Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.TryGetExportProfile(connection, profile, "Pascal", CancellationToken.None, out actualExport));
+                var pascalLanguage = new Language("Pascal", "Pascal", Guid.Empty);
+                Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.TryGetExportProfile(connection, profile, pascalLanguage, CancellationToken.None, out actualExport));
 
                 // Those are API usage issue which we don't report to the output pane
                 this.outputWindowPane.AssertOutputStrings(0);
@@ -472,9 +474,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Setup
                 HttpClient httpClient = testSubject.CreateHttpClient();
-                string language = SonarQubeServiceWrapper.CSharpLanguage;
-                var expectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language, IsDefault = true };
-                var unexpectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
+                var language = Language.CSharp;
+                QualityProfile expectedProfile = CreateRandomQualityProfile(language, isDefault: true);
+                QualityProfile unexpectedProfile = CreateRandomQualityProfile(language);
 
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 ConfigureValidConnection(testSubject, new[] { project });
@@ -510,8 +512,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Setup
                 HttpClient httpClient = testSubject.CreateHttpClient();
-                string language = SonarQubeServiceWrapper.CSharpLanguage;
-                var expectedProfile = new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = language };
+                var language = Language.CSharp;
+                QualityProfile expectedProfile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 ConfigureValidConnection(testSubject, new[] { project });
 
@@ -699,6 +701,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         #region Helpers
+
+        private static QualityProfile CreateRandomQualityProfile(Language language, bool isDefault = false)
+        {
+            var languageKey = SonarQubeServiceWrapper.GetServerLanguageKey(language);
+            return new QualityProfile { Key = Guid.NewGuid().ToString("N"), Language = languageKey, IsDefault = isDefault };
+        }
 
         private static HttpClient CreateClientWithAddress(string baseAddress)
         {

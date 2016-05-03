@@ -10,6 +10,8 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Globalization;
@@ -40,10 +42,13 @@ namespace SonarLint.VisualStudio.Integration.Service
         public const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
 
         public const string RoslynExporter = "roslyn-cs";
-
-        public const string CSharpLanguage = "cs";
-        public const string VBLanguage = "vbnet";
-        public static readonly string[] SupportedLanguages = { CSharpLanguage, VBLanguage };
+        
+        private static readonly IReadOnlyDictionary<Language, string> languageKeys = new ReadOnlyDictionary<Language, string>(
+            new Dictionary<Language, string>
+            {
+                { Language.CSharp, "cs" },
+                { Language.VBNET, "vbnet" }
+            });
 
         private readonly IServiceProvider serviceProvider;
         private readonly TimeSpan requestTimeout;
@@ -99,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Service
             return properties != null;
         }
 
-        public bool TryGetExportProfile(ConnectionInformation connectionInformation, QualityProfile profile, string language, CancellationToken token, out RoslynExportProfile export)
+        public bool TryGetExportProfile(ConnectionInformation connectionInformation, QualityProfile profile, Language language, CancellationToken token, out RoslynExportProfile export)
         {
             if (connectionInformation == null)
             {
@@ -111,8 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Service
                 throw new ArgumentNullException(nameof(profile));
             }
 
-
-            if (!SupportedLanguages.Contains(language))
+            if (!language.IsSupported)
             {
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
@@ -124,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Service
         }
 
 
-        public bool TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out QualityProfile profile)
+        public bool TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, Language language, CancellationToken token, out QualityProfile profile)
         {
             if (serverConnection == null)
             {
@@ -136,11 +140,15 @@ namespace SonarLint.VisualStudio.Integration.Service
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (!SupportedLanguages.Contains(language))
+            if (language == null)
+            {
+                throw new ArgumentNullException(nameof(language));
+            }
+
+            if (!language.IsSupported)
             {
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
-
 
             profile = this.SafeUseHttpClient<QualityProfile>(serverConnection,
                 async client =>
@@ -222,19 +230,19 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         #region Quality profile
 
-        internal /*for testing purposes*/ static string CreateQualityProfileUrl(string language, ProjectInformation project = null)
+        internal /*for testing purposes*/ static string CreateQualityProfileUrl(Language language, ProjectInformation project = null)
         {
-            if (project == null)
-            {
-                return AppendQueryString(QualityProfileListAPI, "?language={0}", language);
-            }
-            else
-            {
-                return AppendQueryString(QualityProfileListAPI, "?language={0}&project={1}", language, project.Key);
-            }
+            string languageKey = GetServerLanguageKey(language);
+            string projectKey = project?.Key;
+
+            string apiFormat = string.IsNullOrWhiteSpace(projectKey)
+                ? "?language={0}"
+                : "?language={0}&project={1}";
+
+            return AppendQueryString(QualityProfileListAPI, apiFormat, languageKey, projectKey);           
         }
 
-        internal /*for testing purposes*/ static async Task<QualityProfile> DownloadQualityProfile(HttpClient client, ProjectInformation project, string language, CancellationToken token)
+        internal /*for testing purposes*/ static async Task<QualityProfile> DownloadQualityProfile(HttpClient client, ProjectInformation project, Language language, CancellationToken token)
         {
             string apiUrl = CreateQualityProfileUrl(language, project);
             HttpResponseMessage response = await InvokeGetRequest(client, apiUrl, token, ensureSuccess: false);
@@ -260,13 +268,13 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         #region Roslyn export profile
 
-        internal /*for testing purposes*/ static string CreateQualityProfileExportUrl(QualityProfile profile, string language, string exporter)
+        internal /*for testing purposes*/ static string CreateQualityProfileExportUrl(QualityProfile profile, Language language, string exporter)
         {
             // TODO: why name and not key? why language is needed at all, profiles are per language
-            return AppendQueryString(QualityProfileExportAPI, "?name={0}&language={1}&format={2}", profile.Name, language, exporter);
+            return AppendQueryString(QualityProfileExportAPI, "?name={0}&language={1}&format={2}", profile.Name, GetServerLanguageKey(language), exporter);
         }
 
-        private static async Task<RoslynExportProfile> DownloadQualityProfileExport(HttpClient client, QualityProfile profile, string language, CancellationToken token)
+        private static async Task<RoslynExportProfile> DownloadQualityProfileExport(HttpClient client, QualityProfile profile, Language language, CancellationToken token)
         {
             string api = CreateQualityProfileExportUrl(profile, language, RoslynExporter);
             HttpResponseMessage response = await InvokeGetRequest(client, api, token);
@@ -317,6 +325,12 @@ namespace SonarLint.VisualStudio.Integration.Service
         #endregion
 
         #region Helpers
+
+        internal /*for testing purposes*/ static string GetServerLanguageKey(Language language)
+        {
+            Debug.Assert(languageKeys.ContainsKey(language), "Unsupported language; there is no corresponding server key");
+            return languageKeys[language];
+        }
 
         internal /*for testing purposes*/ static string AppendQueryString(string urlBase, string queryFormat, params string[] args)
         {

@@ -1,22 +1,42 @@
-﻿using SonarLint.VisualStudio.Integration.Resources;
+﻿//-----------------------------------------------------------------------
+// <copyright file="Language.cs" company="SonarSource SA and Microsoft Corporation">
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    [DebuggerDisplay("{Name} (ServerKey: {ServerKey}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
+    /// <summary>
+    /// Represents a programming language. Implements <seealso cref="IEquatable{T}"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <seealso cref="Language"/>s are equal if they have the same <see cref="Id"/> and <see cref="ProjectType"/>.
+    /// </para>
+    /// <para>
+    /// This class is safe for use as a key in collection classes. E.g., <seealso cref="IDictionary{TKey, TValue}"/>.
+    /// </para>
+    /// </remarks>
+    [DebuggerDisplay("{Name} (ID: {Id}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
+    [TypeConverter(typeof(LanguageConverter))]
     public sealed class Language : IEquatable<Language>
     {
         public readonly static Language Unknown = new Language();
-        public readonly static Language CSharp = new Language(Strings.CSharpLanguageName, "cs", ProjectSystemHelper.CSharpProjectKind);
-        public readonly static Language VBNET = new Language(Strings.VBNetLanguageName, "vbnet", ProjectSystemHelper.VbProjectKind);
+        public readonly static Language CSharp = new Language("CSharp", Strings.CSharpLanguageName, ProjectSystemHelper.CSharpProjectKind);
+        public readonly static Language VBNET = new Language("VB", Strings.VBNetLanguageName, ProjectSystemHelper.VbProjectKind);
 
         /// <summary>
-        /// The SonarQube server key.
+        /// A stable identifer for this language.
         /// </summary>
-        public string ServerKey { get; }
+        public string Id { get; }
 
         /// <summary>
         /// The language display name.
@@ -29,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration
         public Guid ProjectType { get; }
 
         /// <summary>
-        /// Returns whether or not this language is a supported project language for binding.
+        /// Returns whether or not this language is a supported project language.
         /// </summary>
         public bool IsSupported => SupportedLanguages.Contains(this);
 
@@ -40,10 +60,9 @@ namespace SonarLint.VisualStudio.Integration
         {
             get
             {
-                return new[] { CSharp };
-                // We don't support VB.NET as the corresponding VB SonarQube server plugin has been
+                // We don't support VB.NET as the corresponding VB SonarQube server plugin hasn't been
                 // updated to support the connected mode.
-                //return new[] { CSharp, VBNET };
+                return new[] { CSharp };
             }
         }
 
@@ -63,31 +82,31 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         private Language()
         {
+            this.Id = string.Empty;
             this.Name = Strings.UnknownLanguageName;
-            this.ServerKey = string.Empty;
             this.ProjectType = Guid.Empty;
         }
 
-        public Language(string name, string serverKey, string projectTypeGuid)
+        public Language(string id, string name, string projectTypeGuid)
+            : this(id, name, new Guid(projectTypeGuid))
         {
+        }
+
+        public Language(string id, string name, Guid projectType)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (string.IsNullOrWhiteSpace(serverKey))
-            {
-                throw new ArgumentNullException(nameof(serverKey));
-            }
-
-            if (string.IsNullOrWhiteSpace(projectTypeGuid))
-            {
-                throw new ArgumentNullException(nameof(projectTypeGuid));
-            }
-
+            this.Id = id;
             this.Name = name;
-            this.ServerKey = serverKey;
-            this.ProjectType = new Guid(projectTypeGuid);
+            this.ProjectType = projectType;
         }
 
         public static Language ForProject(EnvDTE.Project dteProject)
@@ -116,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return other != null
-                && other.ServerKey == this.ServerKey
+                && other.Id == this.Id
                 && other.ProjectType == this.ProjectType;
         }
 
@@ -127,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public override int GetHashCode()
         {
-            return this.ServerKey.GetHashCode();
+            return this.Id.GetHashCode();
         }
 
         #endregion
