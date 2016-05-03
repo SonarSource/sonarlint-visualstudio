@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -34,6 +35,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             Assert.IsTrue(canConvertFrom, "Expected to be able to convert from string");
+        }
+
+        [TestMethod]
+        public void LanguageConverter_CanConvertFrom_NonStringType_IsFalse()
+        {
+            // Setup
+            var types = new Type[] { typeof(int), typeof(bool), typeof(object) };
+
+            foreach (Type type in types)
+            {
+                // Act
+                var canConvertFrom = this.testSubject.CanConvertFrom(type);
+
+                // Verify
+                Assert.IsFalse(canConvertFrom, $"Expected NOT to be able to convert from {type.Name}");
+            }
         }
 
         [TestMethod]
@@ -81,6 +98,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             Assert.IsTrue(canConvertTo, "Expected to be able to convert to string");
+        }
+
+        [TestMethod]
+        public void LanguageConverter_CanConvertTo_NonStringType_IsFalse()
+        {
+            // Setup
+            var types = new Type[] { typeof(int), typeof(bool), typeof(object) };
+
+            foreach (Type type in types)
+            {
+                // Act
+                var canConvertTo = this.testSubject.CanConvertTo(type);
+
+                // Verify
+                Assert.IsFalse(canConvertTo, $"Expected NOT to be able to convert to {type.Name}");
+            }
         }
 
         [TestMethod]
