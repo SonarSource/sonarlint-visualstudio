@@ -13,6 +13,14 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    /// <summary>
+    /// Enables conversion between <seealso cref="Language.Id"/> and <seealso cref="Language"/>.
+    /// </summary>
+    /// <remarks>
+    /// When an <seealso cref="Language.Id"/> is provided which matches a <seealso cref="Language.KnownLanguages"/>,
+    /// the corresponding known <seealso cref="Language"/> singleton is returned. Otherwise the <seealso cref="Language.Unknown"/>
+    /// is returned.
+    /// </remarks>
     internal class LanguageConverter : TypeConverter
     {
         #region Convert From
