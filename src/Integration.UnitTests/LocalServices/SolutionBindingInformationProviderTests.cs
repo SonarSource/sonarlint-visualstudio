@@ -278,7 +278,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetValidSolutionRuleSet(RuleSet ruleSet)
         {
-            string expectedSolutionRuleSet = ((ISolutionRuleSetsInformationProvider)this.ruleSetInfoProvider).CalculateSolutionSonarQubeRuleSetFilePath("projectKey", LanguageGroup.CSharp);
+            string expectedSolutionRuleSet = ((ISolutionRuleSetsInformationProvider)this.ruleSetInfoProvider).CalculateSolutionSonarQubeRuleSetFilePath("projectKey", Language.CSharp);
             ruleSet.FilePath = expectedSolutionRuleSet;
 
             this.ruleSetSerializer.RegisterRuleSet(ruleSet);

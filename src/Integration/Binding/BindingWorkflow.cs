@@ -70,25 +70,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new HashSet<Project>();
 
-        public Dictionary<LanguageGroup, RuleSet> Rulesets
+        public Dictionary<Language, RuleSet> Rulesets
         {
             get;
-        } = new Dictionary<LanguageGroup, RuleSet>();
+        } = new Dictionary<Language, RuleSet>();
 
         public List<NuGetPackageInfo> NuGetPackages
         {
             get;
         } = new List<NuGetPackageInfo>();
 
-        public Dictionary<LanguageGroup, string> SolutionRulesetPaths
+        public Dictionary<Language, string> SolutionRulesetPaths
         {
             get;
-        } = new Dictionary<LanguageGroup, string>();
+        } = new Dictionary<Language, string>();
 
-        public Dictionary<LanguageGroup, QualityProfile> QualityProfiles
+        public Dictionary<Language, QualityProfile> QualityProfiles
         {
             get;
-        } = new Dictionary<LanguageGroup, QualityProfile>();
+        } = new Dictionary<Language, QualityProfile>();
 
         internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
         {
@@ -208,15 +208,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language.Name));
 
                 QualityProfile qualityProfileInfo;
-                if (!host.SonarQubeService.TryGetQualityProfile(this.connectionInformation, this.project, language.ServerKey, cancellationToken, out qualityProfileInfo))
+                if (!host.SonarQubeService.TryGetQualityProfile(this.connectionInformation, this.project, language, cancellationToken, out qualityProfileInfo))
                 {
                     failed = true;
                     break;
                 }
-                this.QualityProfiles[this.LanguageToGroup(language)] = qualityProfileInfo;
+                this.QualityProfiles[language] = qualityProfileInfo;
 
                 RoslynExportProfile export;
-                if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, qualityProfileInfo, language.ServerKey, cancellationToken, out export))
+                if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, qualityProfileInfo, language, cancellationToken, out export))
                 {
                     failed = true;
                     break;
@@ -247,7 +247,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 // Set the rule set which should be available for the following steps
                 foreach (var keyValue in rulesets)
                 {
-                    this.Rulesets[this.LanguageToGroup(keyValue.Key)] = keyValue.Value;
+                    this.Rulesets[keyValue.Key] = keyValue.Value;
                 }
 
                 notifier.NotifyCurrentProgress(Strings.QualityProfileDownloadedSuccessfulMessage);
@@ -338,17 +338,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Helpers
-
-        private LanguageGroup LanguageToGroup(Language language)
-        {
-            LanguageGroup group = LanguageGroupHelper.GetLanguageGroup(language);
-            if (group == LanguageGroup.Unknown)
-            {
-                Debug.Fail("Unsupported language: " + language);
-                throw new InvalidOperationException();
-            }
-            return group;
-        }
 
         private void AbortWorkflow(IProgressController controller, CancellationToken token)
         {

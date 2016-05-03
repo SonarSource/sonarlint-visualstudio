@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration
 
             string expectedSolutionRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                          binding.ProjectKey,
-                         LanguageGroupHelper.GetProjectGroup(project));
+                         Language.ForProject(project));
 
             RuleSet solutionRuleSet;
             if (!cache.TryGetValue(expectedSolutionRuleSet, out solutionRuleSet))

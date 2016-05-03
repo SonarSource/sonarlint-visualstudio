@@ -65,13 +65,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Step 2: Get quality profile for the first project
             var project = projects.FirstOrDefault();
             QualityProfile profile = null;
-            RetryAction(() => s.TryGetQualityProfile(connection, project, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out profile),
+            RetryAction(() => s.TryGetQualityProfile(connection, project, Language.CSharp, CancellationToken.None, out profile),
                                         "Get quality profile from SonarQube server");
             Assert.IsNotNull(profile, "No quality profile was returned");
 
             // Step 3: Get quality profile export for the quality profile
             RoslynExportProfile export = null;
-            RetryAction(() => s.TryGetExportProfile(connection, profile, SonarQubeServiceWrapper.CSharpLanguage, CancellationToken.None, out export),
+            RetryAction(() => s.TryGetExportProfile(connection, profile, Language.CSharp, CancellationToken.None, out export),
                                         "Get quality profile export from SonarQube server");
             Assert.IsNotNull(export, "No quality profile export was returned");
 
