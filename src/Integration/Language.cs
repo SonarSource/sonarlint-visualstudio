@@ -14,6 +14,17 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    /// <summary>
+    /// Represents a programming language. Implements <seealso cref="IEquatable{T}"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <seealso cref="Language"/>s are equal if they have the same <see cref="Id"/> and <see cref="ProjectType"/>.
+    /// </para>
+    /// <para>
+    /// This class is safe for use as a key in collection classes. E.g., <seealso cref="IDictionary{TKey, TValue}"/>.
+    /// </para>
+    /// </remarks>
     [DebuggerDisplay("{Name} (ID: {Id}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
     [TypeConverter(typeof(LanguageConverter))]
     public sealed class Language : IEquatable<Language>
