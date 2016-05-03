@@ -328,6 +328,7 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         internal /*for testing purposes*/ static string GetServerLanguageKey(Language language)
         {
+            Debug.Assert(languageKeys.ContainsKey(language), "Unsupported language; there is no corresponding server key");
             return languageKeys[language];
         }
 
