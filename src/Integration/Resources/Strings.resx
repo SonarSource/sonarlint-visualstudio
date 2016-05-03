@@ -162,8 +162,8 @@
     <comment>Input label for SonarQube server URL</comment>
   </data>
   <data name="UsernameLabel" xml:space="preserve">
-    <value>Username:</value>
-    <comment>Input label for username when connecting to a SonarQube server</comment>
+    <value>Username/Token:</value>
+    <comment>Input label for username/token when connecting to a SonarQube server</comment>
   </data>
   <data name="ExceptionInsecureSchemesIsNotSubset" xml:space="preserve">
     <value>Insecure schemes must be a subset of supported schemes</value>
