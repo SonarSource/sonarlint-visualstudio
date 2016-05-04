@@ -121,6 +121,7 @@
     <Compile Include="MefServices\IInfoBarManager.cs" />
     <Compile Include="Persistence\ApplicableQualityProfile.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectExtensions.cs" />
+    <Compile Include="LanguageConverter.cs" />
     <Compile Include="ProfileConflicts\FixedRuleSetInfo.cs" />
     <Compile Include="LocalServices\ILocalService.cs" />
     <Compile Include="LocalServices\IRuleSetSerializer.cs" />
@@ -128,7 +129,6 @@
     <Compile Include="Binding\ProjectBindingOperation.cs" />
     <Compile Include="Binding\ProjectBindingOperation.Writer.cs" />
     <Compile Include="MefServices\ProjectPropertyManager.cs" />
-    <Compile Include="LanguageGroup.cs" />
     <Compile Include="ProfileConflicts\ConflictsManager.cs" />
     <Compile Include="ProfileConflicts\IConflictsManager.cs" />
     <Compile Include="ProfileConflicts\IRuleSetConflictsController.cs" />
@@ -161,7 +161,6 @@
     <Compile Include="Persistence\ISolutionBindingSerializer.cs" />
     <Compile Include="Progress\IProgressStepRunnerWrapper.cs" />
     <Compile Include="ProfileConflicts\RuleSetConflictsController.cs" />
-    <Compile Include="LanguageGroupHelper.cs" />
     <Compile Include="RuleSetHelper.cs" />
     <Compile Include="Language.cs" />
     <Compile Include="LocalServices\ProjectSystemFilter.cs" />

@@ -53,8 +53,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #region State
-        internal /*for testing purposes*/ LanguageGroup ProjectGroup { get; private set; }
-
+        internal /*for testing purposes*/ Language ProjectLanguage { get; private set; }
+   
         internal /*for testing purposes*/ string ProjectFullPath { get; private set; }
 
         internal /*for testing purposes*/ IReadOnlyDictionary<Property, PropertyInformation> PropertyInformationMap { get { return this.propertyInformationMap; } }
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void Prepare(CancellationToken token)
         {
-            string solutionRuleSetPath = this.ruleStore.GetRuleSetFilePath(this.ProjectGroup);
+            string solutionRuleSetPath = this.ruleStore.GetRuleSetFilePath(this.ProjectLanguage);
 
             // We want to limit the number of rulesets so for this we use the previously calculated TargetRuleSetFileName
             // and group by it. This handles the special case of all the properties having the same ruleset and also the case
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
       
         private void CaptureProjectInformation()
         {
-            this.ProjectGroup = LanguageGroupHelper.GetProjectGroup(this.initializedProject);
+            this.ProjectLanguage = Language.ForProject(this.initializedProject);
             this.ProjectFullPath = this.initializedProject.FullName;
         }
 

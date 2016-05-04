@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         /// Language to quality profile map
         /// </summary>
-        public Dictionary<string, QualityProfile> ReturnProfile { get; } = new Dictionary<string, QualityProfile>();
+        public Dictionary<Language, QualityProfile> ReturnProfile { get; } = new Dictionary<Language, QualityProfile>();
 
         public Action GetExportAction { get; set; }
 
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        bool ISonarQubeServiceWrapper.TryGetExportProfile(ConnectionInformation serverConnection, QualityProfile profile, string language, CancellationToken token, out RoslynExportProfile export)
+        bool ISonarQubeServiceWrapper.TryGetExportProfile(ConnectionInformation serverConnection, QualityProfile profile, Language language, CancellationToken token, out RoslynExportProfile export)
         {
             this.AssertExpectedConnection(serverConnection);
 
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return null;
         }
 
-        bool ISonarQubeServiceWrapper.TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, string language, CancellationToken token, out QualityProfile profile)
+        bool ISonarQubeServiceWrapper.TryGetQualityProfile(ConnectionInformation serverConnection, ProjectInformation project, Language language, CancellationToken token, out QualityProfile profile)
         {
             profile = null;
 

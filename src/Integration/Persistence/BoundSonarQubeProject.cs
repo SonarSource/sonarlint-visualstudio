@@ -18,7 +18,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         }
 
         public BoundSonarQubeProject(Uri serverUri, string projectKey, ICredentials credentials = null)
-            :this()
+            : this()
         {
             if (serverUri == null)
             {
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
         public string ProjectKey { get; set; }
 
-        public Dictionary<LanguageGroup, ApplicableQualityProfile> Profiles { get; set; }
+        public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 
         [JsonIgnore]
         public ICredentials Credentials { get; set; }
