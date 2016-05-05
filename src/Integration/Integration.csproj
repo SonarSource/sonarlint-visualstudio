@@ -115,6 +115,7 @@
     <Compile Include="LocalServices\IErrorListInfoBarController.cs" />
     <Compile Include="LocalServices\ErrorListInfoBarController.cs" />
     <Compile Include="LocalServices\ISolutionBindingInformationProvider.cs" />
+    <Compile Include="LocalServices\IProjectSystemHelperExtensions.cs" />
     <Compile Include="LocalServices\SolutionBindingInformationProvider.cs" />
     <Compile Include="MefServices\IProjectPropertyManager.cs" />
     <Compile Include="MefServices\IInfoBar.cs" />

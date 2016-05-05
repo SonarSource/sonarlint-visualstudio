@@ -121,6 +121,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             projMock.ClearBuildProperty(propertyName);
         }
 
+        public IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
+        {
+            ProjectMock dteProject = hierarchy as ProjectMock;
+            if(dteProject == null)
+            {
+                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)} type");
+            }
+
+            return dteProject.GetAggregateProjectTypeGuids();
+        }
+
         #endregion
 
         #region Test helpers

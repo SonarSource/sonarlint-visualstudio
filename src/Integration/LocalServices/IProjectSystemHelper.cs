@@ -8,6 +8,7 @@
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
+using System;
 using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration
@@ -85,5 +86,11 @@ namespace SonarLint.VisualStudio.Integration
         /// <remarks>This does not remove the property from the project, it only removes the value.</remarks>
         /// <param name="propertyName">Name of the property to remove</param>
         void ClearProjectProperty(Project dteProject, string propertyName);
+
+        /// <summary>
+        /// Return all project 'kinds' (GUIDs) for the given project.
+        /// </summary>
+        /// <returns>Project kinds GUIDs for the project</returns>
+        IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy);
     }
 }

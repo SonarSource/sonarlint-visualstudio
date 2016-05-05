@@ -323,33 +323,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private string GetSolutionItemsFolderName()
-        {
-            string solutionItemsFolderName = null;
-            Guid guid = VSConstants.CLSID.VsEnvironmentPackage_guid;
-
-            IVsShell shell = this.serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            Debug.Assert(shell != null, "Could not find the SVsShell service");
-
-            ErrorHandler.ThrowOnFailure(shell.LoadPackageString(ref guid, SolutionItemResourceId, out solutionItemsFolderName));
-            Debug.Assert(!string.IsNullOrEmpty(solutionItemsFolderName));
-            return solutionItemsFolderName;
-        }
-
-        private static IEnumerable<IVsHierarchy> EnumerateProjects(IVsSolution solution)
-        {
-            Guid empty = Guid.Empty;
-            IEnumHierarchies projectsEnum;
-            ErrorHandler.ThrowOnFailure(solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref empty, out projectsEnum));
-            IVsHierarchy[] output = new IVsHierarchy[1];
-            uint fetched;
-            while (ErrorHandler.Succeeded(projectsEnum.Next(1, output, out fetched)) && fetched == 1)
-            {
-                yield return output[0];
-            }
-        }
-
-        private static IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
+        public IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
         {
             if (hierarchy == null)
             {
@@ -374,14 +348,30 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public static bool IsKnownTestProject(IVsHierarchy vsProject)
+        private string GetSolutionItemsFolderName()
         {
-            if (vsProject == null)
-            {
-                throw new ArgumentNullException(nameof(vsProject));
-            }
+            string solutionItemsFolderName = null;
+            Guid guid = VSConstants.CLSID.VsEnvironmentPackage_guid;
 
-            return GetAggregateProjectKinds(vsProject).Contains(TestProjectKindGuid);
+            IVsShell shell = this.serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            Debug.Assert(shell != null, "Could not find the SVsShell service");
+
+            ErrorHandler.ThrowOnFailure(shell.LoadPackageString(ref guid, SolutionItemResourceId, out solutionItemsFolderName));
+            Debug.Assert(!string.IsNullOrEmpty(solutionItemsFolderName));
+            return solutionItemsFolderName;
+        }
+
+        private static IEnumerable<IVsHierarchy> EnumerateProjects(IVsSolution solution)
+        {
+            Guid empty = Guid.Empty;
+            IEnumHierarchies projectsEnum;
+            ErrorHandler.ThrowOnFailure(solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref empty, out projectsEnum));
+            IVsHierarchy[] output = new IVsHierarchy[1];
+            uint fetched;
+            while (ErrorHandler.Succeeded(projectsEnum.Next(1, output, out fetched)) && fetched == 1)
+            {
+                yield return output[0];
+            }
         }
 
         public static bool IsVBProject(Project project)

@@ -143,6 +143,7 @@
     <Compile Include="LanguageConverterTests.cs" />
     <Compile Include="LocalServices\ErrorListInfoBarController.QualityProfileBackgroundProcessorTests.cs" />
     <Compile Include="LocalServices\ErrorListInfoBarControllerTests.cs" />
+    <Compile Include="LocalServices\ProjectSystemHelperExtensionsTests.cs" />
     <Compile Include="LocalServices\RuleSetSerializerTests.cs" />
     <Compile Include="LocalServices\SolutionBindingInformationProviderTests.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectExtensionsTests.cs" />

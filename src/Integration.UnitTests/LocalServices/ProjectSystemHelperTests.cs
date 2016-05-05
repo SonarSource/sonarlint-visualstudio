@@ -217,12 +217,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsKnownTestProject_ArgChecks()
-        {
-            Exceptions.Expect<ArgumentNullException>(() => ProjectSystemHelper.IsKnownTestProject(null));
-        }
-
-        [TestMethod]
         public void ProjectSystemHelper_GetSelectedProjects_ReturnsActiveProjects()
         {
             // Setup
@@ -333,6 +327,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             Assert.IsNull(project.GetBuildProperty("myprop"), "Expected property value to be cleared");
+        }
+
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetAggregateProjectKinds_ArgChecks()
+        {
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.GetAggregateProjectKinds(null).FirstOrDefault());
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetAggregateProjectKinds_NoGuids_ReturnsEmpty()
+        {
+            // Setup
+            var project = new ProjectMock("my.project");
+            project.SetAggregateProjectTypeString(string.Empty);
+
+            // Act
+            Guid[] actualGuids = this.testSubject.GetAggregateProjectKinds(project).ToArray();
+
+            // Verify
+            Assert.IsFalse(actualGuids.Any(), "Expected no GUIDs returned");
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_GetAggregateProjectKinds_HasGoodAndBadGuids_ReturnsSuccessfullyParsedGuidsOnly()
+        {
+            // Setup
+            string guidString = ";;;F602148F607646F88F7772CC9C49BC3F;;__BAD__;;__BADGUID__;0BA323B301614B1C80D74607B7EB7F5A;;;__FOO__;;;";
+            Guid[] expectedGuids = new[]
+            {
+                new Guid("F602148F607646F88F7772CC9C49BC3F"),
+                new Guid("0BA323B301614B1C80D74607B7EB7F5A"),
+            };
+
+            var project = new ProjectMock("my.project");
+            project.SetAggregateProjectTypeString(guidString);
+
+            // Act
+            Guid[] actualGuids = this.testSubject.GetAggregateProjectKinds(project).ToArray();
+
+            // Verify
+            CollectionAssert.AreEquivalent(expectedGuids, actualGuids, "Unexpected project kind GUIDs returned");
         }
 
         #endregion

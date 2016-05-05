@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             // Otherwise, try to detect test project using known project types and/or regex match
-            if (ProjectSystemHelper.IsKnownTestProject(projectHierarchy))
+            if (this.projectSystem.IsKnownTestProject(projectHierarchy))
             {
                 return true;
             }
