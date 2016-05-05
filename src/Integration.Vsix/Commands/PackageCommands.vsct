@@ -21,7 +21,7 @@
         <Parent guid="guidCmdSet" id="groupidProjectSonarLint"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>&amp;SonarLint</ButtonText>
+          <ButtonText>&amp;SonarLint Connected Mode</ButtonText>
         </Strings>
       </Menu>
       <Menu guid="guidCmdSet" id="menuidProjectTestProperty" priority="0x200">
