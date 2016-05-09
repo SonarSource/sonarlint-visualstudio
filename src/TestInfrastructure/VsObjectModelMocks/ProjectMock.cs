@@ -410,9 +410,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ((IVsBuildPropertyStorage)this).RemoveProperty(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE);
         }
 
+        public void SetAggregateProjectTypeString(string str)
+        {
+            this.aggregateProjectTypeGuids = str;
+        }
+
         public void SetAggregateProjectTypeGuids(params Guid[] guids)
         {
             this.aggregateProjectTypeGuids = string.Join(";", guids.Select(x => x.ToString("N"))) ?? string.Empty;
+        }
+
+        public IEnumerable<Guid> GetAggregateProjectTypeGuids()
+        {
+            return this.aggregateProjectTypeGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries)
+                                                 .Select(Guid.Parse);
         }
 
         public void SetTestProject()
