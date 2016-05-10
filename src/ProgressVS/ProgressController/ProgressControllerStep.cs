@@ -21,8 +21,8 @@ namespace SonarLint.VisualStudio.Progress.Controller
     public partial class ProgressControllerStep
     {
         #region Fields
-        private ProgressStepDefinition definition;
-        private IProgressController controller;
+        private readonly ProgressStepDefinition definition;
+        private readonly IProgressController controller;
         private StepExecutionState state;
         #endregion
 

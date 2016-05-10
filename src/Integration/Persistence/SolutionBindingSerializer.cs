@@ -195,11 +195,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return null;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", 
-            "S1067:Expressions should not be too complex", 
-            Justification = "We want to filter only those exceptions. The rule doesn't apply in this case", 
-            Scope = "member", 
-            Target = "~M:SonarLint.VisualStudio.Integration.Persistence.SolutionBinding.SafePerformFileSystemOperation(System.Action)~System.Boolean")]
         private bool SafePerformFileSystemOperation(Action operation)
         {
             Debug.Assert(operation != null);

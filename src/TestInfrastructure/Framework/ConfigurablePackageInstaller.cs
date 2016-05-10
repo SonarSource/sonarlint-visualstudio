@@ -17,7 +17,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurablePackageInstaller : IVsPackageInstaller
     {
-        private bool simulateInstallerException;
+        private readonly bool simulateInstallerException;
         private readonly Dictionary<Project, IList<PackageName>> installedPackages = new Dictionary<Project, IList<PackageName>>();
 
         public ConfigurablePackageInstaller(bool simulateInstallerException = false)

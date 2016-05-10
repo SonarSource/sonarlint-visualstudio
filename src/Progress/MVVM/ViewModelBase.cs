@@ -17,10 +17,10 @@ namespace SonarLint.VisualStudio.Progress.MVVM
 {
     public abstract class ViewModelBase : INotifyPropertyChanged
     {
-        private Dispatcher dispatcher;
+        private readonly Dispatcher dispatcher;
 
 #if DEBUG
-        private string stackPrint;
+        private readonly string stackPrint;
 #endif
         protected ViewModelBase()
         {
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Progress.MVVM
             }
             else
             {
-                return (TResult)Dispatcher.Invoke(func, DispatcherPriority.Normal);
+                return Dispatcher.Invoke(func, DispatcherPriority.Normal);
             }
         }
 

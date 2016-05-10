@@ -12,7 +12,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurationMock : Configuration
     {
-        private string configurationName;
+        private readonly string configurationName;
 
         public ConfigurationMock(string name)
         {
@@ -147,6 +147,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion  
+        #endregion
     }
 }

@@ -78,13 +78,12 @@ namespace SonarLint.VisualStudio.Integration.State
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
           "S3236:Methods with caller info attributes should not be invoked with explicit arguments",
-          Justification = "False positive, we actually want to specify a different property to change",
+          Justification = "We actually want to specify a different property to change",
           Scope = "member",
           Target = "~M:SonarLint.VisualStudio.Integration.State.TransferableVisualState.OnHasBoundProjectChanged()")]
         private void OnHasBoundProjectChanged()
         {
             this.RaisePropertyChanged(nameof(HasBoundProject));
-
         }
     }
 }

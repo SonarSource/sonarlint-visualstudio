@@ -683,7 +683,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             }
         }
 
-        private static void VerifyExecutionGroup(ProgressObserver.ExecutionGroup group, IEnumerable<IProgressStep> orderedStepsInGroup, IProgressStep executingStep = null)
+        private static void VerifyExecutionGroup(ProgressObserver.ExecutionGroup group, IEnumerable<IProgressStep> orderedStepsInGroup)
         {
             Assert.AreEqual(orderedStepsInGroup.Count(), group.Steps.Count, "Unexpected number of actual steps in group");
             int i = 0;
@@ -809,7 +809,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                         {
                             Assert.IsNotNull(steps, "There should be at least one step in the group");
 
-                            VerifyExecutionGroup(this.testSubject.CurrentExecutingGroup, steps, currentStep);
+                            VerifyExecutionGroup(this.testSubject.CurrentExecutingGroup, steps);
                         }
                         else
                         {

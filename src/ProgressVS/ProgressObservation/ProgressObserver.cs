@@ -350,7 +350,7 @@ namespace SonarLint.VisualStudio.Progress.Observation
         #region Non public static
         /// <summary>
         /// Steps could be hidden which means that they won't be visible. In that case the progress needs to be scaled
-        /// to accommodate for those steps and also the visual indicator that a step is running needs be conceptually 
+        /// to accommodate for those steps and also the visual indicator that a step is running needs be conceptually
         /// correct - which means that all the hidden steps needed to be aggregated to a non-hidden one for visualization
         /// purposes.
         /// </summary>
@@ -359,7 +359,7 @@ namespace SonarLint.VisualStudio.Progress.Observation
         internal static ExecutionGroup[] GroupToExecutionUnits(IEnumerable<IProgressStep> steps)
         {
             Debug.Assert(steps.All(s => s.ImpactsProgress), "Expecting only steps which impact the progress");
-            int numberOfExecutionUnits = steps.Where(s => !s.Hidden).Count();
+            int numberOfExecutionUnits = steps.Count(s => !s.Hidden);
             ExecutionGroup[] groups = new ExecutionGroup[numberOfExecutionUnits];
 
             for (int i = 0; i < numberOfExecutionUnits; i++)
@@ -376,8 +376,8 @@ namespace SonarLint.VisualStudio.Progress.Observation
             int prevUnit = 0, currentUnit = 0;
             foreach (IProgressStep step in steps)
             {
-                // Hidden steps are normally added to the previous visible, unless it 
-                // is the case in which the hidden steps are first, in which they will be added 
+                // Hidden steps are normally added to the previous visible, unless it
+                // is the case in which the hidden steps are first, in which they will be added
                 // to the following visible
                 if (step.Hidden)
                 {
@@ -441,7 +441,7 @@ namespace SonarLint.VisualStudio.Progress.Observation
             ThreadHelper.ThrowIfNotOnUIThread();
 
             IProgressStep first = group.Steps.First();
-            IProgressStep nonHiddenStep = group.Steps.Where(s => !s.Hidden).FirstOrDefault();
+            IProgressStep nonHiddenStep = group.Steps.FirstOrDefault(s => !s.Hidden);
             Debug.Assert(nonHiddenStep != null, "The execution group has no visible steps");
 
             viewModel.DisplayText = nonHiddenStep.DisplayText;
@@ -597,7 +597,7 @@ namespace SonarLint.VisualStudio.Progress.Observation
         /// Updates the <see cref="ProgressStepViewModel"/> with the current step changes.
         /// The <see cref="ProgressStepViewModel"/> represents a <see cref="ExecutionGroup"/>
         /// of one visible step and zero or more hidden steps. The progress in <see cref="ProgressStepViewModel"/>
-        /// is used as the sub progress and it will be indeterminate if there's one indeterminate 
+        /// is used as the sub progress and it will be indeterminate if there's one indeterminate
         /// <see cref="IProgressStep"/> in <see cref="ExecutionGroup"/>, otherwise the sub progress
         /// will be relative to the number of steps in <see cref="ExecutionGroup"/>.
         /// </summary>
@@ -615,7 +615,7 @@ namespace SonarLint.VisualStudio.Progress.Observation
             executionGroup.ExecutingStep = e.Step;
 
             // Update the step VM
-            // Progress update: Indeterminate step progress should remain as it was 
+            // Progress update: Indeterminate step progress should remain as it was
             // and the determinate step progress should be updated
             switch (e.State)
             {

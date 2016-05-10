@@ -13,7 +13,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ToolWindowsMock : ToolWindows
     {
-        private DTEMock parent;
+        private readonly DTEMock parent;
 
         public ToolWindowsMock(DTEMock parent)
         {

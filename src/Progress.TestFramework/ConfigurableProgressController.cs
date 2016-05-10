@@ -24,10 +24,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         #region Fields
         private const int DefaultWaitForCompletionMS = 2000;
 
-        private int waitForCompletion;
+        private readonly int waitForCompletion;
         private CancellationTokenSource cts;
-        private List<Tuple<string, double>> progressChanges = new List<Tuple<string, double>>();
-        private List<IProgressStepOperation> stepOperations = new List<IProgressStepOperation>();
+        private readonly List<Tuple<string, double>> progressChanges = new List<Tuple<string, double>>();
+        private readonly List<IProgressStepOperation> stepOperations = new List<IProgressStepOperation>();
         private bool canAbort;
         #endregion
 

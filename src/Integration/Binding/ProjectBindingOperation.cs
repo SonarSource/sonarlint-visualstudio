@@ -161,13 +161,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        private static Configuration TryGetPropertyConfiguration(Property property)
-        {
-            Configuration configuration = property.Collection.Parent as Configuration; // Could be null if the one used is the Project level one.
-            Debug.Assert(configuration != null || property.Collection.Parent is Project, $"Unexpected property parent type: {property.Collection.Parent.GetType().FullName}");
-            return configuration;
-        }
-
         /// <summary>
         /// Data class that exposes simple data that can be accessed from any thread.
         /// The class itself is not thread safe and assumes only one thread accessing it at any given time.

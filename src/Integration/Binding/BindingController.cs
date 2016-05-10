@@ -88,10 +88,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.OnBind(projectVM?.ProjectInformation);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "S1067:Expressions should not be too complex",
-            Justification = "We need all those conditions to determine whether the command is enabled",
-            Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Integration.Binding.BindCommand.OnBindStatus(SonarLint.VisualStudio.Integration.Service.ProjectInformation)~System.Boolean")]
         private bool OnBindStatus(ProjectInformation projectInformation)
         {
             return projectInformation != null

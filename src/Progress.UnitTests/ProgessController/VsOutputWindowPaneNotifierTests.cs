@@ -41,11 +41,6 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         [TestMethod]
         [Description("Arg check tests")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
-            "S1848:Objects should not be created to be dropped immediately without being used",
-            Justification = "Only testing ctor does not throw exceptions; no need to keep resulting instance.",
-            Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Progress.UnitTests.VsOutputWindowPaneNotifierTests.VsGeneralOutputWindowNotifier_Args")]
         public void VsOutputWindowPaneNotifier_Args()
         {
             // Setup

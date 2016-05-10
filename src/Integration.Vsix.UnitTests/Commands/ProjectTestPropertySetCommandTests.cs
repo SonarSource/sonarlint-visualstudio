@@ -45,11 +45,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         #region Tests
 
         [TestMethod]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
-            "S1848:Objects should not be created to be dropped immediately without being used",
-            Justification = "Test of object constructor to not throw exception; no need to use resulting object",
-            Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.Commands.ProjectTestPropertySetCommandTests.ProjectTestPropertySetCommand_Ctor")]
         public void ProjectTestPropertySetCommand_Ctor()
         {
             Exceptions.Expect<ArgumentNullException>(() => new ProjectTestPropertySetCommand(null, true));

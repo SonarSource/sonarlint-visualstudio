@@ -15,7 +15,7 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableComponentModel : IComponentModel
+    public class ConfigurableComponentModel : IComponentModel, IDisposable
     {
         private readonly IServiceProvider serviceProvider;
         private readonly CompositionContainer container;

@@ -53,12 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Verify
             Assert.IsTrue(VsShellUtils.SaveSolution(serviceProvider, silent: true));
         }
-
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "S1854:Dead stores should be removed", 
-            Justification = "False positive: hrResult is used in lambda", 
-            Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.VsShellUtilsTests.VsShellUtils_SaveSolution_Prompt")]
+        
         [TestMethod]
         public void VsShellUtils_SaveSolution_Prompt()
         {

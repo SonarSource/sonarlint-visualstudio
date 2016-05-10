@@ -159,10 +159,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         private class VsTask : IVsTask
         {
-            private SingleThreadedTaskSchedulerService owner;
-            private Func<object> action;
+            private readonly SingleThreadedTaskSchedulerService owner;
+            private readonly Func<object> action;
+            private readonly VsTaskRunContext context;
             private object result = null;
-            private VsTaskRunContext context;
 
             public VsTask(SingleThreadedTaskSchedulerService owner, VsTaskRunContext context, Func<object> action)
             {
@@ -229,9 +229,9 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             {
                 VsTask continuation = new VsTask(this.owner, (VsTaskRunContext)context, () =>
                 {
-                    object result;
-                    taskBody.DoWork(null, 0, null, out result);
-                    return result;
+                    object taskBodyResult;
+                    taskBody.DoWork(null, 0, null, out taskBodyResult);
+                    return taskBodyResult;
                 });
                 continuation.Start();
                 return continuation;

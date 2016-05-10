@@ -44,11 +44,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Tests
 
         [TestMethod]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
-            "S1848:Objects should not be created to be dropped immediately without being used",
-            Justification = "Only testing constructor does not throw exception. Do not need to use the resulting instance.",
-            Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.ProjectPropertyManagerTests.ProjectPropertyManager_Ctor_NullArgChecks")]
         public void ProjectPropertyManager_Ctor_NullArgChecks()
         {
             // Test case 1: missing IHost (MEF failure) throws exception

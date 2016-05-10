@@ -14,7 +14,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableCredentialStore : ICredentialStore
     {
-        private Dictionary<Uri, Credential> data = new Dictionary<Uri, Credential>();
+        private readonly Dictionary<Uri, Credential> data = new Dictionary<Uri, Credential>();
 
         #region ICredentialStore
         void ICredentialStore.DeleteCredentials(Uri targetUri)

@@ -449,7 +449,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Projects mock
         private class _ProjectsMock : Projects
         {
-            private SolutionMock parent;
+            private readonly SolutionMock parent;
 
             public _ProjectsMock(SolutionMock parent)
             {

@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
-            QualityProfile profile = this.ConfigureProfileExport(testSubject, export, language);
+            QualityProfile profile = this.ConfigureProfileExport(export, language);
 
             // Act
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurableProgressController controller = new ConfigurableProgressController();
 
             var language = Language.CSharp;
-            this.ConfigureProfileExport(testSubject, null, language);
+            this.ConfigureProfileExport(null, language);
 
             // Act
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, new ConfigurableProgressStepExecutionEvents(), new[] { language });
@@ -434,7 +434,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return packageInstaller;
         }
 
-        private QualityProfile ConfigureProfileExport(BindingWorkflow testSubject, RoslynExportProfile export, Language language)
+        private QualityProfile ConfigureProfileExport(RoslynExportProfile export, Language language)
         {
             var profile = new QualityProfile { Language = SonarQubeServiceWrapper.GetServerLanguageKey(language) };
             this.sonarQubeService.ReturnProfile[language] = profile;

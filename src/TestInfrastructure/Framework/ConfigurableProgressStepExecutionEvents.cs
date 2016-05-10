@@ -15,7 +15,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableProgressStepExecutionEvents : IProgressStepExecutionEvents
     {
-        private List<Tuple<string, double>> progressEventsMessages = new List<Tuple<string, double>>();
+        private readonly List<Tuple<string, double>> progressEventsMessages = new List<Tuple<string, double>>();
 
         #region IProgressStepExecutionEvents
         void IProgressStepExecutionEvents.ProgressChanged(string progressDetailText, double progress)

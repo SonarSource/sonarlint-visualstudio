@@ -14,8 +14,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 {
     public class ConfigurableServiceProvider : IServiceProvider
     {
-        private Dictionary<Type, object> serviceInstances = new Dictionary<Type, object>(new TypeComparer());
-        private Dictionary<Type, Func<object>> serviceConstructors = new Dictionary<Type, Func<object>>(new TypeComparer());
+        private readonly Dictionary<Type, object> serviceInstances = new Dictionary<Type, object>(new TypeComparer());
+        private readonly Dictionary<Type, Func<object>> serviceConstructors = new Dictionary<Type, Func<object>>(new TypeComparer());
 
         private class TypeComparer : IEqualityComparer<Type>
         {
@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         // Records the services that were actually requested
-        private HashSet<Type> requestedServices = new HashSet<Type>();
+        private readonly HashSet<Type> requestedServices = new HashSet<Type>();
 
         #region Constructor(s)
 

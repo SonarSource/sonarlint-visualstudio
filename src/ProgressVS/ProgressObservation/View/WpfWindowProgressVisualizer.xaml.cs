@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Progress.Observation.View
     {
         #region Fields
         public static readonly DependencyProperty ViewModelProperty = ProgressVisualizerControl.ViewModelProperty.AddOwner(typeof(WpfWindowProgressVisualizer));
-        private bool modal;
+        private readonly bool modal;
         #endregion
 
         #region Constructors

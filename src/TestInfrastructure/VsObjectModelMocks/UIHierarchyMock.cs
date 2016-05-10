@@ -12,8 +12,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class UIHierarchyMock : UIHierarchy
     {
-        private DTEMock dte;
-        
+        private readonly DTEMock dte;
+
         public UIHierarchyMock(DTEMock dte)
         {
             this.dte = dte;

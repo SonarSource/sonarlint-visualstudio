@@ -917,11 +917,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.AreEqual(expectedNumberOfTimes, this.handlerCalled, "Handler was called unexpected number of times");
             }
 
-            public int HandlerCalls
-            {
-                get { return this.handlerCalled; }
-            }
-
             public void HandlerRequest(IOwinContext context)
             {
                 this.handlerCalled++;

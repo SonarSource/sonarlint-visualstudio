@@ -22,7 +22,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     public class SequentialProgressControllerTests
     {
         private SequentialProgressController testSubject;
-        private List<Tuple<string, double>> notifyProgressSequence = new List<Tuple<string, double>>();
+        private readonly List<Tuple<string, double>> notifyProgressSequence = new List<Tuple<string, double>>();
         private ConfigurableServiceProvider serviceProvider;
         private SingleThreadedTaskSchedulerService threadingService;
         private ConfigurableErrorNotifier errorNotifier;

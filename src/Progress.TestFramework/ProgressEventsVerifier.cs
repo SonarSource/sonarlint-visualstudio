@@ -14,15 +14,15 @@ using System.Linq;
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
     /// <summary>
-    /// Test helper to verify general <see cref="IProgressController"/> and <see cref="IProgressStepOperation"/> execution 
+    /// Test helper to verify general <see cref="IProgressController"/> and <see cref="IProgressStepOperation"/> execution
     /// and also verification of the event mechanism <see cref="IProgressEvents"/>
     /// </summary>
     public class ProgressEventsVerifier
     {
-        private IProgressEvents events;
+        private readonly IProgressEvents events;
         private bool started;
         private ProgressControllerResult? executionResult;
-        private Dictionary<IProgressStep, List<StepExecutionChangedEventArgs>> executionChanges = new Dictionary<IProgressStep, List<StepExecutionChangedEventArgs>>();
+        private readonly Dictionary<IProgressStep, List<StepExecutionChangedEventArgs>> executionChanges = new Dictionary<IProgressStep, List<StepExecutionChangedEventArgs>>();
         private int cancellableStateChanges = 0;
 
         public ProgressEventsVerifier(IProgressEvents events)

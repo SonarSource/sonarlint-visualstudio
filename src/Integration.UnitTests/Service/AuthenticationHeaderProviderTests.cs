@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             string userNameAndPassword = AuthenticationHeaderProvider.BasicAuthEncoding.GetString(Convert.FromBase64String(userAndPasswordBase64String));
             // Find first Colon (can't use Split since password may contain ':')
-            int index = userNameAndPassword.IndexOf(AuthenticationHeaderProvider.BasicAuthUserNameAndPasswordSeparator);
+            int index = userNameAndPassword.IndexOf(AuthenticationHeaderProvider.BasicAuthUserNameAndPasswordSeparator, StringComparison.Ordinal);
             Assert.IsTrue(index >= 0, "Expected a string in user:password format, got instead '{0}'", userNameAndPassword);
 
             string[] userNameAndPasswordTokens = new string[2];

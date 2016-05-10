@@ -18,11 +18,6 @@ using System.Windows.Threading;
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {
     [TestClass]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
-        "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
-        Justification = "By-design. Test classes will do it part of the test clean up",
-        Scope = "type",
-        Target = "~T:SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer.SonarAnalyzerManagerTestsForBound")]
     public class SonarAnalyzerManagerTestsForBound
     {
         private ConfigurableServiceProvider serviceProvider;

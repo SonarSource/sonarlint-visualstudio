@@ -37,9 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             Exceptions.Expect<ArgumentNullException>(() => new SolutionAnalysisRequester(this.serviceProvider, null));
             try
             {
-#pragma warning disable S1848 // Only testing ctor does not throw exceptions; no need to keep resulting instance.
                 new SolutionAnalysisRequester(this.serviceProvider, new AdhocWorkspace());
-#pragma warning restore S1848
             }
             catch (Exception)
             {

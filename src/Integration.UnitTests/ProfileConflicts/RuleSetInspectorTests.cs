@@ -17,11 +17,6 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
-        "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"", 
-        Justification = "Not needed, will be disposed part of the test clean up", 
-        Scope = "type", 
-        Target = "~T:SonarLint.VisualStudio.Integration.UnitTests.LocalServices.RuleSetInspectorTests")]
     [TestClass]
     public class RuleSetInspectorTests
     {
@@ -227,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet, projectRuleSet.FilePath);
 
-                // Verify 
+                // Verify
                 AssertNoConflicts(conflicts);
             }
         }
@@ -307,7 +302,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             projectRuleSet.Rules[2].Action = RuleAction.None;
             projectRuleSet.WriteToFile(projectRuleSet.FilePath);
 
-            // Act 
+            // Act
             RuleConflictInfo conflicts = this.testSubject.FindConflictingRules(solutionRuleSet.FilePath, projectRuleSet.FilePath);
 
             // Verify [verify that having all that with all that extra noise, since the project level overrides two of the values there will be conflicts]

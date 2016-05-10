@@ -96,24 +96,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             }
         }
 
-        private void VerifyPassword(BasicAuthenticationCredentialsValidator validator, string password, bool expectedValid)
-        {
-            SecureString securePassword = password.ConvertToSecureString();
-
-            validator.UpdatePassword(securePassword);
-
-            bool result = validator.IsUsernameValid;
-
-            if (expectedValid)
-            {
-                Assert.IsTrue(result, $"Password '{password}' should be valid");
-            }
-            else
-            {
-                Assert.IsFalse(result, $"Password '{password}' should be invalid");
-            }
-        }
-
         #endregion
 
     }

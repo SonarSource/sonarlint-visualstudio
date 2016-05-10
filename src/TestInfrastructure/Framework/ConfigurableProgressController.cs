@@ -17,7 +17,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class ConfigurableProgressController : IProgressController, IProgressEvents
     {
         private int numberOfAbortRequests = 0;
-        private List<IProgressStep> steps = new List<IProgressStep>();
+        private readonly List<IProgressStep> steps = new List<IProgressStep>();
         private EventHandler<ProgressEventArgs> started;
         private EventHandler<ProgressControllerFinishedEventArgs> finished;
         private EventHandler<StepExecutionChangedEventArgs> stepExecutionChanged;

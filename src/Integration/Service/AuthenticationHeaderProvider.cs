@@ -14,7 +14,7 @@ using System.Text;
 
 namespace SonarLint.VisualStudio.Integration.Service
 {
-    internal class AuthenticationHeaderProvider
+    internal static class AuthenticationHeaderProvider
     {
         public const string BasicAuthUserNameAndPasswordSeparator = ":";
 

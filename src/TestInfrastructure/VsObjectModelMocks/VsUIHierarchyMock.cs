@@ -19,8 +19,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class VsUIHierarchyMock : IVsUIHierarchy
     {
         private static int allocatedItemIds = 0;
-        private Dictionary<uint, Dictionary<int, object>> properties = new Dictionary<uint, Dictionary<int, object>>();
-        private Dictionary<uint, IVsHierarchyEvents> sinks = new Dictionary<uint, IVsHierarchyEvents>();
+        private readonly Dictionary<uint, Dictionary<int, object>> properties = new Dictionary<uint, Dictionary<int, object>>();
+        private readonly Dictionary<uint, IVsHierarchyEvents> sinks = new Dictionary<uint, IVsHierarchyEvents>();
         private int sinkCookies = 0;
 
         protected static uint AllocateItemId()

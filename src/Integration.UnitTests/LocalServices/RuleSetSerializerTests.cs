@@ -13,11 +13,6 @@ using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
-        "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"", 
-        Justification = "Not required for test projects, disposed on test cleanup.", 
-        Scope = "type", 
-        Target = "~T:SonarLint.VisualStudio.Integration.UnitTests.RuleSetSerializerTests")]
     [TestClass]
     public class RuleSetSerializerTests
     {

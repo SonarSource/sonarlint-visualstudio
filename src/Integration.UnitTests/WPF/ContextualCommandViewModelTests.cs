@@ -28,11 +28,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
         }
 
         [TestMethod]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", 
-            "S1854:Dead stores should be removed", 
-            Justification = "False positive canExecute is being used ", 
-            Scope = "member", 
-            Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.WPF.ContextualCommandViewModelTests.ContextualCommandViewModel_CommandInvocation")]
         public void ContextualCommandViewModel_CommandInvocation()
         {
             // Setup

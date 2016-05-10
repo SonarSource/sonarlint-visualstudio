@@ -12,7 +12,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class PropertyMock : Property
     {
-        private Properties parent;
+        private readonly Properties parent;
 
         public PropertyMock(string name, Properties parent)
         {

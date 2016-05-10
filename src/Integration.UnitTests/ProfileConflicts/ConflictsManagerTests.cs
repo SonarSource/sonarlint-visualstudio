@@ -8,7 +8,6 @@
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System;
@@ -287,7 +286,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 project.ConfigurationManager.Configurations.Add(configuration);
 
                 PropertyMock ruleSetProperty = configuration.Properties.RegisterKnownProperty(Constants.CodeAnalysisRuleSetPropertyKey);
-                ruleSetProperty.Value = project.FilePath.ToUpperInvariant(); // Catch cases where file paths are compared without OrdinalIgnoreCase 
+                ruleSetProperty.Value = project.FilePath.ToUpperInvariant(); // Catch cases where file paths are compared without OrdinalIgnoreCase
                 if (useUniqueProjectRuleSets)
                 {
                     ruleSetProperty.Value = Path.ChangeExtension(project.FilePath, configurationName + ".ruleSet");
@@ -345,11 +344,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability",
-            "S1541:Methods should not be too complex",
-            Justification = "False positive, nothing complex about it, should not impact Maintainability",
-            Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Integration.UnitTests.ConflictsManagerTests.CreateConflictsBasedOnNumberOfCalls(System.Int32)~SonarLint.VisualStudio.Integration.ProfileConflicts.RuleConflictInfo")]
         private static RuleConflictInfo CreateConflictsBasedOnNumberOfCalls(int findConflictCalls)
         {
             RuleSet temp = TestRuleSetHelper.CreateTestRuleSet(2);
