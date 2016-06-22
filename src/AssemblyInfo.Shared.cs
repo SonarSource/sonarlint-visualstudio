@@ -10,8 +10,8 @@ using System.Runtime.InteropServices;
 
 
 // Note: keep the version number in sync with the VSIX (source.extension.manifest)
-[assembly: AssemblyVersion("2.3.0.0")]
-[assembly: AssemblyFileVersion("2.3.0.0")]
+[assembly: AssemblyVersion("2.4.0.0")]
+[assembly: AssemblyFileVersion("2.4.0.0")]
 
 [assembly: AssemblyConfiguration("")]
 [assembly: ComVisible(false)]
