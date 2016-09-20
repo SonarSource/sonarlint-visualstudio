@@ -200,6 +200,16 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.CSharp.csproj">
+      <Project>{d993daf3-5b68-4d43-b558-f6b9ef13c796}</Project>
+      <Name>SonarAnalyzerEmbedder.CSharp</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.VisualBasic.vbproj">
+      <Project>{112698a2-85c3-4357-aaa5-7658d29d27a1}</Project>
+      <Name>SonarAnalyzerEmbedder.VisualBasic</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="GAC">
     <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">

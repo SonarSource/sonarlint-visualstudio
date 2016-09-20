@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.Vsix", "Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
 EndProject
@@ -33,6 +33,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
 		SonarQube\sonarlint-visualstudioCSharp.ruleset = SonarQube\sonarlint-visualstudioCSharp.ruleset
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarAnalyzerEmbedder.CSharp", "SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.CSharp.csproj", "{D993DAF3-5B68-4D43-B558-F6B9EF13C796}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarAnalyzerEmbedder", "SonarAnalyzerEmbedder", "{244A2265-326C-40AE-8906-02CC250867AA}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SonarAnalyzerEmbedder.VisualBasic", "SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.VisualBasic.vbproj", "{112698A2-85C3-4357-AAA5-7658D29D27A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -76,6 +82,14 @@ Global
 		{33315FCB-3D07-4177-944E-AA45CC3C5539}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33315FCB-3D07-4177-944E-AA45CC3C5539}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33315FCB-3D07-4177-944E-AA45CC3C5539}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D993DAF3-5B68-4D43-B558-F6B9EF13C796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D993DAF3-5B68-4D43-B558-F6B9EF13C796}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D993DAF3-5B68-4D43-B558-F6B9EF13C796}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D993DAF3-5B68-4D43-B558-F6B9EF13C796}.Release|Any CPU.Build.0 = Release|Any CPU
+		{112698A2-85C3-4357-AAA5-7658D29D27A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{112698A2-85C3-4357-AAA5-7658D29D27A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{112698A2-85C3-4357-AAA5-7658D29D27A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{112698A2-85C3-4357-AAA5-7658D29D27A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -89,5 +103,7 @@ Global
 		{B00C57EB-F4EC-43CE-A849-90DA04775B84} = {3BC056DC-0342-42A7-A7F1-4B2D30485096}
 		{AB7A8888-EF8B-4F6D-8005-398744A60BA2} = {A3EB5CE0-51EB-46D0-B996-8A34EE5CC1AC}
 		{33315FCB-3D07-4177-944E-AA45CC3C5539} = {A3EB5CE0-51EB-46D0-B996-8A34EE5CC1AC}
+		{D993DAF3-5B68-4D43-B558-F6B9EF13C796} = {244A2265-326C-40AE-8906-02CC250867AA}
+		{112698A2-85C3-4357-AAA5-7658D29D27A1} = {244A2265-326C-40AE-8906-02CC250867AA}
 	EndGlobalSection
 EndGlobal
