@@ -8,6 +8,8 @@
 
 # Build results
 
+binaries/
+
 [Dd]ebug/
 [Rr]elease/
 x64/
