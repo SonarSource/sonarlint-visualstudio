@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
-using SonarLint.Helpers;
+using SonarAnalyzer.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

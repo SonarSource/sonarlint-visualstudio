@@ -30,5 +30,7 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.CSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.VisualBasic.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.VisualBasic.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="Google.Protobuf.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="Google.Protobuf.dll" />
   </Assets>
 </PackageManifest>

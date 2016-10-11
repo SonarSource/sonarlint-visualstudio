@@ -102,6 +102,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Google.Protobuf">
+      <HintPath>..\..\binaries\Google.Protobuf.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.CodeAnalysis.Common.1.0.0\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
       <Private>True</Private>
