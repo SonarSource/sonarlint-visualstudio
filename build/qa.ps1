@@ -23,7 +23,8 @@ testExitCode
 
 #download VSIX
 $ARTIFACTORY_SRC_REPO="sonarsource-public-qa/org/sonarsource/dotnet/SonarLint.VSIX"
-$version  = $env:CI_BUILD_NUMBER
+[xml]$versionProps = Get-Content .\build\Version.props
+$version  = $versionProps.Project.PropertyGroup.MainVersion+".$env:CI_BUILD_NUMBER"
 $fileName = "SonarLint.VSIX-$version.vsix"
 $url = "$env:ARTIFACTORY_URL/$ARTIFACTORY_SRC_REPO/$version/$fileName"
 Write-Host "Downloading $url"
@@ -42,36 +43,6 @@ $destination = $shell_app.NameSpace($baseDir)
 $zip_file = $shell_app.NameSpace("$baseDir\$zipName")
 Write-Host "Unzipping $baseDir\$zipName"
 $destination.CopyHere($zip_file.Items(), 0x14) 
-
-$fileInfo = ls .\SonarLint.dll | % { $_.versioninfo.productversion }
-
-#find the sha1 
-$sha1=$fileInfo.Substring($fileInfo.LastIndexOf('Sha1:')+5)
-Write-Host "Checking out $sha1"
-$s="SHA1=$sha1"
-$s | out-file -encoding utf8 ".\sha1.properties"
-
-#find the branch
-$GITHUB_BRANCH=$fileInfo.split("{ }")[1].Substring(7)
-Write-Host "GITHUB_BRANCH $GITHUB_BRANCH"
-if ($GITHUB_BRANCH.StartsWith("refs/heads/")) {
-    $GITHUB_BRANCH=$GITHUB_BRANCH.Substring(11)
-}
-$s="GITHUB_BRANCH=$GITHUB_BRANCH"
-Write-Host "$s"
-$s | out-file -encoding utf8 -append ".\sha1.properties"
-#convert sha1 property file to unix for jenkins compatiblity
-Get-ChildItem .\sha1.properties | ForEach-Object {
-  $contents = [IO.File]::ReadAllText($_) -replace "`r`n?", "`n"
-  $utf8 = New-Object System.Text.UTF8Encoding $false
-  [IO.File]::WriteAllText($_, $contents, $utf8)
-}
-
-#checkout commit
-git pull origin $GITHUB_BRANCH
-testExitCode
-git checkout -f $sha1
-testExitCode
 
 #move dlls to correct locations
 Write-Host "Copying DLLs"
