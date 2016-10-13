@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Setup the service used to interact with SQ
             var s = new SonarQubeServiceWrapper(this.serviceProvider);
-            var connection = new ConnectionInformation(new Uri("http://nemo.sonarqube.org"));
+            var connection = new ConnectionInformation(new Uri("https://sonarqube.com"));
 
             // Step 1: Connect anonymously
             ProjectInformation[] projects = null;
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     Thread.Sleep(100);
                 }
                 else
-                { 
+                {
                     return;
                 }
             }
