@@ -23,19 +23,19 @@ testExitCode
 
 #download VSIX
 $ARTIFACTORY_SRC_REPO="sonarsource-public-qa/org/sonarsource/dotnet/SonarLint.VSIX"
-$fileName = $env:FILENAME
-$version  = $fileName.Substring(0, $fileName.IndexOf('-'))
+$version  = $env:CI_BUILD_NUMBER
+$fileName = "SonarLint.VSIX-$version.vsix"
 $url = "$env:ARTIFACTORY_URL/$ARTIFACTORY_SRC_REPO/$version/$fileName"
 Write-Host "Downloading $url"
 $pair = "$($env:REPOX_QAPUBLICADMIN_USERNAME):$($env:REPOX_QAPUBLICADMIN_PASSWORD)"
 $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($pair))
 $basicAuthValue = "Basic $encodedCreds"
 $Headers = @{Authorization = $basicAuthValue}
-Invoke-WebRequest -UseBasicParsing -Uri "$url" -Headers $Headers -OutFile $env:FILENAME
+Invoke-WebRequest -UseBasicParsing -Uri "$url" -Headers $Headers -OutFile $fileName
 
 #unzip VSIX package
-$zipName=$env:FILENAME.Substring(0, $env:FILENAME.LastIndexOf('.'))+".zip"
-Move-Item $env:FILENAME $zipName -force
+$zipName="SonarLint.VSIX-$version.zip"
+Move-Item $fileName $zipName -force
 $shell_app=new-object -com shell.application
 $baseDir=(Get-Item -Path ".\" -Verbose).FullName
 $destination = $shell_app.NameSpace($baseDir)
