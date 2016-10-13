@@ -40,13 +40,13 @@ if ($env:IS_PULLREQUEST -eq "true") {
         write-host -f green "Building master branch"
 
         #generate build version from the build number
-        $unpaddedBuildversion="$env:BUILD_NUMBER"
+        $buildversion="$env:BUILD_NUMBER"
 
         $branchName = "$env:GITHUB_BRANCH"
         $sha1 = "$env:GIT_SHA1"
 
         #Append build number to the versions
-        (Get-Content .\build\Version.props) -replace '<AssemblyFileVersion>\$\(MainVersion\)\.0</AssemblyFileVersion>', "<AssemblyFileVersion>`$(MainVersion).$unpaddedBuildversion</AssemblyFileVersion>" | Set-Content .\build\Version.props
+        (Get-Content .\build\Version.props) -replace '<AssemblyFileVersion>\$\(MainVersion\)\.0</AssemblyFileVersion>', "<AssemblyFileVersion>`$(MainVersion).$buildversion</AssemblyFileVersion>" | Set-Content .\build\Version.props
         (Get-Content .\build\Version.props) -replace '<AssemblyInformationalVersion>Version:\$\(AssemblyFileVersion\) Branch:not-set Sha1:not-set</AssemblyInformationalVersion>', "<AssemblyInformationalVersion>Version:`$(AssemblyFileVersion) Branch:$branchName Sha1:$sha1</AssemblyInformationalVersion>" | Set-Content .\build\Version.props
         & $env:MSBUILD_PATH  .\build\ChangeVersion.proj
         testExitCode
@@ -59,7 +59,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
 
         #get version number
         [xml]$versionProps = Get-Content .\build\Version.props
-        $version  = $versionProps.Project.PropertyGroup.VsixVersion
+        $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
         $file     = Get-Item .\src\Integration.Vsix\bin\Release\SonarLint.vsix
         $artifact = $file.name.replace($file.extension,"") + "." + $version
         $filePath = $file.fullname
