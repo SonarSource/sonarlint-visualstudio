@@ -46,15 +46,15 @@ $destination.CopyHere($zip_file.Items(), 0x14)
 
 #move dlls to correct locations
 Write-Host "Copying DLLs"
-Copy-Item *.dll .src\Integration.UnitTests\bin\Release\ -force
-Copy-Item *.dll .src\Integration.Vsix.UnitTests\bin\Release\ -force
-Copy-Item *.dll .src\Progress.UnitTests\bin\Release\ -force
+Copy-Item *.dll .\src\Integration.UnitTests\bin\Release\ -force
+Copy-Item *.dll .\src\Integration.Vsix.UnitTests\bin\Release\ -force
+Copy-Item *.dll .\src\Progress.UnitTests\bin\Release\ -force
 
 #run tests
 Write-Host "Start tests"
-& $env:VSTEST_PATH .src\Integration.UnitTests\bin\Release\SonarLint.VisualStudio.Integration.UnitTests.dll
+& $env:VSTEST_PATH .\src\Integration.UnitTests\bin\Release\SonarLint.VisualStudio.Integration.UnitTests.dll
 testExitCode
-& $env:VSTEST_PATH .src\Integration.Vsix.UnitTests\bin\Release\SonarLint.VisualStudio.Integration.Vsix.UnitTests.dll
+& $env:VSTEST_PATH .\src\Integration.Vsix.UnitTests\bin\Release\SonarLint.VisualStudio.Integration.Vsix.UnitTests.dll
 testExitCode
-& $env:VSTEST_PATH .src\Progress.UnitTests\bin\Release\SonarLint.VisualStudio.Progress.UnitTests.dll
+& $env:VSTEST_PATH .\src\Progress.UnitTests\bin\Release\SonarLint.VisualStudio.Progress.UnitTests.dll
 testExitCode
