@@ -61,7 +61,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         [xml]$versionProps = Get-Content .\build\Version.props
         $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
         $file     = Get-Item .\src\Integration.Vsix\bin\Release\SonarLint.vsix
-        $artifact = $file.name.replace($file.extension,"") + "." + $version
+        $artifact = "SonarLint.VSIX"
         $filePath = $file.fullname
         
         & "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
