@@ -34,6 +34,15 @@ $basicAuthValue = "Basic $encodedCreds"
 $Headers = @{Authorization = $basicAuthValue}
 Invoke-WebRequest -UseBasicParsing -Uri "$url" -Headers $Headers -OutFile $fileName
 
+#write filename to a property file for promotion job
+$fileName | out-file -encoding utf8 -append ".\filename.properties"
+#convert property file to unix for jenkins compatiblity
+Get-ChildItem .\filename.properties | ForEach-Object {
+  $contents = [IO.File]::ReadAllText($_) -replace "`r`n?", "`n"
+  $utf8 = New-Object System.Text.UTF8Encoding $false
+  [IO.File]::WriteAllText($_, $contents, $utf8)
+}
+
 #unzip VSIX package
 $zipName="SonarLint.VSIX-$version.zip"
 Move-Item $fileName $zipName -force
