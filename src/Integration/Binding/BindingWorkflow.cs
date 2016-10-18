@@ -276,13 +276,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (!this.solutionBindingOperation.CommitSolutionBinding())
             {
                 AbortWorkflow(controller, token);
-                return;
             }
         }
 
         /// <summary>
         /// Will install the NuGet packages for the current managed projects.
-        /// The packages that will be installed will be based on the information from <see cref="Analyzer.GetRequiredNuGetPackages"/> 
+        /// The packages that will be installed will be based on the information from <see cref="Analyzer.GetRequiredNuGetPackages"/>
         /// and is specific to the <see cref="RuleSet"/>.
         /// </summary>
         internal /*for testing purposes*/ void InstallPackages(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents)
