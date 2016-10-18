@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             dte.Solution = this.solutionMock;
 
             // Act
-            Project project1 = this.testSubject.GetSolutionItemsProject();
+            Project project1 = this.testSubject.GetSolutionItemsProject(true);
 
             // Verify
             Assert.IsNotNull(project1, "Could not find the solution items project");
@@ -153,7 +153,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.AreSame(this.solutionMock.Projects.Single(), project1, "Unexpected project");
 
             // Act, ask again (exists already)
-            Project project2 = this.testSubject.GetSolutionItemsProject();
+            Project project2 = this.testSubject.GetSolutionItemsProject(false);
+
+            // Verify
+            Assert.AreSame(project1, project2, "Should be the same project as in the first time");
+        }
+
+        [TestMethod]
+        public void GetSolutionFolderProject_WhenFolderDoesntExistButForceCreate_ExpectsANonNullProject()
+        {
+            /// Setup
+            var solutionFolderName = "SomeFolderName";
+            DTEMock dte = new DTEMock();
+            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            dte.Solution = this.solutionMock;
+
+            // Act
+            Project project1 = this.testSubject.GetSolutionFolderProject(solutionFolderName, true);
+
+            // Verify
+            Assert.IsNotNull(project1, "Could not find the solution items project");
+            Assert.AreEqual(solutionFolderName, project1.Name, "Unexpected project name");
+            Assert.AreEqual(1, this.solutionMock.Projects.Count(), "Unexpected project count");
+            Assert.AreSame(this.solutionMock.Projects.Single(), project1, "Unexpected project");
+        }
+
+        [TestMethod]
+        public void GetSolutionFolderProject_WhenFolderDoesntExistButDontForceCreate_ExpectsANullProject()
+        {
+            /// Setup
+            var solutionFolderName = "SomeFolderName";
+            DTEMock dte = new DTEMock();
+            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            dte.Solution = this.solutionMock;
+
+            // Act
+            Project project1 = this.testSubject.GetSolutionFolderProject(solutionFolderName, false);
+
+            // Verify
+            Assert.IsNull(project1, "Could not find the solution items project");
+        }
+
+        [TestMethod]
+        public void GetSolutionFolderProject_WhenCalledMultipleTimes_ReturnsSameProject()
+        {
+            // Setup
+            var solutionFolderName = "SomeFolderName";
+            DTEMock dte = new DTEMock();
+            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            dte.Solution = this.solutionMock;
+            Project project1 = this.testSubject.GetSolutionFolderProject(solutionFolderName, true);
+
+
+            // Act, ask again (exists already)
+            Project project2 = this.testSubject.GetSolutionFolderProject(solutionFolderName, false);
 
             // Verify
             Assert.AreSame(project1, project2, "Should be the same project as in the first time");
@@ -200,7 +253,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
             string fileToAdd = @"x:\myFile.txt";
-            
+
             // Case 1: file not in project
             // Act
             this.testSubject.AddFileToProject(project, fileToAdd);
@@ -214,6 +267,78 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             Assert.IsTrue(project.Files.ContainsKey(fileToAdd));
+        }
+
+        [TestMethod]
+        public void RemoveFileFromProject_WhenFileExists_ExpectsFileToBeRemoved()
+        {
+            // Arrange
+            ProjectMock project = this.solutionMock.AddOrGetProject("project1");
+            string file = @"x:\myFile.txt";
+            this.testSubject.AddFileToProject(project, file);
+            Assert.IsTrue(project.Files.ContainsKey(file));
+
+            // Act
+            this.testSubject.RemoveFileFromProject(project, file);
+
+            // Assert
+            Assert.IsFalse(project.Files.ContainsKey(file), "file should no longer be in the project");
+        }
+
+        [TestMethod]
+        public void RemoveFileFromProject_WhenFileDoesntExist_ExpectsNothingToChange()
+        {
+            // Arrange
+            ProjectMock project = this.solutionMock.AddOrGetProject("project1");
+            string file = @"x:\myFile.txt";
+            this.testSubject.AddFileToProject(project, file);
+            Assert.IsTrue(project.Files.ContainsKey(file));
+            var oldCount = project.Files.Count;
+
+            // Act
+            this.testSubject.RemoveFileFromProject(project, "foo");
+
+            // Assert
+            Assert.IsTrue(project.Files.ContainsKey(file), "file should still be in the project");
+            Assert.AreEqual(oldCount, project.Files.Count, "file count should not have changed");
+        }
+
+        [TestMethod]
+        public void RemoveFileFromProject_WhenFileExistsAndProjectIsNotSolutionFolder_ExpectsFileToBeRemovedAndProjectNotRemoved()
+        {
+            // Arrange
+            ProjectMock project = this.solutionMock.AddOrGetProject("project1");
+            string file = @"x:\myFile.txt";
+            this.testSubject.AddFileToProject(project, file);
+            Assert.IsTrue(project.Files.ContainsKey(file));
+
+            // Act
+            this.testSubject.RemoveFileFromProject(project, file);
+
+            // Assert
+            Assert.IsFalse(project.Files.ContainsKey(file), "file should no longer be in project");
+            Assert.AreEqual(0, project.Files.Count, "project should have no files");
+            Assert.IsTrue(this.solutionMock.Projects.Contains(project), "project should still be in solution");
+        }
+
+        [TestMethod]
+        public void RemoveFileFromProject_WhenFileExistsAndProjectIsSolutionFolder_ExpectsFileToBeRemovedAndProjectRemoved()
+        {
+            // Arrange
+            DTEMock dte = new DTEMock();
+            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            dte.Solution = this.solutionMock;
+            var project = this.testSubject.GetSolutionFolderProject("foo", true);
+            string file = @"x:\myFile.txt";
+            this.testSubject.AddFileToProject(project, file);
+            Assert.IsTrue(this.testSubject.IsFileInProject(project, file));
+
+            // Act
+            this.testSubject.RemoveFileFromProject(project, file);
+
+            // Assert
+            Assert.AreEqual(0, project.ProjectItems.Count, "project should have no files");
+            Assert.IsFalse(this.solutionMock.Projects.Contains(project), "project should no longer be in solution");
         }
 
         [TestMethod]

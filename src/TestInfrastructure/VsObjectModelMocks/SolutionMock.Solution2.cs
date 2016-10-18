@@ -397,7 +397,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         void Solution2.Remove(Project proj)
         {
-            throw new NotImplementedException();
+            var projectMock = proj as ProjectMock;
+            if (projectMock == null)
+                return;
+
+            this.RemoveProject(projectMock);
         }
 
         void Solution2.Create(string Destination, string Name)
@@ -418,7 +422,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         Project Solution2.AddSolutionFolder(string Name)
         {
             Assert.IsFalse(this.projects.ContainsKey(Name), "Solution folder already exists");
-            return this.AddOrGetProject(Name);
+            var solutionFolder = this.AddOrGetProject(Name);
+            solutionFolder.ProjectKind = ProjectSystemHelper.VsProjectItemKindSolutionFolder;
+
+            return solutionFolder;
         }
 
         string Solution2.GetProjectTemplate(string TemplateName, string Language)

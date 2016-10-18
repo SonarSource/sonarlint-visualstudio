@@ -293,7 +293,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public void Remove()
             {
-                throw new NotImplementedException();
+                var projectMock = ContainingProject as ProjectMock;
+                if (projectMock != null)
+                {
+                    projectMock.RemoveFile(Name);
+                }
             }
 
             public void Save(string FileName = "")

@@ -23,6 +23,7 @@ namespace SonarLint.VisualStudio.Integration
         internal const string CSharpProjectKind = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
         internal const string TestProjectKind = "{3AC096D0-A1C2-E12C-1390-A8335801FDAB}";
         internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);
+        internal const string VsProjectItemKindSolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 
         /// <summary>
         /// This is the HResult returned by IVsBuildPropertyStorage when attempting to
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public IEnumerable<Project>  GetFilteredSolutionProjects()
+        public IEnumerable<Project> GetFilteredSolutionProjects()
         {
             var projectFilter = this.serviceProvider.GetService<IProjectSystemFilter>();
             projectFilter.AssertLocalServiceIsNotNull();
@@ -184,6 +185,25 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        public void RemoveFileFromProject(Project project, string fileName)
+        {
+            foreach (ProjectItem projectItem in project.ProjectItems)
+            {
+                if (projectItem.Name == fileName)
+                {
+                    projectItem.Remove(); // We only want to remove from project not from disk
+                    break;
+                }
+            }
+
+            // If the project is an empty solution folder, then remove it
+            if (project.ProjectItems.Count == 0 && project.Kind == ProjectSystemHelper.VsProjectItemKindSolutionFolder)
+            {
+                Solution2 solution = this.GetCurrentActiveSolution();
+                solution.Remove(project);
+            }
+        }
+
         public Solution2 GetCurrentActiveSolution()
         {
             DTE dte = this.serviceProvider.GetService(typeof(DTE)) as DTE;
@@ -194,21 +214,25 @@ namespace SonarLint.VisualStudio.Integration
             return solution;
         }
 
-        public Project GetSolutionItemsProject()
+        public Project GetSolutionItemsProject(bool createOnNull)
         {
             string solutionItemsFolderName = this.GetSolutionItemsFolderName();
 
+            return this.GetSolutionFolderProject(solutionItemsFolderName, createOnNull);
+        }
+
+        public Project GetSolutionFolderProject(string solutionFolderName, bool createOnNull)
+        {
             Solution2 solution = this.GetCurrentActiveSolution();
 
             Project solutionItemsProject = null;
             // Enumerating instead of using OfType<Project> due to a bug in
             // install shield projects that will throw an exception
-#pragma warning disable S3217
             foreach (Project project in solution.Projects)
-#pragma warning restore S3217
             {
-                // Check if Solution Items folder already exists
-                if (project.Name == solutionItemsFolderName)
+                // Check if SonarQube solution folder already exists
+                if (project.Name == solutionFolderName
+                    && project.Kind == ProjectSystemHelper.VsProjectItemKindSolutionFolder)
                 {
                     solutionItemsProject = project;
                     break;
@@ -216,9 +240,9 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             // Create Solution Items folder if it does not exist
-            if (solutionItemsProject == null)
+            if (solutionItemsProject == null && createOnNull)
             {
-                solutionItemsProject = solution.AddSolutionFolder(solutionItemsFolderName);
+                solutionItemsProject = solution.AddSolutionFolder(solutionFolderName);
             }
 
             return solutionItemsProject;

@@ -18,14 +18,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     internal class ConfigurableVsProjectSystemHelper : IProjectSystemHelper
     {
         private readonly IServiceProvider serviceProvider;
-        
+
         public ConfigurableVsProjectSystemHelper(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
         }
 
         #region IVsProjectSystemHelper
-        Project IProjectSystemHelper.GetSolutionItemsProject()
+        Project IProjectSystemHelper.GetSolutionItemsProject(bool createOnNull)
+        {
+            return this.SolutionItemsProject;
+        }
+
+        public Project GetSolutionFolderProject(string solutionFolderName, bool createOnNull)
         {
             return this.SolutionItemsProject;
         }
@@ -65,6 +70,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 {
                     itemTypeProperty.Value = itemType;
                 }
+            }
+        }
+
+        public void RemoveFileFromProject(Project project, string fileName)
+        {
+            var projectItem = project.ProjectItems.OfType<ProjectItem>().FirstOrDefault(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, fileName));
+            if (projectItem != null)
+            {
+                projectItem.Remove();
             }
         }
 

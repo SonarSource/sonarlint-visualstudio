@@ -26,7 +26,12 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Return the 'Solution Items' folder which internally treated as project
         /// </summary>
-        Project GetSolutionItemsProject();
+        Project GetSolutionItemsProject(bool createOnNull);
+
+        /// <summary>
+        /// Returns the solution folder matching the given name.
+        /// </summary>
+        Project GetSolutionFolderProject(string solutionFolderName, bool createOnNull);
 
         /// <summary>
         /// Checks whether a file is in the project
@@ -44,13 +49,18 @@ namespace SonarLint.VisualStudio.Integration
         void AddFileToProject(Project project, string file, string itemType);
 
         /// <summary>
+        /// Removes a file from the given project.
+        /// </summary>
+        void RemoveFileFromProject(Project project, string fileName);
+
+        /// <summary>
         /// Returns all what VS considers as a projects in a solution
         /// </summary>
         IEnumerable<Project> GetSolutionProjects();
 
         /// <summary>
-        /// Returns only the filtered project based on a common filter. 
-        /// This should only be called after we connected to a SonarQube server, 
+        /// Returns only the filtered project based on a common filter.
+        /// This should only be called after we connected to a SonarQube server,
         /// since some of the filtering is SonarQube server instance specific.
         /// <seealso cref="IProjectSystemFilter"/> which is used internally.
         /// </summary>

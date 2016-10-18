@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly string sonarQubeProjectKey;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string sonarQubeProjectKey)
-        { 
+        {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
@@ -197,6 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
                     this.AddFileToSolutionItems(info.NewRuleSetFilePath);
+                    this.RemoveFileFromSolutionItems(info.NewRuleSetFilePath);
                 }
 
                 return true;
@@ -242,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(Path.IsPathRooted(fullFilePath) && this.sourceControlledFileSystem.FileExist(fullFilePath), "Expecting a rooted path to existing file");
 
-            Project solutionItemsProject = this.projectSystem.GetSolutionItemsProject();
+            Project solutionItemsProject = this.projectSystem.GetSolutionFolderProject(Constants.SonarQubeManagedFolderName, true);
             if (solutionItemsProject == null)
             {
                 Debug.Fail("Could not find the solution items project");
@@ -253,6 +254,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     this.projectSystem.AddFileToProject(solutionItemsProject, fullFilePath);
                 }
+            }
+        }
+
+        private void RemoveFileFromSolutionItems(string fullFilePath)
+        {
+            Debug.Assert(Path.IsPathRooted(fullFilePath) && this.sourceControlledFileSystem.FileExist(fullFilePath), "Expecting a rooted path to existing file");
+
+            Project solutionItemsProject = this.projectSystem.GetSolutionItemsProject(false);
+            if (solutionItemsProject != null)
+            {
+                // Remove file from project and if project is empty, remove project from solution
+                var fileName = Path.GetFileName(fullFilePath);
+                this.projectSystem.RemoveFileFromProject(solutionItemsProject, fileName);
+
             }
         }
 

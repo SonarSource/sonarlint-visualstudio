@@ -81,6 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 if (this.WriteBindingInformation(configFile, binding))
                 {
                     this.AddSolutionItemFile(configFile);
+                    this.RemoveSolutionItemFile(configFile);
                     return true;
                 }
 
@@ -97,14 +98,30 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             var projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystemHelper.AssertLocalServiceIsNotNull();
 
-            Project solutionItemsProject = projectSystemHelper.GetSolutionItemsProject();
+            Project solutionItemsProject = projectSystemHelper.GetSolutionFolderProject(Constants.SonarQubeManagedFolderName, true);
             if (solutionItemsProject == null)
             {
-                Debug.Fail("Could not find the solution items project");
+                Debug.Fail("Could not find the solution items project"); // Should never happen
             }
             else
             {
                 projectSystemHelper.AddFileToProject(solutionItemsProject, configFile);
+            }
+        }
+
+        private void RemoveSolutionItemFile(string configFile)
+        {
+            Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid configuration file");
+
+            var projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystemHelper.AssertLocalServiceIsNotNull();
+
+            Project solutionItemsProject = projectSystemHelper.GetSolutionItemsProject(false);
+            if (solutionItemsProject != null)
+            {
+                // Remove file from project and if project is empty, remove project from solution
+                var fileName = Path.GetFileName(configFile);
+                projectSystemHelper.RemoveFileFromProject(solutionItemsProject, fileName);
             }
         }
 
@@ -138,9 +155,9 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return bound;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
-            "S3215:\"interface\" instances should not be cast to concrete types", 
-            Justification = "Casting as BasicAuthCredentials is because it's the only credential type we support. Once we add more we need to think again on how to refactor the code to avoid this", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+            "S3215:\"interface\" instances should not be cast to concrete types",
+            Justification = "Casting as BasicAuthCredentials is because it's the only credential type we support. Once we add more we need to think again on how to refactor the code to avoid this",
             Scope = "member",
             Target = "~M:SonarLint.VisualStudio.Integration.Persistence.SolutionBinding.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundSonarQubeProject)~System.Boolean")]
         private bool WriteBindingInformation(string configFile, BoundSonarQubeProject binding)
@@ -182,7 +199,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         {
             string configJson = null;
             if (this.SafePerformFileSystemOperation(() => ReadConfig(configFilePath, out configJson)))
-            { 
+            {
                 try
                 {
                     return JsonHelper.Deserialize<BoundSonarQubeProject>(configJson);
