@@ -140,7 +140,7 @@
                                       VerticalAlignment="Top"
                                       Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusWarning}"/>
                 <TextBlock Grid.Row="0" Grid.Column="1"
-                           Margin="4,0"
+                           Margin="4,0" KeyboardNavigation.IsTabStop="False"
                            Text="{x:Static resx:Strings.InsecureProtocolWarning}"
                            TextWrapping="Wrap"
                            Focusable="True"/>
