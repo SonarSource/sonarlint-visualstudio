@@ -19,18 +19,18 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     {
         ProgressControllerViewModel IProgressVisualizer.ViewModel
         {
-            get 
+            get
             {
                 this.CheckUIThread();
 
-                return this.viewModel; 
+                return this.viewModel;
             }
 
-            set 
+            set
             {
                 this.CheckUIThread();
 
-                this.viewModel = value; 
+                this.viewModel = value;
             }
         }
 

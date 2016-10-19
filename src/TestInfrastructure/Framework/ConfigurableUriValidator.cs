@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         public ConfigurableUriValidator(ISet<string> supportedSchemes, ISet<string> insecureSchemes)
-            :base(supportedSchemes, insecureSchemes)
+            : base(supportedSchemes, insecureSchemes)
         {
         }
 

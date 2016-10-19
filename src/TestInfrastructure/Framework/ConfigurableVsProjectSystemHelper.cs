@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
         {
             ProjectMock dteProject = hierarchy as ProjectMock;
-            if(dteProject == null)
+            if (dteProject == null)
             {
                 Assert.Inconclusive($"Only expecting {nameof(ProjectMock)} type");
             }

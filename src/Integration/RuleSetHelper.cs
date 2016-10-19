@@ -17,12 +17,12 @@ namespace SonarLint.VisualStudio.Integration
     internal static class RuleSetHelper
     {
         /// <summary>
-        /// Updates the <paramref name="ruleSet"/> by deleting all the previously included rule sets 
-        /// that were in the same folder as <paramref name="solutionRuleSetPath"/> and then includes 
+        /// Updates the <paramref name="ruleSet"/> by deleting all the previously included rule sets
+        /// that were in the same folder as <paramref name="solutionRuleSetPath"/> and then includes
         /// the rule set specified by <paramref name="solutionRuleSetPath"/>.
         /// </summary>
         /// <remarks>
-        /// The update is in-memory to the <paramref name="ruleSet"/> and we rely on the fact that we 
+        /// The update is in-memory to the <paramref name="ruleSet"/> and we rely on the fact that we
         /// previously generated the 'solutionRuleSet' to the same folder as the updated <paramref name="solutionRuleSetPath"/></remarks>
         /// <param name="ruleSet">Existing project level rule set</param>
         /// <param name="solutionRuleSetPath">Full path of solution level rule set (one that was generated during bind)</param>
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         /// <summary>
-        /// Find all the <see cref="RuleSetInclude"/>, for a <paramref name="ruleSet"/>, 
+        /// Find all the <see cref="RuleSetInclude"/>, for a <paramref name="ruleSet"/>,
         /// which are referencing rule sets under <paramref name="rootDirectory"/>
         /// </summary>
         public static IEnumerable<RuleSetInclude> FindAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)

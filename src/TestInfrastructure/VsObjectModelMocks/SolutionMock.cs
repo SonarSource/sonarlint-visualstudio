@@ -552,7 +552,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sinks.ForEach(s => s.OnBeforeUnloadProject(project, null));
         }
 
-        public Func<uint, IVsHierarchy , uint , int> SaveSolutionElementAction { get; set; }
+        public Func<uint, IVsHierarchy, uint, int> SaveSolutionElementAction { get; set; }
         #endregion
     }
 }

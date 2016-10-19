@@ -62,10 +62,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             return null;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
-            "S3215:\"interface\" instances should not be cast to concrete types", 
-            Justification = "We want to hide the concrete implementation but also handle instance that were created by this class in the first place", 
-            Scope = "member", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+            "S3215:\"interface\" instances should not be cast to concrete types",
+            Justification = "We want to hide the concrete implementation but also handle instance that were created by this class in the first place",
+            Scope = "member",
             Target = "~M:SonarLint.VisualStudio.Integration.Vsix.InfoBar.InfoBarManager.DetachInfoBar(SonarLint.VisualStudio.Integration.InfoBar.IInfoBar)")]
         public void DetachInfoBar(IInfoBar currentInfoBar)
         {

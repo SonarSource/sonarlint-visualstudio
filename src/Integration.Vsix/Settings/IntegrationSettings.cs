@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly WritableSettingsStore store;
 
-        #region Constructors and initialisation
+        #region Constructors and initialization
 
         [ImportingConstructor]
         public IntegrationSettings([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)

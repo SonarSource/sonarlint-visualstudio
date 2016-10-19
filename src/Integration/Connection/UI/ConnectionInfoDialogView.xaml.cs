@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
         {
             InitializeComponent();
         }
-        
+
         private void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
             Debug.Assert(this.ViewModel.IsValid, "Should not be able to click 'Connect' if model is not valid.");
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
 
         #region Credential validation
 
-        /* Since the password is not accessable from the view model (cannot be bound due to security concerns), we
+        /* Since the password is not accessible from the view model (cannot be bound due to security concerns), we
          * must trigger revalidation of credentials from the view, passing the SecureString password along.
          */
 
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
         private void ValidateCredentials()
         {
             Debug.Assert(this.ViewModel != null, "ViewModel should be set before calling ShowDialog");
-            
+
             this.ViewModel?.ValidateCredentials(this.Password);
         }
 

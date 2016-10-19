@@ -64,12 +64,12 @@ namespace SonarLint.VisualStudio.Integration
 
             // TODO: part of SVS-72, need to call IProjectSystemFilter.SetTestRegex
             // and specify the regex that you get from IHost.SonarQubeService.GetProperties
-            // before calling to ISolutionBindingInformationProvider which will internally 
-            // use the regex information to determine which projects are filtered and which are not 
+            // before calling to ISolutionBindingInformationProvider which will internally
+            // use the regex information to determine which projects are filtered and which are not
             // all this needs to be on a background thread!
 
             // We don't want to slow down solution open, so we delay the processing
-            // until idle. There is a possibility that the user might close and open another solution 
+            // until idle. There is a possibility that the user might close and open another solution
             // when the delegate will execute, and we should handle those cases
             if (this.IsActiveSolutionBound)
             {
@@ -153,8 +153,8 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            // Due to the non-sequential nature of this code, we want to avoid showing two info bars 
-            // which could happen if the user had enough time to close and open a solution 
+            // Due to the non-sequential nature of this code, we want to avoid showing two info bars
+            // which could happen if the user had enough time to close and open a solution
             // (after the 1st solution was opened), so need to clear the previous info bar just in case.
             this.ClearCurrentInfoBar();
 
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration
             if (this.currentErrorWindowInfoBarHandlingClick)
             {
                 // Info bar doesn't expose a way to disable the command
-                // and since the code is asynchronous the user can click 
+                // and since the code is asynchronous the user can click
                 // on the button multiple times and get multiple binds
                 return;
             }
@@ -247,8 +247,8 @@ namespace SonarLint.VisualStudio.Integration
             bindingSerialzer.AssertLocalServiceIsNotNull();
 
             BoundSonarQubeProject binding = bindingSerialzer.ReadSolutionBinding();
-            if (binding == null 
-                || this.infoBarBinding == null 
+            if (binding == null
+                || this.infoBarBinding == null
                 || binding.ServerUri != this.infoBarBinding.ServerUri
                 || !ProjectInformation.KeyComparer.Equals(binding.ProjectKey, this.infoBarBinding.ProjectKey))
             {
@@ -280,7 +280,7 @@ namespace SonarLint.VisualStudio.Integration
                 switch (result)
                 {
                     case BindingRequestResult.CommandIsBusy:
-                        // Might be building/debugging/etc... 
+                        // Might be building/debugging/etc...
                         // Need to click 'Update' again to retry.
                         this.OutputMessage(Strings.SonarLintInfoBarUpdateCommandIsBusyRetry);
                         break;
@@ -360,7 +360,7 @@ namespace SonarLint.VisualStudio.Integration
                 // Navigating at this point will work in both cases - if there's no active section
                 // we will navigate and the ActiveSectionChanged event will be triggered.
                 // If there's an active section will navigate (activate TE) and show the connecting/binding process.
-                // We drive the process via the ActiveSection, so this step is mandatory 
+                // We drive the process via the ActiveSection, so this step is mandatory
                 ITeamExplorerController teController = this.host.GetMefService<ITeamExplorerController>();
                 Debug.Assert(teController != null, "Cannot find ITeamExplorerController");
                 if (teController != null)
@@ -546,7 +546,7 @@ namespace SonarLint.VisualStudio.Integration
                     .Select(Language.ForProject)
                     .Distinct();
 
-                if(!languages.Any())
+                if (!languages.Any())
                 {
                     return;
                 }
@@ -575,10 +575,10 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     if (this.IsUpdateRequired(binding, languages, token))
                     {
-                        this.host.UIDispatcher.BeginInvoke(new Action(()=>
+                        this.host.UIDispatcher.BeginInvoke(new Action(() =>
                         {
-                            // We mustn't update if was cancelled
-                            if(!token.IsCancellationRequested)
+                            // We mustn't update if was canceled
+                            if (!token.IsCancellationRequested)
                             {
                                 updateAction(null);
                             }

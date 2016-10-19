@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Service;
 using System;
-using System.Linq;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests

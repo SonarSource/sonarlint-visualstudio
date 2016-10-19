@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.conflictsController = new ConfigurableRuleSetConflictsController();
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
-            
+
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = sonarQubeService;
 
@@ -180,13 +180,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 // Act - disable
                 testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
 
-                // Verify 
+                // Verify
                 Assert.IsFalse(testSubject.BindCommand.CanExecute(projectVM), "Binding is in progress so should not be enabled");
 
                 // Act - finish
                 progressEvents.SimulateFinished(controllerResult);
 
-                // Verify 
+                // Verify
                 Assert.IsTrue(testSubject.BindCommand.CanExecute(projectVM), "Binding is finished with result: {0}", controllerResult);
                 if (controllerResult == ProgressControllerResult.Succeeded)
                 {
@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 progressEvents.SimulateFinished(result);
 
 
-                // Verify 
+                // Verify
                 Assert.IsFalse(testSubject.IsBindingInProgress);
 
                 if (result == ProgressControllerResult.Succeeded)
@@ -275,7 +275,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
             progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
-            // Verify 
+            // Verify
             teController.AssertExpectedNumCallsShowConnectionsPage(1);
             Assert.IsFalse(this.dteMock.ToolWindows.SolutionExplorer.Window.Active);
 
@@ -286,7 +286,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
             progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
-            // Verify 
+            // Verify
             teController.AssertExpectedNumCallsShowConnectionsPage(1);
             Assert.IsTrue(this.dteMock.ToolWindows.SolutionExplorer.Window.Active);
         }
@@ -313,13 +313,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 // Act - start
                 testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
 
-                // Verify 
+                // Verify
                 userNotifications.AssertNoNotification(NotificationIds.FailedToBindId);
 
                 // Act - finish
                 progressEvents.SimulateFinished(result);
 
-                // Verify 
+                // Verify
                 if (result == ProgressControllerResult.Succeeded)
                 {
                     userNotifications.AssertNoNotification(NotificationIds.FailedToBindId);

@@ -96,8 +96,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         #region Test helpers
-     
-        public Action<Guid,int> RaiseAction
+
+        public Action<Guid, int> RaiseAction
         {
             get;
             set;

@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration
         private IVsQueryEditQuerySave2 queryFileOperation;
 
         public SourceControlledFileSystem(IServiceProvider serviceProvider)
-            :this(serviceProvider, null)
+            : this(serviceProvider, null)
         {
         }
 
@@ -135,15 +135,15 @@ namespace SonarLint.VisualStudio.Integration
         {
             VsQueryEditFlags flags = VsQueryEditFlags.SilentMode | VsQueryEditFlags.DetectAnyChangedFile;
 
-            if (KnownUIContexts.DebuggingContext.IsActive  || KnownUIContexts.SolutionBuildingContext.IsActive)
-            {   
+            if (KnownUIContexts.DebuggingContext.IsActive || KnownUIContexts.SolutionBuildingContext.IsActive)
+            {
                 // Don't reload files while debugging or building
                 flags |= VsQueryEditFlags.NoReload;
             }
 
             uint verdict;
             uint moreInfo;
-            ErrorHandler.ThrowOnFailure(this.QueryFileOperation.QueryEditFiles((uint)flags , fileNames.Length, fileNames, null, null, out verdict, out moreInfo));
+            ErrorHandler.ThrowOnFailure(this.QueryFileOperation.QueryEditFiles((uint)flags, fileNames.Length, fileNames, null, null, out verdict, out moreInfo));
 
             return tagVSQueryEditResult.QER_EditOK == (tagVSQueryEditResult)verdict;
         }

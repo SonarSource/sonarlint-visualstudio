@@ -49,9 +49,9 @@ namespace SonarLint.VisualStudio.Progress.Controller
         }
 
         /// <summary>
-        /// Initializes the controller with <see cref="IProgressStepFactory"/> 
-        /// which is responsible to convert the specified <see cref="IProgressStepDefinition"/> 
-        /// into executable <see cref="IProgressStepOperation"/> 
+        /// Initializes the controller with <see cref="IProgressStepFactory"/>
+        /// which is responsible to convert the specified <see cref="IProgressStepDefinition"/>
+        /// into executable <see cref="IProgressStepOperation"/>
         /// </summary>
         /// <param name="factory">An instance of <see cref="IProgressStepFactory"/>. Required.</param>
         /// <param name="stepsDefinition">set of step definitions. Required.</param>
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
             this.stepFactory = factory;
             this.progressStepOperations = this.CreateStepOperations(stepsDefinition);
         }
-        
+
         /// <summary>
         /// Starts executing the initialized steps.
         /// The method is not thread safe but can be called from any thread.
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                         this.CanAbort = operation.Step.Cancellable;
 
                         IProgressStepExecutionEvents notifier = this.stepFactory.GetExecutionCallback(operation);
-                        
+
                         // Give another try before running the operation (there's a test that covers cancellation
                         // before running the operation which requires this check after CanAbort is set)
                         if (this.cancellationTokenSource.IsCancellationRequested)
@@ -125,8 +125,8 @@ namespace SonarLint.VisualStudio.Progress.Controller
                         StepExecutionState stepResult = operation.Run(this.cancellationTokenSource.Token, notifier).Result;
 
                         /* Not trying to cancel here intentionally. The reason being
-                        in case the step was the last one, there's nothing to cancel really, 
-                        otherwise there will be an attempt to cancel just before the next 
+                        in case the step was the last one, there's nothing to cancel really,
+                        otherwise there will be an attempt to cancel just before the next
                         step execution*/
 
                         if (stepResult == StepExecutionState.Succeeded)

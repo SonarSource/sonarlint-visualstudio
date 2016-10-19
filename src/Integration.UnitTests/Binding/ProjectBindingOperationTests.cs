@@ -267,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             string expectedFile = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            Assert.IsNull(testSubject.PropertyInformationMap[prop].NewRuleSetFilePath, "Not expecting the new rule set path to be set when cancelled");
+            Assert.IsNull(testSubject.PropertyInformationMap[prop].NewRuleSetFilePath, "Not expecting the new rule set path to be set when canceled");
             Assert.AreEqual(ProjectBindingOperation.DefaultProjectRuleSet, prop.Value.ToString(), "Should not update the property value");
             Assert.IsFalse(this.projectMock.Files.ContainsKey(expectedFile), "Should not be added to the project");
         }

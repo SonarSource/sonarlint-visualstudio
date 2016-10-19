@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             IComponentModel componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
-            // We don't want to throw in the case of a missing service (don't use GetService<T>)  
+            // We don't want to throw in the case of a missing service (don't use GetService<T>)
             return componentModel?.GetExtensions<T>().SingleOrDefault();
         }
 

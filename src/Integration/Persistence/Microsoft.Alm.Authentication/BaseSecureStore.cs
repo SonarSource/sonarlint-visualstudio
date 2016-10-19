@@ -140,7 +140,7 @@ namespace Microsoft.Alm.Authentication
                 // https://msdn.microsoft.com/en-us/library/gg309393.aspx
                 credential.CredentialBlob = Marshal.SecureStringToCoTaskMemUnicode(credentials.Password);
                 // See calculation in http://referencesource.microsoft.com/#mscorlib/system/security/securestring.cs,eab10308ba549df3
-                credential.CredentialBlobSize = (uint)(credentials.Password.Length + 1 /*null terminator*/) * 2 /*unicode encoding*/;
+                credential.CredentialBlobSize = (uint)(credentials.Password.Length + 1 /*null terminator*/) * 2 /*Unicode encoding*/;
 
                 if (!NativeMethods.CredWrite(ref credential, 0))
                 {
@@ -202,7 +202,7 @@ namespace Microsoft.Alm.Authentication
         internal static void ValidateTargetUri(Uri targetUri)
         {
             if (targetUri == null)
-                throw new ArgumentNullException(nameof (targetUri));
+                throw new ArgumentNullException(nameof(targetUri));
             if (!targetUri.IsAbsoluteUri)
                 throw new ArgumentException(Strings.ExpectedAbsoluteUris, nameof(targetUri));
         }

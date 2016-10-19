@@ -10,7 +10,7 @@ using SonarLint.VisualStudio.Integration.Service;
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     // Test only interface
-    internal interface  IBindingWorkflowExecutor
+    internal interface IBindingWorkflowExecutor
     {
         void BindProject(ProjectInformation projectInformation);
     }

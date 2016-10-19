@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // We want to limit the number of rulesets so for this we use the previously calculated TargetRuleSetFileName
             // and group by it. This handles the special case of all the properties having the same ruleset and also the case
             // in which the user didn't configure anything and we're getting only default value from the properties.
-            foreach (IGrouping<string, PropertyInformation> group in this.propertyInformationMap.Values.GroupBy(info=>info.TargetRuleSetFileName))
+            foreach (IGrouping<string, PropertyInformation> group in this.propertyInformationMap.Values.GroupBy(info => info.TargetRuleSetFileName))
             {
                 if (token.IsCancellationRequested)
                 {
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             // Special case: if all the values are the same use project name as the target ruleset name
             bool useSameTargetName = false;
-            if (ruleSetsInfo.All(r=>StringComparer.OrdinalIgnoreCase.Equals(sameRuleSetCandidate, r.RuleSetPath)))
+            if (ruleSetsInfo.All(r => StringComparer.OrdinalIgnoreCase.Equals(sameRuleSetCandidate, r.RuleSetPath)))
             {
                 useSameTargetName = true;
             }

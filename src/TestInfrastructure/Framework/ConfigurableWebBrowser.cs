@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.navigatedUrls.Add(url);
         }
-        
+
         #endregion
     }
 }

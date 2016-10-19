@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
         /// <summary>
         /// Creates a string in the specified format. The format string should have only one placeholder.
         /// </summary>
-        /// <param name="ex">The expection to use in the format placeholder</param>
+        /// <param name="ex">The exception to use in the format placeholder</param>
         /// <param name="messageErrorFormat">The format to use</param>
         /// <param name="logWholeMessage">Whether to use log the whole exception or just the message</param>
         /// <returns>The formatted string</returns>

@@ -4,22 +4,22 @@ using System.Diagnostics;
 namespace Microsoft.Alm.Authentication
 {
     /// <summary>
-    /// Interface to secure secrets storage which indexes values by target and utilizes the 
+    /// Interface to secure secrets storage which indexes values by target and utilizes the
     /// operating system keychain / secrets vault.
     /// </summary>
     public sealed class SecretStore : BaseSecureStore, ICredentialStore, ITokenStore
     {
         /// <summary>
-        /// Creates a new <see cref="SecretStore"/> backed by the operating system keychain / 
+        /// Creates a new <see cref="SecretStore"/> backed by the operating system keychain /
         /// secrets vault.
         /// </summary>
         /// <param name="storeNamespace">The namespace of the secrets written and read by this store.</param>
         /// <param name="credentialCache">
-        /// (optional) Write-through, read-first cache. Default cache is used if a custom cache is 
+        /// (optional) Write-through, read-first cache. Default cache is used if a custom cache is
         /// not provided.
         /// </param>
         /// <param name="tokenCache">
-        /// (optional) Write-through, read-first cache. Default cache is used if a custom cache is 
+        /// (optional) Write-through, read-first cache. Default cache is used if a custom cache is
         /// not provided.
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="storeNamespace"/> has <see cref="BaseSecureStore.IllegalCharacters"/></exception>

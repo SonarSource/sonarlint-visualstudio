@@ -307,6 +307,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion  
+        #endregion
     }
 }

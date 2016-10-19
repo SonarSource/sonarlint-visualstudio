@@ -7,7 +7,6 @@
 
 using SonarLint.VisualStudio.Progress.MVVM;
 using System;
-using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Progress.Observation.ViewModels
 {
@@ -63,7 +62,7 @@ namespace SonarLint.VisualStudio.Progress.Observation.ViewModels
         }
 
         /// <summary>
-        /// Will set the value whilst taking into account potential floating point errors when 
+        /// Will set the value whilst taking into account potential floating point errors when
         /// incrementing the value in a way that the sum is greater than 1.0 (within <see cref="UpperBoundMarginalErrorSupport"/>).
         /// Double.NaN values are also supported by this method (pass-through).
         /// </summary>

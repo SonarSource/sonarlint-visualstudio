@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Progress.UnitTests;
 using SonarLint.VisualStudio.Progress.Controller;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -81,7 +80,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         [TestMethod]
-        [Description("Verifies exceution order")]
+        [Description("Verifies execution order")]
         public void SequentialProgressController_ExecutionOrder()
         {
             // Setup
@@ -113,7 +112,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         [TestMethod]
-        [Description("Verifies that the controller can be executed from the UI thead")]
+        [Description("Verifies that the controller can be executed from the UI thread")]
         public void SequentialProgressController_Execution_UIThread()
         {
             // Setup
@@ -125,7 +124,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         [TestMethod]
-        [Description("Verifies that the controller can be executed from a non-UI thead")]
+        [Description("Verifies that the controller can be executed from a non-UI thread")]
         public void SequentialProgressController_Execution_NonUIThread()
         {
             // Setup
@@ -323,7 +322,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         [TestMethod]
-        [Description("Verifies that step execution event for cancelled step is raised correctly")]
+        [Description("Verifies that step execution event for canceled step is raised correctly")]
         public void SequentialProgressController_IProgressEvents_StepCancelled()
         {
             // Setup
@@ -375,7 +374,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         [TestMethod]
-        [Description("Verifies that step execution events for multiple steps with a single cancelled one are raised correctly")]
+        [Description("Verifies that step execution events for multiple steps with a single canceled one are raised correctly")]
         public void SequentialProgressController_IProgressEvents_MultiStep_Cancelled()
         {
             // Setup
@@ -505,7 +504,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         /// <summary>
-        /// Step operation that will request to cancel but the step is cannot be cancelled
+        /// Step operation that will request to cancel but the step is cannot be canceled
         /// </summary>
         /// <remarks>Simulates an attempt to cancel during non-cancellable step execution</remarks>
         /// <param name="token">Cancellation token</param>

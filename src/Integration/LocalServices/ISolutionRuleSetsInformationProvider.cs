@@ -20,8 +20,8 @@ namespace SonarLint.VisualStudio.Integration
         IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarations(Project project);
 
         /// <summary>
-        /// Will return a calculate file path to the shared SonarQube RuleSet 
-        /// that corresponds to the <paramref name="sonarQubeProjectKey"/> (with  <paramref name="fileNameSuffix"/>). 
+        /// Will return a calculate file path to the shared SonarQube RuleSet
+        /// that corresponds to the <paramref name="sonarQubeProjectKey"/> (with  <paramref name="fileNameSuffix"/>).
         /// </summary>
         /// <param name="sonarQubeProjectKey">Required</param>
         /// <param name="language">The language this rule set corresponds to</param>
@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration
         string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, Language language);
 
         /// <summary>
-        /// Will return a calculated file path to the expected project RuleSet 
+        /// Will return a calculated file path to the expected project RuleSet
         /// that corresponds to the <paramref name="declaration"/>.
         /// </summary>
         /// <param name="project">Required</param>

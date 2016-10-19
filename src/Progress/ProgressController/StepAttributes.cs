@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
         Indeterminate = 8,
 
         /// <summary>
-        /// Does not impact the overall progress 
+        /// Does not impact the overall progress
         /// </summary>
         /// <seealso cref="IProgressStep.ImpactsProgress"/>
         NoProgressImpact = 16

@@ -38,8 +38,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         public IReadOnlyList<ProjectRuleSetConflict> GetCurrentConflicts()
         {
             // Note: some of the assumptions (see asserts below) are because have just bounded the solution (as documented on the interface),
-            // in other cases assuming that the rule set are indeed on disk is not possible, and in fact resyncing 
-            // would be required when we have missing rulesets, otherwise finding conflicts will not be possible.
+            // in other cases assuming that the rule set are indeed on disk is not possible, and in fact re-syncing
+            // would be required when we have missing rule-sets, otherwise finding conflicts will not be possible.
 
             RuleSetInformation[] aggregatedRuleSets = GetAggregatedSolutionRuleSets();
 

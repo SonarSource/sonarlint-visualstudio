@@ -42,10 +42,10 @@ namespace SonarLint.VisualStudio.Integration.WPF
         }
 
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
-            "S3236:Methods with caller info attributes should not be invoked with explicit arguments", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+            "S3236:Methods with caller info attributes should not be invoked with explicit arguments",
             Justification = "We want to change a different property than the 'caller' which is a method",
-            Scope = "member", 
+            Scope = "member",
             Target = "~M:SonarLint.VisualStudio.Integration.WPF.ContextualCommandViewModel.SetDynamicDisplayText(System.Func{System.Object,System.String})")]
         public void SetDynamicDisplayText(Func<object, string> getDisplayText)
         {
@@ -58,10 +58,10 @@ namespace SonarLint.VisualStudio.Integration.WPF
             this.RaisePropertyChanged(nameof(this.DisplayText));
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
-            "S3236:Methods with caller info attributes should not be invoked with explicit arguments", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+            "S3236:Methods with caller info attributes should not be invoked with explicit arguments",
             Justification = "We want to change a different property than the 'caller' which is a method",
-            Scope = "member", 
+            Scope = "member",
             Target = "~M:SonarLint.VisualStudio.Integration.WPF.ContextualCommandViewModel.SetDynamicIcon(System.Func{System.Object,SonarLint.VisualStudio.Integration.WPF.IconViewModel})")]
         public void SetDynamicIcon(Func<object, IconViewModel> getIconFunc)
         {

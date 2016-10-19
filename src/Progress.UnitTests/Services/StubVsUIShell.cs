@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             set;
         }
         #endregion
-        
+
         #region IVsUIShell
         int IVsUIShell.AddNewBFNavigationItem(IVsWindowFrame pwindowFrame, string bstrData, object punk, int replaceCurrent)
         {

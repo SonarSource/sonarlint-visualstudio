@@ -32,17 +32,17 @@ namespace SonarLint.VisualStudio.Integration.Service
     [Export(typeof(SonarQubeServiceWrapper)), PartCreationPolicy(CreationPolicy.Shared)]
     internal class SonarQubeServiceWrapper : ISonarQubeServiceWrapper
     {
-        public const string ProjectsAPI                = "api/projects/index";                 // Since 2.10
-        public const string ServerPluginsInstalledAPI  = "api/updatecenter/installed_plugins"; // Since 2.10; internal
-        public const string QualityProfileListAPI      = "api/profiles/list";                  // Since 3.3; deprecated in 5.2
-        public const string QualityProfileExportAPI    = "profiles/export";                    // Since ???; internal
-        public const string PropertiesAPI              = "api/properties/";                    // Since 2.6
+        public const string ProjectsAPI = "api/projects/index";                 // Since 2.10
+        public const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins"; // Since 2.10; internal
+        public const string QualityProfileListAPI = "api/profiles/list";                  // Since 3.3; deprecated in 5.2
+        public const string QualityProfileExportAPI = "profiles/export";                    // Since ???; internal
+        public const string PropertiesAPI = "api/properties/";                    // Since 2.6
         public const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog";      // Since 5.2
 
         public const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
 
         public const string RoslynExporter = "roslyn-cs";
-        
+
         private static readonly IReadOnlyDictionary<Language, string> languageKeys = new ReadOnlyDictionary<Language, string>(
             new Dictionary<Language, string>
             {
@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.Integration.Service
                 ? "?language={0}"
                 : "?language={0}&project={1}";
 
-            return AppendQueryString(QualityProfileListAPI, apiFormat, languageKey, projectKey);           
+            return AppendQueryString(QualityProfileListAPI, apiFormat, languageKey, projectKey);
         }
 
         internal /*for testing purposes*/ static async Task<QualityProfile> DownloadQualityProfile(HttpClient client, ProjectInformation project, Language language, CancellationToken token)
@@ -302,7 +302,7 @@ namespace SonarLint.VisualStudio.Integration.Service
         #region Quality profile change log
         internal /*for testing purposes*/ static string CreateQualityProfileChangeLogUrl(QualityProfile profile)
         {
-            // Results are in descending order, so setting the page size to 1 will improve perf
+            // Results are in descending order, so setting the page size to 1 will improve performance
             return AppendQueryString(QualityProfileChangeLogAPI, "?profileKey={0}&ps=1", profile.Key);
         }
 
@@ -310,7 +310,7 @@ namespace SonarLint.VisualStudio.Integration.Service
         {
             string api = CreateQualityProfileChangeLogUrl(profile);
             HttpResponseMessage response = await InvokeGetRequest(client, api, token, ensureSuccess: false);
-            // The service doesn't exist on older versions, and it's not absolutely mandatory since we can work 
+            // The service doesn't exist on older versions, and it's not absolutely mandatory since we can work
             // without the information provided, only with reduced functionality.
             if (response.IsSuccessStatusCode)
             {
@@ -339,8 +339,8 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         internal /*for testing purposes*/ static Uri CreateRequestUrl(HttpClient client, string apiUrl)
         {
-            // We normalise these inputs to that the client base address always has a trailing slash,
-            // and the API url has no leading slash.
+            // We normalize these inputs to that the client base address always has a trailing slash,
+            // and the API URL has no leading slash.
             // Failure to do so will cause an incorrect URL to be formed, with the apiUrl being relative
             // to the base address's hostname only.
             Debug.Assert(client.BaseAddress.ToString().EndsWith("/"), "HttpClient.BaseAddress should have a trailing slash");
@@ -399,7 +399,7 @@ namespace SonarLint.VisualStudio.Integration.Service
                 }
                 catch (TaskCanceledException)
                 {
-                    // Cancelled or timeout
+                    // Canceled or timeout
                     VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.SonarQubeRequestTimeoutOrCancelled);
                 }
                 catch (Exception ex)
@@ -411,7 +411,7 @@ namespace SonarLint.VisualStudio.Integration.Service
 
                     VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.SonarQubeRequestFailed, ex.Message, null);
                 }
-                
+
                 return result;
             }
         }

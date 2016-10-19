@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration
         public const int E_XML_ATTRIBUTE_NOT_FOUND = unchecked((int)0x8004C738);
 
         // This constant is necessary to find the name of the "Solution Items" folder
-        // for the CurrentUICulture. They correspond to a resource string in the satellite dll
+        // for the CurrentUICulture. They correspond to a resource string in the satellite DLL
         // for the msenv.dll package. The ID is the resource ID, and the guid is the package guid.
         internal const uint SolutionItemResourceId = 13450;
 

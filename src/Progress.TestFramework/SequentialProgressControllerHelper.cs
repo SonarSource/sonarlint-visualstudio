@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         /// <summary>
         /// The <see cref="ProgressControllerStep"/> which are used by default will swallow the assert exceptions
         /// which means that investigating why something is failing requires more time and effort.
-        /// This extension method will record the first <see cref="UnitTestAssertException"/> which was thrown during 
+        /// This extension method will record the first <see cref="UnitTestAssertException"/> which was thrown during
         /// execution and will rethrow it on a way that will allow the test to fail and see the original stack
         /// that caused the test failure (on Finished event)
         /// </summary>
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             UnitTestAssertException originalException = null;
 
             // Controller.Finished is executed out of the awaitable state machine and on the calling (UI) thread
-            // which means that at this point the test runtime engine will be able to catch it and fail the test 
+            // which means that at this point the test runtime engine will be able to catch it and fail the test
             EventHandler<ProgressControllerFinishedEventArgs> onFinished = null;
             onFinished = (s, e) =>
             {

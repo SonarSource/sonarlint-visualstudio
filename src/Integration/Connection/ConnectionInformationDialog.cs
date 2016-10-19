@@ -25,14 +25,14 @@ namespace SonarLint.VisualStudio.Integration.Connection
         internal /*for testing purposes*/ static ConnectionInfoDialogViewModel CreateViewModel(ConnectionInformation currentConnection)
         {
             var vm = new ConnectionInfoDialogViewModel();
-            if (currentConnection !=null)
+            if (currentConnection != null)
             {
                 vm.ServerUrlRaw = currentConnection.ServerUri.AbsoluteUri;
                 vm.Username = currentConnection.UserName;
-        }
+            }
 
             return vm;
-            }
+        }
 
 
         internal /* testing purposes */ static ConnectionInformation CreateConnectionInformation(ConnectionInfoDialogViewModel viewModel, SecureString password)
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
                 info = new ConnectionInformation(serverUri, username, password);
             }
-            
+
             return info;
         }
         #endregion

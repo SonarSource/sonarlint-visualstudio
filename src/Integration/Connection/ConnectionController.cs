@@ -18,7 +18,7 @@ using System.Linq;
 namespace SonarLint.VisualStudio.Integration.Connection
 {
     /// <summary>
-    /// Connection related controller. 
+    /// Connection related controller.
     /// Provides the following commands:
     /// <see cref="ConnectCommand"/>
     /// <see cref="RefreshCommand"/>

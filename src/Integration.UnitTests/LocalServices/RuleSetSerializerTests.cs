@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 3: file exists, invalid rule set format (no RuleSet element)
             string xml =
-"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+"<?XML version=\"1.0\" encoding=\"utf-8\"?>\n" +
 "<Rules AnalyzerId=\"SonarLint.CSharp\" RuleNamespace=\"SonarLint.CSharp\">\n" +
 "</Rules>\n";
 

@@ -16,7 +16,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     internal interface IRuleSetConflictsController : ILocalService
     {
         /// <summary>
-        /// Checks whether the current solution has projects with conflicts RuleSets. 
+        /// Checks whether the current solution has projects with conflicts RuleSets.
         /// The check is against the solution level RuleSet (if solution is bound).
         /// </summary>
         /// <returns>Whether has conflicts (in which case there will be a UX to auto-fix them as well)</returns>

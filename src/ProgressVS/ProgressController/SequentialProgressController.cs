@@ -19,16 +19,16 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <code>
     /// SequentialProgressController controller = new SequentialProgressController(...);
     /// controller.Initialize(new ProgressStepDefinition[] { ... });
-    /// 
+    ///
     /// // Create an observer
     /// ProgressObserver observer = ProgressObserver.StartObserving(controller);
     /// observer.DisplayTitle = "title";
-    /// 
+    ///
     /// // Start the controller and await for finish
     /// ProgressControllerResult result = await controller.Start();
     /// </code>
     /// </example>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable", 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable",
         Justification = "cancellationTokenSource is being disposed OnFinish whish is guaranteed (tested) to be called in the end")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
     "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",

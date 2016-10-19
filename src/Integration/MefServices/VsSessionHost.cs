@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public Dispatcher UIDispatcher { get; }
 
-        public IStateManager VisualStateManager { get;  }
+        public IStateManager VisualStateManager { get; }
 
         public ISonarQubeServiceWrapper SonarQubeService { get; }
 
@@ -308,7 +308,7 @@ namespace SonarLint.VisualStudio.Integration
             if (this.localServices.ContainsKey(typeof(T)))
             {
                 this.localServices[typeof(T)] = new Lazy<ILocalService>(() => instance);
-        }
+            }
         }
         #endregion
 

@@ -20,7 +20,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<string, int> ruleSetLoaded = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         public ConfigurableRuleSetSerializer()
-            :this(new ConfigurableFileSystem())
+            : this(new ConfigurableFileSystem())
         {
 
         }

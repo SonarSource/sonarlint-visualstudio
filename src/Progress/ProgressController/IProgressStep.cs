@@ -10,7 +10,7 @@ using System;
 namespace SonarLint.VisualStudio.Progress.Controller
 {
     /// <summary>
-    /// Read-only information about a step which is executed by <see cref="IProgressController"/> 
+    /// Read-only information about a step which is executed by <see cref="IProgressController"/>
     /// <seealso cref="ProgressControllerStep"/>
     /// <seealso cref="IProgressStepExecutionEvents"/>
     /// <seealso cref="IProgressEvents"/>
@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
         double Progress { get; }
 
         /// <summary>
-        /// The progress details text during executing. Can change over time. 
+        /// The progress details text during executing. Can change over time.
         /// </summary>
         string ProgressDetailText { get; }
 

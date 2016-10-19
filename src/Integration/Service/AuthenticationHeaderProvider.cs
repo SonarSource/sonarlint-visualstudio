@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         // Copied from http://blogs.msdn.com/b/fpintos/archive/2009/06/12/how-to-properly-convert-securestring-to-string.aspx
         /// <summary>
-        /// WARNING: This will create plaintext <see cref="string"/> version of the <see cref="SecureString"/> in
+        /// WARNING: This will create plain-text <see cref="string"/> version of the <see cref="SecureString"/> in
         /// memory which is not encrypted. This could lead to leaking of sensitive information and other security
         /// vulnerabilities – heavy caution is advised.
         /// </summary>

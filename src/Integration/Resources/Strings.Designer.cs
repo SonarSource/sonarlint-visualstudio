@@ -901,7 +901,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot bind or sync if there are unsaved changes. Operation cancelled..
+        ///   Looks up a localized string similar to Cannot bind or sync if there are unsaved changes. Operation canceled..
         /// </summary>
         public static string SolutionSaveCancelledBindAborted {
             get {
@@ -1117,7 +1117,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube request timed out or was cancelled.
+        ///   Looks up a localized string similar to SonarQube request timed out or was canceled.
         /// </summary>
         public static string SonarQubeRequestTimeoutOrCancelled {
             get {

@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Integration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 

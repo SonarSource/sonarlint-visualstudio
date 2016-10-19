@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Progress.Controller {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The step operation was already exceuted and the instance cannot be reused..
+        ///   Looks up a localized string similar to The step operation was already executed and the instance cannot be reused..
         /// </summary>
         internal static string StepOperationWasAlreadyExecuted {
             get {

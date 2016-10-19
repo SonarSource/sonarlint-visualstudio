@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             + "(a) the site is alive "
             + "(b) the site has the latest version of SQ installed"
             + "(c) configured for anonymous access"
-            + "(d) the site has has at least one project (with associated rules)")]
+            + "(d) the site has at least one project (with associated rules)")]
         public void LatestServer_APICompatibility()
         {
             // Setup the service used to interact with SQ

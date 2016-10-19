@@ -212,7 +212,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
             Assert.IsNotNull(output, "Expected a real file");
             File.WriteAllText(output, "bla bla bla: bla");
-            
+
             // Act (read)
             BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
@@ -328,7 +328,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             Assert.AreEqual(output, output2, "Should be the same file");
             this.store.AssertHasCredentials(serverUri);
-            Assert.IsTrue(solutionProject.Files.ContainsKey(output), "File {0} should remain in the project project", output);
+            Assert.IsTrue(solutionProject.Files.ContainsKey(output), "File {0} should remain in the project", output);
         }
 
         #region Helpers

@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal class BoundSonarQubeProject 
+    internal class BoundSonarQubeProject
     {
         public BoundSonarQubeProject()
         {

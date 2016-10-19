@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             this.expectedException = new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
         }
-        
+
         #endregion
 
         #region Tests

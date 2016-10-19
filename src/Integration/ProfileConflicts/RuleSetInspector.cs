@@ -114,18 +114,18 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                     Path.GetDirectoryName(targetRuleSet.FilePath)
                 }).ToArray();
 
-            // RuleProviders are used in practice for IncludeAll purposes i.e. AllRule.ruleset will be 
+            // RuleProviders are used in practice for IncludeAll purposes i.e. AllRule.ruleset will be
             // included with the specified action. In out cases only care about the baseline so we could create
             // a wrapper that provides the baseline rules, but in the context of the problem this is not required
-            // since we will be able to find that the rules were missing just by diffing with the results from 
+            // since we will be able to find that the rules were missing just by diffing with the results from
             // GetEffectiveRules, see more details below.
             RuleInfoProvider[] providers = new RuleInfoProvider[0];
 
             // Underlying implementation details of GetEffectiveRules:
-            // The method will return a list of rules, some are the same as specified, and for some the Action will change 
+            // The method will return a list of rules, some are the same as specified, and for some the Action will change
             // according to the merge rules:
 
-            // 1. If there's an <IncludeAll Action="..." /> then all the provider's rules will include all the rules 
+            // 1. If there's an <IncludeAll Action="..." /> then all the provider's rules will include all the rules
             // with the specified Action (can't be None or Default).
             //
             // 2. Then the includes will be take into account (essentially the same flow 1-3, recursively):
@@ -133,32 +133,32 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             //    b. If the Include Action is Default -> rule actions remains as defined
             //    b. otherwise it will get the Action from the Include
             //  Once the Include rule Action is determined it will be merged but could only change to more strict value !
-            // 
+            //
             // 3. Lastly the file-level rules are added with their Action (overriding any previous settings).
             //
-            // To summarize in practical terms: 
+            // To summarize in practical terms:
             // (●) IncludeAll - will not impact us because all the baseline rules will be merged on top of (1)
-            //  and will either be more strict or the IncludeAll action will be more strict 
+            //  and will either be more strict or the IncludeAll action will be more strict
             //  => either way won't weaken.
-            // 
+            //
             // (●) By default i.e. the way we generate the targetRuleSet (which we expect it to be the project level ruleset),
             // the includes cannot weaken the base line ruleset (which we expect it to be the solution level ruleset)
-            // due to to the include merge rules which prefer strictness and the fact that we use Default as the Include Action.
-            // 
-            // (●) The only thing that can weaken the rules in practice, in the default case, are ruleset level rules 
+            // due to the include merge rules which prefer strictness and the fact that we use Default as the Include Action.
+            //
+            // (●) The only thing that can weaken the rules in practice, in the default case, are ruleset level rules
             // i.e what you get when you modify the ruleset by using the ruleset editor UI.
-            // 
+            //
             // (●) In the none default case, when the user decides to manually edit the file, setting the baseline include
             // to None or removing it will use the other Includes' Action settings which could weaken the target ruleset.
-            // 
+            //
             // With that in mind, we will find "conflicts" of two types - rule with weaker Action or a missing rule.
             // (assuming that all the rules were found with the help of ruleSetDirectories).
-            // 
-            // In terms of how to fix the conflict...  we could either just add all the conflicted rules into the project. That 
+            //
+            // In terms of how to fix the conflict...  we could either just add all the conflicted rules into the project. That
             // will not be optimal in terms of the user or the rebind/update experience. A better approach would be something like:
             // 1. Reset the baseline Include to Action=Default
             // 2. If there are still conflicts, remove all the conflicting rules which are directly on target ruleset.
-            // At this point we should not have any conflicts, so there's should not be a need to add the remaining conflicting 
+            // At this point we should not have any conflicts, so there's should not be a need to add the remaining conflicting
             // rules directly under the target with Action=TheExpectedAction
 
             var effectiveRulesMap = targetRuleSet.GetEffectiveRules(directories, providers, this.EffectiveRulesErrorHandler)

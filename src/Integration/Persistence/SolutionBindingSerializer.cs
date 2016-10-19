@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
 
         public SolutionBindingSerializer(IServiceProvider serviceProvider)
-            :this(serviceProvider, new SecretStore(StoreNamespace))
+            : this(serviceProvider, new SecretStore(StoreNamespace))
         {
         }
 
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 return null;
             }
 
-            sccFileSystem.QueueFileWrite(configFile, ()=>
+            sccFileSystem.QueueFileWrite(configFile, () =>
             {
                 if (this.WriteBindingInformation(configFile, binding))
                 {

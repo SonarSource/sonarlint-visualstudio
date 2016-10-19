@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             Uri url;
             IDictionary<string, Uri> projects;
-            if (this.projectDashboardUrls.TryGetValue(serverConnection.ServerUri.ToString(), out projects) 
+            if (this.projectDashboardUrls.TryGetValue(serverConnection.ServerUri.ToString(), out projects)
                 && projects.TryGetValue(project.Key, out url))
             {
                 return url;

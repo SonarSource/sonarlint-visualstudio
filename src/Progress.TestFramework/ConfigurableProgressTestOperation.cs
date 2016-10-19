@@ -9,7 +9,6 @@ using SonarLint.VisualStudio.Progress.Controller;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {

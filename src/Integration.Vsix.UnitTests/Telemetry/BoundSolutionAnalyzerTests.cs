@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.serviceProvider = new ConfigurableServiceProvider();
             this.serviceProvider.RegisterService(typeof(DTE), this.dte = new DTEMock());
-            this.serviceProvider.RegisterService(typeof(SComponentModel), 
+            this.serviceProvider.RegisterService(typeof(SComponentModel),
                 ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<ITelemetryLogger>(this.logger = new ConfigurableTelemetryLogger())));
 
             this.solutionRootFolder = Path.Combine(this.TestContext.TestRunDirectory, this.TestContext.TestName);
@@ -152,6 +152,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 filesToDelete.ForEach(File.Delete);
             }
         }
-        #endregion  
+        #endregion
     }
 }

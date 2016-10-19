@@ -23,8 +23,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly IServiceProvider serviceProvider;
 
-        // Don't use the constants from the referenced project in order to not accidently load things that were not loaded previously
-        internal const string SonarQubeFilesFolder = "SonarQube"; 
+        // Don't use the constants from the referenced project in order to not accidentally load things that were not loaded previously
+        internal const string SonarQubeFilesFolder = "SonarQube";
         internal const string SonarQubeSolutionBindingConfigurationSearchPattern = "*.sqconfig";
 
         public BoundSolutionAnalyzer(IServiceProvider serviceProvider)

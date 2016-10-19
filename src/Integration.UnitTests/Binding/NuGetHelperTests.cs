@@ -73,6 +73,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             sp.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel());
             return sp;
         }
-        #endregion  
+        #endregion
     }
 }

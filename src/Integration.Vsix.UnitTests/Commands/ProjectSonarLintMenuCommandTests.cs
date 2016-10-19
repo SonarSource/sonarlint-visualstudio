@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectSonarLintMenuCommand(serviceProvider);
-            
+
             // Act
             testSubject.QueryStatus(command, null);
 

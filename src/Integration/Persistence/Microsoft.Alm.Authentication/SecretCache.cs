@@ -15,7 +15,7 @@ namespace Microsoft.Alm.Authentication
 
         public SecretCache(string cacheNamespace, Secret.UriNameConversion getTargetName = null)
         {
-            if(string.IsNullOrWhiteSpace(cacheNamespace))
+            if (string.IsNullOrWhiteSpace(cacheNamespace))
             {
                 throw new ArgumentNullException(nameof(cacheNamespace));
             }

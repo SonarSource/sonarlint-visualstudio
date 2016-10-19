@@ -12,7 +12,7 @@ using System;
 namespace SonarLint.VisualStudio.Progress.Observation.ViewModels
 {
     /// <summary>
-    /// A view model data class that is used in <see cref="ProgressControllerViewModel"/> 
+    /// A view model data class that is used in <see cref="ProgressControllerViewModel"/>
     /// to represent a single visible step
     /// </summary>
     /// <seealso cref="ProgressObserver"/>

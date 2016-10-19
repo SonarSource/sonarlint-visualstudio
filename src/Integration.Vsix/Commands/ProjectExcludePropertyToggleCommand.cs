@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(projects.All(x => Language.ForProject(x).IsSupported), "Unsupported projects");
 
             if (projects.Count == 1 ||
-                projects.Select(x => this.propertyManager.GetBooleanProperty(x, PropertyName)).AllEqual()) 
+                projects.Select(x => this.propertyManager.GetBooleanProperty(x, PropertyName)).AllEqual())
             {
                 // Single project, or multiple projects & consistent property values
                 foreach (Project project in projects)

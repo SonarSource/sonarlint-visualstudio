@@ -366,9 +366,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             this.stateManager = new ConfigurableStateManager();
             var host = new VsSessionHost(this.serviceProvider,
-                stateManager, 
+                stateManager,
                 this.stepRunner,
-                this.sonarQubeService, 
+                this.sonarQubeService,
                 tracker?? new ConfigurableActiveSolutionTracker(),
                 Dispatcher.CurrentDispatcher);
 

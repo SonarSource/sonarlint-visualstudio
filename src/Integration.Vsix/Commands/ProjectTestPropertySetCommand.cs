@@ -21,7 +21,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string PropertyName = Constants.SonarQubeTestProjectBuildPropertyKey;
         private readonly IProjectPropertyManager propertyManager;
-        
+
         private readonly bool? commandPropertyValue;
 
         internal /*for testing purposes*/ bool? CommandPropertyValue => this.commandPropertyValue;
@@ -74,10 +74,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 IList<bool?> properties = projects.Select(x =>
                     this.propertyManager.GetBooleanProperty(x, PropertyName)).ToList();
-                
+
                 command.Enabled = true;
                 command.Visible = true;
-                // Checked iif all projects have the same value, and that value is
+                // Checked if all projects have the same value, and that value is
                 // the same as the value this instance is responsible for.
                 command.Checked = properties.AllEqual() && (properties.First() == this.commandPropertyValue);
             }

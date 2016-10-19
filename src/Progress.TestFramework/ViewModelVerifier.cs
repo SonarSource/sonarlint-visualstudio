@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         /// <summary>
-        /// Asserts if only one property change occured
+        /// Asserts if only one property change occurred
         /// </summary>
         /// <param name="propertyName">The name of the single property that was changed</param>
         public void AssertSinglePropertyChange(string propertyName)
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         /// <summary>
-        /// Asserts if all the property changes occured (in order specified)
+        /// Asserts if all the property changes occurred (in order specified)
         /// </summary>
         /// <param name="propertyNames">The name of the properties that were changed (in order of change)</param>
         public void AssertOrderedPropertyChanges(params string[] propertyNames)

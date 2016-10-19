@@ -23,11 +23,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         /// <param name="action">Action to run</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Using inference is ok here as we've constrained the type to be an Exception.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Necessary to turn it into a Test.Assert.")]
-        public static void Expect<TException>(Action action) where TException:Exception
+        public static void Expect<TException>(Action action) where TException : Exception
         {
             Expect<TException>((Action<TException>)null, action);
         }
-        
+
         /// <summary>
         /// Executes the action. Returns if action throws expected exception.
         /// Raises Assert failure otherwise.
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         /// <param name="additionalChecks">Any additional checks to be carried out once
         /// the exception has been thrown. Can be null.</param>
         /// <param name="action">Action to run</param>
-        /// <param name="checkDerived">Whether to check exception is derrived from the expected one (default false)</param>
+        /// <param name="checkDerived">Whether to check exception is derived from the expected one (default false)</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Using inference is ok here as we've constrained the type to be an Exception.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Necessary to turn it into a Test.Assert.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Justification = "Convenience")]
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     additionalChecks(ex);
                 }
             }
-           
+
         }
     }
 }

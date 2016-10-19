@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
             {
                 throw new ArgumentException(nameof(boolValue));
             }
-           
+
             return boolValue.Value ? this.TrueValue : this.FalseValue;
         }
 

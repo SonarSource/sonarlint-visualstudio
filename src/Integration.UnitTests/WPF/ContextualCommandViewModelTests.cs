@@ -34,12 +34,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             bool canExecute = false;
             bool executed = false;
             var realCommand = new RelayCommand<object>(
-                (state) => 
+                (state) =>
                 {
                     Assert.AreEqual(this, state);
                     executed = true;
                 },
-                (state) => 
+                (state) =>
                 {
                     Assert.AreEqual(this, state);
                     return canExecute;
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 
                 // Case 3: dynamic
                 var funcInvoked = false;
-                Func<object, string> func = x => 
+                Func<object, string> func = x =>
                 {
                     funcInvoked = true;
                     return "1234";
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
                 // Case 3: dynamic
                 var dynamicIcon = new IconViewModel(null);
                 var funcInvoked = false;
-                Func<object, IconViewModel> func = x => 
+                Func<object, IconViewModel> func = x =>
                 {
                     funcInvoked = true;
                     return dynamicIcon;

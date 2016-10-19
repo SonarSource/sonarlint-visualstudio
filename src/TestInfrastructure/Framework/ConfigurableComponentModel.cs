@@ -21,7 +21,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly CompositionContainer container;
 
         public ConfigurableComponentModel(ComposablePartCatalog defaultCatalog = null)
-            :this(new ConfigurableServiceProvider(), defaultCatalog)
+            : this(new ConfigurableServiceProvider(), defaultCatalog)
         {
 
         }
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             T result = this.container.GetExports<T>().Select(l => l.Value).SingleOrDefault();
             if (result == null)
             {
-                // Emulate the real VS IComponentModel behaviour
+                // Emulate the real VS IComponentModel behavior
                 throw new Exception("Microsoft.VisualStudio.Composition.CompositionFailedException");
             }
 

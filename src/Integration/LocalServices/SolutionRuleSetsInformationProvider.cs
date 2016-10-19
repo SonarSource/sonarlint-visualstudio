@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration
             List<string> options = new List<string>();
             options.Add(declaration.RuleSetPath); // Might be a full path
             options.Add(PathHelper.ResolveRelativePath(declaration.RuleSetPath, project.FullName)); // Relative to project
-            // Note: currently we don't search in rule set directories since we expect the project rule set 
+            // Note: currently we don't search in rule set directories since we expect the project rule set
             // to be relative to the project. We can add this in the future if it will be needed.
 
             IFileSystem fileSystem = this.serviceProvider.GetService<IFileSystem>();

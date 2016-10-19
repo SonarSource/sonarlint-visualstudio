@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             if (this.StepExecutionChanged != null)
             {
-                this.StepExecutionChanged(this, args); 
+                this.StepExecutionChanged(this, args);
             }
         }
 

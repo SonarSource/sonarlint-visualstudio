@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 // Act - disable
                 testSubject.SetConnectionInProgress(progressEvents);
 
-                // Verify 
+                // Verify
                 Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Connection is in progress so should not be enabled");
                 Assert.IsFalse(testSubject.RefreshCommand.CanExecute(connectionInfo), "Connection is in progress so should not be enabled");
                 this.outputWindowPane.AssertOutputStrings(0);
@@ -254,7 +254,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 // Act - finish
                 progressEvents.SimulateFinished(controllerResult);
 
-                // Verify 
+                // Verify
                 Assert.IsTrue(testSubject.ConnectCommand.CanExecute(), "Connection is finished with result: {0}", controllerResult);
                 Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connectionInfo), "Connection is finished with result: {0}", controllerResult);
             }
@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
             this.connectionProvider.ConnectionInformationToReturn = null;
             var progressEvents = new ConfigurableProgressEvents();
-            
+
             // Case 1: do NOT show
             // Setup
             this.settings.ShowServerNuGetTrustWarning = false;
@@ -281,7 +281,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Verify
             notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
 
-            // Case 2: show, but cancelled
+            // Case 2: show, but canceled
             // Setup
             this.settings.ShowServerNuGetTrustWarning = false;
 
