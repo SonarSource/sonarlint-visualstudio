@@ -18,6 +18,6 @@ namespace SonarLint.VisualStudio.Progress.Controller
         /// </summary>
         /// <param name="progressDetailText">Optional (can be null)</param>
         /// <param name="progress">The execution progress</param>
-        void ProgressChanged(string progressDetailText, double progress);
+        void ProgressChanged(string progressDetailText, double progress = double.NaN);
     }
 }

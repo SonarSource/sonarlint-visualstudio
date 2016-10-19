@@ -386,6 +386,33 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to * {0}.
+        /// </summary>
+        public static string DiscoveredIncludedOrExcludedProjectFormat {
+            get {
+                return ResourceManager.GetString("DiscoveredIncludedOrExcludedProjectFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excluded projects:.
+        /// </summary>
+        public static string DiscoveringSolutionExcludedProjectsHeader {
+            get {
+                return ResourceManager.GetString("DiscoveringSolutionExcludedProjectsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Included projects:.
+        /// </summary>
+        public static string DiscoveringSolutionIncludedProjectsHeader {
+            get {
+                return ResourceManager.GetString("DiscoveringSolutionIncludedProjectsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Discovering solution projects.
         /// </summary>
         public static string DiscoveringSolutionProjectsProgressMessage {
@@ -395,7 +422,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Download quality profile for language &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Download quality profile(s):.
         /// </summary>
         public static string DownloadingQualityProfileProgressMessage {
             get {
@@ -491,15 +518,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string FailedToUnpackAdditionalFiles {
             get {
                 return ResourceManager.GetString("FailedToUnpackAdditionalFiles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to * {0}.
-        /// </summary>
-        public static string FilteredOutProjectFormat {
-            get {
-                return ResourceManager.GetString("FilteredOutProjectFormat", resourceCulture);
             }
         }
         
@@ -612,11 +630,20 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No projects in the current solution are applicable to the selected SonarQube project&apos;s quality profile..
+        ///   Looks up a localized string similar to None (for selected SonarQube project&apos;s quality profile).
         /// </summary>
         public static string NoProjectsApplicableForBinding {
             get {
                 return ResourceManager.GetString("NoProjectsApplicableForBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None (for selected SonarQube project&apos;s quality profile).
+        /// </summary>
+        public static string NoProjectsExcludedFromBinding {
+            get {
+                return ResourceManager.GetString("NoProjectsExcludedFromBinding", resourceCulture);
             }
         }
         
@@ -684,20 +711,20 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube quality profile was downloaded successfully.
+        ///   Looks up a localized string similar to Failed to download quality profile, Name: &quot;{0}&quot;, Key: &quot;{1}&quot;, Language: &quot;{2}&quot;.
         /// </summary>
-        public static string QualityProfileDownloadedSuccessfulMessage {
+        public static string QualityProfileDownloadFailedMessageFormat {
             get {
-                return ResourceManager.GetString("QualityProfileDownloadedSuccessfulMessage", resourceCulture);
+                return ResourceManager.GetString("QualityProfileDownloadFailedMessageFormat", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube quality profile: Failed to download profile.
+        ///   Looks up a localized string similar to Successfully downloaded quality profile, Name: &quot;{0}&quot;, Key: &quot;{1}&quot;, Language: &quot;{2}&quot;.
         /// </summary>
-        public static string QualityProfileDownloadFailedMessage {
+        public static string QualityProfileDownloadSuccessfulMessageFormat {
             get {
-                return ResourceManager.GetString("QualityProfileDownloadFailedMessage", resourceCulture);
+                return ResourceManager.GetString("QualityProfileDownloadSuccessfulMessageFormat", resourceCulture);
             }
         }
         
@@ -1059,6 +1086,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string StartedSolutionBindingWorkflow {
             get {
                 return ResourceManager.GetString("StartedSolutionBindingWorkflow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to    {0}.
+        /// </summary>
+        public static string SubTextPaddingFormat {
+            get {
+                return ResourceManager.GetString("SubTextPaddingFormat", resourceCulture);
             }
         }
         

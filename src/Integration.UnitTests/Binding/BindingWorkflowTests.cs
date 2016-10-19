@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Windows.Threading;
 
@@ -94,16 +95,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetAssert.AreEqual(ruleSet, testSubject.Rulesets[language], "Unexpected rule set");
             Assert.AreSame(profile, testSubject.QualityProfiles[language]);
             VerifyNuGetPackgesDownloaded(nugetPackages, testSubject);
-            this.outputWindowPane.AssertOutputStrings(0);
             controller.AssertNumberOfAbortRequests(0);
             notifications.AssertProgress(
                 0.0,
-                1.0,
                 1.0);
-            notifications.AssertProgressMessages(
-                string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language.Name),
-                string.Empty,
-                Strings.QualityProfileDownloadedSuccessfulMessage);
+            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage, string.Empty);
+
+            this.outputWindowPane.AssertOutputStrings(1);
+            var expectedOutput = "   Successfully downloaded quality profile, Name: \"\", Key: \"\", Language: \"VB.NET\"";
+            this.outputWindowPane.AssertOutputStrings(expectedOutput);
         }
 
         [TestMethod]
@@ -112,18 +112,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             BindingWorkflow testSubject = this.CreateTestSubject();
             ConfigurableProgressController controller = new ConfigurableProgressController();
+            var notifications = new ConfigurableProgressStepExecutionEvents();
 
             var language = Language.CSharp;
             this.ConfigureProfileExport(null, language);
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, new ConfigurableProgressStepExecutionEvents(), new[] { language });
+            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
             // Verify
             Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
             Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
-            this.outputWindowPane.AssertOutputStrings(1);
             controller.AssertNumberOfAbortRequests(1);
+
+            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
+
+            this.outputWindowPane.AssertOutputStrings(1);
+            var expectedOutput = "   Failed to download quality profile, Name: \"\", Key: \"\", Language: \"C#\"";
+            this.outputWindowPane.AssertOutputStrings(expectedOutput);
         }
 
         [TestMethod]
@@ -356,21 +362,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
         }
 
-        [TestMethod]
-        public void BindingWorkflow_DiscoverProjects_OutputsExcludedProjects()
+        private void BindingWorkflow_DiscoverProjects_GenericPart(ConfigurableProgressController controller, ConfigurableProgressStepExecutionEvents progressEvents, int numberOfProjectsToCreate, int numberOfProjectsToInclude)
         {
             // Setup
-            ThreadHelper.SetCurrentThreadAsUIThread();
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
             List<Project> projects = new List<Project>();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < numberOfProjectsToCreate; i++)
             {
                 projects.Add(new ProjectMock($"cs{i}.csproj"));
             }
 
-            this.projectSystemHelper.FilteredProjects = projects.Take(2);
+            this.projectSystemHelper.FilteredProjects = projects.Take(numberOfProjectsToInclude);
             this.projectSystemHelper.Projects = projects;
 
             var testSubject = this.CreateTestSubject();
@@ -379,28 +380,84 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.DiscoverProjects(controller, progressEvents);
 
             // Verify
+            Assert.AreEqual(numberOfProjectsToInclude, testSubject.BindingProjects.Count, "Expected " + numberOfProjectsToInclude + " project(s) selected for binding");
+            progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
             this.outputWindowPane.AssertOutputStrings(1);
-            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0, new[] { projects[2].UniqueName, projects[3].UniqueName });
+
+            // Returns expected output message
+            var expectedOutput = new StringBuilder("   Included projects:\r\n");
+            if (numberOfProjectsToInclude > 0)
+            {
+                this.projectSystemHelper.FilteredProjects.ToList().ForEach(p => expectedOutput.AppendFormat("   * {0}\r\n", p.Name));
+            }
+            else
+            {
+                expectedOutput.Append("   * None (for selected SonarQube project's quality profile)\r\n");
+            }
+            expectedOutput.Append("   Excluded projects:\r\n");
+            if (numberOfProjectsToCreate - numberOfProjectsToInclude > 0)
+            {
+                this.projectSystemHelper.Projects.Except(this.projectSystemHelper.FilteredProjects)
+                                                 .ToList()
+                                                 .ForEach(p => expectedOutput.AppendFormat("   * {0}\r\n", p.Name));
+            }
+            else
+            {
+                expectedOutput.Append("   * None (for selected SonarQube project's quality profile)\r\n");
+            }
+            expectedOutput.Append("   You can change the exclusion options via the SonarLint project-level context menu i.e. Solution Explorer -> Select project(s)");
+
+            this.outputWindowPane.AssertOutputStrings(expectedOutput.ToString());
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DiscoverProjects_OutputsIncludedProjects()
+        {
+            // Arrange
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            // Act & Common Assert
+            BindingWorkflow_DiscoverProjects_GenericPart(controller, progressEvents, 2, 2);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DiscoverProjects_OutputsExcludedProjects()
+        {
+            // Arrange
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            // Act & Common Assert
+            BindingWorkflow_DiscoverProjects_GenericPart(controller, progressEvents, 2, 0);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DiscoverProjects_OutputsIncludedAndExcludedProjects()
+        {
+            // Arrange
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            // Act & Common Assert
+            BindingWorkflow_DiscoverProjects_GenericPart(controller, progressEvents, 4, 2);
         }
 
         [TestMethod]
         public void BindingWorkflow_DiscoverProjects_NoMatchingProjects_AbortsWorkflow()
         {
-            // Setup
+            // Arrange
             ThreadHelper.SetCurrentThreadAsUIThread();
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
-            this.projectSystemHelper.FilteredProjects = null;
 
-            var testSubject = this.CreateTestSubject();
+            // Act & Common Assert
+            BindingWorkflow_DiscoverProjects_GenericPart(controller, progressEvents, 0, 0);
 
-            // Act
-            testSubject.DiscoverProjects(controller, progressEvents);
-
-            // Verify
-            Assert.AreEqual(0, testSubject.BindingProjects.Count, "Expected no projects selected for binding");
-            progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
-            this.outputWindowPane.AssertOutputStrings(Strings.NoProjectsApplicableForBinding);
+            // Assert
             controller.AssertNumberOfAbortRequests(1);
         }
 

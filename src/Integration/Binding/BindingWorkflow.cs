@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return new ProgressStepDefinition[]
             {
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
-                        (token, notifications) => notifications.ProgressChanged(Strings.StartedSolutionBindingWorkflow, double.NaN)),
+                        (token, notifications) => notifications.ProgressChanged(Strings.StartedSolutionBindingWorkflow)),
 
                 new ProgressStepDefinition(null, StepAttributes.Indeterminate | StepAttributes.Hidden,
                         (token, notifications) => this.PromptSaveSolutionIfDirty(controller, token)),
@@ -181,15 +181,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected step to be run on the UI thread");
 
-            notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage, double.NaN);
+            notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage);
 
             this.BindingProjects.UnionWith(this.projectSystem.GetFilteredSolutionProjects());
 
-            this.InformAboutFilteredOutProjects(this.projectSystem.GetSolutionProjects().Except(this.BindingProjects));
+            this.InformAboutFilteredOutProjects();
 
             if (!this.BindingProjects.Any())
             {
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.NoProjectsApplicableForBinding);
                 AbortWorkflow(controller, CancellationToken.None);
             }
         }
@@ -201,16 +200,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             bool failed = false;
             var rulesets = new Dictionary<Language, RuleSet>();
-            DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, languages.Count());
+            var languageList = languages as IList<Language> ?? languages.ToList();
+            DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, languageList.Count);
 
-            foreach (var language in languages)
+            notifier.NotifyCurrentProgress(Strings.DownloadingQualityProfileProgressMessage);
+            foreach (var language in languageList)
             {
-                notifier.NotifyCurrentProgress(string.Format(CultureInfo.CurrentCulture, Strings.DownloadingQualityProfileProgressMessage, language.Name));
-
                 QualityProfile qualityProfileInfo;
                 if (!host.SonarQubeService.TryGetQualityProfile(this.connectionInformation, this.project, language, cancellationToken, out qualityProfileInfo))
                 {
                     failed = true;
+                    InformAboutQualityProfileToDownload(qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name, true);
                     break;
                 }
                 this.QualityProfiles[language] = qualityProfileInfo;
@@ -219,6 +219,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, qualityProfileInfo, language, cancellationToken, out export))
                 {
                     failed = true;
+                    InformAboutQualityProfileToDownload(qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name, true);
                     break;
                 }
 
@@ -233,13 +234,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 if (rulesets[language] == null)
                 {
                     failed = true;
+                    InformAboutQualityProfileToDownload(qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name, true);
                     break;
                 }
+
+                InformAboutQualityProfileToDownload(qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name, false);
             }
 
             if (failed)
             {
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.QualityProfileDownloadFailedMessage);
                 this.AbortWorkflow(controller, cancellationToken);
             }
             else
@@ -249,8 +252,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     this.Rulesets[keyValue.Key] = keyValue.Value;
                 }
-
-                notifier.NotifyCurrentProgress(Strings.QualityProfileDownloadedSuccessfulMessage);
             }
         }
 
@@ -258,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(System.Windows.Application.Current?.Dispatcher.CheckAccess() ?? false, "Expected to run on UI thread");
 
-            notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage, double.NaN);
+            notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage);
 
             this.solutionBindingOperation.RegisterKnownRuleSets(this.Rulesets);
             this.solutionBindingOperation.Initialize(this.BindingProjects, this.QualityProfiles);
@@ -331,7 +332,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var message = this.AllNuGetPackagesInstalled
                 ? Strings.FinishedSolutionBindingWorkflowSuccessful
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
-            notifications.ProgressChanged(message, double.NaN);
+            notifications.ProgressChanged(message);
         }
 
         #endregion
@@ -349,20 +350,67 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return this.BindingProjects.Select(Language.ForProject).Distinct();
         }
 
-        private void InformAboutFilteredOutProjects(IEnumerable<Project> filteredOut)
+        private void InformAboutFilteredOutProjects()
         {
-            List<Project> projects = filteredOut.ToList();
-            if (projects.Count == 0)
+            var includedProjects = this.BindingProjects.ToList();
+            var excludedProjects = this.projectSystem.GetSolutionProjects().Except(this.BindingProjects).ToList();
+
+            var output = new StringBuilder();
+
+            output.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionIncludedProjectsHeader).AppendLine();
+            if (includedProjects.Count == 0)
             {
-                return;
+                var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsApplicableForBinding);
+                output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
+            }
+            else
+            {
+                includedProjects.ForEach(
+                    p =>
+                    {
+                        var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, p.UniqueName);
+                        output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
+                    });
             }
 
-            StringBuilder output = new StringBuilder();
-            output.AppendLine(Strings.FilteredOutProjectFromBindingHeader);
-            projects.ForEach(p => output.AppendFormat(Strings.FilteredOutProjectFormat, p.UniqueName).AppendLine());
-            output.AppendLine(Strings.FilteredOutProjectFromBindingEnding);
+            output.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionExcludedProjectsHeader).AppendLine();
+            if (excludedProjects.Count == 0)
+            {
+                var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsExcludedFromBinding);
+                output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
+            }
+            else
+            {
+                excludedProjects.ForEach(
+                    p =>
+                    {
+                        var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, p.UniqueName);
+                        output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
+                    });
+            }
+            output.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
+
             VsShellUtils.WriteToSonarLintOutputPane(this.host, output.ToString());
         }
+
+        private void InformAboutQualityProfileToDownload(string profileName, string profileKey, string languageName, bool isDownloadFailed)
+        {
+            string output;
+
+            if (isDownloadFailed)
+            {
+                output = string.Format(Strings.QualityProfileDownloadFailedMessageFormat, profileName, profileKey, languageName);
+            }
+            else
+            {
+                output = string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, profileName, profileKey, languageName);
+            }
+
+            output = string.Format(Strings.SubTextPaddingFormat, output);
+
+            VsShellUtils.WriteToSonarLintOutputPane(this.host, output);
+        }
+
         #endregion
 
     }

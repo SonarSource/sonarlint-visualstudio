@@ -217,13 +217,13 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Binding projects</value>
     <comment>Display message</comment>
   </data>
-  <data name="QualityProfileDownloadFailedMessage" xml:space="preserve">
-    <value>SonarQube quality profile: Failed to download profile</value>
-    <comment>Output window message indicating the quality profile file failed to download</comment>
+  <data name="QualityProfileDownloadFailedMessageFormat" xml:space="preserve">
+    <value>Failed to download quality profile, Name: "{0}", Key: "{1}", Language: "{2}"</value>
+    <comment>Output window message indicating the quality profile file failed to download. {0} quality profile name, {1} quality profile key, {2} language name.</comment>
   </data>
-  <data name="QualityProfileDownloadedSuccessfulMessage" xml:space="preserve">
-    <value>SonarQube quality profile was downloaded successfully</value>
-    <comment>Output window message indicating the quality profile was successfully downloaded</comment>
+  <data name="QualityProfileDownloadSuccessfulMessageFormat" xml:space="preserve">
+    <value>Successfully downloaded quality profile, Name: "{0}", Key: "{1}", Language: "{2}"</value>
+    <comment>Output window message indicating the quality profile file was successfully downloaded. {0} quality profile name, {1} quality profile key, {2} language name.</comment>
   </data>
   <data name="RuleSetDescription" xml:space="preserve">
     <value>Rule set generated from SonarQube</value>
@@ -344,8 +344,8 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <comment>Server context menu command display text to show all projects (inc. unbound projects)</comment>
   </data>
   <data name="DownloadingQualityProfileProgressMessage" xml:space="preserve">
-    <value>Download quality profile for language '{0}'</value>
-    <comment>A progress notification message. {0} language name.</comment>
+    <value>Download quality profile(s):</value>
+    <comment>A progress notification message.</comment>
   </data>
   <data name="AutomationServerDescription" xml:space="preserve">
     <value>SonarQube server: {0}</value>
@@ -439,7 +439,7 @@ This is the general format to use when writing errors to output window or when t
     <comment>Progress message about downloading server settings</comment>
   </data>
   <data name="NoProjectsApplicableForBinding" xml:space="preserve">
-    <value>No projects in the current solution are applicable to the selected SonarQube project's quality profile.</value>
+    <value>None (for selected SonarQube project's quality profile)</value>
     <comment>Output window message indicating the the current solution does not contain any projects that are applicable to the currently selected SonarQube project's quality profile.</comment>
   </data>
   <data name="CSharpLanguageName" xml:space="preserve">
@@ -547,7 +547,7 @@ This is the general format to use when writing errors to output window or when t
   <data name="SolutionIsClosed" xml:space="preserve">
     <value>The operation requires an open solution.</value>
   </data>
-  <data name="FilteredOutProjectFormat" xml:space="preserve">
+  <data name="DiscoveredIncludedOrExcludedProjectFormat" xml:space="preserve">
     <value>* {0}</value>
     <comment>Output window message
 {0} Unique project name</comment>
@@ -643,5 +643,21 @@ This is the general format to use when writing errors to output window or when t
   <data name="SonarLintInfoBarOldBindingFile" xml:space="preserve">
     <value>SonarLint can now tell you when the quality profile in SonarQube project is updated. Press Update to enable this feature now.</value>
     <comment>Info bar message</comment>
+  </data>
+  <data name="NoProjectsExcludedFromBinding" xml:space="preserve">
+    <value>None (for selected SonarQube project's quality profile)</value>
+    <comment>Output window message indicating the current solution does not contain any projects filtered out from the currently selected SonarQube project's quality profile.</comment>
+  </data>
+  <data name="DiscoveringSolutionExcludedProjectsHeader" xml:space="preserve">
+    <value>Excluded projects:</value>
+    <comment>Output window message displayed before listing all excluded projects.</comment>
+  </data>
+  <data name="DiscoveringSolutionIncludedProjectsHeader" xml:space="preserve">
+    <value>Included projects:</value>
+    <comment>Output window message displayed before listing all discovered projects.</comment>
+  </data>
+  <data name="SubTextPaddingFormat" xml:space="preserve">
+    <value>   {0}</value>
+    <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
   </data>
 </root>

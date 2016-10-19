@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToConnectId);
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.BadServerPluginId);
 
-            notifications.ProgressChanged(connection.ServerUri.ToString(), double.NaN);
+            notifications.ProgressChanged(connection.ServerUri.ToString());
 
             if (!this.VerifyCSharpPlugin(controller, cancellationToken, connection, notifications))
             {
@@ -112,15 +112,15 @@ namespace SonarLint.VisualStudio.Integration.Connection
             ProjectInformation[] projects;
             if (!this.host.SonarQubeService.TryGetProjects(connection, cancellationToken, out projects))
             {
-                notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure, double.NaN);
+                notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure);
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);
 
                 AbortWorkflow(controller, cancellationToken);
                 return;
             }
-            
+
             this.OnProjectsChanged(connection, projects);
-            notifications.ProgressChanged(Strings.ConnectionResultSuccess, double.NaN);
+            notifications.ProgressChanged(Strings.ConnectionResultSuccess);
         }
 
         internal /*for testing purposes*/ void DownloadServiceParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var timeout = TimeSpan.FromSeconds(1);
             var defaultRegex = new Regex(ServerProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
 
-            notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage, double.NaN);
+            notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage);
 
             ServerProperty[] properties;
             if (!this.host.SonarQubeService.TryGetProperties(this.ConnectedServer, token, out properties) || token.IsCancellationRequested)
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             ServerPlugin[] plugins;
             if (!this.host.SonarQubeService.TryGetPlugins(connection, cancellationToken, out plugins))
             {
-                notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure, double.NaN);
+                notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure);
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);
 
                 AbortWorkflow(controller, cancellationToken);
@@ -189,8 +189,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 string errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
 
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationError(errorMessage, NotificationIds.BadServerPluginId, null);
-                notifications.ProgressChanged(errorMessage, double.NaN);
-                notifications.ProgressChanged(Strings.ConnectionResultFailure, double.NaN);
+                notifications.ProgressChanged(errorMessage);
+                notifications.ProgressChanged(Strings.ConnectionResultFailure);
 
                 AbortWorkflow(controller, cancellationToken);
                 return false;
