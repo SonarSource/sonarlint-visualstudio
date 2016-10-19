@@ -22,7 +22,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         [TestMethod]
         public void ConnectDialogViewModel_GetErrorForProperty_ServerUrlRaw_NoValidationErrorWhenPristine()
         {
-            // Test case 1: new model has prestine URL            
+            // Test case 1: new model has prestine URL
             // Setup
             var testSubject1 = new ConnectionInfoDialogViewModel();
 
@@ -30,8 +30,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             string validationError1 = GetErrorForProperty(testSubject1, nameof(testSubject1.ServerUrlRaw));
 
             // Verify
-            Assert.IsTrue(testSubject1.IsUrlPristine, "Server URL should be prestine on initial view model constuction");
-            Assert.IsNull(validationError1, "Validation error should be null on intial view model construction");
+            Assert.IsTrue(testSubject1.IsUrlPristine, "Server URL should be prestine on initial view model construction");
+            Assert.IsNull(validationError1, "Validation error should be null on initial view model construction");
 
 
             // Test case 2a: setting raw server url makes it 'dirty' – valid URL
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var model = new ConnectionInfoDialogViewModel();
 
             model.ServerUrlRaw = "http://hostname";
-            Assert.IsTrue(model.ShowSecurityWarning, "Security warning should be visbile");
+            Assert.IsTrue(model.ShowSecurityWarning, "Security warning should be visible");
 
             model.ServerUrlRaw = "https://hostname";
             Assert.IsFalse(model.ShowSecurityWarning, "Security warning should not be visible");

@@ -28,13 +28,13 @@ namespace SonarLint.VisualStudio.Progress.Controller
         Failed,
 
         /// <summary>
-        /// The execution was cancelled while executing <see cref="IProgressStepOperation"/>
+        /// The execution was canceled while executing <see cref="IProgressStepOperation"/>
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Cancelled", Justification = "The prefered term has a typo")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Cancelled", Justification = "The preferred term has a typo")]
         Cancelled,
 
         /// <summary>
-        /// No error had occured while executing <see cref="IProgressStepOperation"/> 
+        /// No error had occurred while executing <see cref="IProgressStepOperation"/>
         /// </summary>
         Succeeded
     }

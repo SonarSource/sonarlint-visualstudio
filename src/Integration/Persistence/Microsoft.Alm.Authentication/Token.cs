@@ -150,21 +150,25 @@ namespace Microsoft.Alm.Authentication
         /// <summary>
         /// Converts the token to a human friendly string.
         /// </summary>
-        /// <returns>Humanish name of the token.</returns>
+        /// <returns>Humanized name of the token.</returns>
         public override string ToString()
         {
             string value;
             if (GetFriendlyNameFromType(Type, out value))
+            {
                 return value;
+            }
             else
+            {
                 return base.ToString();
+            }
         }
 
         internal static unsafe bool Deserialize(byte[] bytes, TokenType type, out Token token)
         {
             Debug.Assert(bytes != null, "The bytes parameter is null");
             Debug.Assert(bytes.Length > 0, "The bytes parameter is too short");
-            Debug.Assert(Enum.IsDefined(typeof(TokenType), type), "The type parameter is invlaid");
+            Debug.Assert(Enum.IsDefined(typeof(TokenType), type), "The type parameter is invalid");
 
             token = null;
 
@@ -207,7 +211,7 @@ namespace Microsoft.Alm.Authentication
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (ErrorHandler.IsCriticalException(ex))
                 {
@@ -241,7 +245,7 @@ namespace Microsoft.Alm.Authentication
 
                 Array.Copy(utf8bytes, 0, bytes, sizeof(TokenType) + sizeof(Guid), utf8bytes.Length);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (ErrorHandler.IsCriticalException(ex))
                 {

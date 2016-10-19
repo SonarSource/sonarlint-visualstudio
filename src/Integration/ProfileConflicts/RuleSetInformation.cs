@@ -12,7 +12,7 @@ using System.Linq;
 namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 {
     /// <summary>
-    /// Data-only class that represents aggregated rule set information. 
+    /// Data-only class that represents aggregated rule set information.
     /// Same rule sets should be represented by the same instance of <see cref="RuleSetInformation"/> and have their <see cref="RuleSetDeclaration.ConfigurationContext"/>
     /// associated with the shared instance by adding them into <see cref="ConfigurationContexts"/>.
     /// </summary>

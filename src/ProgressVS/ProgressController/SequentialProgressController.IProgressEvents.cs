@@ -16,16 +16,16 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Partial class implementation of <see cref="IProgressEvents"/>
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
-    "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"", 
-        Justification = "cancellationTokenSource is being disposed OnFinish whish is guaranteed (tested) to be called in the end", 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+    "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
+        Justification = "cancellationTokenSource is being disposed OnFinish whish is guaranteed (tested) to be called in the end",
         Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Progress.Controller.SequentialProgressController")]
     public partial class SequentialProgressController : IProgressEvents
     {
         /* Dev notes: Events are raised on UI thread, the reason is for simpler management of the order in which could be processed
-           using an observer. Raising them on the UI thread means that they will be processed in the same order as raised and will be processed 
-           one by one and not several at once. Removing this restriction will require some kind of queuing mechanism which is an overkill since in practice 
+           using an observer. Raising them on the UI thread means that they will be processed in the same order as raised and will be processed
+           one by one and not several at once. Removing this restriction will require some kind of queuing mechanism which is an overkill since in practice
            the main consumer of those events are UI-based observers which will need to report those changes and action them on the UI thread anyway.*/
 
         public event EventHandler<ProgressEventArgs> Started
@@ -60,31 +60,31 @@ namespace SonarLint.VisualStudio.Progress.Controller
 
         public event EventHandler<StepExecutionChangedEventArgs> StepExecutionChanged
         {
-            add 
-            { 
-                ThreadHelper.ThrowIfNotOnUIThread(); 
-                this.StepExecutionChangedPrivate += value; 
+            add
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+                this.StepExecutionChangedPrivate += value;
             }
 
-            remove 
-            { 
-                ThreadHelper.ThrowIfNotOnUIThread(); 
-                this.StepExecutionChangedPrivate -= value; 
+            remove
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+                this.StepExecutionChangedPrivate -= value;
             }
         }
 
         public event EventHandler<CancellationSupportChangedEventArgs> CancellationSupportChanged
         {
-            add 
-            { 
-                ThreadHelper.ThrowIfNotOnUIThread(); 
-                this.CancellationSupportChangedPrivate += value; 
+            add
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+                this.CancellationSupportChangedPrivate += value;
             }
 
-            remove 
-            { 
-                ThreadHelper.ThrowIfNotOnUIThread(); 
-                this.CancellationSupportChangedPrivate -= value; 
+            remove
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+                this.CancellationSupportChangedPrivate -= value;
             }
         }
 
@@ -115,8 +115,8 @@ namespace SonarLint.VisualStudio.Progress.Controller
                 {
                     ProgressEventArgs args = new ProgressEventArgs();
                     delegates(this, args);
-                    // Verify that the observer handled it since now easy way of testing 
-                    // serialized raising and handling of the event across the the classes
+                    // Verify that the observer handled it since now easy way of testing
+                    // serialized raising and handling of the event across the classes
                     args.CheckHandled();
                 }
             });
@@ -136,8 +136,8 @@ namespace SonarLint.VisualStudio.Progress.Controller
                 {
                     ProgressControllerFinishedEventArgs args = new ProgressControllerFinishedEventArgs(result);
                     delegates(this, args);
-                    // Verify that the observer handled it since now easy way of testing 
-                    // serialized raising and handling of the event across the the classes
+                    // Verify that the observer handled it since now easy way of testing
+                    // serialized raising and handling of the event across the classes
                     args.CheckHandled();
                 }
             });
@@ -155,8 +155,8 @@ namespace SonarLint.VisualStudio.Progress.Controller
                         {
                             CancellationSupportChangedEventArgs args = new CancellationSupportChangedEventArgs(cancellable);
                             delegates(this, args);
-                            // Verify that the observer handled it since now easy way of testing 
-                            // serialized raising and handling of the event across the the classes
+                            // Verify that the observer handled it since now easy way of testing
+                            // serialized raising and handling of the event across the classes
                             args.CheckHandled();
                         }
                     });
@@ -174,8 +174,8 @@ namespace SonarLint.VisualStudio.Progress.Controller
                         if (delegates != null)
                         {
                             delegates(sender, args);
-                            // Verify that the observer handled it since now easy way of testing 
-                            // serialized raising and handling of the event across the the classes
+                            // Verify that the observer handled it since now easy way of testing
+                            // serialized raising and handling of the event across the classes
                             args.CheckHandled();
                         }
                     });

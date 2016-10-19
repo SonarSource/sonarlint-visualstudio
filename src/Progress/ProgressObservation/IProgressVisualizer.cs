@@ -10,7 +10,7 @@ using SonarLint.VisualStudio.Progress.Observation.ViewModels;
 namespace SonarLint.VisualStudio.Progress.Observation
 {
     /// <summary>
-    /// Common inteface for components that can display the <see cref="ProgressControllerViewModel"/> content
+    /// Common interface for components that can display the <see cref="ProgressControllerViewModel"/> content
     /// </summary>
     public interface IProgressVisualizer
     {

@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Verify
             foreach(var supportedLang in Language.SupportedLanguages)
             {
-                Assert.IsTrue(supportedLang.IsSupported, "Supported langugage should be supported");
+                Assert.IsTrue(supportedLang.IsSupported, "Supported language should be supported");
             }
         }
 
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Verify
             foreach (var unsupportedLang in unsupportedLangs)
             {
-                Assert.IsFalse(unsupportedLang.IsSupported, "Unsupported langugage should NOT be supported");
+                Assert.IsFalse(unsupportedLang.IsSupported, "Unsupported language should NOT be supported");
             }
         }
 

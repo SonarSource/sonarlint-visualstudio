@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             result = testSubject.CheckForConflicts();
 
-            // Verify 
+            // Verify
             Assert.IsFalse(result, "Not expecting any conflicts");
             this.outputWindowPane.AssertOutputStrings(0);
 
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             result = testSubject.CheckForConflicts();
 
-            // Verify 
+            // Verify
             Assert.IsTrue(result, "Conflicts expected");
             this.outputWindowPane.AssertOutputStrings(1);
             this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0, new[] { conflict.Conflict.MissingRules.Single().FullId });
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             result = testSubject.CheckForConflicts();
 
-            // Verify 
+            // Verify
             Assert.IsTrue(result, "Conflicts expected");
             ((ConfigurableUserNotification)section.UserNotifications).AssertNotification(NotificationIds.RuleSetConflictsId);
             this.outputWindowPane.AssertOutputStrings(2);
@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Valid input
             ProjectRuleSetConflict[] conflicts = new[] { ConfigurableConflictsManager.CreateConflict() };
-            
+
             // Case 3: Valid input, busy, has bound project
             this.host.VisualStateManager.IsBusy = true;
             this.host.VisualStateManager.SetBoundProject(new Integration.Service.ProjectInformation());
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sccFS.AssertFileExists(fixedRuleSet.FilePath);
             this.rsSerializer.AssertRuleSetsAreSame(fixedRuleSet.FilePath, fixedRuleSet);
             this.outputWindowPane.AssertOutputStrings(1);
-            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0, 
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0,
                 words: new[] { fixedRuleSet.FilePath, "deletedRuleId1", "reset.ruleset" },
                 splitter:new[] {'\n', '\r', '\t', '\'', ':' });
             notifications.AssertNoNotification(NotificationIds.RuleSetConflictsId);

@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         int IVsQueryEditQuerySave2.QuerySaveFiles(uint rgfQuerySave, int cFiles, string[] rgpszMkDocuments, uint[] rgrgf, VSQEQS_FILE_ATTRIBUTE_DATA[] rgFileInfo, out uint pdwQSResult)
         {
             this.createRequested.AddRange(rgpszMkDocuments);
-            pdwQSResult = (uint) (this.QuerySaveFilesVerification?.Invoke((VsQuerySaveFlags)rgfQuerySave) ?? tagVSQuerySaveResult.QSR_SaveOK);
+            pdwQSResult = (uint)(this.QuerySaveFilesVerification?.Invoke((VsQuerySaveFlags)rgfQuerySave) ?? tagVSQuerySaveResult.QSR_SaveOK);
 
             return VSConstants.S_OK;
         }

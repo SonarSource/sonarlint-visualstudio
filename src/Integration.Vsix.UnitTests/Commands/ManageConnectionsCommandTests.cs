@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             // Verify
             teController.AssertExpectedNumCallsShowConnectionsPage(0);
-            
+
 
             // Test case 2: was enabled
             command.Enabled = true;

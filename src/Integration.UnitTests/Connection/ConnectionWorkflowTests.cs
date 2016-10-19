@@ -302,7 +302,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.IsFalse(this.host.VisualStateManager.IsConnected);
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
-            // Cancelled connections
+            // Canceled connections
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             executionEvents.Reset();
             projectChangedCallbackCalled = false;

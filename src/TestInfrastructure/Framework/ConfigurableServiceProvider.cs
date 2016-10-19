@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         #region OLE IServiceProvider
-        
+
         int Microsoft.VisualStudio.OLE.Interop.IServiceProvider.QueryService(ref Guid guidService, ref Guid riid, out IntPtr ppvObject)
         {
             object service = this.GetService(this.FindTypeForGuid(guidService));

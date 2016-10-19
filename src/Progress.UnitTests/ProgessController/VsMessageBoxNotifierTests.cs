@@ -5,12 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Progress.UnitTests;
 using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Globalization;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {

@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Progress.UnitTests;
 using SonarLint.VisualStudio.Progress.MVVM;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Observation;
@@ -179,7 +178,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Tests that StartObserving will not configure the cancel command when using an overload with progress events and not the controller")]
         public void ProgressObserver_StartObserving_DontConfiguresCancelCommand()
         {
-            // Execute 
+            // Execute
             this.testSubject = ProgressObserver.StartObserving(this.testServiceProvider, this.progressEvents, this.testVisualizer);
 
             // Verify
@@ -391,7 +390,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             ProgressStepViewModel viewModelStep = this.testVisualizer.Root.Steps[0];
 
-            // Step execution changed 
+            // Step execution changed
             Assert.AreEqual(StepExecutionState.NotStarted, viewModelStep.ExecutionState, "Inconclusive: unexpected initial state");
             step.ExecutionState = StepExecutionState.Executing;
             this.progressEvents.InvokeStepExecutionChanged(new StepExecutionChangedEventArgs(step));
@@ -400,8 +399,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Step progress reporting
             step.ProgressDetailText = "Hello world";
             step.Progress = 1.0;
-            Assert.AreEqual(initialProgress, viewModelStep.Progress.Value, "Inconclusive: unexepected initial Progress");
-            Assert.AreEqual(initialProgressDetails, viewModelStep.ProgressDetailText, "Inconclusive: unexepected initial ProgressDetailText");
+            Assert.AreEqual(initialProgress, viewModelStep.Progress.Value, "Inconclusive: unexpected initial Progress");
+            Assert.AreEqual(initialProgressDetails, viewModelStep.ProgressDetailText, "Inconclusive: unexpected initial ProgressDetailText");
             this.progressEvents.InvokeStepExecutionChanged(new StepExecutionChangedEventArgs(step));
             Assert.AreEqual(step.Progress, viewModelStep.Progress.Value, "Progress wasn't changed as expected");
             Assert.AreEqual(step.ProgressDetailText, viewModelStep.ProgressDetailText, "ProgressDetailText wasn't changed as expected");
@@ -409,7 +408,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Hide
             Assert.IsFalse(this.testSubject.IsFinished, "Not done yet");
             this.progressEvents.InvokeFinished(ProgressControllerResult.Cancelled/*doesn't matter*/);
-            Assert.IsTrue(this.testSubject.IsFinished, "Cancelled - > Finished");
+            Assert.IsTrue(this.testSubject.IsFinished, "Can celled - > Finished");
             this.testVisualizer.AssertIsHidden();
         }
 
@@ -508,7 +507,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Tests the progress (value) based on the step (event) execution. Focuses on visible, hidden and not impacting steps")]
         public void ProgressObserver_ProgressUpdate_VisibleHiddenNotImpacting()
         {
-            // Setup 
+            // Setup
             bool randomIndeterminate = Environment.TickCount % 2 == 0;
             ConfigurableProgressTestOperation noImpacting1 = CreateRandomStep(visible: true, indeterminate: randomIndeterminate, impacting: false);
             noImpacting1.ExecutionState = StepExecutionState.NotStarted;

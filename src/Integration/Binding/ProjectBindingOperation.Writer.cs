@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using static SonarLint.VisualStudio.Integration.Binding.SolutionBindingOperation;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {

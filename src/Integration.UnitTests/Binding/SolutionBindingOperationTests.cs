@@ -253,7 +253,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath);
             Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath);
-            Assert.IsFalse(prepareCalledForBinder, "Expected to be cancelled as soon as possible i.e. after the first binder");
+            Assert.IsFalse(prepareCalledForBinder, "Expected to be canceled as soon as possible i.e. after the first binder");
         }
 
         [TestMethod]
@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             Assert.IsNotNull(testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath, "Expected to be set before Prepare is called");
             Assert.IsNotNull(testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath, "Expected to be set before Prepare is called");
-            Assert.IsFalse(prepareCalledForBinder, "Expected to be cancelled as soon as possible i.e. before the first binder");
+            Assert.IsFalse(prepareCalledForBinder, "Expected to be canceled as soon as possible i.e. before the first binder");
         }
 
         [TestMethod]

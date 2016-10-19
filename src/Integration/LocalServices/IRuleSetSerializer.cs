@@ -21,7 +21,7 @@ namespace SonarLint.VisualStudio.Integration
         void WriteRuleSetFile(RuleSet ruleSet, string path);
 
         /// <summary>
-        /// Will load a RuleSet in specified <paramref name="path"/>. 
+        /// Will load a RuleSet in specified <paramref name="path"/>.
         /// In case of error, null will be returned.
         /// </summary>
         RuleSet LoadRuleSet(string path);

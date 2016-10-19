@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         }
 
         /// <summary>
-        /// True iff username (<see cref="IsUsernameValid"/>) is valid.
+        /// True if username (<see cref="IsUsernameValid"/>) is valid.
         /// </summary>
         public bool IsValid
         {

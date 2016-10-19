@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         [TestMethod]
         public void IntegrationSettings_Ctor_InitializesStore()
         {
-            // Santity - should be empty store
+            // Sanity - should be empty store
             this.settingsStore.AssertCollectionDoesNotExist(IntegrationSettings.SettingsRoot);
 
             // Act

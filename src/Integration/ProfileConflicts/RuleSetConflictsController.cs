@@ -52,8 +52,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
                 // Let the user know that they have conflicts
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationWarning(
-                    Strings.RuleSetConflictsDetected, 
-                    NotificationIds.RuleSetConflictsId, 
+                    Strings.RuleSetConflictsDetected,
+                    NotificationIds.RuleSetConflictsId,
                     this.CreateFixConflictsCommand(conflicts));
             }
 
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         #region Fix conflicts command
         internal /*for testing purposes*/ ICommand CreateFixConflictsCommand(IReadOnlyList<ProjectRuleSetConflict> conflicts)
         {
-            Debug.Assert((conflicts?.Count ?? 0)> 0, "Expecting at least one conflict");
+            Debug.Assert((conflicts?.Count ?? 0) > 0, "Expecting at least one conflict");
             return new ContextualCommandViewModel(conflicts, this.FixConflictsCommand).Command;
         }
 

@@ -34,12 +34,12 @@ namespace SonarLint.VisualStudio.Progress.Controller
         event EventHandler<StepExecutionChangedEventArgs> StepExecutionChanged;
 
         /// <summary>
-        /// Changes in <see cref="IProgressController"/> cancelability
+        /// Changes in <see cref="IProgressController"/> cancellability
         /// </summary>
         event EventHandler<CancellationSupportChangedEventArgs> CancellationSupportChanged;
 
         /// <summary>
-        /// The steps associated with the <see cref="IProgressController"/>. 
+        /// The steps associated with the <see cref="IProgressController"/>.
         /// May be null until the <see cref="IProgressController"/> is initialized.
         /// The set of steps cannot be changed once initialized.
         /// </summary>

@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Progress.UnitTests;
 using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration
         public readonly static Language VBNET = new Language("VB", Strings.VBNetLanguageName, ProjectSystemHelper.VbProjectKind);
 
         /// <summary>
-        /// A stable identifer for this language.
+        /// A stable identifier for this language.
         /// </summary>
         public string Id { get; }
 

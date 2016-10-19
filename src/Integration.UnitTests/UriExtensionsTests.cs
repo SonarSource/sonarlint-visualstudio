@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var noSlashResult = UriExtensions.EnsureTrailingSlash(new Uri("http://localhost/NoSlash"));
 
             // Verify
-            Assert.AreEqual("http://localhost/NoSlash/", noSlashResult.ToString(), "Unexpected normalisation of URI without trailing slash");
+            Assert.AreEqual("http://localhost/NoSlash/", noSlashResult.ToString(), "Unexpected normalization of URI without trailing slash");
         }
 
         [TestMethod]
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var withSlashResult = UriExtensions.EnsureTrailingSlash(new Uri("http://localhost/WithSlash/"));
 
             // Verify
-            Assert.AreEqual("http://localhost/WithSlash/", withSlashResult.ToString(), "Unexpected normalisation of URI already with trailing slash");
+            Assert.AreEqual("http://localhost/WithSlash/", withSlashResult.ToString(), "Unexpected normalization of URI already with trailing slash");
         }
     }
 }

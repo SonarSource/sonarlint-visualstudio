@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
         }
 
-        public SonarAnalyzerManager(IServiceProvider serviceProvider):
+        public SonarAnalyzerManager(IServiceProvider serviceProvider) :
             this(serviceProvider, GetWorkspace(serviceProvider))
         {
         }

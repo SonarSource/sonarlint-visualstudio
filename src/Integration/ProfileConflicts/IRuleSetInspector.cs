@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         RuleConflictInfo FindConflictingRules(string baselineRuleSet, string targetRuleSet, params string[] ruleSetDirectories);
 
         /// <summary>
-        /// Will analyse the RuleSet in <paramref name="targetRuleSetPath"/> for conflicts with RuleSet in <paramref name="baselineRuleSetPath"/>.
+        /// Will analyze the RuleSet in <paramref name="targetRuleSetPath"/> for conflicts with RuleSet in <paramref name="baselineRuleSetPath"/>.
         /// Will fix those conflicts in-memory and will either way return the target RuleSet (i.e. even if there were no conflicts to begin with).
         /// </summary>
         /// <param name="baselineRuleSet">Required full path to baseline RuleSet</param>

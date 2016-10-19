@@ -13,7 +13,7 @@ using System.Windows.Input;
 namespace SonarLint.VisualStudio.Progress.Observation.ViewModels
 {
     /// <summary>
-    /// A view model data class that is used in <see cref="ProgressObserverControl"/> 
+    /// A view model data class that is used in <see cref="ProgressObserverControl"/>
     /// supplied by <see cref="IProgressVisualizer"/>
     /// </summary>
     /// <seealso cref="ProgressObserver"/>
@@ -35,9 +35,9 @@ namespace SonarLint.VisualStudio.Progress.Observation.ViewModels
         /// </summary>
         public string Title
         {
-            get 
-            { 
-                return this.title; 
+            get
+            {
+                return this.title;
             }
 
             set
@@ -52,9 +52,9 @@ namespace SonarLint.VisualStudio.Progress.Observation.ViewModels
         /// <exception cref="ArgumentException">When the <see cref="ProgressStepViewModel"/> is not in <see cref="Steps"/></exception>
         public ProgressStepViewModel Current
         {
-            get 
-            { 
-                return this.currentViewModelItem; 
+            get
+            {
+                return this.currentViewModelItem;
             }
 
             set

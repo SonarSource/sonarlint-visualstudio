@@ -25,14 +25,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Exceptions.Expect<ArgumentOutOfRangeException>(() => AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ConvertToSecureString()));
             }
 
-            // Ascii
+            // ASCII
             user = "hello";
             password = "world";
             AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ConvertToSecureString()));
 
             // UTF-8
             user = "שלום"; // hello in Russian
-            password = "你好"; // hello in Chinese 
+            password = "你好"; // hello in Chinese
             AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ConvertToSecureString()));
 
             // Digits and signs (including ':' in the password)

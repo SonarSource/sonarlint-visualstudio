@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region IVsMonitorSelection
         int IVsMonitorSelection.AdviseSelectionEvents(IVsSelectionEvents pSink, out uint pdwCookie)
         {
-            pdwCookie = (uint) ++allocatedSynks;
+            pdwCookie = (uint)++allocatedSynks;
             synks.Add(pdwCookie, pSink);
             return VSConstants.S_OK;
         }

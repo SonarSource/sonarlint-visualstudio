@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests

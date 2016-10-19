@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// <param name="workData">Data to process on idle.</param>
         /// <returns
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
-        /// either all of the work in workData has been processed, or the operation was cancelled.
+        /// either all of the work in workData has been processed, or the operation was canceled.
         /// </returns>
         public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, IEnumerable<T> workData)
         {
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// <param name="token">Cancellation token to indicate when the work is no longer needed.</param>
         /// <returns
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
-        /// either all of the work in workData has been processed, or the operation was cancelled.
+        /// either all of the work in workData has been processed, or the operation was canceled.
         /// </returns>
         public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, IEnumerable<T> workData, CancellationToken token)
         {
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// <param name="workQueue">Data to process on idle.</param>
         /// <returns
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
-        /// either all of the work in workQueue has been processed, or the operation was cancelled.
+        /// either all of the work in workQueue has been processed, or the operation was canceled.
         /// </returns>
         public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, ConcurrentQueue<T> workQueue)
         {
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// <param name="token">Cancellation token to indicate when the work is no longer needed.</param>
         /// <returns
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
-        /// either all of the work in workQueue has been processed, or the operation was cancelled.
+        /// either all of the work in workQueue has been processed, or the operation was canceled.
         /// </returns>
         public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, ConcurrentQueue<T> workQueue, CancellationToken token)
         {
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// when another item is available and false when there is no more data to process.</param>
         /// <returns>
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
-        /// either all of the work received from tryGetNextItem has been processed, or the operation was cancelled.
+        /// either all of the work received from tryGetNextItem has been processed, or the operation was canceled.
         /// </returns>
         public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, TryGetNextItem<T> tryGetNextItem)
         {
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// <param name="token">Cancellation token to indicate when the work is no longer needed.</param>
         /// <returns>
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
-        /// either all of the work received from tryGetNextItem has been processed, or the operation was cancelled.
+        /// either all of the work received from tryGetNextItem has been processed, or the operation was canceled.
         /// </returns>
         public static async Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, TryGetNextItem<T> tryGetNextItem, CancellationToken token)
         {

@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         #region Test helpers
-        public void RegisterProjectInfo(Project project, params RuleSetDeclaration[] info )
+        public void RegisterProjectInfo(Project project, params RuleSetDeclaration[] info)
         {
             List<RuleSetDeclaration> declarations;
 

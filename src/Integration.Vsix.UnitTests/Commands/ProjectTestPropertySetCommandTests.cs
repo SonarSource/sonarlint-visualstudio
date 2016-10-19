@@ -369,7 +369,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             supportedProject.SetCSProjectKind();
 
             this.projectSystem.SelectedProjects = new[] { unsupportedProject, supportedProject };
-            
+
             // Act
             testSubject.QueryStatus(command, null);
 

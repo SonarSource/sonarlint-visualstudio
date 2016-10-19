@@ -124,7 +124,7 @@
     <value>The controller was already started once and cannot be used again.</value>
   </data>
   <data name="StepOperationWasAlreadyExecuted" xml:space="preserve">
-    <value>The step operation was already exceuted and the instance cannot be reused.</value>
+    <value>The step operation was already executed and the instance cannot be reused.</value>
   </data>
   <data name="UnsupportedTypeException" xml:space="preserve">
     <value>The type '{0}' is not supported. Expected '{1}.</value>

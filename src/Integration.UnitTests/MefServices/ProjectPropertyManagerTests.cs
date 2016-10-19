@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Verify
             Assert.IsTrue(testSubject.GetBooleanProperty(project, TestPropertyName).Value, "Expected true for 'true' property value");
 
-            // Test case 4: false property -> false 
+            // Test case 4: false property -> false
             // Setup
             project.SetBuildProperty(TestPropertyName, false.ToString());
 

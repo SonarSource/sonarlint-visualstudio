@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration
         void SetProjectProperty(Project dteProject, string propertyName, string value);
 
         /// <summary>
-        /// Remove an MSBuild project project if it exists.
+        /// Remove an MSBuild project if it exists.
         /// </summary>
         /// <remarks>This does not remove the property from the project, it only removes the value.</remarks>
         /// <param name="propertyName">Name of the property to remove</param>

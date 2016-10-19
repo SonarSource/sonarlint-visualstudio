@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Service;
 using System;
-using System.Linq;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests

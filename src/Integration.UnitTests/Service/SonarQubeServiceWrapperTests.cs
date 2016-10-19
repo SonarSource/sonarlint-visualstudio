@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup 
+                // Setup
                 testSubject.AllowAnonymous = true;
                 testSubject.RegisterConnectionHandler(new RequestHandler { ResponseStatusCode = HttpStatusCode.InternalServerError });
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider, timeoutInMilliseconds: 1))
             {
-                // Setup 
+                // Setup
                 testSubject.AllowAnonymous = true;
                 testSubject.DelayRequestInMilliseconds = 1000;
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider, timeoutInMilliseconds: 100))
             {
-                // Setup 
+                // Setup
                 testSubject.AllowAnonymous = true;
                 testSubject.DelayRequestInMilliseconds = 1000;
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                     // Act
                     ProjectInformation[] projects = null;
-                    Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should be cancelled");
+                    Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should be canceled");
 
                     // Verify
                     this.outputWindowPane.AssertOutputStrings(1);
@@ -262,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.IsNull(projects, "Not expecting projects");
             }
         }
-        
+
         [TestMethod]
         public void SonarQubeServiceWrapper_TryGetProperties()
         {
@@ -284,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Act
                 ServerProperty[] actualProperties;
-                Assert.IsTrue(testSubject.TryGetProperties(conn, CancellationToken.None, out actualProperties), "TryGetProperties failed unepxectendly");
+                Assert.IsTrue(testSubject.TryGetProperties(conn, CancellationToken.None, out actualProperties), "TryGetProperties failed unexpectedly");
 
                 // Verify
                 CollectionAssert.AreEqual(expectedProperties.Select(x => x.Key).ToArray(), actualProperties.Select(x => x.Key).ToArray(), "Unexpected server property keys");
@@ -338,7 +338,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     Page = 1,
                     PageSize = 1,
                     Total = 1,
-                    Events = new QualityProfileChangeLogEvent[] 
+                    Events = new QualityProfileChangeLogEvent[]
                     {
                         new QualityProfileChangeLogEvent { Date = DateTime.Now }
                     }
@@ -809,7 +809,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        
+
         private static void ServiceServerProperties(IOwinContext context, IEnumerable<ServerProperty> serverProperties, bool simulateFault = false)
         {
             if (simulateFault)
@@ -960,7 +960,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return defaultValue;
             }
 
-            #region Testing hooks 
+            #region Testing hooks
 
             public int UnauthorizedStatusCode { get; set; } = (int)HttpStatusCode.Forbidden;
 

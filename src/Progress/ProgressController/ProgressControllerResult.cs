@@ -10,22 +10,22 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// The execution results for a <see cref="IProgressController"/>
     /// </summary>
-    public enum ProgressControllerResult 
+    public enum ProgressControllerResult
     {
         /// <summary>
-        /// Execution was cancelled
+        /// Execution was canceled
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Cancelled", Justification = "The prefered term has a typo")]
-        Cancelled, 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Canceled", Justification = "The preferred term has a typo")]
+        Cancelled,
 
         /// <summary>
         /// Execution succeeded
         /// </summary>
-        Succeeded, 
+        Succeeded,
 
         /// <summary>
         /// Execution failed
         /// </summary>
-        Failed 
+        Failed
     }
 }

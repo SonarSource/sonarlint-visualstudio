@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         }
 
         public UriValidator(ISet<string> supportedSchemes, ISet<string> insecureSchemes)
-            :this(supportedSchemes)
+            : this(supportedSchemes)
         {
             if (insecureSchemes == null)
             {
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             return this.insecureSchemes?.Contains(uri.Scheme) ?? false;
         }
-        
+
         /// <summary>
         /// Whether or not <paramref name="uriString"/> is considered to be a valid URI.
         /// </summary>

@@ -72,10 +72,10 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get { return (ConnectSectionView)this.View; }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", 
-            "S3215:\"interface\" instances should not be cast to concrete types", 
-            Justification = "The base class is not defined by us, so we can't force the type to be something else", 
-            Scope = "member", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+            "S3215:\"interface\" instances should not be cast to concrete types",
+            Justification = "The base class is not defined by us, so we can't force the type to be something else",
+            Scope = "member",
             Target = "~P:SonarLint.VisualStudio.Integration.TeamExplorer.SectionController.SonarLint#VisualStudio#Integration#TeamExplorer#IConnectSection#ViewModel")]
         ConnectSectionViewModel ISectionController.ViewModel
         {
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private void InitializeControllerCommands()
         {
-            // Due to complexity of connect and bind we "outsource" the controlling part 
+            // Due to complexity of connect and bind we "outsource" the controlling part
             // to separate controllers which just expose commands
             var connectionController = new Connection.ConnectionController(this.Host);
             var bindingController = new Binding.BindingController(this.Host);
@@ -267,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private bool CanDisconnect()
         {
-            // We just support one at the moment, will need to pass in the server as an argument to this 
+            // We just support one at the moment, will need to pass in the server as an argument to this
             // command once we will want to support more than once connected server
             return this.Host.VisualStateManager.GetConnectedServers().Any();
         }

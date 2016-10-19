@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             testSubject.QueryStatus(command, null);
 
             // Verify
-            Assert.IsTrue(command.Enabled, "Expected command to be enbled");
+            Assert.IsTrue(command.Enabled, "Expected command to be enabled");
             Assert.IsTrue(command.Visible, "Expected command to be visible");
         }
 
@@ -256,7 +256,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Test case 1: no property -> not checked
             // Act
             testSubject.QueryStatus(command, null);
-            
+
             // Verify
             Assert.IsFalse(command.Checked, "Expected command to be unchecked");
 

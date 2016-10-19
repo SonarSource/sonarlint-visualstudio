@@ -172,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
         #endregion
 
-            #region Test helpers
+        #region Test helpers
 
         private static ConfigurableVsInfoBarHost RegisterFrameInfoBarHost(ConfigurableVsWindowFrame frame)
         {

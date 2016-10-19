@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 return false;
             }
-            
+
             if (IsTestProject(project, hierarchy, this.testRegex, projectName))
             {
                 return false;

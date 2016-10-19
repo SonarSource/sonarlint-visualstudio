@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test helpers
         public PropertyMock RegisterKnownProperty(string name)
         {
-            if (this.properties.Any(p=>p.Name == name))
+            if (this.properties.Any(p => p.Name == name))
             {
                 Assert.Inconclusive($"Already has property: {name}");
             }
@@ -92,6 +92,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Assert.IsNotNull(property, $"Could not find property {name}");
             Assert.AreEqual(value, property.Value, $"Unexpected property {name} value");
         }
-        #endregion  
+        #endregion
     }
 }

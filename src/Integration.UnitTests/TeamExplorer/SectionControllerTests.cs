@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         [TestMethod]
         public void SectionController_Initialization()
         {
-            // Act 
+            // Act
             SectionController testSubject = this.CreateTestSubject();
 
             // Constructor time initialization

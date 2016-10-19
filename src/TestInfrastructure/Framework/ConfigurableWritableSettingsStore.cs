@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.AssertCollectionExists(collectionPath);
             ICollection<string> properties = this.collections[collectionPath].Keys;
-            Assert.AreEqual(numProperties, properties.Count, $"Unexpected numer of properties in collection '{collectionPath}'. Properties: {string.Join(", ", properties)}");
+            Assert.AreEqual(numProperties, properties.Count, $"Unexpected number of properties in collection '{collectionPath}'. Properties: {string.Join(", ", properties)}");
         }
 
         public void AssertBoolean(string collectionPath, string key, bool value)

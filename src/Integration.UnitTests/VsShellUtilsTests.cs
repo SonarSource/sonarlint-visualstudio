@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Verify
             Assert.IsTrue(VsShellUtils.SaveSolution(serviceProvider, silent: true));
         }
-        
+
         [TestMethod]
         public void VsShellUtils_SaveSolution_Prompt()
         {

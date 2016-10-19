@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Integration.State
         /// <summary>
         /// The underlying managed visual state
         /// </summary>
-        /// <remarks>The state should not be manipulated directly, it exposed only for databinding purposes</remarks>
+        /// <remarks>The state should not be manipulated directly, it exposed only for data binding purposes</remarks>
         TransferableVisualState ManagedState { get; }
 
         /// <summary>

@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarLint.VisualStudio.Progress.UnitTests;
 using SonarLint.VisualStudio.Progress.Controller;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -97,11 +96,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         [TestMethod]
-        [Description("Verifies that when the step is cancelled it will change state to cancelled")]
+        [Description("Verifies that when the step is canceled it will change state to canceled")]
         public void ProgressControllerStep_Cancelled()
         {
             // Setup
-            this.InitializeAndExecuteTestSubject("cancelled step operation", StepAttributes.Default, this.ExecuteAndCancell);
+            this.InitializeAndExecuteTestSubject("canceled step operation", StepAttributes.Default, this.ExecuteAndCancell);
 
             // Verify
             this.testController.AssertNoProgressChangeEvents();
@@ -140,7 +139,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Verify initialized state
             VerificationHelper.VerifyInitialized(this.testSubject, attributes, text);
 
-            // Execute by the controller 
+            // Execute by the controller
             this.testController.Execute(this.testSubject);
         }
 

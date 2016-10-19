@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                                                .Cast<int>()
                                                .Select(x => new CommandID(cmdSet, x))
                                                .ToList();
-            
+
             // Act
             testSubject.Initialize();
 

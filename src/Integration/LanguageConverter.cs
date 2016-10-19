@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration
 
             return base.CanConvertFrom(context, sourceType);
         }
-        
+
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
             var languageId = value as string;

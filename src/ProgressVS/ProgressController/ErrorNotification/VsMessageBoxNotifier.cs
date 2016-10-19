@@ -8,7 +8,6 @@
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
-using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
 {

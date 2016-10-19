@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void QualityProfileBackgroundProcessor_ArgChecks()
         {
             // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => 
+            Exceptions.Expect<ArgumentNullException>(() =>
                 new ErrorListInfoBarController.QualityProfileBackgroundProcessor(null));
         }
 
@@ -265,7 +265,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // This profile should not be picked up in practice, no should cause an update to occur
             this.bindingSerializer.CurrentBinding.Profiles[Language.VBNET] = new ApplicableQualityProfile
             {
-                ProfileKey = qpKey, 
+                ProfileKey = qpKey,
                 ProfileTimestamp = null
             };
             this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding, sameDate, qpKey, Language.CSharp);

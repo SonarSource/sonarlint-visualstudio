@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.State
 
         public void SyncCommandFromActiveSection()
         {
-            foreach(ServerViewModel serverVM in this.ManagedState.ConnectedServers)
+            foreach (ServerViewModel serverVM in this.ManagedState.ConnectedServers)
             {
                 this.SetServerVMCommands(serverVM);
                 this.SetServerProjectsVMCommands(serverVM);
@@ -318,7 +318,7 @@ namespace SonarLint.VisualStudio.Integration.State
         #endregion
 
         #region IDisposable Support
-         private void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!this.isDisposed)
             {

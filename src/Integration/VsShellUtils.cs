@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration
                 Convert.ToInt32(makeVisible),
                 Convert.ToInt32(clearWithSolution));
             Debug.Assert(ErrorHandler.Succeeded(hrCreatePane), "Failed in outputWindow.CreatePane: " + hrCreatePane.ToString());
-                
+
             int hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
             Debug.Assert(ErrorHandler.Succeeded(hrGetPane), "Failed in outputWindow.GetPane: " + hrGetPane.ToString());
 

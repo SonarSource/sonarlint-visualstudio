@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Reflection;
 using System.Threading;
-using TPL = System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {

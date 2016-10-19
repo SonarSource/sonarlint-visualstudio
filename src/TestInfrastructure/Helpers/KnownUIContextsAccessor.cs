@@ -16,7 +16,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public static class KnownUIContextsAccessor
     {
-        // KnownUIContexts is not very friendly for testing, and requires this static properties 
+        // KnownUIContexts is not very friendly for testing, and requires this static properties
         static KnownUIContextsAccessor()
         {
             ServiceProvider = VsServiceProviderHelper.GlobalServiceProvider;

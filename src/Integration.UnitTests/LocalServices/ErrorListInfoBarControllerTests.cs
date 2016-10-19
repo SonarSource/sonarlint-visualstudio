@@ -299,7 +299,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
 
-            // Change binding 
+            // Change binding
             this.solutionBindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey");
 
             // Act
@@ -526,7 +526,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.stateManager.SetAndInvokeBusyChanged(false);
 
             // Verify
-            Assert.AreEqual(1, executed, "Once started, the process can only be cancelled from team explorer, closing the info bar should not impact the running update execution");
+            Assert.AreEqual(1, executed, "Once started, the process can only be canceled from team explorer, closing the info bar should not impact the running update execution");
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             infoBar.VerifyAllEventsUnregistered();
         }
@@ -609,7 +609,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Connect to a different server
             this.ConfigureProjectViewModel(section, new Uri("http://SomeOtherServer"), "someOtherProjectKey");
 
-            // Act 
+            // Act
             infoBar.SimulateButtonClickEvent();
 
             // Verify
@@ -689,7 +689,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
 
-            // Act 
+            // Act
             testSubject.Reset();
 
             // Verify
@@ -716,7 +716,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
 
-            // Act 
+            // Act
             testSubject.Dispose();
 
             // Verify

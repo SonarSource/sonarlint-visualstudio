@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
         }
 
         /// <summary>
-        /// Returns a callback for <see cref="IProgressStepOperation"/> 
+        /// Returns a callback for <see cref="IProgressStepOperation"/>
         /// </summary>
         /// <param name="stepOperation">Required and must derived from <see cref="ProgressControllerStep"/></param>
         /// <returns>Returns a callback supporting instance</returns>

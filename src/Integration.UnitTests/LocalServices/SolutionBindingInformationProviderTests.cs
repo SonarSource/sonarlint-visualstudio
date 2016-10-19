@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             project.ConfigurationManager.Configurations.Add(configuration);
 
             PropertyMock ruleSetProperty = configuration.Properties.RegisterKnownProperty(Constants.CodeAnalysisRuleSetPropertyKey);
-            ruleSetProperty.Value = project.FilePath.ToUpperInvariant(); // Catch cases where file paths are compared without OrdinalIgnoreCase 
+            ruleSetProperty.Value = project.FilePath.ToUpperInvariant(); // Catch cases where file paths are compared without OrdinalIgnoreCase
 
             this.ruleSetInfoProvider.RegisterProjectInfo(project, new RuleSetDeclaration[] {
                 new RuleSetDeclaration(project, ruleSetProperty, (string)ruleSetProperty.Value, configurationName)
@@ -304,7 +304,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         /// <summary>
-        /// Sets configures the solution and project rule sets to have 
+        /// Sets configures the solution and project rule sets to have
         /// one rule set that will be considered as a rule set for a bound project
         /// </summary>
         /// <returns>The bound project for which the rule set was set</returns>

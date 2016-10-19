@@ -17,7 +17,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <summary>
     /// Command handler for the SonarLint menu.
     /// </summary>
-    /// <remarks>Has no invokation logic; only has QueryStatus</remarks>
+    /// <remarks>Has no invocation logic; only has QueryStatus</remarks>
     internal class ProjectSonarLintMenuCommand : VsCommandBase
     {
         private readonly IProjectPropertyManager propertyManager;

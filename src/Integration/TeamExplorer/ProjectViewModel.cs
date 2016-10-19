@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         public ProjectInformation ProjectInformation
         {
-            get; 
+            get;
         }
 
         public string Key
