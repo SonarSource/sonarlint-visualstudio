@@ -170,7 +170,7 @@
     <comment>Exception message stating that the specified set of insecure schemes was not a subset of all supported schemes</comment>
   </data>
   <data name="ConnectionFailed" xml:space="preserve">
-    <value>Cannot connect to the SonarQube server. Make sure you provided the correct connection information, including your sign-in credentials, and [try again](). 
+    <value>Cannot connect to the SonarQube server. Make sure you provided the correct connection information, including your sign-in credentials, and [try again]().
 See more information in the output window (SonarLint).</value>
     <comment>The error message the user sees when the connection has failed. The message will appear in team explorer.
 Localization note: '[try again]()' is a special markup used to translate the text 'try again' into a hyperlink. Make sure to keep it localized content in with that format to avoid reducing functionality in the localized version of the product</comment>
@@ -274,7 +274,7 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <comment>Output window message in case of failure - {0} nuget package id, {1} project name, {2} message</comment>
   </data>
   <data name="FailedToToBindSolution" xml:space="preserve">
-    <value>Failed to bind the solution to SonarQube project, [try again](). 
+    <value>Failed to bind the solution to SonarQube project, [try again]().
 See more information in the output window (SonarLint).</value>
     <comment>Team explorer notification in case of a failure to bind a solution to SonarQube project
 ocalization note: '[try again]()' is a special markup used to translate the text 'try again' into a hyperlink. Make sure to keep it localized content in with that format to avoid reducing functionality in the localized version of the product</comment>
@@ -389,9 +389,9 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
     <value>A SonarQube server plugin has a malformed version and cannot be compared. Version was "{0}".</value>
     <comment>Exception message indicating that the provided version string is malformed and cannot be compared. {0} version string</comment>
   </data>
-  <data name="ServerDoesNotHaveCorrectVersionOfCSharpPlugin" xml:space="preserve">
-    <value>The specified server does not have the minimum required version ({0}) of the C# plugin installed. Please contact your SonarQube server administrator.</value>
-    <comment>Error message indicating that the server does not have the required version of the C# plugin installed. {0} minimum required version</comment>
+  <data name="ServerHasNoSupportedPluginVersion" xml:space="preserve">
+    <value>The specified server does not have the minimum required version of any of the supported plugins installed. Please contact your SonarQube server administrator.</value>
+    <comment>Error message indicating that the server does not have the required version of any of the supported server plugins.</comment>
   </data>
   <data name="FailedToUnpackAdditionalFiles" xml:space="preserve">
     <value>Failed to unpack additional files required for analyzers</value>
@@ -471,7 +471,7 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="ConflictsManagerWarningMessage" xml:space="preserve">
     <value>SonarLint conflicts manager warning: {0}</value>
-    <comment>Output window error message. 
+    <comment>Output window error message.
 {0} - message</comment>
   </data>
   <data name="ConflictDetailMissingRules" xml:space="preserve">
@@ -498,7 +498,7 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="ExpectedRuleSetNotFound" xml:space="preserve">
     <value>The expected RuleSet file '{0}' could not be resolved or the file does not exist. Cannot search conflicts for one or more project configuration of project '{1}'. Please rebind to the relevant SonarQube project from TeamExplorer window.</value>
-    <comment>Output window message. 
+    <comment>Output window message.
 {0} - file path
 {1} - file path</comment>
   </data>
@@ -541,7 +541,7 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="ConflictDetailRuleSetInfo" xml:space="preserve">
     <value>RuleSet '{0}' has:</value>
-    <comment>output window message. 
+    <comment>output window message.
 {0} - rule set file path </comment>
   </data>
   <data name="SolutionIsClosed" xml:space="preserve">
@@ -608,7 +608,7 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="SonarQubeOptionalServiceFailed" xml:space="preserve">
     <value>Warning failed calling '{0}' (http error code={1}). Some of the functionality will be reduced.</value>
-    <comment>Output window message. 
+    <comment>Output window message.
 {0} - service
 {1} - http error code</comment>
   </data>
@@ -659,5 +659,37 @@ This is the general format to use when writing errors to output window or when t
   <data name="SubTextPaddingFormat" xml:space="preserve">
     <value>   {0}</value>
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
+  </data>
+  <data name="MinimumSupportedServerPlugin" xml:space="preserve">
+    <value>Language: "{0}", Minimum version: "{1}"</value>
+    <comment>Error message displayed for every supported plugin when none of them match the minimum required version. {0} the plugin language name, {1} the plugin minimum version.</comment>
+  </data>
+  <data name="DetectingServerPlugins" xml:space="preserve">
+    <value>Detecting server plugins</value>
+    <comment>Output window message printed before accessing to server plugins.</comment>
+  </data>
+  <data name="OnlySupportedPluginHasNoProjectInSolution" xml:space="preserve">
+    <value>Only found a {0} plugin supported but no {0} project</value>
+    <comment>Output window message printed when the only supported plugin has no matching project types in the current solution. {0} the name of the language.</comment>
+  </data>
+  <data name="SolutionContainsNoSupportedProject" xml:space="preserve">
+    <value>The solution contains no supported project</value>
+    <comment>Output window message printed when some server plugin are supported but the current solution contains no supported project (based on project type GUID).</comment>
+  </data>
+  <data name="BindingProjectLanguageNotMatchingAnyQualityProfileLanguage" xml:space="preserve">
+    <value>Project "{0}" language is not matching any available quality profile language</value>
+    <comment>Output window message displayed when the project language matches no quality profile language. {0} the project name.</comment>
+  </data>
+  <data name="SuccessfullyInstalledNugetPackageForProject" xml:space="preserve">
+    <value>Successfully installed NuGet package '{0}' for project '{1}'</value>
+    <comment>Output window message displayed when a nuget package has successfully been installed for a project. {0} The nuget package name. {1} the project name.</comment>
+  </data>
+  <data name="SupportedPluginFoundMessage" xml:space="preserve">
+    <value>Found a supported plugin, {0}</value>
+    <comment>Output window message displayed when the server plugin respects the minimum version requirements. {0} the plugin ToString() message.</comment>
+  </data>
+  <data name="UnsupportedPluginFoundMessage" xml:space="preserve">
+    <value>Found an unsupported plugin, {0}</value>
+    <comment>Output window message displayed when the server plugin doesn't respect the minimum version requirements. {0} the plugin ToString() message.</comment>
   </data>
 </root>

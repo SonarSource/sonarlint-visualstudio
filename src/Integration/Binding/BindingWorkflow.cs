@@ -75,10 +75,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new Dictionary<Language, RuleSet>();
 
-        public List<NuGetPackageInfo> NuGetPackages
+        public Dictionary<Language, List<NuGetPackageInfo>> NuGetPackages
         {
             get;
-        } = new List<NuGetPackageInfo>();
+        } = new Dictionary<Language, List<NuGetPackageInfo>>();
 
         public Dictionary<Language, string> SolutionRulesetPaths
         {
@@ -222,8 +222,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     InformAboutQualityProfileToDownload(qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name, true);
                     break;
                 }
-
-                this.NuGetPackages.AddRange(export.Deployment.NuGetPackages);
+                this.NuGetPackages.Add(language, export.Deployment.NuGetPackages);
 
                 var tempRuleSetFilePath = Path.GetTempFileName();
                 File.WriteAllText(tempRuleSetFilePath, export.Configuration.RuleSet.OuterXml);
@@ -301,20 +300,36 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             DeterminateStepProgressNotifier progressNotifier = new DeterminateStepProgressNotifier(notificationEvents, this.BindingProjects.Count * this.NuGetPackages.Count);
-            foreach (var project in this.BindingProjects)
+            foreach (var bindingProject in this.BindingProjects)
             {
-                foreach (var packageInfo in this.NuGetPackages)
+                List<NuGetPackageInfo> nugetPackages;
+                if (!this.NuGetPackages.TryGetValue(Language.ForProject(bindingProject), out nugetPackages))
+                {
+                    var message = string.Format(Strings.BindingProjectLanguageNotMatchingAnyQualityProfileLanguage, bindingProject.Name);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
+                    continue;
+                }
+
+                foreach (var packageInfo in nugetPackages)
                 {
                     if (token.IsCancellationRequested)
                     {
                         break;
                     }
 
-                    string message = string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, packageInfo.Id, project.Name);
-                    progressNotifier.NotifyCurrentProgress(message);
+                    string message = string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, packageInfo.Id, bindingProject.Name);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
+
+                    var isNugetInstallSuccessful = NuGetHelper.TryInstallPackage(this.host, bindingProject, packageInfo.Id, packageInfo.Version);
+
+                    if (isNugetInstallSuccessful) // NuGetHelper.TryInstallPackage already displayed the error message so only take care of the success message
+                    {
+                        message = string.Format(CultureInfo.CurrentCulture, Strings.SuccessfullyInstalledNugetPackageForProject, packageInfo.Id, bindingProject.Name);
+                        VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
+                    }
 
                     // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
-                    this.AllNuGetPackagesInstalled &= NuGetHelper.TryInstallPackage(this.host, project, packageInfo.Id, packageInfo.Version);
+                    this.AllNuGetPackagesInstalled &= isNugetInstallSuccessful;
 
                     progressNotifier.NotifyIncrementedProgress(string.Empty);
                 }
@@ -328,7 +343,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
-            {
+        {
             var message = this.AllNuGetPackagesInstalled
                 ? Strings.FinishedSolutionBindingWorkflowSuccessful
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;

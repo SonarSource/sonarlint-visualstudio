@@ -13,13 +13,6 @@ namespace SonarLint.VisualStudio.Integration.Service.DataModel
     [DebuggerDisplay("Key: {Key}, Version: {Version}")]
     internal class ServerPlugin
     {
-        #region Known plugins
-
-        public const string CSharpPluginKey = "csharp";
-        public const string CSharpPluginMinimumVersion = "5.0";
-
-        #endregion
-
         [JsonProperty("key")]
         public string Key { get; set; }
 
