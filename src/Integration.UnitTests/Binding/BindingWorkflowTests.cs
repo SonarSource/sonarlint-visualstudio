@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             RuleSetAssert.AreEqual(expectedRuleSet, testSubject.Rulesets[language], "Unexpected rule set");
             Assert.AreSame(profile, testSubject.QualityProfiles[language]);
-            VerifyNuGetPackgesDownloaded(nugetPackages, testSubject);
+            VerifyNuGetPackgesDownloaded(nugetPackages, testSubject, language);
             controller.AssertNumberOfAbortRequests(0);
             notifications.AssertProgress(
                 0.0,
@@ -111,7 +111,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage, string.Empty);
 
             this.outputWindowPane.AssertOutputStrings(1);
-            var expectedOutput = "   Successfully downloaded quality profile, Name: \"" + QualityProfileName + "\", Key: \"\", Language: \"VB.NET\"";
+            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
+                string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, QualityProfileName, string.Empty, language.Name));
             this.outputWindowPane.AssertOutputStrings(expectedOutput);
         }
 
@@ -137,22 +138,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 
             this.outputWindowPane.AssertOutputStrings(1);
-            var expectedOutput = "   Failed to download quality profile, Name: \"\", Key: \"\", Language: \"C#\"";
+            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
+                string.Format(Strings.QualityProfileDownloadFailedMessageFormat, string.Empty, string.Empty, language.Name));
             this.outputWindowPane.AssertOutputStrings(expectedOutput);
         }
 
         [TestMethod]
-        public void BindingWorkflow_InstallPackages()
+        public void BindingWorkflow_InstallPackages_WhenAllProjectsAreCSharp_Succeed()
+        {
+            BindingWorkflow_InstallPackages_Succeed(ProjectSystemHelper.CSharpProjectKind, Language.CSharp);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_InstallPackages_WhenAllProjectsAreVbNet_Succeed()
+        {
+            BindingWorkflow_InstallPackages_Succeed(ProjectSystemHelper.VbProjectKind, Language.VBNET);
+        }
+
+        private void BindingWorkflow_InstallPackages_Succeed(string projectKind, Language language)
         {
             // Setup
             var testSubject = this.CreateTestSubject();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
-            ProjectMock project1 = new ProjectMock("project1");
-            ProjectMock project2 = new ProjectMock("project2");
+            ProjectMock project1 = new ProjectMock("project1") { ProjectKind = projectKind };
+            ProjectMock project2 = new ProjectMock("project2") { ProjectKind = projectKind };
 
             var nugetPackage = new PackageName("mypackage", new SemanticVersion("1.1.0"));
-            var packages = new[] { nugetPackage };
+            var packages = new Dictionary<Language, IEnumerable<PackageName>>();
+            packages.Add(language, new[] { nugetPackage });
 
             ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, packages, project1, project2);
 
@@ -160,16 +174,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.InstallPackages(new ConfigurableProgressController(), CancellationToken.None, progressEvents);
 
             // Verify
-            packageInstaller.AssertInstalledPackages(project1, packages);
-            packageInstaller.AssertInstalledPackages(project2, packages);
-            progressEvents.AssertProgressMessages(
-                string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, nugetPackage.Id, ((Project)project1).Name),
-                string.Empty,
-                string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, nugetPackage.Id, ((Project)project2).Name),
-                string.Empty);
+            packageInstaller.AssertInstalledPackages(project1, new[] { nugetPackage });
+            packageInstaller.AssertInstalledPackages(project2, new[] { nugetPackage });
+            this.outputWindowPane.AssertOutputStrings(4);
+            this.outputWindowPane.AssertOutputStrings(
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackage.Id, ((Project)project1).Name)),
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackage.Id, ((Project)project1).Name)),
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackage.Id, ((Project)project2).Name)),
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackage.Id, ((Project)project2).Name))
+                );
             progressEvents.AssertProgress(
-                0,
-                .5,
                 .5,
                 1.0);
         }
@@ -182,13 +196,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
             var cts = new CancellationTokenSource();
 
-            ProjectMock project1 = new ProjectMock("project1");
-            ProjectMock project2 = new ProjectMock("project2");
+            ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
+            ProjectMock project2 = new ProjectMock("project2") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
 
             var nugetPackage = new PackageName("mypackage", new SemanticVersion("1.1.0"));
             var packages = new[] { nugetPackage };
+            var nugetPackagesByLanguage = new Dictionary<Language, IEnumerable<PackageName>>();
+            nugetPackagesByLanguage.Add(Language.CSharp, packages);
 
-            ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, packages, project1, project2);
+            ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, nugetPackagesByLanguage, project1, project2);
             packageInstaller.InstallPackageAction = (p) =>
             {
                 cts.Cancel(); // Cancel the next one (should complete the first one)
@@ -214,13 +230,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
             var cts = new CancellationTokenSource();
 
-            ProjectMock project1 = new ProjectMock(project1Name);
-            ProjectMock project2 = new ProjectMock(project2Name);
+            ProjectMock project1 = new ProjectMock(project1Name) { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
+            ProjectMock project2 = new ProjectMock(project2Name) { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
 
             var nugetPackage = new PackageName("mypackage", new SemanticVersion("1.1.0"));
             var packages = new[] { nugetPackage };
+            var nugetPackages = new Dictionary<Language, IEnumerable<PackageName>>();
+            nugetPackages.Add(Language.CSharp, packages);
 
-            ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, packages, project1, project2);
+            ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, nugetPackages, project1, project2);
             packageInstaller.InstallPackageAction = (p) =>
             {
                 packageInstaller.InstallPackageAction = null;
@@ -233,7 +251,47 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             packageInstaller.AssertNoInstalledPackages(project1);
             packageInstaller.AssertInstalledPackages(project2, packages);
-            outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.FailedDuringNuGetPackageInstall, nugetPackage.Id, project1Name, failureMessage));
+            this.outputWindowPane.AssertOutputStrings(4);
+            this.outputWindowPane.AssertOutputStrings(
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackage.Id, project1Name)),
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.FailedDuringNuGetPackageInstall, nugetPackage.Id, project1Name, failureMessage)),
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackage.Id, project2Name)),
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackage.Id, project2Name))
+                );
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_InstallPackages_WhenProjectLanguageDoesNotExist_PrintMessageAndContinue()
+        {
+            // Setup
+            const string project1Name = "project1";
+            const string project2Name = "project2";
+
+            var testSubject = this.CreateTestSubject();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            ProjectMock project1 = new ProjectMock(project1Name); // No project kind so no nuget package will be installed
+            ProjectMock project2 = new ProjectMock(project2Name) { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
+
+            var nugetPackage = new PackageName("mypackage", new SemanticVersion("1.1.0"));
+            var packages = new[] { nugetPackage };
+            var nugetPackages = new Dictionary<Language, IEnumerable<PackageName>>();
+            nugetPackages.Add(Language.CSharp, packages);
+
+            ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, nugetPackages, project1, project2);
+
+            // Act
+            testSubject.InstallPackages(new ConfigurableProgressController(), CancellationToken.None, progressEvents);
+
+            // Verify
+            packageInstaller.AssertNoInstalledPackages(project1);
+            packageInstaller.AssertInstalledPackages(project2, packages);
+            this.outputWindowPane.AssertOutputStrings(3);
+            this.outputWindowPane.AssertOutputStrings(
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.BindingProjectLanguageNotMatchingAnyQualityProfileLanguage, project1Name)),
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackage.Id, project2Name)),
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackage.Id, project2Name))
+                );
         }
 
         [TestMethod]
@@ -394,16 +452,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane.AssertOutputStrings(1);
 
             // Returns expected output message
-            var expectedOutput = new StringBuilder("   Included projects:\r\n");
+            var expectedOutput = new StringBuilder();
+            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionIncludedProjectsHeader).AppendLine();
             if (numberOfProjectsToInclude > 0)
             {
                 this.projectSystemHelper.FilteredProjects.ToList().ForEach(p => expectedOutput.AppendFormat("   * {0}\r\n", p.Name));
             }
             else
             {
-                expectedOutput.Append("   * None (for selected SonarQube project's quality profile)\r\n");
+                var msg = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsExcludedFromBinding);
+                expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, msg).AppendLine();
             }
-            expectedOutput.Append("   Excluded projects:\r\n");
+            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionExcludedProjectsHeader).AppendLine();
             if (numberOfProjectsToCreate - numberOfProjectsToInclude > 0)
             {
                 this.projectSystemHelper.Projects.Except(this.projectSystemHelper.FilteredProjects)
@@ -412,9 +472,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             else
             {
-                expectedOutput.Append("   * None (for selected SonarQube project's quality profile)\r\n");
+                var msg = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsExcludedFromBinding);
+                expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, msg).AppendLine();
             }
-            expectedOutput.Append("   You can change the exclusion options via the SonarLint project-level context menu i.e. Solution Explorer -> Select project(s)");
+            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
 
             this.outputWindowPane.AssertOutputStrings(expectedOutput.ToString());
         }
@@ -483,17 +544,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return new BindingWorkflow(host, connected, useProjectInfo);
         }
 
-        private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, IEnumerable<PackageName> nugetPackages, params Project[] projects)
+        private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, Dictionary<Language, IEnumerable<PackageName>> nugetPackagesByLanguage, params Project[] projects)
         {
             testSubject.BindingProjects.Clear();
             testSubject.BindingProjects.AddRange(projects);
 
-            foreach (var package in nugetPackages.Select(x => new NuGetPackageInfo { Id = x.Id, Version = x.Version.ToNormalizedString() }))
+            foreach (var nugetPackagesForLanguage in nugetPackagesByLanguage)
             {
-                testSubject.NuGetPackages.Add(package);
+                testSubject.NuGetPackages.Add(nugetPackagesForLanguage.Key,
+                    nugetPackagesForLanguage.Value.Select(x => new NuGetPackageInfo { Id = x.Id, Version = x.Version.ToNormalizedString() }).ToList());
             }
 
-            ConfigurablePackageInstaller packageInstaller = new ConfigurablePackageInstaller(nugetPackages);
+            ConfigurablePackageInstaller packageInstaller = new ConfigurablePackageInstaller(nugetPackagesByLanguage.Values.SelectMany(x => x));
             this.serviceProvider.RegisterService(typeof(SComponentModel),
                 ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IVsPackageInstaller>(packageInstaller)));
 
@@ -509,10 +571,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return profile;
         }
 
-        private static void VerifyNuGetPackgesDownloaded(IEnumerable<PackageName> expectedPackages, BindingWorkflow testSubject)
+        private static void VerifyNuGetPackgesDownloaded(IEnumerable<PackageName> expectedPackages, BindingWorkflow testSubject, Language language)
         {
             var expected = expectedPackages.ToArray();
-            var actual = testSubject.NuGetPackages.Select(x => new PackageName(x.Id, new SemanticVersion(x.Version))).ToArray();
+
+            if (!testSubject.NuGetPackages.ContainsKey(language))
+            {
+                Assert.Fail("Given language doesn't exists");
+            }
+
+            var actual = testSubject.NuGetPackages[language].Select(x => new PackageName(x.Id, new SemanticVersion(x.Version))).ToArray();
 
             Assert.AreEqual(expected.Length, actual.Length, "Different number of packages.");
 

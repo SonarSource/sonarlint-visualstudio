@@ -66,7 +66,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     throw;
                 }
 
-                VsShellUtils.WriteToSonarLintOutputPane(serviceProvider, Strings.FailedDuringNuGetPackageInstall, packageId, project.Name, ex.Message);
+                var message = string.Format(Strings.FailedDuringNuGetPackageInstall, packageId, project.Name, ex.Message);
+                VsShellUtils.WriteToSonarLintOutputPane(serviceProvider, Strings.SubTextPaddingFormat, message);
                 return false;
             }
         }
