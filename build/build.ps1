@@ -67,6 +67,8 @@ if ($env:IS_PULLREQUEST -eq "true") {
         & "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
         testExitCode
         
+        #create empty file to trigger qa
+        new-item -path . -name qa.properties -type "file"
     } else {
         write-host -f green "not on master"
     }
