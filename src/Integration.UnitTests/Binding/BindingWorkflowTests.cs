@@ -76,23 +76,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void BindingWorkflow_DownloadQualityProfile_Success()
         {
             // Setup
-            BindingWorkflow testSubject = this.CreateTestSubject();
+            const string QualityProfileName = "SQQualityProfileName";
+            const string SonarQubeProjectName = "SQProjectName";
+            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
+            var expectedRuleSet = new RuleSet(ruleSet)
+            {
+                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, SonarQubeProjectName, QualityProfileName),
+                NonLocalizedDescription = "\r\nhttp://connected/profiles/show?key="
+            };
             var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
             var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
             RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
             QualityProfile profile = this.ConfigureProfileExport(export, language);
+            profile.Name = QualityProfileName;
 
             // Act
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
             // Verify
-            RuleSetAssert.AreEqual(ruleSet, testSubject.Rulesets[language], "Unexpected rule set");
+            RuleSetAssert.AreEqual(expectedRuleSet, testSubject.Rulesets[language], "Unexpected rule set");
             Assert.AreSame(profile, testSubject.QualityProfiles[language]);
             VerifyNuGetPackgesDownloaded(nugetPackages, testSubject);
             controller.AssertNumberOfAbortRequests(0);
@@ -102,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage, string.Empty);
 
             this.outputWindowPane.AssertOutputStrings(1);
-            var expectedOutput = "   Successfully downloaded quality profile, Name: \"\", Key: \"\", Language: \"VB.NET\"";
+            var expectedOutput = "   Successfully downloaded quality profile, Name: \"" + QualityProfileName + "\", Key: \"\", Language: \"VB.NET\"";
             this.outputWindowPane.AssertOutputStrings(expectedOutput);
         }
 

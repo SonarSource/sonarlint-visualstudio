@@ -112,6 +112,7 @@
   <ItemGroup>
     <Compile Include="Binding\BindingController.cs" />
     <Compile Include="Binding\IBindingOperation.cs" />
+    <Compile Include="Binding\RuleSetInformation.cs" />
     <Compile Include="LocalServices\IErrorListInfoBarController.cs" />
     <Compile Include="LocalServices\ErrorListInfoBarController.cs" />
     <Compile Include="LocalServices\ISolutionBindingInformationProvider.cs" />

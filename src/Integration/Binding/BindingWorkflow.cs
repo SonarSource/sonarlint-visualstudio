@@ -229,6 +229,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 File.WriteAllText(tempRuleSetFilePath, export.Configuration.RuleSet.OuterXml);
                 RuleSet ruleSet = RuleSet.LoadFromFile(tempRuleSetFilePath);
 
+                // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
+                UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfileInfo);
+
                 rulesets[language] = ruleSet;
                 notifier.NotifyIncrementedProgress(string.Empty);
                 if (rulesets[language] == null)
@@ -253,6 +256,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     this.Rulesets[keyValue.Key] = keyValue.Value;
                 }
             }
+        }
+
+        private void UpdateDownloadedSonarQubeQualityProfile(RuleSet ruleSet, QualityProfile qualityProfile)
+        {
+            ruleSet.NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, this.project.Name, qualityProfile.Name);
+
+            var ruleSetDescriptionBuilder = new StringBuilder();
+            ruleSetDescriptionBuilder.AppendLine(ruleSet.Description);
+            ruleSetDescriptionBuilder.AppendFormat(Strings.SonarQubeQualityProfilePageUrlFormat, this.connectionInformation.ServerUri, qualityProfile.Key);
+            ruleSet.NonLocalizedDescription = ruleSetDescriptionBuilder.ToString();
+
+            ruleSet.WriteToFile(ruleSet.FilePath);
         }
 
         private void InitializeSolutionBindingOnUIThread(IProgressStepExecutionEvents notificationEvents)
@@ -328,7 +343,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
-            {
+        {
             var message = this.AllNuGetPackagesInstalled
                 ? Strings.FinishedSolutionBindingWorkflowSuccessful
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;

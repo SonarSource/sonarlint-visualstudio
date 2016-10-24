@@ -660,4 +660,12 @@ This is the general format to use when writing errors to output window or when t
     <value>   {0}</value>
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
   </data>
+  <data name="SonarQubeQualityProfilePageUrlFormat" xml:space="preserve">
+    <value>{0}profiles/show?key={1}</value>
+    <comment>Used to create the Quality Profile URL. This will be integrated as part of the ruleset description. {0} the server URL. {1} the quality profile key.</comment>
+  </data>
+  <data name="SonarQubeRuleSetNameFormat" xml:space="preserve">
+    <value>SonarQube - {0} {1}</value>
+    <comment>Format used to build the project specific ruleset file name. {0} SonarQube project name. {1} SonarQube quality profile name.</comment>
+  </data>
 </root>

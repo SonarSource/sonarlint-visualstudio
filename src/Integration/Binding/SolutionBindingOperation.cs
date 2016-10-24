@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -99,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        public string GetRuleSetFilePath(Language language)
+        public RuleSetInformation GetRuleSetInformation(Language language)
         {
             RuleSetInformation info;
 
@@ -110,7 +109,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             Debug.Assert(info.NewRuleSetFilePath != null, "Expected to be called after Prepare");
-            return info.NewRuleSetFilePath;
+
+            return info;
         }
 
         #endregion
@@ -224,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             Dictionary<Language, ApplicableQualityProfile> map = new Dictionary<Language, ApplicableQualityProfile>();
 
-            foreach(var keyValue in this.qualityProfileMap)
+            foreach (var keyValue in this.qualityProfileMap)
             {
                 map[keyValue.Key] = new ApplicableQualityProfile
                 {
@@ -271,26 +271,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        /// <summary>
-        /// Data class that exposes simple data that can be accessed from any thread.
-        /// The class itself is not thread safe and assumes only one thread accessing it at any given time.
-        /// </summary>
-        internal class RuleSetInformation
-        {
-            public RuleSetInformation(Language language, RuleSet ruleSet)
-            {
-                if (ruleSet == null)
-                {
-                    throw new ArgumentNullException(nameof(ruleSet));
-                }
-
-                this.RuleSet = ruleSet;
-            }
-
-            public RuleSet RuleSet { get; }
-
-            public string NewRuleSetFilePath { get; set; }
-        }
         #endregion
     }
 }

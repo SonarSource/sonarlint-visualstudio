@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using static SonarLint.VisualStudio.Integration.Binding.SolutionBindingOperation;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -142,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(currentRuleSetPath, RuleAction.Default));
 
             // Act
-            RuleSet actualRuleSet = ProjectBindingOperation.GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath);
+            RuleSet actualRuleSet = ProjectBindingOperation.GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, Constants.RuleSetName);
 
             // Verify
             RuleSetAssert.AreEqual(expectedRuleSet, actualRuleSet);
@@ -169,7 +170,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.ruleSetFS.RegisterRuleSet(existingRuleSet);
             this.ruleSetFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
-
             string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
             string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
 
@@ -179,8 +179,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 includes: new[] { newSolutionRuleSetInclude }
             );
 
+            var ruleSetInfo = new RuleSetInformation(Language.CSharp, existingRuleSet) { NewRuleSetFilePath = newSolutionRuleSetPath };
+
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, existingProjectRuleSetPath);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, ruleSetInfo, existingProjectRuleSetPath);
 
             // Verify
             this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
@@ -218,8 +220,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 includes: new[] { newSolutionRuleSetInclude }
             );
 
+            var ruleSetInfo = new RuleSetInformation(Language.CSharp, expectedRuleSet) { NewRuleSetFilePath = newSolutionRuleSetPath };
+
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, newSolutionRuleSetPath, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, ruleSetInfo, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
 
             // Verify
             this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
@@ -251,8 +255,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 }
             );
 
+            var ruleSetInfo = new RuleSetInformation(Language.CSharp, expectedRuleSet) { NewRuleSetFilePath = solutionRuleSetPath };
+
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, existingProjectRuleSetPath);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, ruleSetInfo, existingProjectRuleSetPath);
 
             // Verify
             this.ruleSetFS.AssertRuleSetNotExists(actualPath);
@@ -292,8 +298,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 }
             );
 
+            var ruleSetInfo = new RuleSetInformation(Language.CSharp, expectedRuleSet) { NewRuleSetFilePath = solutionRuleSetPath };
+
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, solutionRuleSetPath, relativePathToExistingProjectRuleSet);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, ruleSetInfo, relativePathToExistingProjectRuleSet);
 
             // Verify
             this.ruleSetFS.AssertRuleSetNotExists(actualPath);
@@ -329,8 +337,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 includes: new[] { currentNonExistingRuleSet, newSolutionRuleSetInclude }
             );
 
+            var ruleSetInfo = new RuleSetInformation(Language.CSharp, expectedRuleSet) { NewRuleSetFilePath = newSolutionRuleSetPath };
+
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, newSolutionRuleSetPath, currentNonExistingRuleSet);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, ruleSetInfo, currentNonExistingRuleSet);
 
             // Verify
             this.ruleSetFS.AssertRuleSetNotExists(actualPath);
@@ -360,11 +370,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 includes: new[] { expectedSolutionRuleSetInclude }
             );
 
+            var ruleSetInfo = new RuleSetInformation(Language.CSharp, expectedRuleSet) { NewRuleSetFilePath = solutionRuleSetPath };
+
             List<string> filesPending = new List<string>();
             foreach (var currentRuleSet in new[] { null, string.Empty, ProjectBindingOperation.DefaultProjectRuleSet })
             {
                 // Act
-                string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, solutionRuleSetPath, currentRuleSet);
+                string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, ruleSetInfo, currentRuleSet);
                 filesPending.Add(actualPath);
 
                 // Verify
@@ -375,7 +387,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
 
-                // Verify
+            // Verify
             foreach (var pending in filesPending)
             {
                 // Verify

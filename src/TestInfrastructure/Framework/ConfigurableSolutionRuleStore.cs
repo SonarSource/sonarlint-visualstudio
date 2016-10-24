@@ -9,28 +9,32 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
 using System.Collections.Generic;
+using static SonarLint.VisualStudio.Integration.Binding.SolutionBindingOperation;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal class ConfigurableSolutionRuleStore: ISolutionRuleStore
+    internal class ConfigurableSolutionRuleStore : ISolutionRuleStore
     {
-        private readonly Dictionary<Language, string> registeredPaths = new Dictionary<Language, string>();
-        private IDictionary<Language, RuleSet> availableRuleSets;
+        private readonly Dictionary<Language, RuleSetInformation> availableRuleSets = new Dictionary<Language, RuleSetInformation>();
 
         #region ISolutionRuleStore
 
-        string ISolutionRuleStore.GetRuleSetFilePath(Language language)
+        RuleSetInformation ISolutionRuleStore.GetRuleSetInformation(Language language)
         {
-            string path;
-            Assert.IsTrue(this.registeredPaths.TryGetValue(language, out path), "No path for group: " + language);
-            return path;
+            RuleSetInformation ruleSet;
+            Assert.IsTrue(this.availableRuleSets.TryGetValue(language, out ruleSet), "No RuleSet for group: " + language);
+
+            return ruleSet;
         }
 
         void ISolutionRuleStore.RegisterKnownRuleSets(IDictionary<Language, RuleSet> ruleSets)
         {
             Assert.IsNotNull(ruleSets, "Not expecting nulls");
 
-            this.availableRuleSets = ruleSets;
+            foreach (var rule in ruleSets)
+            {
+                availableRuleSets.Add(rule.Key, new RuleSetInformation(rule.Key, rule.Value));
+            }
         }
 
         #endregion
@@ -39,8 +43,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void RegisterRuleSetPath(Language language, string path)
         {
-            this.registeredPaths[language] = path;
+            if (!this.availableRuleSets.ContainsKey(language))
+            {
+                this.availableRuleSets[language] = new RuleSetInformation(language, new RuleSet("SonarQube"));
+            }
+
+            this.availableRuleSets[language].NewRuleSetFilePath = path;
         }
+
         #endregion
     }
 }
