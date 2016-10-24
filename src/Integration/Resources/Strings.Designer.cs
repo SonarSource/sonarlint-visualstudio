@@ -1054,6 +1054,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0}profiles/show?key={1}.
+        /// </summary>
+        public static string SonarQubeQualityProfilePageUrlFormat {
+            get {
+                return ResourceManager.GetString("SonarQubeQualityProfilePageUrlFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube request failed: {0} {1}.
         /// </summary>
         public static string SonarQubeRequestFailed {
@@ -1068,6 +1077,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string SonarQubeRequestTimeoutOrCancelled {
             get {
                 return ResourceManager.GetString("SonarQubeRequestTimeoutOrCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube - {0} {1}.
+        /// </summary>
+        public static string SonarQubeRuleSetNameFormat {
+            get {
+                return ResourceManager.GetString("SonarQubeRuleSetNameFormat", resourceCulture);
             }
         }
         

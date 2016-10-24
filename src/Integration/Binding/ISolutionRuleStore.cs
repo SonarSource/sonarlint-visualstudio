@@ -22,8 +22,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         void RegisterKnownRuleSets(IDictionary<Language, RuleSet> ruleSets);
 
         /// <summary>
-        /// Retrieves the path for the solution-level <see cref="RuleSet"/> mapped to the <see cref="Language"/>.
+        /// Retrieves the solution-level <see cref="RuleSet"/> mapped to the <see cref="Language"/>.
         /// </summary>
-        string GetRuleSetFilePath(Language language);
+        RuleSetInformation GetRuleSetInformation(Language language);
     }
 }

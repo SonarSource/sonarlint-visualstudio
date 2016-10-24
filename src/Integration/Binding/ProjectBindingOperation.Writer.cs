@@ -6,11 +6,12 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Xml;
+using static SonarLint.VisualStudio.Integration.Binding.SolutionBindingOperation;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -30,21 +31,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         /// <param name="projectFullPath">The absolute full path to the project</param>
         /// <param name="ruleSetFileName">The rule set file name</param>
-        /// <param name="solutionRuleSetPath">Full path of the parent solution-level SonarQube rule set</param>
+        /// <param name="solutionRuleSet\">Full path of the parent solution-level SonarQube rule set</param>
         /// <param name="existingRuleSetPath">Existing project rule set</param>
         /// <returns>Full file path of the file that we expect to write to</returns>
-        internal /*for testing purposes*/ string QueueWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, string solutionRuleSetPath, string currentRuleSetPath)
+        internal /*for testing purposes*/ string QueueWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, RuleSetInformation solutionRuleSet, string currentRuleSetPath)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(projectFullPath));
             Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFileName));
-            Debug.Assert(!string.IsNullOrWhiteSpace(solutionRuleSetPath));
+            Debug.Assert(solutionRuleSet != null);
 
             string projectRoot = Path.GetDirectoryName(projectFullPath);
             string ruleSetRoot = PathHelper.ForceDirectoryEnding(projectRoot);
 
             string existingRuleSetPath;
             RuleSet existingRuleSet;
-            if (this.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, ruleSetRoot, currentRuleSetPath, out existingRuleSetPath, out existingRuleSet))
+            if (this.TryUpdateExistingProjectRuleSet(solutionRuleSet.NewRuleSetFilePath, ruleSetRoot, currentRuleSetPath, out existingRuleSetPath, out existingRuleSet))
             {
                 Debug.Assert(existingRuleSetPath != null);
                 Debug.Assert(existingRuleSet != null);
@@ -60,8 +61,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             // Create a new project level rule set
-            string solutionIncludePath = PathHelper.CalculateRelativePath(ruleSetRoot, solutionRuleSetPath);
-            RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath);
+            string solutionIncludePath = PathHelper.CalculateRelativePath(ruleSetRoot, solutionRuleSet.NewRuleSetFilePath);
+            RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, solutionRuleSet.RuleSet.DisplayName);
             string newRuleSetPath = this.GenerateNewProjectRuleSetPath(ruleSetRoot, ruleSetFileName);
 
             // Pend new
@@ -116,14 +117,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         /// <param name="solutionIncludePath">Solution level rule set include path (always included)</param>
         /// <param name="currentRuleSetPath">Original rule set include path (only included if not whitelisted as 'ignore')</param>
-        internal /* testing purposes */ static RuleSet GenerateNewProjectRuleSet(string solutionIncludePath, string currentRuleSetPath)
+        /// <param name="ruleSetName">The name given to the project ruleset.</param>
+        internal /* testing purposes */ static RuleSet GenerateNewProjectRuleSet(string solutionIncludePath, string currentRuleSetPath, string ruleSetName)
         {
-            var ruleSet = new RuleSet(Constants.RuleSetName);
+            var ruleSet = new RuleSet(ruleSetName);
             ruleSet.RuleSetIncludes.Add(new RuleSetInclude(solutionIncludePath, RuleAction.Default));
 
             // No way to detect whether a ruleset was set by the user or just the default value in case of the
             // default rule set property value. The idea here is that we would like to preserve any explicit setting by the user
-            // and we assume that the default rule set can be safely ignored since wasn't set explicitly by the user (or even if it was 
+            // and we assume that the default rule set can be safely ignored since wasn't set explicitly by the user (or even if it was
             // it has low value in comparison to what is configured in SQ).
             if (!ShouldIgnoreConfigureRuleSetValue(currentRuleSetPath))
             {

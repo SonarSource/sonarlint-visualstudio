@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_RegisterKnownRuleSets()
         {
             // Setup
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key"); 
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
             var ruleSetMap = new Dictionary<Language, RuleSet>();
             ruleSetMap[Language.CSharp] = new RuleSet("cs");
             ruleSetMap[Language.VBNET] = new RuleSet("vb");
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOperation_GetRuleSetFilePath()
+        public void SolutionBindingOperation_GetRuleSetInformation()
         {
             // Setup
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Act + Verify
             using (new AssertIgnoreScope())
             {
-                Assert.IsNull(testSubject.GetRuleSetFilePath(Language.CSharp));
+                Assert.IsNull(testSubject.GetRuleSetInformation(Language.CSharp));
             }
 
             // Test case 2: known ruleset map
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Prepare(CancellationToken.None);
 
             // Act
-            string filePath = testSubject.GetRuleSetFilePath(Language.CSharp);
+            string filePath = testSubject.GetRuleSetInformation(Language.CSharp).NewRuleSetFilePath;
 
             // Verify
             Assert.IsFalse(string.IsNullOrWhiteSpace(filePath));
@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.sccFileSystem.AssertDirectoryNotExists(sonarQubeRulesDirectory);
             Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath);
             Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath);
-            
+
             // Act
             testSubject.Prepare(CancellationToken.None);
 
@@ -341,7 +341,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void SolutionBindingOperation_RuleSetInformation_Ctor_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation.RuleSetInformation(Language.CSharp, null));
+            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInformation(Language.CSharp, null));
         }
 
         #endregion
