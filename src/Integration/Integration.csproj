@@ -165,6 +165,7 @@
     <Compile Include="RuleSetHelper.cs" />
     <Compile Include="Language.cs" />
     <Compile Include="LocalServices\ProjectSystemFilter.cs" />
+    <Compile Include="Service\DataModel\MinimumSupportedServerPlugin.cs" />
     <Compile Include="Service\DataModel\QualityProfileChangeLog.cs" />
     <Compile Include="Service\DataModel\QualityProfileChangeLogEvent.cs" />
     <Compile Include="Service\DataModel\ServerPlugin.cs" />

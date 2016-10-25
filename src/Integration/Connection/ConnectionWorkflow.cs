@@ -15,6 +15,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Input;
@@ -28,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
     {
         private readonly IHost host;
         private readonly ICommand parentCommand;
+        private readonly IProjectSystemHelper projectSystem;
 
         public ConnectionWorkflow(IHost host, ICommand parentCommand)
         {
@@ -43,6 +45,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             this.host = host;
             this.parentCommand = parentCommand;
+            this.projectSystem = this.host.GetService<IProjectSystemHelper>();
+            this.projectSystem.AssertLocalServiceIsNotNull();
         }
 
         internal /*for testing purposes*/ ConnectionInformation ConnectedServer
@@ -50,6 +54,9 @@ namespace SonarLint.VisualStudio.Integration.Connection
             get;
             set;
         }
+
+        internal bool IsCSharpPluginSupported { get; private set; }
+        internal bool IsVBNetPluginSupported { get; private set; }
 
         #region Start the workflow
         public IProgressEvents Run(ConnectionInformation information)
@@ -102,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             notifications.ProgressChanged(connection.ServerUri.ToString());
 
-            if (!this.VerifyCSharpPlugin(controller, cancellationToken, connection, notifications))
+            if (!this.VerifyDotNetPlugins(controller, cancellationToken, connection, notifications))
             {
                 return;
             }
@@ -171,8 +178,10 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Helpers
 
-        private bool VerifyCSharpPlugin(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
+        private bool VerifyDotNetPlugins(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
         {
+            notifications.ProgressChanged(Strings.DetectingServerPlugins, double.NaN);
+
             ServerPlugin[] plugins;
             if (!this.host.SonarQubeService.TryGetPlugins(connection, cancellationToken, out plugins))
             {
@@ -183,20 +192,53 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 return false;
             }
 
-            var csPlugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, ServerPlugin.CSharpPluginKey));
-            if (string.IsNullOrWhiteSpace(csPlugin?.Version) || VersionHelper.Compare(csPlugin.Version, ServerPlugin.CSharpPluginMinimumVersion) < 0)
+            IsCSharpPluginSupported = VerifyPluginSupport(plugins, MinimumSupportedServerPlugin.CSharp);
+            IsVBNetPluginSupported = VerifyPluginSupport(plugins, MinimumSupportedServerPlugin.VbNet);
+
+            var projects = this.projectSystem.GetSolutionProjects().ToList();
+            var anyCSharpProject = projects.Any(MinimumSupportedServerPlugin.CSharp.ISupported);
+            var anyVbNetProject = projects.Any(MinimumSupportedServerPlugin.VbNet.ISupported);
+
+            string errorMessage;
+            if ((IsCSharpPluginSupported && anyCSharpProject) ||
+                (IsVBNetPluginSupported && anyVbNetProject))
             {
-                string errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.ServerDoesNotHaveCorrectVersionOfCSharpPlugin, ServerPlugin.CSharpPluginMinimumVersion);
-
-                this.host.ActiveSection?.UserNotifications?.ShowNotificationError(errorMessage, NotificationIds.BadServerPluginId, null);
-                notifications.ProgressChanged(errorMessage);
-                notifications.ProgressChanged(Strings.ConnectionResultFailure);
-
-                AbortWorkflow(controller, cancellationToken);
-                return false;
+                return true;
+            }
+            else if (!IsCSharpPluginSupported && !IsVBNetPluginSupported)
+            {
+                errorMessage = Strings.ServerHasNoSupportedPluginVersion;
+            }
+            else if (projects.Count == 0)
+            {
+                errorMessage = Strings.SolutionContainsNoSupportedProject;
+            }
+            else if (IsCSharpPluginSupported && !anyCSharpProject)
+            {
+                errorMessage = string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, Language.CSharp.Name);
+            }
+            else
+            {
+                errorMessage = string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, Language.VBNET.Name);
             }
 
-            return true;
+            this.host.ActiveSection?.UserNotifications?.ShowNotificationError(errorMessage, NotificationIds.BadServerPluginId, null);
+            VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, errorMessage);
+            notifications.ProgressChanged(Strings.ConnectionResultFailure);
+
+            AbortWorkflow(controller, cancellationToken);
+            return false;
+        }
+
+        private bool VerifyPluginSupport(ServerPlugin[] plugins, MinimumSupportedServerPlugin minimumSupportedPlugin)
+        {
+            var plugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
+            var isPluginSupported = !string.IsNullOrWhiteSpace(plugin?.Version) && VersionHelper.Compare(plugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
+
+            var pluginSupportMessageFormat = string.Format(Strings.SubTextPaddingFormat, isPluginSupported ? Strings.SupportedPluginFoundMessage : Strings.UnsupportedPluginFoundMessage);
+            VsShellUtils.WriteToSonarLintOutputPane(this.host, pluginSupportMessageFormat, minimumSupportedPlugin.ToString());
+
+            return isPluginSupported;
         }
 
         private static void AbortWorkflow(IProgressController controller, CancellationToken token)
