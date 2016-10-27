@@ -244,6 +244,7 @@
     <Compile Include="Connection\UI\ConnectionInfoDialogViewModel.cs" />
     <Compile Include="WPF\ContextualCommandViewModel.cs" />
     <Compile Include="WPF\NotifyErrorViewModelBase.cs" />
+    <Compile Include="WPF\ProjectViewModelVisibilityConverter.cs" />
     <Compile Include="WPF\RelayCommand.cs" />
     <Compile Include="WPF\RelayCommand`1.cs" />
     <Compile Include="WPF\RelayCommandBase.cs" />

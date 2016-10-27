@@ -20,6 +20,7 @@
     <tfconverters:IntToBoolConverter x:Key="IntToBoolConverter"/>
     <tfconverters:IsNullConverter x:Key="IsNullConverter"/>
     <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter"/>
+    <localWpf:ProjectViewModelVisibilityConverter x:Key="ProjectViewModelVisibilityConverter" />
 
     <!-- Special style for contextual commands menu-->
     <Style x:Key="SQContextMenuStyle" TargetType="ContextMenu" >
@@ -106,9 +107,11 @@
         <!-- DataContext is ProjectViewModel -->
         <Setter Property="Visibility">
             <Setter.Value>
-                <MultiBinding Converter="{StaticResource AnyTrueToVisibleConverter}">
-                    <Binding Path="Owner.ShowAllProjects"/>
-                    <Binding Path="IsBound"/>
+                <MultiBinding Converter="{StaticResource ProjectViewModelVisibilityConverter}">
+                    <Binding Path="ProjectName" />
+                    <Binding Path="Owner.ShowAllProjects" />
+                    <Binding Path="IsBound" />
+                    <Binding ElementName="FilterTextBox" Path="Text" />
                 </MultiBinding>
             </Setter.Value>
         </Setter>
@@ -160,7 +163,7 @@
             </DataTrigger>
         </Style.Triggers>
     </Style>
-    
+
     <Style x:Key="SQTreeViewIconStyle" TargetType="Image">
         <Setter Property="Height" Value="16"/>
         <Setter Property="Width" Value="16"/>
@@ -185,7 +188,7 @@
         M 13.42,9 C 12.59,5.49 9.75,2.56 6.18,1.55
         M 14.11,5.77 C 13.26,3.91 11.8,2.29 10.02,1.2
     </Geometry>
-    
+
     <!-- Icon pens -->
     <Pen x:Key="SQIconGeomPen"
          Brush="{StaticResource SQForegroundBrush}"
