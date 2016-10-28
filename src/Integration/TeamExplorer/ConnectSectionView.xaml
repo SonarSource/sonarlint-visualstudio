@@ -81,7 +81,7 @@
             <TextBlock Margin="6,0"
                        Style="{StaticResource SQStaticTextStyle}"
                        Text="{x:Static resx:Strings.SelectSonarQubeProjectInstruction}"
-                       TextWrapping="Wrap"
+                       TextWrapping="Wrap" KeyboardNavigation.IsTabStop="False"
                        Visibility="{Binding State.HasBoundProject,
                                             Converter={StaticResource TrueToVisibleConverter},
                                             ConverterParameter=Invert}" />
