@@ -169,6 +169,7 @@
     <Compile Include="Service\DataModel\MinimumSupportedServerPlugin.cs" />
     <Compile Include="Service\DataModel\QualityProfileChangeLog.cs" />
     <Compile Include="Service\DataModel\QualityProfileChangeLogEvent.cs" />
+    <Compile Include="Service\DataModel\QualityProfiles.cs" />
     <Compile Include="Service\DataModel\ServerPlugin.cs" />
     <Compile Include="Service\DataModel\ServerProperty.cs" />
     <Compile Include="Service\RoslynExporter\AdditionalFile.cs" />

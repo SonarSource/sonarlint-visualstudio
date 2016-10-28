@@ -793,7 +793,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             else
             {
-                context.Response.Write(Serialize(profilesToReturn.ToArray()));
+                context.Response.Write(Serialize(new QualityProfiles { Profiles = profilesToReturn.ToArray() }));
             }
         }
 

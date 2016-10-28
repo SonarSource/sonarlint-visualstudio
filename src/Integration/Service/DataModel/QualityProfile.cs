@@ -26,11 +26,10 @@ namespace SonarLint.VisualStudio.Integration.Service
         [JsonProperty("language")]
         public string Language { get; set; }
 
-        [JsonProperty("default")]
+        [JsonProperty("isDefault")]
         public bool IsDefault { get; set; }
 
         [JsonIgnore] // Not set by JSON
         public DateTime? QualityProfileTimestamp { get; set; }
-
     }
 }
