@@ -32,12 +32,12 @@ namespace SonarLint.VisualStudio.Integration.Service
     [Export(typeof(SonarQubeServiceWrapper)), PartCreationPolicy(CreationPolicy.Shared)]
     internal class SonarQubeServiceWrapper : ISonarQubeServiceWrapper
     {
-        public const string ProjectsAPI = "api/projects/index";                 // Since 2.10
-        public const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins"; // Since 2.10; internal
-        public const string QualityProfileListAPI = "api/profiles/list";                  // Since 3.3; deprecated in 5.2
-        public const string QualityProfileExportAPI = "profiles/export";                    // Since ???; internal
-        public const string PropertiesAPI = "api/properties/";                    // Since 2.6
-        public const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog";      // Since 5.2
+        public const string ProjectsAPI = "api/projects/index";                                 // Since 2.10
+        public const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins";   // Since 2.10; internal
+        public const string QualityProfileListAPI = "api/qualityprofiles/search";               // Since 5.2
+        public const string QualityProfileExportAPI = "profiles/export";                        // Since ???; internal
+        public const string PropertiesAPI = "api/properties/";                                  // Since 2.6
+        public const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog";       // Since 5.2
 
         public const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
 
@@ -232,14 +232,11 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         internal /*for testing purposes*/ static string CreateQualityProfileUrl(Language language, ProjectInformation project = null)
         {
-            string languageKey = GetServerLanguageKey(language);
             string projectKey = project?.Key;
 
-            string apiFormat = string.IsNullOrWhiteSpace(projectKey)
-                ? "?language={0}"
-                : "?language={0}&project={1}";
-
-            return AppendQueryString(QualityProfileListAPI, apiFormat, languageKey, projectKey);
+            return string.IsNullOrWhiteSpace(projectKey)
+                ? AppendQueryString(QualityProfileListAPI, "?defaults=true")
+                : AppendQueryString(QualityProfileListAPI, "?projectKey={0}", projectKey);
         }
 
         internal /*for testing purposes*/ static async Task<QualityProfile> DownloadQualityProfile(HttpClient client, ProjectInformation project, Language language, CancellationToken token)
@@ -257,11 +254,13 @@ namespace SonarLint.VisualStudio.Integration.Service
 
             response.EnsureSuccessStatusCode(); // Bubble up the rest of the errors
 
-            QualityProfile[] profiles = await ProcessJsonResponse<QualityProfile[]>(response, token);
+            var profiles = await ProcessJsonResponse<QualityProfiles>(response, token);
+            var serverLanguage = GetServerLanguageKey(language);
+            var profilesWithGivenLanguage = profiles.Profiles.Where(x => x.Language == serverLanguage).ToList();
 
-            return profiles.Length > 1
-                ? profiles.Single(x => x.IsDefault)
-                : profiles.Single();
+            return profilesWithGivenLanguage.Count > 1
+                ? profilesWithGivenLanguage.Single(x => x.IsDefault)
+                : profilesWithGivenLanguage.Single();
         }
 
         #endregion
