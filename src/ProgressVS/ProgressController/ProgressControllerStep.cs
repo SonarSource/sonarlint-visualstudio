@@ -173,11 +173,11 @@ namespace SonarLint.VisualStudio.Progress.Controller
         {
             this.state = StepExecutionState.NotStarted;
 
-            bool indeterminate = (this.definition.Attributes & StepAttributes.Indeterminate) != 0 ? true : false;
+            bool indeterminate = (this.definition.Attributes & StepAttributes.Indeterminate) != 0;
             StepExecution execution = (this.definition.Attributes & StepAttributes.BackgroundThread) != 0 ? StepExecution.BackgroundThread : StepExecution.ForegroundThread;
-            bool hidden = (this.definition.Attributes & StepAttributes.Hidden) != 0 ? true : false;
-            bool cancellable = (this.definition.Attributes & StepAttributes.NonCancellable) != 0 ? false : true;
-            bool impactingProgress = (this.definition.Attributes & StepAttributes.NoProgressImpact) != 0 ? false : true;
+            bool hidden = (this.definition.Attributes & StepAttributes.Hidden) != 0;
+            bool cancellable = (this.definition.Attributes & StepAttributes.NonCancellable) == 0;
+            bool impactingProgress = (this.definition.Attributes & StepAttributes.NoProgressImpact) == 0;
             string displayText = this.definition.DisplayText;
 
             this.SetStepKind(indeterminate);
