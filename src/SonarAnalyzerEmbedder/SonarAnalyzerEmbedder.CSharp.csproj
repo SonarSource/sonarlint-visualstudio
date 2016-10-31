@@ -51,9 +51,9 @@
     <None Include="packages.SonarAnalyzerEmbedder.CSharp.config" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.19.0-alpha06\analyzers\Google.Protobuf.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.19.0-alpha06\analyzers\SonarAnalyzer.CSharp.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.19.0-alpha06\analyzers\SonarAnalyzer.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.0-build01199\analyzers\Google.Protobuf.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.0-build01199\analyzers\SonarAnalyzer.CSharp.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.0-build01199\analyzers\SonarAnalyzer.dll" />
   </ItemGroup>
   <PropertyGroup>
     <BinariesFolder>$(MSBuildThisFileFullPath)\..\..\..\binaries</BinariesFolder>
