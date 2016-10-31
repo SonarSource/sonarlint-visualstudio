@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Project &quot;{0}&quot; language is not matching any available quality profile language.
+        ///   Looks up a localized string similar to Language for project &apos;{0}&apos; is not matching any of the available quality profile&apos;s languages.
         /// </summary>
         public static string BindingProjectLanguageNotMatchingAnyQualityProfileLanguage {
             get {
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A SonarQube server plugin has a malformed version and cannot be compared. Version was &quot;{0}&quot;..
+        ///   Looks up a localized string similar to A SonarQube server plugin has a malformed version and cannot be compared. Version was &apos;{0}&apos;..
         /// </summary>
         public static string CannotCompareVersionStrings {
             get {
@@ -458,7 +458,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Installing NuGet package {0} for project: {1}.
+        ///   Looks up a localized string similar to Installing NuGet package &apos;{0}&apos; for project &apos;{1}&apos;.
         /// </summary>
         public static string EnsuringNugetPackagesProgressMessage {
             get {
@@ -612,7 +612,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;{0}&quot; is not a valid URL.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid URL.
         /// </summary>
         public static string InvalidServerUriFormat {
             get {
@@ -630,7 +630,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Language: &quot;{0}&quot;, Minimum version: &quot;{1}&quot;.
+        ///   Looks up a localized string similar to Language: &apos;{0}&apos;, Minimum version: &apos;{1}&apos;.
         /// </summary>
         public static string MinimumSupportedServerPlugin {
             get {
@@ -684,7 +684,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only found a {0} plugin supported but no {0} project.
+        ///   Looks up a localized string similar to This SonarQube server only supported plugin language ({0}) does not match any of this solution projects&apos; languages..
         /// </summary>
         public static string OnlySupportedPluginHasNoProjectInSolution {
             get {
@@ -747,7 +747,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to download quality profile, Name: &quot;{0}&quot;, Key: &quot;{1}&quot;, Language: &quot;{2}&quot;.
+        ///   Looks up a localized string similar to Failed to download quality profile. Name: &apos;{0}&apos;, Key: &apos;{1}&apos;, Language: &apos;{2}&apos;.
         /// </summary>
         public static string QualityProfileDownloadFailedMessageFormat {
             get {
@@ -756,7 +756,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully downloaded quality profile, Name: &quot;{0}&quot;, Key: &quot;{1}&quot;, Language: &quot;{2}&quot;.
+        ///   Looks up a localized string similar to Successfully downloaded quality profile. Name: &apos;{0}&apos;, Key: &apos;{1}&apos;, Language: &apos;{2}&apos;.
         /// </summary>
         public static string QualityProfileDownloadSuccessfulMessageFormat {
             get {
@@ -819,7 +819,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified server does not have the minimum required version of any of the supported plugins installed. Please contact your SonarQube server administrator..
+        ///   Looks up a localized string similar to The specified SonarQube server does not have the minimum required version of any of the supported plugins (C#, VB.Net). .
         /// </summary>
         public static string ServerHasNoSupportedPluginVersion {
             get {
@@ -883,7 +883,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The solution contains no supported project.
+        ///   Looks up a localized string similar to This solution contains no supported project language (C#, VB.Net). Please create at least one project of the supported language and then try to reconnect..
         /// </summary>
         public static string SolutionContainsNoSupportedProject {
             get {
@@ -1171,7 +1171,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Found a supported plugin, {0}.
+        ///   Looks up a localized string similar to Discovered a supported plugin: {0}.
         /// </summary>
         public static string SupportedPluginFoundMessage {
             get {
@@ -1252,7 +1252,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Found an unsupported plugin, {0}.
+        ///   Looks up a localized string similar to Discovered an unsupported plugin: {0}.
         /// </summary>
         public static string UnsupportedPluginFoundMessage {
             get {
