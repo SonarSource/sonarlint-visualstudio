@@ -19,19 +19,22 @@ namespace Microsoft.Alm.Authentication
 
             try
             {
-                if (!NativeMethods.CredDelete(targetName, NativeMethods.CredentialType.Generic, 0))
+                if (NativeMethods.CredDelete(targetName, NativeMethods.CredentialType.Generic, 0))
                 {
-                    int error = Marshal.GetLastWin32Error();
-                    switch (error)
-                    {
-                        case NativeMethods.Win32Error.NotFound:
-                        case NativeMethods.Win32Error.NoSuchLogonSession:
-                            Trace.WriteLine("   credentials not found for " + targetName);
-                            break;
+                    return;
+                }
 
-                        default:
-                            throw new Win32Exception(error, "Failed to delete credentials for " + targetName);
-                    }
+
+                int error = Marshal.GetLastWin32Error();
+                switch (error)
+                {
+                    case NativeMethods.Win32Error.NotFound:
+                    case NativeMethods.Win32Error.NoSuchLogonSession:
+                        Trace.WriteLine("   credentials not found for " + targetName);
+                        break;
+
+                    default:
+                        throw new Win32Exception(error, "Failed to delete credentials for " + targetName);
                 }
             }
             catch (Exception ex)
@@ -55,25 +58,27 @@ namespace Microsoft.Alm.Authentication
 
             try
             {
-                if (NativeMethods.CredRead(targetName, NativeMethods.CredentialType.Generic, 0, out credPtr))
+                if (!NativeMethods.CredRead(targetName, NativeMethods.CredentialType.Generic, 0, out credPtr))
                 {
-                    NativeMethods.Credential credStruct = (NativeMethods.Credential)Marshal.PtrToStructure(credPtr, typeof(NativeMethods.Credential));
-
-                    // https://msdn.microsoft.com/en-us/library/gg309393.aspx
-                    int size = (int)credStruct.CredentialBlobSize;
-                    SecureString pwd = null;
-                    if (size != 0)
-                    {
-                        byte[] bpassword = new byte[size];
-                        Marshal.Copy(credStruct.CredentialBlob, bpassword, 0, size);
-                        char[] chars = Encoding.Unicode.GetChars(bpassword);
-                        pwd = ConvertToSecureString(chars);
-                        Array.Clear(chars, 0, chars.Length);
-                        Array.Clear(bpassword, 0, bpassword.Length);
-                    }
-
-                    credentials = new Credential(credStruct.UserName, pwd);
+                    return null;
                 }
+
+                NativeMethods.Credential credStruct = (NativeMethods.Credential)Marshal.PtrToStructure(credPtr, typeof(NativeMethods.Credential));
+
+                // https://msdn.microsoft.com/en-us/library/gg309393.aspx
+                int size = (int)credStruct.CredentialBlobSize;
+                SecureString pwd = null;
+                if (size != 0)
+                {
+                    byte[] bpassword = new byte[size];
+                    Marshal.Copy(credStruct.CredentialBlob, bpassword, 0, size);
+                    char[] chars = Encoding.Unicode.GetChars(bpassword);
+                    pwd = ConvertToSecureString(chars);
+                    Array.Clear(chars, 0, chars.Length);
+                    Array.Clear(bpassword, 0, bpassword.Length);
+                }
+
+                credentials = new Credential(credStruct.UserName, pwd);
             }
             finally
             {
@@ -95,21 +100,25 @@ namespace Microsoft.Alm.Authentication
 
             try
             {
-                if (NativeMethods.CredRead(targetName, NativeMethods.CredentialType.Generic, 0, out credPtr))
+                if (!NativeMethods.CredRead(targetName, NativeMethods.CredentialType.Generic, 0, out credPtr))
                 {
-                    NativeMethods.Credential credStruct = (NativeMethods.Credential)Marshal.PtrToStructure(credPtr, typeof(NativeMethods.Credential));
-                    if (credStruct.CredentialBlob != null && credStruct.CredentialBlobSize > 0)
-                    {
-                        int size = (int)credStruct.CredentialBlobSize;
-                        byte[] bytes = new byte[size];
-                        Marshal.Copy(credStruct.CredentialBlob, bytes, 0, size);
+                    return null;
+                }
 
-                        TokenType type;
-                        if (Token.GetTypeFromFriendlyName(credStruct.UserName, out type))
-                        {
-                            Token.Deserialize(bytes, type, out token);
-                        }
-                    }
+                NativeMethods.Credential credStruct = (NativeMethods.Credential)Marshal.PtrToStructure(credPtr, typeof(NativeMethods.Credential));
+                if (credStruct.CredentialBlob == null || credStruct.CredentialBlobSize <= 0)
+                {
+                    return null;
+                }
+
+                int size = (int)credStruct.CredentialBlobSize;
+                byte[] bytes = new byte[size];
+                Marshal.Copy(credStruct.CredentialBlob, bytes, 0, size);
+
+                TokenType type;
+                if (Token.GetTypeFromFriendlyName(credStruct.UserName, out type))
+                {
+                    Token.Deserialize(bytes, type, out token);
                 }
             }
             finally
@@ -162,38 +171,42 @@ namespace Microsoft.Alm.Authentication
             Trace.WriteLine("BaseSecureStore::WriteToken");
 
             byte[] bytes = null;
-            if (Token.Serialize(token, out bytes))
+            if (!Token.Serialize(token, out bytes))
             {
-                string name;
-                if (Token.GetFriendlyNameFromType(token.Type, out name))
-                {
-                    NativeMethods.Credential credential = new NativeMethods.Credential()
-                    {
-                        Type = NativeMethods.CredentialType.Generic,
-                        TargetName = targetName,
-                        CredentialBlobSize = (uint)bytes.Length,
-                        Persist = NativeMethods.CredentialPersist.LocalMachine,
-                        AttributeCount = 0,
-                        UserName = name,
-                    };
-                    try
-                    {
-                        credential.CredentialBlob = Marshal.AllocCoTaskMem(bytes.Length);
-                        Marshal.Copy(bytes, 0, credential.CredentialBlob, bytes.Length);
+                return;
+            }
 
-                        if (!NativeMethods.CredWrite(ref credential, 0))
-                        {
-                            int errorCode = Marshal.GetLastWin32Error();
-                            Trace.WriteLine("BaseSecureStore::WriteToken Failed to write credentials, error code " + errorCode);
-                        }
-                    }
-                    finally
-                    {
-                        if (credential.CredentialBlob != IntPtr.Zero)
-                        {
-                            Marshal.ZeroFreeCoTaskMemUnicode(credential.CredentialBlob);
-                        }
-                    }
+            string name;
+            if (!Token.GetFriendlyNameFromType(token.Type, out name))
+            {
+                return;
+            }
+
+            NativeMethods.Credential credential = new NativeMethods.Credential()
+            {
+                Type = NativeMethods.CredentialType.Generic,
+                TargetName = targetName,
+                CredentialBlobSize = (uint)bytes.Length,
+                Persist = NativeMethods.CredentialPersist.LocalMachine,
+                AttributeCount = 0,
+                UserName = name,
+            };
+            try
+            {
+                credential.CredentialBlob = Marshal.AllocCoTaskMem(bytes.Length);
+                Marshal.Copy(bytes, 0, credential.CredentialBlob, bytes.Length);
+
+                if (!NativeMethods.CredWrite(ref credential, 0))
+                {
+                    int errorCode = Marshal.GetLastWin32Error();
+                    Trace.WriteLine("BaseSecureStore::WriteToken Failed to write credentials, error code " + errorCode);
+                }
+            }
+            finally
+            {
+                if (credential.CredentialBlob != IntPtr.Zero)
+                {
+                    Marshal.ZeroFreeCoTaskMemUnicode(credential.CredentialBlob);
                 }
             }
         }
@@ -202,9 +215,14 @@ namespace Microsoft.Alm.Authentication
         internal static void ValidateTargetUri(Uri targetUri)
         {
             if (targetUri == null)
+            {
                 throw new ArgumentNullException(nameof(targetUri));
+            }
+
             if (!targetUri.IsAbsoluteUri)
+            {
                 throw new ArgumentException(Strings.ExpectedAbsoluteUris, nameof(targetUri));
+            }
         }
 
         private static SecureString ConvertToSecureString(char[] str)

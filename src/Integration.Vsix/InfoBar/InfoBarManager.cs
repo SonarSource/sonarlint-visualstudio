@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
             InfoBarModel model = CreateModel(message, buttonText, imageMoniker);
 
-            IVsInfoBarUIElement uiElement = null;
+            IVsInfoBarUIElement uiElement;
             if (TryCreateInfoBarUI(this.serviceProvider, model, out uiElement)
                 && TryAddInfoBarToFrame(frame, uiElement))
             {

@@ -40,8 +40,8 @@ namespace Microsoft.Alm.Authentication
             _tokenCache = tokenCache ?? new SecretCache(storeNamespace, _getTargetName);
         }
 
-        private string _namespace;
-        private ITokenStore _tokenCache;
+        private readonly string _namespace;
+        private readonly ITokenStore _tokenCache;
 
         private readonly Secret.UriNameConversion _getTargetName;
 

@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         public void ProgressControllerStep_ProgressUpdate()
         {
             // Setup
-            this.InitializeAndExecuteTestSubject("progress-update", StepAttributes.Default, this.ExecuteAndNotify);
+            this.InitializeAndExecuteTestSubject("progress-update", StepAttributes.None, this.ExecuteAndNotify);
 
             // Verify
             this.testController.AssertProgressChangeEvents(GetExpectedExecutionEvents());
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         public void ProgressControllerStep_Failed()
         {
             // Setup
-            this.InitializeAndExecuteTestSubject("exception in executing a step operation", StepAttributes.Default, this.ExecuteAndFail);
+            this.InitializeAndExecuteTestSubject("exception in executing a step operation", StepAttributes.None, this.ExecuteAndFail);
 
             // Verify
             this.testController.AssertNoProgressChangeEvents();
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         public void ProgressControllerStep_Cancelled()
         {
             // Setup
-            this.InitializeAndExecuteTestSubject("canceled step operation", StepAttributes.Default, this.ExecuteAndCancell);
+            this.InitializeAndExecuteTestSubject("canceled step operation", StepAttributes.None, this.ExecuteAndCancell);
 
             // Verify
             this.testController.AssertNoProgressChangeEvents();

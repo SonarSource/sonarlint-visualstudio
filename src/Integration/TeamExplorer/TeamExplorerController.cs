@@ -19,7 +19,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class TeamExplorerController : ITeamExplorerController
     {
-        private readonly IServiceProvider serviceProvider;
         private readonly ITeamExplorer teamExplorer;
 
         internal /* testing purposes */ ITeamExplorer TeamExplorer => this.teamExplorer;
@@ -32,9 +31,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            this.serviceProvider = serviceProvider;
-
-            this.teamExplorer = this.serviceProvider.GetService<ITeamExplorer>();
+            this.teamExplorer = serviceProvider.GetService<ITeamExplorer>();
             if (this.TeamExplorer == null)
             {
                 throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.MissingService, nameof(ITeamExplorer)), nameof(serviceProvider));

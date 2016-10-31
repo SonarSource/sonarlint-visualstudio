@@ -46,10 +46,9 @@ namespace Microsoft.Alm.Authentication
                 type = (TokenType)value;
 
                 string typename;
-                if (GetFriendlyNameFromType(type, out typename))
+                if (GetFriendlyNameFromType(type, out typename) && string.Equals(name, typename, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (String.Equals(name, typename, StringComparison.OrdinalIgnoreCase))
-                        return true;
+                    return true;
                 }
             }
 
@@ -66,8 +65,8 @@ namespace Microsoft.Alm.Authentication
         }
         internal Token(string value, string typeName)
         {
-            Debug.Assert(!String.IsNullOrWhiteSpace(value), "The value parameter is null or invalid");
-            Debug.Assert(!String.IsNullOrWhiteSpace(typeName), "The typeName parameter is null or invalid");
+            Debug.Assert(!string.IsNullOrWhiteSpace(value), "The value parameter is null or invalid");
+            Debug.Assert(!string.IsNullOrWhiteSpace(typeName), "The typeName parameter is null or invalid");
 
             TokenType type;
             if (!GetTypeFromFriendlyName(typeName, out type))
@@ -79,8 +78,8 @@ namespace Microsoft.Alm.Authentication
         internal Token(IdentityModel.Clients.ActiveDirectory.AuthenticationResult authResult, TokenType type)
         {
             Debug.Assert(authResult != null, "The authResult parameter is null");
-            Debug.Assert(!String.IsNullOrWhiteSpace(authResult.AccessToken), "The authResult.AccessToken parameter is null or invalid.");
-            Debug.Assert(!String.IsNullOrWhiteSpace(authResult.RefreshToken), "The authResult.RefreshToken parameter is null or invalid.");
+            Debug.Assert(!string.IsNullOrWhiteSpace(authResult.AccessToken), "The authResult.AccessToken parameter is null or invalid.");
+            Debug.Assert(!string.IsNullOrWhiteSpace(authResult.RefreshToken), "The authResult.RefreshToken parameter is null or invalid.");
             Debug.Assert(Enum.IsDefined(typeof(TokenType), type), "The type parameter is invalid");
 
             switch (type)
@@ -97,7 +96,7 @@ namespace Microsoft.Alm.Authentication
                     throw new ArgumentOutOfRangeException(nameof(type));
             }
 
-            Guid tenantId = Guid.Empty;
+            Guid tenantId;
             if (Guid.TryParse(authResult.TenantId, out tenantId))
             {
                 this.TargetIdentity = tenantId;
@@ -114,7 +113,7 @@ namespace Microsoft.Alm.Authentication
         /// </summary>
         public readonly string Value;
         /// <summary>
-        /// The guid form Identity of the target
+        /// The GUID form Identity of the target
         /// </summary>
         public Guid TargetIdentity { get; internal set; }
 
@@ -140,7 +139,7 @@ namespace Microsoft.Alm.Authentication
         /// Gets a hash code based on the contents of the token.
         /// </summary>
         /// <returns>32-bit hash code.</returns>
-        public override Int32 GetHashCode()
+        public override int GetHashCode()
         {
             unchecked
             {
@@ -158,10 +157,8 @@ namespace Microsoft.Alm.Authentication
             {
                 return value;
             }
-            else
-            {
-                return base.ToString();
-            }
+
+            return base.ToString();
         }
 
         internal static unsafe bool Deserialize(byte[] bytes, TokenType type, out Token token)
@@ -192,7 +189,7 @@ namespace Microsoft.Alm.Authentication
                     {
                         string value = Encoding.UTF8.GetString(bytes, preamble, bytes.Length - preamble);
 
-                        if (!String.IsNullOrWhiteSpace(value))
+                        if (!string.IsNullOrWhiteSpace(value))
                         {
                             token = new Token(value, type);
                             token.TargetIdentity = targetIdentity;
@@ -205,7 +202,7 @@ namespace Microsoft.Alm.Authentication
                 {
                     string value = Encoding.UTF8.GetString(bytes);
 
-                    if (!String.IsNullOrWhiteSpace(value))
+                    if (!string.IsNullOrWhiteSpace(value))
                     {
                         token = new Token(value, type);
                     }
@@ -227,7 +224,7 @@ namespace Microsoft.Alm.Authentication
         internal static unsafe bool Serialize(Token token, out byte[] bytes)
         {
             Debug.Assert(token != null, "The token parameter is null");
-            Debug.Assert(!String.IsNullOrWhiteSpace(token.Value), "The token.Value is invalid");
+            Debug.Assert(!string.IsNullOrWhiteSpace(token.Value), "The token.Value is invalid");
 
             bytes = null;
 

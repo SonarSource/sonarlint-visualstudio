@@ -16,7 +16,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Export(typeof(ITelemetryLogger)), PartCreationPolicy(CreationPolicy.Shared)]
     internal class TelemetryLogger : ITelemetryLogger
     {
-        private readonly IServiceProvider serviceProvider;
         private readonly Dictionary<TelemetryEvent, Action> eventLoggerMap = new Dictionary<TelemetryEvent, Action>();
 
         [ImportingConstructor]
@@ -26,8 +25,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
-
-            this.serviceProvider = serviceProvider;
 
             // Initialize SQM, can be initialized from multiple places (will no-op once initialized)
             SonarLintSqmFacade.Initialize(serviceProvider);

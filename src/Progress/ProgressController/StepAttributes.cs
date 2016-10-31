@@ -13,14 +13,14 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// Step attribute flags
     /// <seealso cref="ProgressStepDefinition"/>
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1008:EnumsShouldHaveZeroValue", Justification = "Default represents zero in bits")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1008:EnumsShouldHaveZeroValue", Justification = "None represents zero in bits")]
     [Flags]
     public enum StepAttributes
     {
         /// <summary>
         /// Cancellable, Visible, Determinate, Foreground thread and impacting on the overall progress
         /// </summary>
-        Default = 0,
+        None = 0,
 
         /// <summary>
         /// Background thread flag

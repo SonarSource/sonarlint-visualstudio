@@ -20,7 +20,7 @@ namespace SonarLint.VisualStudio.Integration
     {
         private bool isDisposed = false;
         private readonly IVsSolution solution;
-        private uint cookie;
+        private readonly uint cookie;
 
         /// <summary>
         /// <see cref="IActiveSolutionTracker.ActiveSolutionChanged"/>

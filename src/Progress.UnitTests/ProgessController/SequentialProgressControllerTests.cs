@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             ProgressStepDefinition[] definitions = new[]
             {
-                new ProgressStepDefinition(null, StepAttributes.Default, operation),
+                new ProgressStepDefinition(null, StepAttributes.None, operation),
                 new ProgressStepDefinition(null, StepAttributes.Hidden, operation),
                 new ProgressStepDefinition(null, StepAttributes.BackgroundThread, operation),
                 new ProgressStepDefinition(null, StepAttributes.Indeterminate, operation),
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             // Setup
             this.threadingService.SetCurrentThreadIsUIThread(true);
-            this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Default, this.DoNothing));
+            this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.None, this.DoNothing));
 
             // Execute
             Assert.AreEqual(ProgressControllerResult.Succeeded, this.testSubject.Start().Result, "Unexpected result");
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             // Setup
             this.threadingService.SetCurrentThreadIsUIThread(false);
-            this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Default, this.DoNothing));
+            this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.None, this.DoNothing));
 
             // Execute
             Assert.AreEqual(ProgressControllerResult.Succeeded, this.testSubject.Start().Result, "Unexpected result");

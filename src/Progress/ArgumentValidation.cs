@@ -26,7 +26,6 @@ namespace SonarLint.VisualStudio.Progress
         }
 
         [ContractArgumentValidator]
-        [Pure]
         public static void NotNullOrEmpty<T>([ValidatedNotNull]IEnumerable<T> enumerable, string variableName)
         {
             ArgumentValidation.NotNull(enumerable, variableName);

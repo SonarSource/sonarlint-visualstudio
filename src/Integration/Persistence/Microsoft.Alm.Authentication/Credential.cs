@@ -32,11 +32,19 @@ namespace Microsoft.Alm.Authentication
         internal static void Validate(Credential credentials)
         {
             if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
+            }
+
             if (credentials.Password.Length > NativeMethods.Credential.PasswordMaxLength)
+            {
                 throw new ArgumentOutOfRangeException(nameof(credentials.Password));
+            }
+
             if (credentials.Username.Length > NativeMethods.Credential.UsernameMaxLength)
+            {
                 throw new ArgumentOutOfRangeException(nameof(credentials.Username));
+            }
         }
     }
 }

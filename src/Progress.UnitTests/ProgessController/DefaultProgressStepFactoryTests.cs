@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Verifies that the factory implementation code handles correctly the supported types")]
         public void SequentialProgressController_IProgressStepFactory_SupportedInputs()
         {
-            IProgressStepOperation stepOperation = this.testSubject.CreateStepOperation(this.controller, new ProgressStepDefinition("text", StepAttributes.Default, (c, n) => { }));
+            IProgressStepOperation stepOperation = this.testSubject.CreateStepOperation(this.controller, new ProgressStepDefinition("text", StepAttributes.None, (c, n) => { }));
             Assert.IsNotNull(stepOperation, "Expecting IProgressStepOperation");
             ProgressControllerStep step = stepOperation as ProgressControllerStep;
             Assert.IsNotNull(step, "Expecting ProgressControllerStep");

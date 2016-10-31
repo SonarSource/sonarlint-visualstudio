@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration
             foreach (var hierarchy in EnumerateProjects(solution))
             {
                 Project Project = GetProject(hierarchy);
-                if (Project != null && Language.ForProject(Project) != Language.Unknown)
+                if (Project != null && !Language.ForProject(Project).Equals(Language.Unknown))
                 {
                     yield return Project;
                 }
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(hierarchy));
             }
 
-            object project = null;
+            object project;
             if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out project)))
             {
                 return project as Project;
@@ -355,18 +355,20 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             IVsAggregatableProjectCorrected aggregatableProject = hierarchy as IVsAggregatableProjectCorrected;
-            if (aggregatableProject != null)
+            if (aggregatableProject == null)
             {
-                string guidStrings;
-                if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out guidStrings)))
+                yield break;
+            }
+
+            string guidStrings;
+            if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out guidStrings)))
+            {
+                foreach (var guidStr in guidStrings.Split(';'))
                 {
-                    foreach (var guidStr in guidStrings.Split(';'))
+                    Guid guid;
+                    if (Guid.TryParse(guidStr, out guid))
                     {
-                        Guid guid;
-                        if (Guid.TryParse(guidStr, out guid))
-                        {
-                            yield return guid;
-                        }
+                        yield return guid;
                     }
                 }
             }
@@ -374,7 +376,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private string GetSolutionItemsFolderName()
         {
-            string solutionItemsFolderName = null;
+            string solutionItemsFolderName;
             Guid guid = VSConstants.CLSID.VsEnvironmentPackage_guid;
 
             IVsShell shell = this.serviceProvider.GetService(typeof(SVsShell)) as IVsShell;

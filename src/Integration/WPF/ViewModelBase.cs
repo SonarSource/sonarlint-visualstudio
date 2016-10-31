@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
         [MethodImpl(MethodImplOptions.NoInlining)]
         protected void SetAndRaisePropertyChanged<T>(ref T field, T value, [CallerMemberName]string propertyName = null)
         {
-            bool equal = false;
+            bool equal;
 
             if (value is IEquatable<T>)
             {

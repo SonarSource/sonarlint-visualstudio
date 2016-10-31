@@ -77,7 +77,7 @@ namespace Microsoft.Alm.Authentication
         internal static extern void CredFree(IntPtr credential);
 
         [Flags]
-        internal enum CredentialFlags : uint
+        internal enum Credentials : uint
         {
             /// <summary>
             /// <para>Bit set if the `<see cref="Credential"/>` does not persist the `<see cref="Credential.CredentialBlob"/>`
@@ -91,11 +91,11 @@ namespace Microsoft.Alm.Authentication
             /// retention policy appropriate to the certificate.</para>
             /// <para>If Type is `<see cref="CredentialType.DomainPassword"/>` or
             /// `<see cref="CredentialType.DomainCertificate"/>`, an authentication package always
-            /// fails an authentication attempt when using credentials marked as `<see cref="CredentialFlags.PromptNow"/>`.</para>
+            /// fails an authentication attempt when using credentials marked as `<see cref="Credentials.PromptNow"/>`.</para>
             /// <para>The application (typically through the key ring UI) prompts the user for the
             /// password. The application saves the credential and retries the authentication. </para>
             /// <para>Because the credential has been recently written, the authentication package
-            /// now gets a credential that is not marked as `<see cref="CredentialFlags.PromptNow"/>`.</para>
+            /// now gets a credential that is not marked as `<see cref="Credentials.PromptNow"/>`.</para>
             /// </summary>
             PromptNow = 0x02,
             /// <summary>
@@ -218,7 +218,7 @@ namespace Microsoft.Alm.Authentication
             /// <para>Undefined bits should be initialized as zero and not otherwise altered to
             /// permit future enhancement.</para>
             /// </summary>
-            public CredentialFlags Flags;
+            public Credentials Flags;
             /// <summary>
             /// <para>The type of the credential. This member cannot be changed after the credential
             /// is created. </para>
