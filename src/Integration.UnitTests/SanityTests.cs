@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.logger.DumpAllToOutput();
         }
 
-        [Ignore]
         [TestMethod]
         [Description("Use the live SQ server to verify that the API we use are still supported."
             + "The assumptions are:"
