@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         public const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
 
-        public const string RoslynExporter = "roslyn-cs";
+        public const string RoslynExporterFormat = "roslyn-{0}";
 
         private static readonly IReadOnlyDictionary<Language, string> languageKeys = new ReadOnlyDictionary<Language, string>(
             new Dictionary<Language, string>
@@ -267,6 +267,11 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         #region Roslyn export profile
 
+        internal /*for testing purposes*/  static string CreateRoslynExporterName(Language language)
+        {
+            return string.Format(CultureInfo.InvariantCulture, RoslynExporterFormat, languageKeys[language]);
+        }
+
         internal /*for testing purposes*/ static string CreateQualityProfileExportUrl(QualityProfile profile, Language language, string exporter)
         {
             // TODO: why name and not key? why language is needed at all, profiles are per language
@@ -275,7 +280,8 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         private static async Task<RoslynExportProfile> DownloadQualityProfileExport(HttpClient client, QualityProfile profile, Language language, CancellationToken token)
         {
-            string api = CreateQualityProfileExportUrl(profile, language, RoslynExporter);
+            var roslynExporterName = CreateRoslynExporterName(language);
+            string api = CreateQualityProfileExportUrl(profile, language, roslynExporterName);
             HttpResponseMessage response = await InvokeGetRequest(client, api, token);
 
             using (Stream stream = await response.Content.ReadAsStreamAsync())

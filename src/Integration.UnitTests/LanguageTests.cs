@@ -58,22 +58,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Language_IsSupported_UnsupportedLanguage_IsFalse()
-        {
-            // Setup
-            var unsupportedLangs = Language.KnownLanguages.Except(Language.SupportedLanguages);
-
-            // Sanity
-            Debug.Assert(unsupportedLangs.Any(), "No known but unsupported languages");
-
-            // Act + Verify
-            foreach (var unsupportedLang in unsupportedLangs)
-            {
-                Assert.IsFalse(unsupportedLang.IsSupported, "Unsupported language should NOT be supported");
-            }
-        }
-
-        [TestMethod]
         public void Language_ForProject_KnownLanguage_ArgChecks()
         {
             Exceptions.Expect<ArgumentNullException>(() => Language.ForProject(null));

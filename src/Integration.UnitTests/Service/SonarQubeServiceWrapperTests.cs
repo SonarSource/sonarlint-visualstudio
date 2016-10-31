@@ -316,10 +316,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var cppLanguage = new Language("Cpp", "C++", Guid.NewGuid());
 
             // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(()=>testSubject.TryGetQualityProfile(null, validProject, validLanguage, CancellationToken.None, out profile));
-            Exceptions.Expect<ArgumentNullException>(()=>testSubject.TryGetQualityProfile(validConnection, null, validLanguage, CancellationToken.None, out profile));
-            Exceptions.Expect<ArgumentNullException>(()=>testSubject.TryGetQualityProfile(validConnection, validProject, null, CancellationToken.None, out profile));
-            Exceptions.Expect<ArgumentOutOfRangeException>(()=>testSubject.TryGetQualityProfile(validConnection, validProject, cppLanguage, CancellationToken.None, out profile));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetQualityProfile(null, validProject, validLanguage, CancellationToken.None, out profile));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetQualityProfile(validConnection, null, validLanguage, CancellationToken.None, out profile));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetQualityProfile(validConnection, validProject, null, CancellationToken.None, out profile));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.TryGetQualityProfile(validConnection, validProject, cppLanguage, CancellationToken.None, out profile));
 
             this.outputWindowPane.AssertOutputStrings(0);
         }
@@ -374,12 +374,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_TryGetQualityProfile_ReducedFunctionality()
+        public void SonarQubeServiceWrapper_TryGetQualityProfileForCSharp_ReducedFunctionality()
+        {
+            SonarQubeServiceWrapper_TryGetQualityProfile_ReducedFunctionality(Language.CSharp);
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_TryGetQualityProfileForVBNet_ReducedFunctionality()
+        {
+            SonarQubeServiceWrapper_TryGetQualityProfile_ReducedFunctionality(Language.VBNET);
+        }
+
+        private void SonarQubeServiceWrapper_TryGetQualityProfile_ReducedFunctionality(Language language)
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
                 // Setup
-                var language = Language.CSharp;
                 QualityProfile profile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
@@ -413,22 +423,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SonarQubeServiceWrapper_TryGetExportProfile()
+        public void SonarQubeServiceWrapper_TryGetExportProfileForCSharp()
+        {
+            SonarQubeServiceWrapper_TryGetExportProfile(Language.CSharp);
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_TryGetExportProfileForVBNet()
+        {
+            SonarQubeServiceWrapper_TryGetExportProfile(Language.VBNET);
+        }
+
+        private void SonarQubeServiceWrapper_TryGetExportProfile(Language language)
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
                 // Setup
-                var language = Language.CSharp;
                 QualityProfile profile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 var expectedExport = RoslynExportProfileHelper.CreateExport(ruleSet: TestRuleSetHelper.CreateTestRuleSet(3));
+                var roslynExporter = SonarQubeServiceWrapper.CreateRoslynExporterName(language);
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
                 // Setup test server
                 RegisterProfileExportQueryValidator(testSubject);
 
                 RequestHandler getExportHandler = testSubject.RegisterRequestHandler(
-                    SonarQubeServiceWrapper.CreateQualityProfileExportUrl(profile, language, SonarQubeServiceWrapper.RoslynExporter),
+                    SonarQubeServiceWrapper.CreateQualityProfileExportUrl(profile, language, roslynExporter),
                     ctx => ServiceProfileExport(ctx, expectedExport)
                 );
 
@@ -753,7 +774,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Assert.IsNotNull(queryMap["name"], "Missing query param: name");
                 Assert.IsNotNull(queryMap["language"], "Missing query param: language");
                 Assert.IsNotNull(queryMap["format"], "Missing query param: format");
-                Assert.AreEqual(SonarQubeServiceWrapper.RoslynExporter, queryMap["format"], "Unexpected value for query param: format");
+                Assert.AreEqual(SonarQubeServiceWrapper.RoslynExporterFormat, queryMap["format"], "Unexpected value for query param: format");
             });
         }
 
