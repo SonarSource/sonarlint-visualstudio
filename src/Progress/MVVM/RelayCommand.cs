@@ -97,12 +97,7 @@ namespace SonarLint.VisualStudio.Progress.MVVM
 
         public void RaiseCanExecuteChanged()
         {
-            EventHandler handler = this.canExecuteChanged;
-
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            this.canExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void Execute(object parameter)

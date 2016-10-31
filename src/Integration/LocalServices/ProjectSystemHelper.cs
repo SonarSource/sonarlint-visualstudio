@@ -176,11 +176,13 @@ namespace SonarLint.VisualStudio.Integration
             {
                 ProjectItem item = project.ProjectItems.AddFromFile(fullFilePath);
                 Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Constants.ItemTypePropertyKey);
-
-                Debug.Assert(itemTypeProperty != null, "Failed to set the ItemType of the project item");
                 if (itemTypeProperty != null)
                 {
                     itemTypeProperty.Value = itemType;
+                }
+                else
+                {
+                    Debug.Fail("Failed to set the ItemType of the project item");
                 }
             }
         }
@@ -283,7 +285,6 @@ namespace SonarLint.VisualStudio.Integration
             IVsHierarchy projectHierarchy = this.GetIVsHierarchy(dteProject);
             IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
 
-            Debug.Assert(propertyStorage != null, "Could not get IVsBuildPropertyStorage for EnvDTE.Project");
             if (propertyStorage != null)
             {
                 var hr = propertyStorage.GetPropertyValue(propertyName, string.Empty,
@@ -292,6 +293,10 @@ namespace SonarLint.VisualStudio.Integration
                 // E_XML_ATTRIBUTE_NOT_FOUND is returned when the property does not exist - this is OK.
                 Debug.Assert(!ErrorHandler.Succeeded(hr) || hr != E_XML_ATTRIBUTE_NOT_FOUND,
                     $"Failed to get the property '{propertyName}' for project '{dteProject.Name}'.");
+            }
+            else
+            {
+                Debug.Fail("Could not get IVsBuildPropertyStorage for EnvDTE.Project");
             }
 
             return value;
@@ -311,14 +316,16 @@ namespace SonarLint.VisualStudio.Integration
 
             IVsHierarchy projectHierarchy = this.GetIVsHierarchy(dteProject);
             IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
-
-            Debug.Assert(propertyStorage != null, "Could not get IVsBuildPropertyStorage for EnvDTE.Project");
             if (propertyStorage != null)
             {
                 var hr = propertyStorage.SetPropertyValue(propertyName, string.Empty,
                     (uint)_PersistStorageType.PST_PROJECT_FILE, value);
 
                 Debug.Assert(ErrorHandler.Succeeded(hr), $"Failed to set property '{propertyName}' to '{value}' for project '{dteProject.Name}'.");
+            }
+            else
+            {
+                Debug.Fail("Could not get IVsBuildPropertyStorage for EnvDTE.Project");
             }
         }
 
@@ -336,14 +343,16 @@ namespace SonarLint.VisualStudio.Integration
 
             IVsHierarchy projectHierarchy = this.GetIVsHierarchy(dteProject);
             IVsBuildPropertyStorage propertyStorage = projectHierarchy as IVsBuildPropertyStorage;
-
-            Debug.Assert(propertyStorage != null, "Could not get IVsBuildPropertyStorage for EnvDTE.Project");
             if (propertyStorage != null)
             {
                 var hr = propertyStorage.RemoveProperty(propertyName, string.Empty,
                     (uint)_PersistStorageType.PST_PROJECT_FILE);
 
                 Debug.Assert(ErrorHandler.Succeeded(hr), $"Failed to remove property '{propertyName}' for project '{dteProject.Name}'.");
+            }
+            else
+            {
+                Debug.Fail("Could not get IVsBuildPropertyStorage for EnvDTE.Project");
             }
         }
 

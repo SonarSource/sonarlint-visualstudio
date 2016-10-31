@@ -362,10 +362,13 @@ namespace SonarLint.VisualStudio.Integration
                 // If there's an active section will navigate (activate TE) and show the connecting/binding process.
                 // We drive the process via the ActiveSection, so this step is mandatory
                 ITeamExplorerController teController = this.host.GetMefService<ITeamExplorerController>();
-                Debug.Assert(teController != null, "Cannot find ITeamExplorerController");
                 if (teController != null)
                 {
                     teController.ShowSonarQubePage();
+                }
+                else
+                {
+                    Debug.Fail("Cannot find ITeamExplorerController");
                 }
 
             }

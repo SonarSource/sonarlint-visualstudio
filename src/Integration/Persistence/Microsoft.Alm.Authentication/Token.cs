@@ -57,7 +57,7 @@ namespace Microsoft.Alm.Authentication
 
         internal Token(string value, TokenType type)
         {
-            Debug.Assert(!String.IsNullOrWhiteSpace(value), "The value parameter is null or invalid");
+            Debug.Assert(!string.IsNullOrWhiteSpace(value), "The value parameter is null or invalid");
             Debug.Assert(Enum.IsDefined(typeof(TokenType), type), "The type parameter is invalid");
 
             this.Type = type;
@@ -122,7 +122,7 @@ namespace Microsoft.Alm.Authentication
         /// </summary>
         /// <param name="obj">The object to compare.</param>
         /// <returns>True is equal; false otherwise.</returns>
-        public override bool Equals(Object obj)
+        public override bool Equals(object obj)
         {
             return this.Equals(obj as Token);
         }
@@ -168,34 +168,9 @@ namespace Microsoft.Alm.Authentication
             Debug.Assert(Enum.IsDefined(typeof(TokenType), type), "The type parameter is invalid");
 
             token = null;
-
             try
             {
-                int preamble = sizeof(TokenType) + sizeof(Guid);
-
-                if (bytes.Length > preamble)
-                {
-                    TokenType readType;
-                    Guid targetIdentity;
-
-                    fixed (byte* p = bytes)
-                    {
-                        readType = *(TokenType*)p;
-                        byte* g = p + sizeof(TokenType);
-                        targetIdentity = *(Guid*)g;
-                    }
-
-                    if (readType == type)
-                    {
-                        string value = Encoding.UTF8.GetString(bytes, preamble, bytes.Length - preamble);
-
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            token = new Token(value, type);
-                            token.TargetIdentity = targetIdentity;
-                        }
-                    }
-                }
+                token = TryDeserializeWithNewFormat(bytes, type);
 
                 // if value hasn't been set yet, fall back to old format decode
                 if (token == null)
@@ -219,6 +194,41 @@ namespace Microsoft.Alm.Authentication
             }
 
             return token != null;
+        }
+
+        private static unsafe Token TryDeserializeWithNewFormat(byte[] bytes, TokenType type)
+        {
+            int preamble = sizeof(TokenType) + sizeof(Guid);
+
+            if (bytes.Length <= preamble)
+            {
+                return null;
+            }
+
+
+            TokenType readType;
+            Guid targetIdentity;
+
+            fixed (byte* p = bytes)
+            {
+                readType = *(TokenType*)p;
+                byte* g = p + sizeof(TokenType);
+                targetIdentity = *(Guid*)g;
+            }
+
+            if (readType == type)
+            {
+                string value = Encoding.UTF8.GetString(bytes, preamble, bytes.Length - preamble);
+
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    var token = new Token(value, type);
+                    token.TargetIdentity = targetIdentity;
+                    return token;
+                }
+            }
+
+            return null;
         }
 
         internal static unsafe bool Serialize(Token token, out byte[] bytes)
@@ -257,11 +267,19 @@ namespace Microsoft.Alm.Authentication
         internal static void Validate(Token token)
         {
             if (token == null)
+            {
                 throw new ArgumentNullException(nameof(token));
-            if (String.IsNullOrWhiteSpace(token.Value))
+            }
+
+            if (string.IsNullOrWhiteSpace(token.Value))
+            {
                 throw new ArgumentException(nameof(token));
+            }
+
             if (token.Value.Length > NativeMethods.Credential.PasswordMaxLength)
+            {
                 throw new ArgumentOutOfRangeException(nameof(token.Value));
+            }
         }
 
         /// <summary>
@@ -273,12 +291,17 @@ namespace Microsoft.Alm.Authentication
         public static bool operator ==(Token token1, Token token2)
         {
             if (ReferenceEquals(token1, token2))
+            {
                 return true;
+            }
+
             if (ReferenceEquals(token1, null) || ReferenceEquals(null, token2))
+            {
                 return false;
+            }
 
             return token1.Type == token2.Type
-                && String.Equals(token1.Value, token2.Value, StringComparison.Ordinal);
+                && string.Equals(token1.Value, token2.Value, StringComparison.Ordinal);
         }
         /// <summary>
         /// Compares two tokens for inequality.

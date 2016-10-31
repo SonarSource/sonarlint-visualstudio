@@ -21,25 +21,21 @@ namespace SonarLint.VisualStudio.Integration.Service
         /// <summary>
         /// Encoding used to create the basic authentication token
         /// </summary>
-        public static readonly Encoding BasicAuthEncoding = UTF8Encoding.UTF8;
+        public static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
 
         public static AuthenticationHeaderValue GetAuthenticationHeader(ConnectionInformation connectionInfo)
         {
-            switch (connectionInfo.Authentication)
+            if (connectionInfo.Authentication == AuthenticationType.Basic)
             {
-                case AuthenticationType.Basic:
-                    if (string.IsNullOrWhiteSpace(connectionInfo.UserName))
-                    {
-                        return null;
-                    }
-                    else
-                    {
-                        // See more info: https://www.visualstudio.com/en-us/integrate/get-started/auth/overview
-                        return new AuthenticationHeaderValue("Basic", GetBasicAuthToken(connectionInfo.UserName, connectionInfo.Password));
-                    }
-                default:
-                    Debug.Fail("Unsupported Authentication: " + connectionInfo.Authentication);
-                    return null;
+                return string.IsNullOrWhiteSpace(connectionInfo.UserName)
+                    ? null
+                    : new AuthenticationHeaderValue("Basic", GetBasicAuthToken(connectionInfo.UserName, connectionInfo.Password));
+                // See more info: https://www.visualstudio.com/en-us/integrate/get-started/auth/overview
+            }
+            else
+            {
+                Debug.Fail("Unsupported Authentication: " + connectionInfo.Authentication);
+                return null;
             }
         }
 

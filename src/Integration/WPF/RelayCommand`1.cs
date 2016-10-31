@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
         [DebuggerStepThrough]
         public bool CanExecute(T parameter)
         {
-            return this.canExecute == null ? true : this.canExecute(parameter);
+            return this.canExecute?.Invoke(parameter) ?? true;
         }
 
         public void Execute(T parameter)

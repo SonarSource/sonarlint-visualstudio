@@ -64,10 +64,13 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
             VsThreadingHelper.RunInline(this.serviceProvider, VsTaskRunContext.UIThreadNormalPriority, () =>
             {
                 IVsActivityLog log = (IVsActivityLog)this.serviceProvider.GetService(typeof(SVsActivityLog));
-                Debug.Assert(log != null, "Cannot find SVsActivityLog");
                 if (log != null)
                 {
                     log.LogEntry((uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR, this.entrySource, ProgressControllerHelper.FormatErrorMessage(ex, messageFormat, logWholeMessage));
+                }
+                else
+                {
+                    Debug.Fail("Cannot find SVsActivityLog");
                 }
             });
         }

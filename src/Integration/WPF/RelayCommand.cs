@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
 
         public bool CanExecute()
         {
-            return this.canExecute != null ? this.canExecute() : true;
+            return this.canExecute?.Invoke() ?? true;
         }
 
         public void Execute()

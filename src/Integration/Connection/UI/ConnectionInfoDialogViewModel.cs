@@ -135,29 +135,19 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
 
         protected override bool GetErrorForProperty(string propertyName, ref string error)
         {
-            bool hasError = false;
-            switch (propertyName)
+            if (propertyName == nameof(this.ServerUrlRaw) && !this.IsUrlPristine && !this.IsServerUrlValid)
             {
-                case nameof(this.ServerUrlRaw):
-                    {
-                        if (!this.IsUrlPristine && !this.IsServerUrlValid)
-                        {
-                            error = string.Format(CultureInfo.CurrentCulture, Resources.Strings.InvalidServerUriFormat, this.ServerUrlRaw);
-                            hasError = true;
-                        }
-                        break;
-                    }
-                case nameof(this.Username):
-                    {
-                        if (!this.credentialsValidator.IsUsernameValid)
-                        {
-                            error = this.credentialsValidator.InvalidUsernameErrorMessage;
-                            hasError = true;
-                        }
-                        break;
-                    }
+                error = string.Format(CultureInfo.CurrentCulture, Resources.Strings.InvalidServerUriFormat, this.ServerUrlRaw);
+                return true;
             }
-            return hasError;
+
+            if (propertyName == nameof(this.Username) && !this.credentialsValidator.IsUsernameValid)
+            {
+                error = this.credentialsValidator.InvalidUsernameErrorMessage;
+                return true;
+            }
+
+            return false;
         }
     }
 }
