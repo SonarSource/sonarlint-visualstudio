@@ -195,6 +195,7 @@
     <Compile Include="Connection\ConnectDialogViewModelTests.cs" />
     <Compile Include="WPF\ContextualCommandsCollectionTests.cs" />
     <Compile Include="WPF\ContextualCommandViewModelTests.cs" />
+    <Compile Include="WPF\ProjectViewModelVisibilityConverterTests.cs" />
     <Compile Include="WPF\RelayCommandTests.cs" />
   </ItemGroup>
   <ItemGroup>
