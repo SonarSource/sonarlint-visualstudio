@@ -194,18 +194,42 @@
     <Compile Include="MefServices\ITelemetryLogger.cs" />
     <Compile Include="Persistence\BoundSonarQubeProject.cs" />
     <Compile Include="Persistence\BasicAuthCredentials.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\SecretCache.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\BaseAuthentication.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\BaseSecureStore.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\Credential.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\IAuthentication.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\ICredentialStore.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\ITokenStore.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\NativeMethods.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\Secret.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\SecretStore.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\Token.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\TokenType.cs" />
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\SecretCache.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\BaseAuthentication.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\BaseSecureStore.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\Credential.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\IAuthentication.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\ICredentialStore.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\ITokenStore.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\NativeMethods.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\Secret.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\SecretStore.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\Token.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
+    <Compile Include="Persistence\Microsoft.Alm.Authentication\TokenType.cs">
+      <SonarQubeExclude>True</SonarQubeExclude>
+    </Compile>
     <Compile Include="PathHelper.cs" />
     <Compile Include="Persistence\ICredentials.cs" />
     <Compile Include="Persistence\SolutionBindingSerializer.cs" />
@@ -322,7 +346,7 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
-  
+
   <Target Name="AfterBuild">
   </Target>
   -->
