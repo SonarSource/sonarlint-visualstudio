@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.IsNull(validationError1, "Validation error should be null on initial view model construction");
 
 
-            // Test case 2a: setting raw server url makes it 'dirty' – valid URL
+            // Test case 2a: setting raw server url makes it 'dirty' valid URL
             // Setup
             var testSubject2a = new ConnectionInfoDialogViewModel();
 
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.IsNull(validationError2a, "Validation error should be null for valid URL");
 
 
-            // Test case 2b: setting raw server url makes it 'dirty' – invalid URL
+            // Test case 2b: setting raw server url makes it 'dirty' invalid URL
             // Setup
             var testSubject2b = new ConnectionInfoDialogViewModel();
 

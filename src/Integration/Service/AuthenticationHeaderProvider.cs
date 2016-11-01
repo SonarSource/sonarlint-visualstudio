@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Service
         /// <summary>
         /// WARNING: This will create plain-text <see cref="string"/> version of the <see cref="SecureString"/> in
         /// memory which is not encrypted. This could lead to leaking of sensitive information and other security
-        /// vulnerabilities – heavy caution is advised.
+        /// vulnerabilities - heavy caution is advised.
         /// </summary>
         [SecurityCritical]
         private static string ConvertToUnsecureString(SecureString secureString)
