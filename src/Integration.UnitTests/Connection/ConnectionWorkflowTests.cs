@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             this.sonarQubeService.RegisterServerPlugin(new ServerPlugin { Key = MinimumSupportedServerPlugin.CSharp.Key, Version = MinimumSupportedServerPlugin.CSharp.MinimumVersion });
             this.sonarQubeService.RegisterServerPlugin(new ServerPlugin { Key = MinimumSupportedServerPlugin.VbNet.Key, Version = MinimumSupportedServerPlugin.VbNet.MinimumVersion });
-            this.settings = new ConfigurableIntegrationSettings();
+            this.settings = new ConfigurableIntegrationSettings {AllowNuGetPackageInstall = true};
 
             var mefExports = MefTestHelpers.CreateExport<IIntegrationSettings>(settings);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
