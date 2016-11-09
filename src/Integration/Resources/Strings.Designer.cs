@@ -61,6 +61,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Allow Nuget package installation.
+        /// </summary>
+        public static string AllowNuGetPackageInstallationName {
+            get {
+                return ResourceManager.GetString("AllowNuGetPackageInstallationName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allow the installation of Nuget packages required for the analysis (package.config).
+        /// </summary>
+        public static string AllowNuGetPackageInstallationSettingDescription {
+            get {
+                return ResourceManager.GetString("AllowNuGetPackageInstallationSettingDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bound project: {0}.
         /// </summary>
         public static string AutomationProjectBoundDescription {
@@ -680,6 +698,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string NotEmptyValidatorRequiredField {
             get {
                 return ResourceManager.GetString("NotEmptyValidatorRequiredField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nuget.
+        /// </summary>
+        public static string NugetSettingsCategory {
+            get {
+                return ResourceManager.GetString("NugetSettingsCategory", resourceCulture);
             }
         }
         

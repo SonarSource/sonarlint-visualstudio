@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ProjectInformation project;
         private readonly IProjectSystemHelper projectSystem;
         private readonly SolutionBindingOperation solutionBindingOperation;
+        private readonly IIntegrationSettings settings;
 
         public BindingWorkflow(IHost host, ConnectionInformation connectionInformation, ProjectInformation project)
         {
@@ -56,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.project = project;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
+            this.settings = this.host.GetMefService<IIntegrationSettings>();
 
             this.solutionBindingOperation = new SolutionBindingOperation(
                     this.host,
@@ -301,7 +303,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         internal /*for testing purposes*/ void InstallPackages(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents)
         {
-            if (!this.NuGetPackages.Any())
+            if (!this.NuGetPackages.Any() || !this.settings.AllowNuGetPackageInstall)
             {
                 return;
             }
