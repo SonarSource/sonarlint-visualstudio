@@ -314,7 +314,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return;
             }
 
-            DeterminateStepProgressNotifier progressNotifier = new DeterminateStepProgressNotifier(notificationEvents, this.BindingProjects.Count * this.NuGetPackages.Count);
+            DeterminateStepProgressNotifier progressNotifier = new DeterminateStepProgressNotifier(notificationEvents, this.BindingProjects.Count);
+
             foreach (var bindingProject in this.BindingProjects)
             {
                 List<NuGetPackageInfo> nugetPackages;
@@ -346,8 +347,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
                     this.AllNuGetPackagesInstalled &= isNugetInstallSuccessful;
 
-                    progressNotifier.NotifyIncrementedProgress(string.Empty);
                 }
+                progressNotifier.NotifyIncrementedProgress(string.Empty);
             }
         }
 
