@@ -314,40 +314,46 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return;
             }
 
-            DeterminateStepProgressNotifier progressNotifier = new DeterminateStepProgressNotifier(notificationEvents, this.BindingProjects.Count * this.NuGetPackages.Count);
-            foreach (var bindingProject in this.BindingProjects)
-            {
-                List<NuGetPackageInfo> nugetPackages;
-                if (!this.NuGetPackages.TryGetValue(Language.ForProject(bindingProject), out nugetPackages))
+            var projectNugets = this.BindingProjects
+                .SelectMany(bindingProject =>
                 {
-                    var message = string.Format(Strings.BindingProjectLanguageNotMatchingAnyQualityProfileLanguage, bindingProject.Name);
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
-                    continue;
-                }
+                    var projectLanguage = Language.ForProject(bindingProject);
 
-                foreach (var packageInfo in nugetPackages)
-                {
-                    if (token.IsCancellationRequested)
+                    List<NuGetPackageInfo> nugetPackages;
+                    if (!this.NuGetPackages.TryGetValue(projectLanguage, out nugetPackages))
                     {
-                        break;
-                    }
-
-                    string message = string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, packageInfo.Id, bindingProject.Name);
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
-
-                    var isNugetInstallSuccessful = NuGetHelper.TryInstallPackage(this.host, bindingProject, packageInfo.Id, packageInfo.Version);
-
-                    if (isNugetInstallSuccessful) // NuGetHelper.TryInstallPackage already displayed the error message so only take care of the success message
-                    {
-                        message = string.Format(CultureInfo.CurrentCulture, Strings.SuccessfullyInstalledNugetPackageForProject, packageInfo.Id, bindingProject.Name);
+                        var message = string.Format(Strings.BindingProjectLanguageNotMatchingAnyQualityProfileLanguage, bindingProject.Name);
                         VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
+                        nugetPackages = new List<NuGetPackageInfo>();
                     }
 
-                    // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
-                    this.AllNuGetPackagesInstalled &= isNugetInstallSuccessful;
+                    return nugetPackages.Select(nugetPackage => new { Project = bindingProject, NugetPackage = nugetPackage });
+                })
+                .ToArray();
 
-                    progressNotifier.NotifyIncrementedProgress(string.Empty);
+            DeterminateStepProgressNotifier progressNotifier = new DeterminateStepProgressNotifier(notificationEvents, projectNugets.Length);
+            foreach (var projectNuget in projectNugets)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    break;
                 }
+
+                string message = string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, projectNuget.NugetPackage.Id, projectNuget.Project.Name);
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
+
+                var isNugetInstallSuccessful = NuGetHelper.TryInstallPackage(this.host, projectNuget.Project, projectNuget.NugetPackage.Id, projectNuget.NugetPackage.Version);
+
+                if (isNugetInstallSuccessful) // NuGetHelper.TryInstallPackage already displayed the error message so only take care of the success message
+                {
+                    message = string.Format(CultureInfo.CurrentCulture, Strings.SuccessfullyInstalledNugetPackageForProject, projectNuget.NugetPackage.Id, projectNuget.Project.Name);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
+                }
+
+                // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
+                this.AllNuGetPackagesInstalled &= isNugetInstallSuccessful;
+
+                progressNotifier.NotifyIncrementedProgress(string.Empty);
             }
         }
 

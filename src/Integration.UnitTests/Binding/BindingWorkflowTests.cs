@@ -199,8 +199,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var nugetPackage1 = new PackageName("mypackage1", new SemanticVersion("1.1.0"));
             var nugetPackage2 = new PackageName("mypackage2", new SemanticVersion("1.1.1"));
-            var nugetPackage3 = new PackageName("mypackage3", new SemanticVersion("1.1.2"));
-            var nugetPackages = new[] { nugetPackage1, nugetPackage2, nugetPackage3 };
+            var nugetPackages = new[] { nugetPackage1, nugetPackage2 };
             var packages = new Dictionary<Language, IEnumerable<PackageName>>();
             packages.Add(Language.CSharp, nugetPackages);
 
@@ -211,14 +210,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             packageInstaller.AssertInstalledPackages(project1, nugetPackages);
-            this.outputWindowPane.AssertOutputStrings(6);
+            this.outputWindowPane.AssertOutputStrings(4);
             this.outputWindowPane.AssertOutputStrings(
                 string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackages[0].Id, ((Project)project1).Name)),
                 string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackages[0].Id, ((Project)project1).Name)),
                 string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackages[1].Id, ((Project)project1).Name)),
-                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackages[1].Id, ((Project)project1).Name)),
-                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackages[2].Id, ((Project)project1).Name)),
-                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackages[2].Id, ((Project)project1).Name))
+                string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackages[1].Id, ((Project)project1).Name))
                 );
             progressEvents.AssertProgress(
                 .5,
