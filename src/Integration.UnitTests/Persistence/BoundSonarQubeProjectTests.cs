@@ -20,7 +20,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             var serverUri = new Uri("https://finding-nemo.org");
             var projectKey = "MyProject Key";
-            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, new BasicAuthCredentials("used", "pwd".ConvertToSecureString()));
+            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, new BasicAuthCredentials("used", "pwd".ToSecureString()));
 
             // Act (serialize + de-serialize)
             string data = JsonHelper.Serialize(testSubject);

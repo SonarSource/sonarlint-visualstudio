@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var serverUrl = "https://localhost";
             var username = "admin";
             var inputPlaintextPassword = "letmein";
-            var securePassword = inputPlaintextPassword.ConvertToSecureString();
+            var securePassword = inputPlaintextPassword.ToSecureString();
 
             ConnectionInfoDialogViewModel viewModel = ConnectionInformationDialog.CreateViewModel(null);
             viewModel.ServerUrlRaw = serverUrl;
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Assert.AreEqual(new Uri(serverUrl), connInfo.ServerUri, "Server URI returned was different");
             Assert.AreEqual(username, connInfo.UserName, "Username returned was different");
 
-            string outputPlaintextPassword = connInfo.Password.ConvertToUnsecureString();
+            string outputPlaintextPassword = connInfo.Password.ToUnsecureString();
             Assert.AreEqual(inputPlaintextPassword, outputPlaintextPassword, "Password returned was different");
         }
 
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionInformationDialog_CreateConnectionInformation_WithExistingConnection()
         {
             // Setup
-            var connectionInformation = new ConnectionInformation(new Uri("http://blablabla"), "admin", "P@ssword1".ConvertToSecureString());
+            var connectionInformation = new ConnectionInformation(new Uri("http://blablabla"), "admin", "P@ssword1".ToSecureString());
 
             // Act
             ConnectionInfoDialogViewModel viewModel = ConnectionInformationDialog.CreateViewModel(connectionInformation);

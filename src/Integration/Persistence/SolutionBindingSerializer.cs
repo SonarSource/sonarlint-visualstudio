@@ -142,13 +142,12 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         private BoundSonarQubeProject ReadBindingInformation(string configFile)
         {
             BoundSonarQubeProject bound = this.SafeDeserializeConfigFile(configFile);
-            if (bound != null)
+            if (bound?.ServerUri != null)
             {
-
-                Credential creds;
-                if (bound?.ServerUri != null && this.credentialStore.ReadCredentials(bound.ServerUri, out creds))
+                var creds = this.credentialStore.ReadCredentials(bound.ServerUri);
+                if (creds != null)
                 {
-                    bound.Credentials = new BasicAuthCredentials(creds.Username, creds.Password);
+                    bound.Credentials = new BasicAuthCredentials(creds.Username, creds.Password.ToSecureString());
                 }
             }
 
@@ -170,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                     Debug.Assert(credentials.UserName != null, "User name is not expected to be null");
                     Debug.Assert(credentials.Password != null, "Password name is not expected to be null");
 
-                    var creds = new Credential(credentials.UserName, credentials.Password);
+                    var creds = new Credential(credentials.UserName, credentials.Password.ToUnsecureString());
                     this.credentialStore.WriteCredentials(binding.ServerUri, creds);
                 }
                 return true;

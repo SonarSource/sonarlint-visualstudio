@@ -59,12 +59,20 @@
       <HintPath>..\..\packages\EnvDTE90a.9.0.0\lib\net10\EnvDTE90a.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=2.20.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\Packages\Microsoft.IdentityModel.Clients.ActiveDirectory.2.20.301151232\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
+    <Reference Include="Microsoft.Alm.Authentication, Version=3.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Alm.Authentication.3.2.0\lib\net451\Microsoft.Alm.Authentication.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory.WindowsForms, Version=2.20.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\Packages\Microsoft.IdentityModel.Clients.ActiveDirectory.2.20.301151232\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.WindowsForms.dll</HintPath>
+    <Reference Include="Microsoft.Alm.Git, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Alm.Authentication.3.2.0\lib\net451\Microsoft.Alm.Git.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=3.13.1.846, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.13.1\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory.Platform, Version=3.13.1.846, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.13.1\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -200,6 +208,7 @@
     <Compile Include="Persistence\ApplicableQualityProfile.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectExtensions.cs" />
     <Compile Include="LanguageConverter.cs" />
+    <Compile Include="Persistence\SecureStringHelpers.cs" />
     <Compile Include="ProfileConflicts\FixedRuleSetInfo.cs" />
     <Compile Include="LocalServices\ILocalService.cs" />
     <Compile Include="LocalServices\IRuleSetSerializer.cs" />
@@ -270,42 +279,6 @@
     <Compile Include="MefServices\ITelemetryLogger.cs" />
     <Compile Include="Persistence\BoundSonarQubeProject.cs" />
     <Compile Include="Persistence\BasicAuthCredentials.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\SecretCache.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\BaseAuthentication.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\BaseSecureStore.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\Credential.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\IAuthentication.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\ICredentialStore.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\ITokenStore.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\NativeMethods.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\Secret.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\SecretStore.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\Token.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\TokenType.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
     <Compile Include="PathHelper.cs" />
     <Compile Include="Persistence\ICredentials.cs" />
     <Compile Include="Persistence\SolutionBindingSerializer.cs" />

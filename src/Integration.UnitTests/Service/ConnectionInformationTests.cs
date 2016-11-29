@@ -20,7 +20,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             var userName = "admin";
             var passwordUnsecure = "admin";
-            var password = passwordUnsecure.ConvertToSecureString();
+            var password = passwordUnsecure.ToSecureString();
             var serverUri = new Uri("http://localhost/");
             var testSubject = new ConnectionInformation(serverUri, userName, password);
 
@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             password.Dispose(); // Connection information should maintain it's own copy of the password
 
             // Verify
-            Assert.AreEqual(passwordUnsecure, testSubject.Password.ConvertToUnsecureString(), "Password doesn't match");
+            Assert.AreEqual(passwordUnsecure, testSubject.Password.ToUnsecureString(), "Password doesn't match");
             Assert.AreEqual(userName, testSubject.UserName, "UserName doesn't match");
             Assert.AreEqual(serverUri, testSubject.ServerUri, "ServerUri doesn't match");
 
@@ -39,10 +39,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Dispose();
 
             // Verify testSubject
-            Exceptions.Expect<ObjectDisposedException>(() => testSubject.Password.ConvertToUnsecureString());
+            Exceptions.Expect<ObjectDisposedException>(() => testSubject.Password.ToUnsecureString());
 
             // Verify testSubject2
-            Assert.AreEqual(passwordUnsecure, testSubject2.Password.ConvertToUnsecureString(), "Password doesn't match");
+            Assert.AreEqual(passwordUnsecure, testSubject2.Password.ToUnsecureString(), "Password doesn't match");
             Assert.AreEqual(userName, testSubject2.UserName, "UserName doesn't match");
             Assert.AreEqual(serverUri, testSubject2.ServerUri, "ServerUri doesn't match");
         }
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConnectionInformation_Ctor_ArgChecks()
         {
             Exceptions.Expect<ArgumentNullException>(() => new ConnectionInformation(null));
-            Exceptions.Expect<ArgumentNullException>(() => new ConnectionInformation(null, "user", "pwd".ConvertToSecureString()));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionInformation(null, "user", "pwd".ToSecureString()));
         }
     }
 }

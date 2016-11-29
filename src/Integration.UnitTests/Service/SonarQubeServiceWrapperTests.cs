@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Setup
                 testSubject.BasicAuthUsers.Add("admin", "admin");
                 testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new ProjectInformation[0]) });
-                var connectionInfo = new ConnectionInformation(new Uri("http://server"), "admin", "admin".ConvertToSecureString());
+                var connectionInfo = new ConnectionInformation(new Uri("http://server"), "admin", "admin".ToSecureString());
 
                 // Act
                 ProjectInformation[] projects = null;
@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Setup case 1: Invalid password
                 testSubject.BasicAuthUsers.Add("admin", "admin1");
-                var connectionInfo = new ConnectionInformation(new Uri("http://server"), "admin", "admin".ConvertToSecureString());
+                var connectionInfo = new ConnectionInformation(new Uri("http://server"), "admin", "admin".ToSecureString());
 
                 // Act
                 ProjectInformation[] projects = null;
@@ -1121,7 +1121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
 
                 return this.BasicAuthUsers
-                    .Select(kv => AuthenticationHeaderProvider.GetBasicAuthToken(kv.Key, kv.Value.ConvertToSecureString()))
+                    .Select(kv => AuthenticationHeaderProvider.GetBasicAuthToken(kv.Key, kv.Value.ToSecureString()))
                     .Any(token => token == keyValue[1]);
             }
 

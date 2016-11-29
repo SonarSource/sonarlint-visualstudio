@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
         private void VerifyUsernameAndPassword(BasicAuthenticationCredentialsValidator validator, string username, string password, bool expectedValid)
         {
-            SecureString securePassword = password.ConvertToSecureString();
+            SecureString securePassword = password.ToSecureString();
 
             validator.Update(username, securePassword);
 
