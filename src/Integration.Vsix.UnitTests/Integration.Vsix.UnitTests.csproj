@@ -114,6 +114,7 @@
     <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.ForBound.cs" />
     <Compile Include="SonarAnalyzer\ConfigurableAnalyzerReference.cs" />
     <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.cs" />
+    <Compile Include="SonarAnalyzer\WorkspaceConfiguratorTests.cs" />
     <Compile Include="Telemetry\BoundSolutionAnalyzerTests.cs" />
     <Compile Include="Commands\PackageCommandManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

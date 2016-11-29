@@ -35,6 +35,11 @@ if ($env:IS_PULLREQUEST -eq "true") {
     .\MSBuild.SonarQube.Runner end /d:sonar.login=$env:SONAR_TOKEN
     testExitCode
 
+    #build with VS2017
+    & $env:MSBUILD_PATH_2017 .\src\SonarLint.VisualStudio.Integration.2017.sln /t:rebuild /p:Configuration=Release /p:DeployExtension=false
+    testExitCode
+
+
 } else {
     if (($env:GITHUB_BRANCH -eq "master") -or ($env:GITHUB_BRANCH -eq "refs/heads/master")) {
         write-host -f green "Building master branch"
@@ -57,13 +62,25 @@ if ($env:IS_PULLREQUEST -eq "true") {
         & $env:MSBUILD_PATH .\src\SonarLint.VisualStudio.Integration.sln /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
         testExitCode
 
+        #build with VS2017
+        & $env:MSBUILD_PATH_2017 .\src\SonarLint.VisualStudio.Integration.2017.sln /t:rebuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
+        testExitCode
+
         #get version number
         [xml]$versionProps = Get-Content .\build\Version.props
         $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
-        $file     = Get-Item .\src\Integration.Vsix\bin\Release\SonarLint.vsix
-        $artifact = "SonarLint.VSIX"
+        $file     = Get-Item .\binaries\SonarLint.2015.vsix
+        $artifact = "SonarLint.2015.VSIX"
         $filePath = $file.fullname
         
+        & "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
+        testExitCode
+        
+        $file     = Get-Item .\binaries\SonarLint.2017.vsix
+        $artifact = "SonarLint.2017.VSIX"
+        $filePath = $file.fullname
+        
+        #deploy VS2017 build
         & "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
         testExitCode
         

@@ -19,6 +19,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.Commands = new CommandsMock(this);
         }
 
+        public string Version { get; set; }
+
         #region DTE
         Document _DTE.ActiveDocument
         {
@@ -319,7 +321,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get
             {
-                throw new NotImplementedException();
+                return Version;
             }
         }
 
