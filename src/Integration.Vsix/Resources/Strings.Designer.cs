@@ -79,11 +79,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} could not be found in {1}.
+        ///   Looks up a localized string similar to Invalid VisualStudio version, expecting &apos;14.0&apos; or &apos;15.0&apos; got &apos;{0}&apos;..
         /// </summary>
-        internal static string MissingResourceAtLocation {
+        internal static string InvalidVisualStudioVersion {
             get {
-                return ResourceManager.GetString("MissingResourceAtLocation", resourceCulture);
+                return ResourceManager.GetString("InvalidVisualStudioVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Impossible to trigger reanalysis of the full solution because &apos;RuntimeOptions&apos; roslyn type could not be found in the current workspace..
+        /// </summary>
+        internal static string MissingRuntimeOptionsInWorkspace {
+            get {
+                return ResourceManager.GetString("MissingRuntimeOptionsInWorkspace", resourceCulture);
             }
         }
     }

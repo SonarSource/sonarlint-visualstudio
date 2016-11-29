@@ -9,9 +9,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 // Note: keep the version numbers in sync with the VSIX (source.extension.manifest)
-[assembly: AssemblyVersion("2.8.1")]
-[assembly: AssemblyFileVersion("2.8.1.0")] // This should exactly match the VSIX version
-[assembly: AssemblyInformationalVersion("Version:2.8.1.0 Branch:not-set Sha1:not-set")]
+[assembly: AssemblyVersion("2.9.0")]
+[assembly: AssemblyFileVersion("2.9.0.0")] // This should exactly match the VSIX version
+[assembly: AssemblyInformationalVersion("Version:2.9.0.0 Branch:not-set Sha1:not-set")]
 
 [assembly: AssemblyConfiguration("")]
 [assembly: ComVisible(false)]

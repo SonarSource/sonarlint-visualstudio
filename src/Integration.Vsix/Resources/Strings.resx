@@ -125,8 +125,12 @@
     <value>The specified argument is of a valid type.</value>
     <comment>Exception message</comment>
   </data>
-  <data name="MissingResourceAtLocation" xml:space="preserve">
-    <value>{0} could not be found in {1}</value>
-    <comment>Error message in output window, {0} assembly/type name, {1} lookup location</comment>
+  <data name="InvalidVisualStudioVersion" xml:space="preserve">
+    <value>Invalid VisualStudio version, expecting '14.0' or '15.0' got '{0}'.</value>
+    <comment>Error message in output window when the VisualStudio version is not the expected one. {0} Actual VisualStudio version</comment>
+  </data>
+  <data name="MissingRuntimeOptionsInWorkspace" xml:space="preserve">
+    <value>Impossible to trigger reanalysis of the full solution because 'RuntimeOptions' roslyn type could not be found in the current workspace.</value>
+    <comment>Error message in output window when RuntimeOptions type from roslyn can't be found</comment>
   </data>
 </root>

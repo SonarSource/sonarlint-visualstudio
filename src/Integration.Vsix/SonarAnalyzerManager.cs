@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         internal /*for testing purposes*/ SonarAnalyzerManager(IServiceProvider serviceProvider, Workspace workspace)
-            : this(serviceProvider, workspace, new SolutionAnalysisRequester(serviceProvider, workspace))
+            : this(serviceProvider, workspace, new SolutionAnalysisRequester(serviceProvider, new WorkspaceConfigurator(workspace)))
         {
         }
 

@@ -1,9 +1,22 @@
-//-----------------------------------------------------------------------
-// <copyright file="SolutionAnalysisRequesterTests.cs" company="SonarSource SA and Microsoft Corporation">
-//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
-//   Licensed under the MIT License. See License.txt in the project root for license information.
-// </copyright>
-//-----------------------------------------------------------------------
+/*
+ * SonarLint for VisualStudio
+ * Copyright (C) 2015-2016 SonarSource SA
+ * mailto:contact@sonarsource.com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ */
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
@@ -11,6 +24,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System;
 using System.ComponentModel.Composition.Primitives;
 using System.Windows.Threading;
@@ -20,82 +34,207 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
     [TestClass]
     public class SolutionAnalysisRequesterTests
     {
-        private ConfigurableServiceProvider serviceProvider;
-
-        [TestInitialize]
-        public void TestInitialize()
+        [TestMethod]
+        public void Ctor_WhenUsingNullServiceProvider_ThrowsArgumentNullException()
         {
-            this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), new ConfigurableVsOutputWindow());
+            // Arrange
+            var workspaceConfigurator = new WorkspaceConfigurator(new AdhocWorkspace());
+
+            // Act & Assert
+            Exceptions.Expect<ArgumentNullException>(() =>
+                new SolutionAnalysisRequester(null, workspaceConfigurator));
         }
 
         [TestMethod]
-        public void SolutionAnalysisRequester_ArgChecks()
+        public void Ctor_WhenUsingNullWorkspace_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionAnalysisRequester(null, null));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionAnalysisRequester(null, new AdhocWorkspace()));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionAnalysisRequester(this.serviceProvider, null));
-            try
-            {
-                new SolutionAnalysisRequester(this.serviceProvider, new AdhocWorkspace());
-            }
-            catch (Exception)
-            {
-                Assert.Fail("SolutionAnalysisRequester constructor should not throw exception on adequate input");
-            }
+            // Arrange, Act & Assert
+            Exceptions.Expect<ArgumentNullException>(() =>
+                new SolutionAnalysisRequester(new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false), null));
         }
 
         [TestMethod]
-        public void SolutionAnalysisRequester_FlipFullSolutionAnalysisFlag()
+        public void FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndInvalidVisualStudioVersion_ReturnsNullOptionKeyAndWritesToTheOutputWindow()
         {
-            Option<bool> option = new Option<bool>(SolutionAnalysisRequester.OptionFeatureRuntime,
-                SolutionAnalysisRequester.OptionNameFullSolutionAnalysis, true);
-
-            SolutionAnalysisRequester testSubject = new SolutionAnalysisRequester(this.serviceProvider, new AdhocWorkspace(), option);
-            bool optionInitialValue = testSubject.GetOptionValue();
+            // Arrange
+            var serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            var outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            var visualStudioVersion = "42";
+            serviceProvider.RegisterService(typeof(EnvDTE.DTE), new DTEMock { Version = visualStudioVersion });
+            var workspaceConfigurator = new WorkspaceConfigurator(new AdhocWorkspace());
 
             // Act
-            testSubject.FlipFullSolutionAnalysisFlag();
+            var optionKey = SolutionAnalysisRequester.FindFullSolutionAnalysisOptionKey(serviceProvider, workspaceConfigurator);
 
-            // Verify
-            Assert.AreEqual(!optionInitialValue,
-                testSubject.GetOptionValue(),
-                "Option should be inverted");
+            // Assert
+            Assert.IsNull(optionKey);
+            outputWindowPane.AssertOutputStrings(string.Format(Strings.InvalidVisualStudioVersion, visualStudioVersion));
         }
 
         [TestMethod]
-        public void SolutionAnalysisRequester_Reanalyze_DoNotChangeOriginalFlagValue()
+        public void FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndVisualStudio2015Version_ReturnsNonNullOptionKeyAndDoesNotWriteToTheOutputWindow()
         {
-            Option<bool> option = new Option<bool>(SolutionAnalysisRequester.OptionFeatureRuntime,
-                SolutionAnalysisRequester.OptionNameFullSolutionAnalysis, true);
+            // Arrange, Act, Assert
+            FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndVisualStudioVersion_ReturnsNonNullOptionKeyAndDoesNotWriteToTheOutputWindow(VisualStudioConstants.VS2015VersionNumber);
+        }
 
-            SolutionAnalysisRequester testSubject = new SolutionAnalysisRequester(this.serviceProvider, new AdhocWorkspace(), option);
-            bool optionInitialValue = testSubject.GetOptionValue();
+        [TestMethod]
+        public void FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndVisualStudio2017Version_ReturnsNonNullOptionKeyAndDoesNotWriteToTheOutputWindow()
+        {
+            // Arrange, Act, Assert
+            FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndVisualStudioVersion_ReturnsNonNullOptionKeyAndDoesNotWriteToTheOutputWindow(VisualStudioConstants.VS2017VersionNumber);
+        }
+
+        private void FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndVisualStudioVersion_ReturnsNonNullOptionKeyAndDoesNotWriteToTheOutputWindow(string visualStudioVersion)
+        {
+            // Arrange
+            var serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            var outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            var dteMock = new DTEMock { Version = visualStudioVersion };
+            serviceProvider.RegisterService(typeof(EnvDTE.DTE), dteMock);
+            var roslynRuntimeOptions = RoslynRuntimeOptions.Resolve(serviceProvider);
+            var option = new Option<bool>(roslynRuntimeOptions.RuntimeOptionsFeatureName, roslynRuntimeOptions.FullSolutionAnalysisOptionName);
+            var workspaceConfigurator = new WorkspaceConfiguratorMock();
+            workspaceConfigurator.FindOptionByNameFunc =
+                (featureName, fsaName) =>
+                {
+                    if (featureName == roslynRuntimeOptions.RuntimeOptionsFeatureName &&
+                        fsaName == roslynRuntimeOptions.FullSolutionAnalysisOptionName)
+                    {
+                        return option;
+                    }
+                    else
+                    {
+                        Assert.Fail("Method was called with unexpected parameters. Expecting '"
+                            + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
+                            + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
+                            + featureName + "' and '" + fsaName + "'");
+                        return null;
+                    }
+                };
 
             // Act
-            testSubject.ReanalyzeSolution();
+            var optionKey = SolutionAnalysisRequester.FindFullSolutionAnalysisOptionKey(serviceProvider, workspaceConfigurator);
 
-            // Verify
-            Assert.AreEqual(optionInitialValue,
-                testSubject.GetOptionValue(),
-                "Option should not be inverted");
+            // Assert
+            Assert.IsNotNull(optionKey);
+            outputWindowPane.AssertOutputStrings(0);
+        }
+
+        [TestMethod]
+        public void ReanalyzeSolution_WhenOptionKeyIsNull_WritesToTheOutputWindow()
+        {
+            // Arrange
+            var serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            var outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            var visualStudioVersion = "42";
+            serviceProvider.RegisterService(typeof(EnvDTE.DTE), new DTEMock { Version = visualStudioVersion });
+            var workspaceConfigurator = new WorkspaceConfigurator(new AdhocWorkspace());
+            var solutionAnalyzerRequester = new SolutionAnalysisRequester(serviceProvider, workspaceConfigurator);
+
+            // Act
+            solutionAnalyzerRequester.ReanalyzeSolution();
+
+            // Assert
+            outputWindowPane.AssertOutputStrings(
+                string.Format(Strings.InvalidVisualStudioVersion, visualStudioVersion),
+                Strings.MissingRuntimeOptionsInWorkspace);
+        }
+
+        [TestMethod]
+        public void ReanalyzeSolution_WhenOptionKeyIsNotNullWithVs2015_ReanalyzeSolutionAndDoesNotWriteToTheOutputWindow()
+        {
+            // Arrange, Act, Assert
+            ReanalyzeSolution_WhenOptionKeyIsNotNull_ReanalyzeSolutionAndDoesNotWriteToTheOutputWindow(VisualStudioConstants.VS2015VersionNumber);
+        }
+
+        [TestMethod]
+        public void ReanalyzeSolution_WhenOptionKeyIsNotNullWithVs2017_ReanalyzeSolutionAndDoesNotWriteToTheOutputWindow()
+        {
+            // Arrange, Act, Assert
+            ReanalyzeSolution_WhenOptionKeyIsNotNull_ReanalyzeSolutionAndDoesNotWriteToTheOutputWindow(VisualStudioConstants.VS2017VersionNumber);
+        }
+
+        private void ReanalyzeSolution_WhenOptionKeyIsNotNull_ReanalyzeSolutionAndDoesNotWriteToTheOutputWindow(string visualStudioVersion)
+        {
+            // Arrange
+            var serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            var outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            var dteMock = new DTEMock { Version = visualStudioVersion }; 
+            serviceProvider.RegisterService(typeof(EnvDTE.DTE), dteMock);
+            var roslynRuntimeOptions = RoslynRuntimeOptions.Resolve(serviceProvider);
+            var option = new Option<bool>(roslynRuntimeOptions.RuntimeOptionsFeatureName, roslynRuntimeOptions.FullSolutionAnalysisOptionName);
+            var workspaceConfigurator = new WorkspaceConfiguratorMock();
+            workspaceConfigurator.FindOptionByNameFunc =
+                (featureName, fsaName) =>
+                {
+                    if (featureName == roslynRuntimeOptions.RuntimeOptionsFeatureName &&
+                        fsaName == roslynRuntimeOptions.FullSolutionAnalysisOptionName)
+                    {
+                        return option;
+                    }
+                    else
+                    {
+                        Assert.Fail("Method was called with unexpected parameters. Expecting '"
+                            + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
+                            + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
+                            + featureName + "' and '" + fsaName + "'");
+                        return null;
+                    }
+                };
+            int callCount = 0;
+            workspaceConfigurator.ToggleBooleanOptionKeyAction =
+                optionKey =>
+                {
+                    if (optionKey.Option.Feature == roslynRuntimeOptions.RuntimeOptionsFeatureName &&
+                        optionKey.Option.Name == roslynRuntimeOptions.FullSolutionAnalysisOptionName)
+                    {
+                        callCount++;
+                    }
+                    else
+                    {
+                        Assert.Fail("Method was called with unexpected parameters. Expecting '"
+                            + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
+                            + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
+                            + optionKey.Option.Feature + "' and '" + optionKey.Option.Name + "'");
+                    }
+                };
+            var solutionAnalyzerRequester = new SolutionAnalysisRequester(serviceProvider, workspaceConfigurator);
+
+            // Act
+            solutionAnalyzerRequester.ReanalyzeSolution();
+
+            // Assert
+            outputWindowPane.AssertOutputStrings(0);
+            Assert.AreEqual(callCount, 2);
         }
 
         [TestMethod]
         public void SonarAnalyzerManager_Triggers_SolutionBindingChanged_ReanalyzeSolution()
         {
-            ConfigurableHost host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+            var serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
+            var outputWindow = new ConfigurableVsOutputWindow();
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            ConfigurableHost host = new ConfigurableHost(serviceProvider, Dispatcher.CurrentDispatcher);
             Export mefExport1 = MefTestHelpers.CreateExport<IHost>(host);
 
             ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
             Export mefExport2 = MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(activeSolutionBoundTracker);
 
             IComponentModel mefModel = ConfigurableComponentModel.CreateWithExports(mefExport1, mefExport2);
-            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
+            serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 
             ConfigurableSolutionAnalysisRequester solutionAnalysisRequester = new ConfigurableSolutionAnalysisRequester();
 
-            using (new SonarAnalyzerManager(this.serviceProvider, new AdhocWorkspace(), solutionAnalysisRequester))
+            using (new SonarAnalyzerManager(serviceProvider, new AdhocWorkspace(), solutionAnalysisRequester))
             {
                 // Sanity
                 Assert.AreEqual(0, solutionAnalysisRequester.ReanalyzeSolutionCallCount);
