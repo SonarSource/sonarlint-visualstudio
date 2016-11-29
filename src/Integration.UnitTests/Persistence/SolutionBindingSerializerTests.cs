@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
+            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
 
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var newCreds = read.Credentials as BasicAuthCredentials;
             Assert.AreNotEqual(creds, newCreds, "Different credential instance were expected");
             Assert.AreEqual(creds.UserName, newCreds.UserName);
-            Assert.AreEqual(creds.Password.ConvertToUnsecureString(), newCreds.Password.ConvertToUnsecureString());
+            Assert.AreEqual(creds.Password.ToUnsecureString(), newCreds.Password.ToUnsecureString());
             Assert.AreEqual(written.ServerUri, read.ServerUri);
             this.outputPane.AssertOutputStrings(0);
         }
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
+            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             written.Profiles = new Dictionary<Language, ApplicableQualityProfile>();
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var newCreds = read.Credentials as BasicAuthCredentials;
             Assert.AreNotEqual(creds, newCreds, "Different credential instance were expected");
             Assert.AreEqual(creds.UserName, newCreds.UserName);
-            Assert.AreEqual(creds.Password.ConvertToUnsecureString(), newCreds.Password.ConvertToUnsecureString());
+            Assert.AreEqual(creds.Password.ToUnsecureString(), newCreds.Password.ToUnsecureString());
             Assert.AreEqual(written.ServerUri, read.ServerUri);
             Assert.AreEqual(2, read.Profiles?.Count ?? 0);
             Assert.AreEqual(written.Profiles[Language.VBNET].ProfileKey, read.Profiles[Language.VBNET].ProfileKey);
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Store.DeleteCredentials(serverUri);
 
             // Case 1: has credentials
-            var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
+            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
 
             // Act (write + read)
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var newCreds = read.Credentials as BasicAuthCredentials;
             Assert.AreNotEqual(creds, newCreds, "Different credential instance were expected");
             Assert.AreEqual(creds.UserName, newCreds.UserName);
-            Assert.AreEqual(creds.Password.ConvertToUnsecureString(), newCreds?.Password.ConvertToUnsecureString());
+            Assert.AreEqual(creds.Password.ToUnsecureString(), newCreds?.Password.ToUnsecureString());
             Assert.AreEqual(written.ServerUri, read.ServerUri);
             this.outputPane.AssertOutputStrings(0);
 
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
+            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             string output = testSubject.WriteSolutionBinding(written);
@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
+            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             string output = testSubject.WriteSolutionBinding(written);
@@ -278,7 +278,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
+            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             string output = testSubject.WriteSolutionBinding(written);
@@ -302,7 +302,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ConvertToSecureString());
+            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
             var toWrite = new BoundSonarQubeProject(serverUri, projectKey, creds);
             ProjectMock solutionProject = (ProjectMock)this.projectSystemHelper.SolutionItemsProject;

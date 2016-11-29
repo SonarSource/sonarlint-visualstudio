@@ -22,23 +22,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string password = "world";
             using (new AssertIgnoreScope())
             {
-                Exceptions.Expect<ArgumentOutOfRangeException>(() => AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ConvertToSecureString()));
+                Exceptions.Expect<ArgumentOutOfRangeException>(() => AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ToSecureString()));
             }
 
             // ASCII
             user = "hello";
             password = "world";
-            AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ConvertToSecureString()));
+            AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ToSecureString()));
 
             // UTF-8
             user = "שלום"; // hello in Russian
             password = "你好"; // hello in Chinese
-            AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ConvertToSecureString()));
+            AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ToSecureString()));
 
             // Digits and signs (including ':' in the password)
             user = "1234567890";
             password = "+-/*!:%^&*(){}[];@~#<>,.?|`";
-            AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ConvertToSecureString()));
+            AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ToSecureString()));
         }
 
         private void AssertAreEqualUserNameAndPassword(string expectedUser, string expectedPassword, string userAndPasswordBase64String)

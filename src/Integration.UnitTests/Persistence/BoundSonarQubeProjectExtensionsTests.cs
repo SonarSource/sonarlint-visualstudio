@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CreateConnectionInformation_BasicAuthCredentials()
         {
             // Setup
-            var creds = new BasicAuthCredentials("UserName", "password".ConvertToSecureString());
+            var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
             var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", creds);
 
             // Act
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             Assert.AreEqual(input.ServerUri, conn.ServerUri);
             Assert.AreEqual(creds.UserName, conn.UserName);
-            Assert.AreEqual(creds.Password.ConvertToUnsecureString(), conn.Password.ConvertToUnsecureString());
+            Assert.AreEqual(creds.Password.ToUnsecureString(), conn.Password.ToUnsecureString());
         }
     }
 }
