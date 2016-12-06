@@ -12,6 +12,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region IIntegrationSettings
 
         public bool ShowServerNuGetTrustWarning { get; set; }
+        public bool AllowNuGetPackageInstall { get; set; }
 
         #endregion
     }

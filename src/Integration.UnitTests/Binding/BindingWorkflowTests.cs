@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
+        private ConfigurableIntegrationSettings settings;
 
         public TestContext TestContext { get; set; }
 
@@ -52,6 +53,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sccFileSystem = new ConfigurableSourceControlledFileSystem();
             var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem);
             var solutionBinding = new ConfigurableSolutionBindingSerializer();
+
+            this.settings = new ConfigurableIntegrationSettings {AllowNuGetPackageInstall = true};
+
+            var mefExports = MefTestHelpers.CreateExport<IIntegrationSettings>(settings);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), ruleSerializer);
@@ -591,7 +598,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             ConfigurablePackageInstaller packageInstaller = new ConfigurablePackageInstaller(nugetPackagesByLanguage.Values.SelectMany(x => x));
             this.serviceProvider.RegisterService(typeof(SComponentModel),
-                ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IVsPackageInstaller>(packageInstaller)));
+                ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IVsPackageInstaller>(packageInstaller)), true);
 
             return packageInstaller;
         }

@@ -10,5 +10,6 @@ namespace SonarLint.VisualStudio.Integration
     public interface IIntegrationSettings
     {
         bool ShowServerNuGetTrustWarning { get; set; }
+        bool AllowNuGetPackageInstall { get; set; }
     }
 }

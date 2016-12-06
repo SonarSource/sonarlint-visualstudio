@@ -23,6 +23,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string SettingsRoot = "SonarLintForVisualStudio";
         public const string ShowServerNuGetTrustWarningKey = "ShowServerNuGetTrustWarning";
+        public const string AllowNuGetPackageInstallKey = "AllowNuGetPackageInstall";
 
         private readonly WritableSettingsStore store;
 
@@ -117,6 +118,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             get { return this.GetValueOrDefault(ShowServerNuGetTrustWarningKey, true); }
             set { this.SetValue(ShowServerNuGetTrustWarningKey, value); }
+        }
+
+        [LocalizedCategory(nameof(Strings.NugetSettingsCategory))]
+        [LocalizedDisplayName(nameof(Strings.AllowNuGetPackageInstallationName))]
+        [LocalizedDescription(nameof(Strings.AllowNuGetPackageInstallationSettingDescription))]
+        public bool AllowNuGetPackageInstall
+        {
+            get { return this.GetValueOrDefault(AllowNuGetPackageInstallKey, true); }
+            set { this.SetValue(AllowNuGetPackageInstallKey, value); }
         }
 
         #endregion

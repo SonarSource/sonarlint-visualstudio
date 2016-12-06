@@ -700,4 +700,16 @@ This is the general format to use when writing errors to output window or when t
     <value>{0}profiles/show?key={1}</value>
     <comment>Used to create the Quality Profile URL. This will be integrated as part of the ruleset description. {0} the server URL. {1} the quality profile key.</comment>
   </data>
+  <data name="AllowNuGetPackageInstallationName" xml:space="preserve">
+    <value>Allow Nuget package installation</value>
+    <comment>Name of the AllowNuGetPackageInstall setting</comment>
+  </data>
+  <data name="AllowNuGetPackageInstallationSettingDescription" xml:space="preserve">
+    <value>Allow the installation of Nuget packages required for the analysis (package.config)</value>
+    <comment>Description for the AllowNuGetPackageInstall setting</comment>
+  </data>
+  <data name="NugetSettingsCategory" xml:space="preserve">
+    <value>Nuget</value>
+    <comment>Nuget settings category for Nuget for options page</comment>
+  </data>
 </root>
