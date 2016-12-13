@@ -10,10 +10,11 @@
     <AssemblyName>SonarAnalyzerEmbedder.VisualBasic</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Empty</MyType>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SonarQubeExclude>true</SonarQubeExclude>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -72,9 +73,9 @@
     <None Include="packages.SonarAnalyzerEmbedder.VisualBasic.config" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.1.20.1\analyzers\Google.Protobuf.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.1.20.1\analyzers\SonarAnalyzer.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.1.20.1\analyzers\SonarAnalyzer.VisualBasic.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.1.21.0-build01325\analyzers\Google.Protobuf.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.1.21.0-build01325\analyzers\SonarAnalyzer.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.1.21.0-build01325\analyzers\SonarAnalyzer.VisualBasic.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>
