@@ -377,6 +377,7 @@
     <Compile Include="Helpers\MefTestHelpers.cs" />
     <Compile Include="Helpers\RoslynExportProfileHelper.cs" />
     <Compile Include="Helpers\RuleSetAssert.cs" />
+    <Compile Include="Helpers\SecureStringExtensions.cs" />
     <Compile Include="Helpers\SingleObjectImporter.cs" />
     <Compile Include="Helpers\TestRuleSetHelper.cs" />
     <Compile Include="Helpers\ThreadHelper.cs" />
