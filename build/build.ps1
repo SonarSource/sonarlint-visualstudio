@@ -69,19 +69,16 @@ if ($env:IS_PULLREQUEST -eq "true") {
         #get version number
         [xml]$versionProps = Get-Content .\build\Version.props
         $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
+        $artifact = "SonarLint.VSIX"
         $file     = Get-Item .\binaries\SonarLint.2015.vsix
-        $artifact = "SonarLint.2015.VSIX"
         $filePath = $file.fullname
-        
-        & "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
-        testExitCode
-        
         $file     = Get-Item .\binaries\SonarLint.2017.vsix
-        $artifact = "SonarLint.2017.VSIX"
-        $filePath = $file.fullname
+        $filePath2 = $file.fullname
         
-        #deploy VS2017 build
-        & "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
+        #deploy 
+        & "$env:WINDOWS_MVN_HOME\bin\mvn.bat deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -Dfiles="$filePath2" -Dclassifier="2015" -Dclassifiers="2017" -Dtypes="visx" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
+
+
         testExitCode
         
         #create empty file to trigger qa
