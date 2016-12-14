@@ -76,9 +76,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         $filePath2 = $file.fullname
         
         #deploy 
-        & "$env:WINDOWS_MVN_HOME\bin\mvn.bat deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -Dfiles="$filePath2" -Dclassifier="2015" -Dclassifiers="2017" -Dtypes="visx" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
-
-
+        & "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -Dfiles="$filePath2" -Dclassifier="2015" -Dclassifiers="2017" -Dtypes="visx" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
         testExitCode
         
         #create empty file to trigger qa
