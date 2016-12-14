@@ -25,7 +25,7 @@ testExitCode
 $ARTIFACTORY_SRC_REPO="sonarsource-public-qa/org/sonarsource/dotnet/SonarLint.VSIX"
 [xml]$versionProps = Get-Content .\build\Version.props
 $version  = $versionProps.Project.PropertyGroup.MainVersion+".$env:CI_BUILD_NUMBER"
-$fileName = "SonarLint.VSIX-$version.vsix"
+$fileName = "SonarLint.VSIX-$version-2015.vsix"
 $url = "$env:ARTIFACTORY_URL/$ARTIFACTORY_SRC_REPO/$version/$fileName"
 Write-Host "Downloading $url"
 $pair = "$($env:REPOX_QAPUBLICADMIN_USERNAME):$($env:REPOX_QAPUBLICADMIN_PASSWORD)"
@@ -45,7 +45,7 @@ Get-ChildItem .\artifact.properties | ForEach-Object {
 }
 
 #unzip VSIX package
-$zipName="SonarLint.VSIX-$version.zip"
+$zipName="SonarLint.VSIX-$version-2015.zip"
 Move-Item $fileName $zipName -force
 $shell_app=new-object -com shell.application
 $baseDir=(Get-Item -Path ".\" -Verbose).FullName
