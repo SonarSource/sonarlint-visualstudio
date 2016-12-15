@@ -76,8 +76,8 @@ if ($env:IS_PULLREQUEST -eq "true") {
         $filePath2 = $file.fullname
         
         #set filepath
-        (Get-Content .\build\poms\SonarLint.VSIX\pom.xml) -replace "file-2015", "$filePath" | Set-Content .\build\poms\SonarLint.VISX\pom.xml
-        (Get-Content .\build\poms\SonarLint.VSIX\pom.xml) -replace "file-2017", "$filePath2" | Set-Content .\build\poms\SonarLint.VISX\pom.xml
+        (Get-Content .\build\poms\SonarLint.VSIX\pom.xml) -replace "file-2015", "$filePath" | Set-Content .\build\poms\SonarLint.VSIX\pom.xml
+        (Get-Content .\build\poms\SonarLint.VSIX\pom.xml) -replace "file-2017", "$filePath2" | Set-Content .\build\poms\SonarLint.VSIX\pom.xml
 
         #upload to maven repo        
         cd build\poms
