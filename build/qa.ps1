@@ -22,7 +22,7 @@ testExitCode
 testExitCode
 
 #download VSIX
-$ARTIFACTORY_SRC_REPO="sonarsource/org/sonarsource/dotnet/SonarLint.VSIX"
+$ARTIFACTORY_SRC_REPO="sonarsource-qa/org/sonarsource/dotnet/SonarLint.VSIX"
 [xml]$versionProps = Get-Content .\build\Version.props
 $version  = $versionProps.Project.PropertyGroup.MainVersion+".$env:CI_BUILD_NUMBER"
 $fileName = "SonarLint.VSIX-$version-2015.vsix"
