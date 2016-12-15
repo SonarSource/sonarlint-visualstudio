@@ -28,12 +28,12 @@
               <artifacts>
                 <artifact>
                   <file>file-2015</file>
-                  <type>visx</type>
+                  <type>vsix</type>
                   <classifier>2015</classifier>
                 </artifact>                
                 <artifact>
                   <file>file-2017</file>
-                  <type>visx</type>
+                  <type>vsix</type>
                   <classifier>2017</classifier>
                 </artifact>
               </artifacts>
