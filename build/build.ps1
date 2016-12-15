@@ -75,11 +75,25 @@ if ($env:IS_PULLREQUEST -eq "true") {
         $file     = Get-Item .\binaries\SonarLint.2017.vsix
         $filePath2 = $file.fullname
         
-        #deploy 
-        & "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.dotnet" -DartifactId="$artifact" -Dversion="$version" -Dpackaging="vsix" -Dfile="$filePath" -Dfiles="$filePath2" -Dclassifier="2015" -Dclassifiers="2017" -Dtypes="visx" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
-        testExitCode
+        #set filepath
+        (Get-Content .\build\poms\SonarLint.VISX\pom.xml) -replace "file-2015", "$filePath" | Set-Content .\build\poms\SonarLint.VISX\pom.xml
+        (Get-Content .\build\poms\SonarLint.VISX\pom.xml) -replace "file-2017", "$filePath2" | Set-Content .\build\poms\SonarLint.VISX\pom.xml
+
+        #upload to maven repo        
+        cd build\poms
+        write-host -f green  "set version $version in pom.xml"
+        $command = "mvn versions:set -DgenerateBackupPoms=false -DnewVersion='$version'"
+        iex $command
+        write-host -f green  "set version $version in env VAR PROJECT_VERSION for artifactory buildinfo metadata"
+        $env:PROJECT_VERSION=$version
+        write-host -f green  "set the buildnumber to this job build number"
+        $env:BUILD_ID=$env:BUILD_NUMBER
+        write-host -f green  "Deploy to repox with $version"    
+        $command = 'mvn deploy -Pdeploy-sonarsource -B -e -V'
+        iex $command
         
         #create empty file to trigger qa
+        cd ..\..
         new-item -path . -name qa.properties -type "file"
     } else {
         write-host -f green "not on master"

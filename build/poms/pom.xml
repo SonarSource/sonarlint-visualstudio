@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.sonarsource.parent</groupId>
+    <artifactId>parent</artifactId>
+    <version>37</version>
+  </parent>
+
+  <groupId>org.sonarsource.dotnet</groupId>
+  <artifactId>sonarlint-visualstudio</artifactId>
+  <version>1.0</version>
+  <packaging>pom</packaging>
+  <name>sonarlint-visualstudio</name>
+  <inceptionYear>2016</inceptionYear>
+
+  <organization>
+    <name>SonarSource</name>
+    <url>http://www.sonarsource.com</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>GNU LGPL 3</name>
+      <url>http://www.gnu.org/licenses/lgpl.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm> 
+    <connection>scm:git:git@github.com:SonarSource-VisualStudio/sonarlint-visualstudio.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarSource-VisualStudio/sonarlint-visualstudio.git</developerConnection>
+    <url>https://github.com/SonarSource-VisualStudio/sonarlint-visualstudio</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://jira.sonarsource.com/browse/SLVS</url>
+  </issueManagement>
+
+  <properties>
+    <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
+    <gitRepositoryName>sonarlint-visualstudio</gitRepositoryName>
+  </properties>
+
+  <modules>
+    <module>SonarLint.VISX</module>    
+  </modules>
+</project>
