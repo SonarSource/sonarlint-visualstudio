@@ -45,6 +45,6 @@
   </properties>
 
   <modules>
-    <module>SonarLint.VISX</module>    
+    <module>SonarLint.VSIX</module>    
   </modules>
 </project>

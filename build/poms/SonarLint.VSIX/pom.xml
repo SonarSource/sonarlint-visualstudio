@@ -7,9 +7,9 @@
     <version>1.0</version>
   </parent>
 
-  <artifactId>SonarLint.VISX</artifactId>
+  <artifactId>SonarLint.VSIX</artifactId>
   <packaging>pom</packaging>
-  <name>SonarLint.VISX</name>
+  <name>SonarLint.VSIX</name>
   
   <build>
     <plugins>
