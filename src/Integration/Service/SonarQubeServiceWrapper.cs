@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Service
         public const string ProjectsAPI = "api/projects/index";                                 // Since 2.10
         public const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins";   // Since 2.10; internal
         public const string QualityProfileListAPI = "api/qualityprofiles/search";               // Since 5.2
-        public const string QualityProfileExportAPI = "profiles/export";                        // Since ???; internal
+        public const string QualityProfileExportAPI = "api/qualityprofiles/export";             // Since 5.2
         public const string PropertiesAPI = "api/properties/";                                  // Since 2.6
         public const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog";       // Since 5.2
 
@@ -275,7 +275,7 @@ namespace SonarLint.VisualStudio.Integration.Service
         internal /*for testing purposes*/ static string CreateQualityProfileExportUrl(QualityProfile profile, Language language, string exporter)
         {
             // TODO: why name and not key? why language is needed at all, profiles are per language
-            return AppendQueryString(QualityProfileExportAPI, "?name={0}&language={1}&format={2}", profile.Name, GetServerLanguageKey(language), exporter);
+            return AppendQueryString(QualityProfileExportAPI, "?name={0}&language={1}&exporterKey={2}", profile.Name, GetServerLanguageKey(language), exporter);
         }
 
         private static async Task<RoslynExportProfile> DownloadQualityProfileExport(HttpClient client, QualityProfile profile, Language language, CancellationToken token)
