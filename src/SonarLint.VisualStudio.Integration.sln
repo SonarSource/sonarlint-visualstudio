@@ -32,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		AssemblyInfo.Shared.cs = AssemblyInfo.Shared.cs
 		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
 		SonarQube\sonarlint-visualstudioCSharp.ruleset = SonarQube\sonarlint-visualstudioCSharp.ruleset
+		SonarLint.xml = SonarLint.xml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarAnalyzerEmbedder.CSharp", "SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.CSharp.csproj", "{D993DAF3-5B68-4D43-B558-F6B9EF13C796}"

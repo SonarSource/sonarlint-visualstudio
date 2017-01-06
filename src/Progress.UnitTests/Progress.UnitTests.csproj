@@ -161,6 +161,11 @@
     <None Include="packages.config" />
     <None Include="Progress.UnitTests.ruleset" />
   </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube." ToolsVersion="14.0">
   <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
-    <Rule Id="S100" Action="None" />
     <Rule Id="S101" Action="None" />
     <Rule Id="S1109" Action="Warning" />
     <Rule Id="S1116" Action="Warning" />
@@ -14,35 +13,24 @@
     <Rule Id="S121" Action="Warning" />
     <Rule Id="S1301" Action="Warning" />
     <Rule Id="S1450" Action="None" />
-    <Rule Id="S1479" Action="None" />
+    <Rule Id="S1451" Action="Warning" />
     <Rule Id="S1697" Action="Warning" />
-    <Rule Id="S1858" Action="None" />
     <Rule Id="S1905" Action="Warning" />
     <Rule Id="S1939" Action="Warning" />
     <Rule Id="S2190" Action="None" />
     <Rule Id="S2201" Action="None" />
-    <Rule Id="S2333" Action="None" />
-    <Rule Id="S2737" Action="None" />
-    <Rule Id="S3052" Action="None" />
     <Rule Id="S3216" Action="Warning" />
     <Rule Id="S3234" Action="Warning" />
-    <Rule Id="S3235" Action="None" />
     <Rule Id="S3241" Action="None" />
-    <Rule Id="S3246" Action="Warning" />
     <Rule Id="S3251" Action="Warning" />
-    <Rule Id="S3253" Action="None" />
-    <Rule Id="S3254" Action="None" />
-    <Rule Id="S3257" Action="None" />
     <Rule Id="S3261" Action="None" />
     <Rule Id="S3264" Action="None" />
     <Rule Id="S3440" Action="None" />
-    <Rule Id="S3441" Action="None" />
     <Rule Id="S3445" Action="None" />
     <Rule Id="S3453" Action="None" />
     <Rule Id="S3457" Action="Warning" />
     <Rule Id="S3458" Action="None" />
     <Rule Id="S3459" Action="None" />
-    <Rule Id="S3532" Action="None" />
     <Rule Id="S3597" Action="None" />
     <Rule Id="S3598" Action="None" />
     <Rule Id="S3600" Action="None" />
