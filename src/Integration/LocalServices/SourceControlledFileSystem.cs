@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 while (success && this.fileWriteOperations.Count > 0)
                 {
-                    success = success & this.fileWriteOperations.Dequeue().Invoke();
+                    success = success && this.fileWriteOperations.Dequeue().Invoke();
                 }
             }
             finally
