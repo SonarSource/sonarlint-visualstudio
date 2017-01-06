@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -49,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             workspace.Options = newOptions;
         }
 
+        [ExcludeFromCodeCoverage] // Uses reflection
         public IOption FindOptionByName(string feature, string name)
         {
             object localOptionService = FindOptionService(workspace);
@@ -64,6 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return options?.FirstOrDefault();
         }
 
+        [ExcludeFromCodeCoverage] // Uses reflection
         private static object FindOptionService(Workspace workspace)
         {
             const string optionServiceTypeName = "Microsoft.CodeAnalysis.Options.IOptionService";
