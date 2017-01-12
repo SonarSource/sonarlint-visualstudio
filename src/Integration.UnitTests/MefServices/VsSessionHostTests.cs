@@ -64,6 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(null, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker()));
             Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(this.serviceProvider, null, new ConfigurableActiveSolutionTracker()));
             Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(this.serviceProvider, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), null));
+            Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(this.serviceProvider, null, null, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker(), null));
 
             using (var host = new VsSessionHost(this.serviceProvider,
                                                 new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider),
