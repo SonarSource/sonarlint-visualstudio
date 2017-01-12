@@ -383,7 +383,14 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         private static async Task<T> ProcessJsonResponse<T>(HttpResponseMessage response, CancellationToken token)
         {
-            Debug.Assert(response != null && response.IsSuccessStatusCode, "Invalid response");
+            if (response == null)
+            {
+                throw new ArgumentNullException(nameof(response));
+            }
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ArgumentException("Invalid response", nameof(response.IsSuccessStatusCode));
+            }
 
             token.ThrowIfCancellationRequested();
             string content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);

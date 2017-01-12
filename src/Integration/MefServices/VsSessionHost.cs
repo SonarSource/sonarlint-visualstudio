@@ -234,8 +234,14 @@ namespace SonarLint.VisualStudio.Integration
 
         private void ApplyBindingInformation(BoundSonarQubeProject bound)
         {
-            Debug.Assert(bound != null);
-            Debug.Assert(bound?.ServerUri != null, "Will not be able to apply binding without server Uri");
+            if (bound == null)
+            {
+                throw new ArgumentNullException(nameof(bound));
+            }
+            if (bound.ServerUri == null)
+            {
+                throw new ArgumentException("Will not be able to apply binding without server Uri", nameof(bound.ServerUri));
+            }
 
             // Set the project key that should become bound once the connection workflow has completed
             this.VisualStateManager.BoundProjectKey = bound.ProjectKey;
