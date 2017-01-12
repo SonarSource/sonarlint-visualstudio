@@ -16,6 +16,7 @@
  */
 
 using SonarLint.VisualStudio.Progress.Observation.ViewModels;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -24,6 +25,7 @@ namespace SonarLint.VisualStudio.Progress.Observation.View
     /// <summary>
     /// Interaction logic for ProgressVisualizerControl.xaml
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public partial class ProgressVisualizerControl : UserControl
     {
         #region Static
