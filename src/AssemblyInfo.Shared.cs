@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 
 [assembly: AssemblyCompany("SonarSource and Microsoft")]
-[assembly: AssemblyCopyright("Copyright © SonarSource SA and Microsoft Corporation 2016")]
+[assembly: AssemblyCopyright("Copyright © SonarSource SA and Microsoft Corporation 2016-2017")]
 [assembly: AssemblyTrademark("")]
