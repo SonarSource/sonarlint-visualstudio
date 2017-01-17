@@ -58,8 +58,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         testExitCode
 
         #build with VS2017
-        Start-Process "build/vs2017.bat" -Wait
-        testExitCode
+        Start-Process "build/vs2017.bat" -NoNewWindow -Wait
 
         #get version number
         [xml]$versionProps = Get-Content .\build\Version.props
