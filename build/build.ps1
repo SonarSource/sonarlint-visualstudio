@@ -63,7 +63,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         testExitCode
 
         #build with VS2017
-        & '$env:MSBUILD_PATH_2017' .\src\SonarLint.VisualStudio.Integration.2017.sln /t:rebuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
+        & "$env:MSBUILD_PATH_2017" .\src\SonarLint.VisualStudio.Integration.2017.sln /t:rebuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
         testExitCode
 
         #get version number
