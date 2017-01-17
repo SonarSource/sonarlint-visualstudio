@@ -35,11 +35,6 @@ if ($env:IS_PULLREQUEST -eq "true") {
     .\MSBuild.SonarQube.Runner end /d:sonar.login=$env:SONAR_TOKEN
     testExitCode
 
-    #build with VS2017
-    & $env:MSBUILD_PATH_2017 .\src\SonarLint.VisualStudio.Integration.2017.sln /t:rebuild /p:Configuration=Release /p:DeployExtension=false
-    testExitCode
-
-
 } else {
     if (($env:GITHUB_BRANCH -eq "master") -or ($env:GITHUB_BRANCH -eq "refs/heads/master")) {
         write-host -f green "Building master branch"
@@ -63,7 +58,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         testExitCode
 
         #build with VS2017
-        & "c:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\MSBuild.exe" .\src\SonarLint.VisualStudio.Integration.2017.sln /t:rebuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:VisualStudioVersion=15.0
+        Start-Process "build/vs2017.bat" -Wait
         testExitCode
 
         #get version number
