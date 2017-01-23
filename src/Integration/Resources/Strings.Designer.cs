@@ -630,7 +630,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Language: &apos;{0}&apos;, Minimum version: &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Language: &apos;{0}&apos;, Minimum version: &apos;{1}&apos;, Current version: &apos;{2}&apos;.
         /// </summary>
         public static string MinimumSupportedServerPlugin {
             get {
@@ -707,6 +707,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string PathHelperAbsolutePathExpected {
             get {
                 return ResourceManager.GetString("PathHelperAbsolutePathExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No plugin found for language {0}.
+        /// </summary>
+        public static string PluginNotFoundForLanguageFormat {
+            get {
+                return ResourceManager.GetString("PluginNotFoundForLanguageFormat", resourceCulture);
             }
         }
         
