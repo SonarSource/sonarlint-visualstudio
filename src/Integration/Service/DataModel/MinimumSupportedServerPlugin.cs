@@ -36,11 +36,6 @@ namespace SonarLint.VisualStudio.Integration.Service.DataModel
         public string MinimumVersion { get; }
         public Language Language { get; }
 
-        public override string ToString()
-        {
-            return string.Format(CultureInfo.CurrentCulture, Strings.MinimumSupportedServerPlugin, Language.Name, MinimumVersion);
-        }
-
         public bool ISupported(EnvDTE.Project project)
         {
             return Language.ForProject(project).Equals(Language);

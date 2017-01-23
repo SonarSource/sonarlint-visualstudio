@@ -244,8 +244,19 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var plugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
             var isPluginSupported = !string.IsNullOrWhiteSpace(plugin?.Version) && VersionHelper.Compare(plugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
 
-            var pluginSupportMessageFormat = string.Format(Strings.SubTextPaddingFormat, isPluginSupported ? Strings.SupportedPluginFoundMessage : Strings.UnsupportedPluginFoundMessage);
-            VsShellUtils.WriteToSonarLintOutputPane(this.host, pluginSupportMessageFormat, minimumSupportedPlugin.ToString());
+            string outputMessage;
+            if (plugin == null)
+            {
+                var noPluginMessage = string.Format(Strings.PluginNotFoundForLanguageFormat, minimumSupportedPlugin.Language.Name);
+                outputMessage = string.Format(Strings.SubTextPaddingFormat, noPluginMessage);
+            }
+            else
+            {
+                var pluginSupportMessageFormat = string.Format(Strings.SubTextPaddingFormat, isPluginSupported ? Strings.SupportedPluginFoundMessage : Strings.UnsupportedPluginFoundMessage);
+                var pluginVersionMessage = string.Format(CultureInfo.CurrentCulture, Strings.MinimumSupportedServerPlugin, minimumSupportedPlugin.Language.Name, minimumSupportedPlugin.MinimumVersion, plugin.Version);
+                outputMessage = string.Format(pluginSupportMessageFormat, pluginVersionMessage);
+            }
+            VsShellUtils.WriteToSonarLintOutputPane(this.host, outputMessage);
 
             return isPluginSupported;
         }

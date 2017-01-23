@@ -661,8 +661,8 @@ This is the general format to use when writing errors to output window or when t
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
   </data>
   <data name="MinimumSupportedServerPlugin" xml:space="preserve">
-    <value>Language: '{0}', Minimum version: '{1}'</value>
-    <comment>Error message displayed for every supported plugin when none of them match the minimum required version. {0} the plugin language name, {1} the plugin minimum version.</comment>
+    <value>Language: '{0}', Minimum version: '{1}', Current version: '{2}'</value>
+    <comment>Error message displayed for every supported plugin when none of them match the minimum required version. {0} the plugin language name, {1} the plugin minimum version, {2} the current plugin version.</comment>
   </data>
   <data name="DetectingServerPlugins" xml:space="preserve">
     <value>Detecting server plugins</value>
@@ -699,5 +699,9 @@ This is the general format to use when writing errors to output window or when t
   <data name="SonarQubeQualityProfilePageUrlFormat" xml:space="preserve">
     <value>{0}profiles/show?key={1}</value>
     <comment>Used to create the Quality Profile URL. This will be integrated as part of the ruleset description. {0} the server URL. {1} the quality profile key.</comment>
+  </data>
+  <data name="PluginNotFoundForLanguageFormat" xml:space="preserve">
+    <value>No plugin found for language {0}</value>
+    <comment>Output window message displayed when no plugin has been found for the given language. {0} the name of the language.</comment>
   </data>
 </root>
