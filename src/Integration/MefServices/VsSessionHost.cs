@@ -128,6 +128,8 @@ namespace SonarLint.VisualStudio.Integration
 
         public ISectionController ActiveSection { get; private set; }
 
+        public ISet<Language> SupportedPluginLanguages { get; } = new HashSet<Language>();
+
         public void SetActiveSection(ISectionController section)
         {
             if (section == null)

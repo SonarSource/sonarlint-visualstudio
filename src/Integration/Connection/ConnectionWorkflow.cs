@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Progress.Controller;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -63,9 +64,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
             get;
             set;
         }
-
-        internal bool IsCSharpPluginSupported { get; private set; }
-        internal bool IsVBNetPluginSupported { get; private set; }
 
         #region Start the workflow
         public IProgressEvents Run(ConnectionInformation information)
@@ -118,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             notifications.ProgressChanged(connection.ServerUri.ToString());
 
-            if (!this.VerifyDotNetPlugins(controller, cancellationToken, connection, notifications))
+            if (!this.AreSolutionProjectsAndServerPluginsCompatible(controller, cancellationToken, connection, notifications))
             {
                 return;
             }
@@ -187,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Helpers
 
-        private bool VerifyDotNetPlugins(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
+        private bool AreSolutionProjectsAndServerPluginsCompatible(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
         {
             notifications.ProgressChanged(Strings.DetectingServerPlugins);
 
@@ -201,36 +199,19 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 return false;
             }
 
-            IsCSharpPluginSupported = VerifyPluginSupport(plugins, MinimumSupportedServerPlugin.CSharp);
-            IsVBNetPluginSupported = VerifyPluginSupport(plugins, MinimumSupportedServerPlugin.VbNet);
+            var csharpOrVbNetProjects = new HashSet<EnvDTE.Project>(this.projectSystem.GetSolutionProjects());
+            this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(MinimumSupportedServerPlugin.All
+                                                                                                           .Where(lang => IsServerPluginSupported(plugins, lang))
+                                                                                                           .Select(lang => lang.Language)));
 
-            var projects = this.projectSystem.GetSolutionProjects().ToList();
-            var anyCSharpProject = projects.Any(p => MinimumSupportedServerPlugin.CSharp.ISupported(p));
-            var anyVbNetProject = projects.Any(p => MinimumSupportedServerPlugin.VbNet.ISupported(p));
-
-            string errorMessage;
-            if ((IsCSharpPluginSupported && anyCSharpProject) ||
-                (IsVBNetPluginSupported && anyVbNetProject))
+            // If any of the project can be bound then return success
+            if (csharpOrVbNetProjects.Select(Language.ForProject)
+                                     .Any(this.host.SupportedPluginLanguages.Contains))
             {
                 return true;
             }
-            else if (!IsCSharpPluginSupported && !IsVBNetPluginSupported)
-            {
-                errorMessage = Strings.ServerHasNoSupportedPluginVersion;
-            }
-            else if (projects.Count == 0)
-            {
-                errorMessage = Strings.SolutionContainsNoSupportedProject;
-            }
-            else if (IsCSharpPluginSupported && !anyCSharpProject)
-            {
-                errorMessage = string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, Language.CSharp.Name);
-            }
-            else
-            {
-                errorMessage = string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, Language.VBNET.Name);
-            }
 
+            string errorMessage = GetPluginProjectMismatchErrorMessage(csharpOrVbNetProjects);
             this.host.ActiveSection?.UserNotifications?.ShowNotificationError(errorMessage, NotificationIds.BadServerPluginId, null);
             VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, errorMessage);
             notifications.ProgressChanged(Strings.ConnectionResultFailure);
@@ -239,7 +220,22 @@ namespace SonarLint.VisualStudio.Integration.Connection
             return false;
         }
 
-        private bool VerifyPluginSupport(ServerPlugin[] plugins, MinimumSupportedServerPlugin minimumSupportedPlugin)
+        private string GetPluginProjectMismatchErrorMessage(ISet<EnvDTE.Project> csharpOrVbNetProjects)
+        {
+            if (this.host.SupportedPluginLanguages.Count == 0)
+            {
+                return Strings.ServerHasNoSupportedPluginVersion;
+            }
+
+            if (csharpOrVbNetProjects.Count == 0)
+            {
+                return Strings.SolutionContainsNoSupportedProject;
+            }
+
+            return string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, this.host.SupportedPluginLanguages.First().Name);
+        }
+
+        private bool IsServerPluginSupported(ServerPlugin[] plugins, MinimumSupportedServerPlugin minimumSupportedPlugin)
         {
             var plugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
             var isPluginSupported = !string.IsNullOrWhiteSpace(plugin?.Version) && VersionHelper.Compare(plugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;

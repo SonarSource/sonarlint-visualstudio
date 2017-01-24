@@ -178,6 +178,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot download the quality profile for language {0}.
+        /// </summary>
+        public static string CannotDownloadQualityProfileForLanguage {
+            get {
+                return ResourceManager.GetString("CannotDownloadQualityProfileForLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing rules (or Action set to None): .
         /// </summary>
         public static string ConflictDetailMissingRules {

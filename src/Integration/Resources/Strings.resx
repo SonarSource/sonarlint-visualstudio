@@ -700,4 +700,8 @@ This is the general format to use when writing errors to output window or when t
     <value>{0}profiles/show?key={1}</value>
     <comment>Used to create the Quality Profile URL. This will be integrated as part of the ruleset description. {0} the server URL. {1} the quality profile key.</comment>
   </data>
+  <data name="CannotDownloadQualityProfileForLanguage" xml:space="preserve">
+    <value>Cannot download the quality profile for language {0}</value>
+    <comment>Output window message displayed when the application failed to download the quality profile associated to a language. {0} the language name.</comment>
+  </data>
 </root>

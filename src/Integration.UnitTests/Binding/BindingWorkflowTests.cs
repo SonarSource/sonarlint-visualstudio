@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableSonarQubeServiceWrapper sonarQubeService;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
+        private ConfigurableHost host;
 
         public TestContext TestContext { get; set; }
 
@@ -67,6 +68,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), ruleSerializer);
             this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
+
+            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
         }
 
         #region Tests
@@ -127,7 +130,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_DownloadQualityProfile_Failure()
+        public void BindingWorkflow_DownloadQualityProfile_WhenQualityProfileIsNotAvailable_Fails()
+        {
+            // Setup
+            BindingWorkflow testSubject = this.CreateTestSubject();
+            ConfigurableProgressController controller = new ConfigurableProgressController();
+            var notifications = new ConfigurableProgressStepExecutionEvents();
+
+            var language = Language.CSharp;
+            this.ConfigureProfileExport(null, Language.VBNET);
+
+            // Act
+            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+
+            // Verify
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
+            controller.AssertNumberOfAbortRequests(1);
+
+            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
+
+            this.outputWindowPane.AssertOutputStrings(1);
+            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
+                string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name));
+            this.outputWindowPane.AssertOutputStrings(expectedOutput);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DownloadQualityProfile_WhenProfileExportIsNotAvailable_Fails()
         {
             // Setup
             BindingWorkflow testSubject = this.CreateTestSubject();
@@ -227,9 +257,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackages[1].Id, ((Project)project1).Name)),
                 string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackages[1].Id, ((Project)project1).Name))
                 );
-            progressEvents.AssertProgress(
-                .5,
-                1.0);
+            progressEvents.AssertProgress(.5, 1.0);
         }
 
         [TestMethod]
@@ -439,6 +467,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.BindingProjects.AddRange(projects);
 
             var expectedLanguages = new[] { Language.CSharp, Language.VBNET };
+            this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
+
+            // Act
+            var actualLanguages = testSubject.GetBindingLanguages();
+
+            // Verify
+            CollectionAssert.AreEquivalent(expectedLanguages, actualLanguages.ToArray(), "Unexpected languages for binding projects");
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_GetBindingLanguages_FiltersProjectsWithUnsupportedPluginLanguage()
+        {
+            // Setup
+            var testSubject = this.CreateTestSubject();
+
+            var csProject1 = new ProjectMock("cs1.csproj");
+            var csProject2 = new ProjectMock("cs2.csproj");
+            var csProject3 = new ProjectMock("cs3.csproj");
+            csProject1.SetCSProjectKind();
+            csProject2.SetCSProjectKind();
+            csProject3.SetCSProjectKind();
+            var vbNetProject1 = new ProjectMock("vb1.vbproj");
+            var vbNetProject2 = new ProjectMock("vb2.vbproj");
+            vbNetProject1.SetVBProjectKind();
+            vbNetProject2.SetVBProjectKind();
+            var projects = new[]
+            {
+                csProject1,
+                csProject2,
+                vbNetProject1,
+                csProject3,
+                vbNetProject2
+            };
+            testSubject.BindingProjects.AddRange(projects);
+
+            var expectedLanguages = new[] { Language.VBNET };
+            this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
 
             // Act
             var actualLanguages = testSubject.GetBindingLanguages();
@@ -464,6 +529,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.projectSystemHelper.FilteredProjects = matchingProjects;
 
             var testSubject = this.CreateTestSubject();
+            this.host.SupportedPluginLanguages.UnionWith(new[] { Language.CSharp });
 
             // Act
             testSubject.DiscoverProjects(controller, progressEvents);
@@ -479,13 +545,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             List<Project> projects = new List<Project>();
             for (int i = 0; i < numberOfProjectsToCreate; i++)
             {
-                projects.Add(new ProjectMock($"cs{i}.csproj"));
+                var project = new ProjectMock($"cs{i}.csproj");
+                project.SetCSProjectKind();
+                projects.Add(project);
             }
 
             this.projectSystemHelper.FilteredProjects = projects.Take(numberOfProjectsToInclude);
             this.projectSystemHelper.Projects = projects;
 
             var testSubject = this.CreateTestSubject();
+            this.host.SupportedPluginLanguages.UnionWith(new[] { Language.CSharp });
 
             // Act
             testSubject.DiscoverProjects(controller, progressEvents);
@@ -581,11 +650,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null)
         {
-            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             ConnectionInformation connected = new ConnectionInformation(new Uri("http://connected"));
-            host.SonarQubeService = this.sonarQubeService;
+            this.host.SonarQubeService = this.sonarQubeService;
             var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
-            return new BindingWorkflow(host, connected, useProjectInfo);
+            return new BindingWorkflow(this.host, connected, useProjectInfo);
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, Dictionary<Language, IEnumerable<PackageName>> nugetPackagesByLanguage, params Project[] projects)
