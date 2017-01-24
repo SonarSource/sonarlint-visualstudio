@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
 using System.Linq;
 using System.Windows.Threading;
+using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -96,6 +97,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Simulate product code
             this.VisualStateManager.SyncCommandFromActiveSection();
         }
+
+        public ISet<Language> SupportedPluginLanguages { get; } = new HashSet<Language>();
+
         #endregion
 
         #region Test helpers
@@ -108,6 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get { return (ConfigurableStateManager)this.VisualStateManager; }
         }
+
         #endregion
     }
 }

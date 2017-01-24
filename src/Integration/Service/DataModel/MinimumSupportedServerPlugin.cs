@@ -16,6 +16,7 @@
  */
 
 using SonarLint.VisualStudio.Integration.Resources;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace SonarLint.VisualStudio.Integration.Service.DataModel
@@ -24,6 +25,7 @@ namespace SonarLint.VisualStudio.Integration.Service.DataModel
     {
         public static readonly MinimumSupportedServerPlugin CSharp = new MinimumSupportedServerPlugin("csharp", Language.CSharp, "5.0");
         public static readonly MinimumSupportedServerPlugin VbNet = new MinimumSupportedServerPlugin("vbnet", Language.VBNET, "3.0");
+        public static readonly IEnumerable<MinimumSupportedServerPlugin> All = new[] { CSharp, VbNet };
 
         private MinimumSupportedServerPlugin(string key, Language language, string minimumVersion)
         {

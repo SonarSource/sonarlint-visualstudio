@@ -193,8 +193,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage);
 
-            this.BindingProjects.UnionWith(this.projectSystem.GetFilteredSolutionProjects());
+            var patternFilteredProjects = this.projectSystem.GetFilteredSolutionProjects();
+            var pluginAndPatternFilteredProjects =
+                patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages.Contains(Language.ForProject(p)));
 
+            this.BindingProjects.UnionWith(pluginAndPatternFilteredProjects);
             this.InformAboutFilteredOutProjects();
 
             if (!this.BindingProjects.Any())
@@ -220,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 if (!host.SonarQubeService.TryGetQualityProfile(this.connectionInformation, this.project, language, cancellationToken, out qualityProfileInfo))
                 {
                     failed = true;
-                    InformAboutQualityProfileToDownload(qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name, true);
+                    InformAboutQualityProfileToDownload(qualityProfileInfo, language.Name, true);
                     break;
                 }
                 this.QualityProfiles[language] = qualityProfileInfo;
@@ -229,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, qualityProfileInfo, language, cancellationToken, out export))
                 {
                     failed = true;
-                    InformAboutQualityProfileToDownload(qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name, true);
+                    InformAboutQualityProfileToDownload(qualityProfileInfo, language.Name, true);
                     break;
                 }
                 this.NuGetPackages.Add(language, export.Deployment.NuGetPackages);
@@ -246,24 +249,23 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 if (rulesets[language] == null)
                 {
                     failed = true;
-                    InformAboutQualityProfileToDownload(qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name, true);
+                    InformAboutQualityProfileToDownload(qualityProfileInfo, language.Name, true);
                     break;
                 }
 
-                InformAboutQualityProfileToDownload(qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name, false);
+                InformAboutQualityProfileToDownload(qualityProfileInfo, language.Name, false);
             }
 
             if (failed)
             {
                 this.AbortWorkflow(controller, cancellationToken);
+                return;
             }
-            else
+
+            // Set the rule set which should be available for the following steps
+            foreach (var keyValue in rulesets)
             {
-                // Set the rule set which should be available for the following steps
-                foreach (var keyValue in rulesets)
-                {
-                    this.Rulesets[keyValue.Key] = keyValue.Value;
-                }
+                this.Rulesets[keyValue.Key] = keyValue.Value;
             }
         }
 
@@ -393,7 +395,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*testing purposes*/ IEnumerable<Language> GetBindingLanguages()
         {
-            return this.BindingProjects.Select(Language.ForProject).Distinct();
+            return this.BindingProjects.Select(Language.ForProject)
+                                       .Distinct()
+                                       .Where(this.host.SupportedPluginLanguages.Contains);
         }
 
         private void InformAboutFilteredOutProjects()
@@ -439,22 +443,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
             VsShellUtils.WriteToSonarLintOutputPane(this.host, output.ToString());
         }
 
-        private void InformAboutQualityProfileToDownload(string profileName, string profileKey, string languageName, bool isDownloadFailed)
+        private void InformAboutQualityProfileToDownload(QualityProfile profile, string languageName, bool isDownloadFailed)
         {
-            string output;
-
-            if (isDownloadFailed)
-            {
-                output = string.Format(Strings.QualityProfileDownloadFailedMessageFormat, profileName, profileKey, languageName);
-            }
-            else
-            {
-                output = string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, profileName, profileKey, languageName);
-            }
-
-            output = string.Format(Strings.SubTextPaddingFormat, output);
-
-            VsShellUtils.WriteToSonarLintOutputPane(this.host, output);
+            var output =
+                profile == null
+                    ? string.Format(Strings.CannotDownloadQualityProfileForLanguage, languageName)
+                    : isDownloadFailed
+                        ? string.Format(Strings.QualityProfileDownloadFailedMessageFormat, profile.Name, profile.Key, languageName)
+                        : string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, profile.Name, profile.Key, languageName);
+            VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat, output));
         }
 
         #endregion

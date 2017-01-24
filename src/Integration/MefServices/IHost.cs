@@ -19,6 +19,7 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
+using System.Collections.Generic;
 using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration
@@ -60,5 +61,7 @@ namespace SonarLint.VisualStudio.Integration
         /// Clears the <see cref="ActiveSection"/>
         /// </summary>
         void ClearActiveSection();
+
+        ISet<Language> SupportedPluginLanguages { get; }
     }
 }
