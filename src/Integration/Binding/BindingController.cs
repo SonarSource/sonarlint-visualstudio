@@ -47,11 +47,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflowExecutor workflow)
             : base(host)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-
             this.host = host;
 
             this.BindCommand = new RelayCommand<ProjectViewModel>(this.OnBind, this.OnBindStatus);

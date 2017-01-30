@@ -15,8 +15,9 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+ using Xunit;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
@@ -27,14 +28,12 @@ using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class PackageCommandManagerTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableMenuCommandService menuService;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public PackageCommandManagerTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
 
@@ -58,22 +57,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Tests
 
-        [TestMethod]
-        public void PackageCommandManager_Ctor_NullArgChecks()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new PackageCommandManager(null));
+            // Arrange + Act
+            Action act = () => new PackageCommandManager(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void PackageCommandManager_Ctor_MissingMenuService_ThrowsException()
+        [Fact]
+        public void Ctor_WithMissingMenuService_ThrowsArgumentException()
         {
-            Exceptions.Expect<ArgumentException>(() => new PackageCommandManager(new ConfigurableServiceProvider(false)));
+            // Arrange + Act
+            Action act = () => new PackageCommandManager(new ConfigurableServiceProvider(false));
+
+            // Assert
+            act.ShouldThrow<ArgumentException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void PackageCommandManager_Initialize()
         {
-            // Setup
+            // Arrange
             var testSubject = new PackageCommandManager(serviceProvider);
 
             var cmdSet = new Guid(CommonGuids.CommandSet);
@@ -85,18 +92,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.Initialize();
 
-            // Verify
-            Assert.AreEqual(allCommands.Count, menuService.Commands.Count, "Unexpected number of commands");
+            // Assert
+            allCommands.Count.Should().Be( menuService.Commands.Count, "Unexpected number of commands");
 
             IList<CommandID> missingCommands = allCommands.Except(menuService.Commands.Select(x => x.Key)).ToList();
             IEnumerable<string> missingCommandNames = missingCommands.Select(x => Enum.GetName(typeof(PackageCommandId), x));
-            Assert.IsTrue(!missingCommands.Any(), $"Missing commands: {string.Join(", ", missingCommandNames)}");
+            missingCommands.Any().Should().BeTrue($"Missing commands: {string.Join(", ", missingCommandNames)}");
         }
 
-        [TestMethod]
+        [Fact]
         public void PackageCommandManager_RegisterCommand()
         {
-            // Setup
+            // Arrange
             int cmdId = 42;
             Guid cmdSetGuid = new Guid(CommonGuids.CommandSet);
             CommandID commandIdObject = new CommandID(cmdSetGuid, cmdId);
@@ -107,9 +114,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.RegisterCommand(cmdId, command);
 
-            // Verify
+            // Assert
             var registeredCommand = menuService.Commands.Single().Value;
-            Assert.AreEqual(commandIdObject, registeredCommand.CommandID, $"Unexpected CommandID");
+            commandIdObject.Should().Be( registeredCommand.CommandID, $"Unexpected CommandID");
         }
 
         #endregion

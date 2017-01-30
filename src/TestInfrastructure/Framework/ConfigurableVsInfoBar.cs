@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
+using System.Collections.Generic;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

@@ -15,18 +15,20 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Windows.Threading;
+using Xunit;
+using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
-    [TestClass]
     public class VsSessionHostTests
     {
         private ConfigurableServiceProvider serviceProvider;
@@ -35,10 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private ConfigurableProgressStepRunner stepRunner;
         private ConfigurableSolutionBindingSerializer solutionBinding;
 
-        public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public void TestInitialize()
+        public VsSessionHostTests()
         {
             ThreadHelper.SetCurrentThreadAsUIThread();
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
@@ -58,30 +57,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         }
 
         #region Tests
-        [TestMethod]
-        public void VsSessionHost_ArgChecks()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(null, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker()));
-            Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(this.serviceProvider, null, new ConfigurableActiveSolutionTracker()));
-            Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(this.serviceProvider, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), null));
-            Exceptions.Expect<ArgumentNullException>(() => new VsSessionHost(this.serviceProvider, null, null, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker(), null));
+            // Arrange + Act
+            Action act = () => new VsSessionHost(null, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider),
+                new ConfigurableActiveSolutionTracker());
 
-            using (var host = new VsSessionHost(this.serviceProvider,
-                                                new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider),
-                                                new ConfigurableActiveSolutionTracker()))
-            {
-                Assert.IsNotNull(host, "Not expecting this to fail, just to make the static analyzer happy");
-            }
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void VsSessionHost_SetActiveSection()
+        [Fact]
+        public void Ctor_WithNullSQServiceWrapper_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange + Act
+            Action act = () => new VsSessionHost(this.serviceProvider, null, new ConfigurableActiveSolutionTracker());
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+
+        [Fact]
+        public void VsSessionHost_ArgChecksCtor_WithNullActiveSolutionTracker_ThrowsArgumentNullException()
+        {
+            // Arrange + Act
+            Action act = () => new VsSessionHost(this.serviceProvider, new SonarQubeServiceWrapper(this.serviceProvider), null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void SetActiveSection_WithNullSectionController_ThrowsArgumentNullException()
+        {
+            // Arrange
             VsSessionHost testSubject = this.CreateTestSubject(null);
 
-            // Case 1: Invalid args
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetActiveSection(null));
+            // Act
+            Action act = () => testSubject.SetActiveSection(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void VsSessionHost_SetActiveSection()
+        {
+            // Arrange
+            VsSessionHost testSubject = this.CreateTestSubject(null);
 
             // Case 2: Valid args
             var section1 = ConfigurableSectionController.CreateDefault();
@@ -93,40 +118,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Act (set section1)
             testSubject.SetActiveSection(section1);
-            Assert.IsFalse(refresh1Called, "Refresh should only be called when bound project was found");
-            Assert.IsFalse(refresh2Called, "Refresh should only be called when bound project was found");
+            refresh1Called.Should().BeFalse("Refresh should only be called when bound project was found");
+            refresh2Called.Should().BeFalse("Refresh should only be called when bound project was found");
 
-            // Verify
-            Assert.AreSame(section1, testSubject.ActiveSection);
+            // Assert
+            testSubject.ActiveSection.Should().BeSameAs(section1);
 
             // Act (set section2)
             testSubject.ClearActiveSection();
             testSubject.SetActiveSection(section2);
 
-            // Verify
-            Assert.AreSame(section2, testSubject.ActiveSection);
-            Assert.IsFalse(refresh1Called, "Refresh should only be called when bound project was found");
-            Assert.IsFalse(refresh2Called, "Refresh should only be called when bound project was found");
+            // Assert
+            testSubject.ActiveSection.Should().BeSameAs(section2);
+            refresh1Called.Should().BeFalse("Refresh should only be called when bound project was found");
+            refresh2Called.Should().BeFalse("Refresh should only be called when bound project was found");
         }
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_SetActiveSection_TransferState()
         {
-            // Setup
+            // Arrange
             VsSessionHost testSubject = this.CreateTestSubject(null);
             ISectionController section = ConfigurableSectionController.CreateDefault();
 
             // Act
             testSubject.SetActiveSection(section);
 
-            // Verify
-            Assert.AreSame(stateManager.ManagedState, testSubject.ActiveSection.ViewModel.State);
+            // Assert
+            testSubject.ActiveSection.ViewModel.State
+                .Should().BeSameAs(stateManager.ManagedState);
         }
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_SetActiveSection_ChangeHost()
         {
-            // Setup
+            // Arrange
             VsSessionHost testSubject = this.CreateTestSubject(null);
             ISectionController section = ConfigurableSectionController.CreateDefault();
 
@@ -136,14 +162,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             testSubject.SetActiveSection(section);
 
-            // Verify
+            // Assert
             this.stepRunner.AssertCurrentHost(section.ProgressHost);
         }
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_ClearActiveSection_ClearState()
         {
-            // Setup
+            // Arrange
             VsSessionHost testSubject = this.CreateTestSubject(null);
             ISectionController section = ConfigurableSectionController.CreateDefault();
             testSubject.SetActiveSection(section);
@@ -151,15 +177,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             testSubject.ClearActiveSection();
 
-            // Verify
-            Assert.IsNull(testSubject.ActiveSection);
-            Assert.IsNull(section.ViewModel.State);
+            // Assert
+            testSubject.ActiveSection.Should().BeNull();
+            section.ViewModel.State.Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_ActiveSectionChangedEvent()
         {
-            // Setup
+            // Arrange
             VsSessionHost testSubject = this.CreateTestSubject(null);
             ISectionController section = ConfigurableSectionController.CreateDefault();
             ISectionController otherSection = ConfigurableSectionController.CreateDefault();
@@ -169,38 +195,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act (1st set)
             testSubject.SetActiveSection(section);
 
-            // Verify
-            Assert.AreEqual(1, changed, "ActiveSectionChanged event was expected to fire");
+            // Assert
+            changed.Should().Be(1, "ActiveSectionChanged event was expected to fire");
 
             // Act (clear)
             testSubject.ClearActiveSection();
 
-            // Verify
-            Assert.AreEqual(2, changed, "ActiveSectionChanged event was expected to fire");
+            // Assert
+            changed.Should().Be(2, "ActiveSectionChanged event was expected to fire");
 
             // Act (2nd set)
             testSubject.SetActiveSection(otherSection);
 
-            // Verify
-            Assert.AreEqual(3, changed, "ActiveSectionChanged event was expected to fire");
+            // Assert
+            changed.Should().Be(3, "ActiveSectionChanged event was expected to fire");
 
             // Act (clear)
             testSubject.ClearActiveSection();
 
-            // Verify
-            Assert.AreEqual(4, changed, "ActiveSectionChanged event was expected to fire");
+            // Assert
+            changed.Should().Be(4, "ActiveSectionChanged event was expected to fire");
 
             // Act (clear again)
             testSubject.ClearActiveSection();
 
-            // Verify
-            Assert.AreEqual(4, changed, "ActiveSectionChanged event was not expected to fire, since already cleared");
+            // Assert
+            changed.Should().Be(4, "ActiveSectionChanged event was not expected to fire, since already cleared");
         }
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_SyncCommandFromActiveSectionDuringActiveSectionChanges()
         {
-            // Setup
+            // Arrange
             VsSessionHost testSubject = this.CreateTestSubject(null);
             ISectionController section = ConfigurableSectionController.CreateDefault();
             int syncCalled = 0;
@@ -212,8 +238,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             testSubject.SetActiveSection(section);
 
-            // Verify
-            Assert.AreEqual(1, syncCalled, "SyncCommandFromActiveSection wasn't called during section activation");
+            // Assert
+            syncCalled.Should().Be(1, "SyncCommandFromActiveSection wasn't called during section activation");
 
             // Case 2: ClearActiveSection section
             this.stateManager.ExpectActiveSection = false;
@@ -221,14 +247,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             testSubject.ClearActiveSection();
 
-            // Verify
-            Assert.AreEqual(2, syncCalled, "SyncCommandFromActiveSection wasn't called during section deactivation");
+            // Assert
+            syncCalled.Should().Be(2, "SyncCommandFromActiveSection wasn't called during section deactivation");
         }
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_ResetBinding_NoOpenSolutionScenario()
         {
-            // Setup
+            // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             this.CreateTestSubject(tracker);
             // Previous binding information that should be cleared once there's no solution
@@ -243,16 +269,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             tracker.SimulateActiveSolutionChanged();
 
-            // Verify
+            // Assert
             this.stepRunner.AssertAbortAllCalled(1);
             this.stateManager.AssertNoBoundProject();
-            Assert.IsNull(this.stateManager.BoundProjectKey, "Expecting the key to be reset to null");
+            this.stateManager.BoundProjectKey.Should().BeNull( "Expecting the key to be reset to null");
         }
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_ResetBinding_BoundSolutionWithNoActiveSectionScenario()
         {
-            // Setup
+            // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new Integration.Service.ProjectInformation { Key = "bla" };
@@ -266,10 +292,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act (simulate solution opened event)
             tracker.SimulateActiveSolutionChanged();
 
-            // Verify that nothing has changed (should defer all the work to when the section is connected)
+            // Assert that nothing has changed (should defer all the work to when the section is connected)
             this.stepRunner.AssertAbortAllCalled(1);
             this.stateManager.AssertBoundProject(boundProject);
-            Assert.IsNull(this.stateManager.BoundProjectKey, "The key should only be set when there's active section to allow marking it once fetched all the projects");
+            this.stateManager.BoundProjectKey.Should().BeNull( "The key should only be set when there's active section to allow marking it once fetched all the projects");
 
             // Act (set active section)
             var section = ConfigurableSectionController.CreateDefault();
@@ -277,17 +303,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             section.RefreshCommand = new RelayCommand(() => refreshCalled = true);
             testSubject.SetActiveSection(section);
 
-            // Verify (section has refreshed, no further aborts were required)
+            // Assert (section has refreshed, no further aborts were required)
             this.stepRunner.AssertAbortAllCalled(1);
-            Assert.AreEqual(boundProject.Key, this.stateManager.BoundProjectKey, "Key was not set, will not be able to mark project as bound after refresh");
+            boundProject.Key.Should().Be( this.stateManager.BoundProjectKey, "Key was not set, will not be able to mark project as bound after refresh");
             this.stateManager.AssertBoundProject(boundProject);
-            Assert.IsTrue(refreshCalled, "Expected the refresh command to be called");
+            refreshCalled.Should().BeTrue( "Expected the refresh command to be called");
         }
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_ResetBinding_BoundSolutionWithActiveSectionScenario()
         {
-            // Setup
+            // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new Integration.Service.ProjectInformation { Key = "bla" };
@@ -305,17 +331,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act (simulate solution opened event)
             tracker.SimulateActiveSolutionChanged();
 
-            // Verify
+            // Assert
             this.stepRunner.AssertAbortAllCalled(1);
-            Assert.AreEqual(boundProject.Key, this.stateManager.BoundProjectKey, "Key was not set, will not be able to mark project as bound after refresh");
+            boundProject.Key.Should().Be( this.stateManager.BoundProjectKey, "Key was not set, will not be able to mark project as bound after refresh");
             this.stateManager.AssertBoundProject(boundProject);
-            Assert.IsTrue(refreshCalled, "Expected the refresh command to be called");
+            refreshCalled.Should().BeTrue( "Expected the refresh command to be called");
         }
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_ResetBinding_ErrorInReadingSolutionBinding()
         {
-            // Setup
+            // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new Integration.Service.ProjectInformation { Key = "bla" };
@@ -337,38 +363,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 tracker.SimulateActiveSolutionChanged();
             }
 
-            // Verify
+            // Assert
             this.stateManager.AssertNoBoundProject();
         }
 
 
-        [TestMethod]
+        [Fact]
         public void VsSessionHost_IServiceProvider_GetService()
         {
-            // Setup
+            // Arrange
             var testSubject = new VsSessionHost(this.serviceProvider, new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider), new ConfigurableActiveSolutionTracker());
             ConfigurableVsShell shell = new ConfigurableVsShell();
-            shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
+            shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => TestHelper.GetDeploymentDirectory());
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);
 
             // Local services
-            // Act + Verify
+            // Act + Assert
             foreach (Type serviceType in VsSessionHost.SupportedLocalServices)
             {
-                Assert.IsNotNull(testSubject.GetService(serviceType));
+                testSubject.GetService(serviceType).Should().NotBeNull();
             }
 
-            Assert.AreSame(testSubject.GetService<IFileSystem>(), testSubject.GetService<ISourceControlledFileSystem>());
+            testSubject.GetService<ISourceControlledFileSystem>()
+                .Should().BeSameAs(testSubject.GetService<IFileSystem>());
 
             // VS-services
             // Sanity
-            Assert.IsNull(testSubject.GetService(typeof(VsSessionHostTests)), "Not expecting any service at this point");
+            testSubject.GetService(typeof(VsSessionHostTests)).Should().BeNull( "Not expecting any service at this point");
 
-            // Setup
+            // Arrange
             this.serviceProvider.RegisterService(typeof(VsSessionHostTests), this);
 
-            // Act + Verify
-            Assert.AreSame(this, testSubject.GetService(typeof(VsSessionHostTests)), "Unexpected service was returned, expected to use the service provider");
+            // Act + Assert
+            testSubject.GetService(typeof(VsSessionHostTests))
+                .Should().BeSameAs(this, "Unexpected service was returned, expected to use the service provider");
         }
         #endregion
 

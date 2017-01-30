@@ -15,28 +15,29 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using Xunit;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Windows;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
-    [TestClass]
     public class ProjectViewModelVisibilityConverterTests
     {
-        [ExpectedException(typeof(NotSupportedException))]
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_ConvertBack_ThrowsNotSupportedException()
         {
             // Arrange
             var converter = new ProjectViewModelVisibilityConverter();
 
             // Act & Assert
-            converter.ConvertBack(null, null, null, null);
+            Action act = () => converter.ConvertBack(null, null, null, null);
+
+            act.ShouldThrow<NotSupportedException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenGivenANullValue_ExpectsDependencyProperyUnsetValue()
         {
             // Arrange
@@ -46,10 +47,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(null, null, null, null);
 
             // Assert
-            Assert.AreEqual(result, DependencyProperty.UnsetValue);
+            result.Should().Be(DependencyProperty.UnsetValue);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenNotGivenFourValues_ExpectsDependencyProperyUnsetValue()
         {
             // Arrange
@@ -63,14 +64,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result5 = converter.Convert(new object[5], null, null, null);
 
             // Assert
-            Assert.AreEqual(result0, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result3, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result5, DependencyProperty.UnsetValue);
+            result0.Should().Be(DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
+            result3.Should().Be(DependencyProperty.UnsetValue);
+            result5.Should().Be(DependencyProperty.UnsetValue);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenGivenFourValuesButFirstValueIsNotStringOrIsNull_ExpectsDependencyProperyUnsetValue()
         {
             // Arrange
@@ -84,11 +85,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result2 = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenGivenFourValuesButSecondValueIsNotBoolOrIsNull_ExpectsDependencyProperyUnsetValue()
         {
             // Arrange
@@ -103,11 +104,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result2 = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenGivenFourValuesButThirdValueIsNotBoolOrIsNull_ExpectsDependencyProperyUnsetValue()
         {
             // Arrange
@@ -123,11 +124,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result2 = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenGivenFourValuesButFourthValueIsNotStringOrIsNull_ExpectsDependencyProperyUnsetValue()
         {
             // Arrange
@@ -144,11 +145,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result2 = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenShowAllProjectsIsTrueAndProjectNameContainsFilterText_ReturnsVisible()
         {
             // Arrange
@@ -163,11 +164,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Visible);
+            result.Should().BeAssignableTo<Visibility>();
+            result.Should().Be(Visibility.Visible);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenShowAllProjectsIsTrueAndProjectNameDoesNotContainFilterText_ReturnsCollapsed()
         {
             // Arrange
@@ -182,11 +183,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Collapsed);
+            result.Should().BeAssignableTo<Visibility>();
+            result.Should().Be(Visibility.Collapsed);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenShowAllProjectsIsFalseAndIsBoundIsTrue_ReturnsVisible()
         {
             // Arrange
@@ -201,11 +202,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Visible);
+            result.Should().BeAssignableTo<Visibility>();
+            result.Should().Be(Visibility.Visible);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModelVisibilityConverter_Convert_WhenShowAllProjectsIsFalseAndIsBoundIsFalse_ReturnsCollapsed()
         {
             // Arrange
@@ -220,8 +221,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Collapsed);
+            result.Should().BeAssignableTo<Visibility>();
+            result.Should().Be(Visibility.Collapsed);
         }
     }
 }

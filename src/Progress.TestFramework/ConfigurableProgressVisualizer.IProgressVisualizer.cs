@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Progress.Observation;
 using SonarLint.VisualStudio.Progress.Observation.ViewModels;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             if (this.ThrowIfAccessedNotFromUIThread)
             {
-                Assert.IsTrue(ThreadHelper.CheckAccess(), "Wasn't called on the UI thread");
+                ThreadHelper.CheckAccess().Should().BeTrue("wasn't called on the UI thread");
             }
         }
     }

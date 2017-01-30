@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
@@ -27,10 +27,13 @@ using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.Globalization;
 using System.Windows.Threading;
+using Xunit;
+using System.Threading.Tasks;
+using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
-    [TestClass]
+
     public class ConnectControllerTests
     {
         private ConfigurableHost host;
@@ -41,8 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableIntegrationSettings settings;
 
-        [TestInitialize]
-        public void TestInit()
+        public ConnectControllerTests()
         {
             this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
             this.connectionWorkflow = new ConfigurableConnectionWorkflow(this.sonarQubeService);
@@ -61,78 +63,86 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         #region  Tests
-        [TestMethod]
-        public void ConnectionController_Ctor_ArgumentChecks()
+        [Fact]
+        public void Ctor_WithNullhost_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(null));
+            // Arrange + Act
+            Action act = () => new ConnectionController(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectionController_DefaultState()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConnectionController(this.host);
 
-            // Verify
-            Assert.IsNotNull(testSubject.ConnectCommand, "Connected command should not be null");
-            Assert.IsNotNull(testSubject.DontWarnAgainCommand, "DontWarnAgain command should not be null");
-            Assert.IsNotNull(testSubject.RefreshCommand, "Refresh command should not be null");
-            Assert.IsNotNull(testSubject.WorkflowExecutor, "Need to be able to execute the workflow");
-            Assert.IsFalse(testSubject.IsConnectionInProgress, "Connection is not in progress");
+            // Assert
+            testSubject.ConnectCommand.Should().NotBeNull("Connected command should not be null");
+            testSubject.DontWarnAgainCommand.Should().NotBeNull("DontWarnAgain command should not be null");
+            testSubject.RefreshCommand.Should().NotBeNull("Refresh command should not be null");
+            testSubject.WorkflowExecutor.Should().NotBeNull("Need to be able to execute the workflow");
+            testSubject.IsConnectionInProgress
+                .Should().BeFalse("Connection is not in progress");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectionController_ConnectCommand_Status()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConnectionController(this.host);
 
             // Case 1: has connection, is busy
             this.host.TestStateManager.IsConnected = true;
             this.host.VisualStateManager.IsBusy = true;
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Connected already and busy");
+            // Act + Assert
+            testSubject.ConnectCommand.CanExecute()
+                .Should().BeFalse("Connected already and busy");
 
             // Case 2: has connection, not busy
             this.host.VisualStateManager.IsBusy = false;
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Connected already");
+            // Act + Assert
+            testSubject.ConnectCommand.CanExecute()
+                .Should().BeFalse("Connected already");
 
             // Case 3: no connection, is busy
             this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = true;
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Busy");
+            // Act + Assert
+            testSubject.ConnectCommand.CanExecute()
+                .Should().BeFalse("Busy");
 
             // Case 4: no connection, not busy
             this.host.VisualStateManager.IsBusy = false;
 
-            // Act + Verify
-            Assert.IsTrue(testSubject.ConnectCommand.CanExecute(), "No connection and not busy");
+            // Act + Assert
+            testSubject.ConnectCommand.CanExecute().Should().BeTrue("No connection and not busy");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectionController_ConnectCommand_Execution()
         {
-            // Setup
+            // Arrange
             ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
 
             // Case 1: connection provider return null connection
             this.connectionProvider.ConnectionInformationToReturn = null;
 
             // Sanity
-            Assert.IsTrue(testSubject.ConnectCommand.CanExecute(), "Should be possible to execute");
+            testSubject.ConnectCommand.CanExecute().Should().BeTrue("Should be possible to execute");
 
             // Sanity
-            Assert.IsNull(testSubject.LastAttemptedConnection, "No previous attempts to connect");
+            testSubject.LastAttemptedConnection.Should().BeNull("No previous attempts to connect");
 
             // Act
             testSubject.ConnectCommand.Execute();
 
-            // Verify
+            // Assert
             this.connectionWorkflow.AssertEstablishConnectionCalled(0);
             this.sonarQubeService.AssertConnectRequests(0);
 
@@ -141,12 +151,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.connectionProvider.ConnectionInformationToReturn = expectedConnection;
             this.sonarQubeService.ExpectedConnection = expectedConnection;
             // Sanity
-            Assert.IsNull(testSubject.LastAttemptedConnection, "Previous attempt returned null");
+            testSubject.LastAttemptedConnection.Should().BeNull("Previous attempt returned null");
 
             // Act
             testSubject.ConnectCommand.Execute();
 
-            // Verify
+            // Assert
             this.connectionWorkflow.AssertEstablishConnectionCalled(1);
             this.sonarQubeService.AssertConnectRequests(1);
 
@@ -156,16 +166,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.TestStateManager.IsConnected = true;
 
             // Sanity
-            Assert.AreEqual(existingConnection, testSubject.LastAttemptedConnection, "Unexpected last attempted connection");
+            testSubject.LastAttemptedConnection
+                .Should().Be(existingConnection, "Unexpected last attempted connection");
 
-            // Verify
-            Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Should not be able to connect if an existing connecting is present");
+            // Assert
+            testSubject.ConnectCommand.CanExecute()
+                .Should().BeFalse("Should not be able to connect if an existing connecting is present");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectionController_RefreshCommand_Status()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConnectionController(this.host);
             var connection = new ConnectionInformation(new Uri("http://connection"));
 
@@ -173,74 +185,80 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.TestStateManager.IsConnected = true;
             this.host.VisualStateManager.IsBusy = true;
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.RefreshCommand.CanExecute(null), "Busy");
+            // Act + Assert
+            testSubject.RefreshCommand.CanExecute(null)
+                .Should().BeFalse("Busy");
 
             // Case 2: no connection, not busy, no connection argument
             this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = false;
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.RefreshCommand.CanExecute(null), "Nothing to refresh");
+            // Act + Assert
+            testSubject.RefreshCommand.CanExecute(null)
+                .Should().BeFalse("Nothing to refresh");
 
             // Case 3: no connection, is busy, has connection argument
             this.host.VisualStateManager.IsBusy = true;
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.RefreshCommand.CanExecute(connection), "Busy");
+            // Act + Assert
+            testSubject.RefreshCommand.CanExecute(connection)
+                .Should().BeFalse("Busy");
 
             // Case 4: no connection, not busy, has connection argument
             this.host.VisualStateManager.IsBusy = false;
 
-            // Act + Verify
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connection), "Has connection argument and not busy");
+            // Act + Assert
+            testSubject.RefreshCommand.CanExecute(connection).Should().BeTrue("Has connection argument and not busy");
 
             // Case 5: has connection, not busy, no connection argument
             this.host.TestStateManager.IsConnected = true;
-            // Act + Verify
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(null), "Has connection and not busy");
+            // Act + Assert
+            testSubject.RefreshCommand.CanExecute(null).Should().BeTrue("Has connection and not busy");
 
             // Case 6: has connection, not busy, connection argument the same as the existing connection
-            // Act + Verify
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connection), "Has connection and not busy");
+            // Act + Assert
+            testSubject.RefreshCommand.CanExecute(connection).Should().BeTrue("Has connection and not busy");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectionController_RefreshCommand_Execution()
         {
-            // Setup
+            // Arrange
             ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
             this.connectionProvider.ConnectionInformationToReturn = new ConnectionInformation(new Uri("http://notExpected"));
             var connection = new ConnectionInformation(new Uri("http://Expected"));
             this.sonarQubeService.ExpectedConnection = connection;
             // Sanity
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connection), "Should be possible to execute");
+            testSubject.RefreshCommand.CanExecute(connection).Should().BeTrue("Should be possible to execute");
 
             // Sanity
-            Assert.IsNull(testSubject.LastAttemptedConnection, "No previous attempts to connect");
+            testSubject.LastAttemptedConnection
+                .Should().BeNull("No previous attempts to connect");
 
             // Act
             testSubject.RefreshCommand.Execute(connection);
 
-            // Verify
+            // Assert
             this.connectionWorkflow.AssertEstablishConnectionCalled(1);
             this.sonarQubeService.AssertConnectRequests(1);
-            Assert.AreEqual(connection.ServerUri, testSubject.LastAttemptedConnection.ServerUri, "Unexpected last attempted connection");
-            Assert.AreNotSame(connection, testSubject.LastAttemptedConnection, "LastAttemptedConnection should be a clone");
+            testSubject.LastAttemptedConnection.ServerUri
+                .Should().Be(connection.ServerUri, "Unexpected last attempted connection");
+            testSubject.LastAttemptedConnection
+                .Should().NotBe(connection, "LastAttemptedConnection should be a clone");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectionController_SetConnectionInProgress()
         {
-            // Setup
+            // Arrange
             ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
             this.connectionProvider.ConnectionInformationToReturn = null;
             var progressEvents = new ConfigurableProgressEvents();
             var connectionInfo = new ConnectionInformation(new Uri("http://refreshConnection"));
 
             // Sanity
-            Assert.IsTrue(testSubject.ConnectCommand.CanExecute());
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connectionInfo));
+            testSubject.ConnectCommand.CanExecute().Should().BeTrue();
+            testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeTrue();
 
             foreach (var controllerResult in (ProgressControllerResult[])Enum.GetValues(typeof(ProgressControllerResult)))
             {
@@ -249,128 +267,144 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 // Act - disable
                 testSubject.SetConnectionInProgress(progressEvents);
 
-                // Verify
-                Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Connection is in progress so should not be enabled");
-                Assert.IsFalse(testSubject.RefreshCommand.CanExecute(connectionInfo), "Connection is in progress so should not be enabled");
+                // Assert
+                testSubject.ConnectCommand.CanExecute()
+                    .Should().BeFalse("Connection is in progress so should not be enabled");
+                testSubject.RefreshCommand.CanExecute(connectionInfo)
+                    .Should().BeFalse("Connection is in progress so should not be enabled");
                 this.outputWindowPane.AssertOutputStrings(0);
 
                 // Act - log progress
                 string message = controllerResult.ToString();
                 progressEvents.SimulateStepExecutionChanged(message, double.NaN);
 
-                // Verify prefix
+                // Assert prefix
                 this.outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.ConnectingToSonarQubePrefixMessageFormat, message));
 
                 // Act - finish
                 progressEvents.SimulateFinished(controllerResult);
 
-                // Verify
-                Assert.IsTrue(testSubject.ConnectCommand.CanExecute(), "Connection is finished with result: {0}", controllerResult);
-                Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connectionInfo), "Connection is finished with result: {0}", controllerResult);
+                // Assert
+                testSubject.ConnectCommand.CanExecute().Should().BeTrue("Connection is finished with result: {0}", controllerResult);
+                testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeTrue("Connection is finished with result: {0}", controllerResult);
             }
         }
 
-        [TestMethod]
-        public void ConnectionController_ShowNuGetWarning()
+        [Fact]
+        public async Task ConnectionController_ShowNuGetWarning()
         {
-            // Setup
-            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
-            this.connectionProvider.ConnectionInformationToReturn = null;
-            var progressEvents = new ConfigurableProgressEvents();
+            await TestHelper.StartSTATask(() =>
+            {
+                // Arrange
+                ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
+                this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
+                ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
+                this.connectionProvider.ConnectionInformationToReturn = null;
+                var progressEvents = new ConfigurableProgressEvents();
 
-            // Case 1: do NOT show
-            // Setup
-            this.settings.ShowServerNuGetTrustWarning = false;
+                // Case 1: do NOT show
+                // Arrange
+                this.settings.ShowServerNuGetTrustWarning = false;
 
-            // Act
-            testSubject.SetConnectionInProgress(progressEvents);
-            progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
+                // Act
+                testSubject.SetConnectionInProgress(progressEvents);
+                progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
-            // Verify
-            notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
+                // Assert
+                notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
 
-            // Case 2: show, but canceled
-            // Setup
-            this.settings.ShowServerNuGetTrustWarning = false;
+                // Case 2: show, but canceled
+                // Arrange
+                this.settings.ShowServerNuGetTrustWarning = false;
 
-            // Act
-            testSubject.SetConnectionInProgress(progressEvents);
-            progressEvents.SimulateFinished(ProgressControllerResult.Cancelled);
+                // Act
+                testSubject.SetConnectionInProgress(progressEvents);
+                progressEvents.SimulateFinished(ProgressControllerResult.Cancelled);
 
-            // Verify
-            notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
+                // Assert
+                notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
 
 
-            // Case 3: show, but failed
-            // Setup
-            this.settings.ShowServerNuGetTrustWarning = false;
+                // Case 3: show, but failed
+                // Arrange
+                this.settings.ShowServerNuGetTrustWarning = false;
 
-            // Act
-            testSubject.SetConnectionInProgress(progressEvents);
-            progressEvents.SimulateFinished(ProgressControllerResult.Failed);
+                // Act
+                testSubject.SetConnectionInProgress(progressEvents);
+                progressEvents.SimulateFinished(ProgressControllerResult.Failed);
 
-            // Verify
-            notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
+                // Assert
+                notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
 
-            // Test Case 4: show, succeeded
-            // Setup
-            this.settings.ShowServerNuGetTrustWarning = true;
+                // Test Case 4: show, succeeded
+                // Arrange
+                this.settings.ShowServerNuGetTrustWarning = true;
 
-            // Act
-            testSubject.SetConnectionInProgress(progressEvents);
-            progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
+                // Act
+                testSubject.SetConnectionInProgress(progressEvents);
+                progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
-            // Verify
-            notifications.AssertNotification(NotificationIds.WarnServerTrustId, Strings.ServerNuGetTrustWarningMessage);
+                // Assert
+                notifications.AssertNotification(NotificationIds.WarnServerTrustId, Strings.ServerNuGetTrustWarningMessage);
+            });
         }
 
-        [TestMethod]
-        public void ConnectionController_DontWarnAgainCommand_Execution()
+        [Fact]
+        public async Task ConnectionController_DontWarnAgainCommand_Execution()
         {
-            // Setup
-            var testSubject = new ConnectionController(this.host);
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.settings.ShowServerNuGetTrustWarning = true;
-            this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
+            await TestHelper.StartSTATask(() =>
+            {
+                // Arrange
+                var testSubject = new ConnectionController(this.host);
+                this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
+                this.settings.ShowServerNuGetTrustWarning = true;
+                this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
 
-            // Sanity
-            Assert.IsTrue(testSubject.DontWarnAgainCommand.CanExecute());
+                // Sanity
+                testSubject.DontWarnAgainCommand.CanExecute().Should().BeTrue();
 
-            // Act
-            testSubject.DontWarnAgainCommand.Execute();
+                // Act
+                testSubject.DontWarnAgainCommand.Execute();
 
-            // Verify
-            Assert.IsFalse(this.settings.ShowServerNuGetTrustWarning, "Expected show warning settings to be false");
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.WarnServerTrustId);
+                // Assert
+                this.settings.ShowServerNuGetTrustWarning
+                    .Should().BeFalse("Expected show warning settings to be false");
+                ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.WarnServerTrustId);
+            });
         }
 
-        [TestMethod]
-        public void ConnectionController_DontWarnAgainCommand_Status_NoIIntegrationSettings()
+        [Fact]
+        public async Task ConnectionController_DontWarnAgainCommand_Status_NoIIntegrationSettings()
         {
-            // Setup
-            this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel(), replaceExisting: true);
-            var testSubject = new ConnectionController(this.host);
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.settings.ShowServerNuGetTrustWarning = true;
-            this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
+            await TestHelper.StartSTATask(() =>
+            {
+                // Arrange
+                this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel(), replaceExisting: true);
+                var testSubject = new ConnectionController(this.host);
+                this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
+                this.settings.ShowServerNuGetTrustWarning = true;
+                this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.DontWarnAgainCommand.CanExecute());
+                // Act + Assert
+                testSubject.DontWarnAgainCommand.CanExecute()
+                    .Should().BeFalse();
+            });
         }
 
-        [TestMethod]
-        public void ConnectionController_DontWarnAgainCommand_Status()
+        [Fact]
+        public async Task ConnectionController_DontWarnAgainCommand_Status()
         {
-            // Setup
-            var testSubject = new ConnectionController(this.host);
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.settings.ShowServerNuGetTrustWarning = true;
-            this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
+            await TestHelper.StartSTATask(() =>
+            {
+                // Arrange
+                var testSubject = new ConnectionController(this.host);
+                this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
+                this.settings.ShowServerNuGetTrustWarning = true;
+                this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
 
-            // Act + Verify
-            Assert.IsTrue(testSubject.DontWarnAgainCommand.CanExecute());
+                // Act + Assert
+                testSubject.DontWarnAgainCommand.CanExecute().Should().BeTrue();
+            });
         }
 
         #endregion

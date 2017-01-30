@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;
+using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System.Windows.Input;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

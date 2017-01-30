@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -82,75 +83,59 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertFileExists(string file)
         {
-            Assert.IsTrue(this.files.ContainsKey(file), "File not exists: " + file);
+            this.files.Should().ContainKey(file);
         }
 
         public void AssertFileNotExists(string file)
         {
-            Assert.IsFalse(this.files.ContainsKey(file), "File exists: " + file);
+            this.files.Should().NotContainKey(file);
         }
 
         public void AssertDirectoryExists(string dir)
         {
-            Assert.IsTrue(this.directories.Contains(dir), "Directory not exists: " + dir);
+            this.directories.Should().Contain(dir);
         }
 
         public void AssertDirectoryNotExists(string dir)
         {
-            Assert.IsFalse(this.directories.Contains(dir), "Directory exists: " + dir);
+            this.directories.Should().NotContain(dir);
         }
 
         public void AssertFileTimestampBefore(string file, long timestamp)
         {
             long current;
-            if (this.files.TryGetValue(file, out current))
-            {
-                Assert.IsTrue(timestamp < current, $"Expected {timestamp} < {current}");
-            }
-            else
-            {
-                Assert.Fail("File not found " + file);
-            }
+            var success = this.files.TryGetValue(file, out current);
+
+            success.Should().BeTrue("File not found " + file);
+            current.Should().BeGreaterThan(timestamp);
         }
 
         public void AssertFileTimestampAfter(string file, long timestamp)
         {
             long current;
-            if (this.files.TryGetValue(file, out current))
-            {
-                Assert.IsTrue(timestamp > current, $"Expected {timestamp} > {current}");
-            }
-            else
-            {
-                Assert.Fail("File not found " + file);
-            }
+            var success = this.files.TryGetValue(file, out current);
+
+            success.Should().BeTrue("File not found " + file);
+            current.Should().BeLessThan(timestamp);
         }
 
         public long GetFileTimestamp(string file)
         {
             long current;
-            if (this.files.TryGetValue(file, out current))
-            {
-                return current;
-            }
-            else
-            {
-                Assert.Fail("File not found " + file);
-                return -1;
-            }
+            var success = this.files.TryGetValue(file, out current);
+
+            success.Should().BeTrue("File not found " + file);
+
+            return current;
         }
 
         public void AssertFileTimestamp(string file, long timestamp)
         {
             long current;
-            if (this.files.TryGetValue(file, out current))
-            {
-                Assert.AreEqual(timestamp, current, $"Expected {timestamp} == {current}");
-            }
-            else
-            {
-                Assert.Fail("File not found " + file);
-            }
+            var success = this.files.TryGetValue(file, out current);
+
+            success.Should().BeTrue("File not found " + file);
+            current.Should().Be(timestamp);
         }
         #endregion
     }

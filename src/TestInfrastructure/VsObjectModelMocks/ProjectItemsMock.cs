@@ -16,11 +16,13 @@
  */
 
 using EnvDTE;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -39,10 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.items.AddRange(items);
         }
 
-        public ProjectMock Project
-        {
-            get;
-        }
+        public ProjectMock Project { get; }
 
         #region ProjectItems
         Project ProjectItems.ContainingProject
@@ -97,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         ProjectItem ProjectItems.AddFromFile(string FileName)
         {
-            Assert.IsFalse(this.items.Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, FileName)), "File already exists in project items");
+            this.items.Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, FileName)).Should().BeFalse("File already exists in project items");
 
             this.Project.AddOrGetFile(FileName);
             FileProjectItemMock fileItem = new FileProjectItemMock(this, FileName);

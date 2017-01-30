@@ -15,20 +15,23 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {
-    [TestClass]
     public class WorkspaceConfiguratorTests
     {
-        [TestMethod]
-        public void Ctor_WhenGivingNullWorkspace_ThrowsArgumentNullException()
+        [Fact]
+        public void Ctor_WithNullWorkspace_ThrowsArgumentNullException()
         {
-            // Arrange, Act & Assert
-            Exceptions.Expect<ArgumentNullException>(() => new WorkspaceConfigurator(null));
+            // Arrange + Act
+            Action act = () => new WorkspaceConfigurator(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
     }
 }

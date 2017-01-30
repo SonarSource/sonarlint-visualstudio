@@ -21,6 +21,7 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -83,10 +84,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         /// <param name="importer">The instance that is importing values</param>
         /// <param name="optionalExports">Any optional exports to include in the composition.</param>
         /// <param name="requiredExports">Any exports required by TTypeToCheck. Optional.</param>
-        public static void CheckTypeCanBeImported<TTypeToCheck, TImportType>(
-            object importer,
-            IEnumerable<Export> optionalExports,
-            IEnumerable<Export> requiredExports)
+        public static void CheckTypeCanBeImported<TTypeToCheck, TImportType>(object importer,
+            IEnumerable<Export> optionalExports, IEnumerable<Export> requiredExports)
             where TImportType : class
             where TTypeToCheck : class
         {
@@ -105,7 +104,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             for (int i = 0; i < requiredExports.Count(); i++)
             {
                 // Try importing when not all of the required exports are available -> exception
-                Exceptions.Expect<Exception>(() => TryCompose(importer, catalog, requiredExports.Take(i)));
+                Action act = () => TryCompose(importer, catalog, requiredExports.Take(i));
+                act.ShouldThrow<Exception>();
             }
             for (int i = 0; i < optionalExports.Count(); i++)
             {

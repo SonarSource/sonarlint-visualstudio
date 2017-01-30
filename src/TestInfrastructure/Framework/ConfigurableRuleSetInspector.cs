@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System;
+using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

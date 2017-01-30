@@ -15,22 +15,22 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using System;
 using System.IO;
 using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class RuleSetHelperTests
     {
         #region Tests
-        [TestMethod]
+        [Fact]
         public void RuleSetHelper_RemoveAllIncludesUnderRoot()
         {
-            // Setup
+            // Arrange
             const string slnRoot = @"X:\SolutionDir\";
             string projectRoot = Path.Combine(slnRoot, @"Project\");
             string sonarRoot = Path.Combine(slnRoot, @"Sonar\");
@@ -63,14 +63,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             RuleSetHelper.RemoveAllIncludesUnderRoot(inputRuleSet, sonarRoot);
 
-            // Verify
+            // Assert
             RuleSetAssert.AreEqual(expectedRuleSet, inputRuleSet);
         }
 
-        [TestMethod]
+        [Fact]
         public void RuleSetHelper_FindAllIncludesUnderRoot()
         {
-            // Setup
+            // Arrange
             const string slnRoot = @"X:\SolutionDir\";
             string projectRoot = Path.Combine(slnRoot, @"Project\");
             string sonarRoot = Path.Combine(slnRoot, @"Sonar\");
@@ -98,14 +98,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             RuleSetInclude[] actual = RuleSetHelper.FindAllIncludesUnderRoot(inputRuleSet, sonarRoot).ToArray();
 
-            // Verify
-            CollectionAssert.AreEquivalent(new[] { expected1, expected2 }, actual);
+            // Assert
+            actual.Should().Equal(new[] { expected1, expected2 });
         }
 
-        [TestMethod]
+        [Fact]
         public void RuleSetHelper_UpdateExistingProjectRuleSet()
         {
-            // Setup
+            // Arrange
             const string existingProjectRuleSetPath = @"X:\MySolution\ProjectOne\proj1.ruleset";
             const string existingInclude = @"..\SolutionRuleSets\sonarqube1.ruleset";
 
@@ -121,23 +121,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             RuleSetHelper.UpdateExistingProjectRuleSet(existingProjectRuleSet, newSolutionRuleSetPath);
 
-            // Verify
+            // Assert
             RuleSetAssert.AreEqual(expectedRuleSet, existingProjectRuleSet, "Update should delete previous solution rulesets, and replace them with a new one provide");
         }
 
-        [TestMethod]
-        public void RuleSetHelper_FindInclude_ArgChecks()
+        [Fact]
+        public void FindInclude_WithNullSourceRuleSet_ThrowsArgumentNullException()
         {
+            // Arrange
             RuleSet rs = new RuleSet("Name", @"c:\path.ruleset");
 
-            Exceptions.Expect<ArgumentNullException>(() => RuleSetHelper.FindInclude(null, rs));
-            Exceptions.Expect<ArgumentNullException>(() => RuleSetHelper.FindInclude(rs, null));
+            // Act
+            Action act = () => RuleSetHelper.FindInclude(null, rs);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+
+        [Fact]
+        public void FindInclude_WithNullTargetRuleSet_ThrowsArgumentNullException()
+        {
+            // Arrange
+            RuleSet rs = new RuleSet("Name", @"c:\path.ruleset");
+
+            // Act
+            Action act = () => RuleSetHelper.FindInclude(rs, null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void RuleSetHelper_FindInclude()
         {
-            // Setup
+            // Arrange
             RuleSet target = TestRuleSetHelper.CreateTestRuleSet(@"c:\Solution\SomeFolder\fullFilePath.ruleset");
             RuleSet sourceWithRelativeInclude = TestRuleSetHelper.CreateTestRuleSet(@"c:\fullFilePath.ruleset");
             string relativeInclude = @"Solution\SomeFolder\fullFilePath.ruleset".ToLowerInvariant(); // Catch casing errors
@@ -151,27 +169,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             include = RuleSetHelper.FindInclude(sourceWithRelativeInclude, target);
 
-            // Verify
-            Assert.IsTrue(StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, relativeInclude), $"Unexpected include {include.FilePath} instead of {relativeInclude}");
+            // Assert
+            StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, relativeInclude).Should().BeTrue($"Unexpected include {include.FilePath} instead of {relativeInclude}");
 
             // Case 2: Absolute include
             // Act
             include = RuleSetHelper.FindInclude(sourceWithAbsoluteInclude, target);
 
-            // Verify
-            Assert.IsTrue(StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, absoluteInclude), $"Unexpected include {include.FilePath} instead of {absoluteInclude}");
+            // Assert
+            StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, absoluteInclude).Should().BeTrue($"Unexpected include {include.FilePath} instead of {absoluteInclude}");
 
             // Case 3: No includes at all
             // Act
             include = RuleSetHelper.FindInclude(target, target);
-            // Verify
-            Assert.IsNull(include, "No includes at all");
+            // Assert
+            include.Should().BeNull("No includes at all");
 
             // Case 4: No includes from source to target
             // Act
             include = RuleSetHelper.FindInclude(sourceWithRelativeInclude, sourceWithAbsoluteInclude);
-            // Verify
-            Assert.IsNull(include, "No includes from source to target");
+            // Assert
+            include.Should().BeNull("No includes from source to target");
         }
         #endregion
 

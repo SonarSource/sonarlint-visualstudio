@@ -15,10 +15,9 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -33,17 +32,9 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Customization properties
-        public Action<Exception> NotifyAction
-        {
-            get;
-            set;
-        }
+        public Action<Exception> NotifyAction { get; set; }
 
-        public List<Exception> Exceptions
-        {
-            get;
-            private set;
-        }
+        public List<Exception> Exceptions { get; private set; }
         #endregion
 
         #region Customization and verification methods
@@ -53,25 +44,13 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.NotifyAction = null;
         }
 
-        public void AssertNoExceptions()
-        {
-            Assert.AreEqual(0, this.Exceptions.Count, "Not expecting any errors");
-        }
-
-        public void AssertExcepections(int expectedNumberOfExceptions)
-        {
-            Assert.AreEqual(expectedNumberOfExceptions, this.Exceptions.Count, "Unexpected number of exceptions");
-        }
         #endregion
 
         #region Test implementation of IProgressErrorHandler (not to be used explicitly by the test code)
         void IProgressErrorNotifier.Notify(Exception ex)
         {
             this.Exceptions.Add(ex);
-            if (this.NotifyAction != null)
-            {
-                this.NotifyAction(ex);
-            }
+            this.NotifyAction?.Invoke(ex);
         }
         #endregion
     }

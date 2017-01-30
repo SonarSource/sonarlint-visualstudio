@@ -15,18 +15,18 @@
  * THE SOFTWARE.
  */
 
+
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Observation.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
-    [TestClass]
+
     public class ProgressStepViewModelTests
     {
-        [TestMethod]
-        [Description("Verifies that all the publicly settable properties in ProgressStepViewModel notify changes")]
+        [Fact]
+        
         public void ProgressStepViewModel_AllPublicPropertiesNotifyChanges()
         {
             ProgressStepViewModel model = new ProgressStepViewModel();

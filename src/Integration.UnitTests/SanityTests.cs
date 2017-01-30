@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+ using Xunit;
 using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Linq;
@@ -25,15 +26,13 @@ using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class SanityTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableTelemetryLogger logger;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public SanityTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             var outputWindow = new ConfigurableVsOutputWindow();
@@ -45,23 +44,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConfigurableComponentModel.CreateWithExports(
                     MefTestHelpers.CreateExport<ITelemetryLogger>(this.logger)));
         }
-
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            this.logger.DumpAllToOutput();
-        }
-
-        [TestMethod]
-        [Description("Use the live SQ server to verify that the API we use are still supported."
-            + "The assumptions are:"
-            + "(a) the site is alive "
-            + "(b) the site has the latest version of SQ installed"
-            + "(c) configured for anonymous access"
-            + "(d) the site has at least one project (with associated rules)")]
+        [Fact]
         public void LatestServer_APICompatibility()
         {
-            // Setup the service used to interact with SQ
+            // Arrange the service used to interact with SQ
             var s = new SonarQubeServiceWrapper(this.serviceProvider);
             var connection = new ConnectionInformation(new Uri("https://sonarqube.com"));
 
@@ -70,20 +56,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             RetryAction(() => s.TryGetProjects(connection, CancellationToken.None, out projects),
                                         "Get projects from SonarQube server");
-            Assert.AreNotEqual(0, projects.Length, "No projects were returned");
+            projects.Length.Should().NotBe(0, "No projects were returned");
 
             // Step 2: Get quality profile for the first project
             var project = projects.FirstOrDefault();
             QualityProfile profile = null;
             RetryAction(() => s.TryGetQualityProfile(connection, project, Language.CSharp, CancellationToken.None, out profile),
                                         "Get quality profile from SonarQube server");
-            Assert.IsNotNull(profile, "No quality profile was returned");
+            profile.Should().NotBeNull("No quality profile was returned");
 
             // Step 3: Get quality profile export for the quality profile
             RoslynExportProfile export = null;
             RetryAction(() => s.TryGetExportProfile(connection, profile, Language.CSharp, CancellationToken.None, out export),
                                         "Get quality profile export from SonarQube server");
-            Assert.IsNotNull(export, "No quality profile export was returned");
+            export.Should().NotBeNull("No quality profile export was returned");
 
             // Errors are logged to output window pane and we don't expect any
             this.outputWindowPane.AssertOutputStrings(0);
@@ -103,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
             }
 
-            Assert.Fail("Failed executing the action (with retries): {0}", description);
+            true.Should().BeFalse("Failed executing the action (with retries): {0}", description);
         }
     }
 }

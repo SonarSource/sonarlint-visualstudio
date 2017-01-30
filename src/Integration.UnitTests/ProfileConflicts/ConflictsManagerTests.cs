@@ -15,19 +15,21 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
+
     public class ConflictsManagerTests
     {
         private ConfigurableServiceProvider serviceProvider;
@@ -39,10 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private DTEMock dte;
 
-        public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public void TestInit()
+        public ConflictsManagerTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
 
@@ -50,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectHelper);
 
             this.ruleSetInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider();
-            this.ruleSetInfoProvider.SolutionRootFolder = this.TestContext.TestRunDirectory;
+            this.ruleSetInfoProvider.SolutionRootFolder = TestHelper.GetDeploymentDirectory();
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfoProvider);
 
             this.fileSystem = new ConfigurableFileSystem();
@@ -70,74 +69,76 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
         }
 
-        [TestMethod]
-        public void ConflictsManager_Ctor()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullExceptionConflictsManager_Ctor()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null));
+            // Arrange + Act
+            Action act = () => new ConflictsManager(null);
 
-            var testSubject = new ConflictsManager(this.serviceProvider);
-            Assert.IsNotNull(testSubject, "Avoid code analysis warning when testSubject is unused");
+            // Assert
+
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void ConflictsManager_GetCurrentConflicts_NotBound()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidProjects();
             this.solutionBinding.CurrentBinding = null;
 
-            // Act + Verify
-            Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since solution is not bound");
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since solution is not bound");
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConflictsManager_GetCurrentConflicts_NoValidProjects()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
 
-            // Act + Verify
-            Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since there are no projects");
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since there are no projects");
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConflictsManager_GetCurrentConflicts_MissingBaselineFile()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects();
 
-            // Act + Verify
-            Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since the solution baseline is missing");
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since the solution baseline is missing");
             this.outputWindowPane.AssertOutputStrings(1);
             this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0,
                 words: new[] { Constants.SonarQubeManagedFolderName },
                 splitter: new[] { Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar });
         }
 
-        [TestMethod]
+        [Fact]
         public void ConflictsManager_GetCurrentConflicts_NoRuleSetDeclaration()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects();
             this.SetValidSolutionRuleSetPerProjectKind();
 
-            // Act + Verify
-            Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since there are no project rulesets specified");
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since there are no project rulesets specified");
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConflictsManager_GetCurrentConflicts_NoConflicts()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects();
@@ -151,16 +152,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return new RuleConflictInfo();
             });
 
-            // Act + Verify
-            Assert.AreEqual(0, testSubject.GetCurrentConflicts().Count, "Not expecting any conflicts since there are no conflicts");
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since there are no conflicts");
             this.outputWindowPane.AssertOutputStrings(0);
-            Assert.IsTrue(findConflictsWasCalled);
+            findConflictsWasCalled
+                .Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void ConflictsManager_GetCurrentConflicts_ExceptionDuringFindConflicts()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects(2);
@@ -173,24 +175,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 throw new Exception($"Hello world{findConflictCalls} ");
             });
 
-            // Act + Verify
+            // Act + Assert
             int conflicts = 0;
             using (new AssertIgnoreScope()) // Ignore asserts on exception
             {
                 conflicts = testSubject.GetCurrentConflicts().Count;
             }
 
-            Assert.AreEqual(0, conflicts, "Expect 0 conflicts since failed each time");
+            conflicts.Should().Be(0, "Expect 0 conflicts since failed each time");
             this.outputWindowPane.AssertOutputStrings(2);
             this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0, new[] { "Hello", "world1" });
             this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "Hello", "world2" });
-            Assert.AreEqual(2, findConflictCalls);
+            findConflictCalls.Should().Be(2);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConflictsManager_GetCurrentConflicts_HasConflicts()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects(4);
@@ -203,16 +205,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return CreateConflictsBasedOnNumberOfCalls(findConflictCalls);
             });
 
-            // Act + Verify
-            Assert.AreEqual(3, testSubject.GetCurrentConflicts().Count, "Expect 3 conflicts (1st call is not a conflict)");
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().HaveCount(3, "Expect 3 conflicts (1st call is not a conflict)");
             this.outputWindowPane.AssertOutputStrings(0);
-            Assert.AreEqual(4, findConflictCalls);
+            findConflictCalls.Should().Be(4);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConflictsManager_GetCurrentConflicts_HasConflicts_WithoutAggregationApplied()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects(3);
@@ -227,15 +229,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return new RuleConflictInfo(temp.Rules); // Missing rules
             });
 
-            // Act + Verify
-            Assert.AreEqual(6, testSubject.GetCurrentConflicts().Count, "Expecting 6 conflicts (3 projects x 2 configuration)");
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().HaveCount(6, "Expecting 6 conflicts (3 projects x 2 configuration)");
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void ConflictsManager_GetCurrentConflicts_HasConflicts_WithAggregationApplied()
         {
-            // Setup
+            // Arrange
             var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects(3);
@@ -250,8 +252,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return new RuleConflictInfo(temp.Rules); // Missing rules
             });
 
-            // Act + Verify
-            Assert.AreEqual(3, testSubject.GetCurrentConflicts().Count, "Expecting 3 conflicts (1 per project) since the ruleset declaration for project configuration are the same");
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().HaveCount(3,
+                "Expecting 3 conflicts (1 per project) since the ruleset declaration for project configuration are the same");
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
@@ -264,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void SetValidProjects(int numberOfProjects = 1)
         {
             List<ProjectMock> projects = new List<ProjectMock>();
-            for(int i=0;i< numberOfProjects;i++)
+            for (int i = 0; i < numberOfProjects; i++)
             {
                 ProjectMock project = this.dte.Solution.AddOrGetProject($@"X:\Solution\Project\Project{i}.csproj");
                 project.SetCSProjectKind();
@@ -303,7 +306,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
 
                 PropertyMock ruleSetDirectories = configuration.Properties.RegisterKnownProperty(Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
-                ruleSetDirectories.Value = ConflictsManager.CombineDirectories(new[] { this.TestContext.TestRunDirectory, "." });
+                ruleSetDirectories.Value = ConflictsManager.CombineDirectories(new[] { TestHelper.GetDeploymentDirectory(), "." });
 
                 RuleSetDeclaration declaration = new RuleSetDeclaration(
                     project,
@@ -336,11 +339,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.inspector.FindConflictingRulesAction = (baseline, ruleset, directories) =>
             {
-                Assert.IsNotNull(baseline);
-                Assert.IsNotNull(ruleset);
+                baseline.Should().NotBeNull();
+                ruleset.Should().NotBeNull();
                 this.fileSystem.AssertFileExists(baseline);
 
-                Assert.IsTrue(knownDeclarations.Any(dec =>
+                knownDeclarations.Any(dec =>
                 {
                     if (dec.RuleSetPath == ruleset)
                     {
@@ -348,7 +351,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     }
 
                     return false;
-                }));
+                }).Should().BeTrue();
 
                 return conflictFactory.Invoke();
             };
@@ -376,7 +379,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     return new RuleConflictInfo(temp.Rules.Skip(1), map); // One of each
 
                 default:
-                    Assert.Fail("Called unexpected number of times");
+                    true.Should().BeFalse("Called unexpected number of times");
                     return null;
             }
         }

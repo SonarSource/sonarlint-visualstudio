@@ -15,23 +15,24 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+ using Xunit;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
-    [TestClass]
+    
     public class SonarQubePageTests
     {
-        [TestMethod]
+        [Fact]
         public void SonarQubePageTests_Ctor()
         {
             // Act
             var testSubject = new SonarQubePage();
 
-            // Verify
-            Assert.AreEqual(Strings.TeamExplorerPageTitle, testSubject.Title, "Unexpected TE page title");
+            // Assert
+            testSubject.Title.Should().Be(Strings.TeamExplorerPageTitle, "Unexpected TE page title");
         }
     }
 }

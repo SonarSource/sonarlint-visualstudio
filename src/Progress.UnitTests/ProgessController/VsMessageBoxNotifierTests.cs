@@ -15,28 +15,26 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
     /// <summary>
     /// Tests for <see cref="VsMessageBoxNotifier"/>
     /// </summary>
-    [TestClass]
+
     public class VsMessageBoxNotifierTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private StubVsUIShell uiSHell;
         private VsMessageBoxNotifier testSubject;
 
-        #region Test plumbing
-        public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public void TestInitialize()
+        public VsMessageBoxNotifierTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.uiSHell = new StubVsUIShell();
@@ -44,64 +42,69 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.serviceProvider.RegisterService(typeof(IVsUIShell), this.uiSHell);
         }
 
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            this.uiSHell = null;
-            this.serviceProvider = null;
-            this.testSubject = null;
-        }
-        #endregion
-
         #region Tests
-        [TestMethod]
-        [Description("Arg check tests")]
-        public void VsMessageBoxNotifier_Args()
+
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            // 1st Argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsMessageBoxNotifier(null, "title", "{0}", false));
+            // Act
+            Action act = () => new VsMessageBoxNotifier(null, "title", "{0}", false);
 
-            // 2nd Argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsMessageBoxNotifier(this.serviceProvider, null, "{0}", false));
-
-            // 3rd Argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsMessageBoxNotifier(this.serviceProvider, "title", null, false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsMessageBoxNotifier(this.serviceProvider, "title", string.Empty, false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsMessageBoxNotifier(this.serviceProvider, "title", " \t", false));
-
-            // Valid
-            new VsMessageBoxNotifier(this.serviceProvider, string.Empty, "{0}", false);
-            new VsMessageBoxNotifier(this.serviceProvider, "\t", "{0}", true);
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
-        [TestMethod]
-        [Description("Verifies notifying of an exception message using a message box")]
-        public void VsMessageBoxNotifier_MessageOnly()
+        [Fact]
+        public void Ctor_WithNullTitle_ThrowsArgumentNullException()
         {
-            // Setup
+            // Act
+            Action act = () => new VsMessageBoxNotifier(this.serviceProvider, null, "{0}", false);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("title");
+        }
+
+        [Fact]
+        public void Ctor_WithInvalidMessageFormat_ThrowsArgumentNullException()
+        {
+            // Act
+            Action act1 = () => new VsMessageBoxNotifier(this.serviceProvider, "title", null, false);
+            Action act2 = () => new VsMessageBoxNotifier(this.serviceProvider, "title", string.Empty, false);
+            Action act3 = () => new VsMessageBoxNotifier(this.serviceProvider, "title", " \t", false);
+
+            // Assert
+            act1.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageFormat");
+            act2.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageFormat");
+            act3.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageFormat");
+        }
+
+        [Fact]
+        public void Notify_WithAnException_DisplaysTheMessageBox()
+        {
+            // Arrange
+            bool logWholeMessage = false;
+            Exception ex = this.Setup(logWholeMessage);
+
+            // Act
+            ((IProgressErrorNotifier)this.testSubject).Notify(ex);
+
+            // Assert
+            this.uiSHell.IsMessageBoxShown.Should().BeTrue();
+        }
+
+        [Fact]
+
+        public void Notify_WithFullException_DisplaysTheMessageBox()
+        {
+            // Arrange
             bool logWholeMessage = true;
             Exception ex = this.Setup(logWholeMessage);
 
-            // Execute
+            // Act
             ((IProgressErrorNotifier)this.testSubject).Notify(ex);
 
-            // Verify
-            this.uiSHell.AssertMessageBoxShown();
-        }
-
-        [TestMethod]
-        [Description("Verifies notifying of a full exception using a message box")]
-        public void VsMessageBoxNotifier_FullException()
-        {
-            // Setup
-            bool logWholeMessage = true;
-            Exception ex = this.Setup(logWholeMessage);
-
-            // Execute
-            ((IProgressErrorNotifier)this.testSubject).Notify(ex);
-
-            // Verify
-            this.uiSHell.AssertMessageBoxShown();
+            // Assert
+            this.uiSHell.IsMessageBoxShown.Should().BeTrue();
         }
         #endregion
 
@@ -109,22 +112,18 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         private Exception Setup(bool logWholeMessage)
         {
-            string format = this.TestContext.TestName + "{0}";
-            string title = this.TestContext.TestName;
+            string format = "" + "{0}";
+            string title = "";
             this.testSubject = new VsMessageBoxNotifier(this.serviceProvider, title, format, logWholeMessage);
-            Exception ex = this.GenerateException();
+            Exception ex = new Exception("", new Exception(Environment.TickCount.ToString()));
             this.uiSHell.ShowMessageBoxAction = (actualTitle, actualMessage) =>
             {
-                Assert.AreEqual(title, actualTitle, "Unexpected message box title");
-                MessageVerificationHelper.VerifyNotificationMessage(actualMessage, format, ex, logWholeMessage);
+                title.Should().Be(actualTitle);
+                actualMessage.Should().Be(string.Format(format, logWholeMessage ? ex.ToString() : ex.Message));
             };
             return ex;
         }
 
-        private Exception GenerateException()
-        {
-            return new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
-        }
         #endregion
     }
 }

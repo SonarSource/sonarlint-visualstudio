@@ -18,16 +18,18 @@
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
+using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class BoundSolutionAnalyzerTests
     {
         private ConfigurableServiceProvider serviceProvider;
@@ -36,10 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private DTEMock dte;
         private string solutionRootFolder;
 
-        public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public void TestInitialize()
+        public BoundSolutionAnalyzerTests()
         {
             this.monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
 
@@ -48,27 +47,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SComponentModel),
                 ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<ITelemetryLogger>(this.logger = new ConfigurableTelemetryLogger())));
 
-            this.solutionRootFolder = Path.Combine(this.TestContext.TestRunDirectory, this.TestContext.TestName);
+            this.solutionRootFolder = TestHelper.GetDeploymentDirectory();
             this.dte.Solution = new SolutionMock(dte, Path.Combine(this.solutionRootFolder, "solution.sln"));
         }
 
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            KnownUIContextsAccessor.Reset();
-        }
-
         #region Tests
-        [TestMethod]
-        public void BoundSolutionAnalyzer_ArgChecks()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new BoundSolutionAnalyzer(null));
+            // Arrange + Act
+            Action act = () => new BoundSolutionAnalyzer(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void BoundSolutionAnalyzer_HasNoRuleSetsInSonarQubeDirectory()
         {
-            // Setup
+            // Arrange
             string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, BoundSolutionAnalyzer.SonarQubeFilesFolder);
             DeleteBindingInformationFile(sonarQubeDirectory);
             using (var testSubject = new BoundSolutionAnalyzer(this.serviceProvider))
@@ -77,15 +74,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
 
-                // Verify
+                // Assert
                 this.logger.AssertNoEventWasWritten();
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void BoundSolutionAnalyzer_HasRuleSetsInSonarQubeDirectory()
         {
-            // Setup
+            // Arrange
             string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, BoundSolutionAnalyzer.SonarQubeFilesFolder);
             GenerateBindingInformationFile(sonarQubeDirectory);
             BoundSolutionAnalyzer testSubject = null;
@@ -98,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 testSubject = new BoundSolutionAnalyzer(this.serviceProvider);
 
-                // Verify
+                // Assert
                 this.logger.AssertSingleEventWasWritten(TelemetryEvent.BoundSolutionDetected);
 
                 // Case 2: Context deactivated
@@ -107,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, false);
 
-                // Verify
+                // Assert
                 this.logger.AssertNoEventWasWritten();
 
                 // Case 3: Context activated
@@ -116,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
 
-                // Verify
+                // Assert
                 this.logger.AssertSingleEventWasWritten(TelemetryEvent.BoundSolutionDetected);
 
                 // Case 4: reactivate when disposed
@@ -128,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
 
-                // Verify
+                // Assert
                 this.logger.AssertNoEventWasWritten();
             }
             finally

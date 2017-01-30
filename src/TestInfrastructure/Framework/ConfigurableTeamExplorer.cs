@@ -15,14 +15,14 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.TeamFoundation.Controls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ComponentModel;
-using System.Windows.Input;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 using System.Reflection;
+using System.Windows.Input;
+using FluentAssertions;
+using Microsoft.TeamFoundation.Controls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertCurrentPage(Guid pageId)
         {
-            Assert.AreEqual(pageId, this.currentPageId, "Unexpected current page ID");
+            pageId.Should().Be( this.currentPageId, "Unexpected current page ID");
         }
 
         #endregion

@@ -15,44 +15,50 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarLint.VisualStudio.Integration.Service;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Security;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
-    [TestClass]
     public class ConnectionInformationDialogTests
     {
-        [TestMethod]
-        public void ConnectionInformationDialog_CreateConnectionInformation_NullArgumentChecks()
+        [Fact]
+        public void CreateConnectionInformation_WithNullViewModel_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange
             ConnectionInfoDialogViewModel viewModel = ConnectionInformationDialog.CreateViewModel(null);
 
-            // Test 1: null viewModel
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                ConnectionInformationDialog.CreateConnectionInformation(null, new SecureString());
-            });
+            // Arrange + Act
+            Action act = () => ConnectionInformationDialog.CreateConnectionInformation(null, new SecureString());
 
-            // Test 2: null password
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                ConnectionInformationDialog.CreateConnectionInformation(viewModel, null);
-            });
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("viewModel");
         }
 
+        [Fact]
+        public void CreateConnectionInformation_WithNullPassword_ThrowsArgumentNullException()
+        {
+            // Arrange
+            ConnectionInfoDialogViewModel viewModel = ConnectionInformationDialog.CreateViewModel(null);
 
-        [TestMethod]
+            // Arrange + Act
+            Action act = () => ConnectionInformationDialog.CreateConnectionInformation(viewModel, null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("password");
+        }
+
+        [Fact]
         public void ConnectionInformationDialog_CreateConnectionInformation_InvalidModel_ReturnsNull()
         {
-            // Setup
+            // Arrange
             ConnectionInfoDialogViewModel viewModel = ConnectionInformationDialog.CreateViewModel(null);
-            Assert.IsFalse(viewModel.IsValid, "Empty view model should be invalid");
+            viewModel.IsValid.Should().BeFalse("Empty view model should be invalid");
             var emptyPassword = new SecureString();
 
             // Act
@@ -62,14 +68,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 connInfo = ConnectionInformationDialog.CreateConnectionInformation(viewModel, emptyPassword);
             }
 
-            // Verify
-            Assert.IsNull(connInfo, "No ConnectionInformation should be returned with an invalid model");
+            // Assert
+            connInfo.Should().BeNull("No ConnectionInformation should be returned with an invalid model");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectionInformationDialog_CreateConnectionInformation_ValidModel_ReturnsConnectionInformation()
         {
-            // Setup
+            // Arrange
             var serverUrl = "https://localhost";
             var username = "admin";
             var inputPlaintextPassword = "letmein";
@@ -83,27 +89,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Act
             ConnectionInformation connInfo = ConnectionInformationDialog.CreateConnectionInformation(viewModel, securePassword);
 
-            // Verify
-            Assert.IsNotNull(connInfo, "ConnectionInformation should be returned");
-            Assert.AreEqual(new Uri(serverUrl), connInfo.ServerUri, "Server URI returned was different");
-            Assert.AreEqual(username, connInfo.UserName, "Username returned was different");
+            // Assert
+            connInfo.Should().NotBeNull("ConnectionInformation should be returned");
+            connInfo.ServerUri.Should().Be(new Uri(serverUrl), "Server URI returned was different");
+            username.Should().Be(connInfo.UserName, "Username returned was different");
 
             string outputPlaintextPassword = connInfo.Password.ToUnsecureString();
-            Assert.AreEqual(inputPlaintextPassword, outputPlaintextPassword, "Password returned was different");
+            inputPlaintextPassword.Should().Be(outputPlaintextPassword, "Password returned was different");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectionInformationDialog_CreateConnectionInformation_WithExistingConnection()
         {
-            // Setup
+            // Arrange
             var connectionInformation = new ConnectionInformation(new Uri("http://blablabla"), "admin", "P@ssword1".ToSecureString());
 
             // Act
             ConnectionInfoDialogViewModel viewModel = ConnectionInformationDialog.CreateViewModel(connectionInformation);
 
-            // Verify
-            Assert.AreEqual(connectionInformation.ServerUri, viewModel.ServerUrl, "Unexpected ServerUrl");
-            Assert.AreEqual(connectionInformation.UserName, viewModel.Username, "Unexpected UserName");
+            // Assert
+            connectionInformation.ServerUri.Should().Be(viewModel.ServerUrl, "Unexpected ServerUrl");
+            connectionInformation.UserName.Should().Be(viewModel.Username, "Unexpected UserName");
         }
 
     }

@@ -15,14 +15,11 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Progress.Controller;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -51,11 +48,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                         {
                             this.canAbort = op.Step.Cancellable;
                             StepExecutionState state = op.Run(this.cts.Token, this).Result;
-                            VerificationHelper.CheckState(op.Step, state);
+                            //VerificationHelper.CheckState(op.Step, state);
                         }
                         catch (Exception ex)
                         {
-                            Assert.Fail(ex.ToString());
+                            FluentAssertions.Execution.Execute.Assertion.FailWith(ex.ToString());
                         }
                     });
                     return this.ReturnResult;

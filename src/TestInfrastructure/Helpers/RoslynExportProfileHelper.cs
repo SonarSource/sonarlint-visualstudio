@@ -15,14 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGet;
-using SonarLint.VisualStudio.Integration.Service;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using NuGet;
+using SonarLint.VisualStudio.Integration.Service;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -62,14 +61,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public static void AssertAreEqual(RoslynExportProfile expected, RoslynExportProfile actual)
         {
-            Assert.AreEqual(expected.Version, actual.Version, "Unexpected export version");
+            expected.Version.Should().Be(actual.Version, "Unexpected export version");
             AssertConfigSectionEqual(expected.Configuration, actual.Configuration);
             AssertDeploymentSectionEqual(expected.Deployment, actual.Deployment);
         }
 
         private static void AssertConfigSectionEqual(Configuration expected, Configuration actual)
         {
-            CollectionAssert.AreEqual(expected.AdditionalFiles, actual.AdditionalFiles, "Additional files differ");
+            expected.AdditionalFiles.Should().Equal(actual.AdditionalFiles, "Additional files differ");
 
             RuleSet expectedRuleSet = TestRuleSetHelper.XmlToRuleSet(expected.RuleSet.OuterXml);
             RuleSet actualRuleSet = TestRuleSetHelper.XmlToRuleSet(actual.RuleSet.OuterXml);
@@ -78,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void AssertDeploymentSectionEqual(Deployment expected, Deployment actual)
         {
-            CollectionAssert.AreEqual(expected.NuGetPackages, actual.NuGetPackages, "NuGet package information differs");
+            actual.NuGetPackages.Should().Equal(expected.NuGetPackages, "NuGet package information differs");
         }
     }
 }

@@ -15,29 +15,56 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ProfileConflicts
 {
-    [TestClass]
     public class RuleSetInformationTests
     {
-        [TestMethod]
-        public void RuleSetInformation_ArgChecks()
+        [Fact]
+        public void Ctor_WithNullProjectName_ThrowsArgumentNullException()
         {
-            string projectFullName = "p";
+            // Arrange
             string baselineRuleSet = "br";
             string projectRuleSet = "pr";
 
-            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInformation(null, baselineRuleSet, projectRuleSet, null));
-            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInformation(projectFullName, null, projectRuleSet, null));
-            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInformation(projectFullName, baselineRuleSet, null, null));
+            // Act
+            Action act = () => new RuleSetInformation(null, baselineRuleSet, projectRuleSet, null);
 
-            Assert.IsNotNull(new RuleSetInformation(projectFullName, baselineRuleSet, projectRuleSet, null), "Not expecting this to fail, just to make the static analyzer happy");
-            Assert.IsNotNull(new RuleSetInformation(projectFullName, baselineRuleSet, projectRuleSet, new string[0]), "Not expecting this to fail, just to make the static analyzer happy");
-            Assert.IsNotNull(new RuleSetInformation(projectFullName, baselineRuleSet, projectRuleSet, new string[] { "file" }), "Not expecting this to fail, just to make the static analyzer happy");
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void Ctor_WithNullBaselineRuleSet_ThrowsArgumentNullException()
+        {
+            // Arrange
+            string projectFullName = "p";
+            string projectRuleSet = "pr";
+
+            // Act
+            Action act = () => new RuleSetInformation(projectFullName, null, projectRuleSet, null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void Ctor_WithNullProjectRuleSet_ThrowsArgumentNullException()
+        {
+            // Arrange
+            string projectFullName = "p";
+            string baselineRuleSet = "br";
+
+            // Act
+            Action act = () => new RuleSetInformation(projectFullName, baselineRuleSet, null, null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
     }
 }

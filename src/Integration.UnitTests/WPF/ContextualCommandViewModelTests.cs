@@ -15,72 +15,76 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
-    [TestClass]
     public class ContextualCommandViewModelTests
     {
-        [TestMethod]
+        [Fact]
         public void ContextualCommandViewModel_Ctor_NullArgChecks()
         {
+            // Arrange
             var command = new RelayCommand(() => { });
-            ContextualCommandViewModel suppressAnalysisWarning;
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                suppressAnalysisWarning = new ContextualCommandViewModel(null, command);
-            });
+            // Act
+            Action act = () => new ContextualCommandViewModel(null, command);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void ContextualCommandViewModel_CommandInvocation()
         {
-            // Setup
+            // Arrange
             bool canExecute = false;
             bool executed = false;
             var realCommand = new RelayCommand<object>(
                 (state) =>
                 {
-                    Assert.AreEqual(this, state);
+                    state.Should().Be(this);
                     executed = true;
                 },
                 (state) =>
                 {
-                    Assert.AreEqual(this, state);
+                    state.Should().Be(this);
                     return canExecute;
                 });
             var testSubject = new ContextualCommandViewModel(this, realCommand);
 
             // Sanity
-            Assert.IsNotNull(testSubject.Command);
-            Assert.AreSame(realCommand, testSubject.InternalRealCommand);
+            testSubject.Command.Should().NotBeNull();
+            testSubject.InternalRealCommand.Should().Be(realCommand);
 
             // Case 1: Can't execute
             canExecute = false;
             // Act
-            Assert.IsFalse(testSubject.Command.CanExecute(null), "CanExecute wasn't called as expected");
+            testSubject.Command.CanExecute(null)
+                .Should().BeFalse("CanExecute wasn't called as expected");
 
             // Case 2: Can execute
             canExecute = true;
 
             // Act
-            Assert.IsTrue(testSubject.Command.CanExecute(null), "CanExecute wasn't called as expected");
+            testSubject.Command.CanExecute(null)
+                .Should().BeTrue("CanExecute wasn't called as expected");
 
             // Case 3: Execute
             // Act
             testSubject.Command.Execute(null);
-            Assert.IsTrue(executed, "Execute wasn't called as expected");
+            executed.Should().BeTrue("Execute wasn't called as expected");
         }
 
-        [TestMethod]
+        [Fact]
         public void ContextualCommandViewModel_DisplayText()
         {
-            // Setup
+            // Arrange
             var context = new object();
             var command = new RelayCommand(() => { });
             var testSubject = new ContextualCommandViewModel(context, command);
@@ -88,13 +92,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             using (var tracker = new PropertyChangedTracker(testSubject))
             {
                 // Case 1: null
-                // Act + Verify
-                Assert.IsNull(testSubject.DisplayText, "Expected display text to return null when not set");
+                // Act + Assert
+                testSubject.DisplayText.Should().BeNull("Expected display text to return null when not set");
 
                 // Case 2: static
                 testSubject.DisplayText = "foobar9000";
-                // Act + Verify
-                Assert.AreEqual("foobar9000", testSubject.DisplayText, "Unexpected static display text");
+                // Act + Assert
+                testSubject.DisplayText.Should().Be("foobar9000", "Unexpected static display text");
                 tracker.AssertPropertyChangedRaised(nameof(testSubject.DisplayText), 1);
 
                 // Case 3: dynamic
@@ -105,20 +109,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
                     return "1234";
                 };
                 testSubject.SetDynamicDisplayText(func);
-                // Act + Verify
-                Assert.AreEqual("1234", testSubject.DisplayText, "Unexpected dynamic display text");
-                Assert.IsTrue(funcInvoked, "Dynamic display text function was not invoked");
+                // Act + Assert
+                testSubject.DisplayText.Should().Be("1234", "Unexpected dynamic display text");
+                funcInvoked.Should().BeTrue("Dynamic display text function was not invoked");
                 tracker.AssertPropertyChangedRaised(nameof(testSubject.DisplayText), 2);
             }
-
-            // Case 4: dynamic - null exception
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetDynamicDisplayText(null));
         }
 
-        [TestMethod]
+        [Fact]
+        public void SetDynamicDisplayText_WithNullFunct_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var context = new object();
+            var command = new RelayCommand(() => { });
+            var testSubject = new ContextualCommandViewModel(context, command);
+
+            // Act
+            Action act = () => testSubject.SetDynamicDisplayText(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void ContextualCommandViewModel_Icon()
         {
-            // Setup
+            // Arrange
             var context = new object();
             var command = new RelayCommand(() => { });
             var testSubject = new ContextualCommandViewModel(context, command);
@@ -126,14 +142,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             using (var tracker = new PropertyChangedTracker(testSubject))
             {
                 // Case 1: null
-                // Act + Verify
-                Assert.IsNull(testSubject.Icon, "Expected icon to return null when not set");
+                // Act + Assert
+                testSubject.Icon.Should().BeNull("Expected icon to return null when not set");
 
                 // Case 2: static
                 var staticIcon = new IconViewModel(null);
                 testSubject.Icon = staticIcon;
-                // Act + Verify
-                Assert.AreSame(staticIcon, testSubject.Icon, "Unexpected static icon");
+                // Act + Assert
+                testSubject.Icon.Should().Be(staticIcon, "Unexpected static icon");
                 tracker.AssertPropertyChangedRaised(nameof(testSubject.Icon), 1);
 
                 // Case 3: dynamic
@@ -145,14 +161,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
                     return dynamicIcon;
                 };
                 testSubject.SetDynamicIcon(func);
-                // Act + Verify
-                Assert.AreSame(dynamicIcon, testSubject.Icon, "Unexpected dynamic icon");
-                Assert.IsTrue(funcInvoked, "Dynamic icon function  was not invoked");
+                // Act + Assert
+                testSubject.Icon.Should().Be(dynamicIcon, "Unexpected dynamic icon");
+                funcInvoked.Should().BeTrue("Dynamic icon function  was not invoked");
                 tracker.AssertPropertyChangedRaised(nameof(testSubject.Icon), 2);
             }
+        }
 
-            // Case 4: dynamic - null exception
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetDynamicIcon(null));
+        public void SetDynamicIcon_WithNullFunct_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var context = new object();
+            var command = new RelayCommand(() => { });
+            var testSubject = new ContextualCommandViewModel(context, command);
+
+            // Act
+            Action act = () => testSubject.SetDynamicIcon(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
         private sealed class PropertyChangedTracker : IDisposable
@@ -168,8 +195,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 
             public void AssertPropertyChangedRaised(string propertyName, int count)
             {
-                Assert.IsTrue(count > 0 || this.trackingDictionary.ContainsKey(propertyName), $"PropertyChanged was not raised for '{propertyName}'");
-                Assert.AreEqual(count, this.trackingDictionary[propertyName], "Unexpected number of PropertyChanged events raised");
+                (count > 0 || this.trackingDictionary.ContainsKey(propertyName))
+                    .Should().BeTrue($"PropertyChanged was not raised for '{propertyName}'");
+                this.trackingDictionary[propertyName].Should().Be(count, "Unexpected number of PropertyChanged events raised");
             }
 
             private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)

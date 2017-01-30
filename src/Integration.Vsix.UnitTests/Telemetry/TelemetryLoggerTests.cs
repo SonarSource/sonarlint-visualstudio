@@ -15,8 +15,9 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+ using Xunit;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,6 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
 {
-    [TestClass]
     public class TelemetryLoggerTests
     {
         private static readonly Guid ExpectedCommandSetIdentifier = new Guid("{DB0701CC-1E44-41F7-97D6-29B160A70BCB}");
@@ -34,8 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         private ConfigurableVsOutputWindowPane outputPane;
         private TelemetryLogger testSubject;
 
-        [TestInitialize]
-        public void TestInit()
+        public TelemetryLoggerTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
 
@@ -49,17 +48,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             this.testSubject = new TelemetryLogger(this.serviceProvider);
         }
 
-        [TestMethod]
+        [Fact]
         public void TelemetryLogger_ReportEvent()
         {
-            // Setup
+            // Arrange
             Dictionary<TelemetryEvent, int> discoveredMap = new Dictionary<TelemetryEvent, int>();
 
             foreach (TelemetryEvent evnt in Enum.GetValues(typeof(TelemetryEvent)).OfType<TelemetryEvent>())
             {
                 this.dte.Commands.RaiseAction = (commandGroup, commandId) =>
                 {
-                    Assert.AreEqual(ExpectedCommandSetIdentifier, commandGroup, "Unexpected command group");
+                    ExpectedCommandSetIdentifier.Should().Be( commandGroup, "Unexpected command group");
                     discoveredMap[evnt] = commandId;
                 };
 
@@ -67,11 +66,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
                 this.testSubject.ReportEvent(evnt);
             }
 
-            // Verify
+            // Assert
             TelemetryEvent[] expectedEvents = Enum.GetValues(typeof(TelemetryEvent)).Cast<TelemetryEvent>().ToArray();
             TelemetryEvent[] actualEvents = discoveredMap.Keys.ToArray();
 
-            CollectionAssert.AreEquivalent(expectedEvents, actualEvents,
+            actualEvents.Should().Equal(expectedEvents,
                 "Expecting each telemetry event to call a unique command - no all telemetry events invoked a command. Missing:{0}, NotExpected:{1}",
                   string.Join(", ", expectedEvents.Except(actualEvents)),
                     string.Join(", ", actualEvents.Except(expectedEvents)));
@@ -79,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             int[] expectedIds = Enum.GetValues(typeof(SonarLintSqmCommandIds)).Cast<int>().ToArray();
             int[] actualIds = discoveredMap.Values.ToArray();
 
-            CollectionAssert.AreEquivalent(expectedIds, actualIds,
+            actualIds.Should().Equal(expectedIds,
                 "Expecting each telemetry event to call a unique command - some of the commands were not uniquely called. Missing:{0}, NotExpected:{1}",
                 string.Join(", ", expectedIds.Except(actualIds).Cast<SonarLintSqmCommandIds>()),
                 string.Join(", ", actualIds.Except(expectedIds).Cast<SonarLintSqmCommandIds>()));

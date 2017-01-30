@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Connection;
 using System.Linq;
 using System.Security;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
-    [TestClass]
+
     public class BasicAuthenticationCredentialsValidatorTests
     {
         private static readonly char[] InvalidCharactersSubset = new[]
@@ -35,10 +36,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                                                                  .Except(InvalidCharactersSubset)
                                                                  .ToArray();
 
-        [TestMethod]
+        [Fact]
         public void BasicCredentialsValidator_IsUsernameValid()
         {
-            // Setup
+            // Arrange
             var validator = new BasicAuthenticationCredentialsValidator();
 
             // Valid characters only
@@ -51,11 +52,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             }
         }
 
-        [TestMethod]
-        [Description("Verify that credentials are valid only if the username and password are both empty or both non-empty.")]
+        [Fact]
         public void BasicCredentialsValidator_IsValid_UsernameAndPasswordRequiredCombinations()
         {
-            // Setup
+            // Arrange
             var validator = new BasicAuthenticationCredentialsValidator();
 
             // Valid - user name and password
@@ -82,11 +82,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             if (expectedValid)
             {
-                Assert.IsTrue(result, $"Username '{username}' and password '{password}' should be valid");
+                result.Should().BeTrue($"Username '{username}' and password '{password}' should be valid");
             }
             else
             {
-                Assert.IsFalse(result, $"Username '{username}' and password '{password}' should be invalid");
+                result.Should().BeFalse($"Username '{username}' and password '{password}' should be invalid");
             }
         }
 
@@ -98,11 +98,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             if (expectedValid)
             {
-                Assert.IsTrue(result, $"Username '{username}' should be valid");
+                result.Should().BeTrue();
             }
             else
             {
-                Assert.IsFalse(result, $"Username '{username}' should be invalid");
+                result.Should().BeFalse();
             }
         }
 

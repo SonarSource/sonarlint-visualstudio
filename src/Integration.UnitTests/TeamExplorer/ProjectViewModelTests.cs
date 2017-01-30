@@ -17,34 +17,41 @@
 
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using System;
 using SonarLint.VisualStudio.Integration.Resources;
 using System.Globalization;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
-    [TestClass]
     public class ProjectViewModelTests
     {
-        [TestMethod]
-        public void ProjectViewModel_Ctor_NullArgumentChecks()
+        [Fact]
+        public void Ctor_WithNullServerViewModel_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                new ProjectViewModel(null, new ProjectInformation());
-            });
+            // Arrange + Act
+            Action act = () => new ProjectViewModel(null, new ProjectInformation());
 
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                new ProjectViewModel(new ServerViewModel(new ConnectionInformation(new Uri("http://www.com"))), null);
-            });
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
+        public void Ctor_WithNullProjectInfo_ThrowsArgumentNullException()
+        {
+            // Arrange + Act
+            Action act = () => new ProjectViewModel(new ServerViewModel(new ConnectionInformation(new Uri("http://www.com"))), null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void ProjectViewModel_Ctor()
         {
-            // Setup
+            // Arrange
             var projectInfo = new ProjectInformation
             {
                 Key = "P1",
@@ -55,18 +62,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             var viewModel = new ProjectViewModel(serverVM, projectInfo);
 
-            // Verify
-            Assert.IsFalse(viewModel.IsBound);
-            Assert.AreEqual(projectInfo.Key, viewModel.Key);
-            Assert.AreEqual(projectInfo.Name, viewModel.ProjectName);
-            Assert.AreSame(projectInfo, viewModel.ProjectInformation);
-            Assert.AreSame(serverVM, viewModel.Owner);
+            // Assert
+            viewModel.IsBound.Should().BeFalse();
+            projectInfo.Key.Should().Be(viewModel.Key);
+            projectInfo.Name.Should().Be(viewModel.ProjectName);
+            viewModel.ProjectInformation.Should().Be(projectInfo);
+            viewModel.Owner.Should().Be(serverVM);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModel_ToolTipProjectName_RespectsIsBound()
         {
-            // Setup
+            // Arrange
             var projectInfo = new ProjectInformation
             {
                 Key = "P1",
@@ -78,22 +85,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             viewModel.IsBound = true;
 
-            // Verify
-            StringAssert.Contains(viewModel.ToolTipProjectName, viewModel.ProjectName, "ToolTip message should include the project name");
-            Assert.AreNotEqual(viewModel.ProjectName, viewModel.ToolTipProjectName, "ToolTip message should also indicate that the project is 'bound'");
+            // Assert
+            viewModel.ToolTipProjectName.Should().NotBe(viewModel.ProjectName, "ToolTip message should also indicate that the project is 'bound'");
 
             // Test Case 2: When project is NOT bound, should show project name only
             // Act
             viewModel.IsBound = false;
 
-            // Verify
-            Assert.AreEqual(viewModel.ProjectName, viewModel.ToolTipProjectName, "ToolTip message should be exactly the same as the project name");
+            // Assert
+            viewModel.ProjectName.Should().Be(viewModel.ToolTipProjectName, "ToolTip message should be exactly the same as the project name");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectViewModel_AutomationName()
         {
-            // Setup
+            // Arrange
             var projectInfo = new ProjectInformation
             {
                 Key = "P1",
@@ -109,8 +115,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.IsBound = true;
             var actualBound = testSubject.AutomationName;
 
-            // Verify
-            Assert.AreEqual(expectedBound, actualBound, "Unexpected bound SonarQube project description");
+            // Assert
+            expectedBound.Should().Be(actualBound, "Unexpected bound SonarQube project description");
 
 
             // Test case 2: not bound
@@ -118,8 +124,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.IsBound = false;
             var actualNotBound = testSubject.AutomationName;
 
-            // Verify
-            Assert.AreEqual(expectedNotBound, actualNotBound, "Unexpected unbound SonarQube project description");
+            // Assert
+            expectedNotBound.Should().Be(actualNotBound, "Unexpected unbound SonarQube project description");
         }
 
         private static ServerViewModel CreateServerViewModel()

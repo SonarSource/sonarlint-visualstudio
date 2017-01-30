@@ -17,15 +17,17 @@
 
 using EnvDTE;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using SonarLint.VisualStudio.Integration.Binding;
 using System;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
+
     public class SolutionRuleSetsInformationProviderTests
     {
         private DTEMock dte;
@@ -35,8 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ProjectMock projectMock;
         private const string SolutionRoot = @"c:\solution";
 
-        [TestInitialize]
-        public void TestInitialize()
+        public SolutionRuleSetsInformationProviderTests()
         {
             this.dte = new DTEMock();
             this.serviceProvider = new ConfigurableServiceProvider();
@@ -49,42 +50,49 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_Ctor_ArgChecks()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null));
+            // Arrange + Act
+            Action act = () => new SolutionRuleSetsInformationProvider(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ArgChecks()
+        [Fact]
+        public void GetProjectRuleSetsDeclarations_WithNullProject_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
 
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectRuleSetsDeclarations(null).ToArray());
+            // Act
+            Action act = () => testSubject.GetProjectRuleSetsDeclarations(null).ToArray();
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationPropertyWithDefaultValue()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             PropertyMock prop1 = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
 
             // Act
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
-            // Verify
-            Assert.AreEqual(1, info.Length, "Unexpected number of results");
+            // Assert
+            info.Should().HaveCount(1, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             this.outputPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationPropertyWithEmptyRuleSets()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             PropertyMock prop1 = CreateProperty(this.projectMock, "config1", null);
             PropertyMock prop2 = CreateProperty(this.projectMock, "config2", string.Empty);
@@ -92,17 +100,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
-            // Verify
-            Assert.AreEqual(2, info.Length, "Unexpected number of results");
+            // Assert
+            info.Should().HaveCount(2, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             VerifyRuleSetInformation(info[1], prop2);
             this.outputPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationPropertyWithSameNonDefaultValues()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             PropertyMock prop1 = CreateProperty(this.projectMock, "config1", "Custom1.ruleset");
             PropertyMock prop2 = CreateProperty(this.projectMock, "config2", @"x:\Folder\Custom2.ruleset");
@@ -111,34 +119,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
-            // Verify
-            Assert.AreEqual(3, info.Length, "Unexpected number of results");
+            // Assert
+            info.Should().HaveCount(3, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             VerifyRuleSetInformation(info[1], prop2);
             VerifyRuleSetInformation(info[2], prop3);
             this.outputPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationWithNoRuleSetProperty()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             CreateProperty(this.projectMock, "config1", "Custom1.ruleset", Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
 
             // Act
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
-            // Verify
-            Assert.AreEqual(0, info.Length, "Unexpected number of results");
+            // Assert
+            info.Should().HaveCount(0, "Unexpected number of results");
             this.outputPane.AssertOutputStrings(1);
         }
 
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_RuleSetsWithDirectories()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             PropertyMock ruleSet1 = CreateProperty(this.projectMock, "config1", "Custom1.ruleset");
             CreateProperty(this.projectMock, "config1", @"x:\YYY\zzz", Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
@@ -148,28 +156,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
-            // Verify
-            Assert.AreEqual(2, info.Length, "Unexpected number of results");
+            // Assert
+            info.Should().HaveCount(2, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], ruleSet1);
             VerifyRuleSetInformation(info[1], ruleSet2);
             this.outputPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_ArgChecks()
+        [Fact]
+        public void CalculateSolutionSonarQubeRuleSetFilePath_WithNullSonarQubeProjectKey_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
 
-            // Act Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.CSharp));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.VBNET));
+            // Act
+            Action act = () => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.CSharp);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_OnOpenSolution()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             projectHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
@@ -180,34 +190,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(), Language.VBNET);
 
-            // Verify
-            Assert.AreEqual(@"z:\folder\solution\SonarQube\MyKey_VB.ruleset", ruleSetPath);
+            // Assert
+            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\MyKey_VB.ruleset");
 
             // Case 2: C# + valid path characters
             // Act
             ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp);
 
-            // Verify
-            Assert.AreEqual(@"z:\folder\solution\SonarQube\MyKeyCSharp.ruleset", ruleSetPath);
+            // Assert
+            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\MyKeyCSharp.ruleset");
         }
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_OnClosedSolution()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             projectHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
 
-            // Act + Verify
-            Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp));
+            // Act
+            Action act = () => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp);
+
+            // Assert
+            act.ShouldThrow<InvalidOperationException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_OnOpenSolution()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             projectHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
@@ -218,14 +231,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             string path = testSubject.GetSolutionSonarQubeRulesFolder();
 
-            // Verify
-            Assert.AreEqual(@"z:\folder\solution\SonarQube", path);
+            // Assert
+            path.Should().Be(@"z:\folder\solution\SonarQube");
         }
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_OnClosedSolution()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             projectHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
@@ -235,15 +248,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             string path = testSubject.GetSolutionSonarQubeRulesFolder();
 
-            // Verify
-            Assert.IsNull(path);
+            // Assert
+            path.Should().BeNull();
         }
 
 
-        [TestMethod]
+        [Fact]
         public void SolutionRuleSetsInformationProvider_TryGetProjectRuleSetFilePath()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             var fileSystem = new ConfigurableFileSystem();
             this.serviceProvider.RegisterService(typeof(IFileSystem), fileSystem);
@@ -256,10 +269,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem.RegisterFile(declaration.RuleSetPath);
 
             // Act
-            Assert.IsTrue(testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath));
+            testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath)
+                .Should().BeTrue();
 
-            // Verify
-            Assert.AreEqual(@"c:\RuleSet.ruleset", ruleSetPath);
+            // Assert
+            ruleSetPath.Should().Be(@"c:\RuleSet.ruleset");
 
             // Case 2: Declaration is relative to project and on disk
             fileSystem.ClearFiles();
@@ -267,20 +281,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem.RegisterFile(@"c:\Solution\RuleSet.ruleset");
 
             // Act
-            Assert.IsTrue(testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath));
+            testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath)
+                .Should().BeTrue();
 
-            // Verify
-            Assert.AreEqual(@"c:\Solution\RuleSet.ruleset", ruleSetPath);
+            // Assert
+            ruleSetPath.Should().Be(@"c:\Solution\RuleSet.ruleset");
 
             // Case 3: File doesn't exist
             fileSystem.ClearFiles();
             declaration = CreateDeclaration(project, "MyFile.ruleset");
 
             // Act
-            Assert.IsFalse(testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath));
+            testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath)
+                .Should().BeFalse();
 
-            // Verify
-            Assert.IsNull(ruleSetPath);
+            // Assert
+            ruleSetPath.Should().BeNull();
         }
         #endregion
 
@@ -313,27 +329,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void VerifyRuleSetInformation(RuleSetDeclaration info, PropertyMock property)
         {
-            Assert.AreSame(property, info.DeclaringProperty);
-            Assert.AreEqual(property.Value, info.RuleSetPath);
+            info.DeclaringProperty.Should().Be(property);
+            info.RuleSetPath.Should().Be((string)property.Value);
 
             Configuration configuration = (Configuration)property.Collection.Parent;
-            if (configuration == null)
-            {
-                Assert.Inconclusive("Test setup error, expected to have configuration as parent");
-            }
+            configuration.Should().NotBeNull("Test setup error, expected to have configuration as parent");
 
-            Assert.AreEqual(configuration.ConfigurationName, info.ConfigurationContext);
+            info.ConfigurationContext.Should().Be(configuration.ConfigurationName);
 
             Property ruleSetDirectory = configuration.Properties.OfType<Property>().SingleOrDefault(p => p.Name == Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
             string ruleSetDirectoryValue = ruleSetDirectory?.Value as string;
             if (string.IsNullOrWhiteSpace(ruleSetDirectoryValue))
             {
-                Assert.AreEqual(0, info.RuleSetDirectories.Count());
+                info.RuleSetDirectories.Should().HaveCount(0);
             }
             else
             {
                 string[] expected = ruleSetDirectoryValue.Split(new[] { SolutionRuleSetsInformationProvider.RuleSetDirectoriesValueSpliter }, StringSplitOptions.RemoveEmptyEntries);
-                CollectionAssert.AreEquivalent(expected, info.RuleSetDirectories.ToArray(), "Actual: {0}", string.Join(", ", info.RuleSetDirectories));
+                info.RuleSetDirectories.Should().Equal(expected, "Actual: {0}", string.Join(", ", info.RuleSetDirectories));
             }
         }
         #endregion

@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

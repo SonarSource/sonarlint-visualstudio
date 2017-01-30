@@ -15,62 +15,74 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
-    [TestClass]
     public class DefaultProgressStepFactoryTests
     {
-        private DefaultProgressStepFactory testSubject;
-        private ConfigurableProgressController controller;
-
-        #region Test plumbing
-        public TestContext TestContext
+        [Fact]
+        public void CreateStepOperation_WhenUsingInvalidInput_ThrowsInvalidOperationException()
         {
-            get;
-            set;
+            // Arrange
+            var testSubject = new DefaultProgressStepFactory();
+            var controller = new ConfigurableProgressController(new ConfigurableServiceProvider());
+
+            // Act
+            Action act = () => testSubject.CreateStepOperation(controller, new StubProgressStepDefinition());
+
+            // Assert
+            act.ShouldThrow<InvalidOperationException>();
         }
 
-        [TestInitialize]
-        public void TestInitialize()
+        [Fact]
+        public void GetExecutionCallback_WhenUsingInvalidInput_ThrowsInvalidOperationException()
         {
-            this.testSubject = new DefaultProgressStepFactory();
-            this.controller = new ConfigurableProgressController(new ConfigurableServiceProvider());
+            // Arrange
+            var testSubject = new DefaultProgressStepFactory();
+
+            // Act
+            Action act = () => testSubject.GetExecutionCallback(new StubProgressStepOperation());
+
+            // Assert
+            act.ShouldThrow<InvalidOperationException>();
         }
 
-        [TestCleanup]
-        public void TestCleanup()
+        [Fact]
+        public void CreateStepOperation_WhenUsingProperInputs_IsInExpectedExecutionState()
         {
-            this.testSubject = null;
-            this.controller = null;
+            // Arrange
+            var testSubject = new DefaultProgressStepFactory();
+            var controller = new ConfigurableProgressController(new ConfigurableServiceProvider());
+
+            // Act
+            var stepOperation = testSubject.CreateStepOperation(controller, new ProgressStepDefinition("text", StepAttributes.None, (c, n) => { }));
+            var step = stepOperation as ProgressControllerStep;
+
+            // Assert
+            stepOperation.Should().NotBeNull();
+            step.Should().NotBeNull();
+            stepOperation.Step.ExecutionState.Should().Be(StepExecutionState.NotStarted);
         }
-        #endregion
 
-        [TestMethod]
-        [Description("Verifies that the factory implementation code handles correctly unsupported types")]
-        public void SequentialProgressController_IProgressStepFactory_UnsupportedInputs()
+        [Fact]
+        public void GetExecutionCallback_WhenUsingProperInputs_ReturnsExpectedStep()
         {
-            Exceptions.Expect<InvalidOperationException>(() => this.testSubject.CreateStepOperation(this.controller, new StubProgressStepDefinition()));
-            Exceptions.Expect<InvalidOperationException>(() => this.testSubject.GetExecutionCallback(new StubProgressStepOperation()));
-        }
+            // Arrange
+            var testSubject = new DefaultProgressStepFactory();
+            var controller = new ConfigurableProgressController(new ConfigurableServiceProvider());
+            var stepOperation = testSubject.CreateStepOperation(controller, new ProgressStepDefinition("text", StepAttributes.None, (c, n) => { }));
+            var step = stepOperation as ProgressControllerStep;
 
-        [TestMethod]
-        [Description("Verifies that the factory implementation code handles correctly the supported types")]
-        public void SequentialProgressController_IProgressStepFactory_SupportedInputs()
-        {
-            IProgressStepOperation stepOperation = this.testSubject.CreateStepOperation(this.controller, new ProgressStepDefinition("text", StepAttributes.None, (c, n) => { }));
-            Assert.IsNotNull(stepOperation, "Expecting IProgressStepOperation");
-            ProgressControllerStep step = stepOperation as ProgressControllerStep;
-            Assert.IsNotNull(step, "Expecting ProgressControllerStep");
+            // Act
+            var notifier = ((IProgressStepFactory)testSubject).GetExecutionCallback(stepOperation);
 
-            VerificationHelper.CheckState(stepOperation.Step, StepExecutionState.NotStarted);
-
-            IProgressStepExecutionEvents notifier = ((IProgressStepFactory)this.testSubject).GetExecutionCallback(stepOperation);
-            Assert.IsNotNull(stepOperation, "Expecting IProgressStepExecutionEvents");
-            Assert.AreSame(step, notifier, "Expecting ProgressControllerStep");
+            // Assert
+            notifier.Should().NotBeNull();
+            notifier.Should().Be(step);
         }
     }
 }

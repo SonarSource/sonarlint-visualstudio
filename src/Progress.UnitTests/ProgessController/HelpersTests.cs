@@ -15,22 +15,24 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
     public class HelpersTests
     {
-        [TestMethod]
-        public void Helpers_RunOnFinished()
+        [Fact]
+        public void RunOnFinished_WhenIterating_ReturnsExpectedValues()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressEvents progressEvents = new ConfigurableProgressEvents();
             ProgressControllerResult? result = null;
             Action<ProgressControllerResult> action = (r) => result = r;
 
+            // Act + Assert
             foreach (ProgressControllerResult progressResult in Enum.GetValues(typeof(ProgressControllerResult)))
             {
                 result = null;
@@ -39,8 +41,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 // Act
                 progressEvents.InvokeFinished(progressResult);
 
-                // Verify
-                Assert.AreEqual(progressResult, result, "Action was not called");
+                // Assert
+                progressResult.Should().Be(result);
                 progressEvents.AssertAllEventsAreUnregistered();
             }
         }

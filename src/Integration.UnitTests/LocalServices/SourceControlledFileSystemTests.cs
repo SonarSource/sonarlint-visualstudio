@@ -15,24 +15,23 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class SourceControlledFileSystemTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsQueryEditQuerySave2 queryEditAndSave;
         private ConfigurableFileSystem fileSystem;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public SourceControlledFileSystemTests()
         {
             KnownUIContextsAccessor.Reset();
             this.serviceProvider = new ConfigurableServiceProvider();
@@ -41,61 +40,70 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.fileSystem = new ConfigurableFileSystem();
         }
 
-        [TestMethod]
-        public void SourceControlledFileSystem_ArgCheck()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SourceControlledFileSystem(null));
+            // Arrange + Act
+            Action act = () => new SourceControlledFileSystem(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_FileExistOrQueuedToBeWritten()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file = @"Z:\Y\XXX \n.lll";
 
             // Case 1: file exists
             this.fileSystem.RegisterFile(file);
 
-            // Act + Verify
-            Assert.IsTrue(testSubject.FileExistOrQueuedToBeWritten(file.ToLowerInvariant()));
+            // Act + Assert
+            testSubject.FileExistOrQueuedToBeWritten(file.ToLowerInvariant())
+                .Should().BeTrue();
 
             // Case 2: file not exists, but pending
             this.fileSystem.ClearFiles();
             testSubject.QueueFileWrite(file, () => true);
 
-            // Act + Verify
-            Assert.IsTrue(testSubject.FileExistOrQueuedToBeWritten(file.ToUpperInvariant()));
+            // Act + Assert
+            testSubject.FileExistOrQueuedToBeWritten(file.ToUpperInvariant())
+                .Should().BeTrue();
 
             // Case 3: file not exists and not pending
             testSubject.WriteQueuedFiles();
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.FileExistOrQueuedToBeWritten(file));
+            // Act + Assert
+            testSubject.FileExistOrQueuedToBeWritten(file)
+                .Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_QueueFileWrite_QueryNewFile()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file = @"Z:\Y\XXX \n.lll";
             bool pendExecuted = false;
 
             // Act
             testSubject.QueueFileWrite(file, () => pendExecuted = true);
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles()
+                .Should().BeTrue("Not expecting any errors");
 
-            // Verify
+            // Assert
             this.queryEditAndSave.AssertCreateRequested(file);
             this.queryEditAndSave.AssertNoEditRequested();
-            Assert.IsTrue(pendExecuted, "Expected to be executed");
+            pendExecuted
+                .Should().BeTrue("Expected to be executed");
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_QueueFileWrite_QueryEditFile()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file = @"Z:\Y\XXX \n.lll";
             this.fileSystem.RegisterFile(file);
@@ -103,18 +111,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act
             testSubject.QueueFileWrite(file, () => pendExecuted = true);
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles()
+                .Should().BeTrue("Not expecting any errors");
 
-            // Verify
+            // Assert
             this.queryEditAndSave.AssertNoCreateRequested();
             this.queryEditAndSave.AssertEditRequested(file);
-            Assert.IsTrue(pendExecuted, "Expected to be executed");
+            pendExecuted
+                .Should().BeTrue("Expected to be executed");
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_QueueFileWrite_WriteQueuedFiles_ExecutionOrder()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
@@ -126,18 +136,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => { executionOrder.Add(file1); return true; });
             testSubject.QueueFileWrite(file2, () => { executionOrder.Add(file2); return true; });
             testSubject.QueueFileWrite(file3, () => { executionOrder.Add(file3); return true; });
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles()
+                .Should().BeTrue("Not expecting any errors");
 
-            // Verify
+            // Assert
             this.queryEditAndSave.AssertCreateRequested(file2, file3);
             this.queryEditAndSave.AssertEditRequested(file1);
-            CollectionAssert.AreEqual(new[] { file1, file2, file3 }, executionOrder.ToArray(), "Unexpected execution order");
+            executionOrder.Should().Equal(new[] { file1, file2, file3 }, "Unexpected execution order");
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_WriteQueuedFiles_CheckoutFileWhenWhenDebugging()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             this.fileSystem.RegisterFile(file1);
@@ -146,16 +157,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles()
+                .Should().BeTrue("Not expecting any errors");
 
-            // Verify
+            // Assert
             this.queryEditAndSave.AssertEditRequested(file1);
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_WriteQueuedFiles_CheckoutFileWhenBuilding()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             this.fileSystem.RegisterFile(file1);
@@ -164,16 +176,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles()
+                .Should().BeTrue("Not expecting any errors");
 
-            // Verify
+            // Assert
             this.queryEditAndSave.AssertEditRequested(file1);
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_WriteQueuedFiles_QueryEditFilesFailed()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             this.fileSystem.RegisterFile(file1);
@@ -181,16 +194,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
-            Assert.IsFalse(testSubject.WriteQueuedFiles(), "Failed to checkout");
+            testSubject.WriteQueuedFiles().Should().BeFalse("Failed to checkout");
 
-            // Verify
+            // Assert
             this.queryEditAndSave.AssertEditRequested(file1);
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_WriteQueuedFiles_NoisyPromptForCreateOperationIsRequired()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             this.queryEditAndSave.QuerySaveFilesVerification = flags =>
@@ -209,16 +222,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Failed to checkout");
+            testSubject.WriteQueuedFiles()
+                .Should().BeTrue("Failed to checkout");
 
-            // Verify
+            // Assert
             this.queryEditAndSave.AssertCreateRequested(file1, file1); // Twice silent and then noisy
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_WriteQueuedFiles_Batching()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
@@ -231,30 +245,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => { executionOrder.Add(file1); return false; });
             testSubject.QueueFileWrite(file2, () => { executionOrder.Add(file2); return true; });
             testSubject.QueueFileWrite(file3, () => { executionOrder.Add(file3); return true; });
-            Assert.IsFalse(testSubject.WriteQueuedFiles(), "Expected to fail");
+            testSubject.WriteQueuedFiles().Should().BeFalse("Expected to fail");
 
-            // Verify
+            // Assert
             this.queryEditAndSave.AssertCreateRequested(file2);
             this.queryEditAndSave.AssertEditRequested(file1, file3);
             this.queryEditAndSave.AssertAllBatchesCompleted(1);
-            CollectionAssert.AreEqual(new[] { file1 }, executionOrder.ToArray(), "Only the first was expected to execute");
+            executionOrder.Should().Equal(new[] { file1 }, "Only the first was expected to execute");
 
             // Act (write again)
             this.queryEditAndSave.Reset();
             executionOrder.Clear();
 
-            // Verify (the test subject should have been cleared from previous state)
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Should succeed since there's nothing pending");
+            // Assert (the test subject should have been cleared from previous state)
+            testSubject.WriteQueuedFiles()
+                .Should().BeTrue("Should succeed since there's nothing pending");
             this.queryEditAndSave.AssertAllBatchesCompleted(1);
             this.queryEditAndSave.AssertNoCreateRequested();
             this.queryEditAndSave.AssertNoEditRequested();
-            Assert.AreEqual(0, executionOrder.Count, "Unexpected execution occurred");
+            executionOrder.Should().BeEmpty("Unexpected execution occurred");
         }
 
-        [TestMethod]
+        [Fact]
         public void SourceControlledFileSystem_WriteQueuedFiles_FailureInWriteOperation()
         {
-            // Setup
+            // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
@@ -262,9 +277,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.QueueFileWrite(file1, () => false);
             testSubject.QueueFileWrite(file2, () => true);
-            Assert.IsFalse(testSubject.WriteQueuedFiles(), "Expecting a failure");
+            testSubject.WriteQueuedFiles().Should().BeFalse("Expecting a failure");
 
-            // Verify
+            // Assert
             this.queryEditAndSave.AssertCreateRequested(file1, file2);
             this.queryEditAndSave.AssertNoEditRequested();
             this.queryEditAndSave.AssertAllBatchesCompleted(1);

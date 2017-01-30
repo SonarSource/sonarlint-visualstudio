@@ -15,19 +15,21 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+
+using SonarLint.VisualStudio.Progress.Controller;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
-    [TestClass]
+
     public class SequentialProgressControllerTests
     {
         private SequentialProgressController testSubject;
@@ -36,15 +38,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private SingleThreadedTaskSchedulerService threadingService;
         private ConfigurableErrorNotifier errorNotifier;
 
-        #region Test plumbing
-        public TestContext TestContext
-        {
-            get;
-            set;
-        }
-
-        [TestInitialize]
-        public void TestInitialize()
+        public SequentialProgressControllerTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.threadingService = new SingleThreadedTaskSchedulerService();
@@ -52,53 +46,109 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject = new SequentialProgressController(this.serviceProvider);
         }
 
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            this.errorNotifier = null;
-            this.serviceProvider = null;
-            this.testSubject = null;
-            this.threadingService = null;
-        }
-        #endregion
-
         #region General tests
-        [TestMethod]
-        public void SequentialProgressController_ArgChecks()
+
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SequentialProgressController(null));
+            // Arrange & Act
+            Action act = () => new SequentialProgressController(null);
 
-            // 2 Arguments overload
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.Initialize((IProgressStepFactory)null, stepsDefinition: null));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.Initialize(new ConfigurableProgressStepFactory(), stepsDefinition: null));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.Initialize((IProgressStepFactory)null, stepsDefinition: new IProgressStepDefinition[0]));
-
-            // 1 Argument overload
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.Initialize(stepsDefinition: null));
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void SequentialProgressController_EventRegistration_NonUIThread()
+        [Fact]
+        public void Initialize_WithNullProgressStepFactory_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange & Act
+            Action act = () => this.testSubject.Initialize(null, stepsDefinition: null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void Initialize_WithNullStepDefinition_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action act = () => this.testSubject.Initialize(new ConfigurableProgressStepFactory(), stepsDefinition: null);
+
+                // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void Initialize_WithEmptyStepDefinition_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action act = () => this.testSubject.Initialize(new ConfigurableProgressStepFactory(), stepsDefinition: new IProgressStepDefinition[0]);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void CancellationSupportChanged_WhenNotOnUiThread_ThrowsComException()
+        {
+            // Arrange
             this.threadingService.SetCurrentThreadIsUIThread(false);
 
-            Exceptions.Expect<COMException>(() => this.testSubject.CancellationSupportChanged += (o, e) => { });
-            Exceptions.Expect<COMException>(() => this.testSubject.Finished += (o, e) => { });
-            Exceptions.Expect<COMException>(() => this.testSubject.Started += (o, e) => { });
-            Exceptions.Expect<COMException>(() => this.testSubject.StepExecutionChanged += (o, e) => { });
+            // Act
+            Action act = () => this.testSubject.CancellationSupportChanged += (o, e) => { };
+
+            // Assert
+            act.ShouldThrow<COMException>();
         }
 
-        [TestMethod]
-        [Description("Verifies execution order")]
+        [Fact]
+        public void Finished_WhenNotOnUiThread_ThrowsComException()
+        {
+            // Arrange
+            this.threadingService.SetCurrentThreadIsUIThread(false);
+
+            // Act
+            Action act = () => this.testSubject.Finished += (o, e) => { };
+
+            // Assert
+            act.ShouldThrow<COMException>();
+        }
+
+        [Fact]
+        public void Started_WhenNotOnUiThread_ThrowsComException()
+        {
+            // Arrange
+            this.threadingService.SetCurrentThreadIsUIThread(false);
+
+            // Act
+            Action act = () => this.testSubject.Started += (o, e) => { };
+
+            // Assert
+            act.ShouldThrow<COMException>();
+        }
+
+        [Fact]
+        public void StepExecutionChanged_WhenNotOnUiThread_ThrowsComException()
+        {
+            // Arrange
+            this.threadingService.SetCurrentThreadIsUIThread(false);
+
+            // Act
+            Action act = () => this.testSubject.StepExecutionChanged += (o, e) => { };
+
+            // Assert
+            act.ShouldThrow<COMException>();
+        }
+
+        [Fact]
         public void SequentialProgressController_ExecutionOrder()
         {
-            // Setup
+            // Arrange
             IProgressStep[] stepOperations = null;
             int expectedOperation = 0;
             Action<CancellationToken, IProgressStepExecutionEvents> operation = (c, e) =>
                 {
-                    Assert.AreSame(stepOperations[expectedOperation], (IProgressStep)e, "Unexpected execution order");
+                    ((IProgressStep)e).Should().BeSameAs(stepOperations[expectedOperation], "Unexpected execution order");
                     expectedOperation++;
                 };
 
@@ -117,98 +167,87 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            Assert.AreEqual(expectedOperation, definitions.Length, "Executed unexpected number of times");
+            // Assert
+            definitions.Length.Should().Be(expectedOperation, "Executed unexpected number of times");
         }
 
-        [TestMethod]
-        [Description("Verifies that the controller can be executed from the UI thread")]
+        [Fact]
         public void SequentialProgressController_Execution_UIThread()
         {
-            // Setup
+            // Arrange
             this.threadingService.SetCurrentThreadIsUIThread(true);
             this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.None, this.DoNothing));
 
             // Execute
-            Assert.AreEqual(ProgressControllerResult.Succeeded, this.testSubject.Start().Result, "Unexpected result");
+            this.testSubject.Start().Result.Should().Be(ProgressControllerResult.Succeeded, "Unexpected result");
         }
 
-        [TestMethod]
-        [Description("Verifies that the controller can be executed from a non-UI thread")]
+        [Fact]
         public void SequentialProgressController_Execution_NonUIThread()
         {
-            // Setup
+            // Arrange
             this.threadingService.SetCurrentThreadIsUIThread(false);
             this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.None, this.DoNothing));
 
             // Execute
-            Assert.AreEqual(ProgressControllerResult.Succeeded, this.testSubject.Start().Result, "Unexpected result");
+            this.testSubject.Start().Result.Should().Be(ProgressControllerResult.Succeeded, "Unexpected result");
         }
 
         #endregion
 
         #region IProgressController implementation tests
-        [TestMethod]
-        [Description("Verifies that in case Initialized is called twice an exception will be thrown")]
+        [Fact]
         public void SequentialProgressController_IProgressController_Initialize_Twice()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressStepFactory testFactory = new ConfigurableProgressStepFactory();
             this.testSubject.Initialize(testFactory, new IProgressStepDefinition[0]);
 
-            // Execute and verify
-            Exceptions.Expect<InvalidOperationException>(() => this.testSubject.Initialize(testFactory, new IProgressStepDefinition[0]));
+            // Act
+            Action act = () => this.testSubject.Initialize(testFactory, new IProgressStepDefinition[0]);
+
+            // Assert
+            act.ShouldThrow<InvalidOperationException>();
         }
 
-        [TestMethod]
-        [Description("Verifies that in case Start is called twice an exception will be thrown")]
+        [Fact]
         public void SequentialProgressController_IProgressController_Start_Twice()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressStepFactory testFactory = new ConfigurableProgressStepFactory();
             this.testSubject.Initialize(testFactory, new IProgressStepDefinition[0]);
 
-            // Execute in parallel and verify
-            Exceptions.Expect<InvalidOperationException>(() =>
-                {
-                    try
-                    {
-                        Task.WaitAll(
-                            this.testSubject.Start(),
-                            this.testSubject.Start());
-                    }
-                    catch (AggregateException ex)
-                    {
-                        throw ex.InnerException;
-                    }
-                });
+            // act
+            Action act = () => Task.WaitAll(this.testSubject.Start(),
+                                            this.testSubject.Start());
+
+            // Arrange
+            act.ShouldThrow<AggregateException>().WithInnerException<InvalidOperationException>();
         }
 
-        [TestMethod]
-        [Description("Verifies that Start will change IsStarted and IsFinished during execution")]
+        [Fact]
         public void SequentialProgressController_IProgressController_Start()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressStepFactory testFactory = new ConfigurableProgressStepFactory();
             ConfigurableProgressTestOperation stepOperation = new ConfigurableProgressTestOperation(this.VerifyControllerExecuting);
             testFactory.CreateOpeartion = (d) => stepOperation;
             this.testSubject.Initialize(testFactory, new[] { new StubProgressStepDefinition() });
 
-            Assert.IsFalse(this.testSubject.IsStarted, "Wasn't started yet");
-            Assert.IsFalse(this.testSubject.IsFinished, "Wasn't started yet");
+            this.testSubject.IsStarted.Should().BeFalse("Wasn't started yet");
+            this.testSubject.IsFinished.Should().BeFalse("Wasn't started yet");
 
             // Execute
             this.testSubject.Start().Wait();
 
-            Assert.IsTrue(this.testSubject.IsStarted, "Was started");
-            Assert.IsTrue(this.testSubject.IsFinished, "Was finished");
+            this.testSubject.IsStarted.Should().BeTrue("Was started");
+            this.testSubject.IsFinished.Should().BeTrue("Was finished");
         }
 
-        [TestMethod]
-        [Description("Verifies the initialize method - that uses the factory correctly to convert definitions to operations")]
+        [Fact]
         public void SequentialProgressController_IProgressController_Initialize()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressStepFactory testFactory = new ConfigurableProgressStepFactory();
             IProgressStepDefinition[] definitions = new IProgressStepDefinition[]
             {
@@ -220,37 +259,40 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Execute
             this.testSubject.Initialize(testFactory, definitions);
 
-            // Verify
+            // Assert
             IProgressStepOperation[] stepOperations = this.testSubject.Steps.OfType<IProgressStepOperation>().ToArray();
-            testFactory.AssertStepOperationsCreatedForDefinitions(definitions, stepOperations);
+            stepOperations.Should().HaveSameCount(definitions);
+            for (int i = 0; i < definitions.Length; i++)
+            {
+                stepOperations[i].Should().Be(testFactory.CreatedOperations[definitions[i]], "Mismatch at definition {0}", i);
+            }
         }
 
-        [TestMethod]
-        [Description("Verifies that using TryAbort before the controller has started will not be possible")]
+        [Fact]
         public void SequentialProgressController_IProgressController_TryAbort_NonStarted()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(
                 new ProgressStepDefinition(null, StepAttributes.Hidden | StepAttributes.NonCancellable, this.DoNothing),
                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
-            Assert.IsFalse(this.testSubject.TryAbort(), "Should not be able to abort before started");
+            this.testSubject.TryAbort().Should().BeFalse("Should not be able to abort before started");
 
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
+            // Assert
             IProgressStep[] stepOperations = this.testSubject.Steps.ToArray();
-            verifier.AssertCorrectExecution(ProgressControllerResult.Succeeded);
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Succeeded);
             verifier.AssertStepCorrectExecution(stepOperations[0], StepExecutionState.Succeeded);
             verifier.AssertStepCorrectExecution(stepOperations[1], StepExecutionState.Succeeded);
-            verifier.AssertCancellationChanges(3);
+            verifier.CancellableStateChangesCount.Should().Be(3);
         }
 
-        [TestMethod]
-        [Description("Verifies that using TryAbort on a non cancellable step will not be possible")]
+        [Fact]
         public void SequentialProgressController_IProgressController_TryAbort_NonCancellable()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(
                 new ProgressStepDefinition(null, StepAttributes.Hidden | StepAttributes.NonCancellable, this.RequestToCancelIgnored),
                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
@@ -258,19 +300,19 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
+            // Assert
             IProgressStep[] stepOperations = this.testSubject.Steps.ToArray();
-            verifier.AssertCorrectExecution(ProgressControllerResult.Succeeded);
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Succeeded);
             verifier.AssertStepCorrectExecution(stepOperations[0], StepExecutionState.Succeeded);
             verifier.AssertStepCorrectExecution(stepOperations[1], StepExecutionState.Succeeded);
-            verifier.AssertCancellationChanges(3);
+            verifier.CancellableStateChangesCount.Should().Be(3);
         }
 
-        [TestMethod]
-        [Description("Verifies that using TryAbort on a cancellable step will be possible")]
+        [Fact]
         public void SequentialProgressController_IProgressController_TryAbort_Cancellable()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(
                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.RequestToCancelAccepted),
                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
@@ -278,26 +320,26 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            Assert.IsFalse(this.testSubject.CanAbort, "Should not be abortable any more, since already aborted");
+            // Assert
+            this.testSubject.CanAbort.Should().BeFalse("Should not be abortable any more, since already aborted");
             IProgressStep[] stepOperations = this.testSubject.Steps.ToArray();
-            verifier.AssertCorrectExecution(ProgressControllerResult.Cancelled);
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Cancelled);
             verifier.AssertStepCorrectExecution(stepOperations[0], StepExecutionState.Succeeded);
             verifier.AssertStepCorrectExecution(stepOperations[1], StepExecutionState.NotStarted);
-            verifier.AssertCancellationChanges(2);
+            verifier.CancellableStateChangesCount.Should().Be(2);
         }
 
-        [TestMethod]
-        [Description("Verifies that in case the will not cancel itself using the cancellation token, the controller will still cancel before running the next step")]
+        [Fact]
         public void SequentialProgressController_IProgressController_TryAbort_ControllerDrivenCancellation()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressStepFactory testFactory = new ConfigurableProgressStepFactory();
             ConfigurableProgressTestOperation stepOperation = new ConfigurableProgressTestOperation(this.DoNothing);
             stepOperation.CancellableAction = () =>
             {
                 // Using this opportunity to abort - the test assumes that Cancellable is called before the step is actually executed
-                Assert.IsTrue(this.testSubject.TryAbort(), "Should be able to abort");
+                this.testSubject.TryAbort().Should().BeTrue("Should be able to abort");
                 return true;
             };
             testFactory.CreateOpeartion = (d) => stepOperation;
@@ -307,87 +349,87 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            verifier.AssertCorrectExecution(ProgressControllerResult.Cancelled);
+            // Assert
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Cancelled);
             verifier.AssertStepCorrectExecution(stepOperation, StepExecutionState.NotStarted);
-            verifier.AssertCancellationChanges(3);
+            verifier.CancellableStateChangesCount.Should().Be(3);
         }
         #endregion
 
         #region IProgressEvents implementation tests
-        [TestMethod]
-        [Description("Verifies that step execution event for succeeded step is raised correctly")]
+        [Fact]
         public void SequentialProgressController_IProgressEvents_StepSucceeded()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
 
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            verifier.AssertCorrectExecution(ProgressControllerResult.Succeeded);
+            // Assert
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Succeeded);
             verifier.AssertStepCorrectExecution(this.testSubject.Steps.Single(), StepExecutionState.Succeeded);
-            verifier.AssertCancellationChanges(1);
+            verifier.CancellableStateChangesCount.Should().Be(1);
         }
 
-        [TestMethod]
-        [Description("Verifies that step execution event for canceled step is raised correctly")]
+        [Fact]
         public void SequentialProgressController_IProgressEvents_StepCancelled()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.Cancel));
 
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            verifier.AssertCorrectExecution(ProgressControllerResult.Cancelled);
+            // Assert
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Cancelled);
             verifier.AssertStepCorrectExecution(this.testSubject.Steps.Single(), StepExecutionState.Cancelled);
-            verifier.AssertCancellationChanges(2);
+            verifier.CancellableStateChangesCount.Should().Be(2);
         }
 
-        [TestMethod]
-        [Description("Verifies that step execution event for failed step is raised correctly")]
+        [Fact]
         public void SequentialProgressController_IProgressEvents_StepFailed()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.Fail));
 
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            verifier.AssertCorrectExecution(ProgressControllerResult.Failed);
+            // Assert
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Failed);
             verifier.AssertStepCorrectExecution(this.testSubject.Steps.Single(), StepExecutionState.Failed);
-            verifier.AssertCancellationChanges(1);
-            this.errorNotifier.AssertExcepections(1);
+            verifier.CancellableStateChangesCount.Should().Be(1);
+            this.errorNotifier.Exceptions.Should().HaveCount(1);
         }
 
-        [TestMethod]
-        [Description("Verifies that step execution events for multiple succeeded steps are raised correctly")]
+        [Fact]
         public void SequentialProgressController_IProgressEvents_MultiStep_Succeeded()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing),
                                                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
 
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            verifier.AssertCorrectExecution(ProgressControllerResult.Succeeded);
+            // Assert
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Succeeded);
             IProgressStep[] step = this.testSubject.Steps.ToArray();
             verifier.AssertStepCorrectExecution(step[0], StepExecutionState.Succeeded);
             verifier.AssertStepCorrectExecution(step[1], StepExecutionState.Succeeded);
-            verifier.AssertCancellationChanges(1);
+            verifier.CancellableStateChangesCount.Should().Be(1);
         }
 
-        [TestMethod]
-        [Description("Verifies that step execution events for multiple steps with a single canceled one are raised correctly")]
+        [Fact]
         public void SequentialProgressController_IProgressEvents_MultiStep_Cancelled()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing),
                                                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.Cancel),
                                                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
@@ -395,20 +437,20 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            verifier.AssertCorrectExecution(ProgressControllerResult.Cancelled);
+            // Assert
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Cancelled);
             IProgressStep[] step = this.testSubject.Steps.ToArray();
             verifier.AssertStepCorrectExecution(step[0], StepExecutionState.Succeeded);
             verifier.AssertStepCorrectExecution(step[1], StepExecutionState.Cancelled);
             verifier.AssertStepCorrectExecution(step[2], StepExecutionState.NotStarted);
-            verifier.AssertCancellationChanges(2);
+            verifier.CancellableStateChangesCount.Should().Be(2);
         }
 
-        [TestMethod]
-        [Description("Verifies that step execution events for multiple steps with a single failed one are raised correctly")]
+        [Fact]
         public void SequentialProgressController_IProgressEvents_MultiStep_Failed()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing),
                                                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.Fail),
                                                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
@@ -416,20 +458,20 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            verifier.AssertCorrectExecution(ProgressControllerResult.Failed);
+            // Assert
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Failed);
             IProgressStep[] step = this.testSubject.Steps.ToArray();
             verifier.AssertStepCorrectExecution(step[0], StepExecutionState.Succeeded);
             verifier.AssertStepCorrectExecution(step[1], StepExecutionState.Failed);
             verifier.AssertStepCorrectExecution(step[2], StepExecutionState.NotStarted);
-            verifier.AssertCancellationChanges(1);
+            verifier.CancellableStateChangesCount.Should().Be(1);
         }
 
-        [TestMethod]
-        [Description("Verifies that step execution progress updates are raised correctly")]
+        [Fact]
         public void SequentialProgressController_IProgressEvents_ProgessChanges()
         {
-            // Setup
+            // Arrange
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.NotifyProgress));
             this.notifyProgressSequence.Add(Tuple.Create("hello", 0.25));
             this.notifyProgressSequence.Add(Tuple.Create(string.Empty, 0.5));
@@ -439,19 +481,20 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Execute
             this.testSubject.Start().Wait();
 
-            // Verify
-            verifier.AssertCorrectExecution(ProgressControllerResult.Succeeded);
+            // Assert
+            verifier.IsStarted.Should().BeTrue();
+            verifier.ExecutionResult.Should().Be(ProgressControllerResult.Succeeded);
             verifier.AssertStepCorrectExecution(this.testSubject.Steps.Single(), StepExecutionState.Succeeded);
             verifier.AssertExecutionProgress(this.testSubject.Steps.Single(), this.notifyProgressSequence.ToArray());
-            verifier.AssertCancellationChanges(1);
+            verifier.CancellableStateChangesCount.Should().Be(1);
         }
         #endregion
 
         #region Test helpers
         private static void AssertOperationArgumentsAreNotNull(CancellationToken token, IProgressStepExecutionEvents callback)
         {
-            Assert.IsNotNull(token, "CancellationToken is expected not to be null");
-            Assert.IsNotNull(callback, "IProgressStepExecutionEvents is expected not to be null");
+            token.Should().NotBeNull("CancellationToken is expected not to be null");
+            callback.Should().NotBeNull("IProgressStepExecutionEvents is expected not to be null");
         }
 
         private ProgressEventsVerifier InitializeTestSubjectWithTestErrorHandling(params ProgressStepDefinition[] definitions)
@@ -482,8 +525,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             AssertOperationArgumentsAreNotNull(token, notifier);
 
-            Assert.IsTrue(this.testSubject.IsStarted, "Expected to be started");
-            Assert.IsFalse(this.testSubject.IsFinished, "Not expected to be finished");
+            this.testSubject.IsStarted.Should().BeTrue("Expected to be started");
+            this.testSubject.IsFinished.Should().BeFalse("Not expected to be finished");
         }
 
         /// <summary>
@@ -495,7 +538,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             AssertOperationArgumentsAreNotNull(token, notifier);
 
-            Assert.IsTrue(this.testSubject.TryAbort(), "Expected to abort");
+            this.testSubject.TryAbort().Should().BeTrue("Expected to abort");
             token.ThrowIfCancellationRequested();
         }
 
@@ -509,8 +552,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             AssertOperationArgumentsAreNotNull(token, notifier);
 
-            Assert.IsTrue(this.testSubject.CanAbort, "Should be able to abort");
-            Assert.IsTrue(this.testSubject.TryAbort(), "Aborting should succeed");
+            this.testSubject.CanAbort.Should().BeTrue("Should be able to abort");
+            this.testSubject.TryAbort().Should().BeTrue("Aborting should succeed");
         }
 
         /// <summary>
@@ -523,8 +566,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             AssertOperationArgumentsAreNotNull(token, notifier);
 
-            Assert.IsFalse(this.testSubject.CanAbort, "Should not be able to abort");
-            Assert.IsFalse(this.testSubject.TryAbort(), "Aborting should fail");
+            this.testSubject.CanAbort.Should().BeFalse("Should not be able to abort");
+            this.testSubject.TryAbort().Should().BeFalse("Aborting should fail");
         }
 
         /// <summary>

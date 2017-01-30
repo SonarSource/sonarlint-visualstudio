@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -85,18 +85,18 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         #region Verification
         public void AssertAllEventsAreRegistered()
         {
-            Assert.IsNotNull(this.Started, "The Started event isn't registered");
-            Assert.IsNotNull(this.Finished, "The Finished event wasn't registered");
-            Assert.IsNotNull(this.StepExecutionChanged, "The StepExecutionChanged event isn't registered");
-            Assert.IsNotNull(this.CancellationSupportChanged, "The CancellationSupportChanged event isn't registered");
+            this.Started.Should().NotBeNull( "The Started event isn't registered");
+            this.Finished.Should().NotBeNull( "The Finished event wasn't registered");
+            this.StepExecutionChanged.Should().NotBeNull( "The StepExecutionChanged event isn't registered");
+            this.CancellationSupportChanged.Should().NotBeNull( "The CancellationSupportChanged event isn't registered");
         }
 
         public void AssertAllEventsAreUnregistered()
         {
-            Assert.IsNull(this.Started, "The Started event is registered");
-            Assert.IsNull(this.Finished, "The Finished event is registered");
-            Assert.IsNull(this.StepExecutionChanged, "The StepExecutionChanged event is registered");
-            Assert.IsNull(this.CancellationSupportChanged, "The CancellationSupportChanged event is registered");
+            this.Started.Should().BeNull( "The Started event is registered");
+            this.Finished.Should().BeNull( "The Finished event is registered");
+            this.StepExecutionChanged.Should().BeNull( "The StepExecutionChanged event is registered");
+            this.CancellationSupportChanged.Should().BeNull( "The CancellationSupportChanged event is registered");
         }
         #endregion
     }

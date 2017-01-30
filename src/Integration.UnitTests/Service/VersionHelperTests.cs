@@ -15,64 +15,95 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using SonarLint.VisualStudio.Integration.Service;
 using System;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Service
 {
-    [TestClass]
     public class VersionHelperTests
     {
-        [TestMethod]
-        public void VersionHelper_Compare_NullVersionStrings_ThrowsException()
+        [Fact]
+        public void Compare_WithNullLeftVersion_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => VersionHelper.Compare(null, "1.2.3"));
-            Exceptions.Expect<ArgumentNullException>(() => VersionHelper.Compare("1.2.3", null));
+            // Arrange + Act
+            Action act = () => VersionHelper.Compare(null, "1.2.3");
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void VersionHelper_Compare_InvalidVersionStrings_ThrowsException()
+        [Fact]
+        public void Compare_WithNullRightVersion_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentException>(() => VersionHelper.Compare("notaversion", "1.2.3"));
-            Exceptions.Expect<ArgumentException>(() => VersionHelper.Compare("1.2.3", "notaversion"));
+            // Arrange + Act
+            Action act = () => VersionHelper.Compare("1.2.3", null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
+        public void Compare_WithInvalidLeftVersion_ThrowsArgumentNullException()
+        {
+            // Arrange + Act
+            Action act = () => VersionHelper.Compare("notaversion", "1.2.3");
+
+            // Assert
+            act.ShouldThrow<ArgumentException>();
+        }
+
+        [Fact]
+        public void Compare_WithInvalidRightVersion_ThrowsArgumentNullException()
+        {
+            // Arrange + Act
+            Action act = () => VersionHelper.Compare("1.2.3", "notaversion");
+
+            // Assert
+            act.ShouldThrow<ArgumentException>();
+        }
+
+        [Fact]
         public void VersionHelper_Compare_SameVersionString_Release_AreSame()
         {
             // Act
             int result = VersionHelper.Compare("1.2.3", "1.2.3");
 
-            // Verify
-            Assert.AreEqual(0, result);
+            // Assert
+            result.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void VersionHelper_Compare_SameVersionString_Prerelease_AreSame()
         {
             // Test case 1: same 'dev string'
             // Act
             int result1 = VersionHelper.Compare("1.0-rc1", "1.0-rc2");
 
-            // Verify
-            Assert.AreEqual(0, result1);
+            // Assert
+            result1.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void VersionHelper_Compare_ReleaseAndPrerelease_ComparesOnlyNumericParts()
         {
-            // Act + Verify
-            Assert.IsTrue(VersionHelper.Compare("1.1", "1.2-beta") < 0);
-            Assert.IsTrue(VersionHelper.Compare("1.1-beta", "1.2") < 0);
+            // Act + Assert
+            VersionHelper.Compare("1.1", "1.2-beta")
+                .Should().BeLessThan(0);
+            VersionHelper.Compare("1.1-beta", "1.2")
+                .Should().BeLessThan(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void VersionHelper_Compare_NextMinorVersion()
         {
-            // Act + Verify
-            Assert.IsTrue(VersionHelper.Compare("1.2", "1.3") < 0);
-            Assert.IsTrue(VersionHelper.Compare("1.3", "1.2") > 0);
+            // Act + Assert
+            VersionHelper.Compare("1.2", "1.3")
+                .Should().BeLessThan(0);
+            VersionHelper.Compare("1.3", "1.2")
+                .Should().BeGreaterThan(0);
         }
     }
 }

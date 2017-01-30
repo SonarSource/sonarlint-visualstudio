@@ -15,34 +15,37 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+ using Xunit;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
-    [TestClass]
     public class IntegrationSettingsTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableWritableSettingsStore settingsStore;
         private ConfigurableSettingsManager settingsManager;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public IntegrationSettingsTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.settingsStore = new ConfigurableWritableSettingsStore();
             this.settingsManager = new ConfigurableSettingsManager(this.settingsStore);
         }
 
-        [TestMethod]
-        public void IntegrationSettings_Ctor_NullArgChecks()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new IntegrationSettings(null));
+            // Arrange + Act
+            Action act = () => new IntegrationSettings(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void IntegrationSettings_Ctor_InitializesStore()
         {
             // Sanity - should be empty store
@@ -51,42 +54,42 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Act
             IntegrationSettings testSubject = this.CreateTestSubject();
 
-            // Verify
+            // Assert
             this.settingsStore.AssertCollectionExists(IntegrationSettings.SettingsRoot);
         }
 
-        [TestMethod]
+        [Fact]
         public void IntegrationSettings_GetValueOrDefault_Bool()
         {
-            // Setup
+            // Arrange
             IntegrationSettings testSubject = this.CreateTestSubject();
 
             // Test case 1: exists -> value
-            // Setup
+            // Arrange
             bool expected1 = false;
             this.settingsStore.SetBoolean(IntegrationSettings.SettingsRoot, "key1", expected1);
 
             // Act
             bool actual1 = testSubject.GetValueOrDefault("key1", true);
 
-            // Verify
-            Assert.AreEqual(expected1, actual1, "Did not load existing value");
+            // Assert
+            actual1.Should().Be(expected1, "Did not load existing value");
 
             // Test case 2: does NOT exist -> default
-            // Setup
+            // Arrange
             bool expected2 = true;
 
             // Act
             bool actual2 = testSubject.GetValueOrDefault("key2", expected2);
 
-            // Verify
-            Assert.AreEqual(expected2, actual2, "Did not return default value");
+            // Assert
+            actual2.Should().Be(expected2, "Did not return default value");
         }
 
-        [TestMethod]
+        [Fact]
         public void IntegrationSettings_GetValueOrDefault_Bool_NoStore()
         {
-            // Setup
+            // Arrange
             bool expected = true;
             IntegrationSettings testSubject;
             using (new AssertIgnoreScope())
@@ -97,15 +100,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Act
             bool actual = testSubject.GetValueOrDefault("key1", expected);
 
-            // Verify
-            Assert.AreEqual(expected, actual, "Did not return default value in case of missing setting store");
+            // Assert
+            expected.Should().Be( actual, "Did not return default value in case of missing setting store");
         }
 
 
-        [TestMethod]
+        [Fact]
         public void IntegrationSettings_SetValue_Bool()
         {
-            // Setup
+            // Arrange
             const string propertyKey = "key1";
             const string collection = IntegrationSettings.SettingsRoot;
             IntegrationSettings testSubject = this.CreateTestSubject();
@@ -117,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Act
             testSubject.SetValue(propertyKey, true);
 
-            // Verify
+            // Assert
             this.settingsStore.AssertCollectionPropertyCount(collection, 1);
             this.settingsStore.AssertBoolean(collection, propertyKey, true);
 
@@ -125,22 +128,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Act
             testSubject.SetValue(propertyKey, false);
 
-            // Verify
+            // Assert
             this.settingsStore.AssertCollectionPropertyCount(collection, 1);
             this.settingsStore.AssertBoolean(collection, propertyKey, false);
         }
 
-        [TestMethod]
+        [Fact]
         public void IntegrationSettings_SetValue_Bool_NoStore()
         {
-            // Setup
+            // Arrange
             IntegrationSettings testSubject;
             using (new AssertIgnoreScope())
             {
                 testSubject = this.CreateTestSubject(storeLoadFailure: true);
             }
 
-            // Act + Verify (no store -> no exception)
+            // Act + Assert (no store -> no exception)
             testSubject.SetValue("key1", false);
         }
 

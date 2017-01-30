@@ -15,51 +15,56 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
+using Xunit;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Service;
 using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class BoundSonarQubeProjectExtensionsTests
     {
-        [TestMethod]
-        public void CreateConnectionInformation_ArgCheck()
+        [Fact]
+        public void CreateConnectionInformation_WithNullProject_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => BoundSonarQubeProjectExtensions.CreateConnectionInformation(null));
+            // Arrange + Act
+            Action act = () => BoundSonarQubeProjectExtensions.CreateConnectionInformation(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void CreateConnectionInformation_NoCredentials()
         {
-            // Setup
+            // Arrange
             var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey");
 
             // Act
             ConnectionInformation conn = input.CreateConnectionInformation();
 
-            // Verify
-            Assert.AreEqual(input.ServerUri, conn.ServerUri);
-            Assert.IsNull(conn.UserName);
-            Assert.IsNull(conn.Password);
+            // Assert
+            input.ServerUri.Should().Be(conn.ServerUri);
+            conn.UserName.Should().BeNull();
+            conn.Password.Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void CreateConnectionInformation_BasicAuthCredentials()
         {
-            // Setup
+            // Arrange
             var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
             var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", creds);
 
             // Act
             ConnectionInformation conn = input.CreateConnectionInformation();
 
-            // Verify
-            Assert.AreEqual(input.ServerUri, conn.ServerUri);
-            Assert.AreEqual(creds.UserName, conn.UserName);
-            Assert.AreEqual(creds.Password.ToUnsecureString(), conn.Password.ToUnsecureString());
+            // Assert
+            input.ServerUri.Should().Be(conn.ServerUri);
+            creds.UserName.Should().Be(conn.UserName);
+            creds.Password.ToUnsecureString().Should().Be(conn.Password.ToUnsecureString());
         }
     }
 }

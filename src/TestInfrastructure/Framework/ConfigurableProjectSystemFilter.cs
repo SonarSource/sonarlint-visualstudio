@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using FluentAssertions;
 using DteProject = EnvDTE.Project;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -55,9 +55,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertTestRegex(string regex, RegexOptions options)
         {
-            Assert.IsNotNull(this.TestRegex, "Expected test regex to be set");
-            Assert.AreEqual(regex, this.TestRegex.ToString(), "Unexpected test regular expression");
-            Assert.AreEqual(options, this.TestRegex.Options, "Unexpected test regex options");
+            this.TestRegex.Should().NotBeNull( "Expected test regex to be set");
+            regex.Should().Be( this.TestRegex.ToString(), "Unexpected test regular expression");
+            options.Should().Be( this.TestRegex.Options, "Unexpected test regex options");
         }
 
         #endregion

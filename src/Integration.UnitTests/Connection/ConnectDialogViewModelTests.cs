@@ -15,101 +15,108 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Connection.UI;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
-    [TestClass]
+
     public class ConnectDialogViewModelTests
     {
         #region Tests
 
-        [TestMethod]
+        [Fact]
         public void ConnectDialogViewModel_GetErrorForProperty_ServerUrlRaw_NoValidationErrorWhenPristine()
         {
             // Test case 1: new model has prestine URL
-            // Setup
+            // Arrange
             var testSubject1 = new ConnectionInfoDialogViewModel();
 
             // Act
             string validationError1 = GetErrorForProperty(testSubject1, nameof(testSubject1.ServerUrlRaw));
 
-            // Verify
-            Assert.IsTrue(testSubject1.IsUrlPristine, "Server URL should be prestine on initial view model construction");
-            Assert.IsNull(validationError1, "Validation error should be null on initial view model construction");
+            // Assert
+            testSubject1.IsUrlPristine.Should().BeTrue("Server URL should be prestine on initial view model construction");
+            validationError1.Should().BeNull("Validation error should be null on initial view model construction");
 
 
             // Test case 2a: setting raw server url makes it 'dirty' valid URL
-            // Setup
+            // Arrange
             var testSubject2a = new ConnectionInfoDialogViewModel();
 
             // Act
             testSubject2a.ServerUrlRaw = "http://localhost";
             string validationError2a = GetErrorForProperty(testSubject2a, nameof(testSubject2a.ServerUrlRaw));
 
-            // Verify
-            Assert.IsFalse(testSubject2a.IsUrlPristine, "Server URL should no longer be prestine once set to a valid URL");
-            Assert.IsNull(validationError2a, "Validation error should be null for valid URL");
+            // Assert
+            testSubject2a.IsUrlPristine
+                .Should().BeFalse("Server URL should no longer be prestine once set to a valid URL");
+            validationError2a
+                .Should().BeNull("Validation error should be null for valid URL");
 
 
             // Test case 2b: setting raw server url makes it 'dirty' invalid URL
-            // Setup
+            // Arrange
             var testSubject2b = new ConnectionInfoDialogViewModel();
 
             // Act
             testSubject2b.ServerUrlRaw = "not-a-valid-url";
             string validationError2b = GetErrorForProperty(testSubject2b, nameof(testSubject2b.ServerUrlRaw));
 
-            // Verify
-            Assert.IsFalse(testSubject2b.IsUrlPristine, "Server URL should no longer be prestine once set to an invalid URL");
-            Assert.IsNotNull(validationError2b, "Validation error should not be null for invalid URL");
+            // Assert
+            testSubject2b.IsUrlPristine
+                .Should().BeFalse("Server URL should no longer be prestine once set to an invalid URL");
+            validationError2b
+                .Should().NotBeNull("Validation error should not be null for invalid URL");
 
 
             // Test case 3: clearing a non-prestine view model should still be non-prestine
-            // Setup
+            // Arrange
             var testSubject3 = new ConnectionInfoDialogViewModel();
             testSubject3.ServerUrlRaw = "blah"; // Makes url field dirty
-            Assert.IsFalse(testSubject3.IsUrlPristine, "URL should be made dirty before clearing the field"); // Sanity check
+            testSubject3.IsUrlPristine
+                .Should().BeFalse("URL should be made dirty before clearing the field"); // Sanity check
 
             // Act
             testSubject3.ServerUrlRaw = null; // Clear field
 
-            // Verify
-            Assert.IsFalse(testSubject3.IsUrlPristine, "Server URL should still be non-prestine even after clearing the field");
+            // Assert
+            testSubject3.IsUrlPristine
+                .Should().BeFalse("Server URL should still be non-prestine even after clearing the field");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectDialogViewModel_ServerUrl_SetOnlyWhenServerUrlRawIsValid()
         {
-            // Setup
+            // Arrange
             var model = new ConnectionInfoDialogViewModel();
 
             // Test:
             //   Invalid entry does not set ServerUrl
             model.ServerUrlRaw = "http:/localhost/";
-            Assert.IsTrue(model.ServerUrl == null, "ServerUrl should not be set");
+            model.ServerUrl.Should().BeNull("ServerUrl should not be set");
 
             //   Valid entry updates ServerUrl
             model.ServerUrlRaw = "http://localhost/";
-            Assert.IsFalse(model.ServerUrl == null, "ServerUrl should set");
-            Assert.AreEqual(new Uri(model.ServerUrlRaw), model.ServerUrl, "Uri property should match raw string property");
+            model.ServerUrl.Should().NotBeNull("ServerUrl should set");
+            model.ServerUrl.Should().Be(new Uri(model.ServerUrlRaw), "Uri property should match raw string property");
         }
 
-        [TestMethod]
+        [Fact]
         public void ConnectDialogViewModel_ShowSecurityWarning_InsecureUriScheme_IsTrue()
         {
             var model = new ConnectionInfoDialogViewModel();
 
             model.ServerUrlRaw = "http://hostname";
-            Assert.IsTrue(model.ShowSecurityWarning, "Security warning should be visible");
+            model.ShowSecurityWarning.Should().BeTrue("Security warning should be visible");
 
             model.ServerUrlRaw = "https://hostname";
-            Assert.IsFalse(model.ShowSecurityWarning, "Security warning should not be visible");
+            model.ShowSecurityWarning.Should().BeFalse("Security warning should not be visible");
         }
 
         #endregion

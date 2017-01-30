@@ -15,70 +15,108 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
-    [TestClass]
     public class DeterminateStepProgressNotifierTests
     {
-        [TestMethod]
-        public void DeterminateStepProgressNotifier_ArgChecks()
+        [Fact]
+        public void Ctor_WhenGivingNullExecutionEvents_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new DeterminateStepProgressNotifier(null, 1));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new DeterminateStepProgressNotifier(new ConfigurableProgressController(null), 0));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new DeterminateStepProgressNotifier(new ConfigurableProgressController(null), -1));
+            // Act
+            Action act = () => new DeterminateStepProgressNotifier(null, 1);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("executionEvents"); ;
         }
 
-        [TestMethod]
-        public void DeterminateStepProgressNotifier_IncrementProgress_ArgChecks()
+        [Fact]
+        public void Ctor_WhenGivingNumberOfStepslessThan1_ThrowsArgumentOutOfRangeException()
         {
-            // Setup
+            // Act
+            Action act = () => new DeterminateStepProgressNotifier(new ConfigurableProgressController(null), 0);
+
+            // Assert
+            act.ShouldThrow<ArgumentOutOfRangeException>().And.ParamName.Should().Be("numberOfIncrements");
+        }
+
+        [Fact]
+        public void IncrementProgress_WhenGivingLessThanOne_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
             var testSubject = new DeterminateStepProgressNotifier(new ConfigurableProgressController(null), 11);
 
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.IncrementProgress(0));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.IncrementProgress(-1));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.IncrementProgress(12));
+            // Act
+            Action act = () => testSubject.IncrementProgress(0);
 
-            // Check successful case (the last valid one)
-            testSubject.IncrementProgress(11);
-            Assert.AreEqual(11, testSubject.CurrentValue);
+            // Assert
+            act.ShouldThrow<ArgumentOutOfRangeException>().And.ParamName.Should().Be("increment");
         }
 
-        [TestMethod]
-        public void DeterminateStepProgressNotifier_NotifyCurrentProgress()
+        [Fact]
+        public void IncrementProgress_WhenGivingMoreThanMax_ThrowsArgumentOutOfRangeException()
         {
-            // Setup
+            // Arrange
+            int maxIncrements = 11;
+            var testSubject = new DeterminateStepProgressNotifier(new ConfigurableProgressController(null), maxIncrements);
+
+            // Act
+            Action act = () => testSubject.IncrementProgress(maxIncrements + 1);
+
+            // Assert
+            act.ShouldThrow<ArgumentOutOfRangeException>().And.ParamName.Should().Be("increment");
+        }
+
+        [Fact]
+        public void IncrementProgress_WhenGivingCorrectValueOfIncrement_ReturnsExpectedValue()
+        {
+            // Arrange
+            int maxIncrements = 11;
+            var testSubject = new DeterminateStepProgressNotifier(new ConfigurableProgressController(null), maxIncrements);
+
+            // Act
+            testSubject.IncrementProgress(maxIncrements);
+
+            // Assert
+            testSubject.CurrentValue.Should().Be(maxIncrements);
+        }
+
+        [Fact]
+        public void NotifyCurrentProgress_WhenIterating_RaiseExpectedEvents()
+        {
+            // Arrange
             var controller = new ConfigurableProgressController(null);
             const int Steps = 2;
             var testSubject = new DeterminateStepProgressNotifier(controller, Steps);
             List<Tuple<string, double>> expectedProgress = new List<Tuple<string, double>>();
 
-            // Act + Verify
+            // Act + Assert
             for (int i = 0; i < Steps; i++)
             {
                 expectedProgress.Add(Tuple.Create("hello world " + i, 0.0));
                 testSubject.NotifyCurrentProgress(expectedProgress.Last().Item1);
 
-                Assert.AreEqual(0, testSubject.CurrentValue, "Should not change");
+                testSubject.CurrentValue.Should().Be(0);
                 controller.AssertProgressChangeEvents(expectedProgress);
             }
         }
 
-        [TestMethod]
-        public void DeterminateStepProgressNotifier_IncrementProgress()
+        [Fact]
+        public void NotifyCurrentProgress_WhenIterating_ReturnsExpectedValue()
         {
-            // Setup
+            // Arrange
             var controller = new ConfigurableProgressController(null);
             const int Steps = 227; // Quite a few values for which N * (1 / N) > 1.0
             var testSubject = new DeterminateStepProgressNotifier(controller, Steps);
             List<Tuple<string, double>> expectedProgress = new List<Tuple<string, double>>();
 
-            // Act + Verify
+            // Act + Assert
             int expectedValue = 0;
             int i = 0;
             while(expectedValue < Steps)
@@ -88,29 +126,29 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 expectedValue += increment;
                 testSubject.IncrementProgress(increment);
 
-                Assert.AreEqual(expectedValue, testSubject.CurrentValue);
+                testSubject.CurrentValue.Should().Be(expectedValue);
             }
         }
 
-        [TestMethod]
-        public void DeterminateStepProgressNotifier_NotifyIncrementedProgress()
+        [Fact]
+        public void NotifyIncrementedProgress_WhenIteraring_ReturnsExpectedValueAndRaiseEvent()
         {
-            // Setup
+            // Arrange
             var controller = new ConfigurableProgressController(null);
             const int Steps = 11; // there are two numbers (9 and 11) for which N * (1 / N) > 1.0
             var testSubject = new DeterminateStepProgressNotifier(controller, Steps);
             List<Tuple<string, double>> expectedProgress = new List<Tuple<string, double>>();
 
-            // Act + Verify
+            // Act + Assert
             for (int i = 0; i < Steps; i++)
             {
                 int incrementedStepValue = i + 1;
                 double progress = incrementedStepValue == Steps ? 1.0 : (double)incrementedStepValue / Steps;
                 expectedProgress.Add(Tuple.Create("hello world " + i, progress));
 
-                Assert.AreEqual(i, testSubject.CurrentValue);
+                testSubject.CurrentValue.Should().Be(i);
                 testSubject.NotifyIncrementedProgress(expectedProgress.Last().Item1);
-                Assert.AreEqual(incrementedStepValue, testSubject.CurrentValue);
+                testSubject.CurrentValue.Should().Be(incrementedStepValue);
 
                 controller.AssertProgressChangeEvents(expectedProgress);
             }

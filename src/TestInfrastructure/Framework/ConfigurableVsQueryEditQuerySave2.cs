@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             pfEditVerdict = (uint)this.QueryEditFilesVerdict;
             prgfMoreInfo = this.QueryEditFilesMoreInfo;
 
-            Assert.AreEqual(this.VerifyQueryEditFlags, rgfQueryEdit, "Unexpected flags: " + ((VsQueryEditFlags)rgfQueryEdit).ToString());
+            this.VerifyQueryEditFlags.Should().Be( rgfQueryEdit, "Unexpected flags: " + ((VsQueryEditFlags)rgfQueryEdit).ToString());
 
             return VSConstants.S_OK;
         }
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertEditRequested(params string[] expectedFiles)
         {
-            CollectionAssert.AreEquivalent(expectedFiles, this.editRequested.ToArray(), "Actual: " + string.Join(", ", this.editRequested));
+            this.editRequested.Should().Equal(expectedFiles, "Actual: " + string.Join(", ", this.editRequested));
         }
 
         public void AssertNoEditRequested()
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertCreateRequested(params string[] expectedFiles)
         {
-            CollectionAssert.AreEquivalent(expectedFiles, this.createRequested.ToArray(), "Actual: " + string.Join(", ", this.createRequested));
+            this.createRequested.Should().Equal(expectedFiles, "Actual: " + string.Join(", ", this.createRequested));
         }
 
         public void AssertNoCreateRequested()
@@ -120,8 +120,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertAllBatchesCompleted(int expectedBatches)
         {
-            Assert.AreEqual(expectedBatches, this.batchesStarted, "Unexpected number of batches were started");
-            Assert.AreEqual(expectedBatches, this.batchesFinished, "Unexpected number of batches were completed");
+            expectedBatches.Should().Be( this.batchesStarted, "Unexpected number of batches were started");
+            expectedBatches.Should().Be( this.batchesFinished, "Unexpected number of batches were completed");
         }
 
         public void Reset()

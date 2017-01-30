@@ -16,27 +16,24 @@
  */
 
 using EnvDTE;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Threading;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class ProjectPropertyManagerTests
     {
-        #region Test boilerplate
-
         private const string TestPropertyName = "MyTestProperty";
 
         private ConfigurableVsProjectSystemHelper projectSystem;
         private IHost host;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public ProjectPropertyManagerTests()
         {
             var provider = new ConfigurableServiceProvider();
             this.projectSystem = new ConfigurableVsProjectSystemHelper(provider);
@@ -49,44 +46,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             provider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
-        #endregion
-
         #region Tests
 
-        [TestMethod]
+        [Fact]
+        public void Ctor_WithNullHost_ThrowsArgumentNullException()
+        {
+            // Arrange + Act
+            Action act = () => new ProjectPropertyManager(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void ProjectPropertyManager_Ctor_NullArgChecks()
         {
-            // Test case 1: missing IHost (MEF failure) throws exception
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectPropertyManager((IHost)null));
-
             // Test case 2: missing IHost's local services does not fail, only asserts
-            // Setup
+            // Arrange
             var emptyHost = new ConfigurableHost(new ConfigurableServiceProvider(false), Dispatcher.CurrentDispatcher);
             using (new AssertIgnoreScope())
             {
-                // Act + Verify
+                // Act + Assert
                 new ProjectPropertyManager(emptyHost);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectPropertyManager_GetSelectedProject_NoSelectedProjects_ReturnsEmpty()
         {
-            // Setup
+            // Arrange
             ProjectPropertyManager testSubject = this.CreateTestSubject();
 
             // Act
             IEnumerable<Project> actualProjects = testSubject.GetSelectedProjects();
 
-            // Verify
-            Assert.IsFalse(actualProjects.Any(), "Expected no projects to be returned");
+            // Assert
+            actualProjects.Any().Should().BeFalse("Expected no projects to be returned");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectPropertyManager_GetSelectedProjects_HasSelectedProjects_ReturnsProjects()
         {
-            // Setup
+            // Arrange
             var p1 = new ProjectMock("p1.proj");
             var p2 = new ProjectMock("p2.proj");
             var p3 = new ProjectMock("p3.proj");
@@ -101,101 +102,138 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             Project[] actualProjects = testSubject.GetSelectedProjects().ToArray();
 
-            // Verify
-            CollectionAssert.AreEquivalent(expectedProjects, actualProjects, "Unexpected selected projects");
+            // Assert
+            actualProjects.Should().Equal(expectedProjects, "Unexpected selected projects");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectPropertyManager_GetBooleanProperty()
         {
-            // Setup
+            // Arrange
             var project = new ProjectMock("foo.proj");
 
             ProjectPropertyManager testSubject = this.CreateTestSubject();
 
             // Test case 1: no property -> null
-            // Setup
+            // Arrange
             project.ClearBuildProperty(TestPropertyName);
 
-            // Act + Verify
-            Assert.IsNull(testSubject.GetBooleanProperty(project, TestPropertyName), "Expected null for missing property value");
+            // Act + Assert
+            testSubject.GetBooleanProperty(project, TestPropertyName)
+                .Should().BeNull("Expected null for missing property value");
 
             // Test case 2: bad property -> null
-            // Setup
+            // Arrange
             project.SetBuildProperty(TestPropertyName, "NotABool");
 
-            // Act + Verify
-            Assert.IsNull(testSubject.GetBooleanProperty(project, TestPropertyName), "Expected null for bad property value");
+            // Act + Assert
+            testSubject.GetBooleanProperty(project, TestPropertyName)
+                .Should().BeNull("Expected null for bad property value");
 
             // Test case 3: true property -> true
-            // Setup
+            // Arrange
             project.SetBuildProperty(TestPropertyName, true.ToString());
 
-            // Act + Verify
-            Assert.IsTrue(testSubject.GetBooleanProperty(project, TestPropertyName).Value, "Expected true for 'true' property value");
+            // Act + Assert
+            testSubject.GetBooleanProperty(project, TestPropertyName).Value
+                .Should().BeTrue("Expected true for 'true' property value");
 
             // Test case 4: false property -> false
-            // Setup
+            // Arrange
             project.SetBuildProperty(TestPropertyName, false.ToString());
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.GetBooleanProperty(project, TestPropertyName).Value, "Expected true for 'true' property value");
+            // Act + Assert
+            testSubject.GetBooleanProperty(project, TestPropertyName).Value
+                .Should().BeFalse("Expected true for 'true' property value");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectPropertyManager_SetBooleanProperty()
         {
-            // Setup
+            // Arrange
             var project = new ProjectMock("foo.proj");
 
             ProjectPropertyManager testSubject = this.CreateTestSubject();
 
             // Test case 1: true -> property is set true
-            // Setup
+            // Arrange
             testSubject.SetBooleanProperty(project, TestPropertyName, true);
 
-            // Act + Verify
-            Assert.AreEqual(true.ToString(), project.GetBuildProperty(TestPropertyName),
-                ignoreCase: true, message: "Expected property value true for property true");
+            // Act + Assert
+            project.GetBuildProperty(TestPropertyName)
+                .Should().Be(true.ToString(), "Expected property value true for property true");
 
             // Test case 2: false -> property is set false
-            // Setup
+            // Arrange
             testSubject.SetBooleanProperty(project, TestPropertyName, false);
 
-            // Act + Verify
-            Assert.AreEqual(false.ToString(), project.GetBuildProperty(TestPropertyName),
-                ignoreCase: false, message: "Expected property value true for property true");
+            // Act + Assert
+            project.GetBuildProperty(TestPropertyName)
+                .Should().Be(false.ToString(), "Expected property value true for property true");
 
             // Test case 3: null -> property is cleared
-            // Setup
+            // Arrange
             testSubject.SetBooleanProperty(project, TestPropertyName, null);
 
-            // Act + Verify
-            Assert.IsNull(project.GetBuildProperty(TestPropertyName), "Expected property value null for property false");
+            // Act + Assert
+            project.GetBuildProperty(TestPropertyName)
+                .Should().BeNull("Expected property value null for property false");
         }
 
-        [TestMethod]
-        public void ProjectPropertyManager_GetBooleanProperty_NullArgChecks()
+        [Fact]
+        public void GetBooleanProperty_WithNullProject_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange
             var project = new ProjectMock("foo.proj");
             ProjectPropertyManager testSubject = this.CreateTestSubject();
 
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetBooleanProperty(null, "prop"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetBooleanProperty(project, null));
+            // Act
+            Action act = () => testSubject.GetBooleanProperty(null, "prop");
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void ProjectPropertyManager_SetBooleanProperty_NullArgChecks()
+        [Fact]
+        public void GetBooleanProperty_WithNullPropertyName_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange
             var project = new ProjectMock("foo.proj");
             ProjectPropertyManager testSubject = this.CreateTestSubject();
 
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetBooleanProperty(null, "prop", true));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetBooleanProperty(project, null, true));
+            // Act
+            Action act = () => testSubject.GetBooleanProperty(project, null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void SetBooleanProperty_WithNullProject_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var project = new ProjectMock("foo.proj");
+            ProjectPropertyManager testSubject = this.CreateTestSubject();
+
+            // Act
+            Action act = () => testSubject.SetBooleanProperty(null, "prop", true);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void SetBooleanProperty_WithNullPropertyName_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var project = new ProjectMock("foo.proj");
+            ProjectPropertyManager testSubject = this.CreateTestSubject();
+
+            // Act
+            Action act = () => testSubject.SetBooleanProperty(project, null, true);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
         #endregion

@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         public void RegisterService(Type serviceType, object instance, bool replaceExisting)
         {
-            Assert.IsNotNull(serviceType, "Test setup error: serviceType should not be null");
+            serviceType.Should().NotBeNull("Test setup error: serviceType should not be null");
 
             if (!replaceExisting)
             {
@@ -114,8 +114,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         public void RegisterService(Type serviceType, Func<object> serviceConstructor, bool replaceExisting)
         {
-            Assert.IsNotNull(serviceType, "Test setup error: serviceType should not be null");
-            Assert.IsNotNull(serviceConstructor, "Test setup error: serviceConstructor should not be null");
+            serviceType.Should().NotBeNull("Test setup error: serviceType should not be null");
+            serviceConstructor.Should().NotBeNull("Test setup error: serviceConstructor should not be null");
             if (!replaceExisting)
             {
                 this.AssertServiceTypeNotRegistered(serviceType);
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         /// <param name="expectedServiceType">Expected service type that was used</param>
         public void AssertServiceUsed(Type expectedServiceType)
         {
-            Assert.IsTrue(this.requestedServices.Contains(expectedServiceType), "Service Provider: service was not requested: {0}", expectedServiceType.FullName);
+            this.requestedServices.Should().Contain(expectedServiceType, "Service Provider: service was not requested: {0}", expectedServiceType.FullName);
         }
 
         /// <summary>
@@ -177,13 +177,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         public void AssertExpectedCallCount(int expected)
         {
-            Assert.AreEqual<int>(expected, this.ServiceCallCount, "GetService was not called the expected number of times");
+            this.ServiceCallCount.Should().Be(expected, "GetService was not called the expected number of times");
         }
 
         #region IServiceProvider interface methods
         public object GetService(Type serviceType)
         {
-            Assert.IsNotNull(serviceType, "serviceType should not be null");
+            serviceType.Should().NotBeNull();
+
             this.requestedServices.Add(serviceType);
             this.ServiceCallCount++;
 
@@ -204,9 +205,9 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 }
             }
 
-            if (!found && this.AssertOnUnexpectedServiceRequest)
+            if (this.AssertOnUnexpectedServiceRequest)
             {
-                Assert.Fail("Unexpected GetService for type: " + serviceType.FullName);
+                found.Should().BeTrue("Unexpected GetService for type: " + serviceType.FullName);
             }
 
             return serviceInstance;
@@ -215,8 +216,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         private void AssertServiceTypeNotRegistered(Type serviceType)
         {
-            Assert.IsFalse(this.AllRegisteredServices.Contains(serviceType), "Test setup error: a service instance or constructor for this type has already been registered: {0}",
-                serviceType.FullName);
+            this.AllRegisteredServices.Should().NotContain(serviceType, 
+                $"Test setup error: a service instance or constructor for this type has already been registered: {serviceType.FullName}");
         }
 
         private void DoRegisterServiceInstance(Type serviceType, object serviceInstance)

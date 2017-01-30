@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test helpers
         public void AssertNoFinishedEventHandlers()
         {
-            Assert.IsNull(this.Finished, "Not expecting any handler for Finished event");
+            this.Finished.Should().BeNull( "Not expecting any handler for Finished event");
         }
 
         public void SimulateFinished(ProgressControllerResult result)

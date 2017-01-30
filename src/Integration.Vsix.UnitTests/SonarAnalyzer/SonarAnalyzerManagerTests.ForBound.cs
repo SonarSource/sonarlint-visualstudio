@@ -19,15 +19,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
 using System.Windows.Threading;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {
-    [TestClass]
     public class SonarAnalyzerManagerTestsForBound
     {
         private ConfigurableServiceProvider serviceProvider;
@@ -35,8 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         private ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker;
         private SonarAnalyzerManager testSubject;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public SonarAnalyzerManagerTestsForBound()
         {
             this.serviceProvider = new ConfigurableServiceProvider(false);
 
@@ -54,29 +54,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             this.testSubject = new SonarAnalyzerManager(this.serviceProvider, new AdhocWorkspace());
         }
 
-        [TestMethod]
+        [Fact]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Unbound_Empty()
         {
             this.activeSolutionBoundTracker.IsActiveSolutionBound = false;
 
-            Assert.IsFalse(
-                this.testSubject.GetIsBoundWithoutAnalyzer(
-                    SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(null)),
-                "Unbound solution should never return true");
+            this.testSubject.GetIsBoundWithoutAnalyzer(
+                SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(null))
+                .Should().BeFalse("Unbound solution should never return true");
 
-            Assert.IsFalse(
-                this.testSubject.GetIsBoundWithoutAnalyzer(
-                    SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(new List<AnalyzerReference>())),
-                "Unbound solution should never return true");
+            this.testSubject.GetIsBoundWithoutAnalyzer(
+                SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(new List<AnalyzerReference>()))
+                .Should().BeFalse("Unbound solution should never return true");
         }
 
-        [TestMethod]
+        [Fact]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Unbound_Conflicting()
         {
             this.activeSolutionBoundTracker.IsActiveSolutionBound = false;
 
             var version = new Version("0.1.2.3");
-            Assert.AreNotEqual(SonarAnalyzerManager.AnalyzerVersion, version,
+            version.Should().NotBe(SonarAnalyzerManager.AnalyzerVersion,
                 "Test input should be different from the expected analyzer version");
 
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
@@ -86,13 +84,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
                     SonarAnalyzerManager.AnalyzerName)
             };
 
-            Assert.IsFalse(
-                this.testSubject.GetIsBoundWithoutAnalyzer(
-                    SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(references)),
-                "Unbound solution should never return true");
+            this.testSubject.GetIsBoundWithoutAnalyzer(
+                SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(references))
+                .Should().BeFalse("Unbound solution should never return true");
         }
 
-        [TestMethod]
+        [Fact]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Unbound_NonConflicting()
         {
             this.activeSolutionBoundTracker.IsActiveSolutionBound = false;
@@ -104,35 +101,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
                     SonarAnalyzerManager.AnalyzerName)
             };
 
-            Assert.IsFalse(
-                this.testSubject.GetIsBoundWithoutAnalyzer(
-                    SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(references)),
-                "Unbound solution should never return true");
+            this.testSubject.GetIsBoundWithoutAnalyzer(
+                SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(references))
+                .Should().BeFalse("Unbound solution should never return true");
         }
 
-        [TestMethod]
+        [Fact]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Bound_Empty()
         {
             this.activeSolutionBoundTracker.IsActiveSolutionBound = true;
 
-            Assert.IsTrue(
-                this.testSubject.GetIsBoundWithoutAnalyzer(
-                    SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(null)),
-                "Bound solution with no reference should never return true");
+            this.testSubject.GetIsBoundWithoutAnalyzer(
+                SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(null))
+                .Should().BeTrue("Bound solution with no reference should never return true");
 
-            Assert.IsTrue(
-                this.testSubject.GetIsBoundWithoutAnalyzer(
-                    SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(new List<AnalyzerReference>())),
-                "Bound solution with no reference should never return true");
+            this.testSubject.GetIsBoundWithoutAnalyzer(
+                SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(new List<AnalyzerReference>()))
+                .Should().BeTrue("Bound solution with no reference should never return true");
         }
 
-        [TestMethod]
+        [Fact]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Bound_Conflicting()
         {
             this.activeSolutionBoundTracker.IsActiveSolutionBound = true;
 
             var version = new Version("0.1.2.3");
-            Assert.AreNotEqual(SonarAnalyzerManager.AnalyzerVersion, version,
+            version.Should().NotBe(SonarAnalyzerManager.AnalyzerVersion,
                 "Test input should be different from the expected analyzer version");
 
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
@@ -142,13 +136,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
                     SonarAnalyzerManager.AnalyzerName)
             };
 
-            Assert.IsFalse(
-                this.testSubject.GetIsBoundWithoutAnalyzer(
-                    SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(references)),
-                "Bound solution with conflicting analyzer name should never return true");
+            this.testSubject.GetIsBoundWithoutAnalyzer(
+                SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(references))
+                .Should().BeFalse("Bound solution with conflicting analyzer name should never return true");
         }
 
-        [TestMethod]
+        [Fact]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Bound_NonConflicting()
         {
             this.activeSolutionBoundTracker.IsActiveSolutionBound = true;
@@ -160,10 +153,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
                     SonarAnalyzerManager.AnalyzerName)
             };
 
-            Assert.IsFalse(
-                this.testSubject.GetIsBoundWithoutAnalyzer(
-                    SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(references)),
-                "Bound solution with conflicting analyzer name should never return true");
+            this.testSubject.GetIsBoundWithoutAnalyzer(
+                SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(references))
+                .Should().BeFalse("Bound solution with conflicting analyzer name should never return true");
         }
     }
 }

@@ -17,7 +17,6 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
@@ -27,20 +26,12 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// </summary>
     public class StubVsUIShell : IVsUIShell
     {
-        private bool messageBoxShown;
+        public bool IsMessageBoxShown { get; private set; }
 
         #region Configuration
-        public Func<Guid, IVsWindowFrame> FindToolWindowAction
-        {
-            get;
-            set;
-        }
+        public Func<Guid, IVsWindowFrame> FindToolWindowAction { get; set; }
 
-        public Action<string, string> ShowMessageBoxAction
-        {
-            get;
-            set;
-        }
+        public Action<string, string> ShowMessageBoxAction { get; set; }
         #endregion
 
         #region IVsUIShell
@@ -233,7 +224,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         int IVsUIShell.ShowMessageBox(uint compRole, ref Guid rclsidComp, string pszTitle, string pszText, string pszHelpFile, uint dhelpContextID, OLEMSGBUTTON msgbtn, OLEMSGDEFBUTTON msgdefbtn, OLEMSGICON msgicon, int sysAlert, out int result)
         {
             result = 0;
-            this.messageBoxShown = true;
+            this.IsMessageBoxShown = true;
             if (this.ShowMessageBoxAction != null)
             {
                 this.ShowMessageBoxAction(pszTitle, pszText);
@@ -258,28 +249,16 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
         #endregion
 
-        #region Verification
-        public void AssertMessageBoxShown()
-        {
-            Assert.IsTrue(this.messageBoxShown, "No requests to show the message box");
-        }
-
-        public void AssertMessageBoxNotShown()
-        {
-            Assert.IsFalse(this.messageBoxShown, "Not expected any requests to show the message box");
-        }
-        #endregion
-
         #region Test helpers
 
         public void Reset()
         {
-            this.messageBoxShown = false;
+            this.IsMessageBoxShown = false;
         }
 
         internal class StubWindowFrame : IVsWindowFrame
         {
-            private bool shown;
+            public bool IsShown { get; private set; }
 
             #region IVsWindowFrame
             int IVsWindowFrame.CloseFrame(uint grfSaveOptions)
@@ -339,7 +318,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             int IVsWindowFrame.Show()
             {
-                this.shown = true;
+                this.IsShown = true;
                 return 0;
             }
 
@@ -349,22 +328,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             }
             #endregion
 
-            #region Verification
-            public void AssertShown()
-            {
-                Assert.IsTrue(this.shown, "The window frame is expected to be shown");
-            }
-
-            public void AssertNotShown()
-            {
-                Assert.IsFalse(this.shown, "The window frame is not expected to be shown");
-            }
-            #endregion
-
             #region Test helpers
             public void Reset()
             {
-                this.shown = false;
+                this.IsShown = false;
             }
             #endregion
         }

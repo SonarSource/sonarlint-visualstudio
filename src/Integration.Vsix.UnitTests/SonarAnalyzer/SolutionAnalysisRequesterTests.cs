@@ -15,11 +15,13 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System;
@@ -28,29 +30,33 @@ using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {
-    [TestClass]
+
     public class SolutionAnalysisRequesterTests
     {
-        [TestMethod]
+        [Fact]
         public void Ctor_WhenUsingNullServiceProvider_ThrowsArgumentNullException()
         {
             // Arrange
             var workspaceConfigurator = new WorkspaceConfigurator(new AdhocWorkspace());
 
-            // Act & Assert
-            Exceptions.Expect<ArgumentNullException>(() =>
-                new SolutionAnalysisRequester(null, workspaceConfigurator));
+            // Act
+            Action act = () => new SolutionAnalysisRequester(null, workspaceConfigurator);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void Ctor_WhenUsingNullWorkspace_ThrowsArgumentNullException()
         {
-            // Arrange, Act & Assert
-            Exceptions.Expect<ArgumentNullException>(() =>
-                new SolutionAnalysisRequester(new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false), null));
+            // Arrange + Act
+            Action act = () => new SolutionAnalysisRequester(new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false), null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndInvalidVisualStudioVersion_ReturnsNullOptionKeyAndWritesToTheOutputWindow()
         {
             // Arrange
@@ -66,18 +72,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             var optionKey = SolutionAnalysisRequester.FindFullSolutionAnalysisOptionKey(serviceProvider, workspaceConfigurator);
 
             // Assert
-            Assert.IsNull(optionKey);
+            optionKey.Should().BeNull();
             outputWindowPane.AssertOutputStrings(string.Format(Strings.InvalidVisualStudioVersion, visualStudioVersion));
         }
 
-        [TestMethod]
+        [Fact]
         public void FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndVisualStudio2015Version_ReturnsNonNullOptionKeyAndDoesNotWriteToTheOutputWindow()
         {
             // Arrange, Act, Assert
             FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndVisualStudioVersion_ReturnsNonNullOptionKeyAndDoesNotWriteToTheOutputWindow(VisualStudioConstants.VS2015VersionNumber);
         }
 
-        [TestMethod]
+        [Fact]
         public void FindFullSolutionAnalysisOptionKey_WithProperArgumentsAndVisualStudio2017Version_ReturnsNonNullOptionKeyAndDoesNotWriteToTheOutputWindow()
         {
             // Arrange, Act, Assert
@@ -99,30 +105,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             workspaceConfigurator.FindOptionByNameFunc =
                 (featureName, fsaName) =>
                 {
-                    if (featureName == roslynRuntimeOptions.RuntimeOptionsFeatureName &&
-                        fsaName == roslynRuntimeOptions.FullSolutionAnalysisOptionName)
-                    {
-                        return option;
-                    }
-                    else
-                    {
-                        Assert.Fail("Method was called with unexpected parameters. Expecting '"
-                            + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
-                            + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
-                            + featureName + "' and '" + fsaName + "'");
-                        return null;
-                    }
+                    var isValid =
+                        featureName == roslynRuntimeOptions.RuntimeOptionsFeatureName &&
+                        fsaName == roslynRuntimeOptions.FullSolutionAnalysisOptionName;
+
+                    isValid.Should().BeTrue("Method was called with unexpected parameters. Expecting '"
+                        + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
+                        + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
+                        + featureName + "' and '" + fsaName + "'");
+
+                    return option;
                 };
 
             // Act
             var optionKey = SolutionAnalysisRequester.FindFullSolutionAnalysisOptionKey(serviceProvider, workspaceConfigurator);
 
             // Assert
-            Assert.IsNotNull(optionKey);
+            optionKey.Should().NotBeNull();
             outputWindowPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void ReanalyzeSolution_WhenOptionKeyIsNull_WritesToTheOutputWindow()
         {
             // Arrange
@@ -144,14 +147,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
                 Strings.MissingRuntimeOptionsInWorkspace);
         }
 
-        [TestMethod]
+        [Fact]
         public void ReanalyzeSolution_WhenOptionKeyIsNotNullWithVs2015_ReanalyzeSolutionAndDoesNotWriteToTheOutputWindow()
         {
             // Arrange, Act, Assert
             ReanalyzeSolution_WhenOptionKeyIsNotNull_ReanalyzeSolutionAndDoesNotWriteToTheOutputWindow(VisualStudioConstants.VS2015VersionNumber);
         }
 
-        [TestMethod]
+        [Fact]
         public void ReanalyzeSolution_WhenOptionKeyIsNotNullWithVs2017_ReanalyzeSolutionAndDoesNotWriteToTheOutputWindow()
         {
             // Arrange, Act, Assert
@@ -165,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             var outputWindow = new ConfigurableVsOutputWindow();
             var outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
-            var dteMock = new DTEMock { Version = visualStudioVersion }; 
+            var dteMock = new DTEMock { Version = visualStudioVersion };
             serviceProvider.RegisterService(typeof(EnvDTE.DTE), dteMock);
             var roslynRuntimeOptions = RoslynRuntimeOptions.Resolve(serviceProvider);
             var option = new Option<bool>(roslynRuntimeOptions.RuntimeOptionsFeatureName, roslynRuntimeOptions.FullSolutionAnalysisOptionName);
@@ -173,36 +176,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             workspaceConfigurator.FindOptionByNameFunc =
                 (featureName, fsaName) =>
                 {
-                    if (featureName == roslynRuntimeOptions.RuntimeOptionsFeatureName &&
-                        fsaName == roslynRuntimeOptions.FullSolutionAnalysisOptionName)
-                    {
-                        return option;
-                    }
-                    else
-                    {
-                        Assert.Fail("Method was called with unexpected parameters. Expecting '"
+                    var isValid =
+                        featureName == roslynRuntimeOptions.RuntimeOptionsFeatureName &&
+                        fsaName == roslynRuntimeOptions.FullSolutionAnalysisOptionName;
+
+                    isValid.Should().BeTrue("Method was called with unexpected parameters. Expecting '"
                             + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
                             + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
                             + featureName + "' and '" + fsaName + "'");
-                        return null;
-                    }
+
+                    return option;
                 };
             int callCount = 0;
             workspaceConfigurator.ToggleBooleanOptionKeyAction =
                 optionKey =>
                 {
-                    if (optionKey.Option.Feature == roslynRuntimeOptions.RuntimeOptionsFeatureName &&
-                        optionKey.Option.Name == roslynRuntimeOptions.FullSolutionAnalysisOptionName)
-                    {
-                        callCount++;
-                    }
-                    else
-                    {
-                        Assert.Fail("Method was called with unexpected parameters. Expecting '"
+                    var isValid =
+                        optionKey.Option.Feature == roslynRuntimeOptions.RuntimeOptionsFeatureName &&
+                        optionKey.Option.Name == roslynRuntimeOptions.FullSolutionAnalysisOptionName;
+
+                    isValid.Should().BeTrue("Method was called with unexpected parameters. Expecting '"
                             + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
                             + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
                             + optionKey.Option.Feature + "' and '" + optionKey.Option.Name + "'");
-                    }
+
+                    callCount++;
                 };
             var solutionAnalyzerRequester = new SolutionAnalysisRequester(serviceProvider, workspaceConfigurator);
 
@@ -211,10 +209,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 
             // Assert
             outputWindowPane.AssertOutputStrings(0);
-            Assert.AreEqual(callCount, 2);
+            callCount.Should().Be(2);
         }
 
-        [TestMethod]
+        [Fact]
         public void SonarAnalyzerManager_Triggers_SolutionBindingChanged_ReanalyzeSolution()
         {
             var serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
@@ -234,13 +232,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             using (new SonarAnalyzerManager(serviceProvider, new AdhocWorkspace(), solutionAnalysisRequester))
             {
                 // Sanity
-                Assert.AreEqual(0, solutionAnalysisRequester.ReanalyzeSolutionCallCount);
+                solutionAnalysisRequester.ReanalyzeSolutionCallCount.Should().Be(0);
 
                 // Act
                 activeSolutionBoundTracker.SimulateSolutionBindingChanged(true);
 
-                // Verify
-                Assert.AreEqual(1, solutionAnalysisRequester.ReanalyzeSolutionCallCount);
+                // Assert
+                solutionAnalysisRequester.ReanalyzeSolutionCallCount.Should().Be(1);
             }
         }
     }
