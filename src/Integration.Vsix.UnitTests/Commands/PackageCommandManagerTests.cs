@@ -93,11 +93,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Initialize();
 
             // Assert
-            allCommands.Count.Should().Be( menuService.Commands.Count, "Unexpected number of commands");
+            allCommands.Should().HaveSameCount(menuService.Commands, "Unexpected number of commands");
 
             IList<CommandID> missingCommands = allCommands.Except(menuService.Commands.Select(x => x.Key)).ToList();
             IEnumerable<string> missingCommandNames = missingCommands.Select(x => Enum.GetName(typeof(PackageCommandId), x));
-            missingCommands.Any().Should().BeTrue($"Missing commands: {string.Join(", ", missingCommandNames)}");
+            missingCommands.Should().BeEmpty($"Missing commands: {string.Join(", ", missingCommandNames)}");
         }
 
         [Fact]

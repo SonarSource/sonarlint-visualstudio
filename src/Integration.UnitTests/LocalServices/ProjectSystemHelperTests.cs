@@ -526,9 +526,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [Theory]
-        [InlineData(null)]
         [InlineData("")]
-        [InlineData(" ")]
         public void ProjectSystemHelper_ClearProjectProperty_ArgChecks(string value)
         {
             // Arrange + Act

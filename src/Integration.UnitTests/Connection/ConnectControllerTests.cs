@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             Action act = () => new ConnectionController(null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("host");
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [Fact]
