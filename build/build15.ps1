@@ -57,38 +57,6 @@ if ($env:IS_PULLREQUEST -eq "true") {
         & $env:MSBUILD_PATH .\src\SonarLint.VisualStudio.Integration.sln /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
         testExitCode
 
-        #build with VS2017
-        #Start-Process "build/vs2017.bat" -NoNewWindow -Wait
-
-        #get version number
-        [xml]$versionProps = Get-Content .\build\Version.props
-        $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
-        $artifact = "SonarLint.VSIX"
-        $file     = Get-Item .\binaries\SonarLint.2015.vsix
-        $filePath = $file.fullname
-        #$file     = Get-Item .\binaries\SonarLint.2017.vsix
-        #$filePath2 = $file.fullname
-        
-        #set filepath
-        (Get-Content .\build\poms\SonarLint.VSIX\pom.xml) -replace "file-2015", "$filePath" | Set-Content .\build\poms\SonarLint.VSIX\pom.xml
-        (Get-Content .\build\poms\SonarLint.VSIX\pom.xml) -replace "file-2017", "$filePath" | Set-Content .\build\poms\SonarLint.VSIX\pom.xml
-
-        #upload to maven repo        
-        cd build\poms
-        write-host -f green  "set version $version in pom.xml"
-        $command = "mvn versions:set -DgenerateBackupPoms=false -DnewVersion='$version'"
-        iex $command
-        write-host -f green  "set version $version in env VAR PROJECT_VERSION for artifactory buildinfo metadata"
-        $env:PROJECT_VERSION=$version
-        write-host -f green  "set the buildnumber to this job build number"
-        $env:BUILD_ID=$env:BUILD_NUMBER
-        write-host -f green  "Deploy to repox with $version"    
-        $command = 'mvn deploy -Pdeploy-sonarsource -B -e -V'
-        iex $command
-        
-        #create empty file to trigger qa
-        cd ..\..
-        new-item -path . -name qa.properties -type "file"
     } else {
         write-host -f green "not on master"
     }
