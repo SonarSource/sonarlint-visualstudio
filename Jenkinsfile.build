@@ -68,7 +68,9 @@ def checkoutSCM() {
 }
 
 def build() {
-  bat 'build.cmd'
+  withJava() {
+    bat 'build.cmd'
+  }
 }
 
 def stash(String node) {
@@ -76,9 +78,17 @@ def stash(String node) {
 }
 
 def withMaven(def body) {
+  withJava() {
+    def mvnHome = tool name: 'Maven 3.3.x', type: 'hudson.tasks.Maven$MavenInstallation'
+    withEnv(["PATH+MAVEN=${mvnHome}/bin"]) {
+      body.call()
+    }
+  }
+}
+
+def withJava(def body) {
   def javaHome = tool name: 'Java 8', type: 'hudson.model.JDK'
-  def mvnHome = tool name: 'Maven 3.3.x', type: 'hudson.tasks.Maven$MavenInstallation'
-  withEnv(["JAVA_HOME=${javaHome}", "PATH+MAVEN=${mvnHome}/bin"]) {
+  withEnv(["JAVA_HOME=${javaHome}"]) {
     body.call()
   }
 }

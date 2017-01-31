@@ -7,17 +7,21 @@ function testExitCode(){
     }
 }
 
-if ($env:IS_PULLREQUEST -eq "true") { 
-    write-host -f green "in a pull request"
-    
+function downloadMSBuildSonarQubeScanner() {
     #download MSBuild
     $url = "https://github.com/SonarSource-VisualStudio/sonar-msbuild-runner/releases/download/2.0/MSBuild.SonarQube.Runner-2.0.zip"
     $output = ".\MSBuild.SonarQube.Runner.zip"    
     Invoke-WebRequest -Uri $url -OutFile $output
     unzip -o .\MSBuild.SonarQube.Runner.zip
     testExitCode
+}
 
-    .\MSBuild.SonarQube.Runner begin /k:sonarlint-visualstudio /n:"SonarLint for Visual Studio" /v:latest `
+if ($env:IS_PULLREQUEST -eq "true") { 
+    write-host -f green "in a pull request"
+
+    downloadMSBuildSonarQubeScanner
+
+    .\MSBuild.SonarQube.Runner begin /k:sonarlint-visualstudio /n:"SonarLint for Visual Studio" /v:master `
         /d:sonar.host.url=$env:SONAR_HOST_URL `
         /d:sonar.login=$env:SONAR_TOKEN `
         /d:sonar.github.pullRequest=$env:PULL_REQUEST `
@@ -51,10 +55,21 @@ if ($env:IS_PULLREQUEST -eq "true") {
         & $env:MSBUILD_PATH  .\build\ChangeVersion.proj
         testExitCode
 
+        #start analysis
+        downloadMSBuildSonarQubeScanner
+        .\MSBuild.SonarQube.Runner begin /k:sonarlint-visualstudio /n:"SonarLint for Visual Studio" /v:master `
+            /d:sonar.host.url=$env:SONAR_HOST_URL `
+            /d:sonar.login=$env:SONAR_TOKEN 
+        testExitCode
+
         #build
         & $env:NUGET_PATH restore .\src\SonarLint.VisualStudio.Integration.sln
         testExitCode
         & $env:MSBUILD_PATH .\src\SonarLint.VisualStudio.Integration.sln /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
+        testExitCode
+
+        #end analysis
+        .\MSBuild.SonarQube.Runner end /d:sonar.login=$env:SONAR_TOKEN
         testExitCode
 
     } else {
