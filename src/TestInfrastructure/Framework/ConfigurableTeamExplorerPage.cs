@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.TeamFoundation.Controls;
 using System;
 using System.ComponentModel;
+using Microsoft.TeamFoundation.Controls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

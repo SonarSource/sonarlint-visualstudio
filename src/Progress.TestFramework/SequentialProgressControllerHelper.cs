@@ -17,8 +17,9 @@
 
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+ using Xunit;
 using System;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -50,13 +51,13 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         /// <returns>The notifier that was used for configuration of the assert exception</returns>
         public static ConfigurableErrorNotifier ConfigureToThrowAssertExceptions(SequentialProgressController controller)
         {
-            Assert.IsNotNull(controller, "Controller argument is required");
-            Assert.IsNotNull(controller.Steps, "Controller needs to be initialized");
+            controller.Should().NotBeNull("Controller argument is required");
+            controller.Steps.Should().NotBeNull("Controller needs to be initialized");
 
             ConfigurableErrorNotifier errorHandler = new ConfigurableErrorNotifier();
             controller.ErrorNotificationManager.AddNotifier(errorHandler);
 
-            UnitTestAssertException originalException = null;
+            Exception originalException = null;
 
             // Controller.Finished is executed out of the awaitable state machine and on the calling (UI) thread
             // which means that at this point the test runtime engine will be able to catch it and fail the test
@@ -74,7 +75,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
                 if (originalException != null)
                 {
-                    Assert.AreEqual(ProgressControllerResult.Failed, e.Result, "Expected to be failed since the assert failed which causes an exception");
+                    ProgressControllerResult.Failed.Should().Be(e.Result, "Expected to be failed since the assert failed which causes an exception");
                     throw new RestoredUnitTestAssertException(originalException.Message, originalException);
                 }
             };
@@ -90,14 +91,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 // Only the first one
                 if (originalException == null)
                 {
-                    originalException = e as UnitTestAssertException;
+                    originalException = e as Exception;
                 }
             };
             return errorHandler;
         }
 
         #region Test helper class RestoredUnitTestAssertException : UnitTestAssertException
-        private class RestoredUnitTestAssertException : UnitTestAssertException
+        private class RestoredUnitTestAssertException : Exception
         {
             public RestoredUnitTestAssertException()
             {

@@ -15,69 +15,83 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using System;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
     /// <summary>
     /// Tests for <see cref="VsOutputWindowPaneNotifier"/>
     /// </summary>
-    [TestClass]
+
     public class VsOutputWindowPaneNotifierTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private Exception expectedException;
 
-        #region Test plumbing
-
-        public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public void TestInitialize()
+        public VsOutputWindowPaneNotifierTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.serviceProvider.RegisterService(typeof(SVsTaskSchedulerService), new SingleThreadedTaskSchedulerService());
 
-            this.expectedException = new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
+            this.expectedException = new Exception("VsOutputWindowPaneNotifierTests", new Exception(Environment.TickCount.ToString()));
         }
-
-        #endregion
 
         #region Tests
 
-        [TestMethod]
-        [Description("Arg check tests")]
-        public void VsOutputWindowPaneNotifier_Args()
+        [Fact]
+        public void VsOutputWindowPaneNotifier_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange
             var outputWindowPane = this.CreateOutputPane(true);
 
-            // Act + Verify
-            // Test case: 1st argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(null, outputWindowPane, true, "{0}", false));
+            // Act
+            Action act = () => new VsOutputWindowPaneNotifier(null, outputWindowPane, true, "{0}", false);
 
-            // Test case: 2nd argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, null, true, "{0}", false));
-
-            // Test case: 4th argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, null, false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, string.Empty, false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, " \t", false));
-
-            // Test case: All valid
-            new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, true, "{0}", false);
-            new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, "{0}", true);
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
-        [TestMethod]
-        [Description("Verifies notifying of an exception message using an output window")]
-        public void VsOutputWindowPaneNotifier_MessageOnly()
+        [Fact]
+        public void VsOutputWindowPaneNotifier_WithNullPane_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange
+            var outputWindowPane = this.CreateOutputPane(true);
+
+            // Act
+            Action act = () => new VsOutputWindowPaneNotifier(this.serviceProvider, null, true, "{0}", false);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("pane");
+        }
+
+        [Fact]
+        public void VsOutputWindowPaneNotifier_InvalidMessageFormat_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var outputWindowPane = this.CreateOutputPane(true);
+
+            // Act
+            Action act1 = () => new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, null, false);
+            Action act2 = () => new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, string.Empty, false);
+            Action act3 = () => new VsOutputWindowPaneNotifier(this.serviceProvider, outputWindowPane, false, " \t", false);
+
+            // Assert
+            act1.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageFormat");
+            act2.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageFormat");
+            act3.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageFormat");
+        }
+
+        [Fact]
+
+        public void Notify_WithException_DoesNotShowOutputWindow()
+        {
+            // Arrange
             bool logFullException = true;
             bool ensureOutputVisible = false;
 
@@ -86,20 +100,20 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             IProgressErrorNotifier testSubject = this.CreateTestSubject(outputPane, ensureOutputVisible, logFullException);
 
-            // Execute
+            // Act
             testSubject.Notify(this.expectedException);
 
-            // Verify
-            frame.AssertNotShown();
-            outputPane.AssertNotActivated();
-            outputPane.AssertWrittenToOutputWindow();
+            // Assert
+            frame.IsShown.Should().BeFalse();
+            outputPane.IsActivated.Should().BeFalse("Not expected the output window to be activated");
+            outputPane.IsWrittenToOutputWindow.Should().BeTrue("Expected to write to output window");
         }
 
-        [TestMethod]
-        [Description("Verifies notifying of a full exception using an output window")]
-        public void VsOutputWindowPaneNotifier_FullException()
+        [Fact]
+
+        public void Notify_WithFullExceptionAndNoDialog_WritesExceptionToOutputButDoesNotShowErrorDialog()
         {
-            // Setup
+            // Arrange
             bool logFullException = true;
             bool ensureOutputVisible = false;
 
@@ -108,20 +122,20 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             IProgressErrorNotifier testSubject = this.CreateTestSubject(outputPane, ensureOutputVisible, logFullException);
 
-            // Execute
+            // Act
             testSubject.Notify(this.expectedException);
 
-            // Verify
-            frame.AssertNotShown();
-            outputPane.AssertNotActivated();
-            outputPane.AssertWrittenToOutputWindow();
+            // Assert
+            frame.IsShown.Should().BeFalse();
+            outputPane.IsActivated.Should().BeFalse("Not expected the output window to be activated");
+            outputPane.IsWrittenToOutputWindow.Should().BeTrue("Expected to write to output window");
         }
 
-        [TestMethod]
-        [Description("Verifies notifying of a full exception using an output window and ensure that the output is visible")]
-        public void VsOutputWindowPaneNotifier_EnsureOutputVisible()
+        [Fact]
+
+        public void Notify_WithFullExceptionAndDialog_WritesExceptionToOutputAndShowsErrorDialog()
         {
-            // Setup
+            // Arrange
             bool logFullException = true;
             bool ensureOutputVisible = true;
 
@@ -130,13 +144,13 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             IProgressErrorNotifier testSubject = this.CreateTestSubject(outputPane, ensureOutputVisible, logFullException);
 
-            // Execute
+            // Act
             testSubject.Notify(this.expectedException);
 
-            // Verify
-            frame.AssertShown();
-            outputPane.AssertActivated();
-            outputPane.AssertWrittenToOutputWindow();
+            // Assert
+            frame.IsShown.Should().BeTrue();
+            outputPane.IsActivated.Should().BeTrue("Expected the output window to be activated");
+            outputPane.IsWrittenToOutputWindow.Should().BeTrue("Expected to write to output window");
         }
         #endregion
 
@@ -144,7 +158,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         private string CreateTestMessageFormat()
         {
-            return this.TestContext.TestName + "{0}";
+            return "" + "{0}";
         }
 
         private VsOutputWindowPaneNotifier CreateTestSubject(IVsOutputWindowPane pane, bool ensureOutputVisible, bool logFullException)
@@ -160,7 +174,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             {
                 FindToolWindowAction = (windowSlotGuid) =>
                 {
-                    Assert.AreEqual(VSConstants.StandardToolWindows.Output, windowSlotGuid, "Unexpected window slot guid");
+                    VSConstants.StandardToolWindows.Output.Should().Be(windowSlotGuid, "Unexpected window slot guid");
                     return frame;
                 }
             };
@@ -177,7 +191,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 OutputStringThreadSafeAction = (actualMessage) =>
                 {
                     string expectedFormat = this.CreateTestMessageFormat() + Environment.NewLine;
-                    MessageVerificationHelper.VerifyNotificationMessage(actualMessage, expectedFormat, this.expectedException, logFullException);
+                    actualMessage.Should().Be(string.Format(expectedFormat, logFullException ? expectedException.ToString() : expectedException.Message));
                 }
             };
         }

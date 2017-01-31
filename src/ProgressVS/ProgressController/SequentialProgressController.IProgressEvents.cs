@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                 {
                     ProgressEventArgs args = new ProgressEventArgs();
                     delegates(this, args);
-                    // Verify that the observer handled it since now easy way of testing
+                    // Assert that the observer handled it since now easy way of testing
                     // serialized raising and handling of the event across the classes
                     args.CheckHandled();
                 }
@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                 {
                     ProgressControllerFinishedEventArgs args = new ProgressControllerFinishedEventArgs(result);
                     delegates(this, args);
-                    // Verify that the observer handled it since now easy way of testing
+                    // Assert that the observer handled it since now easy way of testing
                     // serialized raising and handling of the event across the classes
                     args.CheckHandled();
                 }
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                         {
                             CancellationSupportChangedEventArgs args = new CancellationSupportChangedEventArgs(cancellable);
                             delegates(this, args);
-                            // Verify that the observer handled it since now easy way of testing
+                            // Assert that the observer handled it since now easy way of testing
                             // serialized raising and handling of the event across the classes
                             args.CheckHandled();
                         }
@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                         if (delegates != null)
                         {
                             delegates(sender, args);
-                            // Verify that the observer handled it since now easy way of testing
+                            // Assert that the observer handled it since now easy way of testing
                             // serialized raising and handling of the event across the classes
                             args.CheckHandled();
                         }

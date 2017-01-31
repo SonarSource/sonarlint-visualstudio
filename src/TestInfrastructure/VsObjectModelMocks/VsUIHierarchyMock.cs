@@ -18,11 +18,13 @@
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -89,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertNoHierarchyEventSinks()
         {
-            Assert.AreEqual(0, this.sinks.Count, "Unexpected number of sync, forgot to Unadvise?");
+            this.sinks.Should().HaveCount(0, "Unexpected number of sync, forgot to Unadvise?");
         }
 
         #region IVsUIHierarchy

@@ -15,35 +15,36 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.WPF;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.WPF;
 using System.ComponentModel;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
-    [TestClass]
     public class ContextualCommandsCollectionTests
     {
-        [TestMethod]
+        [Fact]
         public void ContextualCommandsCollection_HasCommands()
         {
-            // Setup
+            // Arrange
             var testSubject = new ContextualCommandsCollection();
 
             // Case 1: no commands
-            // Act + Verify
-            Assert.IsFalse(testSubject.HasCommands);
+            // Act + Assert
+            testSubject.HasCommands.Should().BeFalse();
 
             // Case 2: has commands
             testSubject.Add(new ContextualCommandViewModel(this, new RelayCommand(()=> { })));
-            // Act + Verify
-            Assert.IsTrue(testSubject.HasCommands);
+            // Act + Assert
+            testSubject.HasCommands.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void ContextualCommandsCollection_HasCommands_ChangedOnCollectionChange()
         {
-            // Setup
+            // Arrange
             var testSubject = new ContextualCommandsCollection();
             int hasCommandsChangedCounter = 0;
             ((INotifyPropertyChanged)testSubject).PropertyChanged += (o, e) =>
@@ -61,20 +62,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             testSubject.Add(cmd1);
             testSubject.Add(cmd2);
 
-            // Verify
-            Assert.AreEqual(2, hasCommandsChangedCounter, "Adding a command should update HasCommands");
+            // Assert
+            hasCommandsChangedCounter.Should().Be(2, "Adding a command should update HasCommands");
 
             // Case 2: Remove command
             // Act
             testSubject.Remove(cmd1);
-            // Verify
-            Assert.AreEqual(3, hasCommandsChangedCounter, "Adding a command should update HasCommands");
+            // Assert
+            hasCommandsChangedCounter.Should().Be(3, "Adding a command should update HasCommands");
 
             // Case 3: Update command
             // Act
             testSubject[0] = cmd1;
-            // Verify
-            Assert.AreEqual(4, hasCommandsChangedCounter, "Adding a command should update HasCommands");
+            // Assert
+            hasCommandsChangedCounter.Should().Be(4, "Adding a command should update HasCommands");
         }
 
     }

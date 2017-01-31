@@ -17,10 +17,12 @@
 
 using EnvDTE;
 using EnvDTE80;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using System;
 using System.Collections;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -431,7 +433,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         Project Solution2.AddSolutionFolder(string Name)
         {
-            Assert.IsFalse(this.projects.ContainsKey(Name), "Solution folder already exists");
+            this.projects.Should().NotContainKey(Name, "Solution folder already exists");
             var solutionFolder = this.AddOrGetProject(Name);
             solutionFolder.ProjectKind = ProjectSystemHelper.VsProjectItemKindSolutionFolder;
 

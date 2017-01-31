@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -122,12 +122,12 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         #region Verification methods
         public void AssertExecuted()
         {
-            Assert.IsTrue(this.executed, "The operation was not executed");
+            this.executed.Should().BeTrue( "The operation was not executed");
         }
 
         public void AssertNotExecuted()
         {
-            Assert.IsFalse(this.executed, "The operation was executed");
+            this.executed.Should().BeFalse( "The operation was executed");
         }
         #endregion
     }

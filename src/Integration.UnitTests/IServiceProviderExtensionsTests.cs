@@ -15,21 +15,21 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
+
     public class IServiceProviderExtensionsTests
     {
         private TestService serviceInstance;
         private TestMefService mefServiceInstance;
         private IServiceProvider serviceProvider;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public IServiceProviderExtensionsTests()
         {
             // Create a non-MEF service
             this.serviceInstance = new TestService();
@@ -49,73 +49,87 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Tests
 
-        [TestMethod]
-        public void IServiceProviderExtensions_GetServiceOfT_NullArgChecks()
+        [Fact]
+        public void GetServiceOfT_WithNullServiceProvider_ThrowsArgumentNullException()
         {
+            // Arrange
             IServiceProvider nullServiceProvider = null;
-            Exceptions.Expect<ArgumentNullException>(() => nullServiceProvider.GetService<IService>());
-            Exceptions.Expect<ArgumentNullException>(() => IServiceProviderExtensions.GetService<IService>(nullServiceProvider));
+
+            // Act
+            Action act1 = () => nullServiceProvider.GetService<IService>();
+            Action act2 = () => IServiceProviderExtensions.GetService<IService>(nullServiceProvider);
+
+            // Assert
+            act1.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            act2.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
-        [TestMethod]
-        public void IServiceProviderExtensions_GetServiceOfTU_NullArgChecks()
+        [Fact]
+        public void GetServiceOfTU_WithNullServiceProvider_ThrowsArgumentNullException()
         {
+            // Arrange
             IServiceProvider nullServiceProvider = null;
-            Exceptions.Expect<ArgumentNullException>(() => nullServiceProvider.GetService<IService, IOther>());
-            Exceptions.Expect<ArgumentNullException>(() => IServiceProviderExtensions.GetService<IService, IOther>(nullServiceProvider));
+
+            // Act
+            Action act1 = () => nullServiceProvider.GetService<IService, IOther>();
+            Action act2 = () => IServiceProviderExtensions.GetService<IService, IOther>(nullServiceProvider);
+
+            // Assert
+            act1.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            act2.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
-        [TestMethod]
+        [Fact]
         public void IServiceProviderExtensions_GetServiceOfT_ReturnsServiceT()
         {
             // Act
             IService actual = this.serviceProvider.GetService<IService>();
 
-            // Verify
-            Assert.IsNotNull(actual);
-            Assert.AreSame(this.serviceInstance, actual);
+            // Assert
+            actual.Should().NotBeNull();
+            actual.Should().Be(this.serviceInstance);
         }
 
-        [TestMethod]
+        [Fact]
         public void IServiceProviderExtensions_GetServiceOfT_NotFound_ReturnsNull()
         {
             // Act
             IMissingService service = this.serviceProvider.GetService<IMissingService>();
 
-            // Verify
-            Assert.IsNull(service);
+            // Assert
+            service.Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void IServiceProviderExtensions_GetServiceOfTU_ReturnsServiceU()
         {
             // Act
             IOther actual = this.serviceProvider.GetService<IService, IOther>();
 
-            // Verify
-            Assert.IsNotNull(actual);
-            Assert.AreSame(this.serviceInstance, actual);
+            // Assert
+            actual.Should().NotBeNull();
+            actual.Should().Be(this.serviceInstance);
         }
 
-        [TestMethod]
+        [Fact]
         public void IServiceProviderExtensions_GetMefServiceOfT_ReturnsServiceT()
         {
             // Act
             IMefService actual = this.serviceProvider.GetMefService<IMefService>();
 
-            // Verify
-            Assert.IsNotNull(actual);
-            Assert.AreSame(this.mefServiceInstance, actual);
+            // Assert
+            actual.Should().NotBeNull();
+            actual.Should().Be(this.mefServiceInstance);
         }
 
-        [TestMethod]
+        [Fact]
         public void IServiceProviderExtensions_GetMefServiceOfT_NotFound_ReturnsNull()
         {
             // Act
             IMissingMefService mefService = this.serviceProvider.GetMefService<IMissingMefService>();
 
-            // Verify
-            Assert.IsNull(mefService);
+            // Assert
+            mefService.Should().BeNull();
         }
 
         #endregion

@@ -15,29 +15,28 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class ActiveSolutionTrackerTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private SolutionMock solutionMock;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public ActiveSolutionTrackerTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.solutionMock = new SolutionMock();
             this.serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
         }
 
-        [TestMethod]
+        [Fact]
         public void ActiveSolutionTracker_Dispose()
         {
-            // Setup
+            // Arrange
             int counter = 0;
             var testSubject = new ActiveSolutionTracker(this.serviceProvider);
             testSubject.ActiveSolutionChanged += (o, e) => counter++;
@@ -47,14 +46,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionMock.SimulateSolutionClose();
             this.solutionMock.SimulateSolutionOpen();
 
-            // Verify
-            Assert.AreEqual(0, counter, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised since disposed");
+            // Assert
+            counter.Should().Be(0, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised since disposed");
         }
 
-        [TestMethod]
+        [Fact]
         public void ActiveSolutionTracker_RaiseEventOnSolutionOpen()
         {
-            // Setup
+            // Arrange
             int counter = 0;
             var testSubject = new ActiveSolutionTracker(this.serviceProvider);
             testSubject.ActiveSolutionChanged += (o, e) => counter++;
@@ -62,14 +61,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             this.solutionMock.SimulateSolutionOpen();
 
-            // Verify
-            Assert.AreEqual(1, counter, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
+            // Assert
+            counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
         }
 
-        [TestMethod]
+        [Fact]
         public void ActiveSolutionTracker_RaiseEventOnSolutionClose()
         {
-            // Setup
+            // Arrange
             int counter = 0;
             var testSubject = new ActiveSolutionTracker(this.serviceProvider);
             testSubject.ActiveSolutionChanged += (o, e) => counter++;
@@ -77,18 +76,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             this.solutionMock.SimulateSolutionClose();
 
-            // Verify
-            Assert.AreEqual(1, counter, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
+            // Assert
+            counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
         }
 
-        [TestMethod]
+        [Fact]
         public void ActiveSolutionTracker_DontRaiseEventOnProjectChanges()
         {
-            // Setup
+            // Arrange
             int counter = 0;
             var testSubject = new ActiveSolutionTracker(this.serviceProvider);
             testSubject.ActiveSolutionChanged += (o, e) => counter++;
-            var project = this.solutionMock.AddOrGetProject("project", isLoaded:false);
+            var project = this.solutionMock.AddOrGetProject("project", isLoaded: false);
 
             // Act
             this.solutionMock.SimulateProjectLoad(project);
@@ -96,8 +95,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionMock.SimulateProjectOpen(project);
             this.solutionMock.SimulateProjectClose(project);
 
-            // Verify
-            Assert.AreEqual(0, counter, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised");
+            // Assert
+            counter.Should().Be(0, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised");
         }
     }
 }

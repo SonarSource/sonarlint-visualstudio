@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             if (insecureSchemes == null)
             {
-                throw new ArgumentNullException(nameof(supportedSchemes));
+                throw new ArgumentNullException(nameof(insecureSchemes));
             }
 
             this.supportedSchemes.Clear();

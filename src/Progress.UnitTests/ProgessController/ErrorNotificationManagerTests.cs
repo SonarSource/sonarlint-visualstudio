@@ -15,82 +15,91 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using Moq;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
     /// <summary>
     /// Tests for <see cref="ErrorNotificationMananger"/>
     /// </summary>
-    [TestClass]
+
     public class ErrorNotificationManagerTests
     {
-        private ConfigurableServiceProvider serviceProvider;
-        private ErrorNotificationManager testSubject;
-
-        #region Test plumbing
-        public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            this.serviceProvider = new ConfigurableServiceProvider();
-            this.testSubject = new ErrorNotificationManager();
-        }
-
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            this.serviceProvider = null;
-            this.testSubject = null;
-        }
-        #endregion
-
         #region Tests
-        [TestMethod]
-        [Description("Tests adding and removing notifiers")]
-        public void ErrorNotificationMananger_EndToEnd()
+
+        [Fact]
+        public void ErrorNotificationMananger_WhenInitialized_DoesNotThrow()
         {
-            ConfigurableErrorNotifier testNotifier = new ConfigurableErrorNotifier();
+            // Arrange
+            var testSubject = new ErrorNotificationManager();
+            var testNotifier = new Mock<IProgressErrorNotifier>();
 
-            // Should not throw
-            this.Notify();
+            // Act
+            ((IProgressErrorNotifier)testSubject).Notify(new Exception("foo"));
 
-            // Add notifier
-            this.testSubject.AddNotifier(testNotifier);
-            this.Notify();
-            testNotifier.AssertExcepections(1);
-
-            // Cleanup
-            this.testSubject.RemoveNotifier(testNotifier);
-
-            // Add same notifier multiple times (no op)
-            this.testSubject.AddNotifier(testNotifier);
-            testNotifier.Reset();
-            this.Notify();
-            testNotifier.AssertExcepections(1);
-
-            // Remove single instance
-            this.testSubject.RemoveNotifier(testNotifier);
-            testNotifier.Reset();
-            this.Notify();
-            testNotifier.AssertExcepections(0);
-
-            // Remove non existing instance
-            this.testSubject.RemoveNotifier(testNotifier);
-            testNotifier.Reset();
-            this.Notify();
-            testNotifier.AssertExcepections(0);
+            // Assert
+            testNotifier.Verify(x => x.Notify(It.IsAny<Exception>()), Times.Never);
         }
-        #endregion
 
-        #region Helpers
-        private void Notify()
+        [Fact]
+        public void ErrorNotificationMananger_WhenNotifierAdded_ContainsOneException()
         {
-            ((IProgressErrorNotifier)this.testSubject).Notify(new Exception(this.TestContext.TestName));
+            // Arrange
+            var testSubject = new ErrorNotificationManager();
+            var testNotifier = new Mock<IProgressErrorNotifier>();
+
+            testSubject.AddNotifier(testNotifier.Object);
+            var ex = new Exception("foo");
+
+            // Act
+            ((IProgressErrorNotifier)testSubject).Notify(ex);
+
+            // Assert
+            testNotifier.Verify(x => x.Notify(ex), Times.Once);
         }
+
+        [Fact]
+        public void ErrorNotificationMananger_WhenNotifierRemoved_ContainsNoException()
+        {
+            // Arrange
+            var testSubject = new ErrorNotificationManager();
+            var testNotifier = new Mock<IProgressErrorNotifier>();
+            testSubject.AddNotifier(testNotifier.Object);
+            testSubject.RemoveNotifier(testNotifier.Object);
+
+            var ex = new Exception("foo");
+
+
+            // Act
+            ((IProgressErrorNotifier)testSubject).Notify(ex);
+
+            // Assert
+            testNotifier.Verify(x => x.Notify(ex), Times.Never);
+        }
+
+        [Fact]
+        public void ErrorNotificationMananger_WhenNotifierResetAndAddedAgain_ContainsOneException()
+        {
+            // Arrange
+            var testSubject = new ErrorNotificationManager();
+            var testNotifier = new Mock<IProgressErrorNotifier>();
+
+            testSubject.AddNotifier(testNotifier.Object);
+            testSubject.RemoveNotifier(testNotifier.Object);
+            testSubject.AddNotifier(testNotifier.Object);
+            var ex = new Exception("foo");
+
+
+            // Act
+            ((IProgressErrorNotifier)testSubject).Notify(ex);
+
+            // Assert
+            testNotifier.Verify(x => x.Notify(ex), Times.Once);
+        }
+
         #endregion
     }
 }

@@ -16,28 +16,34 @@
  */
 
 using SonarLint.VisualStudio.Integration.Service;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+ using Xunit;
 using System;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class AuthenticationHeaderProviderTests
     {
-        [TestMethod]
-        public void AuthenticationHeaderProvider_GetAuthToken()
+        [Fact]
+        public void GetBasicAuthToken_WithInvalidArguments_ThrowsArgumentOutOfRangeException()
         {
-            // Invalid input
+            // Arrange
             string user = "hello:";
             string password = "world";
-            using (new AssertIgnoreScope())
-            {
-                Exceptions.Expect<ArgumentOutOfRangeException>(() => AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ToSecureString()));
-            }
 
+            // Act
+            Action act = () => AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ToSecureString());
+
+            // Assert
+            act.ShouldThrow<ArgumentOutOfRangeException>();
+        }
+
+        [Fact]
+        public void AuthenticationHeaderProvider_GetAuthToken()
+        {
             // ASCII
-            user = "hello";
-            password = "world";
+            string user = "hello";
+            string password = "world";
             AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderProvider.GetBasicAuthToken(user, password.ToSecureString()));
 
             // UTF-8
@@ -56,14 +62,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string userNameAndPassword = AuthenticationHeaderProvider.BasicAuthEncoding.GetString(Convert.FromBase64String(userAndPasswordBase64String));
             // Find first Colon (can't use Split since password may contain ':')
             int index = userNameAndPassword.IndexOf(AuthenticationHeaderProvider.BasicAuthUserNameAndPasswordSeparator, StringComparison.Ordinal);
-            Assert.IsTrue(index >= 0, "Expected a string in user:password format, got instead '{0}'", userNameAndPassword);
+            index.Should().BeGreaterOrEqualTo(0, "Expected a string in user:password format, got instead '{0}'", userNameAndPassword);
 
             string[] userNameAndPasswordTokens = new string[2];
             userNameAndPasswordTokens[0] = userNameAndPassword.Substring(0, index);
             userNameAndPasswordTokens[1] = userNameAndPassword.Substring(index + 1, userNameAndPassword.Length - index - 1);
 
-            Assert.AreEqual(expectedUser, userNameAndPasswordTokens[0], "Unexpected user name");
-            Assert.AreEqual(expectedPassword, userNameAndPasswordTokens[1], "Unexpected password");
+            expectedUser.Should().Be( userNameAndPasswordTokens[0], "Unexpected user name");
+            expectedPassword.Should().Be( userNameAndPasswordTokens[1], "Unexpected password");
         }
     }
 }

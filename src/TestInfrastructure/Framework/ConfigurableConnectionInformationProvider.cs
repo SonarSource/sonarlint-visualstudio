@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Service;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             if (this.ExpectExistingConnection)
             {
-                Assert.IsNotNull(currentConnection, "No existing connection provided");
+                currentConnection.Should().NotBeNull("No existing connection provided");
             }
             return this.ConnectionInformationToReturn;
         }

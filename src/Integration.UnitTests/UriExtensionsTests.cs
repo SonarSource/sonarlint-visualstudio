@@ -15,38 +15,44 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using System;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class UriExtensionsTests
     {
-        [TestMethod]
-        public void UriExtensions_NullArgChecks()
+        [Fact]
+        public void EnsureTrailingSlash_WithNullUri_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => UriExtensions.EnsureTrailingSlash(null));
+            // Arrange + Act
+            Action act = () => UriExtensions.EnsureTrailingSlash(null);
+
+            // Assert
+
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void UriExtensions_EnsureTrailingSlash_NoTrailingSlash_AppendsSlash()
         {
             // Act
             var noSlashResult = UriExtensions.EnsureTrailingSlash(new Uri("http://localhost/NoSlash"));
 
-            // Verify
-            Assert.AreEqual("http://localhost/NoSlash/", noSlashResult.ToString(), "Unexpected normalization of URI without trailing slash");
+            // Assert
+            noSlashResult.ToString().Should().Be("http://localhost/NoSlash/", "Unexpected normalization of URI without trailing slash");
         }
 
-        [TestMethod]
+        [Fact]
         public void UriExtensions_EnsureTrailingSlash_HasTrailingSlash_ReturnsSameInstance()
         {
             // Act
             var withSlashResult = UriExtensions.EnsureTrailingSlash(new Uri("http://localhost/WithSlash/"));
 
-            // Verify
-            Assert.AreEqual("http://localhost/WithSlash/", withSlashResult.ToString(), "Unexpected normalization of URI already with trailing slash");
+            // Assert
+            withSlashResult.ToString().Should().Be("http://localhost/WithSlash/", "Unexpected normalization of URI already with trailing slash");
         }
     }
 }

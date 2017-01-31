@@ -15,28 +15,26 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
     /// <summary>
     /// Tests for <see cref="VsActivityLogNotifier"/>
     /// </summary>
-    [TestClass]
+
     public class VsActivityLogNotifierTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private StubVsActivityLog activityLog;
         private VsActivityLogNotifier testSubject;
 
-        #region Test plumbing
-        public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public void TestInitialize()
+        public VsActivityLogNotifierTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.activityLog = new StubVsActivityLog();
@@ -44,66 +42,76 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsTaskSchedulerService), new SingleThreadedTaskSchedulerService());
         }
 
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            this.activityLog = null;
-            this.serviceProvider = null;
-            this.testSubject = null;
-        }
-        #endregion
-
         #region Tests
-        [TestMethod]
-        [Description("Arg check tests")]
-        public void VsActivityLogNotifier_Args()
+
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            // 1st Argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsActivityLogNotifier(null, "source", "{0}", false));
+            // Arrange & Act
+            Action act = () => new VsActivityLogNotifier(null, "source", "{0}", false);
 
-            // 2nd Argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsActivityLogNotifier(this.serviceProvider, null, "{0}", false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsActivityLogNotifier(this.serviceProvider, string.Empty, "{0}", false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsActivityLogNotifier(this.serviceProvider, " \t", "{0}", false));
-
-            // 3rd Argument invalid
-            Exceptions.Expect<ArgumentNullException>(() => new VsActivityLogNotifier(this.serviceProvider, "source", null, false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsActivityLogNotifier(this.serviceProvider, "source", string.Empty, false));
-            Exceptions.Expect<ArgumentNullException>(() => new VsActivityLogNotifier(this.serviceProvider, "source", " \t", false));
-
-            // Valid
-            new VsActivityLogNotifier(this.serviceProvider, "source", "{0}", false);
-            new VsActivityLogNotifier(this.serviceProvider, "source", "{0}", true);
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
-        [TestMethod]
-        [Description("Verifies logging of an exception message in activity log")]
-        public void VsActivityLogNotifier_MessageOnly()
+        [Fact]
+        public void Ctor_WithInvalidEntrySource_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange & Act
+            Action act1 = () => new VsActivityLogNotifier(this.serviceProvider, null, "{0}", false);
+            Action act2 = () => new VsActivityLogNotifier(this.serviceProvider, string.Empty, "{0}", false);
+            Action act3 = () => new VsActivityLogNotifier(this.serviceProvider, " \t", "{0}", false);
+
+
+            // Assert
+            act1.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("entrySource");
+            act2.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("entrySource");
+            act3.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("entrySource");
+        }
+
+        [Fact]
+        public void Ctor_WithInvalidMessageFormat_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action act1 = () => new VsActivityLogNotifier(this.serviceProvider, "source", null, false);
+            Action act2 = () => new VsActivityLogNotifier(this.serviceProvider, "source", string.Empty, false);
+            Action act3 = () => new VsActivityLogNotifier(this.serviceProvider, "source", " \t", false);
+
+
+            // Assert
+            act1.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageFormat");
+            act2.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageFormat");
+            act3.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageFormat");
+        }
+
+        [Fact]
+
+        public void Notify_WithException_LogsException()
+        {
+            // Arrange
+            bool logWholeMessage = false;
+            Exception ex = this.Setup(logWholeMessage);
+
+            // Act
+            ((IProgressErrorNotifier)this.testSubject).Notify(ex);
+
+            // Assert
+            this.activityLog.HasLoggedEntry.Should().BeTrue();
+        }
+
+        [Fact]
+
+        public void Notify_WithFullException_LogsFullException()
+        {
+            // Arrange
             bool logWholeMessage = true;
             Exception ex = this.Setup(logWholeMessage);
 
-            // Execute
+            // Act
             ((IProgressErrorNotifier)this.testSubject).Notify(ex);
 
-            // Verify
-            this.activityLog.AssertEntryLogged();
-        }
-
-        [TestMethod]
-        [Description("Verifies logging of a full exception in activity log")]
-        public void VsActivityLogNotifier_FullException()
-        {
-            // Setup
-            bool logWholeMessage = true;
-            Exception ex = this.Setup(logWholeMessage);
-
-            // Execute
-            ((IProgressErrorNotifier)this.testSubject).Notify(ex);
-
-            // Verify
-            this.activityLog.AssertEntryLogged();
+            // Assert
+            this.activityLog.HasLoggedEntry.Should().BeTrue();
         }
         #endregion
 
@@ -111,22 +119,22 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         private Exception Setup(bool logWholeMessage)
         {
-            string format = this.TestContext.TestName + "{0}";
-            string source = this.TestContext.TestName;
+            string format = "" + "{0}";
+            string source = "";
             this.testSubject = new VsActivityLogNotifier(this.serviceProvider, source, format, logWholeMessage);
             Exception ex = this.GenerateException();
             this.activityLog.LogEntryAction = (entryType, actualSource, actualMessage) =>
             {
-                Assert.AreEqual((uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR, entryType, "Unexpected entry type");
-                Assert.AreEqual(source, actualSource, "Unexpected entry source");
-                MessageVerificationHelper.VerifyNotificationMessage(actualMessage, format, ex, logWholeMessage);
+                entryType.Should().Be((uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR, "Unexpected entry type");
+                source.Should().Be(actualSource, "Unexpected entry source");
+                actualMessage.Should().Be(string.Format(format, logWholeMessage ? ex.ToString() : ex.Message));
             };
             return ex;
         }
 
         private Exception GenerateException()
         {
-            return new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
+            return new Exception("", new Exception(Environment.TickCount.ToString()));
         }
         #endregion
     }

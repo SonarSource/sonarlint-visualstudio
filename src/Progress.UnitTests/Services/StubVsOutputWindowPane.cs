@@ -17,7 +17,6 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
@@ -27,21 +26,17 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// </summary>
     public class StubVsOutputWindowPane : IVsOutputWindowPane
     {
-        private bool activated;
-        private bool writtenToOutputWindow;
+        public bool IsActivated { get; private set; }
+        public bool IsWrittenToOutputWindow { get; private set; }
 
         #region Configuration
-        public Action<string> OutputStringThreadSafeAction
-        {
-            get;
-            set;
-        }
+        public Action<string> OutputStringThreadSafeAction { get; set; }
         #endregion
 
         #region IVsOutputWindowPane
         int IVsOutputWindowPane.Activate()
         {
-            this.activated = true;
+            this.IsActivated = true;
             return VSConstants.S_OK;
         }
 
@@ -72,11 +67,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         int IVsOutputWindowPane.OutputStringThreadSafe(string pszOutputString)
         {
-            this.writtenToOutputWindow = true;
-            if (this.OutputStringThreadSafeAction != null)
-            {
-                this.OutputStringThreadSafeAction(pszOutputString);
-            }
+            this.IsWrittenToOutputWindow = true;
+            this.OutputStringThreadSafeAction?.Invoke(pszOutputString);
 
             return VSConstants.S_OK;
         }
@@ -97,33 +89,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
         #endregion
 
-        #region Verification
-        public void AssertActivated()
-        {
-            Assert.IsTrue(this.activated, "Expected the output window to be activated");
-        }
-
-        public void AssertNotActivated()
-        {
-            Assert.IsFalse(this.activated, "Not expected the output window to be activated");
-        }
-
-        public void AssertWrittenToOutputWindow()
-        {
-            Assert.IsTrue(this.writtenToOutputWindow, "Expected to write to output window");
-        }
-
-        public void AssertNotWrittenToOutputWindow()
-        {
-            Assert.IsFalse(this.writtenToOutputWindow, "Not expected to write to output window");
-        }
-        #endregion
-
         #region Test helpers
         public void Reset()
         {
-            this.activated = false;
-            this.writtenToOutputWindow = false;
+            this.IsActivated = false;
+            this.IsWrittenToOutputWindow = false;
         }
         #endregion
     }

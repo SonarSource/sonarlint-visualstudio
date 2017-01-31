@@ -175,12 +175,7 @@ namespace SonarLint.VisualStudio.Progress.MVVM
         protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null)
         {
             this.VerifyAccess();
-            PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-
-            if (propertyChanged != null)
-            {
-                propertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         /// <summary>

@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsUIShell.FindToolWindow(uint grfFTW, ref Guid rguidPersistenceSlot, out IVsWindowFrame ppWindowFrame)
         {
-            Assert.AreEqual(this.ExpectedFindToolWindowArgument, (__VSFINDTOOLWIN)grfFTW);
+            grfFTW.Should().Be((uint)this.ExpectedFindToolWindowArgument);
 
             if (this.toolwindowFrames.TryGetValue(rguidPersistenceSlot, out ppWindowFrame))
             {

@@ -16,8 +16,8 @@
  */
 
 using System.Collections.Generic;
-using EnvDTE;
 using System.Linq;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

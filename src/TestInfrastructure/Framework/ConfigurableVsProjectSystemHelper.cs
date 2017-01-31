@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
+using EnvDTE80;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -115,10 +115,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public string GetProjectProperty(Project dteProject, string propertyName)
         {
             var projMock = dteProject as ProjectMock;
-            if (projMock == null)
-            {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
-            }
+
+            projMock.Should().NotBeNull($"Only expecting {nameof(ProjectMock)}");
 
             return projMock.GetBuildProperty(propertyName);
         }
@@ -126,10 +124,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SetProjectProperty(Project dteProject, string propertyName, string value)
         {
             var projMock = dteProject as ProjectMock;
-            if (projMock == null)
-            {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
-            }
+
+            projMock.Should().NotBeNull($"Only expecting {nameof(ProjectMock)}");
 
             projMock.SetBuildProperty(propertyName, value);
         }
@@ -137,10 +133,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ClearProjectProperty(Project dteProject, string propertyName)
         {
             var projMock = dteProject as ProjectMock;
-            if (projMock == null)
-            {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
-            }
+
+            projMock.Should().NotBeNull($"Only expecting {nameof(ProjectMock)}");
 
             projMock.ClearBuildProperty(propertyName);
         }
@@ -148,10 +142,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
         {
             ProjectMock dteProject = hierarchy as ProjectMock;
-            if (dteProject == null)
-            {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)} type");
-            }
+
+            dteProject.Should().NotBeNull($"Only expecting {nameof(ProjectMock)}");
 
             return dteProject.GetAggregateProjectTypeGuids();
         }

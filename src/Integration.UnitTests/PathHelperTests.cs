@@ -15,43 +15,44 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+ using Xunit;
 using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
+
     public class PathHelperTests
     {
-        [TestMethod]
+        [Fact]
         public void PathHelper_EscapeFileName()
         {
-            // Setup
+            // Arrange
             const string unescapedString = "A string | with / special : and / invalid \\ characters * all < over > the \" place ?";
             const string expectedEscaped = "A string _ with _ special _ and _ invalid _ characters _ all _ over _ the _ place _";
 
             // Act
             string actualEscaped = PathHelper.EscapeFileName(unescapedString);
 
-            // Verify
-            Assert.AreEqual(expectedEscaped, actualEscaped);
+            // Assert
+            expectedEscaped.Should().Be( actualEscaped);
         }
 
-        [TestMethod]
+        [Fact]
         public void PathHelper_ForceDirectoryEnding()
         {
-            // Setup
+            // Arrange
             const string withSlash = @"X:\directories\all\the\way\";
             const string withoutSlash = @"X:\directories\all\the\way";
 
             // Test case: without trailing slash
-            Assert.AreEqual(withSlash, PathHelper.ForceDirectoryEnding(withoutSlash), "Expected to append trailing slash '\'");
+            withSlash.Should().Be( PathHelper.ForceDirectoryEnding(withoutSlash), "Expected to append trailing slash '\'");
 
             // Test case: with trailing slash
-            Assert.AreEqual(withSlash, PathHelper.ForceDirectoryEnding(withSlash), "Expected to return input string without modification");
+            withSlash.Should().Be( PathHelper.ForceDirectoryEnding(withSlash), "Expected to return input string without modification");
         }
 
-        [TestMethod]
+        [Fact]
         public void PathHelper_CalculateRelativePath()
         {
             // Up one level
@@ -119,39 +120,47 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
         }
 
-        [TestMethod]
-        public void PathHelper_CalculateRelativePath_NullArgumentChecks()
+        [Fact]
+        public void CalculateRelativePath_WithNulltoFullFilePath_ThrowsArgumentNullException()
         {
-            // 'absolute' param
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                PathHelper.CalculateRelativePath(@"X:\a\file.proj", null);
-            });
+            // Arrange + Act
+            Action act = () => PathHelper.CalculateRelativePath(@"X:\a\file.proj", null);
 
-            // 'relativeTo' param
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                PathHelper.CalculateRelativePath(null, @"X:\a\file.sln");
-            });
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void PathHelper_CalculateRelativePath_InputPathsMustBeAbsolute()
+        [Fact]
+        public void CalculateRelativePath_WithNullFromFullFilePath_ThrowsArgumentNullException()
         {
-            // 'absolute' param
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                PathHelper.CalculateRelativePath(@"X:\a\file.proj", @"not\absolute\file.sln");
-            });
+            // Arrange + Act
+            Action act = () => PathHelper.CalculateRelativePath(null, @"X:\a\file.sln");
 
-            // 'relativeTo' param
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                PathHelper.CalculateRelativePath(@"not\absolute\file.proj", @"X:\a\file.sln");
-            });
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
+        public void CalculateRelativePath_WhenToFullFilePathIsNotAbsolute_ThrowsArgumentException()
+        {
+            // Arrange + Act
+            Action act = () => PathHelper.CalculateRelativePath(@"X:\a\file.proj", @"not\absolute\file.sln");
+
+            // Assert
+            act.ShouldThrow<ArgumentException>();
+        }
+
+        [Fact]
+        public void CalculateRelativePath_WhenFromFullFilePathIsNotAbsolute_ThrowsArgumentException()
+        {
+            // Arrange + Act
+            Action act = () => PathHelper.CalculateRelativePath(@"not\absolute\file.proj", @"X:\a\file.sln");
+
+            // Assert
+            act.ShouldThrow<ArgumentException>();
+        }
+
+        [Fact]
         public void PathHelper_ResolveRelativePath()
         {
             // Up one level
@@ -203,49 +212,54 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             );
         }
 
-        [TestMethod]
-        public void PathHelper_ExpandRelativePath_NullArgumentChecks()
+        [Fact]
+        public void ResolveRelativePath_WithNullRelativePath_ThrowsArgumentNullException()
         {
-            // 'baseDirectoryPath' param
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                PathHelper.ResolveRelativePath(null, @"..\file.proj");
-            });
+            // Arrange + Act
+            Action act = () => PathHelper.ResolveRelativePath(null, @"..\file.proj");
 
-            // 'relativePath' param
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                PathHelper.ResolveRelativePath(@"X:\a", null);
-            });
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void PathHelper_ExpandRelativePath_BasePathMustBeAbsolute()
+        [Fact]
+        public void ResolveRelativePath_WithNullResolutionRootPath_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                PathHelper.ResolveRelativePath(@"not\absolute\file.sln", @"..\a\relative.path");
-            });
+            // Arrange + Act
+            Action act = () => PathHelper.ResolveRelativePath(@"X:\a", null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
+        public void ResolveRelativePath_WithFullPathNotAbsolute_ThrowsArgumentException()
+        {
+            // Arrange + Act
+            Action act = () => PathHelper.ResolveRelativePath(@"not\absolute\file.sln", @"..\a\relative.path");
+
+            // Assert
+            act.ShouldThrow<ArgumentException>();
+        }
+
+        [Fact]
         public void PathHelper_IsPathRootedUnder_RootedPath_IsTrue()
         {
-            // Setup
+            // Arrange
             const string root = @"X:\All\Files\Live\Here";
             const string rootedFile = @"X:\All\Files\Live\Here\likeme.ext";
 
             // Act
             bool rootedIsRooted = PathHelper.IsPathRootedUnderRoot(rootedFile, root);
 
-            // Verify
-            Assert.IsTrue(rootedIsRooted, $"Path '{rootedFile}' should be rooted under '{root}'");
+            // Assert
+            rootedIsRooted.Should().BeTrue( $"Path '{rootedFile}' should be rooted under '{root}'");
         }
 
-        [TestMethod]
+        [Fact]
         public void PathHelper_IsPathRootedUnder_UnrootedPath_IsFalse()
         {
-            // Setup
+            // Arrange
             const string root = @"X:\All\Files\Live\Here";
 
             const string unrootedFile = @"X:\im_not_under_the_root.ext";
@@ -253,22 +267,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             bool unrootedIsRooted = PathHelper.IsPathRootedUnderRoot(unrootedFile, root);
 
-            // Verify
-            Assert.IsFalse(unrootedIsRooted, $"Path '{unrootedFile}' should not be rooted under '{root}'");
+            // Assert
+            unrootedIsRooted.Should().BeFalse( $"Path '{unrootedFile}' should not be rooted under '{root}'");
         }
 
-        [TestMethod]
+        [Fact]
         public void PathHelper_IsPathRootedUnder_PathsContainRelativeComponents()
         {
-            // Setup
+            // Arrange
             const string root = @"X:\All\Files\..\Files\Live\Here";
             const string rootedFile = @"X:\All\..\All\Files\Live\Here\likeme.ext";
 
             // Act
             bool rootedIsRooted = PathHelper.IsPathRootedUnderRoot(rootedFile, root);
 
-            // Verify
-            Assert.IsTrue(rootedIsRooted, $"Path '{rootedFile}' should be rooted under '{root}'");
+            // Assert
+            rootedIsRooted.Should().BeTrue( $"Path '{rootedFile}' should be rooted under '{root}'");
         }
 
         #region Helpers
@@ -277,14 +291,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             string actual = PathHelper.CalculateRelativePath(fromPath, toPath);
 
-            Assert.AreEqual(expected, actual);
+            expected.Should().Be( actual);
         }
 
         private static void VerifyResolveRelativePath(string expected, string basePath, string relativePath)
         {
             string actual = PathHelper.ResolveRelativePath(relativePath, basePath);
 
-            Assert.AreEqual(expected, actual);
+            expected.Should().Be( actual);
         }
 
         #endregion

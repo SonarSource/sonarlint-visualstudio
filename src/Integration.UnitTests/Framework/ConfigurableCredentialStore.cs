@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.Alm.Authentication;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 
@@ -46,12 +46,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Helpers
         public void AssertHasCredentials(Uri targetUri)
         {
-            Assert.IsTrue(this.data.ContainsKey(targetUri), "Credentials not found for uri {0}", targetUri);
+            this.data.ContainsKey(targetUri).Should().BeTrue("Credentials not found for uri {0}", targetUri);
         }
 
         public void AssertHasNoCredentials(Uri targetUri)
         {
-            Assert.IsFalse(this.data.ContainsKey(targetUri), "Credentials found for uri {0}", targetUri);
+            this.data.ContainsKey(targetUri)
+                .Should().BeFalse("Credentials found for uri {0}", targetUri);
         }
         #endregion
     }

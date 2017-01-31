@@ -16,46 +16,59 @@
  */
 
 using Microsoft.TeamFoundation.Controls;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Resources;
+using Xunit;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
-    [TestClass]
     public class TeamExplorerControllerTests
     {
-        [TestMethod]
-        public void TeamExplorerController_Ctor_NullArgChecks()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new TeamExplorerController(null));
+            // Arrange + Act
+            Action act = () => new TeamExplorerController(null);
+
+            // Assert
+
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
+        public void Ctor_WithInvalidServiceProvider_ThrowsArgumentException()
+        {
+            // Arrange
+            var serviceProvider = new ConfigurableServiceProvider(false);
+
+            // Act
+            Action act = () => new TeamExplorerController(serviceProvider);
+
+            // Assert
+            act.ShouldThrow<ArgumentException>();
+        }
+
+        [Fact]
         public void TeamExplorerController_Ctor()
         {
             // Test case 1: no Team Explorer service
-            // Setup
+            // Arrange
             var serviceProvider = new ConfigurableServiceProvider(false);
-
-            // Act + Verify
-            Exceptions.Expect<ArgumentException>(() => new TeamExplorerController(serviceProvider));
-
             // Test case 2: has TE service
-            // Setup
+            // Arrange
             var teService = new ConfigurableTeamExplorer();
             serviceProvider.RegisterService(typeof(ITeamExplorer), teService);
 
-            // Act + Verify
+            // Act + Assert
             var testSubject = new TeamExplorerController(serviceProvider);
-            Assert.AreSame(teService, testSubject.TeamExplorer, "Unexpected Team Explorer service");
+            testSubject.TeamExplorer.Should().Be(teService, "Unexpected Team Explorer service");
         }
 
-        [TestMethod]
+        [Fact]
         public void TeamExplorerController_ShowConnectionsPage()
         {
-            // Setup
+            // Arrange
             var startPageId = new Guid(TeamExplorerPageIds.GitCommits);
 
             var serviceProvider = new ConfigurableServiceProvider();
@@ -71,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             testSubject.ShowSonarQubePage();
 
-            // Verify
+            // Assert
             teService.AssertCurrentPage(sonarPageId);
         }
     }

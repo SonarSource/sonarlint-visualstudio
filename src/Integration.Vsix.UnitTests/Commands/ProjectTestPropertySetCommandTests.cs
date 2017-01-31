@@ -17,25 +17,22 @@
 
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+ using Xunit;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Windows.Threading;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
-    [TestClass]
     public class ProjectTestPropertySetCommandTests
     {
-        #region Test boilerplate
-
         private ConfigurableVsProjectSystemHelper projectSystem;
         private IServiceProvider serviceProvider;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public ProjectTestPropertySetCommandTests()
         {
             var provider = new ConfigurableServiceProvider();
             this.projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
@@ -50,22 +47,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.serviceProvider = provider;
         }
 
-        #endregion
-
         #region Tests
 
-        [TestMethod]
-        public void ProjectTestPropertySetCommand_Ctor()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectTestPropertySetCommand(null, true));
+            // Arrange + Act
+            Action act = () => new ProjectTestPropertySetCommand(null, true);
 
-            new ProjectTestPropertySetCommand(this.serviceProvider, null);
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_Invoke_SingleProject_SetsValue()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
@@ -74,13 +71,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.projectSystem.SelectedProjects = new[] { project };
 
             // Test case 1: test (true)
-            // Setup
+            // Arrange
             var testSubject1 = new ProjectTestPropertySetCommand(serviceProvider, true);
 
             // Act
             testSubject1.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyTestProperty(project, true);
 
             // Test case 2: non-test (false)
@@ -89,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject2.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyTestProperty(project, false);
 
             // Test case 3: auto detect (null)
@@ -98,14 +95,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject3.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyTestProperty(project, null);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_Invoke_MultipleProjects_MixedPropValues_SetsValues()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
@@ -118,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
             // Test case 1: test (true)
-            // Setup
+            // Arrange
             var testSubject1 = new ProjectTestPropertySetCommand(serviceProvider, true);
             this.SetTestProperty(p1, null);
             this.SetTestProperty(p2, true);
@@ -127,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject1.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyTestProperty(p1, true);
             this.VerifyTestProperty(p2, true);
             this.VerifyTestProperty(p3, true);
@@ -141,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject2.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyTestProperty(p1, false);
             this.VerifyTestProperty(p2, false);
             this.VerifyTestProperty(p3, false);
@@ -155,16 +152,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject3.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyTestProperty(p1, null);
             this.VerifyTestProperty(p2, null);
             this.VerifyTestProperty(p3, null);
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_QueryStatus_MissingPropertyManager_IsDisabledIsHidden()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var localProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
@@ -178,15 +175,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            // Assert
+            command.Enabled.Should().BeFalse( "Expected command to be disabled");
+            command.Visible.Should().BeFalse( "Expected command to be hidden");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_QueryStatus_SingleProject_SupportedProject_IsEnabledIsVisible()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectTestPropertySetCommand(serviceProvider, null);
@@ -199,15 +196,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsTrue(command.Enabled, "Expected command to be enabled");
-            Assert.IsTrue(command.Visible, "Expected command to be visible");
+            // Assert
+            command.Enabled.Should().BeTrue( "Expected command to be enabled");
+            command.Visible.Should().BeTrue( "Expected command to be visible");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_QueryStatus_SingleProject_UnsupportedProject_IsDisabledIsHidden()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectTestPropertySetCommand(serviceProvider, null);
@@ -219,15 +216,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            // Assert
+            command.Enabled.Should().BeFalse( "Expected command to be disabled");
+            command.Visible.Should().BeFalse( "Expected command to be hidden");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_QueryStatus_SingleProject_CheckedStateReflectsValues()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var project = new ProjectMock("face.proj");
@@ -238,13 +235,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             foreach (ProjectTestPropertySetCommand testSubject in this.CreateCommands())
             {
                 // Test case 1: property is null
-                // Setup
+                // Arrange
                 this.SetTestProperty(project, null);
 
                 // Act
                 testSubject.QueryStatus(command, null);
 
-                // Verify
+                // Assert
                 this.VerifyCommandCheckedStatus(command, testSubject, null);
 
                 // Test case 2: property is true
@@ -253,7 +250,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 // Act
                 testSubject.QueryStatus(command, null);
 
-                // Verify
+                // Assert
                 this.VerifyCommandCheckedStatus(command, testSubject, true);
 
                 // Test case 3: property is false
@@ -262,15 +259,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 // Act
                 testSubject.QueryStatus(command, null);
 
-                // Verify
+                // Assert
                 this.VerifyCommandCheckedStatus(command, testSubject, false);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_QueryStatus_MultipleProjects_ConsistentPropValues_CheckedStateReflectsValues()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var p1 = new ProjectMock("good1.proj");
@@ -283,14 +280,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             foreach (ProjectTestPropertySetCommand testSubject in this.CreateCommands())
             {
                 // Test case 1: properties are both null
-                // Setup
+                // Arrange
                 this.SetTestProperty(p1, null);
                 this.SetTestProperty(p2, null);
 
                 // Act
                 testSubject.QueryStatus(command, null);
 
-                // Verify
+                // Assert
                 this.VerifyCommandCheckedStatus(command, testSubject, null);
 
                 // Test case 2: properties are both true
@@ -300,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 // Act
                 testSubject.QueryStatus(command, null);
 
-                // Verify
+                // Assert
                 this.VerifyCommandCheckedStatus(command, testSubject, true);
 
                 // Test case 3: properties are both false
@@ -310,15 +307,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 // Act
                 testSubject.QueryStatus(command, null);
 
-                // Verify
+                // Assert
                 this.VerifyCommandCheckedStatus(command, testSubject, false);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_QueryStatus_MultipleProjects_MixedPropValues_IsUnchecked()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var p1 = new ProjectMock("good1.proj");
@@ -338,15 +335,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 // Act
                 testSubject.QueryStatus(command, null);
 
-                // Verify
-                Assert.IsFalse(command.Checked, $"Expected command[{testSubject.CommandPropertyValue}] to be unchecked");
+                // Assert
+                command.Checked.Should().BeFalse( $"Expected command[{testSubject.CommandPropertyValue}] to be unchecked");
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_QueryStatus_MultipleProjects_AllSupportedProjects_IsEnabledIsVisible()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectTestPropertySetCommand(this.serviceProvider, null);
@@ -361,15 +358,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsTrue(command.Enabled, "Expected command to be enabled");
-            Assert.IsTrue(command.Visible, "Expected command to be visible");
+            // Assert
+            command.Enabled.Should().BeTrue( "Expected command to be enabled");
+            command.Visible.Should().BeTrue( "Expected command to be visible");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectTestPropertySetCommand_QueryStatus_MultipleProjects_MixedSupportedProjects_IsDisabledIsHidden()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectTestPropertySetCommand(this.serviceProvider, null);
@@ -383,9 +380,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            // Assert
+            command.Enabled.Should().BeFalse( "Expected command to be disabled");
+            command.Visible.Should().BeFalse( "Expected command to be hidden");
         }
 
         #endregion
@@ -395,7 +392,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         private void VerifyTestProperty(ProjectMock project, bool? expected)
         {
             bool? actual = this.GetTestProperty(project);
-            Assert.AreEqual(expected, actual, $"Expected property to be {expected}");
+            expected.Should().Be( actual, $"Expected property to be {expected}");
         }
 
         private bool? GetTestProperty(ProjectMock project)
@@ -429,11 +426,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             if (propertySameAsCommand)
             {
-                Assert.IsTrue(command.Checked, $"Expected command[{testSubjectCmdValue}] to be checked when property is '{actualPropertyValue}'");
+                command.Checked.Should().BeTrue( $"Expected command[{testSubjectCmdValue}] to be checked when property is '{actualPropertyValue}'");
             }
             else
             {
-                Assert.IsFalse(command.Checked, $"Expected command[{testSubjectCmdValue}] to be unchecked when property is '{actualPropertyValue}'");
+                command.Checked.Should().BeFalse( $"Expected command[{testSubjectCmdValue}] to be unchecked when property is '{actualPropertyValue}'");
             }
         }
 

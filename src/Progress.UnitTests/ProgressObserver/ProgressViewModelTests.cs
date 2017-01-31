@@ -15,85 +15,128 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Observation.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+
+using SonarLint.VisualStudio.Progress.Observation.ViewModels;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
-    [TestClass]
+
     public class ProgressViewModelTests
     {
-        [TestMethod]
-        [Description("Verifies that all the publicly settable properties in ProgressViewModel notify changes")]
+        [Fact]
+        
         public void ProgressViewModel_AllPublicPropertiesNotifyChanges()
         {
             ProgressViewModel testSubject = new ProgressViewModel();
 
-            ViewModelVerifier.RunVerificationTest<ProgressViewModel, double>(testSubject, "Value", double.NaN, 1.0);
-            ViewModelVerifier.RunVerificationTest<ProgressViewModel, bool>(testSubject, "IsIndeterminate", true, false);
+            ViewModelVerifier.RunVerificationTest(testSubject, "Value", double.NaN, 1.0);
+            ViewModelVerifier.RunVerificationTest(testSubject, "IsIndeterminate", true, false);
         }
 
-        [TestMethod]
-        [Description("Verifies all the exceptions that can be thrown from ProgressViewModel when setting invalid value")]
-        public void ProgressViewModel_ArgChecks()
+        [Fact]
+        
+        public void ValueProperty_WhenSettingNegativeinfinity_ThrowsArgumentOutOfRangeException()
         {
+            // Arrange
             ProgressViewModel testSubject = new ProgressViewModel();
 
-            // Setting the main progress with values out of [0..1] range will throw
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.Value = double.NegativeInfinity);
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.Value = double.PositiveInfinity);
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.Value = 0.0 - double.Epsilon);
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.Value = 1.00001);
+            // Act
+            Action act = () => testSubject.Value = double.NegativeInfinity;
 
-            // Valid
-            testSubject.Value = 0;
-            testSubject.Value = 0.5;
-            testSubject.Value = 1.0;
-            testSubject.Value = double.NaN;
+            // Assert
+            act.ShouldThrow<ArgumentOutOfRangeException>();
         }
 
-        [TestMethod]
+        [Fact]
+        
+        public void ValueProperty_WhenSettingPositiveinfinity_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            ProgressViewModel testSubject = new ProgressViewModel();
+
+            // Act
+            Action act = () => testSubject.Value = double.PositiveInfinity;
+
+            // Assert
+            act.ShouldThrow<ArgumentOutOfRangeException>();
+        }
+
+        [Fact]
+        
+        public void ValueProperty_WhenSettingValueCloseToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            ProgressViewModel testSubject = new ProgressViewModel();
+
+            // Act
+            Action act = () => testSubject.Value = 0.0 - double.Epsilon;
+
+            // Assert
+            act.ShouldThrow<ArgumentOutOfRangeException>();
+        }
+
+        [Fact]
+        
+        public void ValueProperty_WhenSettingBiggerThanOne_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            ProgressViewModel testSubject = new ProgressViewModel();
+
+            // Act
+            Action act = () => testSubject.Value = 1.00001;
+
+            // Assert
+            act.ShouldThrow<ArgumentOutOfRangeException>();
+        }
+
+        [Fact]
         public void ProgressViewModel_SetUpperBoundLimitedValue()
         {
-            // Setup
+            // Arrange
             ProgressViewModel testSubject = new ProgressViewModel();
 
             // Sanity
-            Assert.AreEqual(0, testSubject.Value, "Default value expected");
+            testSubject.Value.Should().BeApproximately(0, double.Epsilon, "Default value expected");
 
-            // Act + Verify
+            // Act
+            Action act1 = () => testSubject.SetUpperBoundLimitedValue(double.NegativeInfinity);
+            Action act2 = () => testSubject.SetUpperBoundLimitedValue(double.PositiveInfinity);
+            Action act3 = () => testSubject.SetUpperBoundLimitedValue(0 - double.Epsilon);
+            Action act4 = () => testSubject.SetUpperBoundLimitedValue(1.0 + ProgressViewModel.UpperBoundMarginalErrorSupport + ProgressViewModel.UpperBoundMarginalErrorSupport);
 
-            // Erroneous cases
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.SetUpperBoundLimitedValue(double.NegativeInfinity));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.SetUpperBoundLimitedValue(double.PositiveInfinity));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.SetUpperBoundLimitedValue(0 - double.Epsilon));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.SetUpperBoundLimitedValue(1.0 + ProgressViewModel.UpperBoundMarginalErrorSupport + ProgressViewModel.UpperBoundMarginalErrorSupport));
+            // Assert
+            act1.ShouldThrow<ArgumentOutOfRangeException>();
+            act2.ShouldThrow<ArgumentOutOfRangeException>();
+            act3.ShouldThrow<ArgumentOutOfRangeException>();
+            act4.ShouldThrow<ArgumentOutOfRangeException>();
 
             // Sanity
-            Assert.AreEqual(0.0, testSubject.Value, "Erroneous cases should not change the default value");
+            testSubject.Value.Should().Be(0.0, "Erroneous cases should not change the default value");
 
             // NaN supported
             testSubject.SetUpperBoundLimitedValue(double.NaN);
-            Assert.AreEqual(double.NaN, testSubject.Value);
+            double.IsNaN(testSubject.Value).Should().BeTrue();
 
             // Zero in range
             testSubject.SetUpperBoundLimitedValue(0);
-            Assert.AreEqual(0.0, testSubject.Value);
+            testSubject.Value.Should().Be(0.0);
 
             // One is in range
             testSubject.SetUpperBoundLimitedValue(1);
-            Assert.AreEqual(1.0, testSubject.Value);
+            testSubject.Value.Should().Be(1.0);
 
             // Anything between zero and one is in range
             Random r = new Random();
             double val = r.NextDouble();
             testSubject.SetUpperBoundLimitedValue(val);
-            Assert.AreEqual(val, testSubject.Value);
+            val.Should().Be(testSubject.Value);
 
             // More than one (i.e floating point summation errors) will become one
             testSubject.SetUpperBoundLimitedValue(1.0 + ProgressViewModel.UpperBoundMarginalErrorSupport);
-            Assert.AreEqual(1.0, testSubject.Value);
+            testSubject.Value.Should().Be(1.0);
         }
     }
 }

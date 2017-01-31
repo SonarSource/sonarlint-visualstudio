@@ -15,25 +15,38 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class ProjectRuleSetConflictTests
     {
-        [TestMethod]
-        public void ProjectRuleSetConflict_ArgChecks()
+        [Fact]
+        public void Ctor_WithNullRuleConflictInfo_ThrowsArgumentNullException()
         {
+            // Arrange
             var info = new RuleSetInformation("projectFullName", "baselineRuleSet", "projectRuleSet", new string[0]);
+
+            // Act
+            Action act = () => new ProjectRuleSetConflict(null, info);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void Ctor_WithNullRuleSetInfo_ThrowsArgumentNullException()
+        {
             var conflict = new RuleConflictInfo();
 
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectRuleSetConflict(null, info));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectRuleSetConflict(conflict, null));
+            // Act
+            Action act = () => new ProjectRuleSetConflict(conflict, null);
 
-            Assert.IsNotNull(new ProjectRuleSetConflict(conflict, info), "Not expecting this to fail, just to make the static analyzer happy");
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
     }
 }

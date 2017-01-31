@@ -16,15 +16,16 @@
  */
 
 using EnvDTE;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
+
     public class ProjectSystemHelperTests
     {
         private ConfigurableServiceProvider serviceProvider;
@@ -32,8 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ProjectSystemHelper testSubject;
         private ConfigurableProjectSystemFilter projectFilter;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public ProjectSystemHelperTests()
         {
             this.solutionMock = new SolutionMock();
             this.serviceProvider = new ConfigurableServiceProvider();
@@ -45,40 +45,49 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
-        [TestMethod]
-        public void ProjectSystemHelper_ArgCheck()
+        [Fact]
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectSystemHelper(null));
+            // Arrange + Act
+            Action act = () => new ProjectSystemHelper(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
-        [TestMethod]
-        public void ProjectSystemHelper_GetIVsHierarchy_ArgChecks()
+        [Fact]
+        public void GetIVsHierarchy_WithNullProject_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.GetIVsHierarchy(null));
+            // Arrange + Act
+            Action act = () => this.testSubject.GetIVsHierarchy(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("project");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_GetIVsHierarchy()
         {
-            // Setup
+            // Arrange
             string projectName = "project";
 
             // Sanity
-            Assert.IsNull(this.testSubject.GetIVsHierarchy(new ProjectMock(projectName)), "Project not associated with the solution");
+            this.testSubject.GetIVsHierarchy(new ProjectMock(projectName))
+                .Should().BeNull("Project not associated with the solution");
 
             ProjectMock project = this.solutionMock.AddOrGetProject(projectName);
 
             // Act
             IVsHierarchy h = this.testSubject.GetIVsHierarchy(project);
 
-            // Verify
-            Assert.AreSame(project, h, "The test implementation of a ProjectMock is also the one for its IVsHierarcy");
+            // Assert
+            h.Should().BeSameAs(project, "The test implementation of a ProjectMock is also the one for its IVsHierarcy");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_GetSolutionProjects_ReturnsOnlyKnownLanguages()
         {
-            // Setup
+            // Arrange
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
             csProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, csProject);
             csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind;
@@ -87,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             vbProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
             ProjectMock otherProject = this.solutionMock.AddOrGetProject("other");
             otherProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, otherProject);
-            otherProject.ProjectKind ="other";
+            otherProject.ProjectKind = "other";
             ProjectMock erronousProject = this.solutionMock.AddOrGetProject("err");
             erronousProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, null);
             erronousProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
@@ -95,24 +104,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             var actual = this.testSubject.GetSolutionProjects().ToArray();
 
-            // Verify
-            CollectionAssert.AreEqual(new[] { csProject, vbProject }, actual,
+            // Assert
+            actual.Should().Equal(new[] { csProject, vbProject },
                 "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
         }
 
-        [TestMethod]
-        public void ProjectSystemHelper_IsFileInProject_ArgChecks()
+        [Fact]
+        public void IsFileInProject_WithNullProject_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(null, "file"));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(new ProjectMock("project"), null));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(new ProjectMock("project"), ""));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(new ProjectMock("project"), "\t\n"));
+            // Arrange + Act
+            Action act = () => this.testSubject.IsFileInProject(null, "file");
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("project");
         }
 
-        [TestMethod]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void IsFileInProject_WithNullOrEmptyOrWhiteSpaceFile_ThrowsArgumentNullException(string value)
+        {
+            // Arrange + Act
+            Action act = () => this.testSubject.IsFileInProject(new ProjectMock("project"), value);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("file");
+        }
+
+        [Fact]
         public void ProjectSystemHelper_IsFileInProject()
         {
-            // Setup
+            // Arrange
             ProjectMock project1 = this.solutionMock.AddOrGetProject("project1");
             ProjectMock project2 = this.solutionMock.AddOrGetProject("project2");
             string file1 = "file1";
@@ -121,32 +144,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             project1.AddOrGetFile(file1);
             project1.AddOrGetFile(file2);
 
-            // Act + Verify
-            Assert.IsTrue(this.testSubject.IsFileInProject(project1, file1));
-            Assert.IsTrue(this.testSubject.IsFileInProject(project1, file2));
-            Assert.IsFalse(this.testSubject.IsFileInProject(project1, file3));
-            Assert.IsFalse(this.testSubject.IsFileInProject(project2, file1));
-            Assert.IsFalse(this.testSubject.IsFileInProject(project2, file2));
-            Assert.IsFalse(this.testSubject.IsFileInProject(project2, file3));
+            // Act + Assert
+            this.testSubject.IsFileInProject(project1, file1).Should().BeTrue();
+            this.testSubject.IsFileInProject(project1, file2).Should().BeTrue();
+            this.testSubject.IsFileInProject(project1, file3).Should().BeFalse();
+            this.testSubject.IsFileInProject(project2, file1).Should().BeFalse();
+            this.testSubject.IsFileInProject(project2, file2).Should().BeFalse();
+            this.testSubject.IsFileInProject(project2, file3).Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_IsFileInProject_DifferentCase()
         {
-            // Setup
+            // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
             string existingFile = "FILENAME";
             string newFile = "filename";
             project.AddOrGetFile(existingFile);
 
-            // Act + Verify
-            Assert.IsTrue(this.testSubject.IsFileInProject(project, newFile));
+            // Act + Assert
+            this.testSubject.IsFileInProject(project, newFile).Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_GetSolutionItemsProject()
         {
-            // Setup
+            // Arrange
             const string SolutionItemsName = "Hello world";
             this.SetSolutionFolderName(SolutionItemsName);
             DTEMock dte = new DTEMock();
@@ -156,23 +179,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             Project project1 = this.testSubject.GetSolutionItemsProject(true);
 
-            // Verify
-            Assert.IsNotNull(project1, "Could not find the solution items project");
-            Assert.AreEqual(SolutionItemsName, project1.Name, "Unexpected project name");
-            Assert.AreEqual(1, this.solutionMock.Projects.Count(), "Unexpected project count");
-            Assert.AreSame(this.solutionMock.Projects.Single(), project1, "Unexpected project");
+            // Assert
+            project1.Should().NotBeNull("Could not find the solution items project");
+            project1.Name.Should().Be(SolutionItemsName, "Unexpected project name");
+            this.solutionMock.Projects.Should().HaveCount(1, "Unexpected project count");
+            project1.Should().BeSameAs(this.solutionMock.Projects.Single(), "Unexpected project");
 
             // Act, ask again (exists already)
             Project project2 = this.testSubject.GetSolutionItemsProject(false);
 
-            // Verify
-            Assert.AreSame(project1, project2, "Should be the same project as in the first time");
+            // Assert
+            project2.Should().BeSameAs(project1, "Should be the same project as in the first time");
         }
 
-        [TestMethod]
+        [Fact]
         public void GetSolutionFolderProject_WhenFolderDoesntExistButForceCreate_ExpectsANonNullProject()
         {
-            /// Setup
+            /// Arrange
             var solutionFolderName = "SomeFolderName";
             DTEMock dte = new DTEMock();
             this.serviceProvider.RegisterService(typeof(DTE), dte);
@@ -181,17 +204,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             Project project1 = this.testSubject.GetSolutionFolderProject(solutionFolderName, true);
 
-            // Verify
-            Assert.IsNotNull(project1, "Could not find the solution items project");
-            Assert.AreEqual(solutionFolderName, project1.Name, "Unexpected project name");
-            Assert.AreEqual(1, this.solutionMock.Projects.Count(), "Unexpected project count");
-            Assert.AreSame(this.solutionMock.Projects.Single(), project1, "Unexpected project");
+            // Assert
+            project1.Should().NotBeNull("Could not find the solution items project");
+            project1.Name.Should().Be(solutionFolderName, "Unexpected project name");
+            this.solutionMock.Projects.Should().HaveCount(1, "Unexpected project count");
+            project1.Should().BeSameAs(this.solutionMock.Projects.Single(), "Unexpected project");
         }
 
-        [TestMethod]
+        [Fact]
         public void GetSolutionFolderProject_WhenFolderDoesntExistButDontForceCreate_ExpectsANullProject()
         {
-            /// Setup
+            /// Arrange
             var solutionFolderName = "SomeFolderName";
             DTEMock dte = new DTEMock();
             this.serviceProvider.RegisterService(typeof(DTE), dte);
@@ -200,14 +223,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             Project project1 = this.testSubject.GetSolutionFolderProject(solutionFolderName, false);
 
-            // Verify
-            Assert.IsNull(project1, "Could not find the solution items project");
+            // Assert
+            project1.Should().BeNull("Could not find the solution items project");
         }
 
-        [TestMethod]
+        [Fact]
         public void GetSolutionFolderProject_WhenCalledMultipleTimes_ReturnsSameProject()
         {
-            // Setup
+            // Arrange
             var solutionFolderName = "SomeFolderName";
             DTEMock dte = new DTEMock();
             this.serviceProvider.RegisterService(typeof(DTE), dte);
@@ -218,11 +241,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act, ask again (exists already)
             Project project2 = this.testSubject.GetSolutionFolderProject(solutionFolderName, false);
 
-            // Verify
-            Assert.AreSame(project1, project2, "Should be the same project as in the first time");
+            // Assert
+            project2.Should().BeSameAs(project1, "Should be the same project as in the first time");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_GetFilteredSolutionProjects()
         {
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
@@ -243,24 +266,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             var actual = this.testSubject.GetFilteredSolutionProjects().ToArray();
 
-            // Verify
-            CollectionAssert.AreEqual(new[] { vbProject }, actual,
+            // Assert
+            actual.Should().Equal(new[] { vbProject },
                 "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
         }
 
-        [TestMethod]
-        public void ProjectSystemHelper_AddFileToProject_ArgChecks()
+        [Fact]
+        public void AddFileToProject_WithNullProject_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(null, "file"));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(new ProjectMock("project"), null));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(new ProjectMock("project"), ""));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(new ProjectMock("project"), "\t\n"));
+            // Arrange + Act
+            Action act = () => this.testSubject.AddFileToProject(null, "file");
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("project");
         }
 
-        [TestMethod]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void AddFileToProject_WithNullOrEmptyOrWhiteSpaceFullFilePath_ThrowsArgumentNullException(string value)
+        {
+            // Arrange + Act
+            Action act = () => this.testSubject.AddFileToProject(new ProjectMock("project"), value);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("fullFilePath");
+        }
+
+        [Fact]
         public void ProjectSystemHelper_AddFileToProject()
         {
-            // Setup
+            // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
             string fileToAdd = @"x:\myFile.txt";
 
@@ -268,70 +305,72 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             this.testSubject.AddFileToProject(project, fileToAdd);
 
-            // Verify
-            Assert.IsTrue(project.Files.ContainsKey(fileToAdd));
+            // Assert
+            project.Files.ContainsKey(fileToAdd).Should().BeTrue();
 
             // Case 2: file already in project
             // Act
             this.testSubject.AddFileToProject(project, fileToAdd);
 
-            // Verify
-            Assert.IsTrue(project.Files.ContainsKey(fileToAdd));
+            // Assert
+            project.Files.ContainsKey(fileToAdd).Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void RemoveFileFromProject_WhenFileExists_ExpectsFileToBeRemoved()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
             string file = @"x:\myFile.txt";
             this.testSubject.AddFileToProject(project, file);
-            Assert.IsTrue(project.Files.ContainsKey(file));
+            project.Files.ContainsKey(file).Should().BeTrue();
 
             // Act
             this.testSubject.RemoveFileFromProject(project, file);
 
             // Assert
-            Assert.IsFalse(project.Files.ContainsKey(file), "file should no longer be in the project");
+            project.Files.ContainsKey(file)
+                .Should().BeFalse("file should no longer be in the project");
         }
 
-        [TestMethod]
+        [Fact]
         public void RemoveFileFromProject_WhenFileDoesntExist_ExpectsNothingToChange()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
             string file = @"x:\myFile.txt";
             this.testSubject.AddFileToProject(project, file);
-            Assert.IsTrue(project.Files.ContainsKey(file));
+            project.Files.ContainsKey(file).Should().BeTrue();
             var oldCount = project.Files.Count;
 
             // Act
             this.testSubject.RemoveFileFromProject(project, "foo");
 
             // Assert
-            Assert.IsTrue(project.Files.ContainsKey(file), "file should still be in the project");
-            Assert.AreEqual(oldCount, project.Files.Count, "file count should not have changed");
+            project.Files.ContainsKey(file).Should().BeTrue("file should still be in the project");
+            project.Files.Should().HaveCount(oldCount, "file count should not have changed");
         }
 
-        [TestMethod]
+        [Fact]
         public void RemoveFileFromProject_WhenFileExistsAndProjectIsNotSolutionFolder_ExpectsFileToBeRemovedAndProjectNotRemoved()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
             string file = @"x:\myFile.txt";
             this.testSubject.AddFileToProject(project, file);
-            Assert.IsTrue(project.Files.ContainsKey(file));
+            project.Files.ContainsKey(file).Should().BeTrue();
 
             // Act
             this.testSubject.RemoveFileFromProject(project, file);
 
             // Assert
-            Assert.IsFalse(project.Files.ContainsKey(file), "file should no longer be in project");
-            Assert.AreEqual(0, project.Files.Count, "project should have no files");
-            Assert.IsTrue(this.solutionMock.Projects.Contains(project), "project should still be in solution");
+            project.Files.ContainsKey(file)
+                .Should().BeFalse("file should no longer be in project");
+            project.Files.Should().BeEmpty("project should have no files");
+            this.solutionMock.Projects.Contains(project).Should().BeTrue("project should still be in solution");
         }
 
-        [TestMethod]
+        [Fact]
         public void RemoveFileFromProject_WhenFileExistsAndProjectIsSolutionFolder_ExpectsFileToBeRemovedAndProjectRemoved()
         {
             // Arrange
@@ -341,20 +380,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project = this.testSubject.GetSolutionFolderProject("foo", true);
             string file = @"x:\myFile.txt";
             this.testSubject.AddFileToProject(project, file);
-            Assert.IsTrue(this.testSubject.IsFileInProject(project, file));
+            this.testSubject.IsFileInProject(project, file).Should().BeTrue();
 
             // Act
             this.testSubject.RemoveFileFromProject(project, file);
 
             // Assert
-            Assert.AreEqual(0, project.ProjectItems.Count, "project should have no files");
-            Assert.IsFalse(this.solutionMock.Projects.Contains(project), "project should no longer be in solution");
+            project.ProjectItems.Should().BeEmpty("project should have no files");
+            this.solutionMock.Projects.Contains(project)
+                .Should().BeFalse("project should no longer be in solution");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_GetSelectedProjects_ReturnsActiveProjects()
         {
-            // Setup
+            // Arrange
             var dte = new DTEMock();
             this.serviceProvider.RegisterService(typeof(DTE), dte);
 
@@ -367,35 +407,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             Project[] actualProjects = testSubject.GetSelectedProjects().ToArray();
 
-            // Verify
-            CollectionAssert.AreEquivalent(expectedProjects, actualProjects, "Unexpected projects");
+            // Assert
+            actualProjects.Should().Equal(expectedProjects, "Unexpected projects");
         }
 
-        [TestMethod]
-        public void ProjectSystemHelper_GetProjectProperty_ArgChecks()
+        [Fact]
+        public void GetProjectProperty_WithNullProject_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectProperty(null, "prop"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectProperty(new ProjectMock("a.proj"), null));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectProperty(new ProjectMock("a.proj"), string.Empty));
+            // Arrange + Act
+            Action act = () => testSubject.GetProjectProperty(null, "prop");
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void GetProjectProperty_WithNullOrEmptyOrWhiteSpacePropertyName_ThrowsArgumentNullException(string value)
+        {
+            // Arrange + Act
+            Action act = () => testSubject.GetProjectProperty(new ProjectMock("a.proj"), value);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void ProjectSystemHelper_GetProjectProperty_PropertyDoesNotExist_ReturnsNull()
         {
-            // Setup
+            // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
 
             // Act
             var actualValue = testSubject.GetProjectProperty(project, "myprop");
 
-            // Verify
-            Assert.IsNull(actualValue, "Expected no property value to be returned");
+            // Assert
+            actualValue.Should().BeNull("Expected no property value to be returned");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_GetProjectProperty_PropertyExists_ReturnsValue()
         {
-            // Setup
+            // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
 
             project.SetBuildProperty("myprop", "myval");
@@ -403,34 +458,51 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             var actualValue = testSubject.GetProjectProperty(project, "myprop");
 
-            // Verify
-            Assert.AreEqual("myval", actualValue, "Unexpected property value");
-        }
-        [TestMethod]
-        public void ProjectSystemHelper_SetProjectProperty_ArgChecks()
-        {
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetProjectProperty(null, "prop", "val"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetProjectProperty(new ProjectMock("a.proj"), null, "val"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetProjectProperty(new ProjectMock("a.proj"), string.Empty, "val"));
+            // Assert
+            actualValue.Should().Be("myval", "Unexpected property value");
         }
 
-        [TestMethod]
+        [Fact]
+        public void SetProjectProperty_WithNullProject_ThrowsArgumentNullException()
+        {
+            // Arrange + Act
+            Action act = () => testSubject.SetProjectProperty(null, "prop", "val");
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void SetProjectProperty_WithNullOrEmptyOrWhiteSpacePropertyName_ThrowsArgumentNullException(string value)
+        {
+            // Arrange + Act
+            Action act = () => testSubject.SetProjectProperty(new ProjectMock("a.proj"), value, "val");
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void ProjectSystemHelper_SetProjectProperty_PropertyDoesNotExist_AddsPropertyWithValue()
         {
-            // Setup
+            // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
 
             // Act
             testSubject.SetProjectProperty(project, "myprop", "myval");
 
-            // Verify
-            Assert.AreEqual("myval", project.GetBuildProperty("myprop"), "Unexpected property value");
+            // Assert
+            project.GetBuildProperty("myprop")
+                .Should().Be("myval", "Unexpected property value");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_SetProjectProperty_PropertyExists_OverwritesValue()
         {
-            // Setup
+            // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
 
             project.SetBuildProperty("myprop", "oldval");
@@ -438,21 +510,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.SetProjectProperty(project, "myprop", "newval");
 
-            // Verify
-            Assert.AreEqual("newval", project.GetBuildProperty("myprop"), "Unexpected property value");
-        }
-        [TestMethod]
-        public void ProjectSystemHelper_ClearProjectProperty_ArgChecks()
-        {
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.ClearProjectProperty(null, "prop"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), null));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), string.Empty));
+            // Assert
+            project.GetBuildProperty("myprop")
+                .Should().Be("newval", "Unexpected property value");
         }
 
-        [TestMethod]
+        [Fact]
+        public void ProjectSystemHelper_ClearProjectProperty_ArgChecks()
+        {
+            // Arrange + Act
+            Action act = () => testSubject.ClearProjectProperty(null, "prop");
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData("")]
+        public void ProjectSystemHelper_ClearProjectProperty_ArgChecks(string value)
+        {
+            // Arrange + Act
+            Action act = () => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), value);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void ProjectSystemHelper_ClearProjectProperty_PropertyExists_ClearsProperty()
         {
-            // Setup
+            // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
 
             project.SetBuildProperty("myprop", "val");
@@ -460,35 +547,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.ClearProjectProperty(project, "myprop");
 
-            // Verify
-            Assert.IsNull(project.GetBuildProperty("myprop"), "Expected property value to be cleared");
+            // Assert
+            project.GetBuildProperty("myprop")
+                .Should().BeNull("Expected property value to be cleared");
         }
 
 
-        [TestMethod]
-        public void ProjectSystemHelper_GetAggregateProjectKinds_ArgChecks()
+        [Fact]
+        public void GetAggregateProjectKinds_WithNullVsHierarchy_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.GetAggregateProjectKinds(null).FirstOrDefault());
+            // Arrange + Act
+            Action act = () => this.testSubject.GetAggregateProjectKinds(null).FirstOrDefault();
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_GetAggregateProjectKinds_NoGuids_ReturnsEmpty()
         {
-            // Setup
+            // Arrange
             var project = new ProjectMock("my.project");
             project.SetAggregateProjectTypeString(string.Empty);
 
             // Act
             Guid[] actualGuids = this.testSubject.GetAggregateProjectKinds(project).ToArray();
 
-            // Verify
-            Assert.IsFalse(actualGuids.Any(), "Expected no GUIDs returned");
+            // Assert
+            actualGuids.Should().BeEmpty("Expected no GUIDs returned");
         }
 
-        [TestMethod]
+        [Fact]
         public void ProjectSystemHelper_GetAggregateProjectKinds_HasGoodAndBadGuids_ReturnsSuccessfullyParsedGuidsOnly()
         {
-            // Setup
+            // Arrange
             string guidString = ";;;F602148F607646F88F7772CC9C49BC3F;;__BAD__;;__BADGUID__;0BA323B301614B1C80D74607B7EB7F5A;;;__FOO__;;;";
             Guid[] expectedGuids = new[]
             {
@@ -502,8 +594,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             Guid[] actualGuids = this.testSubject.GetAggregateProjectKinds(project).ToArray();
 
-            // Verify
-            CollectionAssert.AreEquivalent(expectedGuids, actualGuids, "Unexpected project kind GUIDs returned");
+            // Assert
+            actualGuids.Should().Equal(expectedGuids, "Unexpected project kind GUIDs returned");
         }
 
         #endregion
@@ -560,8 +652,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             int IVsShell.LoadPackageString(ref Guid guidPackage, uint resid, out string pbstrOut)
             {
-                Assert.AreEqual(VSConstants.CLSID.VsEnvironmentPackage_guid, guidPackage, "Unexpected package");
-                Assert.AreEqual(ProjectSystemHelper.SolutionItemResourceId, resid, "Unexpected resource id");
+                guidPackage.Should().Be(VSConstants.CLSID.VsEnvironmentPackage_guid, "Unexpected package");
+                resid.Should().Be(ProjectSystemHelper.SolutionItemResourceId, "Unexpected resource id");
                 pbstrOut = this.LoadPackageStringResult;
                 return VSConstants.S_OK;
             }

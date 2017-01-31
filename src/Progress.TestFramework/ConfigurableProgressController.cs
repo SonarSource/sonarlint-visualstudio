@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -148,16 +148,13 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         public void AssertProgressChangeEvents(List<Tuple<string, double>> expectedOrderedProgressEvents)
         {
-            Assert.AreEqual(expectedOrderedProgressEvents.Count, this.progressChanges.Count, "Unexpected number of execution change events");
-            for (int i = 0; i < expectedOrderedProgressEvents.Count; i++)
-            {
-                Assert.AreEqual(expectedOrderedProgressEvents[i], this.progressChanges[i], "Unexpected change event");
-            }
+            progressChanges.Should().HaveSameCount(expectedOrderedProgressEvents);
+            progressChanges.Should().Equal(expectedOrderedProgressEvents);
         }
 
         public void AssertNoProgressChangeEvents()
         {
-            Assert.AreEqual(0, this.progressChanges.Count, "Not expecting any change events");
+            progressChanges.Should().BeEmpty();
         }
         #endregion
 

@@ -16,29 +16,42 @@
  */
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ProfileConflicts
 {
-    [TestClass]
     public class RuleConflictInfoTests
     {
-        [TestMethod]
-        public void RuleConflictInfo_Ctor_ArgChecks()
+        [Fact]
+        public void Ctor_WithNullRulesMap_ThrowsArgumentNullException()
         {
-            // Setup
-            IEnumerable<RuleReference> ruleRefs = null;
-            IDictionary<RuleReference, RuleAction> rulesMap = null;
+            // Arrange
+            IDictionary<RuleReference, RuleAction> rulesMapNull = null;
+            IEnumerable<RuleReference> ruleRefs = new RuleReference[0];
 
-            IEnumerable<RuleReference> ruleRefsNull = new RuleReference[0];
-            IDictionary<RuleReference, RuleAction> rulesMapNull = new Dictionary<RuleReference, RuleAction>();
+            // Act
+            Action act = () => new RuleConflictInfo(ruleRefs, rulesMapNull);
 
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => new RuleConflictInfo(ruleRefsNull, rulesMap));
-            Exceptions.Expect<ArgumentNullException>(() => new RuleConflictInfo(ruleRefs, rulesMapNull));
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void Ctor_WithNullRuleRefs_ThrowsArgumentNullException()
+        {
+            // Arrange
+            IEnumerable<RuleReference> ruleRefsNull = null;
+            IDictionary<RuleReference, RuleAction> rulesMap = new Dictionary<RuleReference, RuleAction>();
+
+            // Act
+            Action act = () => new RuleConflictInfo(ruleRefsNull, rulesMap);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
     }
 }

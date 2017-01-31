@@ -16,8 +16,8 @@
  */
 
 using EnvDTE;
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
@@ -26,10 +26,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
+using Xunit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
+
     public class ErrorListInfoBarController_QualityProfileBackgroundProcessorTests
     {
         private ConfigurableServiceProvider serviceProvider;
@@ -38,8 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableSolutionBindingSerializer bindingSerializer;
 
-        [TestInitialize]
-        public void TestInit()
+        public ErrorListInfoBarController_QualityProfileBackgroundProcessorTests()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
@@ -56,45 +56,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
-        [TestMethod]
-        public void QualityProfileBackgroundProcessor_ArgChecks()
+        [Fact]
+        public void QualityProfileBackgroundProcessorCtor_WithNullHost_ThrowsArgumentNullException()
         {
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() =>
-                new ErrorListInfoBarController.QualityProfileBackgroundProcessor(null));
+            // Arrange + Act
+            Action act = () => new ErrorListInfoBarController.QualityProfileBackgroundProcessor(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_LifeCycle()
         {
-            // Setup
+            // Arrange
             var testSubject = this.GetTestSubject();
 
-            // Verify
-            Assert.IsNotNull(testSubject.TokenSource);
-            Assert.AreNotEqual(CancellationToken.None, testSubject.TokenSource.Token);
-
-            // Act
+            testSubject.TokenSource.Should().NotBeNull();
+            testSubject.TokenSource.Token.Should().NotBe(CancellationToken.None);
             testSubject.Dispose();
 
-            // Verify
-            Exceptions.Expect<ObjectDisposedException>(() => testSubject.TokenSource.Cancel());
+            // Act
+            Action act = () => testSubject.TokenSource.Cancel();
+
+            // Assert
+            act.ShouldThrow<ObjectDisposedException>();
         }
 
-        [TestMethod]
-        public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_ArgChecks()
+        [Fact]
+        public void QueueCheckIfUpdateIsRequired_WithNullUpdateAction_ThrowsArgumentNullException()
         {
-            // Setup
+            // Arrange
             var testSubject = this.GetTestSubject();
 
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.QueueCheckIfUpdateIsRequired(null));
+            // Act
+            Action act = () => testSubject.QueueCheckIfUpdateIsRequired(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("updateAction");
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NoFilteredProjects()
         {
-            // Setup
+            // Arrange
             var testSubject = this.GetTestSubject();
             this.projectSystem.Projects = new Project[] { new ProjectMock("project.proj") };
             this.projectSystem.FilteredProjects = null;
@@ -102,28 +107,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
 
-            // Verify
+            // Assert
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NoSolutionBinding()
         {
-            // Setup
+            // Arrange
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects();
 
             // Act
             testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
 
-            // Verify
+            // Assert
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NoProfiles_RequiresUpdate()
         {
-            // Setup
+            // Arrange
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(Language.CSharp, Language.CSharp);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject();
@@ -132,19 +137,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.QueueCheckIfUpdateIsRequired((customMessage) =>
             {
-                Assert.AreEqual(Strings.SonarLintInfoBarOldBindingFile, customMessage);
+                Strings.SonarLintInfoBarOldBindingFile.Should().Be(customMessage);
                 called++;
             });
 
-            // Verify
-            Assert.AreEqual(1, called, "Expected the update action to be called");
+            // Assert
+            called.Should().Be(1, "Expected the update action to be called");
             this.outputWindowPane.AssertOutputStrings(Strings.SonarLintProfileCheckNoProfiles);
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_BackgroundTask_DifferentTimestamp_RequiresUpdate()
         {
-            // Setup
+            // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(Language.CSharp, Language.CSharp);
@@ -167,16 +172,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 qpKey,
                 Language.CSharp);
 
-            // Act + Verify
+            // Act + Assert
             VerifyBackgroundExecution(true, testSubject,
                 Strings.SonarLintProfileCheck,
                 Strings.SonarLintProfileCheckProfileUpdated);
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_BackgroundTask_NoTimestampDifferentProfile_RequiresUpdate()
         {
-            // Setup
+            // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(Language.CSharp, Language.CSharp);
@@ -193,16 +198,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding, null, qpKey, Language.CSharp);
 
-            // Act + Verify
+            // Act + Assert
             VerifyBackgroundExecution(true, testSubject,
                 Strings.SonarLintProfileCheck,
                 Strings.SonarLintProfileCheckDifferentProfile);
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_BackgroundTask_SameTimestampDifferentProfile_RequiresUpdate()
         {
-            // Setup
+            // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(Language.CSharp, Language.CSharp);
@@ -220,16 +225,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding, sameTimestamp, qpKey, Language.CSharp);
 
-            // Act + Verify
+            // Act + Assert
             VerifyBackgroundExecution(true, testSubject,
                 Strings.SonarLintProfileCheck,
                 Strings.SonarLintProfileCheckDifferentProfile);
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_BackgroundTask_SolutionRequiresMoreProfiles_RequiresUpdate()
         {
-            // Setup
+            // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(Language.CSharp, Language.VBNET);
@@ -247,16 +252,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding, null, qpKey, Language.CSharp, Language.VBNET);
 
-            // Act + Verify
+            // Act + Assert
             VerifyBackgroundExecution(true, testSubject,
                 Strings.SonarLintProfileCheck,
                 Strings.SonarLintProfileCheckSolutionRequiresMoreProfiles);
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_BackgroundTask_HasNotNeededProfile_DoesNotRequireUpdate()
         {
-            // Setup
+            // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(Language.CSharp, Language.CSharp);
@@ -280,16 +285,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding, sameDate, qpKey, Language.CSharp);
 
-            // Act + Verify
+            // Act + Assert
             VerifyBackgroundExecution(false, testSubject,
                 Strings.SonarLintProfileCheck,
                 Strings.SonarLintProfileCheckQualityProfileIsUpToDate);
         }
 
-        [TestMethod]
+        [Fact]
         public void QualityProfileBackgroundProcessor_BackgroundTask_ServiceErrors_DoesNotRequireUpdate()
         {
-            // Setup
+            // Arrange
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(Language.VBNET, Language.VBNET);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
@@ -305,7 +310,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.ConfigureSonarQubeServiceWrapperWithServiceError();
 
-            // Act + Verify
+            // Act + Assert
             VerifyBackgroundExecution(false, testSubject,
                 Strings.SonarLintProfileCheck,
                 Strings.SonarLintProfileCheckFailed);
@@ -320,28 +325,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             int called = 0;
             testSubject.QueueCheckIfUpdateIsRequired((customMessage) =>
             {
-                Assert.IsNull(customMessage, "Not expecting any message customizations");
+                customMessage.Should().BeNull("Not expecting any message customizations");
                 called++;
             });
 
-            // Verify
-            Assert.AreEqual(0, called, "Not expected to be immediate");
-            Assert.IsNotNull(testSubject.BackgroundTask, "Expected to start processing in the background");
+            // Assert
+            called.Should().Be(0, "Not expected to be immediate");
+            testSubject.BackgroundTask.Should().NotBeNull("Expected to start processing in the background");
 
             // Run the background task
-            Assert.IsTrue(testSubject.BackgroundTask.Wait(TimeSpan.FromSeconds(2)), "Timeout waiting for the background task");
-            Assert.AreEqual(0, called, "The UI thread (this one) should be blocked");
+            testSubject.BackgroundTask.Wait(TimeSpan.FromSeconds(2)).Should().BeTrue("Timeout waiting for the background task");
+            called.Should().Be(0, "The UI thread (this one) should be blocked");
 
             // Run the UI async action
             DispatcherHelper.DispatchFrame(DispatcherPriority.Normal); // Allow the BeginInvoke to run
 
             if (updateRequired)
             {
-                Assert.AreEqual(1, called, "Expected to call the update action");
+                called.Should().Be(1, "Expected to call the update action");
             }
             else
             {
-                Assert.AreEqual(0, called, "Not expected to call the update action");
+                called.Should().Be(0, "Not expected to call the update action");
             }
 
             this.outputWindowPane.AssertOutputStrings(expectedOutput);
@@ -381,18 +386,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void AssertIfCalled(string customMessage)
         {
-            Assert.Fail("Not expected to be called");
+            true.Should().BeFalse("Not expected to be called");
         }
 
 
         private void SetFilteredProjects(params Language[] languages)
         {
-           this.projectSystem.FilteredProjects = languages.Select((language, i) =>
-           {
-               var project = new ProjectMock($"validProject{i}.csproj");
-               project.SetProjectKind(language.ProjectType);
-               return project;
-           });
+            this.projectSystem.FilteredProjects = languages.Select((language, i) =>
+            {
+                var project = new ProjectMock($"validProject{i}.csproj");
+                project.SetProjectKind(language.ProjectType);
+                return project;
+            });
         }
 
         #endregion

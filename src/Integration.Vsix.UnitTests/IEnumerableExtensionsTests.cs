@@ -15,81 +15,95 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
     public class IEnumerableExtensionsTests
     {
-        [TestMethod]
-        public void IEnumerableExtensions_AllEqual_NullArgChecks()
+        [Fact]
+        public void AllEqual_WithNullEnumerable_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => IEnumerableExtensions.AllEqual(null, EqualityComparer<object>.Default));
-            Exceptions.Expect<ArgumentNullException>(() => IEnumerableExtensions.AllEqual(new object[0], null));
+            // Arrange + Act
+            Action act = () => IEnumerableExtensions.AllEqual(null, EqualityComparer<object>.Default);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
+        public void AllEqual_WithNullComparer_ThrowsArgumentNullException()
+        {
+            // Arrange + Act
+            Action act = () => IEnumerableExtensions.AllEqual(new object[0], null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void IEnumerableExtensions_AllEqual_Empty_IsTrue()
         {
-            // Act + Verify
-            Assert.IsTrue(IEnumerableExtensions.AllEqual(new int[0]), "Expected empty enumerable to be AllEqual");
+            // Act + Assert
+            IEnumerableExtensions.AllEqual(new int[0]).Should().BeTrue("Expected empty enumerable to be AllEqual");
         }
 
-        [TestMethod]
+        [Fact]
         public void IEnumerableExtensions_AllEqual_DefaultComparator_ValueTypes()
         {
             // Test case 1: same values
-            // Act + Verify
+            // Act + Assert
             int[] sameValues = new[] { 1, 1, 1, 1, 1, 1, 1, 1 };
-            Assert.IsTrue(IEnumerableExtensions.AllEqual(sameValues), "Expected same values to be AllEqual");
+            IEnumerableExtensions.AllEqual(sameValues).Should().BeTrue("Expected same values to be AllEqual");
 
             // Test case 2: mixed values
-            // Act + Verify
+            // Act + Assert
             int[] mixedValues = new[] { 1, 1, 1, 42, 1, 1, 1 };
-            Assert.IsFalse(IEnumerableExtensions.AllEqual(mixedValues), "Expected mixed values NOT to be AllEqual");
+            IEnumerableExtensions.AllEqual(mixedValues).Should().BeTrue("Expected mixed values NOT to be AllEqual");
         }
 
-        [TestMethod]
+        [Fact]
         public void IEnumerableExtensions_AllEqual_DefaultComparator_ReferenceTypes()
         {
-            // Setup
+            // Arrange
             var objA = new object();
             var objB = new object();
 
             // Test case 1: same instances
-            // Act + Verify
+            // Act + Assert
             object[] sameInstances = new[] { objA, objA, objA, objA, objA };
-            Assert.IsTrue(IEnumerableExtensions.AllEqual(sameInstances), "Expected same instances to be AllEqual");
+            IEnumerableExtensions.AllEqual(sameInstances).Should().BeTrue("Expected same instances to be AllEqual");
 
             // Test case 2: mixed instances
-            // Act + Verify
+            // Act + Assert
             object[] mixedInstances = new[] { objA, objB, objB, objA, objB };
-            Assert.IsFalse(IEnumerableExtensions.AllEqual(mixedInstances), "Expected mixed instances NOT to be AllEqual");
+            IEnumerableExtensions.AllEqual(mixedInstances).Should().BeTrue("Expected mixed instances NOT to be AllEqual");
         }
 
-        [TestMethod]
+        [Fact]
         public void IEnumerableExtensions_AllEqual_CustomComparator()
         {
-            // Setup
+            // Arrange
             var str1a = "mIxEdCaSeStRiNg";
             var str1b = "MiXeDcAsEsTrInG";
             var str2 = "another-string";
 
             // Test case 1: comparator equal
-            // Act + Verify
-            Assert.IsTrue(IEnumerableExtensions.AllEqual(new[] { str1a, str1b }, StringComparer.OrdinalIgnoreCase), "Expected to be AllEqual");
+            // Act + Assert
+            IEnumerableExtensions.AllEqual(new[] { str1a, str1b }, StringComparer.OrdinalIgnoreCase).Should().BeTrue("Expected to be AllEqual");
 
             // Test case 2: comparator not equal
-            // Act + Verify
-            Assert.IsFalse(IEnumerableExtensions.AllEqual(new[] { str1a, str1b }, StringComparer.Ordinal), "Expected to NOT be AllEqual");
+            // Act + Assert
+            IEnumerableExtensions.AllEqual(new[] { str1a, str1b }, StringComparer.Ordinal).Should().BeFalse("Expected to NOT be AllEqual");
 
             // Test case 3: values different
-            // Act + Verify
-            Assert.IsFalse(IEnumerableExtensions.AllEqual(new[] { str1a, str2 }, StringComparer.OrdinalIgnoreCase), "Expected to NOT be AllEqual");
+            // Act + Assert
+            IEnumerableExtensions.AllEqual(new[] { str1a, str2 }, StringComparer.OrdinalIgnoreCase).Should().BeFalse("Expected to NOT be AllEqual");
         }
     }
 }

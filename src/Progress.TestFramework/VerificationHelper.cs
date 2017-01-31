@@ -16,7 +16,9 @@
  */
 
 using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -40,20 +42,20 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             bool expectedIndeterminate = (attributes & StepAttributes.Indeterminate) != 0 ? true : false;
 
             CheckState(testSubject, StepExecutionState.NotStarted);
-            Assert.AreEqual(displayText, testSubject.DisplayText, "Unexpected display text");
-            Assert.AreEqual(expectedCancellable, testSubject.Cancellable, "Cancellable: Unexpected post initialization value");
-            Assert.AreEqual(expectedIndeterminate, testSubject.Indeterminate, "Indeterminate: Unexpected post initialization value");
-            Assert.AreEqual(expectedExecution, testSubject.Execution, "Execution: Unexpected post initialization value");
-            Assert.AreEqual(expectedHidden, testSubject.Hidden, "Hidden: Unexpected post initialization value");
-            Assert.AreEqual(expectedImpactingProgress, testSubject.ImpactsProgress, "ImpactingProgress: Unexpected post initialization value");
+            testSubject.DisplayText.Should().Be(displayText);
+            testSubject.Cancellable.Should().Be(expectedCancellable, "Cancellable: Unexpected post initialization value");
+            testSubject.Indeterminate.Should().Be(expectedIndeterminate, "Indeterminate: Unexpected post initialization value");
+            testSubject.Execution.Should().Be(expectedExecution, "Execution: Unexpected post initialization value");
+            testSubject.Hidden.Should().Be(expectedHidden, "Hidden: Unexpected post initialization value");
+            testSubject.ImpactsProgress.Should().Be(expectedImpactingProgress, "ImpactingProgress: Unexpected post initialization value");
 
             if (expectedIndeterminate)
             {
-                Assert.IsTrue(ProgressControllerHelper.IsIndeterminate(testSubject.Progress), "Progess: Should be Indeterminate");
+                ProgressControllerHelper.IsIndeterminate(testSubject.Progress).Should().BeTrue("Progess: Should be Indeterminate");
             }
             else
             {
-                Assert.AreEqual(0, testSubject.Progress, "Progress: Unexpected post initialization value");
+                testSubject.Progress.Should().Be(0, "Progress: Unexpected post initialization value");
             }
         }
 
@@ -64,7 +66,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         /// <param name="expectedState">The expected state of the step</param>
         public static void CheckState(IProgressStep testSubject, StepExecutionState expectedState)
         {
-            Assert.AreEqual(expectedState, testSubject.ExecutionState, "Unexpected state");
+            testSubject.ExecutionState.Should().Be(expectedState, "Unexpected state");
         }
     }
 }

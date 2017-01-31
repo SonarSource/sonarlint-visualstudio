@@ -48,11 +48,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
         internal /*for testing purposes*/ ConnectionController(IHost host, IConnectionInformationProvider connectionProvider, IConnectionWorkflowExecutor workflowExecutor)
             : base(host)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-
             this.host = host;
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;

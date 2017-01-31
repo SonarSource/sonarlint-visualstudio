@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Service
                 throw new ArgumentNullException(nameof(connectionInformation));
             }
 
-            serverProjects = this.SafeUseHttpClient<ProjectInformation[]>(connectionInformation,
+            serverProjects = this.SafeUseHttpClient(connectionInformation,
                 client => this.DownloadProjects(client, token));
 
             return serverProjects != null;
@@ -108,8 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Service
                 throw new ArgumentNullException(nameof(connectionInformation));
             }
 
-            properties = this.SafeUseHttpClient<ServerProperty[]>(connectionInformation,
-                client => GetServerProperties(client, token));
+            properties = this.SafeUseHttpClient(connectionInformation, client => GetServerProperties(client, token));
 
             return properties != null;
         }
@@ -131,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Service
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 
-            export = this.SafeUseHttpClient<RoslynExportProfile>(connectionInformation,
+            export = this.SafeUseHttpClient(connectionInformation,
                 client => DownloadQualityProfileExport(client, profile, language, token));
 
             return export != null;
@@ -160,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Service
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 
-            profile = this.SafeUseHttpClient<QualityProfile>(serverConnection,
+            profile = this.SafeUseHttpClient(serverConnection,
                 async client =>
                 {
                     QualityProfile qp = await DownloadQualityProfile(client, project, language, token);
@@ -188,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.Service
                 throw new ArgumentNullException(nameof(connectionInformation));
             }
 
-            plugins = this.SafeUseHttpClient<ServerPlugin[]>(connectionInformation,
+            plugins = this.SafeUseHttpClient(connectionInformation,
                 client => DownloadPluginInformation(client, token));
 
             return plugins != null;

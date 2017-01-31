@@ -16,18 +16,19 @@
  */
 
 using SonarLint.VisualStudio.Integration.Persistence;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+ using Xunit;
 using System;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    [TestClass]
+    
     public class BoundSonarQubeProjectTests
     {
-        [TestMethod]
+        [Fact]
         public void BoundSonarQubeProject_Serialization()
         {
-            // Setup
+            // Arrange
             var serverUri = new Uri("https://finding-nemo.org");
             var projectKey = "MyProject Key";
             var testSubject = new BoundSonarQubeProject(serverUri, projectKey, new BasicAuthCredentials("used", "pwd".ToSecureString()));
@@ -36,11 +37,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string data = JsonHelper.Serialize(testSubject);
             BoundSonarQubeProject deserialized = JsonHelper.Deserialize<BoundSonarQubeProject>(data);
 
-            // Verify
-            Assert.AreNotSame(testSubject, deserialized);
-            Assert.AreEqual(testSubject.ProjectKey, deserialized.ProjectKey);
-            Assert.AreEqual(testSubject.ServerUri, deserialized.ServerUri);
-            Assert.IsNull(deserialized.Credentials);
+            // Assert
+            deserialized.Should().NotBe(testSubject);
+            deserialized.ProjectKey.Should().Be(testSubject.ProjectKey);
+            deserialized.ServerUri.Should().Be(testSubject.ServerUri);
+            deserialized.Credentials.Should().BeNull();
         }
     }
 }

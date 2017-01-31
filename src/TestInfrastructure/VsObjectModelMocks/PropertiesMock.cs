@@ -16,7 +16,9 @@
  */
 
 using EnvDTE;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
+using Xunit;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -86,10 +88,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test helpers
         public PropertyMock RegisterKnownProperty(string name)
         {
-            if (this.properties.Any(p => p.Name == name))
-            {
-                Assert.Inconclusive($"Already has property: {name}");
-            }
+            var error = this.properties.Any(p => p.Name == name);
+            error.Should().BeFalse($"Already has property: {name}");
 
             PropertyMock prop = new PropertyMock(name, this);
             this.properties.Add(prop);
@@ -99,8 +99,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void AssertPropertyExists(string name, object value)
         {
             PropertyMock property = this.properties.SingleOrDefault(p => p.Name == name);
-            Assert.IsNotNull(property, $"Could not find property {name}");
-            Assert.AreEqual(value, property.Value, $"Unexpected property {name} value");
+            property.Should().NotBeNull($"Could not find property {name}");
+            value.Should().Be(property.Value, $"Unexpected property {name} value");
         }
         #endregion
     }

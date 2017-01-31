@@ -16,49 +16,54 @@
  */
 
 using SonarLint.VisualStudio.Integration.WPF;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+ using Xunit;
 using System;
 using System.Globalization;
 using System.Windows;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
-    [TestClass]
+
     public class BoolToVisibilityConverterTests
     {
-        [TestMethod]
+        [Fact]
         public void BoolToVisibilityConverter_DefaultValues()
         {
             var converter = new BoolToVisibilityConverter();
 
-            Assert.AreEqual(converter.TrueValue, Visibility.Visible);
-            Assert.AreEqual(converter.FalseValue, Visibility.Collapsed);
+            converter.TrueValue.Should().Be( Visibility.Visible);
+            converter.FalseValue.Should().Be( Visibility.Collapsed);
         }
 
-        [TestMethod]
-        public void BoolToVisibilityConverter_Convert_NonBoolInput_ThrowsArgumentException()
+        [Fact]
+        public void Convert_NonBoolInput_ThrowsArgumentException()
         {
+            // Arrange
             var converter = new BoolToVisibilityConverter();
 
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                converter.Convert("NotABoolean", typeof(Visibility), null, CultureInfo.InvariantCulture);
-            });
+            // Act
+            Action act = () => converter.Convert("NotABoolean", typeof(Visibility), null, CultureInfo.InvariantCulture);
+
+            // Assert
+            act.ShouldThrow<ArgumentException>();
         }
 
-        [TestMethod]
-        public void BoolToVisibilityConverter_Convert_NonVisibilityOutput_ThrowsArgumentException()
+        [Fact]
+        public void Convert_NonVisibilityOutput_ThrowsArgumentException()
         {
+            // Arrange
             var converter = new BoolToVisibilityConverter();
             var notVisibilityType = typeof(string);
 
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                converter.Convert(true, notVisibilityType, null, CultureInfo.InvariantCulture);
-            });
+            // Act
+            Action act = () => converter.Convert(true, notVisibilityType, null, CultureInfo.InvariantCulture);
+
+            // Assert
+            act.ShouldThrow<ArgumentException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void BoolToVisibilityConverter_Convert_True_ReturnsTrueValue()
         {
             var converter = new BoolToVisibilityConverter
@@ -68,11 +73,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             };
             object result = converter.Convert(true, typeof(Visibility), null, CultureInfo.InvariantCulture);
 
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Hidden);
+            result.Should().BeAssignableTo<Visibility>();
+            result.Should().Be( Visibility.Hidden);
         }
 
-        [TestMethod]
+        [Fact]
         public void BoolToVisibilityConverter_Convert_False_ReturnsFalseValue()
         {
             var converter = new BoolToVisibilityConverter
@@ -82,8 +87,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             };
             object result = converter.Convert(false, typeof(Visibility), null, CultureInfo.InvariantCulture);
 
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Visible);
+            result.Should().BeAssignableTo<Visibility>();
+            result.Should().Be( Visibility.Visible);
         }
     }
 }

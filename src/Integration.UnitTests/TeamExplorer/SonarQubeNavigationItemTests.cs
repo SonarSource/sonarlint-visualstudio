@@ -15,20 +15,21 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+ using Xunit;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
-    [TestClass]
+
     public class SonarQubeNavigationItemTests
     {
-        [TestMethod]
+        [Fact]
         public void SonarQubeNavigationItem_Execute()
         {
-            // Setup
+            // Arrange
             var serviceProvider = new ConfigurableServiceProvider();
             var controller = new ConfigurableTeamExplorerController();
 
@@ -37,32 +38,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             testSubject.Execute();
 
-            // Verify
+            // Assert
             controller.AssertExpectedNumCallsShowConnectionsPage(1);
         }
 
-        [TestMethod]
+        [Fact]
         public void SonarQubeNavigationItem_Ctor()
         {
-            // Setup
+            // Arrange
             var serviceProvider = new ConfigurableServiceProvider();
             var controller = new ConfigurableTeamExplorerController();
 
             // Act
             var testSubject = new SonarQubeNavigationItem(controller);
 
-            // Verify
-            Assert.IsTrue(testSubject.IsVisible, "Nav item should be visible");
-            Assert.IsTrue(testSubject.IsEnabled, "Nav item should be enabled");
-            Assert.AreEqual(Strings.TeamExplorerPageTitle, testSubject.Text, "Unexpected nav text");
+            // Assert
+            testSubject.IsVisible.Should().BeTrue( "Nav item should be visible");
+            testSubject.IsEnabled.Should().BeTrue( "Nav item should be enabled");
+            Strings.TeamExplorerPageTitle.Should().Be( testSubject.Text, "Unexpected nav text");
 
-            Assert.IsNotNull(testSubject.Icon, "Icon should not be null");
+            testSubject.Icon.Should().NotBeNull( "Icon should not be null");
         }
 
-        [TestMethod]
-        public void SonarQubeNavigationItem_Ctor_NullArgChecks()
+        [Fact]
+        public void Ctor_WithNullTeamExplorerController_ThrowsArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SonarQubeNavigationItem(null));
+            // Arrange + Act
+            Action act = () => new SonarQubeNavigationItem(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
     }
 }

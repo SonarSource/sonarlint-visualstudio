@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Progress;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         void IProgressStepRunnerWrapper.ChangeHost(IProgressControlHost host)
         {
-            Assert.IsNotNull(host);
+            host.Should().NotBeNull();
 
             this.currentHost = host;
         }
@@ -42,17 +42,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test helper
         public void AssertAbortAllCalled(int expectedNumberOfTimes)
         {
-            Assert.AreEqual(expectedNumberOfTimes, this.abortAllNumberOfCalls, "AbortAll was not called expected number of times");
+            expectedNumberOfTimes.Should().Be( this.abortAllNumberOfCalls, "AbortAll was not called expected number of times");
         }
 
         public void AssertCurrentHost(IProgressControlHost expectedHost)
         {
-            Assert.AreSame(expectedHost, this.currentHost);
+            this.currentHost.Should().Be(expectedHost);
         }
 
         public void AssertNoCurrentHost()
         {
-            Assert.IsNull(this.currentHost);
+            this.currentHost.Should().BeNull();
         }
         #endregion
     }

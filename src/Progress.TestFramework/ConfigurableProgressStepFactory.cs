@@ -15,10 +15,9 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -60,17 +59,6 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             get;
             set;
-        }
-        #endregion
-
-        #region Verification methods
-        public void AssertStepOperationsCreatedForDefinitions(IProgressStepDefinition[] definitions, IProgressStepOperation[] stepOperations)
-        {
-            Assert.AreEqual(definitions.Length, stepOperations.Length, "The number of definitions doesn't match the number of step operations");
-            for (int i = 0; i < definitions.Length; i++)
-            {
-                Assert.AreSame(stepOperations[i], this.CreatedOperations[definitions[i]], "Mismatch at definition {0}", i);
-            }
         }
         #endregion
 

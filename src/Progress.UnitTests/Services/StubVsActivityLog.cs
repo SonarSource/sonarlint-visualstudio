@@ -17,7 +17,6 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
@@ -27,44 +26,24 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// </summary>
     public class StubVsActivityLog : IVsActivityLog
     {
-        private bool loggedEntry = false;
+        public bool HasLoggedEntry { get; private set; } = false;
 
         #region Configuration
-        public Action<uint, string, string> LogEntryAction
-        {
-            get;
-            set;
-        }
+        public Action<uint, string, string> LogEntryAction { get; set; }
         #endregion
 
         #region Test helpers
         public void Reset()
         {
-            this.loggedEntry = false;
+            this.HasLoggedEntry = false;
         }
-        #endregion
-
-        #region Verification
-        public void AssertEntryLogged()
-        {
-            Assert.IsTrue(this.loggedEntry, "No requests to log entry to activity log");
-        }
-
-        public void AssertEntryNotLogged()
-        {
-            Assert.IsFalse(this.loggedEntry, "Not expected any requests to log to activity log");
-        }
-
         #endregion
 
         #region IVsActivityLog
         int IVsActivityLog.LogEntry(uint actType, string pszSource, string pszDescription)
         {
-            this.loggedEntry = true;
-            if (this.LogEntryAction != null)
-            {
-                this.LogEntryAction(actType, pszSource, pszDescription);
-            }
+            HasLoggedEntry = true;
+            LogEntryAction?.Invoke(actType, pszSource, pszDescription);
 
             return VSConstants.S_OK;
         }

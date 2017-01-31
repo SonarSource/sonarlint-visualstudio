@@ -15,25 +15,28 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ProfileConflicts
 {
-    [TestClass]
     public class FixedRuleSetInfoTests
     {
-        [TestMethod]
+        [Fact]
         public void FixedRuleSetInfo_Ctor_ArgChecks()
         {
-            // Setup
+            // Arrange
             IEnumerable<string> includesReset = new string[0];
             IEnumerable<string> rulesDeleted = new string[0];
 
-            // Act + Verify
-            Exceptions.Expect<ArgumentNullException>(() => new FixedRuleSetInfo(null, includesReset, rulesDeleted));
+            // Act
+            Action act = () => new FixedRuleSetInfo(null, includesReset, rulesDeleted);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>();
         }
     }
 }
