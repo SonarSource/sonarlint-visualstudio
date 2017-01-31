@@ -1,0 +1,84 @@
+#!/bin/groovy
+
+timestamps {
+  stage('Notify BURGR (build start)')  {
+    build job: 'update-burgr-stage', parameters: [string(name: 'SHA1', value: "${env.GIT_SHA1}"), string(name: 'PIPELINE', value: "${env.BUILD_NUMBER}"), string(name: 'CI_BUILD_NAME', value: "${env.CI_BUILD_NAME}"), string(name: 'NAME', value: 'build'), string(name: 'SYSTEM', value: 'cix'), string(name: 'TYPE', value: 'build'), string(name: 'GITHUB_BRANCH', value: "${env.GITHUB_BRANCH}"), string(name: 'URL', value: "${env.BUILD_URL}"), string(name: 'NUMBER', value: "${env.BUILD_NUMBER}"), string(name: 'STATUS', value: 'started'), string(name: 'GITHUB_REPOSITORY_NAME', value: "${env.GITHUB_REPO}"), string(name: 'METADATA', value: '"{}"'), string(name: 'START_DATE', value: ''), string(name: 'FINISH_DATE', value: 'now')], propagate: false
+  }
+  def status = 'failed'
+  try {
+    parallel vs2015: {
+      node('vs2015') {
+        stage('Build on vs2015') {
+          checkoutSCM()
+          wrap([$class: 'MaskPasswordsBuildWrapper']) {
+            build()
+          }
+          stash('vs2015')
+        }  
+      }
+    }, vs2017: {
+      node('vs2017') {
+        stage('Build on vs2017') {
+          checkoutSCM()
+          wrap([$class: 'MaskPasswordsBuildWrapper']) {
+            build()
+          }
+          stash('vs2017')
+        }
+      }
+    }
+    def triggerQA = 'multiVM'.equals(env.GITHUB_BRANCH) || 'refs/heads/master'.equals(env.GITHUB_BRANCH)
+    if (triggerQA) {
+      stage('Deploy') {
+        node('master') {
+          checkoutSCM()
+          unstash 'vsix-vs2015'
+          unstash 'vsix-vs2017'
+          def currentDir = pwd()
+          def versionFile = new File("${currentDir}/build/Version.props")
+          def project = new XmlSlurper().parseText(versionFile.getText())
+          def version = project.PropertyGroup.MainVersion.text()
+          project = null //Avoid java.io.NotSerializableException
+          version = version + ".${env.BUILD_NUMBER}"
+          dir('build/poms') {
+            withMaven() {
+              sh "mvn -B versions:set -DgenerateBackupPoms=false -DnewVersion=$version"
+              withEnv(["ARTIFACTORY_DEPLOY_REPO=sonarsource-public-qa", "ARTIFACTORY_DEPLOY_USERNAME=public-qa-deployer", "ARTIFACTORY_DEPLOY_PASSWORD=LSfCL6vPuU6ZqvfJ", "PROJECT_VERSION=${version}", "BUILD_ID=${env.BUILD_NUMBER}"]) {
+                sh "mvn deploy -Pdeploy-sonarsource -B -e -V"
+              }
+            }
+          }
+        }
+      }
+    }
+    status = 'passed'
+  } finally {
+    stage('Notify BURGR (build end)') {
+      build job: 'update-burgr-stage', parameters: [string(name: 'SHA1', value: "${env.GIT_SHA1}"), string(name: 'PIPELINE', value: "${env.BUILD_NUMBER}"), string(name: 'CI_BUILD_NAME', value: "${env.CI_BUILD_NAME}"), string(name: 'NAME', value: 'build'), string(name: 'SYSTEM', value: 'cix'), string(name: 'TYPE', value: 'build'), string(name: 'GITHUB_BRANCH', value: "${env.GITHUB_BRANCH}"), string(name: 'URL', value: "${env.BUILD_URL}"), string(name: 'NUMBER', value: "${env.BUILD_NUMBER}"), string(name: 'STATUS', value: status), string(name: 'GITHUB_REPOSITORY_NAME', value: "${env.GITHUB_REPO}"), string(name: 'METADATA', value: '"{}"'), string(name: 'START_DATE', value: ''), string(name: 'FINISH_DATE', value: 'now')], propagate: false
+    }
+  }
+  if (triggerQA) {
+    build job: 'sonarlint-visualstudio-qa', parameters: [string(name: 'GIT_SHA1', value: "$GIT_SHA1"), string(name: 'CI_BUILD_NAME', value: "$CI_BUILD_NAME"), string(name: 'CI_BUILD_NUMBER', value: "$BUILD_NUMBER"), string(name: 'GITHUB_BRANCH', value: "$GITHUB_BRANCH"), string(name: 'GIT_URL', value: "$GIT_URL"), string(name: 'IS_PULLREQUEST', value: "$IS_PULLREQUEST"), string(name: 'PULL_REQUEST', value: "$PULL_REQUEST"), string(name: 'GITHUB_REPO', value: "$GITHUB_REPO"), string(name: 'GITHUB_REPOSITORY_OWNER_NAME', value: "$GITHUB_REPOSITORY_OWNER_NAME")],  wait: false
+  }
+}
+
+def checkoutSCM() {
+  checkout scm
+  //checkout([$class: 'GitSCM', branches: [[name: '$GIT_SHA1']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CleanBeforeCheckout']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '765cc011-6f03-4509-992e-62b49c3fccfd', url: '$GIT_URL']]])
+}
+
+def build() {
+  bat 'build.cmd'
+}
+
+def stash(String node) {
+  stash includes: 'binaries/*.vsix', name: "vsix-$node"
+}
+
+def withMaven(def body) {
+  def javaHome = tool name: 'Java 8', type: 'hudson.model.JDK'
+  def mvnHome = tool name: 'Maven 3.3.x', type: 'hudson.tasks.Maven$MavenInstallation'
+  withEnv(["JAVA_HOME=${javaHome}", "PATH+MAVEN=${mvnHome}/bin"]) {
+    body.call()
+  }
+}
