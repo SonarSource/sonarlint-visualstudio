@@ -10,10 +10,9 @@ function testExitCode(){
 if ($env:IS_PULLREQUEST -eq "true") { 
     write-host -f green "in a pull request"
 
-    & $env:NUGET_PATH restore .\src\SonarLint.VisualStudio.Integration.sln
+    & $env:NUGET_PATH restore .\src\SonarLint.VisualStudio.Integration.2017.sln
     testExitCode
-    & $env:MSBUILD_PATH .\src\SonarLint.VisualStudio.Integration.sln /t:rebuild /p:Configuration=Release /p:DeployExtension=false
-    testExitCode
+    Start-Process "build/vs2017.bat" -NoNewWindow -Wait
 
 } else {
     if (($env:GITHUB_BRANCH -eq "multiVM") -or ($env:GITHUB_BRANCH -eq "refs/heads/master")) {
@@ -32,7 +31,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         testExitCode
 
         #build
-        & $env:NUGET_PATH restore .\src\SonarLint.VisualStudio.Integration.sln
+        & $env:NUGET_PATH restore .\src\SonarLint.VisualStudio.Integration.2017.sln
         testExitCode
 
         #build with VS2017
