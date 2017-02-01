@@ -27,7 +27,7 @@ timestamps {
         }
       }
     }
-    def triggerQA = 'multiVM'.equals(env.GITHUB_BRANCH) || 'refs/heads/master'.equals(env.GITHUB_BRANCH)
+    def triggerQA = 'multiVM'.equals(env.GITHUB_BRANCH) || 'refs/heads/master'.equals(env.GITHUB_BRANCH) || 'true'.equals(env.IS_PULLREQUEST)
     if (triggerQA) {
       stage('Deploy') {
         node('master') {
