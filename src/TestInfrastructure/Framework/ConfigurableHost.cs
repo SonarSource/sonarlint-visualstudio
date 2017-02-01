@@ -15,14 +15,14 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Threading;
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using System;
-using System.Linq;
-using System.Windows.Threading;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             if (typeof(ILocalService).IsAssignableFrom(serviceType))
             {
-                Assert.IsTrue(VsSessionHost.SupportedLocalServices.Contains(serviceType), "The specified service type '{0}' will not be serviced in the real IHost.", serviceType.FullName);
+                VsSessionHost.SupportedLocalServices.Contains(serviceType).Should().BeTrue("The specified service type '{0}' will not be serviced in the real IHost.", serviceType.FullName);
             }
 
             return this.serviceProvider.GetService(serviceType);
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void SetActiveSection(ISectionController section)
         {
-            Assert.IsNotNull(section);
+            section.Should().NotBeNull();
 
             this.ActiveSection = section;
 
@@ -100,9 +100,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public ISet<Language> SupportedPluginLanguages { get; } = new HashSet<Language>();
 
-        #endregion
+        #endregion IHost
 
         #region Test helpers
+
         public void SimulateActiveSectionChanged()
         {
             this.ActiveSectionChanged?.Invoke(this, EventArgs.Empty);
@@ -113,6 +114,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get { return (ConfigurableStateManager)this.VisualStateManager; }
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

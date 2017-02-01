@@ -15,33 +15,23 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Progress;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableProgressControlHost : IProgressControlHost
     {
-        private ProgressControl progressControl = null;
+        internal ProgressControl ProgressControl { get; private set; } = null;
 
         #region IProgressControlHost
+
         void IProgressControlHost.Host(ProgressControl progressControl)
         {
-            Assert.IsNotNull(progressControl);
-            this.progressControl = progressControl;
-        }
-        #endregion
-
-        #region Test helpers
-        public void AssertHasProgressControl()
-        {
-            Assert.IsNotNull(this.progressControl, "ProgressControl was not set");
+            progressControl.Should().NotBeNull();
+            this.ProgressControl = progressControl;
         }
 
-        public void AssertHasNoProgressControl()
-        {
-            Assert.IsNull(this.progressControl, "ProgressControl was set");
-        }
-        #endregion
+        #endregion IProgressControlHost
     }
 }

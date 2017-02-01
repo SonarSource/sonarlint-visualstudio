@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -33,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Exceptions.Expect<ArgumentNullException>(() => new ProjectRuleSetConflict(null, info));
             Exceptions.Expect<ArgumentNullException>(() => new ProjectRuleSetConflict(conflict, null));
 
-            Assert.IsNotNull(new ProjectRuleSetConflict(conflict, info), "Not expecting this to fail, just to make the static analyzer happy");
+            new ProjectRuleSetConflict(conflict, info).Should().NotBeNull("Not expecting this to fail, just to make the static analyzer happy");
         }
     }
 }

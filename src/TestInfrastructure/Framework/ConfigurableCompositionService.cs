@@ -50,7 +50,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         public bool DoNothingOnSatisfyImportsOnce { get; set; }
-        #endregion
+
+        #endregion Helper methods
 
         #region ICompositionService interface methods
 
@@ -86,6 +87,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.alreadyComposed = true;
         }
 
-        #endregion
+        #endregion ICompositionService interface methods
     }
 }

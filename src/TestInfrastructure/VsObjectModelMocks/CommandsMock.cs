@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
 using System;
 using System.Collections;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Commands
+
         int Commands.Count
         {
             get
@@ -103,7 +104,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion Commands
 
         #region Test helpers
 
@@ -112,6 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

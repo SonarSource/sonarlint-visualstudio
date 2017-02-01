@@ -15,15 +15,15 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.IO;
+using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void BoundSolutionAnalyzer_ArgChecks()
         {
@@ -68,16 +69,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void BoundSolutionAnalyzer_HasNoRuleSetsInSonarQubeDirectory()
         {
-            // Setup
+            // Arrange
             string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, BoundSolutionAnalyzer.SonarQubeFilesFolder);
             DeleteBindingInformationFile(sonarQubeDirectory);
             using (var testSubject = new BoundSolutionAnalyzer(this.serviceProvider))
             {
-
                 // Act
                 this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
 
-                // Verify
+                // Assert
                 this.logger.AssertNoEventWasWritten();
             }
         }
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void BoundSolutionAnalyzer_HasRuleSetsInSonarQubeDirectory()
         {
-            // Setup
+            // Arrange
             string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, BoundSolutionAnalyzer.SonarQubeFilesFolder);
             GenerateBindingInformationFile(sonarQubeDirectory);
             BoundSolutionAnalyzer testSubject = null;
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 testSubject = new BoundSolutionAnalyzer(this.serviceProvider);
 
-                // Verify
+                // Assert
                 this.logger.AssertSingleEventWasWritten(TelemetryEvent.BoundSolutionDetected);
 
                 // Case 2: Context deactivated
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, false);
 
-                // Verify
+                // Assert
                 this.logger.AssertNoEventWasWritten();
 
                 // Case 3: Context activated
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
 
-                // Verify
+                // Assert
                 this.logger.AssertSingleEventWasWritten(TelemetryEvent.BoundSolutionDetected);
 
                 // Case 4: reactivate when disposed
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
 
-                // Verify
+                // Assert
                 this.logger.AssertNoEventWasWritten();
             }
             finally
@@ -137,9 +137,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 DeleteBindingInformationFile(sonarQubeDirectory);
             }
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private static void GenerateBindingInformationFile(string directory)
         {
             if (Directory.Exists(directory))
@@ -162,6 +164,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 filesToDelete.ForEach(File.Delete);
             }
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

@@ -15,13 +15,12 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -35,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IVsProjectSystemHelper
+
         Project IProjectSystemHelper.GetSolutionItemsProject(bool createOnNull)
         {
             return this.SolutionItemsProject;
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
             {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
             return projMock.GetBuildProperty(propertyName);
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
             {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
             projMock.SetBuildProperty(propertyName, value);
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
             {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
             projMock.ClearBuildProperty(propertyName);
@@ -150,13 +150,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ProjectMock dteProject = hierarchy as ProjectMock;
             if (dteProject == null)
             {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)} type");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)} type");
             }
 
             return dteProject.GetAggregateProjectTypeGuids();
         }
 
-        #endregion
+        #endregion IVsProjectSystemHelper
 
         #region Test helpers
 
@@ -174,6 +174,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool SimulateIVsHierarchyFailure { get; set; }
 
-        #endregion
+        #endregion Test helpers
     }
 }

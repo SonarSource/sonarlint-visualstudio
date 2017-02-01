@@ -15,11 +15,12 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Observation;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
 {
@@ -41,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
         [TestMethod]
         public void ProgressStepRunner_OnFinished()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressEvents progressEvents = new ConfigurableProgressEvents();
             ProgressControllerResult? result = null;
             Action<ProgressControllerResult> action = (r) => result = r;
@@ -54,8 +55,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
                 // Act
                 progressEvents.SimulateFinished(progressResult);
 
-                // Verify
-                Assert.AreEqual(progressResult, result, "Action was not called");
+                // Assert
+                result.Should().Be(progressResult, "Action was not called");
                 progressEvents.AssertNoFinishedEventHandlers();
             }
         }
@@ -63,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
         [TestMethod]
         public void ProgressStepRunner_Observe()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressController controller = new ConfigurableProgressController();
             ConfigurableProgressControlHost host = new ConfigurableProgressControlHost();
             controller.AddSteps(new ConfigurableProgressStep());// Needs at least one
@@ -71,17 +72,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
             // Act
             using (ProgressObserver observer1 = ProgressStepRunner.Observe(controller, host))
             {
-                // Verify
-                Assert.IsNotNull(observer1, "Unexpected return value");
-                Assert.AreSame(observer1, ProgressStepRunner.ObservedControllers[controller]);
-                host.AssertHasProgressControl();
+                // Assert
+                observer1.Should().NotBeNull("Unexpected return value");
+                ProgressStepRunner.ObservedControllers[controller].Should().Be(observer1);
+                host.ProgressControl.Should().NotBeNull();
             }
         }
 
         [TestMethod]
         public void ProgressStepRunner_ChangeHost()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressController controller = new ConfigurableProgressController();
             controller.AddSteps(new ConfigurableProgressStep());// Needs at least one
             ConfigurableProgressControlHost host1 = new ConfigurableProgressControlHost();
@@ -91,20 +92,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
             ConfigurableProgressControlHost host2 = new ConfigurableProgressControlHost();
             ProgressStepRunner.ChangeHost(host2);
 
-            // Verify
+            // Assert
             using (var newObserver = ProgressStepRunner.ObservedControllers[controller])
             {
-                Assert.IsNotNull(newObserver);
-                Assert.AreNotSame(newObserver, observer);
-                Assert.AreSame(observer.State, newObserver.State, "State was not transferred");
-                host2.AssertHasProgressControl();
+                newObserver.Should().NotBeNull();
+                observer.Should().NotBe(newObserver);
+                newObserver.State.Should().Be(observer.State, "State was not transferred");
+                host2.ProgressControl.Should().NotBeNull();
             }
         }
 
         [TestMethod]
         public void ProgressStepRunner_AbortAll()
         {
-            // Setup
+            // Arrange
             ConfigurableProgressController controller1 = new ConfigurableProgressController();
             controller1.AddSteps(new ConfigurableProgressStep());// Needs at least one
             ConfigurableProgressControlHost host1 = new ConfigurableProgressControlHost();
@@ -117,9 +118,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
             // Act
             ProgressStepRunner.AbortAll();
 
-            // Verify
-            controller1.AssertNumberOfAbortRequests(1);
-            controller2.AssertNumberOfAbortRequests(1);
+            // Assert
+            controller1.NumberOfAbortRequests.Should().Be(1);
+            controller2.NumberOfAbortRequests.Should().Be(1);
         }
     }
 }

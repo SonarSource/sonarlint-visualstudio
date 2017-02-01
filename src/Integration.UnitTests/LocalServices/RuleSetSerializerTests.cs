@@ -15,11 +15,12 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -32,6 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private RuleSetSerializer testSubject;
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -52,9 +54,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             ((IDisposable)this.temporaryFiles).Dispose();
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region Tests
+
         [TestMethod]
         public void RuleSetSerializer_LoadRuleSet_ArgChecks()
         {
@@ -66,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void RuleSetSerializer_LoadRuleSet()
         {
-            // Setup
+            // Arrange
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSet(this.TestContext.TestRunDirectory, this.TestContext.TestName + ".ruleset");
             this.temporaryFiles.AddFile(ruleSet.FilePath, false);
             ruleSet.WriteToFile(ruleSet.FilePath);
@@ -75,23 +79,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             RuleSet loaded = this.testSubject.LoadRuleSet(ruleSet.FilePath);
 
-            // Verify
-            Assert.IsNotNull(loaded, "Expected to load a rule set file");
+            // Assert
+            loaded.Should().NotBeNull("Expected to load a rule set file");
             RuleSetAssert.AreEqual(ruleSet, loaded, "Loaded unexpected rule set");
         }
 
         [TestMethod]
         public void RuleSetSerializer_LoadRuleSet_Failures()
         {
-            // Setup
+            // Arrange
             string existingRuleSet = Path.Combine(this.TestContext.TestRunDirectory, this.TestContext.TestName + ".ruleset");
             this.temporaryFiles.AddFile(existingRuleSet, false);
 
             // Case 1: file not exists
             RuleSet missing = testSubject.LoadRuleSet(existingRuleSet);
 
-            // Verify
-            Assert.IsNull(missing, "Expected no ruleset to be loaded when the file is missing");
+            // Assert
+            missing.Should().BeNull("Expected no ruleset to be loaded when the file is missing");
 
             // Case 2: file exists, badly formed rule set (invalid xml)
             File.WriteAllText(existingRuleSet, "<xml>");
@@ -100,8 +104,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             RuleSet loadedBad = testSubject.LoadRuleSet(existingRuleSet);
 
-            // Verify
-            Assert.IsNull(loadedBad, "Expected no ruleset to be loaded when its invalid XML");
+            // Assert
+            loadedBad.Should().BeNull("Expected no ruleset to be loaded when its invalid XML");
 
             // Case 3: file exists, invalid rule set format (no RuleSet element)
             string xml =
@@ -114,8 +118,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             loadedBad = testSubject.LoadRuleSet(existingRuleSet);
 
-            // Verify
-            Assert.IsNull(loadedBad, "Expected no ruleset to be loaded when the file in not a valid rule set");
+            // Assert
+            loadedBad.Should().BeNull("Expected no ruleset to be loaded when the file in not a valid rule set");
 
             // Case 4: file exists, invalid rule set data (Default is not a valid action for rule)
             xml =
@@ -131,8 +135,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             loadedBad = testSubject.LoadRuleSet(existingRuleSet);
 
-            // Verify
-            Assert.IsNull(loadedBad, "Expected no ruleset to be loaded when the file in not a valid rule set");
+            // Assert
+            loadedBad.Should().BeNull("Expected no ruleset to be loaded when the file in not a valid rule set");
         }
 
         [TestMethod]
@@ -149,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void RuleSetSerializer_WriteRuleSetFile()
         {
-            // Setup
+            // Arrange
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSet(this.TestContext.TestRunDirectory, this.TestContext.TestName + ".ruleset");
             this.temporaryFiles.AddFile(ruleSet.FilePath, false);
             string expectedPath = Path.Combine(this.TestContext.TestRunDirectory, this.TestContext.TestName + "Other.ruleset");
@@ -157,12 +161,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             this.testSubject.WriteRuleSetFile(ruleSet, expectedPath);
 
-            // Verify
-            Assert.IsTrue(File.Exists(expectedPath), "File not exists where expected");
-            Assert.IsFalse(File.Exists(ruleSet.FilePath), "Expected to save only to the specified file path");
+            // Assert
+            File.Exists(expectedPath).Should().BeTrue("File not exists where expected");
+            File.Exists(ruleSet.FilePath).Should().BeFalse("Expected to save only to the specified file path");
             RuleSet loaded = RuleSet.LoadFromFile(expectedPath);
             RuleSetAssert.AreEqual(ruleSet, loaded, "Written unexpected rule set");
         }
-        #endregion
+
+        #endregion Tests
     }
 }

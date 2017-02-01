@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FluentAssertions;
+using Microsoft.VisualStudio.Settings;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,30 +31,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertCollectionExists(string collectionPath)
         {
-            Assert.IsTrue(this.CollectionExists(collectionPath), $"Collection '{collectionPath}' does not exist. Collections: {string.Join(", ", this.collections.Keys)}");
+            this.CollectionExists(collectionPath).Should().BeTrue($"Collection '{collectionPath}' does not exist. Collections: {string.Join(", ", this.collections.Keys)}");
         }
 
         public void AssertCollectionDoesNotExist(string collectionPath)
         {
-            Assert.IsFalse(this.CollectionExists(collectionPath), $"Unexpected collection '{collectionPath}'");
+            this.CollectionExists(collectionPath).Should().BeFalse($"Unexpected collection '{collectionPath}'");
         }
 
         public void AssertCollectionPropertyCount(string collectionPath, int numProperties)
         {
             this.AssertCollectionExists(collectionPath);
             ICollection<string> properties = this.collections[collectionPath].Keys;
-            Assert.AreEqual(numProperties, properties.Count, $"Unexpected number of properties in collection '{collectionPath}'. Properties: {string.Join(", ", properties)}");
+            properties.Should().HaveCount(numProperties, $"Unexpected number of properties in collection '{collectionPath}'. Properties: {string.Join(", ", properties)}");
         }
 
         public void AssertBoolean(string collectionPath, string key, bool value)
         {
             this.AssertCollectionExists(collectionPath);
             IDictionary<string, object> collection = this.collections[collectionPath];
-            Assert.IsTrue(collection.ContainsKey(key), $"Property '{key}' was missing from collection '{collectionPath}'. Properties: {string.Join(", ", collection.Keys)}");
-            Assert.AreEqual(value, collection[key], "Unexpected boolean property value");
+            collection.ContainsKey(key).Should().BeTrue($"Property '{key}' was missing from collection '{collectionPath}'. Properties: {string.Join(", ", collection.Keys)}");
+            collection[key].Should().Be(value, "Unexpected boolean property value");
         }
 
-        #endregion
+        #endregion Helpers
 
         #region WritableSettingsStore
 
@@ -215,6 +215,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-        #endregion
+        #endregion WritableSettingsStore
     }
 }

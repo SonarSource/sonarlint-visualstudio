@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -36,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [TestMethod]
         public void ManageConnectionsCommand_Invoke()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             var teController = new ConfigurableTeamExplorerController();
             var serviceProvider = CreateServiceProviderWithMefExports<ITeamExplorerController>(teController);
@@ -52,9 +53,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 testSubject.Invoke(command, null);
             }
 
-            // Verify
-            teController.AssertExpectedNumCallsShowConnectionsPage(0);
-
+            // Assert
+            teController.ShowConnectionsPageCallsCount.Should().Be(0);
 
             // Test case 2: was enabled
             command.Enabled = true;
@@ -62,19 +62,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.Invoke(command, null);
 
-            // Verify
-            teController.AssertExpectedNumCallsShowConnectionsPage(1);
+            // Assert
+            teController.ShowConnectionsPageCallsCount.Should().Be(1);
         }
-
 
         [TestMethod]
         public void ManageConnectionsCommand_QueryStatus()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             // Test case 1: no TE controller
-            // Setup
+            // Arrange
             IServiceProvider sp1 = CreateServiceProviderWithEmptyComponentModel();
             command.Enabled = false;
 
@@ -87,12 +86,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject1.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Enabled, "Expected the command to be disabled on QueryStatus when no TE controller");
-
+            // Assert
+            command.Enabled.Should().BeFalse("Expected the command to be disabled on QueryStatus when no TE controller");
 
             // Test case 2: has TE controller
-            // Setup
+            // Arrange
             var teController = new ConfigurableTeamExplorerController();
             var sp2 = CreateServiceProviderWithMefExports<ITeamExplorerController>(teController);
 
@@ -101,8 +99,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject2.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsTrue(command.Enabled, "Expected the command to be disabled on QueryStatus when does have TE controller");
+            // Assert
+            command.Enabled.Should().BeTrue("Expected the command to be disabled on QueryStatus when does have TE controller");
         }
 
         #region Helpers
@@ -128,6 +126,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             return serviceProvider;
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

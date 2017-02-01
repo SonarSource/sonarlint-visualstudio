@@ -19,5 +19,4 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("SonarLint.VisualStudio.Integration.Vsix.UnitTests")]
-
 [assembly: Guid("203f7669-02b6-4314-bd11-20e8d7c19fbc")]

@@ -15,14 +15,14 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Flavor;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using EnvDTE;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Flavor;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -73,6 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Project
+
         string Project.Name
         {
             get;
@@ -246,9 +247,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion Project
 
         #region IVsProject
+
         int IVsProject.IsDocumentInProject(string pszMkDocument, out int pfFound, VSDOCUMENTPRIORITY[] pdwPriority, out uint pitemid)
         {
             pfFound = 0;
@@ -297,7 +300,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsProject
 
         #region IVsBuildPropertyStorage
 
@@ -339,7 +343,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-        #endregion
+        #endregion IVsBuildPropertyStorage
 
         #region IVsAggregatableProjectCorrected
 
@@ -370,7 +374,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return VSConstants.S_OK;
         }
 
-        #endregion
+        #endregion IVsAggregatableProjectCorrected
 
         public uint AddOrGetFile(string filePath)
         {

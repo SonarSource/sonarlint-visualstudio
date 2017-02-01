@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -52,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void SolutionBindingInformationProvider_ArgCheck()
         {
@@ -61,26 +63,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionBindingInformationProvider_IsSolutionBound()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
 
             // Case 1: Not bound
             this.bindingSerializer.CurrentBinding = null;
 
-            // Act + Verify
-            Assert.IsFalse(testSubject.IsSolutionBound());
+            // Act + Assert
+            testSubject.IsSolutionBound().Should().BeFalse();
 
             // Case 2: Bound
             this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject();
 
-            // Act + Verify
-            Assert.IsTrue(testSubject.IsSolutionBound());
+            // Act + Assert
+            testSubject.IsSolutionBound().Should().BeTrue();
         }
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetBoundProjects_SolutionNotBound()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.bindingSerializer.CurrentBinding = null;
             IEnumerable<Project> projects;
@@ -88,14 +90,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetBoundProjects();
 
-            // Verify
+            // Assert
             AssertEmptyResult(projects);
         }
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetBoundProjects_SolutionBound_EmptyFilteredProjects()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.projectSystemHelper.FilteredProjects = new Project[0];
@@ -104,14 +106,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetBoundProjects();
 
-            // Verify
+            // Assert
             AssertEmptyResult(projects);
         }
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_SolutionRuleSetIsMissing()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidFilteredProjects();
@@ -121,14 +123,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetBoundProjects();
 
-            // Verify
+            // Assert
             AssertEmptyResult(projects);
         }
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_ProjectRuleSetIsMissing()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidFilteredProjects();
@@ -139,14 +141,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetBoundProjects();
 
-            // Verify
+            // Assert
             AssertEmptyResult(projects);
         }
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_ProjectRuleSetNotIncludingSolutionRuleSet()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidFilteredProjects();
@@ -158,14 +160,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetBoundProjects();
 
-            // Verify
+            // Assert
             AssertEmptyResult(projects);
         }
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_ProjectRuleSetIncludesSolutionRuleSet()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidFilteredProjects();
@@ -175,15 +177,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetBoundProjects();
 
-            // Verify
-            Assert.AreSame(boundProject, projects.SingleOrDefault(), "Unexpected bound project");
+            // Assert
+            projects.SingleOrDefault().Should().Be(boundProject, "Unexpected bound project");
             this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetBoundProjects_ValidSolution_ProjectRuleSetIncludesSolutionRuleSet_RuleSetAggregation()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidFilteredProjects();
@@ -195,16 +197,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetBoundProjects();
 
-            // Verify
-            Assert.AreSame(boundProject, projects.SingleOrDefault(), "Unexpected bound project");
+            // Assert
+            projects.SingleOrDefault().Should().Be(boundProject, "Unexpected bound project");
             this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
-
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetUnboundProjects_SolutionNotBound()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.bindingSerializer.CurrentBinding = null;
             IEnumerable<Project> projects;
@@ -212,14 +213,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetUnboundProjects();
 
-            // Verify
+            // Assert
             AssertEmptyResult(projects);
         }
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetUnboundProjects_HasBoundProjects()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidFilteredProjects();
@@ -230,14 +231,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetUnboundProjects();
 
-            // Verify
-            Assert.AreSame(unboundProject, projects.SingleOrDefault(), "Unexpected unbound project");
+            // Assert
+            projects.SingleOrDefault().Should().Be(unboundProject, "Unexpected unbound project");
         }
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetUnboundProjects_HasNoBoundProjects()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidFilteredProjects();
@@ -246,12 +247,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             projects = testSubject.GetUnboundProjects();
 
-            // Verify
+            // Assert
             CollectionAssert.AreEquivalent(this.projectSystemHelper.FilteredProjects.ToArray(), projects.ToArray(), "Unexpected unbound projects");
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private void SetValidSolutionBinding()
         {
             this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject { ProjectKey = "projectKey" };
@@ -341,14 +344,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void AssertEmptyResult(IEnumerable<Project> projects)
         {
-            Assert.IsNotNull(projects, "Null are not expected");
-            Assert.AreEqual(0, projects.Count(), "Not expecting any results. Actual: {0}", GetString(projects));
+            projects.Should().NotBeNull("Null are not expected");
+            projects.Should().BeEmpty("Not expecting any results. Actual: {0}", GetString(projects));
         }
 
         private static string GetString(IEnumerable<Project> projects)
         {
             return string.Join(", ", projects.Select(p => p.FullName));
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

@@ -16,8 +16,9 @@
  */
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
@@ -119,7 +120,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             VerifyIsInsecureSchemeCaseSensitivity(mixedcaseValidator);
         }
 
-
         [TestMethod]
         public void UriValidator_IsSupportedScheme_SupportedSchemes()
         {
@@ -128,10 +128,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             bool isInsecureUriSupported = this.validator.IsSupportedScheme(this.InsecureUri);
             bool isInsupportedUriSupported = this.validator.IsSupportedScheme(this.UnsupportedUri);
 
-            // Verify
-            Assert.IsTrue(isSecureUriSupported);
-            Assert.IsTrue(isInsecureUriSupported);
-            Assert.IsFalse(isInsupportedUriSupported);
+            // Assert
+            isSecureUriSupported.Should().BeTrue();
+            isInsecureUriSupported.Should().BeTrue();
+            isInsupportedUriSupported.Should().BeFalse();
         }
 
         [TestMethod]
@@ -141,9 +141,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             bool isSecureUriSecure = this.validator.IsInsecureScheme(this.SecureUri);
             bool isInsecureUriSecure = this.validator.IsInsecureScheme(this.InsecureUri);
 
-            // Verify
-            Assert.IsFalse(isSecureUriSecure);
-            Assert.IsTrue(isInsecureUriSecure);
+            // Assert
+            isSecureUriSecure.Should().BeFalse();
+            isInsecureUriSecure.Should().BeTrue();
         }
 
         [TestMethod]
@@ -152,14 +152,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Test
             bool isSecure = this.validator.IsInsecureScheme(this.UnsupportedUri);
 
-            // Verify
-            Assert.IsFalse(isSecure);
+            // Assert
+            isSecure.Should().BeFalse();
         }
 
         [TestMethod]
         public void UriValidator_Ctor_InsecureSchemesIsSubsetOfSupportedSchemes()
         {
-            // Setup
+            // Arrange
             var supportedSchemes = new HashSet<string>(new[] { "a", "b" });
             var insecureSchemesSubset = new HashSet<string>(new[] { "b" });
             var insecureSchemesNotSubset = new HashSet<string>(new[] { "b", "c" });
@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         [TestMethod]
         public void UriValidator_IsValidUri_String_NullOrEmptyUri_IsInvalid()
         {
-            // Setup
+            // Arrange
             string nullUriString = null;
             string emptyUriString = string.Empty;
 
@@ -185,15 +185,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             bool nullResult = this.validator.IsValidUri(nullUriString);
             bool emptyResult = this.validator.IsValidUri(emptyUriString);
 
-            // Verify
-            Assert.IsFalse(nullResult);
-            Assert.IsFalse(emptyResult);
+            // Assert
+            nullResult.Should().BeFalse();
+            emptyResult.Should().BeFalse();
         }
 
         [TestMethod]
         public void UriValidator_IsValidUri_Uri_NullUri_ThrowsException()
         {
-            // Setup
+            // Arrange
             Uri uri = null;
 
             // Test
@@ -203,16 +203,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         [TestMethod]
         public void UriValidator_IsValidUri_String_AbsoluteUrisOnly()
         {
-            // Setup
+            // Arrange
             string relativeUriString = "/Home/Index";
 
             // Test
             bool result = this.validator.IsValidUri(relativeUriString);
 
-            // Verify
-            Assert.IsFalse(result);
+            // Assert
+            result.Should().BeFalse();
         }
-
 
         [TestMethod]
         public void UriValidator_IsValidUri_IncompleteUri_IsInvalid()
@@ -221,9 +220,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             bool result = this.validator.IsValidUri(uriString);
 
-            Assert.IsFalse(result);
+            result.Should().BeFalse();
         }
-
 
         [TestMethod]
         public void UriValidator_IsValidUri_AmbiguousScheme_IsInvalid()
@@ -232,34 +230,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             bool result = this.validator.IsValidUri(uriString);
 
-            Assert.IsFalse(result);
+            result.Should().BeFalse();
         }
-
 
         [TestMethod]
         public void UriValidator_IsValidUri_UriWithPort_IsValid()
         {
-            // Setup
+            // Arrange
             string uriString = CreateUriString(this.secureScheme, "localhost:9001");
 
             // Test
             bool result = this.validator.IsValidUri(uriString);
 
-            // Verify
-            Assert.IsTrue(result);
+            // Assert
+            result.Should().BeTrue();
         }
 
         [TestMethod]
         public void UriValidator_IsValidUri_LongUriWithFragments_IsValid()
         {
-            // Setup
+            // Arrange
             string uriString = CreateUriString(this.secureScheme, "localhost:9001/this/is/a/longer/uri/that/should/be?valid=true");
 
             // Test
             bool result = this.validator.IsValidUri(uriString);
 
-            // Verify
-            Assert.IsTrue(result);
+            // Assert
+            result.Should().BeTrue();
         }
 
         #region Helpers
@@ -285,10 +282,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             bool uppercaseInsecure = validator.IsInsecureScheme(uppercaseUri);
             bool mixedcaseInsecure = validator.IsInsecureScheme(mixedcaseUri);
 
-            // Verify
-            Assert.IsTrue(lowercaseInsecure, "Lowercase scheme should be insecure");
-            Assert.IsTrue(uppercaseInsecure, "Uppercase scheme should be insecure");
-            Assert.IsTrue(mixedcaseInsecure, "Mixed-case scheme should be insecure");
+            // Assert
+            lowercaseInsecure.Should().BeTrue("Lowercase scheme should be insecure");
+            uppercaseInsecure.Should().BeTrue("Uppercase scheme should be insecure");
+            mixedcaseInsecure.Should().BeTrue("Mixed-case scheme should be insecure");
         }
 
         private void VerifyIsSupportedSchemeCaseSensitivity(UriValidator validator)
@@ -302,13 +299,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             bool uppercaseSupported = validator.IsSupportedScheme(uppercaseUri);
             bool mixedcaseSupported = validator.IsSupportedScheme(mixedcaseUri);
 
-            // Verify
-            Assert.IsTrue(lowercaseSupported, "Lowercase scheme should be supported");
-            Assert.IsTrue(uppercaseSupported, "Uppercase scheme should be supported");
-            Assert.IsTrue(mixedcaseSupported, "Mixed-case scheme should be supported");
+            // Assert
+            lowercaseSupported.Should().BeTrue("Lowercase scheme should be supported");
+            uppercaseSupported.Should().BeTrue("Uppercase scheme should be supported");
+            mixedcaseSupported.Should().BeTrue("Mixed-case scheme should be supported");
         }
 
-        #endregion
+        #endregion Helpers
     }
-
 }

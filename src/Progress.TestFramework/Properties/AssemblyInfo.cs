@@ -19,5 +19,4 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("SonarLint.VisualStudio.Progress.TestFramework")]
-
 [assembly: Guid("a9310220-7a62-4771-b01b-5c103d798f60")]

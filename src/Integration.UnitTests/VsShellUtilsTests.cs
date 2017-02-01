@@ -16,6 +16,7 @@
  */
 
 using EnvDTE;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,54 +30,54 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void VsShellUtils_ActivateSolutionExplorer()
         {
-            // Setup
+            // Arrange
             var serviceProvider = new ConfigurableServiceProvider();
             var dteMock = new DTEMock();
             serviceProvider.RegisterService(typeof(DTE), dteMock);
 
             // Sanity
-            Assert.IsFalse(dteMock.ToolWindows.SolutionExplorer.Window.Active);
+            dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse();
 
             // Act
             VsShellUtils.ActivateSolutionExplorer(serviceProvider);
 
-            // Verify
-            Assert.IsTrue(dteMock.ToolWindows.SolutionExplorer.Window.Active, "Expected to become Active");
+            // Assert
+            dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeTrue("Expected to become Active");
         }
 
         [TestMethod]
         public void VsShellUtils_SaveSolution_Silent()
         {
-            // Setup
+            // Arrange
             var serviceProvider = new ConfigurableServiceProvider();
             var solution = new SolutionMock();
             serviceProvider.RegisterService(typeof(SVsSolution), solution);
             solution.SaveSolutionElementAction = (options, hierarchy, docCookie) =>
             {
-                Assert.AreEqual(__VSSLNSAVEOPTIONS.SLNSAVEOPT_SaveIfDirty, (__VSSLNSAVEOPTIONS)options, "Unexpected save options");
-                Assert.IsNull(hierarchy, "Expecting the scope to be the whole solution");
-                Assert.AreEqual(0U, docCookie, "Expecting the scope to be the whole solution");
+                ((__VSSLNSAVEOPTIONS)options).Should().Be(__VSSLNSAVEOPTIONS.SLNSAVEOPT_SaveIfDirty, "Unexpected save options");
+                hierarchy.Should().BeNull("Expecting the scope to be the whole solution");
+                docCookie.Should().Be(0U, "Expecting the scope to be the whole solution");
 
                 return VSConstants.S_OK;
             };
 
-            // Act + Verify
-            Assert.IsTrue(VsShellUtils.SaveSolution(serviceProvider, silent: true));
+            // Act + Assert
+            VsShellUtils.SaveSolution(serviceProvider, silent: true).Should().BeTrue();
         }
 
         [TestMethod]
         public void VsShellUtils_SaveSolution_Prompt()
         {
-            // Setup
+            // Arrange
             var serviceProvider = new ConfigurableServiceProvider();
             var solution = new SolutionMock();
             serviceProvider.RegisterService(typeof(SVsSolution), solution);
             int hrResult = 0;
             solution.SaveSolutionElementAction = (options, hierarchy, docCookie) =>
             {
-                Assert.AreEqual(__VSSLNSAVEOPTIONS.SLNSAVEOPT_SaveIfDirty | __VSSLNSAVEOPTIONS.SLNSAVEOPT_PromptSave, (__VSSLNSAVEOPTIONS)options, "Unexpected save options");
-                Assert.IsNull(hierarchy, "Expecting the scope to be the whole solution");
-                Assert.AreEqual(0U, docCookie, "Expecting the scope to be the whole solution");
+                ((__VSSLNSAVEOPTIONS)options).Should().Be(__VSSLNSAVEOPTIONS.SLNSAVEOPT_SaveIfDirty | __VSSLNSAVEOPTIONS.SLNSAVEOPT_PromptSave, "Unexpected save options");
+                hierarchy.Should().BeNull("Expecting the scope to be the whole solution");
+                docCookie.Should().Be(0U, "Expecting the scope to be the whole solution");
 
                 return hrResult;
             };
@@ -84,26 +85,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Case 1: user selected 'Yes'
             hrResult = VSConstants.S_OK; //0
 
-            // Act + Verify
-            Assert.IsTrue(VsShellUtils.SaveSolution(serviceProvider, silent: false));
+            // Act + Assert
+            VsShellUtils.SaveSolution(serviceProvider, silent: false).Should().BeTrue();
 
             // Case 2: user selected 'No'
             hrResult = VSConstants.S_FALSE; //1
 
-            // Act + Verify
-            Assert.IsFalse(VsShellUtils.SaveSolution(serviceProvider, silent: false));
+            // Act + Assert
+            VsShellUtils.SaveSolution(serviceProvider, silent: false).Should().BeFalse();
 
             // Case 3: user selected 'Cancel'
             hrResult = VSConstants.E_ABORT;
 
-            // Act + Verify
-            Assert.IsFalse(VsShellUtils.SaveSolution(serviceProvider, silent: false));
+            // Act + Assert
+            VsShellUtils.SaveSolution(serviceProvider, silent: false).Should().BeFalse();
         }
 
         [TestMethod]
         public void VsShellUtils_GetOrCreateSonarLintOutputPane()
         {
-            // Setup
+            // Arrange
             var outputWindow = new ConfigurableVsOutputWindow();
 
             var serviceProvider = new ConfigurableServiceProvider();
@@ -112,18 +113,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             IVsOutputWindowPane pane = VsShellUtils.GetOrCreateSonarLintOutputPane(serviceProvider);
 
-            // Verify
+            // Assert
             outputWindow.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
-            Assert.IsNotNull(pane);
+            pane.Should().NotBeNull();
 
             var sonarLintPane = pane as ConfigurableVsOutputWindowPane;
             if (sonarLintPane == null)
             {
-                Assert.Inconclusive($"Expected returned pane to be of type {nameof(ConfigurableVsOutputWindowPane)}");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Expected returned pane to be of type {nameof(ConfigurableVsOutputWindowPane)}");
             }
 
-            Assert.IsTrue(sonarLintPane.IsActivated, "Expected pane to be activated");
-            Assert.AreEqual(Strings.SonarLintOutputPaneTitle, sonarLintPane.Name, "Unexpected pane name.");
+            sonarLintPane.IsActivated.Should().BeTrue("Expected pane to be activated");
+            sonarLintPane.Name.Should().Be(Strings.SonarLintOutputPaneTitle, "Unexpected pane name.");
         }
     }
 }

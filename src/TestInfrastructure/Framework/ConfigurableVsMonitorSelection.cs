@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private int allocatedSynks = 0;
 
         #region IVsMonitorSelection
+
         int IVsMonitorSelection.AdviseSelectionEvents(IVsSelectionEvents pSink, out uint pdwCookie)
         {
             pdwCookie = (uint)++allocatedSynks;
@@ -97,9 +98,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             return VSConstants.E_FAIL;
         }
-        #endregion
+
+        #endregion IVsMonitorSelection
 
         #region Test helpers
+
         public void RegisterKnownContext(Guid contextId)
         {
             uint unusedCookie;
@@ -111,8 +114,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             uint cookie;
 
             var monitorSelection = (IVsMonitorSelection)this;
-            Assert.IsTrue(ErrorHandler.Succeeded(monitorSelection.GetCmdUIContextCookie(ref contextId, out cookie)));
-            Assert.IsTrue(ErrorHandler.Succeeded(monitorSelection.SetCmdUIContext(cookie, activate ? 1 : 0)));
+            ErrorHandler.Succeeded(monitorSelection.GetCmdUIContextCookie(ref contextId, out cookie)).Should().BeTrue();
+            ErrorHandler.Succeeded(monitorSelection.SetCmdUIContext(cookie, activate ? 1 : 0)).Should().BeTrue();
         }
 
         public IEnumerable<Guid> UIContexts
@@ -122,6 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return this.cmdContexts.Keys;
             }
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

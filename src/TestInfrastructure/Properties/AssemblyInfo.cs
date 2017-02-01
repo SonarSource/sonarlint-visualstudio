@@ -19,5 +19,4 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("SonarLint.VisualStudio.Integration.TestInfrastructure")]
-
 [assembly: Guid("fbd8024a-9795-4e5b-938e-afe44fca240c")]

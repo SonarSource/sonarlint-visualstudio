@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -31,6 +32,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private ErrorNotificationManager testSubject;
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -46,9 +48,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.serviceProvider = null;
             this.testSubject = null;
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region Tests
+
         [TestMethod]
         [Description("Tests adding and removing notifiers")]
         public void ErrorNotificationMananger_EndToEnd()
@@ -61,7 +65,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Add notifier
             this.testSubject.AddNotifier(testNotifier);
             this.Notify();
-            testNotifier.AssertExcepections(1);
+            testNotifier.Exceptions.Should().HaveCount(1);
 
             // Cleanup
             this.testSubject.RemoveNotifier(testNotifier);
@@ -70,27 +74,30 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject.AddNotifier(testNotifier);
             testNotifier.Reset();
             this.Notify();
-            testNotifier.AssertExcepections(1);
+            testNotifier.Exceptions.Should().HaveCount(1);
 
             // Remove single instance
             this.testSubject.RemoveNotifier(testNotifier);
             testNotifier.Reset();
             this.Notify();
-            testNotifier.AssertExcepections(0);
+            testNotifier.Exceptions.Should().HaveCount(0);
 
             // Remove non existing instance
             this.testSubject.RemoveNotifier(testNotifier);
             testNotifier.Reset();
             this.Notify();
-            testNotifier.AssertExcepections(0);
+            testNotifier.Exceptions.Should().HaveCount(0);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private void Notify()
         {
             ((IProgressErrorNotifier)this.testSubject).Notify(new Exception(this.TestContext.TestName));
         }
-        #endregion
+
+        #endregion Helpers
     }
 }
