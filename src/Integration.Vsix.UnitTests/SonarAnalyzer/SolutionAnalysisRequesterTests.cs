@@ -15,16 +15,17 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.ComponentModel.Composition.Primitives;
+using System.Windows.Threading;
+using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using System;
-using System.ComponentModel.Composition.Primitives;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {

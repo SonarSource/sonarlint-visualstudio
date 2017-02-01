@@ -15,8 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {

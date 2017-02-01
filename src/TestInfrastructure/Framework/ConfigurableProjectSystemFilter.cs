@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using FluentAssertions;
 using DteProject = EnvDTE.Project;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.TestRegex = regex;
         }
 
-        #endregion
+        #endregion IProjectSystemFilter
 
         #region Test Helpers
 
@@ -60,6 +60,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.TestRegex.Options.Should().Be(options, "Unexpected test regex options");
         }
 
-        #endregion
+        #endregion Test Helpers
     }
 }

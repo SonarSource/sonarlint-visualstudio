@@ -44,7 +44,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject1.IsUrlPristine.Should().BeTrue("Server URL should be prestine on initial view model construction");
             validationError1.Should().BeNull("Validation error should be null on initial view model construction");
 
-
             // Test case 2a: setting raw server url makes it 'dirty' valid URL
             // Setup
             var testSubject2a = new ConnectionInfoDialogViewModel();
@@ -57,7 +56,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject2a.IsUrlPristine.Should().BeFalse("Server URL should no longer be prestine once set to a valid URL");
             validationError2a.Should().BeNull("Validation error should be null for valid URL");
 
-
             // Test case 2b: setting raw server url makes it 'dirty' invalid URL
             // Setup
             var testSubject2b = new ConnectionInfoDialogViewModel();
@@ -69,7 +67,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Verify
             testSubject2b.IsUrlPristine.Should().BeFalse("Server URL should no longer be prestine once set to an invalid URL");
             validationError2b.Should().NotBeNull("Validation error should not be null for invalid URL");
-
 
             // Test case 3: clearing a non-prestine view model should still be non-prestine
             // Setup
@@ -113,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             model.ShowSecurityWarning.Should().BeFalse("Security warning should not be visible");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helpers
 
@@ -123,6 +120,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             return errors?.FirstOrDefault();
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
+using System.Collections.Generic;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly List<IVsInfoBarTextSpan> spans = new List<IVsInfoBarTextSpan>();
 
         #region IVsInfoBarActionItemCollection
+
         int IVsInfoBarActionItemCollection.Count
         {
             get
@@ -35,14 +36,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-
         IVsInfoBarActionItem IVsInfoBarActionItemCollection.GetItem(int index)
         {
             return this.actions[index];
         }
-        #endregion
+
+        #endregion IVsInfoBarActionItemCollection
 
         #region IVsInfoBarTextSpanCollection
+
         int IVsInfoBarTextSpanCollection.Count
         {
             get
@@ -55,9 +57,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             return this.spans[index];
         }
-        #endregion
+
+        #endregion IVsInfoBarTextSpanCollection
 
         #region IVsInfoBar
+
         IVsInfoBarActionItemCollection IVsInfoBar.ActionItems
         {
             get
@@ -90,9 +94,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        #endregion
+        #endregion IVsInfoBar
 
         #region Test helpers
+
         public ImageMoniker Image
         {
             get;
@@ -104,6 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

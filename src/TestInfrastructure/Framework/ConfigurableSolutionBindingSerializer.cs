@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Persistence;
 using System;
+using FluentAssertions;
+using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private int writtenFiles;
 
         #region ISolutionBindingSerializer
+
         BoundSonarQubeProject ISolutionBindingSerializer.ReadSolutionBinding()
         {
             this.ReadSolutionBindingAction?.Invoke();
@@ -41,9 +42,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return filePath;
         }
-        #endregion
+
+        #endregion ISolutionBindingSerializer
 
         #region Test helpers
+
         public BoundSonarQubeProject CurrentBinding { get; set; }
 
         public void AssertWrittenFiles(int expected)
@@ -54,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public Func<BoundSonarQubeProject, string> WriteSolutionBindingAction { get; set; }
 
         public Action ReadSolutionBindingAction { get; set; }
-        #endregion
+
+        #endregion Test helpers
     }
 }

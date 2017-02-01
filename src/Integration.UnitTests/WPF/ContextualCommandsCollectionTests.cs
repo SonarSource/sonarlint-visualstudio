@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.WPF;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.ComponentModel;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
@@ -76,6 +77,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             // Verify
             hasCommandsChangedCounter.Should().Be(4, "Adding a command should update HasCommands");
         }
-
     }
 }

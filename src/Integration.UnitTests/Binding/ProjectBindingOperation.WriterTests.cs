@@ -99,7 +99,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             actual.Should().Be(@"X:\NameTaken-4.ruleset", "Expected to append running number to desired file name, skipping 3 since pending write");
-
         }
 
         [TestMethod]
@@ -112,7 +111,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             string[] existingFiles = Enumerable.Range(0, 10).Select(i => $@"X:\{fileName}-{i}.ruleset").ToArray();
             this.sccFileSystem.RegisterFile($@"X:\{fileName}.ruleset");
             this.sccFileSystem.RegisterFiles(existingFiles);
-
 
             // Act
             string actual = testSubject.GenerateNewProjectRuleSetPath
@@ -219,7 +217,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             this.ruleSetFS.RegisterRuleSet(existingRuleSet);
             this.ruleSetFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
-
 
             string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
             string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
@@ -497,6 +494,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             }
         }
 
-        #endregion
+        #endregion Tests
     }
 }

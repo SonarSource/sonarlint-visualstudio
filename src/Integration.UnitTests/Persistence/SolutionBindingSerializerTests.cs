@@ -246,7 +246,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputPane.AssertOutputStrings(0);
         }
 
-
         [TestMethod]
         public void SolutionBindingSerializer_ReadSolutionBinding_IOError()
         {
@@ -343,10 +342,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Helpers
+
         private SolutionBindingSerializer CreateTestSubject()
         {
             return new SolutionBindingSerializer(this.serviceProvider, this.store);
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

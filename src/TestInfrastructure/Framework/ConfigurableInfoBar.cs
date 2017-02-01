@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.InfoBar;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.Imaging.Interop;
+using SonarLint.VisualStudio.Integration.InfoBar;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -38,16 +38,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IInfoBar
+
         public event EventHandler ButtonClick;
+
         public event EventHandler Closed;
 
         public void Close()
         {
             this.closedCalled++;
         }
-        #endregion
+
+        #endregion IInfoBar
 
         #region Test helpers
+
         public string Message { get; }
         public string ButtonText { get; }
         public ImageMoniker Image { get; }
@@ -78,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ButtonClick.Should().NotBeNull($"{nameof(this.ButtonClick)} event is not registered");
             this.Closed.Should().NotBeNull($"{nameof(this.Closed)} event is not registered");
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

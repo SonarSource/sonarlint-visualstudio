@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -31,14 +31,17 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private bool writtenToOutputWindow;
 
         #region Configuration
+
         public Action<string> OutputStringThreadSafeAction
         {
             get;
             set;
         }
-        #endregion
+
+        #endregion Configuration
 
         #region IVsOutputWindowPane
+
         int IVsOutputWindowPane.Activate()
         {
             this.activated = true;
@@ -95,9 +98,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsOutputWindowPane
 
         #region Verification
+
         public void AssertActivated()
         {
             this.activated.Should().BeTrue("Expected the output window to be activated");
@@ -117,14 +122,17 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             this.writtenToOutputWindow.Should().BeFalse("Not expected to write to output window");
         }
-        #endregion
+
+        #endregion Verification
 
         #region Test helpers
+
         public void Reset()
         {
             this.activated = false;
             this.writtenToOutputWindow = false;
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

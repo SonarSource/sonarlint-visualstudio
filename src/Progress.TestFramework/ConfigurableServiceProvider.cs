@@ -55,9 +55,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.AssertOnUnexpectedServiceRequest = assertOnUnexpectedServiceRequest;
         }
 
-        #endregion
+        #endregion Constructor(s)
 
         #region Test helpers
+
         /// <summary>
         /// Specifies whether a assertion should be fired if an unregistered service is requested.
         /// If false, requesting an unregistered service will return null.
@@ -181,6 +182,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region IServiceProvider interface methods
+
         public object GetService(Type serviceType)
         {
             serviceType.Should().NotBeNull("serviceType should not be null");
@@ -211,7 +213,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             return serviceInstance;
         }
-        #endregion
+
+        #endregion IServiceProvider interface methods
 
         private void AssertServiceTypeNotRegistered(Type serviceType)
         {
@@ -224,6 +227,6 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.serviceInstances[serviceType] = serviceInstance;
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

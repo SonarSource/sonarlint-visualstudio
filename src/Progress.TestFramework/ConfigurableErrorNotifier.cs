@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Customization properties
+
         public Action<Exception> NotifyAction
         {
             get;
@@ -44,9 +45,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get;
             private set;
         }
-        #endregion
+
+        #endregion Customization properties
 
         #region Customization and verification methods
+
         public void Reset()
         {
             this.Exceptions = new List<Exception>();
@@ -62,14 +65,17 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             this.Exceptions.Should().HaveCount(expectedNumberOfExceptions);
         }
-        #endregion
+
+        #endregion Customization and verification methods
 
         #region Test implementation of IProgressErrorHandler (not to be used explicitly by the test code)
+
         void IProgressErrorNotifier.Notify(Exception ex)
         {
             this.Exceptions.Add(ex);
             this.NotifyAction?.Invoke(ex);
         }
-        #endregion
+
+        #endregion Test implementation of IProgressErrorHandler (not to be used explicitly by the test code)
     }
 }

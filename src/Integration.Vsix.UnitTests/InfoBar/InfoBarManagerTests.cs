@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.InfoBar;
-using System;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void InfoBarManager_ArgChecks()
         {
@@ -180,7 +182,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             closed.Should().BeTrue("Expected to auto-close");
             host.AssertInfoBars(0);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Test helpers
 
@@ -190,6 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             frame.RegisterProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, host);
             return host;
         }
+
         private class InvalidInfoBar : IInfoBar
         {
             event EventHandler IInfoBar.ButtonClick
@@ -223,6 +227,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 throw new NotImplementedException();
             }
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

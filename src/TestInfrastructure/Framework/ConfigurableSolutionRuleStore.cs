@@ -15,11 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Binding;
 using System.Collections.Generic;
-using static SonarLint.VisualStudio.Integration.Binding.SolutionBindingOperation;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -47,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        #endregion
+        #endregion ISolutionRuleStore
 
         #region Test helpers
 
@@ -61,6 +60,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.availableRuleSets[language].NewRuleSetFilePath = path;
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

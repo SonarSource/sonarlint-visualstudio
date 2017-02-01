@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private RuleSetSerializer testSubject;
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -53,9 +54,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             ((IDisposable)this.temporaryFiles).Dispose();
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region Tests
+
         [TestMethod]
         public void RuleSetSerializer_LoadRuleSet_ArgChecks()
         {
@@ -164,6 +167,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSet loaded = RuleSet.LoadFromFile(expectedPath);
             RuleSetAssert.AreEqual(ruleSet, loaded, "Written unexpected rule set");
         }
-        #endregion
+
+        #endregion Tests
     }
 }

@@ -257,6 +257,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Helpers
+
         private void SetValidSolutionBinding()
         {
             this.solutionBinding.CurrentBinding = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
@@ -381,6 +382,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     return null;
             }
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

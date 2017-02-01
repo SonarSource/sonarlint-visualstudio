@@ -15,11 +15,12 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -27,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class RuleSetHelperTests
     {
         #region Tests
+
         [TestMethod]
         public void RuleSetHelper_RemoveAllIncludesUnderRoot()
         {
@@ -173,7 +175,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             include.Should().BeNull("No includes from source to target");
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
 
@@ -187,6 +190,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return ruleSetInclude;
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

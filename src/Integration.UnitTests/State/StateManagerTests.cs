@@ -15,16 +15,17 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Input;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.State
 {
@@ -38,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         }
 
         #region Tests
+
         [TestMethod]
         public void StateManager_ArgsCheck()
         {
@@ -155,7 +157,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.SyncCommandFromActiveSection();
             VerifySectionCommands(section, serverVM);
         }
-
 
         [TestMethod]
         public void StateManager_ToggleShowAllProjectsCommand_DynamicText()
@@ -444,9 +445,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             // Act+Verify
             testSubject.GetConnectedServer(new ProjectInformation { Key = SharedKey }).Should().BeNull();
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private StateManager CreateTestSubject(ConfigurableHost host, ConfigurableSectionController section = null)
         {
             var testSubject = new StateManager(host, new TransferableVisualState());
@@ -560,6 +563,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         {
             vm.State.HasBoundProject.Should().BeFalse("View model should not have any bound projects");
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

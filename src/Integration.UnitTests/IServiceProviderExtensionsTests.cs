@@ -119,19 +119,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mefService.Should().BeNull();
         }
 
-        #endregion
+        #endregion Tests
 
         #region Test Services and Interfaces
 
         private interface IMissingService { }
+
         private interface IService { }
+
         private interface IOther { }
+
         private class TestService : IService, IOther { }
 
         private interface IMissingMefService { }
+
         private interface IMefService { }
+
         private class TestMefService : IMefService { }
 
-        #endregion
+        #endregion Test Services and Interfaces
     }
 }

@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
+using FluentAssertions;
 using Microsoft.TeamFoundation.Controls;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -42,7 +42,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly List<string> showErrorRequests = new List<string>();
         private readonly IDictionary<Guid, Notification> notifications = new Dictionary<Guid, Notification>();
 
-        #region  IUserNotification
+        #region IUserNotification
+
         void IUserNotification.ShowBusy()
         {
             throw new NotImplementedException();
@@ -94,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.notifications[notificationId] = new Notification(NotificationType.Warning, message);
         }
 
-        #endregion
+        #endregion IUserNotification
 
         #region Test helpers
 
@@ -128,6 +129,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.notifications.TryGetValue(notificationId, out notification).Should().BeFalse("Unexpected notification: {0}", notification?.Message);
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -56,7 +56,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Verify
             teController.AssertExpectedNumCallsShowConnectionsPage(0);
 
-
             // Test case 2: was enabled
             command.Enabled = true;
 
@@ -66,7 +65,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Verify
             teController.AssertExpectedNumCallsShowConnectionsPage(1);
         }
-
 
         [TestMethod]
         public void ManageConnectionsCommand_QueryStatus()
@@ -90,7 +88,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             // Verify
             command.Enabled.Should().BeFalse("Expected the command to be disabled on QueryStatus when no TE controller");
-
 
             // Test case 2: has TE controller
             // Setup
@@ -129,6 +126,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             return serviceProvider;
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

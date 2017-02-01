@@ -15,14 +15,14 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using NuGet;
-using SonarLint.VisualStudio.Integration.Service;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NuGet;
+using SonarLint.VisualStudio.Integration.Service;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

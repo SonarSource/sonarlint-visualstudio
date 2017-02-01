@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -32,7 +32,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public ConfigurableRuleSetSerializer()
             : this(new ConfigurableFileSystem())
         {
-
         }
 
         public ConfigurableRuleSetSerializer(ConfigurableFileSystem fs)
@@ -41,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IRuleSetFileSystem
+
         RuleSet IRuleSetSerializer.LoadRuleSet(string path)
         {
             RuleSet rs = null;
@@ -61,9 +61,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             this.fileSystem.UpdateTimestamp(path);
         }
-        #endregion
+
+        #endregion IRuleSetFileSystem
 
         #region Test Helpers
+
         public IEnumerable<string> RegisteredRuleSets
         {
             get
@@ -128,6 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.RegisteredRuleSets.ToList().ForEach(rs => this.AssertRuleSetLoaded(rs, 1));
         }
-        #endregion
+
+        #endregion Test Helpers
     }
 }

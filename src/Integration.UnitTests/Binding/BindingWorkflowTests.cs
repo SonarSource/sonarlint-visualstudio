@@ -74,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void BindingWorkflow_ArgChecks()
         {
@@ -645,7 +646,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             controller.AssertNumberOfAbortRequests(1);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helpers
 
@@ -699,6 +700,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Select(x => x.ToString()).Should().Equal(expected.Select(x => x.ToString()));
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

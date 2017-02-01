@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Settings;
 using System;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.Settings;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -64,7 +64,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.StoreFailsToLoad ? null : this.WritableSettingsStore;
         }
 
-        #endregion
+        #endregion SettingsManager
     }
-
 }

@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableStateManager stateManager;
 
         #region Test plumbing
+
         [TestInitialize]
         public void TestInit()
         {
@@ -78,9 +79,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.stateManager = (ConfigurableStateManager)this.host.VisualStateManager;
         }
 
-        #endregion
+        #endregion Test plumbing
 
         #region Tests
+
         [TestMethod]
         public void ErrorListInfoBarController_ArgChecks()
         {
@@ -737,9 +739,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.teamExplorerController.AssertExpectedNumCallsShowConnectionsPage(0);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Test helpers
+
         private ConfigurableSectionController ConfigureActiveSectionWithBindCommand(Action<ProjectViewModel> commandAction, Predicate<ProjectViewModel> canExecuteCommand = null)
         {
             var section = this.host.ActiveSection as ConfigurableSectionController;
@@ -789,7 +792,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return section;
         }
-
 
         private ProjectViewModel ConfigureProjectViewModel(ConfigurableSectionController section)
         {
@@ -877,6 +879,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             infoBar.ButtonText.Should().Be(Strings.SonarLintInfoBarUpdateCommandText);
             infoBar.Image.Should().Be(KnownMonikers.RuleWarning);
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

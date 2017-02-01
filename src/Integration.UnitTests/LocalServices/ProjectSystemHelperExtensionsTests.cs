@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             this.projectSystem = new ConfigurableVsProjectSystemHelper(sp);
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         [TestMethod]
         public void IProjectSystemHelperExtensions_IsKnownTestProject_ArgChecks()

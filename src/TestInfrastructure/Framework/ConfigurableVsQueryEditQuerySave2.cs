@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using System;
-using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -32,6 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly List<string> createRequested = new List<string>();
 
         #region IVsQueryEditQuerySave2
+
         int IVsQueryEditQuerySave2.BeginQuerySaveBatch()
         {
             this.batchesStarted++;
@@ -87,8 +89,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return VSConstants.S_OK;
         }
-        #endregion
 
+        #endregion IVsQueryEditQuerySave2
 
         public Func<VsQuerySaveFlags, tagVSQuerySaveResult> QuerySaveFilesVerification { get; set; }
 

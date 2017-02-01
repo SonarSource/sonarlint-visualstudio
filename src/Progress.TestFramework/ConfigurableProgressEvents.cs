@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Test implementation of IProgressEvents
+
         public event EventHandler<ProgressEventArgs> Started;
 
         public event EventHandler<ProgressControllerFinishedEventArgs> Finished;
@@ -46,9 +47,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion Test implementation of IProgressEvents
 
         #region Simulation
+
         public void InvokeStarted()
         {
             this.Started?.Invoke(this, new ProgressEventArgs());
@@ -68,9 +71,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             this.CancellationSupportChanged?.Invoke(this, new CancellationSupportChangedEventArgs(cancellable));
         }
-        #endregion
+
+        #endregion Simulation
 
         #region Verification
+
         public void AssertAllEventsAreRegistered()
         {
             this.Started.Should().NotBeNull("The Started event isn't registered");
@@ -86,6 +91,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.StepExecutionChanged.Should().BeNull("The StepExecutionChanged event is registered");
             this.CancellationSupportChanged.Should().BeNull("The CancellationSupportChanged event is registered");
         }
-        #endregion
+
+        #endregion Verification
     }
 }

@@ -15,16 +15,16 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
+using System.Windows.Threading;
+using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
-using System.Collections.Generic;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {

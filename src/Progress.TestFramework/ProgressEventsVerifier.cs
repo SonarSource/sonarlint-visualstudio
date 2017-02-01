@@ -51,6 +51,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Test helpers
+
         public void AssertCancellationChanges(int expectedChanges)
         {
             this.cancellableStateChanges.Should().Be(expectedChanges, "Unexpected cancellation state changes");
@@ -124,9 +125,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             return state == StepExecutionState.Cancelled || state == StepExecutionState.Failed || state == StepExecutionState.Succeeded;
         }
-        #endregion
+
+        #endregion Test helpers
 
         #region Event handlers
+
         private static void AssertEventHandlerArgsNotNull(object sender, EventArgs e)
         {
             sender.Should().NotBeNull("sender should not be null");
@@ -174,6 +177,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Satisfy the sequential controller verification code
             e.Handled();
         }
-        #endregion
+
+        #endregion Event handlers
     }
 }

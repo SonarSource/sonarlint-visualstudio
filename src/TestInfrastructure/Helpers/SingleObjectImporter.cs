@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.ComponentModel.Composition;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -53,6 +53,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.Import.Should().BeAssignableTo<TExpected>("Import is not of the expected type");
         }
 
-        #endregion
+        #endregion Assertions
     }
 }

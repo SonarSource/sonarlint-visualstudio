@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Globalization;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using System;
-using SonarLint.VisualStudio.Integration.Resources;
-using System.Globalization;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -112,7 +113,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Verify
             actualBound.Should().Be(expectedBound, "Unexpected bound SonarQube project description");
 
-
             // Test case 2: not bound
             // Act
             testSubject.IsBound = false;
@@ -125,7 +125,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private static ServerViewModel CreateServerViewModel()
         {
             return new ServerViewModel(new ConnectionInformation(new Uri("http://123")));
-
         }
     }
 }

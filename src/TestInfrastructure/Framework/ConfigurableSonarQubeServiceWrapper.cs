@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Service.DataModel;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly IDictionary<string, IDictionary<string, Uri>> projectDashboardUrls = new Dictionary<string, IDictionary<string, Uri>>();
 
         #region Testing helpers
+
         public bool AllowConnections { get; set; } = true;
 
         public ProjectInformation[] ReturnProjectInformation { get; set; }
@@ -123,10 +124,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 projectInformation.Key.Should().Be(this.ExpectedProjectKey, "Unexpected project key");
             }
         }
-        #endregion
+
+        #endregion Testing helpers
 
         #region ISonarQubeServiceWrapper
-
 
         bool ISonarQubeServiceWrapper.TryGetProjects(ConnectionInformation serverConnection, CancellationToken token, out ProjectInformation[] serverProjects)
         {
@@ -211,6 +212,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return profile != null;
         }
 
-        #endregion
+        #endregion ISonarQubeServiceWrapper
     }
 }

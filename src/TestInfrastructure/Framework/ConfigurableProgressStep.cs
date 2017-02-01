@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
 using System;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -71,7 +71,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
 #pragma warning disable 67
+
         public event EventHandler<StepExecutionChangedEventArgs> StateChanged;
+
 #pragma warning restore 67
     }
 }

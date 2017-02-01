@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.Collections.Generic;
 using System.IO;
+using EnvDTE;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<Project, List<RuleSetDeclaration>> registeredProjectData = new Dictionary<Project, List<RuleSetDeclaration>>();
 
         #region ISolutionRuleSetsInformationProvider
+
         IEnumerable<RuleSetDeclaration> ISolutionRuleSetsInformationProvider.GetProjectRuleSetsDeclarations(Project project)
         {
             project.Should().NotBeNull();
@@ -40,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return result;
         }
+
         string ISolutionRuleSetsInformationProvider.GetSolutionSonarQubeRulesFolder()
         {
             return Path.Combine(this.SolutionRootFolder, Constants.SonarQubeManagedFolderName);
@@ -58,9 +60,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return true;
         }
 
-        #endregion
+        #endregion ISolutionRuleSetsInformationProvider
 
         #region Test helpers
+
         public void RegisterProjectInfo(Project project, params RuleSetDeclaration[] info)
         {
             List<RuleSetDeclaration> declarations;
@@ -80,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         public string SolutionRootFolder { get; set; }
-        #endregion
+
+        #endregion Test helpers
     }
 }

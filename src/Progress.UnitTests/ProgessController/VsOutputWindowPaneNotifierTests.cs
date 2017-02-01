@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.expectedException = new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
         }
 
-        #endregion
+        #endregion Test plumbing
 
         #region Tests
 
@@ -139,7 +139,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             outputPane.AssertActivated();
             outputPane.AssertWrittenToOutputWindow();
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
 
@@ -183,6 +184,6 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             };
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

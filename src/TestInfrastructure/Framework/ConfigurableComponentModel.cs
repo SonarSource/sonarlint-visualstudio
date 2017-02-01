@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.ComponentModelHost;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
 using System.Linq;
+using Microsoft.VisualStudio.ComponentModelHost;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -33,8 +33,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public ConfigurableComponentModel(ComposablePartCatalog defaultCatalog = null)
             : this(new ConfigurableServiceProvider(), defaultCatalog)
         {
-
         }
+
         public ConfigurableComponentModel(IServiceProvider serviceProvider, ComposablePartCatalog defaultCatalog = null)
         {
             if (serviceProvider == null)
@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Test helper methods
+
         /// <summary>
         /// Creates and returns a new IComponentModel instance that supports composition.
         /// The model will have the exports pre configured
@@ -60,7 +61,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             model.DefaultCompositionService = svc;
             return model;
         }
-
 
         /// <summary>
         /// Creates and returns a new IComponentModel instance that supports calls
@@ -109,9 +109,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             private set;
         }
-        #endregion
+
+        #endregion Test helper methods
 
         #region IComponentModel
+
         System.ComponentModel.Composition.Primitives.ComposablePartCatalog IComponentModel.DefaultCatalog
         {
             get { throw new NotImplementedException(); }
@@ -148,14 +150,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return result;
         }
-        #endregion
+
+        #endregion IComponentModel
 
         #region IDisposable
+
         public void Dispose()
         {
             this.container.Dispose();
         }
-        #endregion
+
+        #endregion IDisposable
 
         public CompositionContainer CompositionContainer
         {

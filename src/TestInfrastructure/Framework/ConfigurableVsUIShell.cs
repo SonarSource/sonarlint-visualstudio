@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using System;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<Guid, IVsWindowFrame> toolwindowFrames = new Dictionary<Guid, IVsWindowFrame>();
 
         #region IVsUIShell
+
         int IVsUIShell.AddNewBFNavigationItem(IVsWindowFrame pWindowFrame, string bstrData, object punk, int fReplaceCurrent)
         {
             throw new NotImplementedException();
@@ -235,9 +236,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsUIShell
 
         #region Test helpers
+
         public ConfigurableVsWindowFrame RegisterToolWindow(Guid toolWindowGuid)
         {
             ConfigurableVsWindowFrame frame = new ConfigurableVsWindowFrame();
@@ -250,6 +253,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         } = __VSFINDTOOLWIN.FTW_fForceCreate;
-        #endregion
+
+        #endregion Test helpers
     }
 }

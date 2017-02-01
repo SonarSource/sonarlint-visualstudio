@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -97,6 +98,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Test helper class RestoredUnitTestAssertException : UnitTestAssertException
+
         private class RestoredUnitTestAssertException : UnitTestAssertException
         {
             public RestoredUnitTestAssertException()
@@ -118,6 +120,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             {
             }
         }
-        #endregion
+
+        #endregion Test helper class RestoredUnitTestAssertException : UnitTestAssertException
     }
 }

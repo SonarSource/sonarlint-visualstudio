@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<Uri, Credential> data = new Dictionary<Uri, Credential>();
 
         #region ICredentialStore
+
         void ICredentialStore.DeleteCredentials(Uri targetUri)
         {
             this.data.Remove(targetUri);
@@ -41,9 +42,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.data[targetUri] = credentials;
         }
-        #endregion
+
+        #endregion ICredentialStore
 
         #region Helpers
+
         public void AssertHasCredentials(Uri targetUri)
         {
             this.data.ContainsKey(targetUri).Should().BeTrue("Credentials not found for uri {0}", targetUri);
@@ -53,6 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.data.ContainsKey(targetUri).Should().BeFalse("Credentials found for uri {0}", targetUri);
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

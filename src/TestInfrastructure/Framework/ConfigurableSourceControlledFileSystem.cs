@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<string, Func<bool>> fileWriteOperations = new Dictionary<string, Func<bool>>(StringComparer.OrdinalIgnoreCase);
 
         #region ISourceControlledFileSystem
+
         bool ISourceControlledFileSystem.FileExistOrQueuedToBeWritten(string filePath)
         {
             return this.fileWriteOperations.ContainsKey(filePath) || ((IFileSystem)this).FileExist(filePath);
@@ -50,14 +51,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                         return false;
                     }
                 }
-
             }
 
             this.fileWriteOperations.Clear();
 
             return true;
         }
-        #endregion
+
+        #endregion ISourceControlledFileSystem
 
         #region Test helpers
 
@@ -77,6 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.fileWriteOperations.Clear();
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

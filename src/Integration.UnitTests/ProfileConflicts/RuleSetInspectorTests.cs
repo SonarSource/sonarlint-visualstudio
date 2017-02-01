@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private TempFileCollection temporaryFiles;
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -74,9 +75,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputPane.AssertOutputStrings(0);
             ((IDisposable)this.temporaryFiles).Dispose();
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region Properties
+
         /// <summary>
         /// Simulates the solution level SonarQube folder in which we store the fetched rulesets
         /// </summary>
@@ -128,7 +131,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return Path.Combine(this.VsInstallRoot, RuleSetInspector.DefaultVSRuleSetsFolder);
             }
         }
-        #endregion
+
+        #endregion Properties
 
         #region FindConflictingRules Tests
 
@@ -213,7 +217,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Verify
                 AssertNoConflicts(conflicts);
-
             }
         }
 
@@ -395,7 +398,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify [since included with Error the user rule set will become error and once merged will become error, not a conflict)
             AssertNoConflicts(conflicts);
         }
-        #endregion
+
+        #endregion FindConflictingRules Tests
 
         #region FixConflictingRules Tests
 
@@ -506,7 +510,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetAssert.AreEqual(expectedRuleSet, fixedTarget, "Expected the include action to change to default and the conflicting rules to be removed");
             VerifyFixedRuleSetIsNotPersisted(solutionRuleSet, projectRuleSet, fixedTarget);
         }
-        #endregion
+
+        #endregion FixConflictingRules Tests
 
         #region Other Tests
 
@@ -555,10 +560,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetInspector.IsBaselineWeakend(RuleAction.Hidden, RuleAction.None).Should().BeTrue();
             RuleSetInspector.IsBaselineWeakend(RuleAction.None, RuleAction.None).Should().BeFalse();
         }
-        #endregion
+
+        #endregion Other Tests
 
         #region Helpers
-        enum IncludeType { AsIs, AsRelativeToProject };
+
+        private enum IncludeType
+        { AsIs, AsRelativeToProject };
 
         private static void VerifyFix(FixedRuleSetInfo fixedInfo, int expectedIncludesReset, int expectedRulesDeleted)
         {
@@ -720,7 +728,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleAction[] unsupportedActions = new[] { RuleAction.None, RuleAction.Default };
             return Enum.GetValues(typeof(RuleAction)).OfType<RuleAction>().Except(unsupportedActions);
         }
+
         #endregion Helpers
     }
-
 }

@@ -50,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_Ctor_ArgChecks()
         {
@@ -134,7 +135,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             info.Length.Should().Be(0, "Unexpected number of results");
             this.outputPane.AssertOutputStrings(1);
         }
-
 
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_RuleSetsWithDirectories()
@@ -240,7 +240,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             path.Should().BeNull();
         }
 
-
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_TryGetProjectRuleSetFilePath()
         {
@@ -283,9 +282,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             ruleSetPath.Should().BeNull();
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private static RuleSetDeclaration CreateDeclaration(ProjectMock project, string ruleSetValue)
         {
             return new RuleSetDeclaration(project, new PropertyMock("never mind", null), ruleSetValue, "Configuration");
@@ -337,6 +338,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 CollectionAssert.AreEquivalent(expected, info.RuleSetDirectories.ToArray(), "Actual: {0}", string.Join(", ", info.RuleSetDirectories));
             }
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

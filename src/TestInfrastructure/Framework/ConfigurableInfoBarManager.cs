@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.InfoBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.Imaging.Interop;
+using SonarLint.VisualStudio.Integration.InfoBar;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<Guid, ConfigurableInfoBar> attached = new Dictionary<Guid, ConfigurableInfoBar>();
 
         #region IInfoBarManager
+
         IInfoBar IInfoBarManager.AttachInfoBar(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
         {
             this.attached.ContainsKey(toolwindowGuid).Should().BeFalse("Info bar is already attached to tool window {0}", toolwindowGuid);
@@ -43,9 +44,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.attached.Values.Contains(currentInfoBar).Should().BeTrue("Info bar is not attached");
             this.attached.Remove(attached.Single(kv => kv.Value == currentInfoBar).Key);
         }
-        #endregion
+
+        #endregion IInfoBarManager
 
         #region Test Helpers
+
         public ConfigurableInfoBar AssertHasAttachedInfoBar(Guid toolwindowGuid)
         {
             ConfigurableInfoBar infoBar = null;
@@ -57,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.attached.ContainsKey(toolwindowGuid).Should().BeFalse("The tool window {0} has attached info bar", toolwindowGuid);
         }
-        #endregion
+
+        #endregion Test Helpers
     }
 }

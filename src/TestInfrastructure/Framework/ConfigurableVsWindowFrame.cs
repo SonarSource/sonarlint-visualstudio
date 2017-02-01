@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private int showNoActivateCalled;
 
         #region IVsWindowFrame
+
         int IVsWindowFrame.CloseFrame(uint grfSaveOptions)
         {
             throw new NotImplementedException();
@@ -99,9 +100,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.showNoActivateCalled++;
             return VSConstants.S_OK;
         }
-        #endregion
+
+        #endregion IVsWindowFrame
 
         #region Test helpers
+
         public void RegisterProperty(int propertyId, object value)
         {
             this.properties[propertyId] = value;
@@ -111,6 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.showNoActivateCalled.Should().Be(expectedNumberOfTimes, "ShowNoActivate called unexpected number of times");
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

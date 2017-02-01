@@ -423,9 +423,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
             controller.AssertNumberOfAbortRequests(1);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private static void AssertIfCalled()
         {
             FluentAssertions.Execution.Execute.Assertion.FailWith("Command not expected to be called");
@@ -438,6 +440,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectedServer = connectionInfo;
             return testSubject;
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

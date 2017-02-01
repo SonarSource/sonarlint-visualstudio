@@ -120,7 +120,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             VerifyIsInsecureSchemeCaseSensitivity(mixedcaseValidator);
         }
 
-
         [TestMethod]
         public void UriValidator_IsSupportedScheme_SupportedSchemes()
         {
@@ -214,7 +213,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             result.Should().BeFalse();
         }
 
-
         [TestMethod]
         public void UriValidator_IsValidUri_IncompleteUri_IsInvalid()
         {
@@ -225,7 +223,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             result.Should().BeFalse();
         }
 
-
         [TestMethod]
         public void UriValidator_IsValidUri_AmbiguousScheme_IsInvalid()
         {
@@ -235,7 +232,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             result.Should().BeFalse();
         }
-
 
         [TestMethod]
         public void UriValidator_IsValidUri_UriWithPort_IsValid()
@@ -309,7 +305,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             mixedcaseSupported.Should().BeTrue("Mixed-case scheme should be supported");
         }
 
-        #endregion
+        #endregion Helpers
     }
-
 }

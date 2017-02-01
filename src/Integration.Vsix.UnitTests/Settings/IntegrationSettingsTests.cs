@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Vsix;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
@@ -101,7 +102,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             actual.Should().Be(expected, "Did not return default value in case of missing setting store");
         }
 
-
         [TestMethod]
         public void IntegrationSettings_SetValue_Bool()
         {
@@ -152,7 +152,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             return new IntegrationSettings(this.serviceProvider, this.settingsManager);
         }
 
-        #endregion
-
+        #endregion Helpers
     }
 }

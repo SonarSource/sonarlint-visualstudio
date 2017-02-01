@@ -15,14 +15,14 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -93,6 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IVsUIHierarchy
+
         int IVsHierarchy.SetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider psp)
         {
             throw new NotImplementedException();
@@ -296,6 +297,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsUIHierarchy
     }
 }

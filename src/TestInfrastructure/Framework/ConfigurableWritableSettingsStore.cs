@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FluentAssertions;
+using Microsoft.VisualStudio.Settings;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             collection[key].Should().Be(value, "Unexpected boolean property value");
         }
 
-        #endregion
+        #endregion Helpers
 
         #region WritableSettingsStore
 
@@ -215,6 +215,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-        #endregion
+        #endregion WritableSettingsStore
     }
 }

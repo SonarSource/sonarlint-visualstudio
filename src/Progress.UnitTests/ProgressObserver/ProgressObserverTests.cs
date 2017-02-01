@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     public class ProgressObserverTests
     {
         #region Fields
+
         private const double FloatingPointError = 0.00001;
 
         private ProgressObserver testSubject;
@@ -41,9 +42,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private ConfigurableProgressEvents progressEvents;
         private ConfigurableProgressController testController;
         private SingleThreadedTaskSchedulerService threadService;
-        #endregion
+
+        #endregion Fields
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -73,9 +76,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.threadService = null;
             this.testController = null;
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region Static methods tests
+
         [TestMethod]
         [Description("Tests StartObserving and StopObserving static methods arguments")]
         public void ProgressObserver_StartAndStopObserving_ArgChecks()
@@ -237,9 +242,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             result.Length.Should().Be(0, "Unexpected number of groups");
         }
 
-        #endregion
+        #endregion Static methods tests
 
         #region Instance method tests
+
         [TestMethod]
         [Description("Tests initialization (after construction) and cleanup (after finished event)")]
         public void ProgressObserver_InitializationAndCleanup()
@@ -631,9 +637,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             verifier.RunAndVerifyExecutingStep(this.progressEvents, hidden2, 1);
         }
 
-        #endregion
+        #endregion Instance method tests
 
         #region Test helpers
+
         private static ConfigurableProgressTestOperation[] CreateRandomSteps(int numberOfSteps, bool visible, bool indeterminate, bool impacting)
         {
             ConfigurableProgressTestOperation[] steps = new ConfigurableProgressTestOperation[numberOfSteps];
@@ -872,6 +879,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 return null;
             }
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

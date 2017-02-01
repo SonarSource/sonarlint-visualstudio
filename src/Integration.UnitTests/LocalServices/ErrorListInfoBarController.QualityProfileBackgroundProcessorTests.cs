@@ -57,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void QualityProfileBackgroundProcessor_ArgChecks()
         {
@@ -311,7 +312,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Strings.SonarLintProfileCheck,
                 Strings.SonarLintProfileCheckFailed);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
 
@@ -385,7 +387,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             FluentAssertions.Execution.Execute.Assertion.FailWith("Not expected to be called");
         }
 
-
         private void SetFilteredProjects(params Language[] languages)
         {
            this.projectSystem.FilteredProjects = languages.Select((language, i) =>
@@ -396,7 +397,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
            });
         }
 
-        #endregion
-
+        #endregion Helpers
     }
 }

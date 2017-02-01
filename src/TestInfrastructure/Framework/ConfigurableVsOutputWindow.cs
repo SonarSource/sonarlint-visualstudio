@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return VSConstants.E_FAIL;
         }
 
-        #endregion
+        #endregion IVsOutputWindow
 
         public void AssertPaneExists(Guid paneId)
         {

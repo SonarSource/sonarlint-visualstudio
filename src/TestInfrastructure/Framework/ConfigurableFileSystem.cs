@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<string, long> files = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
         #region IFileSystem
+
         void IFileSystem.CreateDirectory(string path)
         {
             this.directories.Add(path);
@@ -42,9 +43,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             return this.files.ContainsKey(filePath);
         }
+
         #endregion IFileSystem
 
         #region Test helpers
+
         public void ClearDirectories()
         {
             this.directories.Clear();
@@ -152,6 +155,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 FluentAssertions.Execution.Execute.Assertion.FailWith("File not found " + file);
             }
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

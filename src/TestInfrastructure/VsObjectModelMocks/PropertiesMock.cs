@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Properties
+
         object Properties.Application
         {
             get
@@ -81,9 +82,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             return this.properties[(int)index - 1]; // Starts from 1.
         }
-        #endregion
+
+        #endregion Properties
 
         #region Test helpers
+
         public PropertyMock RegisterKnownProperty(string name)
         {
             if (this.properties.Any(p => p.Name == name))
@@ -102,6 +105,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             property.Should().NotBeNull($"Could not find property {name}");
             property.Value.Should().Be(value, $"Unexpected property {name} value");
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

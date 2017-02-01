@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.State;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.State;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -33,7 +33,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IStateManager
+
         public event EventHandler<bool> IsBusyChanged;
+
         public event EventHandler BindingStateChanged;
 
         public string BoundProjectKey
@@ -88,7 +90,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SyncCommandFromActiveSectionAction?.Invoke();
         }
 
-
         public bool IsConnected { get; set; }
 
         public IEnumerable<ConnectionInformation> GetConnectedServers()
@@ -106,9 +107,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return conn;
         }
-        #endregion
+
+        #endregion IStateManager
 
         #region Test helpers
+
         public IHost Host { get; set; }
 
         public HashSet<ConnectionInformation> ConnectedServers { get; } = new HashSet<ConnectionInformation>();
@@ -162,6 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.IsBusy = value;
             this.IsBusyChanged?.Invoke(this, value);
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

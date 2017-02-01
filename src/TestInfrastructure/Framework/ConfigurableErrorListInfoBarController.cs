@@ -15,7 +15,6 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -26,6 +25,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private int resetCalled;
 
         #region IErrorListInfoBarController
+
         void IErrorListInfoBarController.Refresh()
         {
             this.refreshCalled++;
@@ -35,9 +35,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.resetCalled++;
         }
-        #endregion
+
+        #endregion IErrorListInfoBarController
 
         #region Test helpers
+
         public void AssertRefreshCalled(int expectedNumberOfTimes)
         {
             this.refreshCalled.Should().Be(expectedNumberOfTimes, $"{nameof(IErrorListInfoBarController.Refresh)} called unexpected number of times");
@@ -47,6 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.resetCalled.Should().Be(expectedNumberOfTimes, $"{nameof(IErrorListInfoBarController.Reset)} called unexpected number of times");
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using NuGet;
-using NuGet.VisualStudio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
+using FluentAssertions;
+using NuGet;
+using NuGet.VisualStudio;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -42,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Test helpers
+
         public HashSet<NuGet.PackageName> ExpectedPackages
         {
             get;
@@ -73,9 +74,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion Test helpers
 
         #region IVsPackageInstaller
+
         void IVsPackageInstaller.InstallPackage(string source, Project project, string packageId, string version, bool ignoreDependencies)
         {
             var package = new PackageName(packageId, new SemanticVersion(version));
@@ -134,6 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsPackageInstaller
     }
 }

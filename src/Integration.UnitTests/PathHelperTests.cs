@@ -288,7 +288,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Should().Be(expected);
         }
 
-        #endregion
-
+        #endregion Helpers
     }
 }

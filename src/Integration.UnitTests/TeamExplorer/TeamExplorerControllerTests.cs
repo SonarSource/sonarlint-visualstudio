@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.TeamFoundation.Controls;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using System;
+using FluentAssertions;
+using Microsoft.TeamFoundation.Controls;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {

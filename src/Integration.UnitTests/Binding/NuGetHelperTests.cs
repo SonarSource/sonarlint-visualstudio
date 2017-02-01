@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
     public class NuGetHelperTests
     {
         #region Tests
+
         [TestMethod]
         public void NuGetHelper_ArgChecks()
         {
@@ -75,15 +76,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Act + Verify
             NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), package.Id, package.Version.ToNormalizedString()).Should().BeTrue("The package is expected to be installed successfully");
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private static ConfigurableServiceProvider CreateServiceProvider()
         {
             ConfigurableServiceProvider sp = new ConfigurableServiceProvider();
             sp.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel());
             return sp;
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

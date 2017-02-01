@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
+using System;
 using EnvDTE;
 using EnvDTE80;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public string Version { get; set; }
 
         #region DTE
+
         Document _DTE.ActiveDocument
         {
             get
@@ -435,9 +436,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion DTE
 
         #region DTE2
+
         string DTE2.Name
         {
             get
@@ -764,9 +767,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return this.ToolWindows;
             }
         }
-        #endregion
+
+        #endregion DTE2
 
         #region Test helpers
+
         public SolutionMock Solution
         {
             get;
@@ -784,12 +789,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
+
         public Project[] ActiveSolutionProjects
         {
             get;
             set;
         } = new Project[0];
 
-        #endregion
+        #endregion Test helpers
     }
 }

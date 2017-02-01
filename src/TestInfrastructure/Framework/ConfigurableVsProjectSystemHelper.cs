@@ -15,13 +15,12 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -35,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IVsProjectSystemHelper
+
         Project IProjectSystemHelper.GetSolutionItemsProject(bool createOnNull)
         {
             return this.SolutionItemsProject;
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return dteProject.GetAggregateProjectTypeGuids();
         }
 
-        #endregion
+        #endregion IVsProjectSystemHelper
 
         #region Test helpers
 
@@ -174,6 +174,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool SimulateIVsHierarchyFailure { get; set; }
 
-        #endregion
+        #endregion Test helpers
     }
 }

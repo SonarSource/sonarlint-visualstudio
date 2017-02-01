@@ -15,13 +15,12 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {

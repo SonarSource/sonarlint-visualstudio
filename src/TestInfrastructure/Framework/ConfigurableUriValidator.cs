@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.Connection;
 using System;
 using System.Collections.Generic;
+using SonarLint.VisualStudio.Integration.Connection;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool? IsValidUriOverride { get; set; }
 
-        #endregion
+        #endregion Configurable properties
 
         public ConfigurableUriValidator()
         {

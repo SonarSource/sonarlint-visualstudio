@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<uint, IVsInfoBarUIEvents> sinks = new Dictionary<uint, IVsInfoBarUIEvents>();
 
         #region IVsInfoBarUIElement
+
         int IVsInfoBarUIElement.Advise(IVsInfoBarUIEvents eventSink, out uint cookie)
         {
             eventSink.Should().NotBeNull();
@@ -99,9 +100,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return VSConstants.S_OK;
         }
-        #endregion
+
+        #endregion IVsInfoBarUIElement
 
         #region Test helpers
+
         public bool IsClosed
         {
             get;
@@ -123,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
-        #endregion
 
+        #endregion Test helpers
     }
 }

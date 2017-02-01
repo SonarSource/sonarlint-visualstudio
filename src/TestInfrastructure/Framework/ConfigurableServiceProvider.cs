@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.AssertOnUnexpectedServiceRequest = assertOnUnexpectedServiceRequest;
         }
 
-        #endregion
+        #endregion Constructor(s)
 
         #region Test helpers
 
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ServiceCallCount.Should().Be(expected, "GetService was not called the expected number of times");
         }
 
-        #endregion
+        #endregion Test helpers
 
         #region IServiceProvider interface methods
 
@@ -200,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return serviceInstance;
         }
 
-        #endregion
+        #endregion IServiceProvider interface methods
 
         #region OLE IServiceProvider
 
@@ -219,9 +219,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ppvObject = IntPtr.Zero;
             return Microsoft.VisualStudio.VSConstants.E_FAIL;
         }
-        #endregion
+
+        #endregion OLE IServiceProvider
 
         #region Private methods
+
         private Type FindTypeForGuid(Guid typeGuid)
         {
             return this.serviceInstances.Keys.Concat(this.serviceConstructors.Keys).First(t => t.GUID == typeGuid);
@@ -237,7 +239,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.serviceInstances[serviceType] = serviceInstance;
         }
-        #endregion
+
+        #endregion Private methods
 
         #region Helpers
 
@@ -249,13 +252,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return t1.IsEquivalentTo(t2);
             }
 
-
             public int GetHashCode(Type t)
             {
                 return t.FullName.GetHashCode();
             }
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

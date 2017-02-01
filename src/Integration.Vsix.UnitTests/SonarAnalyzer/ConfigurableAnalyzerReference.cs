@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {

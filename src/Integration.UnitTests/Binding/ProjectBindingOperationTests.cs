@@ -60,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         #region Tests
+
         [TestMethod]
         public void ProjectBindingOperation_ArgChecks()
         {
@@ -118,6 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 testSubject.PropertyInformationMap[prop].TargetRuleSetFileName.Should().Be("project");
             }
         }
+
         [TestMethod]
         public void ProjectBindingOperation_Initialize_ConfigurationPropertyWithSameNonDefaultValues()
         {
@@ -306,9 +308,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             prop.Value.ToString().Should().Be(Path.GetFileName(expectedFile), "Should update the property value");
             this.projectMock.Files.ContainsKey(expectedFile).Should().BeTrue("Should be added to the project");
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private static PropertyMock CreateProperty(ProjectMock project, string configurationName, object propertyValue)
         {
             ConfigurationMock config = project.ConfigurationManager.Configurations.SingleOrDefault(c => c.ConfigurationName == configurationName);
@@ -327,6 +331,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             return new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.ruleStore);
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

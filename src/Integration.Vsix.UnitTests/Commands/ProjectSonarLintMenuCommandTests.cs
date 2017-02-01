@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Windows.Threading;
+using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -48,9 +49,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.serviceProvider = provider;
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         #region Tests
+
         [TestMethod]
         public void ProjectSonarLintMenuCommand_QueryStatus_NoProjects_IsDisableIsHidden()
         {
@@ -112,6 +114,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             command.Visible.Should().BeTrue("Expected command to be visible");
         }
 
-        #endregion
+        #endregion Tests
     }
 }

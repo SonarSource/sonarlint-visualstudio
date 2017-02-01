@@ -15,15 +15,16 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.TeamFoundation.Client.CommandTarget;
-using Microsoft.TeamFoundation.Controls;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.ComponentModel.Design;
 using System.Windows.Threading;
+using FluentAssertions;
+using Microsoft.TeamFoundation.Client.CommandTarget;
+using Microsoft.TeamFoundation.Controls;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -115,7 +116,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.ToggleShowAllProjectsCommand.Should().BeNull("ToggleShowAllProjectsCommand is not cleared");
             testSubject.BrowseToUrlCommand.Should().BeNull("BrowseToUrlCommand is not cleared");
             testSubject.BrowseToProjectDashboardCommand.Should().BeNull("BrowseToProjectDashboardCommand is not cleared");
-
         }
 
         [TestMethod]
@@ -316,9 +316,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             webBrowser.AssertRequestToNavigateTo(expectedUrl.ToString());
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helpers
+
         private static void ReInitialize(SectionController controller, IHost host)
         {
             host.ClearActiveSection();
@@ -335,6 +336,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             private int queryStatusNumberOfCalls;
 
             #region IOleCommandTarget
+
             int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
             {
                 throw new NotImplementedException();
@@ -345,9 +347,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.queryStatusNumberOfCalls++;
                 return this.QueryStatusReturnsResult;
             }
-            #endregion
 
-            #region  Test helpers
+            #endregion IOleCommandTarget
+
+            #region Test helpers
+
             public int QueryStatusReturnsResult
             {
                 get;
@@ -358,7 +362,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             {
                 this.queryStatusNumberOfCalls.Should().Be(expectedNumberOfTimes, "IOleCommandTarget.QueryStatus is called unexpected number of times");
             }
-            #endregion
+
+            #endregion Test helpers
         }
 
         private SectionController CreateTestSubject(IWebBrowser webBrowser = null)
@@ -376,6 +381,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             viewModel.BindCommand.Should().Be(section.BindCommand, "BindCommand is not initialized");
             viewModel.BrowseToUrlCommand.Should().Be(section.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

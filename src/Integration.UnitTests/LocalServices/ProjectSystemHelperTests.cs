@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void ProjectSystemHelper_ArgCheck()
         {
@@ -214,7 +215,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(DTE), dte);
             dte.Solution = this.solutionMock;
             Project project1 = this.testSubject.GetSolutionFolderProject(solutionFolderName, true);
-
 
             // Act, ask again (exists already)
             Project project2 = this.testSubject.GetSolutionFolderProject(solutionFolderName, false);
@@ -407,6 +407,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             actualValue.Should().Be("myval", "Unexpected property value");
         }
+
         [TestMethod]
         public void ProjectSystemHelper_SetProjectProperty_ArgChecks()
         {
@@ -442,6 +443,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             project.GetBuildProperty("myprop").Should().Be("newval", "Unexpected property value");
         }
+
         [TestMethod]
         public void ProjectSystemHelper_ClearProjectProperty_ArgChecks()
         {
@@ -464,7 +466,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             project.GetBuildProperty("myprop").Should().BeNull("Expected property value to be cleared");
         }
-
 
         [TestMethod]
         public void ProjectSystemHelper_GetAggregateProjectKinds_ArgChecks()
@@ -507,9 +508,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CollectionAssert.AreEquivalent(expectedGuids, actualGuids, "Unexpected project kind GUIDs returned");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helpers
+
         private void SetSolutionFolderName(string name)
         {
             this.serviceProvider.RegisterService(typeof(SVsShell), new TestVsShell { LoadPackageStringResult = name });
@@ -524,6 +526,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             #region IVsShell
+
             int IVsShell.AdviseBroadcastMessages(IVsBroadcastMessageEvents pSink, out uint pdwCookie)
             {
                 throw new NotImplementedException();
@@ -586,9 +589,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 throw new NotImplementedException();
             }
-            #endregion
-        }
-        #endregion
 
+            #endregion IVsShell
+        }
+
+        #endregion Helpers
     }
 }

@@ -60,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void RuleSetConflictsController_Ctor()
         {
@@ -203,9 +204,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 splitter:new[] {'\n', '\r', '\t', '\'', ':' });
             notifications.AssertNoNotification(NotificationIds.RuleSetConflictsId);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private void ConfigureServiceProviderForFixConflictsCommandExecution()
         {
             this.ruleSetInspector = new ConfigurableRuleSetInspector();
@@ -221,6 +224,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private class RuleSetInspectorTestDataProvider
         {
             #region Called by product
+
             public RuleConflictInfo FindConflictingRulesAction(string baseline, string project, string[] directories)
             {
                 VerifyInputForDefaultConflictInstance(baseline, project, directories);
@@ -234,7 +238,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 return this.FixConflictsResult;
             }
-            #endregion
+
+            #endregion Called by product
 
             #region Helpers
 
@@ -257,8 +262,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 project.Should().Be(expectedConflict.RuleSetInfo.RuleSetFilePath, "project argument is not as expected");
                 CollectionAssert.AreEqual(expectedConflict.RuleSetInfo.RuleSetDirectories, directories, "directories argument is not as expected");
             }
-            #endregion
+
+            #endregion Helpers
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

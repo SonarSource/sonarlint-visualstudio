@@ -47,7 +47,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             });
         }
 
-
         [TestMethod]
         public void ConnectionInformationDialog_CreateConnectionInformation_InvalidModel_ReturnsNull()
         {
@@ -106,6 +105,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             viewModel.ServerUrl.Should().Be(connectionInformation.ServerUri, "Unexpected ServerUrl");
             viewModel.Username.Should().Be(connectionInformation.UserName, "Unexpected UserName");
         }
-
     }
 }

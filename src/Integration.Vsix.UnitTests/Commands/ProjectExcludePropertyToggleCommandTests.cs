@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Windows.Threading;
 using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.serviceProvider = provider;
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         #region Tests
 
@@ -354,7 +354,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             command.Visible.Should().BeFalse("Expected command to be hidden");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Test helpers
 
@@ -388,6 +388,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             }
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

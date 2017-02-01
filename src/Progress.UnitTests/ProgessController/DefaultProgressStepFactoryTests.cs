@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private ConfigurableProgressController controller;
 
         #region Test plumbing
+
         public TestContext TestContext
         {
             get;
@@ -48,7 +49,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject = null;
             this.controller = null;
         }
-        #endregion
+
+        #endregion Test plumbing
 
         [TestMethod]
         [Description("Verifies that the factory implementation code handles correctly unsupported types")]

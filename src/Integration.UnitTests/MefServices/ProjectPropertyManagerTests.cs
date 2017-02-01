@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             provider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         #region Tests
 
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Exceptions.Expect<ArgumentNullException>(() => testSubject.SetBooleanProperty(project, null, true));
         }
 
-        #endregion
+        #endregion Tests
 
         #region Test helpers
 
@@ -206,6 +206,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return new ProjectPropertyManager(this.host);
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

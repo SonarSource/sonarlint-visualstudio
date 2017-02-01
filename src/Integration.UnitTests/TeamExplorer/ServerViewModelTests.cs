@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using SonarLint.VisualStudio.Integration.Resources;
 using System.Globalization;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {

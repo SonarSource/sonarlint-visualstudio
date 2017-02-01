@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Progress;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private IProgressControlHost currentHost;
 
         #region IProgressStepRunnerWrapper
+
         void IProgressStepRunnerWrapper.AbortAll()
         {
             this.abortAllNumberOfCalls++;
@@ -37,9 +38,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.currentHost = host;
         }
-        #endregion
+
+        #endregion IProgressStepRunnerWrapper
 
         #region Test helper
+
         public void AssertAbortAllCalled(int expectedNumberOfTimes)
         {
             this.abortAllNumberOfCalls.Should().Be(expectedNumberOfTimes, "AbortAll was not called expected number of times");
@@ -54,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.currentHost.Should().BeNull();
         }
-        #endregion
+
+        #endregion Test helper
     }
 }

@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private ProgressControllerStep testSubject;
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -49,9 +50,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             this.testController.Dispose();
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region Tests
+
         [TestMethod]
         public void ProgressControllerStep_Constructor_ArgCheck()
         {
@@ -128,9 +131,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testController.AssertNoProgressChangeEvents();
             VerificationHelper.CheckState(this.testSubject, StepExecutionState.Succeeded);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Test helpers
+
         private static List<Tuple<string, double>> GetExpectedExecutionEvents()
         {
             List<Tuple<string, double>> list = new List<Tuple<string, double>>();
@@ -188,6 +193,6 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testController.IsCurrentStepCancellable.Should().BeFalse("Not expected to be cancellable");
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

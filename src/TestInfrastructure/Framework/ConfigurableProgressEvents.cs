@@ -15,16 +15,17 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableProgressEvents : IProgressEvents
     {
         #region IProgressEvents
+
         public IEnumerable<IProgressStep> Steps
         {
             get;
@@ -32,14 +33,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
 #pragma warning disable 67
+
         public event EventHandler<CancellationSupportChangedEventArgs> CancellationSupportChanged;
+
         public event EventHandler<ProgressControllerFinishedEventArgs> Finished;
+
         public event EventHandler<ProgressEventArgs> Started;
+
         public event EventHandler<StepExecutionChangedEventArgs> StepExecutionChanged;
+
 #pragma warning restore 67
-        #endregion
+
+        #endregion IProgressEvents
 
         #region Test helpers
+
         public void AssertNoFinishedEventHandlers()
         {
             this.Finished.Should().BeNull("Not expecting any handler for Finished event");
@@ -54,9 +62,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.StepExecutionChanged?.Invoke(this, new StepExecutionChangedEventArgs(new TestStep(progressDetails, progress)));
         }
-        #endregion
+
+        #endregion Test helpers
 
         #region Helpers
+
         private class TestStep : IProgressStep
         {
             public TestStep(string progressDetails, double progress)
@@ -114,9 +124,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
 #pragma warning disable 67
+
             public event EventHandler<StepExecutionChangedEventArgs> StateChanged;
+
 #pragma warning restore 67
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

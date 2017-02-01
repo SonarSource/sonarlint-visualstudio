@@ -15,15 +15,16 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Windows.Threading;
+using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -112,6 +113,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             registeredCommand.CommandID.Should().Be(commandIdObject, $"Unexpected CommandID");
         }
 
-        #endregion
+        #endregion Tests
     }
 }

@@ -75,6 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         #region Tests
+
         [TestMethod]
         public void SolutionBindingOperation_ArgChecks()
         {
@@ -355,9 +356,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Exceptions.Expect<ArgumentNullException>(() => new RuleSetInformation(Language.CSharp, null));
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helpers
+
         private SolutionBindingOperation CreateTestSubject(string projectKey, ConnectionInformation connection = null)
         {
             return new SolutionBindingOperation(this.serviceProvider,
@@ -369,6 +371,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             return new Dictionary<Language, QualityProfile>();
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

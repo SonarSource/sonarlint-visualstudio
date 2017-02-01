@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private VsMessageBoxNotifier testSubject;
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -52,9 +53,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.serviceProvider = null;
             this.testSubject = null;
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region Tests
+
         [TestMethod]
         [Description("Arg check tests")]
         public void VsMessageBoxNotifier_Args()
@@ -104,7 +107,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Assert
             this.uiSHell.AssertMessageBoxShown();
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
 
@@ -126,6 +130,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             return new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

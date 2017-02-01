@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         }
 
         #region Tests
+
         [TestMethod]
         public void VsSessionHost_ArgChecks()
         {
@@ -342,7 +343,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stateManager.AssertNoBoundProject();
         }
 
-
         [TestMethod]
         public void VsSessionHost_IServiceProvider_GetService()
         {
@@ -371,9 +371,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act + Verify
             testSubject.GetService(typeof(VsSessionHostTests)).Should().Be(this, "Unexpected service was returned, expected to use the service provider");
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private VsSessionHost CreateTestSubject(ConfigurableActiveSolutionTracker tracker)
         {
             this.stateManager = new ConfigurableStateManager();
@@ -391,6 +393,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             return host;
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

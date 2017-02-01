@@ -107,7 +107,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             }
         }
 
-        #endregion
-
+        #endregion Helpers
     }
 }

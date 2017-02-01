@@ -15,14 +15,14 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.TeamFoundation.Controls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ComponentModel;
-using System.Windows.Input;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
+using System.Linq;
 using System.Reflection;
+using System.Windows.Input;
+using FluentAssertions;
+using Microsoft.TeamFoundation.Controls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.currentPageId.Should().Be(pageId, "Unexpected current page ID");
         }
 
-        #endregion
+        #endregion Assertion Helpers
 
         #region ITeamExplorer
 
@@ -130,6 +130,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-        #endregion
+        #endregion ITeamExplorer
     }
 }

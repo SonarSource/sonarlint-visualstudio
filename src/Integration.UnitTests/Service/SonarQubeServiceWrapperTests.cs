@@ -15,14 +15,6 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.Owin;
-using Microsoft.Owin.Testing;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using Owin;
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,6 +26,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Serialization;
+using FluentAssertions;
+using Microsoft.Owin;
+using Microsoft.Owin.Testing;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Owin;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Service.DataModel;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -58,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void SonarQubeServiceWrapper_Ctor_ArgChecks()
         {
@@ -729,7 +731,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helpers
 
@@ -839,7 +841,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 context.Response.Write(Serialize(serverPlugins.ToArray()));
             }
         }
-
 
         private static void ServiceServerProperties(IOwinContext context, IEnumerable<ServerProperty> serverProperties, bool simulateFault = false)
         {
@@ -1027,7 +1028,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.RegisterRequestHandler(SonarQubeServiceWrapper.ProjectsAPI, handler);
             }
 
-            #endregion
+            #endregion Testing hooks
 
             #region Server mock
 
@@ -1095,7 +1096,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
             }
 
-            internal protected override HttpClient CreateHttpClient()
+            protected internal override HttpClient CreateHttpClient()
             {
                 return this.server?.HttpClient;
             }
@@ -1135,7 +1136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Any(token => token == keyValue[1]);
             }
 
-            #endregion
+            #endregion Server mock
 
             #region IDisposable Support
 
@@ -1159,9 +1160,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.Dispose(true);
             }
 
-            #endregion
+            #endregion IDisposable Support
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

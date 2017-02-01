@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private ConfigurableErrorNotifier errorNotifier;
 
         #region Test plumbing
+
         public TestContext TestContext
         {
             get;
@@ -61,9 +62,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject = null;
             this.threadingService = null;
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region General tests
+
         [TestMethod]
         public void SequentialProgressController_ArgChecks()
         {
@@ -146,9 +149,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject.Start().Result.Should().Be(ProgressControllerResult.Succeeded, "Unexpected result");
         }
 
-        #endregion
+        #endregion General tests
 
         #region IProgressController implementation tests
+
         [TestMethod]
         [Description("Verifies that in case Initialized is called twice an exception will be thrown")]
         public void SequentialProgressController_IProgressController_Initialize_Twice()
@@ -313,9 +317,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             verifier.AssertStepCorrectExecution(stepOperation, StepExecutionState.NotStarted);
             verifier.AssertCancellationChanges(3);
         }
-        #endregion
+
+        #endregion IProgressController implementation tests
 
         #region IProgressEvents implementation tests
+
         [TestMethod]
         [Description("Verifies that step execution event for succeeded step is raised correctly")]
         public void SequentialProgressController_IProgressEvents_StepSucceeded()
@@ -446,9 +452,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             verifier.AssertExecutionProgress(this.testSubject.Steps.Single(), this.notifyProgressSequence.ToArray());
             verifier.AssertCancellationChanges(1);
         }
-        #endregion
+
+        #endregion IProgressEvents implementation tests
 
         #region Test helpers
+
         private static void AssertOperationArgumentsAreNotNull(CancellationToken token, IProgressStepExecutionEvents callback)
         {
             token.Should().NotBeNull("CancellationToken is expected not to be null");
@@ -551,6 +559,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             this.notifyProgressSequence.ForEach(t => notifier.ProgressChanged(t.Item1, t.Item2));
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

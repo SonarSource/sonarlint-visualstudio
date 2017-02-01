@@ -333,7 +333,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Exceptions.Expect<ArgumentNullException>(() => testSubject.SetTestRegex(null));
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helpers
 
@@ -343,6 +343,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return new ProjectSystemFilter(host);
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

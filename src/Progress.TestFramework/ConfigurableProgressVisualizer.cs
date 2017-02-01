@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Customization properties
+
         public ProgressControllerViewModel Root
         {
             get { return this.viewModel; }
@@ -45,9 +46,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion Customization properties
 
         #region Verification methods
+
         public void Reset()
         {
             this.viewModel = new ProgressControllerViewModel();
@@ -63,6 +66,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             this.isShown.Should().BeFalse("Expected to be hidden");
         }
-        #endregion
+
+        #endregion Verification methods
     }
 }

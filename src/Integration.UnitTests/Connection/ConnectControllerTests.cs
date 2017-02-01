@@ -61,7 +61,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
-        #region  Tests
+        #region Tests
+
         [TestMethod]
         public void ConnectionController_Ctor_ArgumentChecks()
         {
@@ -303,7 +304,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Verify
             notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
 
-
             // Case 3: show, but failed
             // Setup
             this.settings.ShowServerNuGetTrustWarning = false;
@@ -374,6 +374,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.DontWarnAgainCommand.CanExecute().Should().BeTrue();
         }
 
-        #endregion
+        #endregion Tests
     }
 }

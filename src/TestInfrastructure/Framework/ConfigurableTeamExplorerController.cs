@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Reflection;
 using System.Threading;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region IVsTaskSchedulerService
+
         IVsTask IVsTaskSchedulerService.ContinueWhenAllCompleted(uint context, uint tasks, IVsTask[] dependentTasks, IVsTaskBody taskBody)
         {
             return ((IVsTaskSchedulerService)this).ContinueWhenAllCompletedEx(context, tasks, dependentTasks, 0, taskBody, null);
@@ -81,9 +82,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 return result;
             });
         }
-        #endregion
+
+        #endregion IVsTaskSchedulerService
 
         #region Configuration
+
         public void SetCurrentThreadIsUIThread(bool uiThread)
         {
             if (uiThread)
@@ -95,9 +98,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 this.SetCurrentThreadContextAs(VsTaskRunContext.BackgroundThread);
             }
         }
-        #endregion
+
+        #endregion Configuration
 
         #region Test helper
+
         /// <summary>
         /// Test helper to run test code in a pseudo-UI context that will let the platform code to behave nicely
         /// </summary>
@@ -164,7 +169,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             isUiThread.Should().Be(ThreadHelper.CheckAccess(), "SetUIThread patching code failed");
         }
-        #endregion
+
+        #endregion Test helper
 
         private class VsTask : IVsTask
         {

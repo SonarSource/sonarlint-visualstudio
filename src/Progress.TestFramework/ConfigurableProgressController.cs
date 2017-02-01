@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     public partial class ConfigurableProgressController : IDisposable
     {
         #region Fields
+
         private const int DefaultWaitForCompletionMS = 2000;
 
         private readonly int waitForCompletion;
@@ -39,7 +40,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private readonly List<Tuple<string, double>> progressChanges = new List<Tuple<string, double>>();
         private readonly List<IProgressStepOperation> stepOperations = new List<IProgressStepOperation>();
         private bool canAbort;
-        #endregion
+
+        #endregion Fields
 
         public ConfigurableProgressController(IServiceProvider serviceProvider, int waitForCompletion = DefaultWaitForCompletionMS)
         {
@@ -49,6 +51,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Customization properties
+
         /// <summary>
         /// An optional delegate to be executed after the controller has started and before the test step is invoked
         /// </summary>
@@ -95,9 +98,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             get { return this.canAbort; }
         }
-        #endregion
+
+        #endregion Customization properties
 
         #region Configuration and verification methods
+
         /// <summary>
         /// Resets the configuration
         /// </summary>
@@ -155,9 +160,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             progressChanges.Should().BeEmpty();
         }
-        #endregion
+
+        #endregion Configuration and verification methods
 
         #region IDisposable
+
         public void Dispose()
         {
             if (this.cts != null)
@@ -166,6 +173,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 this.cts = null;
             }
         }
-        #endregion
+
+        #endregion IDisposable
     }
 }

@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -42,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IVsSolution
+
         int IVsSolution.AddVirtualProject(IVsHierarchy pHierarchy, uint grfAddVPFlags)
         {
             throw new NotImplementedException();
@@ -488,9 +489,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return this.Skip(celt);
             }
         }
-        #endregion
+
+        #endregion IVsSolution
 
         #region Test helpers
+
         public bool IsFullyLoaded
         {
             get; set;
@@ -563,6 +566,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         public Func<uint, IVsHierarchy, uint, int> SaveSolutionElementAction { get; set; }
-        #endregion
+
+        #endregion Test helpers
     }
 }

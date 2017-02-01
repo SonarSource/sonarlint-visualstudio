@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.testSubject = new LanguageConverter();
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         #region Tests
 
@@ -152,6 +152,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().BeNull();
         }
 
-        #endregion
+        #endregion Tests
     }
 }

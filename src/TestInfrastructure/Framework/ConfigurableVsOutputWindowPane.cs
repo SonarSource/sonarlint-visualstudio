@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -34,7 +35,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool ClearOnSolutionEvents { get; private set; }
 
-        public ConfigurableVsOutputWindowPane() { }
+        public ConfigurableVsOutputWindowPane()
+        {
+        }
 
         public ConfigurableVsOutputWindowPane(string name, bool initVisible, bool clearOnSolutionEvents)
         {
@@ -44,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IVsOutputWindowPane
+
         int IVsOutputWindowPane.Activate()
         {
             this.IsActivated = true;
@@ -101,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return VSConstants.S_OK;
         }
 
-        #endregion
+        #endregion IVsOutputWindowPane
 
         public void AssertOutputStrings(int expectedOutputMessages)
         {

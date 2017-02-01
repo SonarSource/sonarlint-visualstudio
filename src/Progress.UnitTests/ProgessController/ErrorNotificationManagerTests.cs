@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private ErrorNotificationManager testSubject;
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -46,9 +47,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.serviceProvider = null;
             this.testSubject = null;
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region Tests
+
         [TestMethod]
         [Description("Tests adding and removing notifiers")]
         public void ErrorNotificationMananger_EndToEnd()
@@ -84,13 +87,16 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.Notify();
             testNotifier.AssertExcepections(0);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private void Notify()
         {
             ((IProgressErrorNotifier)this.testSubject).Notify(new Exception(this.TestContext.TestName));
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

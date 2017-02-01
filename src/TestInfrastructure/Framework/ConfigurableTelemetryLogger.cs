@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -27,13 +27,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly List<TelemetryEvent> events = new List<TelemetryEvent>();
 
         #region IVsTelemetryLogger
+
         void ITelemetryLogger.ReportEvent(TelemetryEvent telemetryEvent)
         {
             this.events.Add(telemetryEvent);
         }
-        #endregion
+
+        #endregion IVsTelemetryLogger
 
         #region Helpers
+
         public void Reset()
         {
             this.events.Clear();
@@ -56,6 +59,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.events.ForEach(e => Debug.WriteLine(e));
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

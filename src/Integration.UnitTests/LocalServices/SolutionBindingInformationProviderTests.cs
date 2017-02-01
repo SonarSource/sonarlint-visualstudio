@@ -53,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void SolutionBindingInformationProvider_ArgCheck()
         {
@@ -201,7 +202,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
 
-
         [TestMethod]
         public void SolutionBindingInformationProvider_GetUnboundProjects_SolutionNotBound()
         {
@@ -250,9 +250,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Verify
             CollectionAssert.AreEquivalent(this.projectSystemHelper.FilteredProjects.ToArray(), projects.ToArray(), "Unexpected unbound projects");
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private void SetValidSolutionBinding()
         {
             this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject { ProjectKey = "projectKey" };
@@ -350,6 +352,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             return string.Join(", ", projects.Select(p => p.FullName));
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

@@ -71,6 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         #region Tests
+
         [TestMethod]
         public void BindingController_Ctor()
         {
@@ -235,7 +236,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 // Act
                 progressEvents.SimulateFinished(result);
 
-
                 // Verify
                 testSubject.IsBindingInProgress.Should().BeFalse();
 
@@ -360,9 +360,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             canExecuteChanged.Should().BeTrue("The command needs to invalidate the previous CanExecute state using CanExecuteChanged event");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helpers
+
         private static ProjectViewModel CreateProjectViewModel(ProjectInformation projectInfo = null)
         {
             return new ProjectViewModel(CreateServerViewModel(), projectInfo ?? new ProjectInformation());
@@ -394,11 +395,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             public ProjectInformation BoundProject { get; private set; }
 
             #region IBindingWorkflowExecutor.
+
             void IBindingWorkflowExecutor.BindProject(ProjectInformation project)
             {
                 this.BoundProject = project;
             }
-            #endregion
+
+            #endregion IBindingWorkflowExecutor.
 
             public void AssertBoundProject(ProjectInformation expected)
             {
@@ -411,6 +414,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return new BindingController(this.host, this.workflow);
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

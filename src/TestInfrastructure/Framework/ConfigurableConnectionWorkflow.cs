@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Connection;
-using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Threading;
+using FluentAssertions;
+using SonarLint.VisualStudio.Integration.Connection;
+using SonarLint.VisualStudio.Integration.Service;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        #endregion
+        #endregion IConnectionWorkflowExecutor
 
         #region Test helpers
 
@@ -61,6 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.numberOfCalls.Should().Be(expectedNumberOfCalls, "EstablishConnection was called unexpected number of times");
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }
