@@ -16,8 +16,8 @@
  */
 
 using System;
-using Microsoft.VisualStudio.Shell;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

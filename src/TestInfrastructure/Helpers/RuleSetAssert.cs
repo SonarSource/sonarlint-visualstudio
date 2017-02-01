@@ -16,7 +16,7 @@
  */
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.IO;
 using System.Xml.Linq;
@@ -41,8 +41,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 string.Equals(expectedDocument.Declaration.Standalone, actualDocument.Declaration.Standalone) &&
                 string.Equals(expectedDocument.Declaration.Version, actualDocument.Declaration.Version);
 
-            Assert.IsTrue(contentEqual, contentMessage);
-            Assert.IsTrue(declarationEqual, declarationMessage);
+            contentEqual.Should().BeTrue(contentMessage);
+            declarationEqual.Should().BeTrue(declarationMessage);
         }
 
         private static XDocument ToXDocument(this RuleSet ruleSet)

@@ -16,7 +16,7 @@
  */
 
 using SonarLint.VisualStudio.Integration.Service;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -56,14 +56,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string userNameAndPassword = AuthenticationHeaderProvider.BasicAuthEncoding.GetString(Convert.FromBase64String(userAndPasswordBase64String));
             // Find first Colon (can't use Split since password may contain ':')
             int index = userNameAndPassword.IndexOf(AuthenticationHeaderProvider.BasicAuthUserNameAndPasswordSeparator, StringComparison.Ordinal);
-            Assert.IsTrue(index >= 0, "Expected a string in user:password format, got instead '{0}'", userNameAndPassword);
+            (index >= 0).Should().BeTrue("Expected a string in user:password format, got instead '{0}'", userNameAndPassword);
 
             string[] userNameAndPasswordTokens = new string[2];
             userNameAndPasswordTokens[0] = userNameAndPassword.Substring(0, index);
             userNameAndPasswordTokens[1] = userNameAndPassword.Substring(index + 1, userNameAndPassword.Length - index - 1);
 
-            Assert.AreEqual(expectedUser, userNameAndPasswordTokens[0], "Unexpected user name");
-            Assert.AreEqual(expectedPassword, userNameAndPasswordTokens[1], "Unexpected password");
+            userNameAndPasswordTokens[0].Should().Be(expectedUser, "Unexpected user name");
+            userNameAndPasswordTokens[1].Should().Be(expectedPassword, "Unexpected password");
         }
     }
 }

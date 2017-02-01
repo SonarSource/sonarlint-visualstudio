@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -68,13 +69,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.bindingSerializer.CurrentBinding = null;
 
             // Act + Verify
-            Assert.IsFalse(testSubject.IsSolutionBound());
+            testSubject.IsSolutionBound().Should().BeFalse();
 
             // Case 2: Bound
             this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject();
 
             // Act + Verify
-            Assert.IsTrue(testSubject.IsSolutionBound());
+            testSubject.IsSolutionBound().Should().BeTrue();
         }
 
         [TestMethod]
@@ -176,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             projects = testSubject.GetBoundProjects();
 
             // Verify
-            Assert.AreSame(boundProject, projects.SingleOrDefault(), "Unexpected bound project");
+            projects.SingleOrDefault().Should().Be(boundProject, "Unexpected bound project");
             this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
 
@@ -196,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             projects = testSubject.GetBoundProjects();
 
             // Verify
-            Assert.AreSame(boundProject, projects.SingleOrDefault(), "Unexpected bound project");
+            projects.SingleOrDefault().Should().Be(boundProject, "Unexpected bound project");
             this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
 
@@ -231,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             projects = testSubject.GetUnboundProjects();
 
             // Verify
-            Assert.AreSame(unboundProject, projects.SingleOrDefault(), "Unexpected unbound project");
+            projects.SingleOrDefault().Should().Be(unboundProject, "Unexpected unbound project");
         }
 
         [TestMethod]
@@ -341,8 +342,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void AssertEmptyResult(IEnumerable<Project> projects)
         {
-            Assert.IsNotNull(projects, "Null are not expected");
-            Assert.AreEqual(0, projects.Count(), "Not expecting any results. Actual: {0}", GetString(projects));
+            projects.Should().NotBeNull("Null are not expected");
+            projects.Should().BeEmpty("Not expecting any results. Actual: {0}", GetString(projects));
         }
 
         private static string GetString(IEnumerable<Project> projects)

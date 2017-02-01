@@ -18,7 +18,7 @@
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
@@ -31,8 +31,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             var vm = new ConnectSectionViewModel();
 
-            Assert.IsTrue(vm.IsVisible);
-            Assert.IsTrue(vm.IsExpanded);
+            vm.IsVisible.Should().BeTrue();
+            vm.IsExpanded.Should().BeTrue();
         }
     }
 }

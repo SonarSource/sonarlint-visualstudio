@@ -15,11 +15,12 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -76,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSet loaded = this.testSubject.LoadRuleSet(ruleSet.FilePath);
 
             // Verify
-            Assert.IsNotNull(loaded, "Expected to load a rule set file");
+            loaded.Should().NotBeNull("Expected to load a rule set file");
             RuleSetAssert.AreEqual(ruleSet, loaded, "Loaded unexpected rule set");
         }
 
@@ -91,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSet missing = testSubject.LoadRuleSet(existingRuleSet);
 
             // Verify
-            Assert.IsNull(missing, "Expected no ruleset to be loaded when the file is missing");
+            missing.Should().BeNull("Expected no ruleset to be loaded when the file is missing");
 
             // Case 2: file exists, badly formed rule set (invalid xml)
             File.WriteAllText(existingRuleSet, "<xml>");
@@ -101,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSet loadedBad = testSubject.LoadRuleSet(existingRuleSet);
 
             // Verify
-            Assert.IsNull(loadedBad, "Expected no ruleset to be loaded when its invalid XML");
+            loadedBad.Should().BeNull("Expected no ruleset to be loaded when its invalid XML");
 
             // Case 3: file exists, invalid rule set format (no RuleSet element)
             string xml =
@@ -115,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             loadedBad = testSubject.LoadRuleSet(existingRuleSet);
 
             // Verify
-            Assert.IsNull(loadedBad, "Expected no ruleset to be loaded when the file in not a valid rule set");
+            loadedBad.Should().BeNull("Expected no ruleset to be loaded when the file in not a valid rule set");
 
             // Case 4: file exists, invalid rule set data (Default is not a valid action for rule)
             xml =
@@ -132,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             loadedBad = testSubject.LoadRuleSet(existingRuleSet);
 
             // Verify
-            Assert.IsNull(loadedBad, "Expected no ruleset to be loaded when the file in not a valid rule set");
+            loadedBad.Should().BeNull("Expected no ruleset to be loaded when the file in not a valid rule set");
         }
 
         [TestMethod]
@@ -158,8 +159,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.testSubject.WriteRuleSetFile(ruleSet, expectedPath);
 
             // Verify
-            Assert.IsTrue(File.Exists(expectedPath), "File not exists where expected");
-            Assert.IsFalse(File.Exists(ruleSet.FilePath), "Expected to save only to the specified file path");
+            File.Exists(expectedPath).Should().BeTrue("File not exists where expected");
+            File.Exists(ruleSet.FilePath).Should().BeFalse("Expected to save only to the specified file path");
             RuleSet loaded = RuleSet.LoadFromFile(expectedPath);
             RuleSetAssert.AreEqual(ruleSet, loaded, "Written unexpected rule set");
         }

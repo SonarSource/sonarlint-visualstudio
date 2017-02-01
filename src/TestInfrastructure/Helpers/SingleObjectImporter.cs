@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -33,24 +33,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertImportIsNull()
         {
-            Assert.IsNull(this.Import, "Expecting the import to be null");
+            this.Import.Should().BeNull("Expecting the import to be null");
         }
 
         public void AssertImportIsNotNull()
         {
-            Assert.IsNotNull(this.Import, "Expecting the import not to be null");
+            this.Import.Should().NotBeNull("Expecting the import not to be null");
         }
 
         public void AssertExpectedImport(T expected)
         {
             this.AssertImportIsNotNull();
-            Assert.AreSame(this.Import, expected, "An unexpected instance was imported");
+            expected.Should().Be(this.Import, "An unexpected instance was imported");
         }
 
         public void AssertImportIsInstanceOf<TExpected>()
         {
             this.AssertImportIsNotNull();
-            Assert.IsInstanceOfType(this.Import, typeof(TExpected), "Import is not of the expected type");
+            this.Import.Should().BeAssignableTo<TExpected>("Import is not of the expected type");
         }
 
         #endregion

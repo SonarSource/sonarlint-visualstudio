@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -58,20 +59,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.fileSystem.RegisterFile(file);
 
             // Act + Verify
-            Assert.IsTrue(testSubject.FileExistOrQueuedToBeWritten(file.ToLowerInvariant()));
+            testSubject.FileExistOrQueuedToBeWritten(file.ToLowerInvariant()).Should().BeTrue();
 
             // Case 2: file not exists, but pending
             this.fileSystem.ClearFiles();
             testSubject.QueueFileWrite(file, () => true);
 
             // Act + Verify
-            Assert.IsTrue(testSubject.FileExistOrQueuedToBeWritten(file.ToUpperInvariant()));
+            testSubject.FileExistOrQueuedToBeWritten(file.ToUpperInvariant()).Should().BeTrue();
 
             // Case 3: file not exists and not pending
             testSubject.WriteQueuedFiles();
 
             // Act + Verify
-            Assert.IsFalse(testSubject.FileExistOrQueuedToBeWritten(file));
+            testSubject.FileExistOrQueuedToBeWritten(file).Should().BeFalse();
         }
 
         [TestMethod]
@@ -84,12 +85,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act
             testSubject.QueueFileWrite(file, () => pendExecuted = true);
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles().Should().BeTrue("Not expecting any errors");
 
             // Verify
             this.queryEditAndSave.AssertCreateRequested(file);
             this.queryEditAndSave.AssertNoEditRequested();
-            Assert.IsTrue(pendExecuted, "Expected to be executed");
+            pendExecuted.Should().BeTrue("Expected to be executed");
         }
 
         [TestMethod]
@@ -103,12 +104,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act
             testSubject.QueueFileWrite(file, () => pendExecuted = true);
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles().Should().BeTrue("Not expecting any errors");
 
             // Verify
             this.queryEditAndSave.AssertNoCreateRequested();
             this.queryEditAndSave.AssertEditRequested(file);
-            Assert.IsTrue(pendExecuted, "Expected to be executed");
+            pendExecuted.Should().BeTrue("Expected to be executed");
         }
 
         [TestMethod]
@@ -126,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => { executionOrder.Add(file1); return true; });
             testSubject.QueueFileWrite(file2, () => { executionOrder.Add(file2); return true; });
             testSubject.QueueFileWrite(file3, () => { executionOrder.Add(file3); return true; });
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles().Should().BeTrue("Not expecting any errors");
 
             // Verify
             this.queryEditAndSave.AssertCreateRequested(file2, file3);
@@ -146,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles().Should().BeTrue("Not expecting any errors");
 
             // Verify
             this.queryEditAndSave.AssertEditRequested(file1);
@@ -164,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Not expecting any errors");
+            testSubject.WriteQueuedFiles().Should().BeTrue("Not expecting any errors");
 
             // Verify
             this.queryEditAndSave.AssertEditRequested(file1);
@@ -181,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
-            Assert.IsFalse(testSubject.WriteQueuedFiles(), "Failed to checkout");
+            testSubject.WriteQueuedFiles().Should().BeFalse("Failed to checkout");
 
             // Verify
             this.queryEditAndSave.AssertEditRequested(file1);
@@ -209,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Failed to checkout");
+            testSubject.WriteQueuedFiles().Should().BeTrue("Failed to checkout");
 
             // Verify
             this.queryEditAndSave.AssertCreateRequested(file1, file1); // Twice silent and then noisy
@@ -231,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueFileWrite(file1, () => { executionOrder.Add(file1); return false; });
             testSubject.QueueFileWrite(file2, () => { executionOrder.Add(file2); return true; });
             testSubject.QueueFileWrite(file3, () => { executionOrder.Add(file3); return true; });
-            Assert.IsFalse(testSubject.WriteQueuedFiles(), "Expected to fail");
+            testSubject.WriteQueuedFiles().Should().BeFalse("Expected to fail");
 
             // Verify
             this.queryEditAndSave.AssertCreateRequested(file2);
@@ -244,11 +245,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             executionOrder.Clear();
 
             // Verify (the test subject should have been cleared from previous state)
-            Assert.IsTrue(testSubject.WriteQueuedFiles(), "Should succeed since there's nothing pending");
+            testSubject.WriteQueuedFiles().Should().BeTrue("Should succeed since there's nothing pending");
             this.queryEditAndSave.AssertAllBatchesCompleted(1);
             this.queryEditAndSave.AssertNoCreateRequested();
             this.queryEditAndSave.AssertNoEditRequested();
-            Assert.AreEqual(0, executionOrder.Count, "Unexpected execution occurred");
+            executionOrder.Should().HaveCount(0, "Unexpected execution occurred");
         }
 
         [TestMethod]
@@ -262,7 +263,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.QueueFileWrite(file1, () => false);
             testSubject.QueueFileWrite(file2, () => true);
-            Assert.IsFalse(testSubject.WriteQueuedFiles(), "Expecting a failure");
+            testSubject.WriteQueuedFiles().Should().BeFalse("Expecting a failure");
 
             // Verify
             this.queryEditAndSave.AssertCreateRequested(file1, file2);

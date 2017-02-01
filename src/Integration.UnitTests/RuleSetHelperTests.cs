@@ -16,7 +16,7 @@
  */
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.IO;
 using System.Linq;
@@ -152,26 +152,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             include = RuleSetHelper.FindInclude(sourceWithRelativeInclude, target);
 
             // Verify
-            Assert.IsTrue(StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, relativeInclude), $"Unexpected include {include.FilePath} instead of {relativeInclude}");
+            StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, relativeInclude).Should().BeTrue($"Unexpected include {include.FilePath} instead of {relativeInclude}");
 
             // Case 2: Absolute include
             // Act
             include = RuleSetHelper.FindInclude(sourceWithAbsoluteInclude, target);
 
             // Verify
-            Assert.IsTrue(StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, absoluteInclude), $"Unexpected include {include.FilePath} instead of {absoluteInclude}");
+            StringComparer.OrdinalIgnoreCase.Equals(include.FilePath, absoluteInclude).Should().BeTrue($"Unexpected include {include.FilePath} instead of {absoluteInclude}");
 
             // Case 3: No includes at all
             // Act
             include = RuleSetHelper.FindInclude(target, target);
             // Verify
-            Assert.IsNull(include, "No includes at all");
+            include.Should().BeNull("No includes at all");
 
             // Case 4: No includes from source to target
             // Act
             include = RuleSetHelper.FindInclude(sourceWithRelativeInclude, sourceWithAbsoluteInclude);
             // Verify
-            Assert.IsNull(include, "No includes from source to target");
+            include.Should().BeNull("No includes from source to target");
         }
         #endregion
 

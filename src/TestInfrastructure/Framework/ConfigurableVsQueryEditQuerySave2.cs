@@ -18,7 +18,7 @@
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             pfEditVerdict = (uint)this.QueryEditFilesVerdict;
             prgfMoreInfo = this.QueryEditFilesMoreInfo;
 
-            Assert.AreEqual(this.VerifyQueryEditFlags, rgfQueryEdit, "Unexpected flags: " + ((VsQueryEditFlags)rgfQueryEdit).ToString());
+            rgfQueryEdit.Should().Be(this.VerifyQueryEditFlags, "Unexpected flags: " + ((VsQueryEditFlags)rgfQueryEdit).ToString());
 
             return VSConstants.S_OK;
         }
@@ -120,8 +120,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertAllBatchesCompleted(int expectedBatches)
         {
-            Assert.AreEqual(expectedBatches, this.batchesStarted, "Unexpected number of batches were started");
-            Assert.AreEqual(expectedBatches, this.batchesFinished, "Unexpected number of batches were completed");
+            this.batchesStarted.Should().Be(expectedBatches, "Unexpected number of batches were started");
+            this.batchesFinished.Should().Be(expectedBatches, "Unexpected number of batches were completed");
         }
 
         public void Reset()

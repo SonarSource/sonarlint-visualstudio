@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
 using System.Windows.Input;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.Reflection;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertCurrentPage(Guid pageId)
         {
-            Assert.AreEqual(pageId, this.currentPageId, "Unexpected current page ID");
+            this.currentPageId.Should().Be(pageId, "Unexpected current page ID");
         }
 
         #endregion

@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System;
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             var optionKey = SolutionAnalysisRequester.FindFullSolutionAnalysisOptionKey(serviceProvider, workspaceConfigurator);
 
             // Assert
-            Assert.IsNull(optionKey);
+            optionKey.Should().BeNull();
             outputWindowPane.AssertOutputStrings(string.Format(Strings.InvalidVisualStudioVersion, visualStudioVersion));
         }
 
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
                     }
                     else
                     {
-                        Assert.Fail("Method was called with unexpected parameters. Expecting '"
+                        FluentAssertions.Execution.Execute.Assertion.FailWith("Method was called with unexpected parameters. Expecting '"
                             + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
                             + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
                             + featureName + "' and '" + fsaName + "'");
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             var optionKey = SolutionAnalysisRequester.FindFullSolutionAnalysisOptionKey(serviceProvider, workspaceConfigurator);
 
             // Assert
-            Assert.IsNotNull(optionKey);
+            optionKey.Should().NotBeNull();
             outputWindowPane.AssertOutputStrings(0);
         }
 
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             var outputWindow = new ConfigurableVsOutputWindow();
             var outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
-            var dteMock = new DTEMock { Version = visualStudioVersion }; 
+            var dteMock = new DTEMock { Version = visualStudioVersion };
             serviceProvider.RegisterService(typeof(EnvDTE.DTE), dteMock);
             var roslynRuntimeOptions = RoslynRuntimeOptions.Resolve(serviceProvider);
             var option = new Option<bool>(roslynRuntimeOptions.RuntimeOptionsFeatureName, roslynRuntimeOptions.FullSolutionAnalysisOptionName);
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
                     }
                     else
                     {
-                        Assert.Fail("Method was called with unexpected parameters. Expecting '"
+                        FluentAssertions.Execution.Execute.Assertion.FailWith("Method was called with unexpected parameters. Expecting '"
                             + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
                             + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
                             + featureName + "' and '" + fsaName + "'");
@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
                     }
                     else
                     {
-                        Assert.Fail("Method was called with unexpected parameters. Expecting '"
+                        FluentAssertions.Execution.Execute.Assertion.FailWith("Method was called with unexpected parameters. Expecting '"
                             + roslynRuntimeOptions.RuntimeOptionsFeatureName + "' and '"
                             + roslynRuntimeOptions.FullSolutionAnalysisOptionName + "', got '"
                             + optionKey.Option.Feature + "' and '" + optionKey.Option.Name + "'");
@@ -211,7 +211,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 
             // Assert
             outputWindowPane.AssertOutputStrings(0);
-            Assert.AreEqual(callCount, 2);
+            callCount.Should().Be(2);
         }
 
         [TestMethod]
@@ -234,13 +234,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             using (new SonarAnalyzerManager(serviceProvider, new AdhocWorkspace(), solutionAnalysisRequester))
             {
                 // Sanity
-                Assert.AreEqual(0, solutionAnalysisRequester.ReanalyzeSolutionCallCount);
+                solutionAnalysisRequester.ReanalyzeSolutionCallCount.Should().Be(0);
 
                 // Act
                 activeSolutionBoundTracker.SimulateSolutionBindingChanged(true);
 
                 // Verify
-                Assert.AreEqual(1, solutionAnalysisRequester.ReanalyzeSolutionCallCount);
+                solutionAnalysisRequester.ReanalyzeSolutionCallCount.Should().Be(1);
             }
         }
     }

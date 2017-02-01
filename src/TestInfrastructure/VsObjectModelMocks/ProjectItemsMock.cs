@@ -16,7 +16,7 @@
  */
 
 using EnvDTE;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         ProjectItem ProjectItems.AddFromFile(string FileName)
         {
-            Assert.IsFalse(this.items.Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, FileName)), "File already exists in project items");
+            this.items.Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, FileName)).Should().BeFalse("File already exists in project items");
 
             this.Project.AddOrGetFile(FileName);
             FileProjectItemMock fileItem = new FileProjectItemMock(this, FileName);

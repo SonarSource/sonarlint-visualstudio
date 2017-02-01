@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.Collections.Generic;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -52,10 +52,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             this.ProgressChanges.Add(Tuple.Create(progressDetailText, progress));
 
-            if (this.ProgressChangedAction != null)
-            {
-                this.ProgressChangedAction(progressDetailText, progress);
-            }
+            this.ProgressChangedAction?.Invoke(progressDetailText, progress);
         }
         #endregion
     }

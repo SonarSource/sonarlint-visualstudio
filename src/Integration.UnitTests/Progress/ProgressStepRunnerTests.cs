@@ -15,11 +15,12 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Observation;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
 {
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
                 progressEvents.SimulateFinished(progressResult);
 
                 // Verify
-                Assert.AreEqual(progressResult, result, "Action was not called");
+                result.Should().Be(progressResult, "Action was not called");
                 progressEvents.AssertNoFinishedEventHandlers();
             }
         }
@@ -72,8 +73,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
             using (ProgressObserver observer1 = ProgressStepRunner.Observe(controller, host))
             {
                 // Verify
-                Assert.IsNotNull(observer1, "Unexpected return value");
-                Assert.AreSame(observer1, ProgressStepRunner.ObservedControllers[controller]);
+                observer1.Should().NotBeNull("Unexpected return value");
+                ProgressStepRunner.ObservedControllers[controller].Should().Be(observer1);
                 host.AssertHasProgressControl();
             }
         }
@@ -94,9 +95,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
             // Verify
             using (var newObserver = ProgressStepRunner.ObservedControllers[controller])
             {
-                Assert.IsNotNull(newObserver);
-                Assert.AreNotSame(newObserver, observer);
-                Assert.AreSame(observer.State, newObserver.State, "State was not transferred");
+                newObserver.Should().NotBeNull();
+                observer.Should().NotBe(newObserver);
+                newObserver.State.Should().Be(observer.State, "State was not transferred");
                 host2.AssertHasProgressControl();
             }
         }

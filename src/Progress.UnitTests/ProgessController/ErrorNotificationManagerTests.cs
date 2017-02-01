@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {

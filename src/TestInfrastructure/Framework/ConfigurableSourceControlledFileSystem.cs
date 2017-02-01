@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 
@@ -33,8 +33,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         void ISourceControlledFileSystem.QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
         {
-            Assert.IsFalse(this.fileWriteOperations.ContainsKey(filePath), "Not expected to modify the same file during execution");
-            Assert.IsNotNull(fileWriteOperation, "Not expecting the operation to be null");
+            this.fileWriteOperations.ContainsKey(filePath).Should().BeFalse("Not expected to modify the same file during execution");
+            fileWriteOperation.Should().NotBeNull("Not expecting the operation to be null");
 
             fileWriteOperations[filePath] = fileWriteOperation;
         }
@@ -65,12 +65,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void WritePendingNoErrorsExpected()
         {
-            Assert.IsTrue(((ISourceControlledFileSystem)this).WriteQueuedFiles(), "Failed to write all the pending files");
+            ((ISourceControlledFileSystem)this).WriteQueuedFiles().Should().BeTrue("Failed to write all the pending files");
         }
 
         public void WritePendingErrorsExpected()
         {
-            Assert.IsFalse(((ISourceControlledFileSystem)this).WriteQueuedFiles(), "Expected to fail writing the pending files");
+            ((ISourceControlledFileSystem)this).WriteQueuedFiles().Should().BeFalse("Expected to fail writing the pending files");
         }
 
         public void ClearPending()

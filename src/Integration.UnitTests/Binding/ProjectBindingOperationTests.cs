@@ -15,13 +15,14 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Binding;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -67,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, null));
 
             ProjectBindingOperation testSubject = this.CreateTestSubject();
-            Assert.IsNotNull(testSubject, "Suppress warning that not used");
+            testSubject.Should().NotBeNull("Suppress warning that not used");
         }
 
         [TestMethod]
@@ -83,14 +84,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Initialize();
 
             // Verify
-            Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(Language.VBNET, testSubject.ProjectLanguage);
+            testSubject.ProjectFullPath.Should().Be(@"c:\solution\Project\project.proj");
+            testSubject.ProjectLanguage.Should().Be(Language.VBNET);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             foreach (var prop in new[] { prop1, prop2 })
             {
-                Assert.AreEqual(ProjectBindingOperation.DefaultProjectRuleSet, testSubject.PropertyInformationMap[prop].CurrentRuleSetFilePath);
-                Assert.AreEqual("project", testSubject.PropertyInformationMap[prop].TargetRuleSetFileName);
+                testSubject.PropertyInformationMap[prop].CurrentRuleSetFilePath.Should().Be(ProjectBindingOperation.DefaultProjectRuleSet);
+                testSubject.PropertyInformationMap[prop].TargetRuleSetFileName.Should().Be("project");
             }
         }
 
@@ -107,14 +108,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Initialize();
 
             // Verify
-            Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(Language.VBNET, testSubject.ProjectLanguage);
+            testSubject.ProjectFullPath.Should().Be(@"c:\solution\Project\project.proj");
+            testSubject.ProjectLanguage.Should().Be(Language.VBNET);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             foreach (var prop in new[] { prop1, prop2 })
             {
-                Assert.IsTrue(string.IsNullOrEmpty(testSubject.PropertyInformationMap[prop].CurrentRuleSetFilePath));
-                Assert.AreEqual("project", testSubject.PropertyInformationMap[prop].TargetRuleSetFileName);
+                string.IsNullOrEmpty(testSubject.PropertyInformationMap[prop].CurrentRuleSetFilePath).Should().BeTrue();
+                testSubject.PropertyInformationMap[prop].TargetRuleSetFileName.Should().Be("project");
             }
         }
         [TestMethod]
@@ -130,14 +131,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Initialize();
 
             // Verify
-            Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(Language.VBNET, testSubject.ProjectLanguage);
+            testSubject.ProjectFullPath.Should().Be(@"c:\solution\Project\project.proj");
+            testSubject.ProjectLanguage.Should().Be(Language.VBNET);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
             foreach (var prop in new[] { prop1, prop2 })
             {
-                Assert.AreEqual("Custom1.ruleset", testSubject.PropertyInformationMap[prop].CurrentRuleSetFilePath);
-                Assert.AreEqual("project", testSubject.PropertyInformationMap[prop].TargetRuleSetFileName);
+                testSubject.PropertyInformationMap[prop].CurrentRuleSetFilePath.Should().Be("Custom1.ruleset");
+                testSubject.PropertyInformationMap[prop].TargetRuleSetFileName.Should().Be("project");
             }
         }
 
@@ -154,14 +155,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Initialize();
 
             // Verify
-            Assert.AreEqual(@"c:\solution\Project\project.proj", testSubject.ProjectFullPath);
-            Assert.AreEqual(Language.CSharp, testSubject.ProjectLanguage);
+            testSubject.ProjectFullPath.Should().Be(@"c:\solution\Project\project.proj");
+            testSubject.ProjectLanguage.Should().Be(Language.CSharp);
             CollectionAssert.AreEquivalent(new[] { prop1, prop2 }, testSubject.PropertyInformationMap.Keys.ToArray(), "Unexpected properties");
 
-            Assert.AreEqual(ProjectBindingOperation.DefaultProjectRuleSet, testSubject.PropertyInformationMap[prop1].CurrentRuleSetFilePath);
-            Assert.AreEqual("project", testSubject.PropertyInformationMap[prop1].TargetRuleSetFileName, "Default ruleset - expected project based name to be generated");
-            Assert.AreEqual("NonDefualtRuleSet.ruleset", testSubject.PropertyInformationMap[prop2].CurrentRuleSetFilePath);
-            Assert.AreEqual("project.config2", testSubject.PropertyInformationMap[prop2].TargetRuleSetFileName, "Non default ruleset - expected configuration based rule set name to be generated");
+            testSubject.PropertyInformationMap[prop1].CurrentRuleSetFilePath.Should().Be(ProjectBindingOperation.DefaultProjectRuleSet);
+            testSubject.PropertyInformationMap[prop1].TargetRuleSetFileName.Should().Be("project", "Default ruleset - expected project based name to be generated");
+            testSubject.PropertyInformationMap[prop2].CurrentRuleSetFilePath.Should().Be("NonDefualtRuleSet.ruleset");
+            testSubject.PropertyInformationMap[prop2].TargetRuleSetFileName.Should().Be("project.config2", "Non default ruleset - expected configuration based rule set name to be generated");
         }
 
         [TestMethod]
@@ -183,15 +184,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
             this.sccFileSystem.AssertFileNotExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
-            Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[defaultRuleSetProperty1].NewRuleSetFilePath, "Expected all the properties with default ruleset to have the same new ruleset");
-            Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[defaultRuleSetProperty2].NewRuleSetFilePath, "Expected all the properties with default ruleset to have the same new ruleset");
+            testSubject.PropertyInformationMap[defaultRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected all the properties with default ruleset to have the same new ruleset");
+            testSubject.PropertyInformationMap[defaultRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected all the properties with default ruleset to have the same new ruleset");
 
             string expectedRuleSetForConfig1 = Path.ChangeExtension(expectedRuleSetFileForPropertiesWithDefaultRulSets, "config1.ruleset");
-            Assert.AreEqual(expectedRuleSetForConfig1, testSubject.PropertyInformationMap[customRuleSetProperty1].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
+            testSubject.PropertyInformationMap[customRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetForConfig1, "Expected different rule set path for properties with custom rulesets");
             this.sccFileSystem.AssertFileNotExists(expectedRuleSetForConfig1);
 
             string expectedRuleSetForConfig2 = Path.ChangeExtension(expectedRuleSetFileForPropertiesWithDefaultRulSets, "config2.ruleset");
-            Assert.AreEqual(expectedRuleSetForConfig2, testSubject.PropertyInformationMap[customRuleSetProperty2].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
+            testSubject.PropertyInformationMap[customRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetForConfig2, "Expected different rule set path for properties with custom rulesets");
             this.sccFileSystem.AssertFileNotExists(expectedRuleSetForConfig2);
 
             // Act (write pending)
@@ -220,8 +221,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
             this.sccFileSystem.AssertFileNotExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
-            Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[customRuleSetProperty1].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
-            Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[customRuleSetProperty2].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
+            testSubject.PropertyInformationMap[customRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected different rule set path for properties with custom rulesets");
+            testSubject.PropertyInformationMap[customRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected different rule set path for properties with custom rulesets");
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
@@ -247,8 +248,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Verify
             string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
             this.sccFileSystem.AssertFileNotExists(expectedRuleSetFileForPropertiesWithDefaultRulSets);
-            Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[defaultRuleSetProperty1].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
-            Assert.AreEqual(expectedRuleSetFileForPropertiesWithDefaultRulSets, testSubject.PropertyInformationMap[defaultRuleSetProperty2].NewRuleSetFilePath, "Expected different rule set path for properties with custom rulesets");
+            testSubject.PropertyInformationMap[defaultRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected different rule set path for properties with custom rulesets");
+            testSubject.PropertyInformationMap[defaultRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected different rule set path for properties with custom rulesets");
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
@@ -277,9 +278,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             string expectedFile = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            Assert.IsNull(testSubject.PropertyInformationMap[prop].NewRuleSetFilePath, "Not expecting the new rule set path to be set when canceled");
-            Assert.AreEqual(ProjectBindingOperation.DefaultProjectRuleSet, prop.Value.ToString(), "Should not update the property value");
-            Assert.IsFalse(this.projectMock.Files.ContainsKey(expectedFile), "Should not be added to the project");
+            testSubject.PropertyInformationMap[prop].NewRuleSetFilePath.Should().BeNull("Not expecting the new rule set path to be set when canceled");
+            prop.Value.ToString().Should().Be(ProjectBindingOperation.DefaultProjectRuleSet, "Should not update the property value");
+            this.projectMock.Files.ContainsKey(expectedFile).Should().BeFalse("Should not be added to the project");
         }
 
         [TestMethod]
@@ -302,8 +303,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             string expectedFile = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            Assert.AreEqual(Path.GetFileName(expectedFile), prop.Value.ToString(), "Should update the property value");
-            Assert.IsTrue(this.projectMock.Files.ContainsKey(expectedFile), "Should be added to the project");
+            prop.Value.ToString().Should().Be(Path.GetFileName(expectedFile), "Should update the property value");
+            this.projectMock.Files.ContainsKey(expectedFile).Should().BeTrue("Should be added to the project");
         }
         #endregion
 

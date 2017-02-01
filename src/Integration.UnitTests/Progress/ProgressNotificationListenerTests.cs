@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Progress;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

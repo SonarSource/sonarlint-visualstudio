@@ -16,7 +16,7 @@
  */
 
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Binding;
 using System.Collections.Generic;
 using static SonarLint.VisualStudio.Integration.Binding.SolutionBindingOperation;
@@ -32,14 +32,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         RuleSetInformation ISolutionRuleStore.GetRuleSetInformation(Language language)
         {
             RuleSetInformation ruleSet;
-            Assert.IsTrue(this.availableRuleSets.TryGetValue(language, out ruleSet), "No RuleSet for group: " + language);
+            this.availableRuleSets.TryGetValue(language, out ruleSet).Should().BeTrue("No RuleSet for group: " + language);
 
             return ruleSet;
         }
 
         void ISolutionRuleStore.RegisterKnownRuleSets(IDictionary<Language, RuleSet> ruleSets)
         {
-            Assert.IsNotNull(ruleSets, "Not expecting nulls");
+            ruleSets.Should().NotBeNull("Not expecting nulls");
 
             foreach (var rule in ruleSets)
             {

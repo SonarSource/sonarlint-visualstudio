@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -41,14 +41,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertSingleEventWasWritten(TelemetryEvent expected)
         {
-            Assert.AreEqual(1, this.events.Count, "Unexpected events: {0}", string.Join(", ", this.events));
+            this.events.Should().HaveCount(1, "Unexpected events: {0}", string.Join(", ", this.events));
             TelemetryEvent actual = this.events.Single();
-            Assert.AreEqual(expected, actual, "Unexpected entry name");
+            actual.Should().Be(expected, "Unexpected entry name");
         }
 
         public void AssertNoEventWasWritten()
         {
-            Assert.AreEqual(0, this.events.Count, "Unexpected events: {0}", string.Join(", ", this.events));
+            this.events.Should().HaveCount(0, "Unexpected events: {0}", string.Join(", ", this.events));
         }
 
         public void DumpAllToOutput()

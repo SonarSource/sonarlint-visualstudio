@@ -16,7 +16,7 @@
  */
 
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using System;
 
@@ -28,9 +28,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public ConfigurableInfoBar(string message, string buttonText, ImageMoniker imageMoniker)
         {
-            Assert.IsNotNull(message, "Message is null");
-            Assert.IsNotNull(buttonText, "Button text is null");
-            Assert.IsNotNull(imageMoniker, "image moniker is null");
+            message.Should().NotBeNull("Message is null");
+            buttonText.Should().NotBeNull("Button text is null");
+            imageMoniker.Should().NotBeNull("image moniker is null");
 
             this.Message = message;
             this.ButtonText = buttonText;
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertClosedCalled(int expectedNumberOfTimes)
         {
-            Assert.AreEqual(expectedNumberOfTimes, this.closedCalled, $"{nameof(Close)} was called unexpected number of times");
+            this.closedCalled.Should().Be(expectedNumberOfTimes, $"{nameof(Close)} was called unexpected number of times");
         }
 
         public void SimulateButtonClickEvent()
@@ -69,14 +69,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void VerifyAllEventsUnregistered()
         {
-            Assert.IsNull(this.ButtonClick, $"{nameof(this.ButtonClick)} event remained registered");
-            Assert.IsNull(this.Closed, $"{nameof(this.Closed)} event remained registered");
+            this.ButtonClick.Should().BeNull($"{nameof(this.ButtonClick)} event remained registered");
+            this.Closed.Should().BeNull($"{nameof(this.Closed)} event remained registered");
         }
 
         public void VerifyAllEventsRegistered()
         {
-            Assert.IsNotNull(this.ButtonClick, $"{nameof(this.ButtonClick)} event is not registered");
-            Assert.IsNotNull(this.Closed, $"{nameof(this.Closed)} event is not registered");
+            this.ButtonClick.Should().NotBeNull($"{nameof(this.ButtonClick)} event is not registered");
+            this.Closed.Should().NotBeNull($"{nameof(this.Closed)} event is not registered");
         }
         #endregion
     }

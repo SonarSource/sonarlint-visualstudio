@@ -16,7 +16,7 @@
  */
 
 using SonarLint.VisualStudio.Integration.WPF;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var command = new RelayCommand(() => { });
 
             // Act + Verify
-            Assert.IsTrue(command.CanExecute());
+            command.CanExecute().Should().BeTrue();
         }
 
         [TestMethod]
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var command = new RelayCommand<object>(x => { });
 
             // Act + Verify
-            Assert.IsTrue(command.CanExecute(null));
+            command.CanExecute(null).Should().BeTrue();
         }
     }
 }

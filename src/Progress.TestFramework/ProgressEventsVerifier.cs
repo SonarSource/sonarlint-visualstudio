@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -53,25 +53,25 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         #region Test helpers
         public void AssertCancellationChanges(int expectedChanges)
         {
-            Assert.AreEqual(expectedChanges, this.cancellableStateChanges, "Unexpected cancellation state changes");
+            this.cancellableStateChanges.Should().Be(expectedChanges, "Unexpected cancellation state changes");
         }
 
         public void AssertCorrectExecution(ProgressControllerResult result)
         {
-            Assert.IsTrue(this.started, "Invalid execution: Started didn't fire");
-            Assert.AreEqual(result, this.executionResult, "Invalid execution: Finished didn't fire with the expect result ({0})", this.executionResult.HasValue ? this.executionResult.Value.ToString() : "NONE");
+            this.started.Should().BeTrue("Invalid execution: Started didn't fire");
+            this.executionResult.Should().Be(result, "Invalid execution: Finished didn't fire with the expect result ({0})", this.executionResult.HasValue ? this.executionResult.Value.ToString() : "NONE");
         }
 
         public void AssertStepCorrectExecution(IProgressStep step, StepExecutionState finalState)
         {
             if (finalState == StepExecutionState.NotStarted)
             {
-                Assert.IsFalse(this.executionChanges.ContainsKey(step), "Not expecting any changes for a step that was not started");
+                this.executionChanges.ContainsKey(step).Should().BeFalse("Not expecting any changes for a step that was not started");
             }
             else
             {
                 List<StepExecutionChangedEventArgs> changes = this.executionChanges[step];
-                Assert.IsNotNull(changes, "Cannot find the changes list for the specified step");
+                changes.Should().NotBeNull("Cannot find the changes list for the specified step");
                 VerifyStateTransitions(changes.Select(e => e.State).ToArray(), finalState);
             }
         }
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         public void AssertExecutionProgress(IProgressStep step, params Tuple<string, double>[] expectedSequence)
         {
             List<StepExecutionChangedEventArgs> changes = this.executionChanges[step];
-            Assert.IsNotNull(changes, "Cannot find the changes list for the specified step");
+            changes.Should().NotBeNull("Cannot find the changes list for the specified step");
             Tuple<string, double>[] actualSequence = changes.Where(c => c.State == StepExecutionState.Executing).Select(c => Tuple.Create(c.ProgressDetailText, c.Progress)).ToArray();
             VerifyProgressSequence(!step.Indeterminate, expectedSequence, actualSequence);
         }
@@ -87,20 +87,20 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private static void VerifyProgressSequence(bool determinate, Tuple<string, double>[] expectedSequence, Tuple<string, double>[] actualSequence)
         {
             // There's an extra executing notification for the transition from NotStarted -> Executing
-            Assert.AreEqual(expectedSequence.Length + 1, actualSequence.Length, "Unexpected sequence length");
-            Assert.IsNull(actualSequence[0].Item1, "The default transition should be with null display progress text");
+            actualSequence.Length.Should().Be(expectedSequence.Length + 1, "Unexpected sequence length");
+            actualSequence[0].Item1.Should().BeNull("The default transition should be with null display progress text");
             if (determinate)
             {
-                Assert.AreEqual(0.0, actualSequence[0].Item2, "For determinate steps the initial percentage is 0%");
+                actualSequence[0].Item2.Should().Be(0.0, "For determinate steps the initial percentage is 0%");
             }
             else
             {
-                Assert.IsTrue(ProgressControllerHelper.IsIndeterminate(actualSequence[0].Item2), "Should be indeterminate");
+                ProgressControllerHelper.IsIndeterminate(actualSequence[0].Item2).Should().BeTrue("Should be indeterminate");
             }
 
             for (int i = 0; i < expectedSequence.Length; i++)
             {
-                Assert.AreEqual(expectedSequence[i], actualSequence[i + 1], "Unexpected sequence item");
+                actualSequence[i + 1].Should().Be(expectedSequence[i], "Unexpected sequence item");
             }
         }
 
@@ -110,12 +110,12 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             {
                 if (IsFinalState(transition[i]))
                 {
-                    Assert.AreEqual(finalState, transition[i], "Unexpected final state");
-                    Assert.AreEqual(transition.Length - 1, i, "Final state should be the last one recorded");
+                    transition[i].Should().Be(finalState, "Unexpected final state");
+                    i.Should().Be(transition.Length - 1, "Final state should be the last one recorded");
                 }
                 else
                 {
-                    Assert.AreEqual(StepExecutionState.Executing, transition[i], "Only Executing is expected");
+                    transition[i].Should().Be(StepExecutionState.Executing, "Only Executing is expected");
                 }
             }
         }
@@ -129,8 +129,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         #region Event handlers
         private static void AssertEventHandlerArgsNotNull(object sender, EventArgs e)
         {
-            Assert.IsNotNull(sender, "sender should not be null");
-            Assert.IsNotNull(e, "e should not be null");
+            sender.Should().NotBeNull("sender should not be null");
+            e.Should().NotBeNull("e should not be null");
         }
 
         private void OnCancellationSupportChanged(object sender, CancellationSupportChangedEventArgs e)

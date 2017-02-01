@@ -17,7 +17,7 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertShowNoActivateCalled(int expectedNumberOfTimes)
         {
-            Assert.AreEqual(expectedNumberOfTimes, this.showNoActivateCalled, "ShowNoActivate called unexpected number of times");
+            this.showNoActivateCalled.Should().Be(expectedNumberOfTimes, "ShowNoActivate called unexpected number of times");
         }
         #endregion
     }

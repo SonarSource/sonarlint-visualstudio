@@ -15,8 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -44,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var canConvertFrom = this.testSubject.CanConvertFrom(typeof(string));
 
             // Verify
-            Assert.IsTrue(canConvertFrom, "Expected to be able to convert from string");
+            canConvertFrom.Should().BeTrue("Expected to be able to convert from string");
         }
 
         [TestMethod]
@@ -59,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var canConvertFrom = this.testSubject.CanConvertFrom(type);
 
                 // Verify
-                Assert.IsFalse(canConvertFrom, $"Expected NOT to be able to convert from {type.Name}");
+                canConvertFrom.Should().BeFalse($"Expected NOT to be able to convert from {type.Name}");
             }
         }
 
@@ -70,8 +71,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             object result = this.testSubject.ConvertFrom(Language.VBNET.Id);
 
             // Verify
-            Assert.IsInstanceOfType(result, typeof(Language));
-            Assert.AreEqual(Language.VBNET, result);
+            result.Should().BeAssignableTo<Language>();
+            result.Should().Be(Language.VBNET);
         }
 
         [TestMethod]
@@ -81,8 +82,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             object result = this.testSubject.ConvertFrom("WhoAmI?");
 
             // Verify
-            Assert.IsInstanceOfType(result, typeof(Language));
-            Assert.AreEqual(Language.Unknown, result);
+            result.Should().BeAssignableTo<Language>();
+            result.Should().Be(Language.Unknown);
         }
 
         [TestMethod]
@@ -96,8 +97,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             // Verify
-            Assert.IsInstanceOfType(result, typeof(Language));
-            Assert.AreEqual(Language.Unknown, result);
+            result.Should().BeAssignableTo<Language>();
+            result.Should().Be(Language.Unknown);
         }
 
         [TestMethod]
@@ -107,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var canConvertTo = this.testSubject.CanConvertTo(typeof(string));
 
             // Verify
-            Assert.IsTrue(canConvertTo, "Expected to be able to convert to string");
+            canConvertTo.Should().BeTrue("Expected to be able to convert to string");
         }
 
         [TestMethod]
@@ -122,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var canConvertTo = this.testSubject.CanConvertTo(type);
 
                 // Verify
-                Assert.IsFalse(canConvertTo, $"Expected NOT to be able to convert to {type.Name}");
+                canConvertTo.Should().BeFalse($"Expected NOT to be able to convert to {type.Name}");
             }
         }
 
@@ -133,8 +134,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             object result = this.testSubject.ConvertTo(Language.VBNET, typeof(string));
 
             // Verify
-            Assert.IsInstanceOfType(result, typeof(string));
-            Assert.AreEqual(Language.VBNET.Id, result);
+            result.Should().BeAssignableTo<string>();
+            result.Should().Be(Language.VBNET.Id);
         }
 
         [TestMethod]
@@ -148,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             // Verify
-            Assert.IsNull(result);
+            result.Should().BeNull();
         }
 
         #endregion

@@ -15,11 +15,12 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
@@ -46,35 +47,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var realCommand = new RelayCommand<object>(
                 (state) =>
                 {
-                    Assert.AreEqual(this, state);
+                    state.Should().Be(this);
                     executed = true;
                 },
                 (state) =>
                 {
-                    Assert.AreEqual(this, state);
+                    state.Should().Be(this);
                     return canExecute;
                 });
             var testSubject = new ContextualCommandViewModel(this, realCommand);
 
             // Sanity
-            Assert.IsNotNull(testSubject.Command);
-            Assert.AreSame(realCommand, testSubject.InternalRealCommand);
+            testSubject.Command.Should().NotBeNull();
+            testSubject.InternalRealCommand.Should().Be(realCommand);
 
             // Case 1: Can't execute
             canExecute = false;
             // Act
-            Assert.IsFalse(testSubject.Command.CanExecute(null), "CanExecute wasn't called as expected");
+            testSubject.Command.CanExecute(null).Should().BeFalse("CanExecute wasn't called as expected");
 
             // Case 2: Can execute
             canExecute = true;
 
             // Act
-            Assert.IsTrue(testSubject.Command.CanExecute(null), "CanExecute wasn't called as expected");
+            testSubject.Command.CanExecute(null).Should().BeTrue("CanExecute wasn't called as expected");
 
             // Case 3: Execute
             // Act
             testSubject.Command.Execute(null);
-            Assert.IsTrue(executed, "Execute wasn't called as expected");
+            executed.Should().BeTrue("Execute wasn't called as expected");
         }
 
         [TestMethod]
@@ -89,12 +90,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             {
                 // Case 1: null
                 // Act + Verify
-                Assert.IsNull(testSubject.DisplayText, "Expected display text to return null when not set");
+                testSubject.DisplayText.Should().BeNull("Expected display text to return null when not set");
 
                 // Case 2: static
                 testSubject.DisplayText = "foobar9000";
                 // Act + Verify
-                Assert.AreEqual("foobar9000", testSubject.DisplayText, "Unexpected static display text");
+                testSubject.DisplayText.Should().Be("foobar9000", "Unexpected static display text");
                 tracker.AssertPropertyChangedRaised(nameof(testSubject.DisplayText), 1);
 
                 // Case 3: dynamic
@@ -106,8 +107,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
                 };
                 testSubject.SetDynamicDisplayText(func);
                 // Act + Verify
-                Assert.AreEqual("1234", testSubject.DisplayText, "Unexpected dynamic display text");
-                Assert.IsTrue(funcInvoked, "Dynamic display text function was not invoked");
+                testSubject.DisplayText.Should().Be("1234", "Unexpected dynamic display text");
+                funcInvoked.Should().BeTrue("Dynamic display text function was not invoked");
                 tracker.AssertPropertyChangedRaised(nameof(testSubject.DisplayText), 2);
             }
 
@@ -127,13 +128,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             {
                 // Case 1: null
                 // Act + Verify
-                Assert.IsNull(testSubject.Icon, "Expected icon to return null when not set");
+                testSubject.Icon.Should().BeNull("Expected icon to return null when not set");
 
                 // Case 2: static
                 var staticIcon = new IconViewModel(null);
                 testSubject.Icon = staticIcon;
                 // Act + Verify
-                Assert.AreSame(staticIcon, testSubject.Icon, "Unexpected static icon");
+                testSubject.Icon.Should().Be(staticIcon, "Unexpected static icon");
                 tracker.AssertPropertyChangedRaised(nameof(testSubject.Icon), 1);
 
                 // Case 3: dynamic
@@ -146,8 +147,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
                 };
                 testSubject.SetDynamicIcon(func);
                 // Act + Verify
-                Assert.AreSame(dynamicIcon, testSubject.Icon, "Unexpected dynamic icon");
-                Assert.IsTrue(funcInvoked, "Dynamic icon function  was not invoked");
+                testSubject.Icon.Should().Be(dynamicIcon, "Unexpected dynamic icon");
+                funcInvoked.Should().BeTrue("Dynamic icon function  was not invoked");
                 tracker.AssertPropertyChangedRaised(nameof(testSubject.Icon), 2);
             }
 
@@ -168,8 +169,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 
             public void AssertPropertyChangedRaised(string propertyName, int count)
             {
-                Assert.IsTrue(count > 0 || this.trackingDictionary.ContainsKey(propertyName), $"PropertyChanged was not raised for '{propertyName}'");
-                Assert.AreEqual(count, this.trackingDictionary[propertyName], "Unexpected number of PropertyChanged events raised");
+                (count > 0 || this.trackingDictionary.ContainsKey(propertyName)).Should().BeTrue($"PropertyChanged was not raised for '{propertyName}'");
+                this.trackingDictionary[propertyName].Should().Be(count, "Unexpected number of PropertyChanged events raised");
             }
 
             private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)

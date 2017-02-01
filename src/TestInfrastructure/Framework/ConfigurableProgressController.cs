@@ -17,7 +17,7 @@
 
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test helpers
         public void AssertNumberOfAbortRequests(int expected)
         {
-            Assert.AreEqual(expected, this.numberOfAbortRequests, "TryAbort was not called the expected number of times");
+            this.numberOfAbortRequests.Should().Be(expected, "TryAbort was not called the expected number of times");
         }
 
         public void AddSteps(params IProgressStep[] progressSteps)

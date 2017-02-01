@@ -17,7 +17,7 @@
 
 using EnvDTE;
 using EnvDTE80;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections;
 using System.Linq;
@@ -431,7 +431,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         Project Solution2.AddSolutionFolder(string Name)
         {
-            Assert.IsFalse(this.projects.ContainsKey(Name), "Solution folder already exists");
+            this.projects.ContainsKey(Name).Should().BeFalse("Solution folder already exists");
             var solutionFolder = this.AddOrGetProject(Name);
             solutionFolder.ProjectKind = ProjectSystemHelper.VsProjectItemKindSolutionFolder;
 

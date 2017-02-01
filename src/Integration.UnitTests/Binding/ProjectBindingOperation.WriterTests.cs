@@ -15,14 +15,14 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Binding;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using static SonarLint.VisualStudio.Integration.Binding.SolutionBindingOperation;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             );
 
             // Verify
-            Assert.AreEqual(expected, actual);
+            actual.Should().Be(expected);
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             );
 
             // Verify
-            Assert.AreEqual($"X:\\{fileName}-1.ruleset", actual, "Expected to append running number to desired file name, skipping the default one since exists");
+            actual.Should().Be($"X:\\{fileName}-1.ruleset", "Expected to append running number to desired file name, skipping the default one since exists");
 
             // Test case 2: desired name + 1 + 2 exists
             // Setup
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             );
 
             // Verify
-            Assert.AreEqual(@"X:\NameTaken-3.ruleset", actual, "Expected to append running number to desired file name");
+            actual.Should().Be(@"X:\NameTaken-3.ruleset", "Expected to append running number to desired file name");
 
             // Test case 3: has a pending write (not exists yet)
             ((ISourceControlledFileSystem)this.sccFileSystem).QueueFileWrite(@"X:\NameTaken-3.ruleset", () => true);
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             );
 
             // Verify
-            Assert.AreEqual(@"X:\NameTaken-4.ruleset", actual, "Expected to append running number to desired file name, skipping 3 since pending write");
+            actual.Should().Be(@"X:\NameTaken-4.ruleset", "Expected to append running number to desired file name, skipping 3 since pending write");
 
         }
 
@@ -123,23 +123,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             string actualFileName = Path.GetFileNameWithoutExtension(actual);
-            Assert.AreEqual(fileName.Length + 32 + 1, actualFileName.Length, "Expected to append GUID to desired file name, actual: " + actualFileName);
+            actualFileName.Length.Should().Be(fileName.Length + 32 + 1, "Expected to append GUID to desired file name, actual: " + actualFileName);
         }
 
         [TestMethod]
         public void ProjectBindingOperation_ShouldIgnoreConfigureRuleSetValue()
         {
             // Test case 1: not ignored
-            Assert.IsFalse(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue("My awesome rule set.ruleset"));
+            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue("My awesome rule set.ruleset").Should().BeFalse();
 
             // Test case 2: ignored
             // Act
-            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(null));
-            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(" "));
-            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue("\t"));
-            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)));
-            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)));
-            Assert.IsTrue(ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet));
+            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(null).Should().BeTrue();
+            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(" ").Should().BeTrue();
+            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue("\t").Should().BeTrue();
+            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)).Should().BeTrue();
+            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)).Should().BeTrue();
+            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet).Should().BeTrue();
         }
 
         [TestMethod]
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
-            Assert.AreEqual(existingProjectRuleSetPath, actualPath, "Expecting the rule set to be updated");
+            actualPath.Should().Be(existingProjectRuleSetPath, "Expecting the rule set to be updated");
         }
 
         [TestMethod]
@@ -237,7 +237,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
-            Assert.AreEqual(existingProjectRuleSetPath, actualPath, "Expecting the rule set to be updated");
+            actualPath.Should().Be(existingProjectRuleSetPath, "Expecting the rule set to be updated");
         }
 
         [TestMethod]
@@ -272,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             this.ruleSetFS.AssertRuleSetNotExists(actualPath);
-            Assert.AreNotEqual(existingProjectRuleSetPath, actualPath, "Expecting a new rule set to be created once written pending");
+            actualPath.Should().NotBe(existingProjectRuleSetPath, "Expecting a new rule set to be created once written pending");
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
@@ -315,7 +315,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             this.ruleSetFS.AssertRuleSetNotExists(actualPath);
-            Assert.AreNotEqual(existingProjectRuleSetPath, actualPath, "Expecting a new rule set to be created once written pending");
+            actualPath.Should().NotBe(existingProjectRuleSetPath, "Expecting a new rule set to be created once written pending");
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
@@ -354,7 +354,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Verify
             this.ruleSetFS.AssertRuleSetNotExists(actualPath);
-            Assert.AreNotEqual(currentNonExistingRuleSet, actualPath, "Expecting a new rule set to be created once written pending");
+            actualPath.Should().NotBe(currentNonExistingRuleSet, "Expecting a new rule set to be created once written pending");
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
@@ -391,7 +391,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 // Verify
                 this.ruleSetFS.AssertRuleSetNotExists(actualPath);
-                Assert.AreNotEqual(solutionRuleSetPath, actualPath, "Expecting a new rule set to be created once pending were written");
+                actualPath.Should().NotBe(solutionRuleSetPath, "Expecting a new rule set to be created once pending were written");
             }
 
             // Act (write pending)
@@ -427,9 +427,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, existingRuleSetPropValue, out pathOutResult, out rsOutput);
 
             // Verify
-            Assert.IsTrue(result, "Expected to return true when trying to update existing rule set");
-            Assert.AreSame(existingRuleSet, rsOutput, "Same RuleSet instance expected");
-            Assert.AreEqual(existingRuleSetFullPath, pathOutResult, "Unexpected rule set path was returned");
+            result.Should().BeTrue("Expected to return true when trying to update existing rule set");
+            rsOutput.Should().Be(existingRuleSet, "Same RuleSet instance expected");
+            pathOutResult.Should().Be(existingRuleSetFullPath, "Unexpected rule set path was returned");
             this.sccFileSystem.AssertFileTimestamp(existingRuleSetFullPath, beforeTimestamp);
         }
 
@@ -456,9 +456,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, existingRuleSetPropValue, out pathOutResult, out rsOutput);
 
             // Verify
-            Assert.IsTrue(result, "Expected to return true when trying to update already updated existing rule set");
-            Assert.AreSame(existingRuleSet, rsOutput, "Same RuleSet instance is expected");
-            Assert.AreEqual(existingRuleSetFullPath, pathOutResult, "Unexpected rule set path was returned");
+            result.Should().BeTrue("Expected to return true when trying to update already updated existing rule set");
+            rsOutput.Should().Be(existingRuleSet, "Same RuleSet instance is expected");
+            pathOutResult.Should().Be(existingRuleSetFullPath, "Unexpected rule set path was returned");
             this.sccFileSystem.AssertFileTimestamp(existingRuleSetFullPath, beforeTimestamp);
         }
 
@@ -491,9 +491,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 // Verify
                 string testCase = currentRuleSet ?? "NULL";
-                Assert.IsNull(pathOutResult, "Unexpected rule set path was returned: {0}. Case: {1}", pathOutResult, testCase);
-                Assert.IsNull(rsOutput, "Unexpected rule set was returned. Case: {0}", testCase);
-                Assert.IsFalse(result, "Not expecting to update a non project rooted rulesets. Case: {0}", testCase);
+                pathOutResult.Should().BeNull("Unexpected rule set path was returned: {0}. Case: {1}", pathOutResult, testCase);
+                rsOutput.Should().BeNull("Unexpected rule set was returned. Case: {0}", testCase);
+                result.Should().BeFalse("Not expecting to update a non project rooted rulesets. Case: {0}", testCase);
             }
         }
 

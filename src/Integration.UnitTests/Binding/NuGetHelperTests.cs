@@ -15,13 +15,14 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.Binding;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGet.VisualStudio;
-using System;
 using NuGet;
+using NuGet.VisualStudio;
+using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -50,14 +51,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Act + Verify
             using (new AssertIgnoreScope()) // Missing MEF service
             {
-                Assert.IsFalse(NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), "pcg"), "No MEF service should be resulted with a false returned value");
+                NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), "pcg").Should().BeFalse("No MEF service should be resulted with a false returned value");
             }
             outputPane.AssertOutputStrings(0);
 
             // Case 2: Exception from the service
             sp.RegisterService(typeof(SComponentModel), ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IVsPackageInstaller>(new ConfigurablePackageInstaller(simulateInstallerException: true))), replaceExisting: true);
             // Act + Verify
-            Assert.IsFalse(NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), "pcg"), "Non critical exception should result with a false returned value");
+            NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), "pcg").Should().BeFalse("Non critical exception should result with a false returned value");
             outputPane.AssertOutputStrings(1);
         }
 
@@ -72,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             sp.RegisterService(typeof(SComponentModel), ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IVsPackageInstaller>(new ConfigurablePackageInstaller(availablePackages, simulateInstallerException: false))), replaceExisting: true);
 
             // Act + Verify
-            Assert.IsTrue(NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), package.Id, package.Version.ToNormalizedString()), "The package is expected to be installed successfully");
+            NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), package.Id, package.Version.ToNormalizedString()).Should().BeTrue("The package is expected to be installed successfully");
         }
         #endregion
 

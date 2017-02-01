@@ -16,7 +16,7 @@
  */
 
 using SonarLint.VisualStudio.Integration.WPF;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.ComponentModel;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
@@ -32,12 +32,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 
             // Case 1: no commands
             // Act + Verify
-            Assert.IsFalse(testSubject.HasCommands);
+            testSubject.HasCommands.Should().BeFalse();
 
             // Case 2: has commands
             testSubject.Add(new ContextualCommandViewModel(this, new RelayCommand(()=> { })));
             // Act + Verify
-            Assert.IsTrue(testSubject.HasCommands);
+            testSubject.HasCommands.Should().BeTrue();
         }
 
         [TestMethod]
@@ -62,19 +62,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             testSubject.Add(cmd2);
 
             // Verify
-            Assert.AreEqual(2, hasCommandsChangedCounter, "Adding a command should update HasCommands");
+            hasCommandsChangedCounter.Should().Be(2, "Adding a command should update HasCommands");
 
             // Case 2: Remove command
             // Act
             testSubject.Remove(cmd1);
             // Verify
-            Assert.AreEqual(3, hasCommandsChangedCounter, "Adding a command should update HasCommands");
+            hasCommandsChangedCounter.Should().Be(3, "Adding a command should update HasCommands");
 
             // Case 3: Update command
             // Act
             testSubject[0] = cmd1;
             // Verify
-            Assert.AreEqual(4, hasCommandsChangedCounter, "Adding a command should update HasCommands");
+            hasCommandsChangedCounter.Should().Be(4, "Adding a command should update HasCommands");
         }
 
     }

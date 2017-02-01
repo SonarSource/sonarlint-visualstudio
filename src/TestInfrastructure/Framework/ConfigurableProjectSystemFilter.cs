@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,9 +55,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertTestRegex(string regex, RegexOptions options)
         {
-            Assert.IsNotNull(this.TestRegex, "Expected test regex to be set");
-            Assert.AreEqual(regex, this.TestRegex.ToString(), "Unexpected test regular expression");
-            Assert.AreEqual(options, this.TestRegex.Options, "Unexpected test regex options");
+            this.TestRegex.Should().NotBeNull("Expected test regex to be set");
+            this.TestRegex.ToString().Should().Be(regex, "Unexpected test regular expression");
+            this.TestRegex.Options.Should().Be(options, "Unexpected test regex options");
         }
 
         #endregion

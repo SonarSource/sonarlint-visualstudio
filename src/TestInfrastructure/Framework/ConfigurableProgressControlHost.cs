@@ -16,7 +16,7 @@
  */
 
 using SonarLint.VisualStudio.Integration.Progress;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region IProgressControlHost
         void IProgressControlHost.Host(ProgressControl progressControl)
         {
-            Assert.IsNotNull(progressControl);
+            progressControl.Should().NotBeNull();
             this.progressControl = progressControl;
         }
         #endregion
@@ -35,12 +35,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test helpers
         public void AssertHasProgressControl()
         {
-            Assert.IsNotNull(this.progressControl, "ProgressControl was not set");
+            this.progressControl.Should().NotBeNull("ProgressControl was not set");
         }
 
         public void AssertHasNoProgressControl()
         {
-            Assert.IsNull(this.progressControl, "ProgressControl was set");
+            this.progressControl.Should().BeNull("ProgressControl was set");
         }
         #endregion
     }

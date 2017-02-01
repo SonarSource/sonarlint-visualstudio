@@ -15,7 +15,15 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Windows.Threading;
 using EnvDTE;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -27,13 +35,6 @@ using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -115,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             RuleSetAssert.AreEqual(expectedRuleSet, testSubject.Rulesets[language], "Unexpected rule set");
-            Assert.AreSame(profile, testSubject.QualityProfiles[language]);
+            testSubject.QualityProfiles[language].Should().Be(profile);
             VerifyNuGetPackgesDownloaded(nugetPackages, testSubject, language);
             controller.AssertNumberOfAbortRequests(0);
             notifications.AssertProgress(
@@ -144,8 +145,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
             // Verify
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
+            testSubject.Rulesets.ContainsKey(Language.VBNET).Should().BeFalse("Not expecting any rules for this language");
+            testSubject.Rulesets.ContainsKey(language).Should().BeFalse("Not expecting any rules");
             controller.AssertNumberOfAbortRequests(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
@@ -171,8 +172,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
             // Verify
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
+            testSubject.Rulesets.ContainsKey(Language.VBNET).Should().BeFalse("Not expecting any rules for this language");
+            testSubject.Rulesets.ContainsKey(language).Should().BeFalse("Not expecting any rules");
             controller.AssertNumberOfAbortRequests(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
@@ -373,7 +374,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = this.CreateTestSubject();
 
             // Test case 1: Default state is 'true'
-            Assert.IsTrue(testSubject.AllNuGetPackagesInstalled, $"Initial state of {nameof(BindingWorkflow.AllNuGetPackagesInstalled)} should be true");
+            testSubject.AllNuGetPackagesInstalled.Should().BeTrue($"Initial state of {nameof(BindingWorkflow.AllNuGetPackagesInstalled)} should be true");
 
             // Test case 2: All packages installed
             // Setup
@@ -560,7 +561,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.DiscoverProjects(controller, progressEvents);
 
             // Verify
-            Assert.AreEqual(numberOfProjectsToInclude, testSubject.BindingProjects.Count, "Expected " + numberOfProjectsToInclude + " project(s) selected for binding");
+            testSubject.BindingProjects.Should().HaveCount(numberOfProjectsToInclude, "Expected " + numberOfProjectsToInclude + " project(s) selected for binding");
             progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
             this.outputWindowPane.AssertOutputStrings(1);
 
@@ -689,17 +690,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             if (!testSubject.NuGetPackages.ContainsKey(language))
             {
-                Assert.Fail("Given language doesn't exists");
+                FluentAssertions.Execution.Execute.Assertion.FailWith("Given language doesn't exists");
             }
 
             var actual = testSubject.NuGetPackages[language].Select(x => new PackageName(x.Id, new SemanticVersion(x.Version))).ToArray();
 
-            Assert.AreEqual(expected.Length, actual.Length, "Different number of packages.");
-
-            for (int i = 0; i < expected.Length; i++)
-            {
-                Assert.IsTrue(expected[i].Equals(actual[i]), $"Packages are different at index {i}.");
-            }
+            actual.Should().HaveSameCount(expected, "Different number of packages.");
+            actual.Select(x => x.ToString()).Should().Equal(expected.Select(x => x.ToString()));
         }
 
         #endregion

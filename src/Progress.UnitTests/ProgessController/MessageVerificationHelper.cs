@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Globalization;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     {
         public static void VerifyNotificationMessage(string actualMessage, string expectedFormat, Exception ex, bool logWholeMessage)
         {
-            Assert.AreEqual(string.Format(CultureInfo.CurrentCulture, expectedFormat, logWholeMessage ? ex.ToString() : ex.Message), actualMessage, "Unexpected error message");
+            actualMessage.Should().Be(string.Format(CultureInfo.CurrentCulture, expectedFormat, logWholeMessage ? ex.ToString() : ex.Message), "Unexpected error message");
         }
     }
 }

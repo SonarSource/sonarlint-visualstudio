@@ -18,7 +18,7 @@
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsSolution.GetProjectEnum(uint grfEnumFlags, ref Guid rguidEnumOnlyThisType, out IEnumHierarchies ppenum)
         {
-            Assert.AreEqual(__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, (__VSENUMPROJFLAGS)grfEnumFlags, "Unexpected argument value grfEnumFlags");
+            ((__VSENUMPROJFLAGS)grfEnumFlags).Should().Be(__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, "Unexpected argument value grfEnumFlags");
             ppenum = new EnumHierarchies(this);
             return VSConstants.S_OK;
         }
@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsSolution.GetProjectFilesInSolution(uint grfGetOpts, uint cProjects, string[] rgbstrProjectNames, out uint pcProjectsFetched)
         {
-            Assert.AreEqual(__VSGETPROJFILESFLAGS.GPFF_SKIPUNLOADEDPROJECTS, (__VSGETPROJFILESFLAGS)grfGetOpts);
+            ((__VSGETPROJFILESFLAGS)grfGetOpts).Should().Be(__VSGETPROJFILESFLAGS.GPFF_SKIPUNLOADEDPROJECTS);
 
             string[] loadedProjects = this.projects.Values.Where(p => p.IsLoaded).Select(p => p.FilePath).ToArray();
             pcProjectsFetched = (uint)loadedProjects.Length;
@@ -432,7 +432,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsSolution.UnadviseSolutionEvents(uint dwCookie)
         {
-            Assert.IsTrue(this.sinks.Count >= dwCookie && dwCookie > 0);
+            (this.sinks.Count >= dwCookie && dwCookie > 0).Should().BeTrue();
             this.sinks.RemoveAt((int)dwCookie - 1);
             return VSConstants.S_OK;
         }

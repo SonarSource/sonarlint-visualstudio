@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = new SonarQubePage();
 
             // Verify
-            Assert.AreEqual(Strings.TeamExplorerPageTitle, testSubject.Title, "Unexpected TE page title");
+            testSubject.Title.Should().Be(Strings.TeamExplorerPageTitle, "Unexpected TE page title");
         }
     }
 }

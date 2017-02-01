@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -80,14 +81,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Verifies logging of an exception message in activity log")]
         public void VsActivityLogNotifier_MessageOnly()
         {
-            // Setup
+            // Arrange
             bool logWholeMessage = true;
             Exception ex = this.Setup(logWholeMessage);
 
-            // Execute
+            // Act
             ((IProgressErrorNotifier)this.testSubject).Notify(ex);
 
-            // Verify
+            // Assert
             this.activityLog.AssertEntryLogged();
         }
 
@@ -95,14 +96,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Verifies logging of a full exception in activity log")]
         public void VsActivityLogNotifier_FullException()
         {
-            // Setup
+            // Arrange
             bool logWholeMessage = true;
             Exception ex = this.Setup(logWholeMessage);
 
-            // Execute
+            // Act
             ((IProgressErrorNotifier)this.testSubject).Notify(ex);
 
-            // Verify
+            // Assert
             this.activityLog.AssertEntryLogged();
         }
         #endregion
@@ -117,8 +118,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             Exception ex = this.GenerateException();
             this.activityLog.LogEntryAction = (entryType, actualSource, actualMessage) =>
             {
-                Assert.AreEqual((uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR, entryType, "Unexpected entry type");
-                Assert.AreEqual(source, actualSource, "Unexpected entry source");
+                entryType.Should().Be((uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR, "Unexpected entry type");
+                actualSource.Should().Be(source, "Unexpected entry source");
                 MessageVerificationHelper.VerifyNotificationMessage(actualMessage, format, ex, logWholeMessage);
             };
             return ex;

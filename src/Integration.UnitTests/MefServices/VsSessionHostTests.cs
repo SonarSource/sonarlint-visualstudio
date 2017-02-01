@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Windows.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using System;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                                                 new Integration.Service.SonarQubeServiceWrapper(this.serviceProvider),
                                                 new ConfigurableActiveSolutionTracker()))
             {
-                Assert.IsNotNull(host, "Not expecting this to fail, just to make the static analyzer happy");
+                host.Should().NotBeNull("Not expecting this to fail, just to make the static analyzer happy");
             }
         }
 
@@ -93,20 +94,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Act (set section1)
             testSubject.SetActiveSection(section1);
-            Assert.IsFalse(refresh1Called, "Refresh should only be called when bound project was found");
-            Assert.IsFalse(refresh2Called, "Refresh should only be called when bound project was found");
+            refresh1Called.Should().BeFalse();
+            refresh2Called.Should().BeFalse();
 
             // Verify
-            Assert.AreSame(section1, testSubject.ActiveSection);
+            testSubject.ActiveSection.Should().Be(section1);
 
             // Act (set section2)
             testSubject.ClearActiveSection();
             testSubject.SetActiveSection(section2);
 
             // Verify
-            Assert.AreSame(section2, testSubject.ActiveSection);
-            Assert.IsFalse(refresh1Called, "Refresh should only be called when bound project was found");
-            Assert.IsFalse(refresh2Called, "Refresh should only be called when bound project was found");
+            testSubject.ActiveSection.Should().Be(section2);
+            refresh1Called.Should().BeFalse();
+            refresh2Called.Should().BeFalse();
         }
 
         [TestMethod]
@@ -120,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.SetActiveSection(section);
 
             // Verify
-            Assert.AreSame(stateManager.ManagedState, testSubject.ActiveSection.ViewModel.State);
+            testSubject.ActiveSection.ViewModel.State.Should().Be(stateManager.ManagedState);
         }
 
         [TestMethod]
@@ -152,8 +153,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.ClearActiveSection();
 
             // Verify
-            Assert.IsNull(testSubject.ActiveSection);
-            Assert.IsNull(section.ViewModel.State);
+            testSubject.ActiveSection.Should().BeNull();
+            section.ViewModel.State.Should().BeNull();
         }
 
         [TestMethod]
@@ -170,31 +171,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.SetActiveSection(section);
 
             // Verify
-            Assert.AreEqual(1, changed, "ActiveSectionChanged event was expected to fire");
+            changed.Should().Be(1, "ActiveSectionChanged event was expected to fire");
 
             // Act (clear)
             testSubject.ClearActiveSection();
 
             // Verify
-            Assert.AreEqual(2, changed, "ActiveSectionChanged event was expected to fire");
+            changed.Should().Be(2, "ActiveSectionChanged event was expected to fire");
 
             // Act (2nd set)
             testSubject.SetActiveSection(otherSection);
 
             // Verify
-            Assert.AreEqual(3, changed, "ActiveSectionChanged event was expected to fire");
+            changed.Should().Be(3, "ActiveSectionChanged event was expected to fire");
 
             // Act (clear)
             testSubject.ClearActiveSection();
 
             // Verify
-            Assert.AreEqual(4, changed, "ActiveSectionChanged event was expected to fire");
+            changed.Should().Be(4, "ActiveSectionChanged event was expected to fire");
 
             // Act (clear again)
             testSubject.ClearActiveSection();
 
             // Verify
-            Assert.AreEqual(4, changed, "ActiveSectionChanged event was not expected to fire, since already cleared");
+            changed.Should().Be(4, "ActiveSectionChanged event was not expected to fire, since already cleared");
         }
 
         [TestMethod]
@@ -213,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.SetActiveSection(section);
 
             // Verify
-            Assert.AreEqual(1, syncCalled, "SyncCommandFromActiveSection wasn't called during section activation");
+            syncCalled.Should().Be(1, "SyncCommandFromActiveSection wasn't called during section activation");
 
             // Case 2: ClearActiveSection section
             this.stateManager.ExpectActiveSection = false;
@@ -222,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.ClearActiveSection();
 
             // Verify
-            Assert.AreEqual(2, syncCalled, "SyncCommandFromActiveSection wasn't called during section deactivation");
+            syncCalled.Should().Be(2, "SyncCommandFromActiveSection wasn't called during section deactivation");
         }
 
         [TestMethod]
@@ -246,7 +247,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Verify
             this.stepRunner.AssertAbortAllCalled(1);
             this.stateManager.AssertNoBoundProject();
-            Assert.IsNull(this.stateManager.BoundProjectKey, "Expecting the key to be reset to null");
+            this.stateManager.BoundProjectKey.Should().BeNull("Expecting the key to be reset to null");
         }
 
         [TestMethod]
@@ -269,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Verify that nothing has changed (should defer all the work to when the section is connected)
             this.stepRunner.AssertAbortAllCalled(1);
             this.stateManager.AssertBoundProject(boundProject);
-            Assert.IsNull(this.stateManager.BoundProjectKey, "The key should only be set when there's active section to allow marking it once fetched all the projects");
+            this.stateManager.BoundProjectKey.Should().BeNull("The key should only be set when there's active section to allow marking it once fetched all the projects");
 
             // Act (set active section)
             var section = ConfigurableSectionController.CreateDefault();
@@ -279,9 +280,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Verify (section has refreshed, no further aborts were required)
             this.stepRunner.AssertAbortAllCalled(1);
-            Assert.AreEqual(boundProject.Key, this.stateManager.BoundProjectKey, "Key was not set, will not be able to mark project as bound after refresh");
+            this.stateManager.BoundProjectKey.Should().Be(boundProject.Key, "Key was not set, will not be able to mark project as bound after refresh");
             this.stateManager.AssertBoundProject(boundProject);
-            Assert.IsTrue(refreshCalled, "Expected the refresh command to be called");
+            refreshCalled.Should().BeTrue("Expected the refresh command to be called");
         }
 
         [TestMethod]
@@ -307,9 +308,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Verify
             this.stepRunner.AssertAbortAllCalled(1);
-            Assert.AreEqual(boundProject.Key, this.stateManager.BoundProjectKey, "Key was not set, will not be able to mark project as bound after refresh");
+            this.stateManager.BoundProjectKey.Should().Be(boundProject.Key, "Key was not set, will not be able to mark project as bound after refresh");
             this.stateManager.AssertBoundProject(boundProject);
-            Assert.IsTrue(refreshCalled, "Expected the refresh command to be called");
+            refreshCalled.Should().BeTrue("Expected the refresh command to be called");
         }
 
         [TestMethod]
@@ -355,20 +356,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act + Verify
             foreach (Type serviceType in VsSessionHost.SupportedLocalServices)
             {
-                Assert.IsNotNull(testSubject.GetService(serviceType));
+                testSubject.GetService(serviceType).Should().NotBeNull();
             }
 
-            Assert.AreSame(testSubject.GetService<IFileSystem>(), testSubject.GetService<ISourceControlledFileSystem>());
+            testSubject.GetService<ISourceControlledFileSystem>().Should().Be(testSubject.GetService<IFileSystem>());
 
             // VS-services
             // Sanity
-            Assert.IsNull(testSubject.GetService(typeof(VsSessionHostTests)), "Not expecting any service at this point");
+            testSubject.GetService(typeof(VsSessionHostTests)).Should().BeNull("Not expecting any service at this point");
 
             // Setup
             this.serviceProvider.RegisterService(typeof(VsSessionHostTests), this);
 
             // Act + Verify
-            Assert.AreSame(this, testSubject.GetService(typeof(VsSessionHostTests)), "Unexpected service was returned, expected to use the service provider");
+            testSubject.GetService(typeof(VsSessionHostTests)).Should().Be(this, "Unexpected service was returned, expected to use the service provider");
         }
         #endregion
 

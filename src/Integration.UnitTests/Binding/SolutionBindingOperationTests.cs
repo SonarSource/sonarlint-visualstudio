@@ -15,17 +15,18 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.Service;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -61,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionItemsProject = this.solutionMock.AddOrGetProject("Solution items");
             this.projectSystemHelper.SolutionItemsProject = this.solutionItemsProject;
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
-            this.sccFileSystem  = new ConfigurableSourceControlledFileSystem();
+            this.sccFileSystem = new ConfigurableSourceControlledFileSystem();
             this.ruleFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
             this.solutionBinding = new ConfigurableSolutionBindingSerializer();
             this.ruleSetInfo = new ConfigurableSolutionRuleSetsInformationProvider();
@@ -84,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty));
 
             var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key");
-            Assert.IsNotNull(testSubject, "Avoid 'testSubject' not used analysis warning");
+            testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
         }
 
         [TestMethod]
@@ -107,15 +108,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[Language.VBNET] = new RuleSet("vb");
 
             // Sanity
-            Assert.AreEqual(0, testSubject.RuleSetsInformationMap.Count, "Not expecting any registered rulesets");
+            testSubject.RuleSetsInformationMap.Should().HaveCount(0, "Not expecting any registered rulesets");
 
             // Act
             testSubject.RegisterKnownRuleSets(ruleSetMap);
 
             // Verify
             CollectionAssert.AreEquivalent(ruleSetMap.Keys.ToArray(), testSubject.RuleSetsInformationMap.Keys.ToArray());
-            Assert.AreSame(ruleSetMap[Language.CSharp], testSubject.RuleSetsInformationMap[Language.CSharp].RuleSet);
-            Assert.AreSame(ruleSetMap[Language.VBNET], testSubject.RuleSetsInformationMap[Language.VBNET].RuleSet);
+            testSubject.RuleSetsInformationMap[Language.CSharp].RuleSet.Should().Be(ruleSetMap[Language.CSharp]);
+            testSubject.RuleSetsInformationMap[Language.VBNET].RuleSet.Should().Be(ruleSetMap[Language.VBNET]);
         }
 
         [TestMethod]
@@ -128,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Act + Verify
             using (new AssertIgnoreScope())
             {
-                Assert.IsNull(testSubject.GetRuleSetInformation(Language.CSharp));
+                testSubject.GetRuleSetInformation(Language.CSharp).Should().BeNull();
             }
 
             // Test case 2: known ruleset map
@@ -145,8 +146,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             string filePath = testSubject.GetRuleSetInformation(Language.CSharp).NewRuleSetFilePath;
 
             // Verify
-            Assert.IsFalse(string.IsNullOrWhiteSpace(filePath));
-            Assert.AreEqual(testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath, filePath, "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
+            string.IsNullOrWhiteSpace(filePath).Should().BeFalse();
+            filePath.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath, "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
         }
 
         [TestMethod]
@@ -174,14 +175,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projects = new[] { cs1Project, vbProject, cs2Project };
 
             // Sanity
-            Assert.AreEqual(0, testSubject.Binders.Count, "Not expecting any project binders");
+            testSubject.Binders.Should().HaveCount(0, "Not expecting any project binders");
 
             // Act
             testSubject.Initialize(projects, GetQualityProfiles());
 
             // Verify
-            Assert.AreEqual(@"c:\solution\xxx.sln", testSubject.SolutionFullPath);
-            Assert.AreEqual(projects.Length, testSubject.Binders.Count, "Should be one per managed project");
+            testSubject.SolutionFullPath.Should().Be(@"c:\solution\xxx.sln");
+            testSubject.Binders.Should().HaveCount(projects.Length, "Should be one per managed project");
         }
 
         [TestMethod]
@@ -211,15 +212,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Sanity
             this.sccFileSystem.AssertDirectoryNotExists(sonarQubeRulesDirectory);
-            Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath);
-            Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath);
+            testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().Be(@"c:\solution\SonarQube\keyCSharp.ruleset");
+            testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().Be(@"c:\solution\SonarQube\keyVB.ruleset");
 
             // Act
             testSubject.Prepare(CancellationToken.None);
 
             // Verify
             this.sccFileSystem.AssertDirectoryNotExists(sonarQubeRulesDirectory);
-            Assert.IsTrue(prepareCalledForBinder, "Expected to propagate the prepare call to binders");
+            prepareCalledForBinder.Should().BeTrue("Expected to propagate the prepare call to binders");
             this.sccFileSystem.AssertFileNotExists(@"c:\solution\SonarQube\keyCSharp.ruleset");
             this.sccFileSystem.AssertFileNotExists(@"c:\solution\SonarQube\keyVB.ruleset");
 
@@ -261,9 +262,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             }
 
             // Verify
-            Assert.AreEqual(@"c:\solution\SonarQube\keyCSharp.ruleset", testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath);
-            Assert.AreEqual(@"c:\solution\SonarQube\keyVB.ruleset", testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath);
-            Assert.IsFalse(prepareCalledForBinder, "Expected to be canceled as soon as possible i.e. after the first binder");
+            testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().Be(@"c:\solution\SonarQube\keyCSharp.ruleset");
+            testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().Be(@"c:\solution\SonarQube\keyVB.ruleset");
+            prepareCalledForBinder.Should().BeFalse("Expected to be canceled as soon as possible i.e. after the first binder");
         }
 
         [TestMethod]
@@ -296,9 +297,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             }
 
             // Verify
-            Assert.IsNotNull(testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath, "Expected to be set before Prepare is called");
-            Assert.IsNotNull(testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath, "Expected to be set before Prepare is called");
-            Assert.IsFalse(prepareCalledForBinder, "Expected to be canceled as soon as possible i.e. before the first binder");
+            testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().NotBeNull("Expected to be set before Prepare is called");
+            testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().NotBeNull("Expected to be set before Prepare is called");
+            prepareCalledForBinder.Should().BeFalse("Expected to be canceled as soon as possible i.e. before the first binder");
         }
 
         [TestMethod]
@@ -325,12 +326,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Prepare(CancellationToken.None);
             this.solutionBinding.WriteSolutionBindingAction = bindingInfo =>
             {
-                Assert.AreEqual(connectionInformation.ServerUri, bindingInfo.ServerUri);
-                Assert.AreEqual(1, bindingInfo.Profiles.Count);
+                bindingInfo.ServerUri.Should().Be(connectionInformation.ServerUri);
+                bindingInfo.Profiles.Should().HaveCount(1);
 
                 QualityProfile csProfile = profiles[Language.CSharp];
-                Assert.AreEqual(csProfile.Key, bindingInfo.Profiles[Language.CSharp].ProfileKey);
-                Assert.AreEqual(csProfile.QualityProfileTimestamp, bindingInfo.Profiles[Language.CSharp].ProfileTimestamp);
+                bindingInfo.Profiles[Language.CSharp].ProfileKey.Should().Be(csProfile.Key);
+                bindingInfo.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(csProfile.QualityProfileTimestamp);
 
                 return "Doesn't matter";
             };
@@ -342,9 +343,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var commitResult = testSubject.CommitSolutionBinding();
 
             // Verify
-            Assert.IsTrue(commitResult);
-            Assert.IsTrue(commitCalledForBinder);
-            Assert.IsTrue(this.solutionItemsProject.Files.ContainsKey(@"c:\solution\SonarQube\keyCSharp.ruleset"), "Ruleset was expected to be added to solution items");
+            commitResult.Should().BeTrue();
+            commitCalledForBinder.Should().BeTrue();
+            this.solutionItemsProject.Files.ContainsKey(@"c:\solution\SonarQube\keyCSharp.ruleset").Should().BeTrue("Ruleset was expected to be added to solution items");
             this.solutionBinding.AssertWrittenFiles(1);
         }
 

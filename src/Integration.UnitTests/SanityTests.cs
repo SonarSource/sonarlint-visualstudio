@@ -17,7 +17,7 @@
 
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Linq;
@@ -70,20 +70,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             RetryAction(() => s.TryGetProjects(connection, CancellationToken.None, out projects),
                                         "Get projects from SonarQube server");
-            Assert.AreNotEqual(0, projects.Length, "No projects were returned");
+            projects.Should().NotBeEmpty("No projects were returned");
 
             // Step 2: Get quality profile for the first project
             var project = projects.FirstOrDefault();
             QualityProfile profile = null;
             RetryAction(() => s.TryGetQualityProfile(connection, project, Language.CSharp, CancellationToken.None, out profile),
                                         "Get quality profile from SonarQube server");
-            Assert.IsNotNull(profile, "No quality profile was returned");
+            profile.Should().NotBeNull("No quality profile was returned");
 
             // Step 3: Get quality profile export for the quality profile
             RoslynExportProfile export = null;
             RetryAction(() => s.TryGetExportProfile(connection, profile, Language.CSharp, CancellationToken.None, out export),
                                         "Get quality profile export from SonarQube server");
-            Assert.IsNotNull(export, "No quality profile export was returned");
+            export.Should().NotBeNull("No quality profile export was returned");
 
             // Errors are logged to output window pane and we don't expect any
             this.outputWindowPane.AssertOutputStrings(0);
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
             }
 
-            Assert.Fail("Failed executing the action (with retries): {0}", description);
+            FluentAssertions.Execution.Execute.Assertion.FailWith("Failed executing the action (with retries): {0}", description);
         }
     }
 }

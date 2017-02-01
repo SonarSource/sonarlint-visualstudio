@@ -16,7 +16,7 @@
  */
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Necessary to turn it into a Test.Assert.")]
         public static void Expect<TException>(string expectedMessage, Action action) where TException : Exception
         {
-            Action<Exception> checkMessage = e => Assert.AreEqual<string>(expectedMessage, e.Message, "Unexpected error message");
+            Action<Exception> checkMessage = e => e.Message.Should().Be(expectedMessage, "Unexpected error message");
 
             Expect<TException>(checkMessage, action);
         }
@@ -77,13 +77,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             try
             {
                 action();
-                Assert.Fail("Expected exception " + typeof(TException).FullName);
+                FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName);
             }
             catch (TException ex)
             {
                 if (!checkDerived && (ex.GetType() != typeof(TException)))
                 {
-                    Assert.Fail("Expected exception " + typeof(TException).FullName + " but got " + ex.GetType().FullName + "\n" + ex.ToString());
+                    FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName + " but got " + ex.GetType().FullName + "\n" + ex.ToString());
                 }
 
                 // Perform any additional checks that were supplied.

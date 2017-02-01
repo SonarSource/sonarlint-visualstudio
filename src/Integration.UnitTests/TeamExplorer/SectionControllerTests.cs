@@ -17,7 +17,7 @@
 
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -61,19 +61,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             SectionController testSubject = this.CreateTestSubject();
 
             // Constructor time initialization
-            Assert.IsNotNull(testSubject.ConnectCommand, "ConnectCommand is not initialized");
-            Assert.IsNotNull(testSubject.BindCommand, "BindCommand is not initialized");
-            Assert.IsNotNull(testSubject.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
-            Assert.IsNotNull(testSubject.BrowseToProjectDashboardCommand, "BrowseToProjectDashboardCommand is not initialized");
-            Assert.IsNotNull(testSubject.DisconnectCommand, "DisconnectCommand is not initialized");
-            Assert.IsNotNull(testSubject.RefreshCommand, "RefreshCommand is not initialized");
-            Assert.IsNotNull(testSubject.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not initialized");
+            testSubject.ConnectCommand.Should().NotBeNull("ConnectCommand is not initialized");
+            testSubject.BindCommand.Should().NotBeNull("BindCommand is not initialized");
+            testSubject.BrowseToUrlCommand.Should().NotBeNull("BrowseToUrlCommand is not initialized");
+            testSubject.BrowseToProjectDashboardCommand.Should().NotBeNull("BrowseToProjectDashboardCommand is not initialized");
+            testSubject.DisconnectCommand.Should().NotBeNull("DisconnectCommand is not initialized");
+            testSubject.RefreshCommand.Should().NotBeNull("RefreshCommand is not initialized");
+            testSubject.ToggleShowAllProjectsCommand.Should().NotBeNull("ToggleShowAllProjectsCommand is not initialized");
 
             // Case 1: first time initialization
             // Verify
-            Assert.IsNotNull(testSubject.View, "Failed to get the View");
-            Assert.IsNotNull(((ISectionController)testSubject).View, "Failed to get the View as ConnectSectionView");
-            Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
+            testSubject.View.Should().NotBeNull("Failed to get the View");
+            ((ISectionController)testSubject).View.Should().NotBeNull("Failed to get the View as ConnectSectionView");
+            testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
             // Case 2: re-initialization with connection but no projects
             this.host.TestStateManager.IsConnected = true;
@@ -82,8 +82,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Verify
             AssertCommandsInSync(testSubject);
-            Assert.IsNotNull(testSubject.View, "Failed to get the View");
-            Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
+            testSubject.View.Should().NotBeNull("Failed to get the View");
+            testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
             // Case 3: re-initialization with connection and projects
             var projects = new[] { new ProjectInformation() };
@@ -92,8 +92,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Verify
             AssertCommandsInSync(testSubject);
-            Assert.IsNotNull(testSubject.View, "Failed to get the View");
-            Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
+            testSubject.View.Should().NotBeNull("Failed to get the View");
+            testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
             // Case 4: re-initialization with no connection
             this.host.TestStateManager.IsConnected = false;
@@ -101,20 +101,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Verify
             AssertCommandsInSync(testSubject);
-            Assert.IsNotNull(testSubject.View, "Failed to get the View");
-            Assert.IsNotNull(testSubject.ViewModel, "Failed to get the ViewModel");
+            testSubject.View.Should().NotBeNull("Failed to get the View");
+            testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
             // Case 5: Dispose
             testSubject.Dispose();
 
             // Verify
-            Assert.IsNull(testSubject.ConnectCommand, "ConnectCommand is not cleared");
-            Assert.IsNull(testSubject.RefreshCommand, "RefreshCommand is not cleared");
-            Assert.IsNull(testSubject.DisconnectCommand, "DisconnectCommand is not cleared");
-            Assert.IsNull(testSubject.BindCommand, "BindCommand is not ;");
-            Assert.IsNull(testSubject.ToggleShowAllProjectsCommand, "ToggleShowAllProjectsCommand is not cleared");
-            Assert.IsNull(testSubject.BrowseToUrlCommand, "BrowseToUrlCommand is not cleared");
-            Assert.IsNull(testSubject.BrowseToProjectDashboardCommand, "BrowseToProjectDashboardCommand is not cleared");
+            testSubject.ConnectCommand.Should().BeNull("ConnectCommand is not cleared");
+            testSubject.RefreshCommand.Should().BeNull("RefreshCommand is not cleared");
+            testSubject.DisconnectCommand.Should().BeNull("DisconnectCommand is not cleared");
+            testSubject.BindCommand.Should().BeNull("BindCommand is not ;");
+            testSubject.ToggleShowAllProjectsCommand.Should().BeNull("ToggleShowAllProjectsCommand is not cleared");
+            testSubject.BrowseToUrlCommand.Should().BeNull("BrowseToUrlCommand is not cleared");
+            testSubject.BrowseToProjectDashboardCommand.Should().BeNull("BrowseToProjectDashboardCommand is not cleared");
 
         }
 
@@ -129,13 +129,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.host.TestStateManager.SetAndInvokeBusyChanged(true);
 
             // Verify
-            Assert.IsTrue(viewModel.IsBusy);
+            viewModel.IsBusy.Should().BeTrue();
 
             // Act again (different value)
             this.host.TestStateManager.SetAndInvokeBusyChanged(false);
 
             // Verify (should change)
-            Assert.IsFalse(viewModel.IsBusy);
+            viewModel.IsBusy.Should().BeFalse();
 
             // Dispose
             testSubject.Dispose();
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.host.TestStateManager.SetAndInvokeBusyChanged(true);
 
             // Verify (should remain the same)
-            Assert.IsFalse(viewModel.IsBusy);
+            viewModel.IsBusy.Should().BeFalse();
         }
 
         [TestMethod]
@@ -167,7 +167,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 1 : no commands handling the request
             // Act+Verify
-            Assert.AreEqual(SectionController.CommandNotHandled, testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText));
+            testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be(SectionController.CommandNotHandled);
             command1.AssertQueryStatusCalled(1);
             command2.AssertQueryStatusCalled(1);
             command3.AssertQueryStatusCalled(1);
@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Case 2 : the last command is handling the request
             command3.QueryStatusReturnsResult = (int)OleConstants.OLECMDERR_E_CANCELED;
             // Act+Verify
-            Assert.AreEqual((int)OleConstants.OLECMDERR_E_CANCELED, testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText));
+            testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be((int)OleConstants.OLECMDERR_E_CANCELED);
             command1.AssertQueryStatusCalled(2);
             command2.AssertQueryStatusCalled(2);
             command3.AssertQueryStatusCalled(2);
@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Case 3 : the first command is handling the request
             command1.QueryStatusReturnsResult = (int)OleConstants.OLECMDERR_E_DISABLED;
             // Act+Verify
-            Assert.AreEqual((int)OleConstants.OLECMDERR_E_DISABLED, testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText));
+            testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be((int)OleConstants.OLECMDERR_E_DISABLED);
             command1.AssertQueryStatusCalled(3);
             command2.AssertQueryStatusCalled(2);
             command3.AssertQueryStatusCalled(2);
@@ -199,25 +199,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.host.TestStateManager.SetProjectsAction = (conn, projects) =>
             {
                 setProjectsCalled++;
-                Assert.AreSame(connection, conn);
-                Assert.IsNull(projects, "Expecting the project to be reset to null");
+                conn.Should().Be(connection);
+                projects.Should().BeNull("Expecting the project to be reset to null");
             };
 
             // Case 1: No connection
             // Act + Verify CanExecute
-            Assert.IsFalse(testSubject.DisconnectCommand.CanExecute(null));
-            Assert.AreEqual(0, setProjectsCalled);
+            testSubject.DisconnectCommand.CanExecute(null).Should().BeFalse();
+            setProjectsCalled.Should().Be(0);
 
             // Case 2: Connected
             this.host.TestStateManager.ConnectedServers.Add(connection);
 
             // Act + Verify CanExecute
-            Assert.IsTrue(testSubject.DisconnectCommand.CanExecute(null));
-            Assert.AreEqual(0, setProjectsCalled);
+            testSubject.DisconnectCommand.CanExecute(null).Should().BeTrue();
+            setProjectsCalled.Should().Be(0);
 
             // Act + Verify Execute
             testSubject.DisconnectCommand.Execute(null);
-            Assert.AreEqual(1, setProjectsCalled);
+            setProjectsCalled.Should().Be(1);
         }
 
         [TestMethod]
@@ -235,13 +235,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             project.IsBound = false;
 
             // Act + Verify CanExecute
-            Assert.IsFalse(testSubject.ToggleShowAllProjectsCommand.CanExecute(server));
+            testSubject.ToggleShowAllProjectsCommand.CanExecute(server).Should().BeFalse();
 
             // Case 2: Bound
             project.IsBound = true;
 
             // Act + Verify
-            Assert.IsTrue(testSubject.ToggleShowAllProjectsCommand.CanExecute(server));
+            testSubject.ToggleShowAllProjectsCommand.CanExecute(server).Should().BeTrue();
 
             // Verify execution
             bool original = server.ShowAllProjects;
@@ -250,13 +250,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.ToggleShowAllProjectsCommand.Execute(server);
 
             // Verify
-            Assert.AreEqual(!original, server.ShowAllProjects);
+            server.ShowAllProjects.Should().Be(!original);
 
             // Act
             testSubject.ToggleShowAllProjectsCommand.Execute(server);
 
             // Verify
-            Assert.AreEqual(original, server.ShowAllProjects);
+            server.ShowAllProjects.Should().Be(original);
         }
 
         [TestMethod]
@@ -268,17 +268,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 1: Empty URL
             // Act + Verify CanExecute
-            Assert.IsFalse(testSubject.BrowseToUrlCommand.CanExecute(null));
+            testSubject.BrowseToUrlCommand.CanExecute(null).Should().BeFalse();
 
             // Case 2: Bad URL
             // Act + Verify CanExecute
-            Assert.IsFalse(testSubject.BrowseToUrlCommand.CanExecute("not a Uri"));
+            testSubject.BrowseToUrlCommand.CanExecute("not a Uri").Should().BeFalse();
 
             // Case 3: Good URL
             const string goodUrl = "http://localhost";
 
             // Act + Verify CanExecute
-            Assert.IsTrue(testSubject.BrowseToUrlCommand.CanExecute(goodUrl));
+            testSubject.BrowseToUrlCommand.CanExecute(goodUrl).Should().BeTrue();
 
             // Act + Verify Execute
             testSubject.BrowseToUrlCommand.Execute(goodUrl);
@@ -301,14 +301,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 1: Null parameter
             // Act + Verify CanExecute
-            Assert.IsFalse(testSubject.BrowseToProjectDashboardCommand.CanExecute(null));
+            testSubject.BrowseToProjectDashboardCommand.CanExecute(null).Should().BeFalse();
 
             // Case 2: Project VM
             var serverViewModel = new ServerViewModel(connectionInfo);
             var projectViewModel = new ProjectViewModel(serverViewModel, projectInfo);
 
             // Act + Verify CanExecute
-            Assert.IsTrue(testSubject.BrowseToProjectDashboardCommand.CanExecute(projectViewModel));
+            testSubject.BrowseToProjectDashboardCommand.CanExecute(projectViewModel).Should().BeTrue();
 
             // Act + Verify Execute
             testSubject.BrowseToProjectDashboardCommand.Execute(projectViewModel);
@@ -327,7 +327,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             bool refreshCalled = false;
             controller.RefreshCommand = new RelayCommand(() => refreshCalled = true);
             controller.Refresh();
-            Assert.IsTrue(refreshCalled, "Refresh command execution was expected");
+            refreshCalled.Should().BeTrue("Refresh command execution was expected");
         }
 
         private class TestCommandTarget : IOleCommandTarget
@@ -356,7 +356,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             public void AssertQueryStatusCalled(int expectedNumberOfTimes)
             {
-                Assert.AreEqual(expectedNumberOfTimes, this.queryStatusNumberOfCalls, "IOleCommandTarget.QueryStatus is called unexpected number of times");
+                this.queryStatusNumberOfCalls.Should().Be(expectedNumberOfTimes, "IOleCommandTarget.QueryStatus is called unexpected number of times");
             }
             #endregion
         }
@@ -372,9 +372,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             ConnectSectionViewModel viewModel = (ConnectSectionViewModel)section.ViewModel;
 
-            Assert.AreSame(section.ConnectCommand, viewModel.ConnectCommand, "ConnectCommand is not initialized");
-            Assert.AreSame(section.BindCommand, viewModel.BindCommand, "BindCommand is not initialized");
-            Assert.AreSame(section.BrowseToUrlCommand, viewModel.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
+            viewModel.ConnectCommand.Should().Be(section.ConnectCommand, "ConnectCommand is not initialized");
+            viewModel.BindCommand.Should().Be(section.BindCommand, "BindCommand is not initialized");
+            viewModel.BrowseToUrlCommand.Should().Be(section.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
         }
         #endregion
     }

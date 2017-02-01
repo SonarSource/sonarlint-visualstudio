@@ -16,7 +16,7 @@
  */
 
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertExpectedNumCallsShowConnectionsPage(int calls)
         {
-            Assert.AreEqual(calls, this.showConnectionsPageCalls, "Unexpected number of calls to ShowConnectionsPage");
+            this.showConnectionsPageCalls.Should().Be(calls, "Unexpected number of calls to ShowConnectionsPage");
         }
     }
 }

@@ -15,13 +15,14 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Windows.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Service;
-using System;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
 
             // Verify
-            Assert.IsFalse(testSubject.IsActiveSolutionBound, "Unbound solution should report false activation");
+            testSubject.IsActiveSolutionBound.Should().BeFalse("Unbound solution should report false activation");
             this.errorListController.AssertRefreshCalled(1);
             this.errorListController.AssertResetCalled(0);
         }
@@ -95,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
 
             // Verify
-            Assert.IsTrue(testSubject.IsActiveSolutionBound, "Bound solution should report true activation");
+            testSubject.IsActiveSolutionBound.Should().BeTrue("Bound solution should report true activation");
             this.errorListController.AssertRefreshCalled(1);
             this.errorListController.AssertResetCalled(0);
         }
@@ -114,10 +115,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.SolutionBindingChanged += (obj, args) => { reanalysisEventCalledCount++; };
 
             // Sanity
-            Assert.IsTrue(testSubject.IsActiveSolutionBound, "Initially bound");
+            testSubject.IsActiveSolutionBound.Should().BeTrue("Initially bound");
             this.errorListController.AssertRefreshCalled(1);
             this.errorListController.AssertResetCalled(0);
-            Assert.AreEqual(0, reanalysisEventCalledCount, "No reanalysis forced");
+            reanalysisEventCalledCount.Should().Be(0, "No reanalysis forced");
 
             // Case 1: Clear bound project
             solutionBinding.CurrentBinding = null;
@@ -126,10 +127,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.VisualStateManager.ClearBoundProject();
 
             // Verify
-            Assert.IsFalse(testSubject.IsActiveSolutionBound, "Unbound solution should report false activation");
+            testSubject.IsActiveSolutionBound.Should().BeFalse("Unbound solution should report false activation");
             this.errorListController.AssertRefreshCalled(1);
             this.errorListController.AssertResetCalled(0);
-            Assert.AreEqual(1, reanalysisEventCalledCount, "Unbind should trigger reanalysis");
+            reanalysisEventCalledCount.Should().Be(1, "Unbind should trigger reanalysis");
 
             // Case 2: Set bound project
             solutionBinding.CurrentBinding = new BoundSonarQubeProject();
@@ -138,10 +139,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.VisualStateManager.SetBoundProject(new ProjectInformation());
 
             // Verify
-            Assert.IsTrue(testSubject.IsActiveSolutionBound, "Bound solution should report true activation");
+            testSubject.IsActiveSolutionBound.Should().BeTrue("Bound solution should report true activation");
             this.errorListController.AssertRefreshCalled(1);
             this.errorListController.AssertResetCalled(0);
-            Assert.AreEqual(2, reanalysisEventCalledCount, "Bind should trigger reanalysis");
+            reanalysisEventCalledCount.Should().Be(2, "Bind should trigger reanalysis");
 
             // Case 3: Solution unloaded
             solutionBinding.CurrentBinding = null;
@@ -150,10 +151,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Verify
-            Assert.IsFalse(testSubject.IsActiveSolutionBound, "Should respond to solution change event and report unbound");
+            testSubject.IsActiveSolutionBound.Should().BeFalse("Should respond to solution change event and report unbound");
             this.errorListController.AssertRefreshCalled(2);
             this.errorListController.AssertResetCalled(0);
-            Assert.AreEqual(3, reanalysisEventCalledCount, "Solution change should trigger reanalysis");
+            reanalysisEventCalledCount.Should().Be(3, "Solution change should trigger reanalysis");
 
             // Case 4: Solution loaded
             solutionBinding.CurrentBinding = new BoundSonarQubeProject();
@@ -162,10 +163,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Verify
-            Assert.IsTrue(testSubject.IsActiveSolutionBound, "Bound respond to solution change event and report bound");
+            testSubject.IsActiveSolutionBound.Should().BeTrue("Bound respond to solution change event and report bound");
             this.errorListController.AssertRefreshCalled(3);
             this.errorListController.AssertResetCalled(0);
-            Assert.AreEqual(4, reanalysisEventCalledCount, "Solution change should trigger reanalysis");
+            reanalysisEventCalledCount.Should().Be(4, "Solution change should trigger reanalysis");
 
             // Case 5: Dispose and change
             // Act
@@ -175,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.VisualStateManager.ClearBoundProject();
 
             // Verify
-            Assert.AreEqual(4, reanalysisEventCalledCount, "Once disposed should stop raising the event");
+            reanalysisEventCalledCount.Should().Be(4, "Once disposed should stop raising the event");
             this.errorListController.AssertRefreshCalled(3);
             this.errorListController.AssertResetCalled(1);
         }

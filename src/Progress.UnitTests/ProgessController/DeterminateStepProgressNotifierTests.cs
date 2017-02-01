@@ -15,11 +15,12 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -37,7 +38,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [TestMethod]
         public void DeterminateStepProgressNotifier_IncrementProgress_ArgChecks()
         {
-            // Setup
+            // Arrange
             var testSubject = new DeterminateStepProgressNotifier(new ConfigurableProgressController(null), 11);
 
             Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.IncrementProgress(0));
@@ -46,13 +47,13 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             // Check successful case (the last valid one)
             testSubject.IncrementProgress(11);
-            Assert.AreEqual(11, testSubject.CurrentValue);
+            testSubject.CurrentValue.Should().Be(11);
         }
 
         [TestMethod]
         public void DeterminateStepProgressNotifier_NotifyCurrentProgress()
         {
-            // Setup
+            // Arrange
             var controller = new ConfigurableProgressController(null);
             const int Steps = 2;
             var testSubject = new DeterminateStepProgressNotifier(controller, Steps);
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 expectedProgress.Add(Tuple.Create("hello world " + i, 0.0));
                 testSubject.NotifyCurrentProgress(expectedProgress.Last().Item1);
 
-                Assert.AreEqual(0, testSubject.CurrentValue, "Should not change");
+                testSubject.CurrentValue.Should().Be(0, "Should not change");
                 controller.AssertProgressChangeEvents(expectedProgress);
             }
         }
@@ -72,7 +73,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [TestMethod]
         public void DeterminateStepProgressNotifier_IncrementProgress()
         {
-            // Setup
+            // Arrange
             var controller = new ConfigurableProgressController(null);
             const int Steps = 227; // Quite a few values for which N * (1 / N) > 1.0
             var testSubject = new DeterminateStepProgressNotifier(controller, Steps);
@@ -88,14 +89,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 expectedValue += increment;
                 testSubject.IncrementProgress(increment);
 
-                Assert.AreEqual(expectedValue, testSubject.CurrentValue);
+                testSubject.CurrentValue.Should().Be(expectedValue);
             }
         }
 
         [TestMethod]
         public void DeterminateStepProgressNotifier_NotifyIncrementedProgress()
         {
-            // Setup
+            // Arrange
             var controller = new ConfigurableProgressController(null);
             const int Steps = 11; // there are two numbers (9 and 11) for which N * (1 / N) > 1.0
             var testSubject = new DeterminateStepProgressNotifier(controller, Steps);
@@ -108,9 +109,9 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 double progress = incrementedStepValue == Steps ? 1.0 : (double)incrementedStepValue / Steps;
                 expectedProgress.Add(Tuple.Create("hello world " + i, progress));
 
-                Assert.AreEqual(i, testSubject.CurrentValue);
+                testSubject.CurrentValue.Should().Be(i);
                 testSubject.NotifyIncrementedProgress(expectedProgress.Last().Item1);
-                Assert.AreEqual(incrementedStepValue, testSubject.CurrentValue);
+                testSubject.CurrentValue.Should().Be(incrementedStepValue);
 
                 controller.AssertProgressChangeEvents(expectedProgress);
             }

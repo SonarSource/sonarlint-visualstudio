@@ -16,7 +16,7 @@
  */
 
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using System;
 using System.Collections.Generic;
@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region IInfoBarManager
         IInfoBar IInfoBarManager.AttachInfoBar(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
         {
-            Assert.IsFalse(this.attached.ContainsKey(toolwindowGuid), "Info bar is already attached to tool window {0}", toolwindowGuid);
+            this.attached.ContainsKey(toolwindowGuid).Should().BeFalse("Info bar is already attached to tool window {0}", toolwindowGuid);
 
             var infoBar = new ConfigurableInfoBar(message, buttonText, imageMoniker);
             this.attached[toolwindowGuid] = infoBar;
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         void IInfoBarManager.DetachInfoBar(IInfoBar currentInfoBar)
         {
-            Assert.IsTrue(this.attached.Values.Contains(currentInfoBar), "Info bar is not attached");
+            this.attached.Values.Contains(currentInfoBar).Should().BeTrue("Info bar is not attached");
             this.attached.Remove(attached.Single(kv => kv.Value == currentInfoBar).Key);
         }
         #endregion
@@ -49,13 +49,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public ConfigurableInfoBar AssertHasAttachedInfoBar(Guid toolwindowGuid)
         {
             ConfigurableInfoBar infoBar = null;
-            Assert.IsTrue(this.attached.TryGetValue(toolwindowGuid, out infoBar), "The tool window {0} has no attached info bar", toolwindowGuid);
+            this.attached.TryGetValue(toolwindowGuid, out infoBar).Should().BeTrue("The tool window {0} has no attached info bar", toolwindowGuid);
             return infoBar;
         }
 
         public void AssertHasNoAttachedInfoBar(Guid toolwindowGuid)
         {
-            Assert.IsFalse(this.attached.ContainsKey(toolwindowGuid), "The tool window {0} has attached info bar", toolwindowGuid);
+            this.attached.ContainsKey(toolwindowGuid).Should().BeFalse("The tool window {0} has attached info bar", toolwindowGuid);
         }
         #endregion
     }

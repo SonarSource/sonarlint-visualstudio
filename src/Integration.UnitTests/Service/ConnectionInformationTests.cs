@@ -16,7 +16,7 @@
  */
 
 using SonarLint.VisualStudio.Integration.Service;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -38,9 +38,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             password.Dispose(); // Connection information should maintain it's own copy of the password
 
             // Verify
-            Assert.AreEqual(passwordUnsecure, testSubject.Password.ToUnsecureString(), "Password doesn't match");
-            Assert.AreEqual(userName, testSubject.UserName, "UserName doesn't match");
-            Assert.AreEqual(serverUri, testSubject.ServerUri, "ServerUri doesn't match");
+            testSubject.Password.ToUnsecureString().Should().Be(passwordUnsecure, "Password doesn't match");
+            testSubject.UserName.Should().Be(userName, "UserName doesn't match");
+            testSubject.ServerUri.Should().Be(serverUri, "ServerUri doesn't match");
 
             // Act clone
             var testSubject2 = (ConnectionInformation)((ICloneable)testSubject).Clone();
@@ -52,9 +52,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Exceptions.Expect<ObjectDisposedException>(() => testSubject.Password.ToUnsecureString());
 
             // Verify testSubject2
-            Assert.AreEqual(passwordUnsecure, testSubject2.Password.ToUnsecureString(), "Password doesn't match");
-            Assert.AreEqual(userName, testSubject2.UserName, "UserName doesn't match");
-            Assert.AreEqual(serverUri, testSubject2.ServerUri, "ServerUri doesn't match");
+            testSubject2.Password.ToUnsecureString().Should().Be(passwordUnsecure, "Password doesn't match");
+            testSubject2.UserName.Should().Be(userName, "UserName doesn't match");
+            testSubject2.ServerUri.Should().Be(serverUri, "ServerUri doesn't match");
         }
 
         [TestMethod]
@@ -67,17 +67,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new ConnectionInformation(serverUri);
 
             // Verify
-            Assert.IsNull(testSubject.Password, "Password wasn't provided");
-            Assert.IsNull(testSubject.UserName, "UserName wasn't provided");
-            Assert.AreEqual(serverUri, testSubject.ServerUri, "ServerUri doesn't match");
+            testSubject.Password.Should().BeNull("Password wasn't provided");
+            testSubject.UserName.Should().BeNull("UserName wasn't provided");
+            testSubject.ServerUri.Should().Be(serverUri, "ServerUri doesn't match");
 
             // Act clone
             var testSubject2 = (ConnectionInformation)((ICloneable)testSubject).Clone();
 
             // Verify testSubject2
-            Assert.IsNull(testSubject2.Password, "Password wasn't provided");
-            Assert.IsNull(testSubject2.UserName, "UserName wasn't provided");
-            Assert.AreEqual(serverUri, testSubject2.ServerUri, "ServerUri doesn't match");
+            testSubject2.Password.Should().BeNull("Password wasn't provided");
+            testSubject2.UserName.Should().BeNull("UserName wasn't provided");
+            testSubject2.ServerUri.Should().Be(serverUri, "ServerUri doesn't match");
         }
 
         [TestMethod]
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var noSlashResult = new ConnectionInformation(new Uri("http://localhost/NoSlash"));
 
             // Verify
-            Assert.AreEqual("http://localhost/NoSlash/", noSlashResult.ServerUri.ToString(), "Unexpected normalization of URI without trailing slash");
+            noSlashResult.ServerUri.ToString().Should().Be("http://localhost/NoSlash/", "Unexpected normalization of URI without trailing slash");
         }
 
         [TestMethod]

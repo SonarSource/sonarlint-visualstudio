@@ -17,7 +17,7 @@
 
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .ToList()
                 .ForEach(contextId => MonitorSelectionService.SetContext(contextId, false));
 
-            Assert.IsTrue(KnownUIContextsProperties.All(pi => pi.GetValue(null) != null), "UIContext failed to register");
+            KnownUIContextsProperties.All(pi => pi.GetValue(null) != null).Should().BeTrue("UIContext failed to register");
         }
 
         private static IEnumerable<PropertyInfo> KnownUIContextsProperties

@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using System;
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void SetBoundProject(ProjectInformation project)
         {
-            Assert.IsNotNull(project);
+            project.Should().NotBeNull();
 
             this.VerifyActiveSection();
 
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConnectionInformation conn;
             if (!this.ProjectServerMap.TryGetValue(project, out conn))
             {
-                Assert.Inconclusive("Test setup: project-server mapping is not available for the specified project");
+                FluentAssertions.Execution.Execute.Assertion.FailWith("Test setup: project-server mapping is not available for the specified project");
             }
 
             return conn;
@@ -127,12 +127,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertBoundProject(ProjectInformation expected)
         {
-            Assert.AreEqual(expected, this.boundProject, "Unexpected bound project");
+            this.boundProject.Should().Be(expected, "Unexpected bound project");
         }
 
         public void AssertNoBoundProject()
         {
-            Assert.IsNull(this.boundProject, "Unexpected bound project");
+            this.boundProject.Should().BeNull("Unexpected bound project");
         }
 
         private void VerifyActiveSection()
@@ -144,16 +144,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             if (this.Host == null)
             {
-                Assert.Inconclusive("Test setup issue: the Host needs to be set");
+                FluentAssertions.Execution.Execute.Assertion.FailWith("Test setup issue: the Host needs to be set");
             }
 
             if (this.ExpectActiveSection.Value)
             {
-                Assert.IsNotNull(this.Host.ActiveSection, "ActiveSection is null");
+                this.Host.ActiveSection.Should().NotBeNull("ActiveSection is null");
             }
             else
             {
-                Assert.IsNull(this.Host.ActiveSection, "ActiveSection is not null");
+                this.Host.ActiveSection.Should().BeNull("ActiveSection is not null");
             }
         }
 

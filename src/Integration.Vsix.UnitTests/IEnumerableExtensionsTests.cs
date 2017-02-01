@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void IEnumerableExtensions_AllEqual_Empty_IsTrue()
         {
             // Act + Verify
-            Assert.IsTrue(IEnumerableExtensions.AllEqual(new int[0]), "Expected empty enumerable to be AllEqual");
+            IEnumerableExtensions.AllEqual(new int[0]).Should().BeTrue("Expected empty enumerable to be AllEqual");
         }
 
         [TestMethod]
@@ -45,12 +45,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Test case 1: same values
             // Act + Verify
             int[] sameValues = new[] { 1, 1, 1, 1, 1, 1, 1, 1 };
-            Assert.IsTrue(IEnumerableExtensions.AllEqual(sameValues), "Expected same values to be AllEqual");
+            IEnumerableExtensions.AllEqual(sameValues).Should().BeTrue("Expected same values to be AllEqual");
 
             // Test case 2: mixed values
             // Act + Verify
             int[] mixedValues = new[] { 1, 1, 1, 42, 1, 1, 1 };
-            Assert.IsFalse(IEnumerableExtensions.AllEqual(mixedValues), "Expected mixed values NOT to be AllEqual");
+            IEnumerableExtensions.AllEqual(mixedValues).Should().BeFalse("Expected mixed values NOT to be AllEqual");
         }
 
         [TestMethod]
@@ -63,12 +63,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Test case 1: same instances
             // Act + Verify
             object[] sameInstances = new[] { objA, objA, objA, objA, objA };
-            Assert.IsTrue(IEnumerableExtensions.AllEqual(sameInstances), "Expected same instances to be AllEqual");
+            IEnumerableExtensions.AllEqual(sameInstances).Should().BeTrue("Expected same instances to be AllEqual");
 
             // Test case 2: mixed instances
             // Act + Verify
             object[] mixedInstances = new[] { objA, objB, objB, objA, objB };
-            Assert.IsFalse(IEnumerableExtensions.AllEqual(mixedInstances), "Expected mixed instances NOT to be AllEqual");
+            IEnumerableExtensions.AllEqual(mixedInstances).Should().BeFalse("Expected mixed instances NOT to be AllEqual");
         }
 
         [TestMethod]
@@ -81,15 +81,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Test case 1: comparator equal
             // Act + Verify
-            Assert.IsTrue(IEnumerableExtensions.AllEqual(new[] { str1a, str1b }, StringComparer.OrdinalIgnoreCase), "Expected to be AllEqual");
+            IEnumerableExtensions.AllEqual(new[] { str1a, str1b }, StringComparer.OrdinalIgnoreCase).Should().BeTrue("Expected to be AllEqual");
 
             // Test case 2: comparator not equal
             // Act + Verify
-            Assert.IsFalse(IEnumerableExtensions.AllEqual(new[] { str1a, str1b }, StringComparer.Ordinal), "Expected to NOT be AllEqual");
+            IEnumerableExtensions.AllEqual(new[] { str1a, str1b }, StringComparer.Ordinal).Should().BeFalse("Expected to NOT be AllEqual");
 
             // Test case 3: values different
             // Act + Verify
-            Assert.IsFalse(IEnumerableExtensions.AllEqual(new[] { str1a, str2 }, StringComparer.OrdinalIgnoreCase), "Expected to NOT be AllEqual");
+            IEnumerableExtensions.AllEqual(new[] { str1a, str2 }, StringComparer.OrdinalIgnoreCase).Should().BeFalse("Expected to NOT be AllEqual");
         }
     }
 }

@@ -15,13 +15,14 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -75,7 +76,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
                 this.InitializeAndExecuteTestSubject(text, attributes, this.ExecuteAndVerify);
 
-                // Verify
+                // Assert
                 VerificationHelper.CheckState(this.testSubject, StepExecutionState.Succeeded);
                 this.testController.AssertNoProgressChangeEvents();
             }
@@ -85,10 +86,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Verifies that the step updates the progress as expected")]
         public void ProgressControllerStep_ProgressUpdate()
         {
-            // Setup
+            // Arrange
             this.InitializeAndExecuteTestSubject("progress-update", StepAttributes.None, this.ExecuteAndNotify);
 
-            // Verify
+            // Assert
             this.testController.AssertProgressChangeEvents(GetExpectedExecutionEvents());
             VerificationHelper.CheckState(this.testSubject, StepExecutionState.Succeeded);
         }
@@ -97,10 +98,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Verifies that the step will fail in case of exception and the state will change to failed")]
         public void ProgressControllerStep_Failed()
         {
-            // Setup
+            // Arrange
             this.InitializeAndExecuteTestSubject("exception in executing a step operation", StepAttributes.None, this.ExecuteAndFail);
 
-            // Verify
+            // Assert
             this.testController.AssertNoProgressChangeEvents();
             VerificationHelper.CheckState(this.testSubject, StepExecutionState.Failed);
         }
@@ -109,10 +110,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Verifies that when the step is canceled it will change state to canceled")]
         public void ProgressControllerStep_Cancelled()
         {
-            // Setup
+            // Arrange
             this.InitializeAndExecuteTestSubject("canceled step operation", StepAttributes.None, this.ExecuteAndCancell);
 
-            // Verify
+            // Assert
             this.testController.AssertNoProgressChangeEvents();
             VerificationHelper.CheckState(this.testSubject, StepExecutionState.Cancelled);
         }
@@ -123,7 +124,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             this.InitializeAndExecuteTestSubject("non-cancellable step operation", StepAttributes.NonCancellable, this.ExecuteNonCancellable);
 
-            // Verify
+            // Assert
             this.testController.AssertNoProgressChangeEvents();
             VerificationHelper.CheckState(this.testSubject, StepExecutionState.Succeeded);
         }
@@ -143,13 +144,13 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         private void InitializeAndExecuteTestSubject(string text, StepAttributes attributes, Action<CancellationToken, IProgressStepExecutionEvents> operation)
         {
-            // Setup
+            // Arrange
             this.testSubject = new ProgressControllerStep(this.testController, new ProgressStepDefinition(text, attributes, operation));
 
-            // Verify initialized state
+            // Assert initialized state
             VerificationHelper.VerifyInitialized(this.testSubject, attributes, text);
 
-            // Execute by the controller
+            // Act by the controller
             this.testController.Execute(this.testSubject);
         }
 
@@ -176,7 +177,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private void ExecuteAndCancell(CancellationToken token, IProgressStepExecutionEvents notifier)
         {
             VerificationHelper.CheckState(this.testSubject, StepExecutionState.Executing);
-            Assert.IsTrue(this.testController.IsCurrentStepCancellable, "Expected to be cancellable");
+            this.testController.IsCurrentStepCancellable.Should().BeTrue("Expected to be cancellable");
             this.testController.Cancel();
             token.ThrowIfCancellationRequested();
         }
@@ -184,7 +185,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private void ExecuteNonCancellable(CancellationToken token, IProgressStepExecutionEvents notifier)
         {
             VerificationHelper.CheckState(this.testSubject, StepExecutionState.Executing);
-            Assert.IsFalse(this.testController.IsCurrentStepCancellable, "Not expected to be cancellable");
+            this.testController.IsCurrentStepCancellable.Should().BeFalse("Not expected to be cancellable");
         }
 
         #endregion

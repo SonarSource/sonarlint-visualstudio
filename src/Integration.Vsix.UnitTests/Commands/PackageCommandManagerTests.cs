@@ -16,7 +16,7 @@
  */
 
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
@@ -86,11 +86,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Initialize();
 
             // Verify
-            Assert.AreEqual(allCommands.Count, menuService.Commands.Count, "Unexpected number of commands");
+            menuService.Commands.Should().HaveCount(allCommands.Count, "Unexpected number of commands");
 
             IList<CommandID> missingCommands = allCommands.Except(menuService.Commands.Select(x => x.Key)).ToList();
             IEnumerable<string> missingCommandNames = missingCommands.Select(x => Enum.GetName(typeof(PackageCommandId), x));
-            Assert.IsTrue(!missingCommands.Any(), $"Missing commands: {string.Join(", ", missingCommandNames)}");
+            (!missingCommands.Any()).Should().BeTrue($"Missing commands: {string.Join(", ", missingCommandNames)}");
         }
 
         [TestMethod]
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Verify
             var registeredCommand = menuService.Commands.Single().Value;
-            Assert.AreEqual(commandIdObject, registeredCommand.CommandID, $"Unexpected CommandID");
+            registeredCommand.CommandID.Should().Be(commandIdObject, $"Unexpected CommandID");
         }
 
         #endregion

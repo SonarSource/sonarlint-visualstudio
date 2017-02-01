@@ -18,7 +18,7 @@
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
             {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
             return projMock.GetBuildProperty(propertyName);
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
             {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
             projMock.SetBuildProperty(propertyName, value);
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
             {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)}");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
             projMock.ClearBuildProperty(propertyName);
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ProjectMock dteProject = hierarchy as ProjectMock;
             if (dteProject == null)
             {
-                Assert.Inconclusive($"Only expecting {nameof(ProjectMock)} type");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)} type");
             }
 
             return dteProject.GetAggregateProjectTypeGuids();

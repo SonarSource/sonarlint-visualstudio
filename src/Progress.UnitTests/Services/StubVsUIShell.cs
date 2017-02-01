@@ -17,7 +17,7 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
@@ -261,12 +261,12 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         #region Verification
         public void AssertMessageBoxShown()
         {
-            Assert.IsTrue(this.messageBoxShown, "No requests to show the message box");
+            this.messageBoxShown.Should().BeTrue("No requests to show the message box");
         }
 
         public void AssertMessageBoxNotShown()
         {
-            Assert.IsFalse(this.messageBoxShown, "Not expected any requests to show the message box");
+            this.messageBoxShown.Should().BeFalse("Not expected any requests to show the message box");
         }
         #endregion
 
@@ -352,12 +352,12 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             #region Verification
             public void AssertShown()
             {
-                Assert.IsTrue(this.shown, "The window frame is expected to be shown");
+                this.shown.Should().BeTrue("The window frame is expected to be shown");
             }
 
             public void AssertNotShown()
             {
-                Assert.IsFalse(this.shown, "The window frame is not expected to be shown");
+                this.shown.Should().BeFalse("The window frame is not expected to be shown");
             }
             #endregion
 

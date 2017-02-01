@@ -17,7 +17,7 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
@@ -47,12 +47,12 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         #region Verification
         public void AssertEntryLogged()
         {
-            Assert.IsTrue(this.loggedEntry, "No requests to log entry to activity log");
+            this.loggedEntry.Should().BeTrue("No requests to log entry to activity log");
         }
 
         public void AssertEntryNotLogged()
         {
-            Assert.IsFalse(this.loggedEntry, "Not expected any requests to log to activity log");
+            this.loggedEntry.Should().BeFalse("Not expected any requests to log to activity log");
         }
 
         #endregion

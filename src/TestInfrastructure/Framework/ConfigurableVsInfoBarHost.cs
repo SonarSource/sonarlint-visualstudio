@@ -16,7 +16,7 @@
  */
 
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,13 +29,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region IVsInfoBarHost
         void IVsInfoBarHost.AddInfoBar(IVsUIElement uiElement)
         {
-            Assert.IsFalse(this.elements.Contains(uiElement));
+            this.elements.Contains(uiElement).Should().BeFalse();
             this.elements.Add(uiElement);
         }
 
         void IVsInfoBarHost.RemoveInfoBar(IVsUIElement uiElement)
         {
-            Assert.IsTrue(this.elements.Contains(uiElement));
+            this.elements.Contains(uiElement).Should().BeTrue();
             this.elements.Remove(uiElement);
         }
         #endregion
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test helpers
         public void AssertInfoBars(int expectedNumberOfInfoBars)
         {
-            Assert.AreEqual(expectedNumberOfInfoBars, this.elements.Count, "Unexpected number of info bars");
+            this.elements.Should().HaveCount(expectedNumberOfInfoBars, "Unexpected number of info bars");
         }
 
         public IEnumerable<ConfigurableVsInfoBarUIElement> MockedElements

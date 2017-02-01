@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public static void SetCurrentThreadAsUIThread()
         {
             var methodInfo = typeof(Microsoft.VisualStudio.Shell.ThreadHelper).GetMethod("SetUIThread", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-            Assert.IsNotNull(methodInfo, "Could not find ThreadHelper.SetUIThread");
+            methodInfo.Should().NotBeNull("Could not find ThreadHelper.SetUIThread");
             methodInfo.Invoke(null, null);
         }
     }

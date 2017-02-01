@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             if (typeof(ILocalService).IsAssignableFrom(serviceType))
             {
-                Assert.IsTrue(VsSessionHost.SupportedLocalServices.Contains(serviceType), "The specified service type '{0}' will not be serviced in the real IHost.", serviceType.FullName);
+                VsSessionHost.SupportedLocalServices.Contains(serviceType).Should().BeTrue("The specified service type '{0}' will not be serviced in the real IHost.", serviceType.FullName);
             }
 
             return this.serviceProvider.GetService(serviceType);
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void SetActiveSection(ISectionController section)
         {
-            Assert.IsNotNull(section);
+            section.Should().NotBeNull();
 
             this.ActiveSection = section;
 

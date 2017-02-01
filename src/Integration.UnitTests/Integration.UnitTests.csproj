@@ -312,9 +312,7 @@
     <None Include="Integration.UnitTests.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <AdditionalFiles Include="..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>

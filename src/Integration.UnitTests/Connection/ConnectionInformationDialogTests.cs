@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Security;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarLint.VisualStudio.Integration.Service;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Security;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
@@ -52,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Setup
             ConnectionInfoDialogViewModel viewModel = ConnectionInformationDialog.CreateViewModel(null);
-            Assert.IsFalse(viewModel.IsValid, "Empty view model should be invalid");
+            viewModel.IsValid.Should().BeFalse("Empty view model should be invalid");
             var emptyPassword = new SecureString();
 
             // Act
@@ -63,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             }
 
             // Verify
-            Assert.IsNull(connInfo, "No ConnectionInformation should be returned with an invalid model");
+            connInfo.Should().BeNull("No ConnectionInformation should be returned with an invalid model");
         }
 
         [TestMethod]
@@ -84,12 +85,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ConnectionInformation connInfo = ConnectionInformationDialog.CreateConnectionInformation(viewModel, securePassword);
 
             // Verify
-            Assert.IsNotNull(connInfo, "ConnectionInformation should be returned");
-            Assert.AreEqual(new Uri(serverUrl), connInfo.ServerUri, "Server URI returned was different");
-            Assert.AreEqual(username, connInfo.UserName, "Username returned was different");
+            connInfo.Should().NotBeNull("ConnectionInformation should be returned");
+            connInfo.ServerUri.Should().Be(new Uri(serverUrl), "Server URI returned was different");
+            connInfo.UserName.Should().Be(username, "Username returned was different");
 
             string outputPlaintextPassword = connInfo.Password.ToUnsecureString();
-            Assert.AreEqual(inputPlaintextPassword, outputPlaintextPassword, "Password returned was different");
+            outputPlaintextPassword.Should().Be(inputPlaintextPassword, "Password returned was different");
         }
 
         [TestMethod]
@@ -102,8 +103,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ConnectionInfoDialogViewModel viewModel = ConnectionInformationDialog.CreateViewModel(connectionInformation);
 
             // Verify
-            Assert.AreEqual(connectionInformation.ServerUri, viewModel.ServerUrl, "Unexpected ServerUrl");
-            Assert.AreEqual(connectionInformation.UserName, viewModel.Username, "Unexpected UserName");
+            viewModel.ServerUrl.Should().Be(connectionInformation.ServerUri, "Unexpected ServerUrl");
+            viewModel.Username.Should().Be(connectionInformation.UserName, "Unexpected UserName");
         }
 
     }

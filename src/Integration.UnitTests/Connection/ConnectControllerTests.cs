@@ -15,6 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Globalization;
+using System.Windows.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -24,9 +28,6 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
-using System;
-using System.Globalization;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
@@ -74,11 +75,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var testSubject = new ConnectionController(this.host);
 
             // Verify
-            Assert.IsNotNull(testSubject.ConnectCommand, "Connected command should not be null");
-            Assert.IsNotNull(testSubject.DontWarnAgainCommand, "DontWarnAgain command should not be null");
-            Assert.IsNotNull(testSubject.RefreshCommand, "Refresh command should not be null");
-            Assert.IsNotNull(testSubject.WorkflowExecutor, "Need to be able to execute the workflow");
-            Assert.IsFalse(testSubject.IsConnectionInProgress, "Connection is not in progress");
+            testSubject.ConnectCommand.Should().NotBeNull("Connected command should not be null");
+            testSubject.DontWarnAgainCommand.Should().NotBeNull("DontWarnAgain command should not be null");
+            testSubject.RefreshCommand.Should().NotBeNull("Refresh command should not be null");
+            testSubject.WorkflowExecutor.Should().NotBeNull("Need to be able to execute the workflow");
+            testSubject.IsConnectionInProgress.Should().BeFalse("Connection is not in progress");
         }
 
         [TestMethod]
@@ -92,26 +93,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Verify
-            Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Connected already and busy");
+            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Connected already and busy");
 
             // Case 2: has connection, not busy
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Verify
-            Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Connected already");
+            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Connected already");
 
             // Case 3: no connection, is busy
             this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Verify
-            Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Busy");
+            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Busy");
 
             // Case 4: no connection, not busy
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Verify
-            Assert.IsTrue(testSubject.ConnectCommand.CanExecute(), "No connection and not busy");
+            testSubject.ConnectCommand.CanExecute().Should().BeTrue("No connection and not busy");
         }
 
         [TestMethod]
@@ -124,10 +125,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.connectionProvider.ConnectionInformationToReturn = null;
 
             // Sanity
-            Assert.IsTrue(testSubject.ConnectCommand.CanExecute(), "Should be possible to execute");
+            testSubject.ConnectCommand.CanExecute().Should().BeTrue("Should be possible to execute");
 
             // Sanity
-            Assert.IsNull(testSubject.LastAttemptedConnection, "No previous attempts to connect");
+            testSubject.LastAttemptedConnection.Should().BeNull("No previous attempts to connect");
 
             // Act
             testSubject.ConnectCommand.Execute();
@@ -141,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.connectionProvider.ConnectionInformationToReturn = expectedConnection;
             this.sonarQubeService.ExpectedConnection = expectedConnection;
             // Sanity
-            Assert.IsNull(testSubject.LastAttemptedConnection, "Previous attempt returned null");
+            testSubject.LastAttemptedConnection.Should().BeNull("Previous attempt returned null");
 
             // Act
             testSubject.ConnectCommand.Execute();
@@ -156,10 +157,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.TestStateManager.IsConnected = true;
 
             // Sanity
-            Assert.AreEqual(existingConnection, testSubject.LastAttemptedConnection, "Unexpected last attempted connection");
+            testSubject.LastAttemptedConnection.Should().Be(existingConnection, "Unexpected last attempted connection");
 
             // Verify
-            Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Should not be able to connect if an existing connecting is present");
+            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Should not be able to connect if an existing connecting is present");
         }
 
         [TestMethod]
@@ -174,35 +175,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Verify
-            Assert.IsFalse(testSubject.RefreshCommand.CanExecute(null), "Busy");
+            testSubject.RefreshCommand.CanExecute(null).Should().BeFalse("Busy");
 
             // Case 2: no connection, not busy, no connection argument
             this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Verify
-            Assert.IsFalse(testSubject.RefreshCommand.CanExecute(null), "Nothing to refresh");
+            testSubject.RefreshCommand.CanExecute(null).Should().BeFalse("Nothing to refresh");
 
             // Case 3: no connection, is busy, has connection argument
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Verify
-            Assert.IsFalse(testSubject.RefreshCommand.CanExecute(connection), "Busy");
+            testSubject.RefreshCommand.CanExecute(connection).Should().BeFalse("Busy");
 
             // Case 4: no connection, not busy, has connection argument
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Verify
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connection), "Has connection argument and not busy");
+            testSubject.RefreshCommand.CanExecute(connection).Should().BeTrue("Has connection argument and not busy");
 
             // Case 5: has connection, not busy, no connection argument
             this.host.TestStateManager.IsConnected = true;
             // Act + Verify
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(null), "Has connection and not busy");
+            testSubject.RefreshCommand.CanExecute(null).Should().BeTrue("Has connection and not busy");
 
             // Case 6: has connection, not busy, connection argument the same as the existing connection
             // Act + Verify
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connection), "Has connection and not busy");
+            testSubject.RefreshCommand.CanExecute(connection).Should().BeTrue("Has connection and not busy");
         }
 
         [TestMethod]
@@ -214,10 +215,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connection = new ConnectionInformation(new Uri("http://Expected"));
             this.sonarQubeService.ExpectedConnection = connection;
             // Sanity
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connection), "Should be possible to execute");
+            testSubject.RefreshCommand.CanExecute(connection).Should().BeTrue("Should be possible to execute");
 
             // Sanity
-            Assert.IsNull(testSubject.LastAttemptedConnection, "No previous attempts to connect");
+            testSubject.LastAttemptedConnection.Should().BeNull("No previous attempts to connect");
 
             // Act
             testSubject.RefreshCommand.Execute(connection);
@@ -225,8 +226,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Verify
             this.connectionWorkflow.AssertEstablishConnectionCalled(1);
             this.sonarQubeService.AssertConnectRequests(1);
-            Assert.AreEqual(connection.ServerUri, testSubject.LastAttemptedConnection.ServerUri, "Unexpected last attempted connection");
-            Assert.AreNotSame(connection, testSubject.LastAttemptedConnection, "LastAttemptedConnection should be a clone");
+            testSubject.LastAttemptedConnection.ServerUri.Should().Be(connection.ServerUri, "Unexpected last attempted connection");
+            testSubject.LastAttemptedConnection.Should().NotBe(connection, "LastAttemptedConnection should be a clone");
         }
 
         [TestMethod]
@@ -239,8 +240,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionInfo = new ConnectionInformation(new Uri("http://refreshConnection"));
 
             // Sanity
-            Assert.IsTrue(testSubject.ConnectCommand.CanExecute());
-            Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connectionInfo));
+            testSubject.ConnectCommand.CanExecute().Should().BeTrue();
+            testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeTrue();
 
             foreach (var controllerResult in (ProgressControllerResult[])Enum.GetValues(typeof(ProgressControllerResult)))
             {
@@ -250,8 +251,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 testSubject.SetConnectionInProgress(progressEvents);
 
                 // Verify
-                Assert.IsFalse(testSubject.ConnectCommand.CanExecute(), "Connection is in progress so should not be enabled");
-                Assert.IsFalse(testSubject.RefreshCommand.CanExecute(connectionInfo), "Connection is in progress so should not be enabled");
+                testSubject.ConnectCommand.CanExecute().Should().BeFalse("Connection is in progress so should not be enabled");
+                testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeFalse("Connection is in progress so should not be enabled");
                 this.outputWindowPane.AssertOutputStrings(0);
 
                 // Act - log progress
@@ -265,8 +266,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 progressEvents.SimulateFinished(controllerResult);
 
                 // Verify
-                Assert.IsTrue(testSubject.ConnectCommand.CanExecute(), "Connection is finished with result: {0}", controllerResult);
-                Assert.IsTrue(testSubject.RefreshCommand.CanExecute(connectionInfo), "Connection is finished with result: {0}", controllerResult);
+                testSubject.ConnectCommand.CanExecute().Should().BeTrue("Connection is finished with result: {0}", controllerResult);
+                testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeTrue("Connection is finished with result: {0}", controllerResult);
             }
         }
 
@@ -336,13 +337,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
 
             // Sanity
-            Assert.IsTrue(testSubject.DontWarnAgainCommand.CanExecute());
+            testSubject.DontWarnAgainCommand.CanExecute().Should().BeTrue();
 
             // Act
             testSubject.DontWarnAgainCommand.Execute();
 
             // Verify
-            Assert.IsFalse(this.settings.ShowServerNuGetTrustWarning, "Expected show warning settings to be false");
+            this.settings.ShowServerNuGetTrustWarning.Should().BeFalse("Expected show warning settings to be false");
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.WarnServerTrustId);
         }
 
@@ -357,7 +358,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
 
             // Act + Verify
-            Assert.IsFalse(testSubject.DontWarnAgainCommand.CanExecute());
+            testSubject.DontWarnAgainCommand.CanExecute().Should().BeFalse();
         }
 
         [TestMethod]
@@ -370,7 +371,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
 
             // Act + Verify
-            Assert.IsTrue(testSubject.DontWarnAgainCommand.CanExecute());
+            testSubject.DontWarnAgainCommand.CanExecute().Should().BeTrue();
         }
 
         #endregion

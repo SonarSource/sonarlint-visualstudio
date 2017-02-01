@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -62,15 +63,15 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         public void SequentialProgressController_IProgressStepFactory_SupportedInputs()
         {
             IProgressStepOperation stepOperation = this.testSubject.CreateStepOperation(this.controller, new ProgressStepDefinition("text", StepAttributes.None, (c, n) => { }));
-            Assert.IsNotNull(stepOperation, "Expecting IProgressStepOperation");
+            stepOperation.Should().NotBeNull("Expecting IProgressStepOperation");
             ProgressControllerStep step = stepOperation as ProgressControllerStep;
-            Assert.IsNotNull(step, "Expecting ProgressControllerStep");
+            step.Should().NotBeNull("Expecting ProgressControllerStep");
 
             VerificationHelper.CheckState(stepOperation.Step, StepExecutionState.NotStarted);
 
             IProgressStepExecutionEvents notifier = ((IProgressStepFactory)this.testSubject).GetExecutionCallback(stepOperation);
-            Assert.IsNotNull(stepOperation, "Expecting IProgressStepExecutionEvents");
-            Assert.AreSame(step, notifier, "Expecting ProgressControllerStep");
+            stepOperation.Should().NotBeNull("Expecting IProgressStepExecutionEvents");
+            notifier.Should().Be(step, "Expecting ProgressControllerStep");
         }
     }
 }

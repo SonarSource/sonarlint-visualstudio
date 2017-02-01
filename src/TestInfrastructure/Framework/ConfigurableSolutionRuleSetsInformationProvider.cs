@@ -16,7 +16,7 @@
  */
 
 using EnvDTE;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System.Collections.Generic;
 using System.IO;
 
@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region ISolutionRuleSetsInformationProvider
         IEnumerable<RuleSetDeclaration> ISolutionRuleSetsInformationProvider.GetProjectRuleSetsDeclarations(Project project)
         {
-            Assert.IsNotNull(project);
+            project.Should().NotBeNull();
 
             List<RuleSetDeclaration> result;
             if (!this.registeredProjectData.TryGetValue(project, out result))

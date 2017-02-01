@@ -17,7 +17,7 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting; using FluentAssertions;
 using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
@@ -100,22 +100,22 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         #region Verification
         public void AssertActivated()
         {
-            Assert.IsTrue(this.activated, "Expected the output window to be activated");
+            this.activated.Should().BeTrue("Expected the output window to be activated");
         }
 
         public void AssertNotActivated()
         {
-            Assert.IsFalse(this.activated, "Not expected the output window to be activated");
+            this.activated.Should().BeFalse("Not expected the output window to be activated");
         }
 
         public void AssertWrittenToOutputWindow()
         {
-            Assert.IsTrue(this.writtenToOutputWindow, "Expected to write to output window");
+            this.writtenToOutputWindow.Should().BeTrue("Expected to write to output window");
         }
 
         public void AssertNotWrittenToOutputWindow()
         {
-            Assert.IsFalse(this.writtenToOutputWindow, "Not expected to write to output window");
+            this.writtenToOutputWindow.Should().BeFalse("Not expected to write to output window");
         }
         #endregion
 
