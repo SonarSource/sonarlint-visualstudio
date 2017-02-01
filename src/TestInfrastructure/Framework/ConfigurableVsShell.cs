@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<int, Func<object>> propertyGetters = new Dictionary<int, Func<object>>();
 
         #region IVsShell
+
         int IVsShell.AdviseBroadcastMessages(IVsBroadcastMessageEvents pSink, out uint pdwCookie)
         {
             throw new NotImplementedException();
@@ -94,13 +95,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsShell
 
         #region Test helpers
+
         public void RegisterPropertyGetter(int propertyId, Func<object> getter)
         {
             this.propertyGetters[propertyId] = getter;
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Progress.Observation;
 using SonarLint.VisualStudio.Progress.Observation.ViewModels;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -48,21 +48,21 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             this.CheckUIThread();
 
-            this.isShown = true;
+            this.IsShown = true;
         }
 
         void IProgressVisualizer.Hide()
         {
             this.CheckUIThread();
 
-            this.isShown = false;
+            this.IsShown = false;
         }
 
         private void CheckUIThread()
         {
             if (this.ThrowIfAccessedNotFromUIThread)
             {
-                Assert.IsTrue(ThreadHelper.CheckAccess(), "Wasn't called on the UI thread");
+                ThreadHelper.CheckAccess().Should().BeTrue("Wasn't called on the UI thread");
             }
         }
     }

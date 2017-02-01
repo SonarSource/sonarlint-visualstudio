@@ -15,22 +15,23 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Service.DataModel;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableSonarQubeServiceWrapper : ISonarQubeServiceWrapper
     {
-        private int connectRequestsCount;
+        internal int ConnectionRequestsCount { get; private set; }
         private readonly IDictionary<string, IDictionary<string, Uri>> projectDashboardUrls = new Dictionary<string, IDictionary<string, Uri>>();
 
         #region Testing helpers
+
         public bool AllowConnections { get; set; } = true;
 
         public ProjectInformation[] ReturnProjectInformation { get; set; }
@@ -52,12 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void ResetCounters()
         {
-            this.connectRequestsCount = 0;
-        }
-
-        public void AssertConnectRequests(int expectedCount)
-        {
-            Assert.AreEqual(expectedCount, this.connectRequestsCount, "Connect was not called the expected number of times");
+            this.ConnectionRequestsCount = 0;
         }
 
         public void RegisterServerPlugin(ServerPlugin plugin)
@@ -106,32 +102,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void AssertExpectedConnection(ConnectionInformation connection)
         {
-            Assert.IsNotNull(connection, "The API requires a connection information");
+            connection.Should().NotBeNull("The API requires a connection information");
 
             if (this.ExpectedConnection != null)
             {
-                Assert.AreEqual(this.ExpectedConnection?.ServerUri, connection.ServerUri, "The connection is not as expected");
+                connection.ServerUri.Should().Be(this.ExpectedConnection?.ServerUri, "The connection is not as expected");
             }
         }
 
         private void AssertExpectedProjectInformation(ProjectInformation projectInformation)
         {
-            Assert.IsNotNull(projectInformation, "The API requires project information");
+            projectInformation.Should().NotBeNull("The API requires project information");
 
             if (this.ExpectedProjectKey != null)
             {
-                Assert.AreEqual(this.ExpectedProjectKey, projectInformation.Key, "Unexpected project key");
+                projectInformation.Key.Should().Be(this.ExpectedProjectKey, "Unexpected project key");
             }
         }
-        #endregion
+
+        #endregion Testing helpers
 
         #region ISonarQubeServiceWrapper
-
 
         bool ISonarQubeServiceWrapper.TryGetProjects(ConnectionInformation serverConnection, CancellationToken token, out ProjectInformation[] serverProjects)
         {
             this.AssertExpectedConnection(serverConnection);
-            this.connectRequestsCount++;
+            this.ConnectionRequestsCount++;
 
             if (this.AllowConnections && !token.IsCancellationRequested)
             {
@@ -149,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.AssertExpectedConnection(serverConnection);
 
-            Assert.IsNotNull(profile, "QualityProfile is expected");
+            profile.Should().NotBeNull("QualityProfile is expected");
 
             this.GetExportAction?.Invoke();
 
@@ -158,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             QualityProfile profile2;
             this.ReturnProfile.TryGetValue(language, out profile2);
-            Assert.AreSame(profile2, profile, "Unexpected profile for language");
+            profile.Should().Be(profile2, "Unexpected profile for language");
 
             return export != null;
         }
@@ -211,6 +207,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return profile != null;
         }
 
-        #endregion
+        #endregion ISonarQubeServiceWrapper
     }
 }

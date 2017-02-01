@@ -15,18 +15,18 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableProgressController : IProgressController, IProgressEvents
     {
-        private int numberOfAbortRequests = 0;
+        internal int NumberOfAbortRequests { get; private set; } = 0;
         private readonly List<IProgressStep> steps = new List<IProgressStep>();
         private EventHandler<ProgressEventArgs> started;
         private EventHandler<ProgressControllerFinishedEventArgs> finished;
@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private EventHandler<CancellationSupportChangedEventArgs> cancellationSupportChanged;
 
         #region IProgressController
+
         IErrorNotificationManager IProgressController.ErrorNotificationManager
         {
             get
@@ -67,12 +68,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         bool IProgressController.TryAbort()
         {
-            this.numberOfAbortRequests++;
+            this.NumberOfAbortRequests++;
             return true;
         }
-        #endregion
+
+        #endregion IProgressController
 
         #region IProgressEvents
+
         IEnumerable<IProgressStep> IProgressEvents.Steps
         {
             get
@@ -132,18 +135,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.cancellationSupportChanged -= value;
             }
         }
-        #endregion
+
+        #endregion IProgressEvents
 
         #region Test helpers
-        public void AssertNumberOfAbortRequests(int expected)
-        {
-            Assert.AreEqual(expected, this.numberOfAbortRequests, "TryAbort was not called the expected number of times");
-        }
 
         public void AddSteps(params IProgressStep[] progressSteps)
         {
             this.steps.AddRange(progressSteps);
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

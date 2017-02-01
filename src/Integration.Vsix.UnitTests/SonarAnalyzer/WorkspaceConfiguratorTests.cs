@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
 {

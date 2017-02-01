@@ -15,11 +15,12 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -45,7 +46,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.expectedException = new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
         }
 
-        #endregion
+        #endregion Test plumbing
 
         #region Tests
 
@@ -53,10 +54,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Arg check tests")]
         public void VsOutputWindowPaneNotifier_Args()
         {
-            // Setup
+            // Arrange
             var outputWindowPane = this.CreateOutputPane(true);
 
-            // Act + Verify
+            // Act + Assert
             // Test case: 1st argument invalid
             Exceptions.Expect<ArgumentNullException>(() => new VsOutputWindowPaneNotifier(null, outputWindowPane, true, "{0}", false));
 
@@ -77,7 +78,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Verifies notifying of an exception message using an output window")]
         public void VsOutputWindowPaneNotifier_MessageOnly()
         {
-            // Setup
+            // Arrange
             bool logFullException = true;
             bool ensureOutputVisible = false;
 
@@ -86,20 +87,20 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             IProgressErrorNotifier testSubject = this.CreateTestSubject(outputPane, ensureOutputVisible, logFullException);
 
-            // Execute
+            // Act
             testSubject.Notify(this.expectedException);
 
-            // Verify
-            frame.AssertNotShown();
-            outputPane.AssertNotActivated();
-            outputPane.AssertWrittenToOutputWindow();
+            // Assert
+            frame.WasShown.Should().BeFalse();
+            outputPane.IsActivated.Should().BeFalse();
+            outputPane.IsWrittenToOutputWindow.Should().BeTrue();
         }
 
         [TestMethod]
         [Description("Verifies notifying of a full exception using an output window")]
         public void VsOutputWindowPaneNotifier_FullException()
         {
-            // Setup
+            // Arrange
             bool logFullException = true;
             bool ensureOutputVisible = false;
 
@@ -108,20 +109,20 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             IProgressErrorNotifier testSubject = this.CreateTestSubject(outputPane, ensureOutputVisible, logFullException);
 
-            // Execute
+            // Act
             testSubject.Notify(this.expectedException);
 
-            // Verify
-            frame.AssertNotShown();
-            outputPane.AssertNotActivated();
-            outputPane.AssertWrittenToOutputWindow();
+            // Assert
+            frame.WasShown.Should().BeFalse();
+            outputPane.IsActivated.Should().BeFalse();
+            outputPane.IsWrittenToOutputWindow.Should().BeTrue();
         }
 
         [TestMethod]
         [Description("Verifies notifying of a full exception using an output window and ensure that the output is visible")]
         public void VsOutputWindowPaneNotifier_EnsureOutputVisible()
         {
-            // Setup
+            // Arrange
             bool logFullException = true;
             bool ensureOutputVisible = true;
 
@@ -130,15 +131,16 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             IProgressErrorNotifier testSubject = this.CreateTestSubject(outputPane, ensureOutputVisible, logFullException);
 
-            // Execute
+            // Act
             testSubject.Notify(this.expectedException);
 
-            // Verify
-            frame.AssertShown();
-            outputPane.AssertActivated();
-            outputPane.AssertWrittenToOutputWindow();
+            // Assert
+            frame.WasShown.Should().BeTrue();
+            outputPane.IsActivated.Should().BeTrue();
+            outputPane.IsWrittenToOutputWindow.Should().BeTrue();
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
 
@@ -160,7 +162,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             {
                 FindToolWindowAction = (windowSlotGuid) =>
                 {
-                    Assert.AreEqual(VSConstants.StandardToolWindows.Output, windowSlotGuid, "Unexpected window slot guid");
+                    windowSlotGuid.Should().Be(VSConstants.StandardToolWindows.Output, "Unexpected window slot guid");
                     return frame;
                 }
             };
@@ -182,6 +184,6 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             };
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

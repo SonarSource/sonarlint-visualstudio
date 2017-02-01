@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Reflection;
 using System.Threading;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region IVsTaskSchedulerService
+
         IVsTask IVsTaskSchedulerService.ContinueWhenAllCompleted(uint context, uint tasks, IVsTask[] dependentTasks, IVsTaskBody taskBody)
         {
             return ((IVsTaskSchedulerService)this).ContinueWhenAllCompletedEx(context, tasks, dependentTasks, 0, taskBody, null);
@@ -81,9 +82,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 return result;
             });
         }
-        #endregion
+
+        #endregion IVsTaskSchedulerService
 
         #region Configuration
+
         public void SetCurrentThreadIsUIThread(bool uiThread)
         {
             if (uiThread)
@@ -95,9 +98,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 this.SetCurrentThreadContextAs(VsTaskRunContext.BackgroundThread);
             }
         }
-        #endregion
+
+        #endregion Configuration
 
         #region Test helper
+
         /// <summary>
         /// Test helper to run test code in a pseudo-UI context that will let the platform code to behave nicely
         /// </summary>
@@ -129,7 +134,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             }
 
             MethodInfo setUIThread = typeof(ThreadHelper).GetMethod("SetUIThread", BindingFlags.Static | BindingFlags.NonPublic);
-            Assert.IsNotNull(setUIThread, "Cannot find ThreadHelper.SetUIThread");
+            setUIThread.Should().NotBeNull("Cannot find ThreadHelper.SetUIThread");
             bool isUiThread = context == VsTaskRunContext.UIThreadBackgroundPriority ||
                 context == VsTaskRunContext.UIThreadIdlePriority ||
                 context == VsTaskRunContext.UIThreadNormalPriority ||
@@ -162,9 +167,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 this.currentContext = context;
             }
 
-            Assert.AreEqual(isUiThread, ThreadHelper.CheckAccess(), "SetUIThread patching code failed");
+            isUiThread.Should().Be(ThreadHelper.CheckAccess(), "SetUIThread patching code failed");
         }
-        #endregion
+
+        #endregion Test helper
 
         private class VsTask : IVsTask
         {
@@ -175,9 +181,9 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             public VsTask(SingleThreadedTaskSchedulerService owner, VsTaskRunContext context, Func<object> action)
             {
-                Assert.IsNotNull(owner);
-                Assert.IsNotNull(context);
-                Assert.IsNotNull(action);
+                owner.Should().NotBeNull();
+                context.Should().NotBeNull();
+                action.Should().NotBeNull();
                 this.owner = owner;
                 this.context = context;
                 this.action = action;

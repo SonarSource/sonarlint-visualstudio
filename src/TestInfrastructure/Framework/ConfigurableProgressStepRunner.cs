@@ -15,45 +15,30 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Progress;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableProgressStepRunner : IProgressStepRunnerWrapper
     {
-        private int abortAllNumberOfCalls;
-        private IProgressControlHost currentHost;
+        internal int AbortAllNumberOfCalls { get; private set; }
+        internal IProgressControlHost CurrentHost { get; private set; }
 
         #region IProgressStepRunnerWrapper
+
         void IProgressStepRunnerWrapper.AbortAll()
         {
-            this.abortAllNumberOfCalls++;
+            this.AbortAllNumberOfCalls++;
         }
 
         void IProgressStepRunnerWrapper.ChangeHost(IProgressControlHost host)
         {
-            Assert.IsNotNull(host);
+            host.Should().NotBeNull();
 
-            this.currentHost = host;
-        }
-        #endregion
-
-        #region Test helper
-        public void AssertAbortAllCalled(int expectedNumberOfTimes)
-        {
-            Assert.AreEqual(expectedNumberOfTimes, this.abortAllNumberOfCalls, "AbortAll was not called expected number of times");
+            this.CurrentHost = host;
         }
 
-        public void AssertCurrentHost(IProgressControlHost expectedHost)
-        {
-            Assert.AreSame(expectedHost, this.currentHost);
-        }
-
-        public void AssertNoCurrentHost()
-        {
-            Assert.IsNull(this.currentHost);
-        }
-        #endregion
+        #endregion IProgressStepRunnerWrapper
     }
 }

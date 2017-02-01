@@ -15,10 +15,9 @@
  * THE SOFTWARE.
  */
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Observation.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {

@@ -15,13 +15,14 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Persistence;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -74,17 +75,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionBindingSerializer_WriteSolutionBinding_ArgChecks()
         {
-            // Setup
+            // Arrange
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
 
-            // Act + Verify
+            // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.WriteSolutionBinding(null));
         }
 
         [TestMethod]
         public void SolutionBindingSerializer_WriteSolutionBinding_ReadSolutionBinding()
         {
-            // Setup
+            // Arrange
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -94,29 +95,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act (write)
             string output = testSubject.WriteSolutionBinding(written);
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-            Assert.IsNotNull(output, "Expected a real file");
+            output.Should().NotBeNull("Expected a real file");
             this.TestContext.AddResultFile(output);
-            Assert.IsTrue(File.Exists(output), "Expected a real file");
+            File.Exists(output).Should().BeTrue("Expected a real file");
 
-            // Verify
-            this.store.AssertHasCredentials(serverUri);
+            // Assert
+            this.store.data.Should().ContainKey(serverUri);
 
             // Act (read)
             BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
-            // Verify
+            // Assert
             var newCreds = read.Credentials as BasicAuthCredentials;
-            Assert.AreNotEqual(creds, newCreds, "Different credential instance were expected");
-            Assert.AreEqual(creds.UserName, newCreds.UserName);
-            Assert.AreEqual(creds.Password.ToUnsecureString(), newCreds.Password.ToUnsecureString());
-            Assert.AreEqual(written.ServerUri, read.ServerUri);
+            newCreds.Should().NotBe(creds, "Different credential instance were expected");
+            newCreds.UserName.Should().Be(creds.UserName);
+            newCreds.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
+            read.ServerUri.Should().Be(written.ServerUri);
             this.outputPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
         public void SolutionBindingSerializer_WriteSolutionBinding_ReadSolutionBinding_WithProfiles()
         {
-            // Setup
+            // Arrange
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -129,34 +130,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act (write)
             string output = testSubject.WriteSolutionBinding(written);
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-            Assert.IsNotNull(output, "Expected a real file");
+            output.Should().NotBeNull("Expected a real file");
             this.TestContext.AddResultFile(output);
-            Assert.IsTrue(File.Exists(output), "Expected a real file");
+            File.Exists(output).Should().BeTrue("Expected a real file");
 
-            // Verify
-            this.store.AssertHasCredentials(serverUri);
+            // Assert
+            this.store.data.Should().ContainKey(serverUri);
 
             // Act (read)
             BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
-            // Verify
+            // Assert
             var newCreds = read.Credentials as BasicAuthCredentials;
-            Assert.AreNotEqual(creds, newCreds, "Different credential instance were expected");
-            Assert.AreEqual(creds.UserName, newCreds.UserName);
-            Assert.AreEqual(creds.Password.ToUnsecureString(), newCreds.Password.ToUnsecureString());
-            Assert.AreEqual(written.ServerUri, read.ServerUri);
-            Assert.AreEqual(2, read.Profiles?.Count ?? 0);
-            Assert.AreEqual(written.Profiles[Language.VBNET].ProfileKey, read.Profiles[Language.VBNET].ProfileKey);
-            Assert.AreEqual(written.Profiles[Language.VBNET].ProfileTimestamp, read.Profiles[Language.VBNET].ProfileTimestamp);
-            Assert.AreEqual(written.Profiles[Language.CSharp].ProfileKey, read.Profiles[Language.CSharp].ProfileKey);
-            Assert.AreEqual(written.Profiles[Language.CSharp].ProfileTimestamp, read.Profiles[Language.CSharp].ProfileTimestamp);
+            newCreds.Should().NotBe(creds, "Different credential instance were expected");
+            newCreds.UserName.Should().Be(creds.UserName);
+            newCreds.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
+            read.ServerUri.Should().Be(written.ServerUri);
+            (read.Profiles?.Count ?? 0).Should().Be(2);
+            read.Profiles[Language.VBNET].ProfileKey.Should().Be(written.Profiles[Language.VBNET].ProfileKey);
+            read.Profiles[Language.VBNET].ProfileTimestamp.Should().Be(written.Profiles[Language.VBNET].ProfileTimestamp);
+            read.Profiles[Language.CSharp].ProfileKey.Should().Be(written.Profiles[Language.CSharp].ProfileKey);
+            read.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(written.Profiles[Language.CSharp].ProfileTimestamp);
             this.outputPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
         public void SolutionBindingSerializer_WriteSolutionBinding_ReadSolutionBinding_OnRealStore()
         {
-            // Setup
+            // Arrange
             var testSubject = new SolutionBindingSerializer(this.serviceProvider);
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var projectKey = "MyProject Key";
@@ -179,12 +180,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 testSubject.Store.DeleteCredentials(serverUri);
             }
 
-            // Verify
+            // Assert
             var newCreds = read.Credentials as BasicAuthCredentials;
-            Assert.AreNotEqual(creds, newCreds, "Different credential instance were expected");
-            Assert.AreEqual(creds.UserName, newCreds.UserName);
-            Assert.AreEqual(creds.Password.ToUnsecureString(), newCreds?.Password.ToUnsecureString());
-            Assert.AreEqual(written.ServerUri, read.ServerUri);
+            newCreds.Should().NotBe(creds, "Different credential instance were expected");
+            newCreds.UserName.Should().Be(creds.UserName);
+            newCreds?.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
+            read.ServerUri.Should().Be(written.ServerUri);
             this.outputPane.AssertOutputStrings(0);
 
             // Case 2: has not credentials (anonymous)
@@ -203,16 +204,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 testSubject.Store.DeleteCredentials(serverUri);
             }
 
-            // Verify
-            Assert.IsNull(read.Credentials);
-            Assert.AreEqual(written.ServerUri, read.ServerUri);
+            // Assert
+            read.Credentials.Should().BeNull();
+            read.ServerUri.Should().Be(written.ServerUri);
             this.outputPane.AssertOutputStrings(0);
         }
 
         [TestMethod]
         public void SolutionBindingSerializer_ReadSolutionBinding_InvalidData()
         {
-            // Setup
+            // Arrange
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -220,36 +221,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             string output = testSubject.WriteSolutionBinding(written);
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-            Assert.IsNotNull(output, "Expected a real file");
+            output.Should().NotBeNull("Expected a real file");
             File.WriteAllText(output, "bla bla bla: bla");
 
             // Act (read)
             BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
-            // Verify
-            Assert.IsNull(read, "Not expecting any binding information in case of error");
+            // Assert
+            read.Should().BeNull("Not expecting any binding information in case of error");
             this.outputPane.AssertOutputStrings(1);
         }
 
         [TestMethod]
         public void SolutionBindingSerializer_ReadSolutionBinding_NoFile()
         {
-            // Setup
+            // Arrange
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
 
             // Act (read)
             BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
-            // Verify
-            Assert.IsNull(read, "Not expecting any binding information when there is no file");
+            // Assert
+            read.Should().BeNull("Not expecting any binding information when there is no file");
             this.outputPane.AssertOutputStrings(0);
         }
-
 
         [TestMethod]
         public void SolutionBindingSerializer_ReadSolutionBinding_IOError()
         {
-            // Setup
+            // Arrange
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -262,8 +262,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act (read)
                 BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
-                // Verify
-                Assert.IsNull(read, "Not expecting any binding information in case of error");
+                // Assert
+                read.Should().BeNull("Not expecting any binding information in case of error");
                 this.outputPane.AssertOutputStrings(1);
             }
         }
@@ -271,21 +271,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionBindingSerializer_ReadSolutionBinding_OnClosedSolution()
         {
-            // Setup
+            // Arrange
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             this.dte.Solution = new SolutionMock(dte, "" /*When the solution is closed the file is empty*/);
 
             // Act (read)
             BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
-            // Verify
-            Assert.IsNull(read);
+            // Assert
+            read.Should().BeNull();
         }
 
         [TestMethod]
         public void SolutionBindingSerializer_WriteSolutionBinding_IOError()
         {
-            // Setup
+            // Arrange
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -300,8 +300,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 string output2 = testSubject.WriteSolutionBinding(written);
                 this.sourceControlledFileSystem.WritePendingErrorsExpected();
 
-                // Verify
-                Assert.AreEqual(output, output2, "Same output is expected");
+                // Assert
+                output2.Should().Be(output, "Same output is expected");
                 this.outputPane.AssertOutputStrings(1);
             }
         }
@@ -309,7 +309,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionBindingSerializer_WriteSolutionBinding_AddConfigFileToSolutionItemsFolder()
         {
-            // Setup
+            // Arrange
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -320,32 +320,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             string output = testSubject.WriteSolutionBinding(toWrite);
 
-            // Verify that not actually done anything until the pending files were written
-            this.store.AssertHasNoCredentials(serverUri);
-            Assert.IsFalse(solutionProject.Files.ContainsKey(output), "Not expected to be added to solution items folder just yet");
+            // Assert that not actually done anything until the pending files were written
+            this.store.data.Should().NotContainKey(serverUri);
+            solutionProject.Files.ContainsKey(output).Should().BeFalse("Not expected to be added to solution items folder just yet");
 
             // Act (write pending)
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
 
-            // Verify
-            this.store.AssertHasCredentials(serverUri);
-            Assert.IsTrue(solutionProject.Files.ContainsKey(output), "File {0} was not added to project", output);
+            // Assert
+            this.store.data.Should().ContainKey(serverUri);
+            solutionProject.Files.ContainsKey(output).Should().BeTrue("File {0} was not added to project", output);
 
             // Act (write again)
             string output2 = testSubject.WriteSolutionBinding(toWrite);
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
 
-            // Verify
-            Assert.AreEqual(output, output2, "Should be the same file");
-            this.store.AssertHasCredentials(serverUri);
-            Assert.IsTrue(solutionProject.Files.ContainsKey(output), "File {0} should remain in the project", output);
+            // Assert
+            output2.Should().Be(output, "Should be the same file");
+            this.store.data.Should().ContainKey(serverUri);
+            solutionProject.Files.ContainsKey(output).Should().BeTrue("File {0} should remain in the project", output);
         }
 
         #region Helpers
+
         private SolutionBindingSerializer CreateTestSubject()
         {
             return new SolutionBindingSerializer(this.serviceProvider, this.store);
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

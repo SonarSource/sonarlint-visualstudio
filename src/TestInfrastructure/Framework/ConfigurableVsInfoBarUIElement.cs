@@ -15,13 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,9 +31,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<uint, IVsInfoBarUIEvents> sinks = new Dictionary<uint, IVsInfoBarUIEvents>();
 
         #region IVsInfoBarUIElement
+
         int IVsInfoBarUIElement.Advise(IVsInfoBarUIEvents eventSink, out uint cookie)
         {
-            Assert.IsNotNull(eventSink);
+            eventSink.Should().NotBeNull();
 
             cookie = (uint)Interlocked.Increment(ref this.cookies);
             this.sinks[cookie] = eventSink;
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsInfoBarUIElement.Close()
         {
-            Assert.IsFalse(this.IsClosed, "Already closed");
+            this.IsClosed.Should().BeFalse("Already closed");
 
             this.IsClosed = true;
             this.SimulateClosedEvent();
@@ -93,15 +94,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsInfoBarUIElement.Unadvise(uint cookie)
         {
-            Assert.IsTrue(this.sinks.ContainsKey(cookie));
+            this.sinks.Should().ContainKey(cookie);
 
             this.sinks.Remove(cookie);
 
             return VSConstants.S_OK;
         }
-        #endregion
+
+        #endregion IVsInfoBarUIElement
 
         #region Test helpers
+
         public bool IsClosed
         {
             get;
@@ -123,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
-        #endregion
 
+        #endregion Test helpers
     }
 }

@@ -15,14 +15,14 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.TeamFoundation.Controls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ComponentModel;
-using System.Windows.Input;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 using System.Reflection;
+using System.Windows.Input;
+using FluentAssertions;
+using Microsoft.TeamFoundation.Controls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// </summary>
     public class ConfigurableTeamExplorer : ITeamExplorer
     {
-        private Guid currentPageId;
+        internal Guid CurrentPageId { get; private set; }
 
         public IDictionary<Guid, ITeamExplorerPage> AvailablePages { get; } = new Dictionary<Guid, ITeamExplorerPage>();
 
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public ConfigurableTeamExplorer(Guid startPage)
         {
-            this.currentPageId = startPage;
+            this.CurrentPageId = startPage;
             this.AddStandardPages();
         }
 
@@ -62,22 +62,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        #region Assertion Helpers
-
-        public void AssertCurrentPage(Guid pageId)
-        {
-            Assert.AreEqual(pageId, this.currentPageId, "Unexpected current page ID");
-        }
-
-        #endregion
-
         #region ITeamExplorer
 
         ITeamExplorerPage ITeamExplorer.CurrentPage
         {
             get
             {
-                return this.AvailablePages[this.currentPageId];
+                return this.AvailablePages[this.CurrentPageId];
             }
         }
 
@@ -121,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         ITeamExplorerPage ITeamExplorer.NavigateToPage(Guid pageId, object context)
         {
-            this.currentPageId = pageId;
+            this.CurrentPageId = pageId;
             return ((ITeamExplorer)this).CurrentPage;
         }
 
@@ -130,6 +121,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-        #endregion
+        #endregion ITeamExplorer
     }
 }

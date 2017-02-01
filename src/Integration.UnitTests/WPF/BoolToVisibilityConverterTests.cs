@@ -15,11 +15,12 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.WPF;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Globalization;
 using System.Windows;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
@@ -31,8 +32,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
         {
             var converter = new BoolToVisibilityConverter();
 
-            Assert.AreEqual(converter.TrueValue, Visibility.Visible);
-            Assert.AreEqual(converter.FalseValue, Visibility.Collapsed);
+            Visibility.Visible.Should().Be(converter.TrueValue);
+            Visibility.Collapsed.Should().Be(converter.FalseValue);
         }
 
         [TestMethod]
@@ -68,8 +69,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             };
             object result = converter.Convert(true, typeof(Visibility), null, CultureInfo.InvariantCulture);
 
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Hidden);
+            result.Should().BeAssignableTo<Visibility>();
+            Visibility.Hidden.Should().Be(result);
         }
 
         [TestMethod]
@@ -82,8 +83,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             };
             object result = converter.Convert(false, typeof(Visibility), null, CultureInfo.InvariantCulture);
 
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Visible);
+            result.Should().BeAssignableTo<Visibility>();
+            Visibility.Visible.Should().Be(result);
         }
     }
 }

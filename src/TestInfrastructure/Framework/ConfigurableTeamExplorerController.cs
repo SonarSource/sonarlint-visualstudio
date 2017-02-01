@@ -16,22 +16,16 @@
  */
 
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableTeamExplorerController : ITeamExplorerController
     {
-        private int showConnectionsPageCalls;
+        internal int ShowConnectionsPageCallsCount { get; private set; }
 
         void ITeamExplorerController.ShowSonarQubePage()
         {
-            this.showConnectionsPageCalls++;
-        }
-
-        public void AssertExpectedNumCallsShowConnectionsPage(int calls)
-        {
-            Assert.AreEqual(calls, this.showConnectionsPageCalls, "Unexpected number of calls to ShowConnectionsPage");
+            this.ShowConnectionsPageCallsCount++;
         }
     }
 }

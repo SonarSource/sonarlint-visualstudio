@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.InfoBar;
-using System;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void InfoBarManager_ArgChecks()
         {
@@ -51,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void InfoBarManager_AttachInfoBar_ArgChecks()
         {
-            // Setup
+            // Arrange
             var testSubject = new InfoBarManager(this.serviceProvider);
 
             // Simple checks
@@ -67,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void InfoBarManager_AttachInfoBar()
         {
-            // Setup
+            // Arrange
             Guid windowGuid = new Guid();
             ConfigurableVsWindowFrame frame = this.shell.RegisterToolWindow(windowGuid);
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
@@ -79,37 +81,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act
             IInfoBar infoBarWrapper = testSubject.AttachInfoBar(windowGuid, "Hello", "world", KnownMonikers.UserWarning);
-            frame.AssertShowNoActivateCalled(1);
+            frame.ShowNoActivateCalledCount.Should().Be(1);
             bool actionClicked = false;
             bool closed = false;
             infoBarWrapper.ButtonClick += (s, e) => actionClicked = true;
             infoBarWrapper.Closed += (s, e) => closed = true;
 
-            // Verify
-            Assert.IsNotNull(infoBarWrapper);
+            // Assert
+            infoBarWrapper.Should().NotBeNull();
             host.AssertInfoBars(1);
             var infoBarUI = host.MockedElements.Single();
-            Assert.AreEqual(1, infoBarUI.Model.TextSpans.Count);
-            Assert.AreEqual("Hello", infoBarUI.Model.TextSpans.GetSpan(0).Text);
-            Assert.AreEqual(1, infoBarUI.Model.ActionItems.Count);
-            Assert.AreEqual("world", infoBarUI.Model.ActionItems.GetItem(0).Text);
+            infoBarUI.Model.TextSpans.Count.Should().Be(1);
+            infoBarUI.Model.TextSpans.GetSpan(0).Text.Should().Be("Hello");
+            infoBarUI.Model.ActionItems.Count.Should().Be(1);
+            infoBarUI.Model.ActionItems.GetItem(0).Text.Should().Be("world");
 
             // Sanity
-            Assert.IsFalse(actionClicked);
-            Assert.IsFalse(closed);
+            actionClicked.Should().BeFalse();
+            closed.Should().BeFalse();
 
             // Act (check if close event is fired)
             infoBarUI.SimulateClickEvent();
 
-            // Verify
-            Assert.IsTrue(actionClicked);
-            Assert.IsFalse(closed);
+            // Assert
+            actionClicked.Should().BeTrue();
+            closed.Should().BeFalse();
 
             // Act (check if close event is fired)
             infoBarUI.SimulateClosedEvent();
 
-            // Verify
-            Assert.IsTrue(closed);
+            // Assert
+            closed.Should().BeTrue();
 
             // Act (check that events won't fire once closed)
             actionClicked = false;
@@ -118,16 +120,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             infoBarWrapper.Close();
             infoBarUI.SimulateClosedEvent();
 
-            // Verify
-            Assert.IsFalse(actionClicked);
-            Assert.IsFalse(closed);
-            frame.AssertShowNoActivateCalled(1); // Should only be called once in all this flow
+            // Assert
+            actionClicked.Should().BeFalse();
+            closed.Should().BeFalse();
+            frame.ShowNoActivateCalledCount.Should().Be(1); // Should only be called once in all this flow
         }
 
         [TestMethod]
         public void InfoBarManager_AttachInfoBar_Failures()
         {
-            // Setup
+            // Arrange
             Guid windowGuid = new Guid();
             ConfigurableVsWindowFrame frame = this.shell.RegisterToolWindow(windowGuid);
             var testSubject = new InfoBarManager(this.serviceProvider);
@@ -135,22 +137,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Case 1: No service
             this.serviceProvider.AssertOnUnexpectedServiceRequest = false;
 
-            // Act + Verify
-            Assert.IsNull(testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)));
-            frame.AssertShowNoActivateCalled(0);
+            // Act + Assert
+            testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
+            frame.ShowNoActivateCalledCount.Should().Be(0);
 
             // Case 2: Service exists, no host for frame
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
 
-            // Act + Verify
-            Assert.IsNull(testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)));
-            frame.AssertShowNoActivateCalled(0);
+            // Act + Assert
+            testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
+            frame.ShowNoActivateCalledCount.Should().Be(0);
         }
 
         [TestMethod]
         public void InfoBarManager_DetachInfoBar_ArgChecks()
         {
-            // Setup
+            // Arrange
             var testSubject = new InfoBarManager(this.serviceProvider);
 
             Exceptions.Expect<ArgumentNullException>(() => testSubject.DetachInfoBar(null));
@@ -160,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void InfoBarManager_DetachInfoBar()
         {
-            // Setup
+            // Arrange
             Guid windowGuid = new Guid();
             ConfigurableVsWindowFrame frame = this.shell.RegisterToolWindow(windowGuid);
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
@@ -176,11 +178,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.DetachInfoBar(infoBarWrapper);
 
-            // Verify
-            Assert.IsTrue(closed, "Expected to auto-close");
+            // Assert
+            closed.Should().BeTrue("Expected to auto-close");
             host.AssertInfoBars(0);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Test helpers
 
@@ -190,6 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             frame.RegisterProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, host);
             return host;
         }
+
         private class InvalidInfoBar : IInfoBar
         {
             event EventHandler IInfoBar.ButtonClick
@@ -223,6 +227,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 throw new NotImplementedException();
             }
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     public partial class ConfigurableProgressTestOperation : IProgressStep
     {
         private readonly Action<CancellationToken, IProgressStepExecutionEvents> operation;
-        private bool executed;
+        internal bool IsExecuted { get; private set; }
 
         public ConfigurableProgressTestOperation(Action<CancellationToken, IProgressStepExecutionEvents> operation)
         {
@@ -43,10 +43,13 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
 #pragma warning disable 67
+
         public event EventHandler<StepExecutionChangedEventArgs> StateChanged;
+
 #pragma warning restore 67
 
         #region Customization methods
+
         /// <summary>
         /// Simulate this final execution result after running the operation
         /// </summary>
@@ -65,9 +68,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             set;
         }
 
-        #endregion
+        #endregion Customization methods
 
         #region IProgressStep
+
         public string DisplayText
         {
             get;
@@ -117,18 +121,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get;
             set;
         }
-        #endregion
 
-        #region Verification methods
-        public void AssertExecuted()
-        {
-            Assert.IsTrue(this.executed, "The operation was not executed");
-        }
-
-        public void AssertNotExecuted()
-        {
-            Assert.IsFalse(this.executed, "The operation was executed");
-        }
-        #endregion
+        #endregion IProgressStep
     }
 }

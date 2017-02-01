@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Windows.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -48,13 +49,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.serviceProvider = provider;
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         #region Tests
+
         [TestMethod]
         public void ProjectSonarLintMenuCommand_QueryStatus_NoProjects_IsDisableIsHidden()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectSonarLintMenuCommand(serviceProvider);
@@ -62,15 +64,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            // Assert
+            command.Enabled.Should().BeFalse("Expected command to be disabled");
+            command.Visible.Should().BeFalse("Expected command to be hidden");
         }
 
         [TestMethod]
         public void ProjectSonarLintMenuCommand_QueryStatus_HasUnsupportedProject_IsDisabledIsHidden()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectSonarLintMenuCommand(serviceProvider);
@@ -84,15 +86,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            // Assert
+            command.Enabled.Should().BeFalse("Expected command to be disabled");
+            command.Visible.Should().BeFalse("Expected command to be hidden");
         }
 
         [TestMethod]
         public void ProjectSonarLintMenuCommand_QueryStatus_AllSupportedProjects_IsEnabledIsVisible()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectSonarLintMenuCommand(serviceProvider);
@@ -107,11 +109,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsTrue(command.Enabled, "Expected command to be enabled");
-            Assert.IsTrue(command.Visible, "Expected command to be visible");
+            // Assert
+            command.Enabled.Should().BeTrue("Expected command to be enabled");
+            command.Visible.Should().BeTrue("Expected command to be visible");
         }
 
-        #endregion
+        #endregion Tests
     }
 }

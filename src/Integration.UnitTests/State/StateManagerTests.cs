@@ -15,16 +15,17 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Input;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.State
 {
@@ -38,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         }
 
         #region Tests
+
         [TestMethod]
         public void StateManager_ArgsCheck()
         {
@@ -48,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         [TestMethod]
         public void StateManager_SetProjectsUIThread()
         {
-            // Setup
+            // Arrange
             var section = ConfigurableSectionController.CreateDefault();
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
@@ -61,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             host.SetActiveSection(section);
             ServerViewModel serverVM;
 
-            // Act + Verify
+            // Act + Assert
             // Case 1 - not connected to server (indicated by null)
             section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.SetProjects(connection1, null);
@@ -77,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(section.ViewModel, connection1);
-            Assert.IsTrue(serverVM.ShowAllProjects, "Expected show all projects");
+            serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects");
             VerifySectionCommands(section, serverVM);
             VerifyConnectSectionViewModelIsNotConnected(section.ViewModel, connection2);
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
@@ -91,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             VerifySectionCommands(section, serverVM);
             VerifyConnectSectionViewModelIsNotConnected(section.ViewModel, connection2);
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
-            Assert.IsTrue(serverVM.ShowAllProjects, "Expected show all projects to be true when adding new projects");
+            serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects to be true when adding new projects");
 
             // Case 4 - connection2, change projects
             testSubject.SetProjects(connection1, projects);
@@ -104,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection2, projects);
             VerifySectionCommands(section, serverVM);
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
-            Assert.IsTrue(serverVM.ShowAllProjects, "Expected show all projects to be true when changing projects");
+            serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects to be true when changing projects");
 
             // Case 5 - connection1 & connection2, once detached (connected or not), are reset, changes still being tracked
             host.ClearActiveSection();
@@ -113,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             // Act
             section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             host.SetActiveSection(section);
-            // Verify
+            // Assert
             notifications.AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection1, projects);
             VerifySectionCommands(section, serverVM);
@@ -125,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         [TestMethod]
         public void StateManager_SyncCommandFromActiveSection()
         {
-            // Setup
+            // Arrange
             var section = ConfigurableSectionController.CreateDefault();
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host, section);
@@ -156,11 +158,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             VerifySectionCommands(section, serverVM);
         }
 
-
         [TestMethod]
         public void StateManager_ToggleShowAllProjectsCommand_DynamicText()
         {
-            // Setup
+            // Arrange
             var section = ConfigurableSectionController.CreateDefault();
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host, section);
@@ -174,20 +175,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Case 1: No bound projects
             serverVM.ShowAllProjects = true;
-            // Act + Verify
-            Assert.AreEqual(Strings.HideUnboundProjectsCommandText, toggleContextCmd.DisplayText, "Unexpected disabled context command text");
+            // Act + Assert
+            toggleContextCmd.DisplayText.Should().Be(Strings.HideUnboundProjectsCommandText, "Unexpected disabled context command text");
 
             // Case 2: has bound projects
             serverVM.ShowAllProjects = false;
 
-            // Act + Verify
-            Assert.AreEqual(Strings.ShowAllProjectsCommandText, toggleContextCmd.DisplayText, "Unexpected context command text");
+            // Act + Assert
+            toggleContextCmd.DisplayText.Should().Be(Strings.ShowAllProjectsCommandText, "Unexpected context command text");
         }
 
         [TestMethod]
         public void StateManager_BindCommand_DynamicText()
         {
-            // Setup
+            // Arrange
             var section = ConfigurableSectionController.CreateDefault();
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host, section);
@@ -201,20 +202,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Case 1: Bound
             projectVM.IsBound = true;
-            // Act + Verify
-            Assert.AreEqual(Strings.SyncButtonText, bindCmd.DisplayText, "Unexpected disabled context command text");
+            // Act + Assert
+            bindCmd.DisplayText.Should().Be(Strings.SyncButtonText, "Unexpected disabled context command text");
 
             // Case 2: Not bound
             projectVM.IsBound = false;
 
-            // Act + Verify
-            Assert.AreEqual(Strings.BindButtonText, bindCmd.DisplayText, "Unexpected context command text");
+            // Act + Assert
+            bindCmd.DisplayText.Should().Be(Strings.BindButtonText, "Unexpected context command text");
         }
 
         [TestMethod]
         public void StateManager_ClearBoundProject()
         {
-            // Setup
+            // Arrange
             var section = ConfigurableSectionController.CreateDefault();
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
@@ -229,20 +230,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.SetBoundProject(allProjects.First().ProjectInformation);
 
             // Sanity
-            Assert.IsTrue(testSubject.ManagedState.HasBoundProject);
+            testSubject.ManagedState.HasBoundProject.Should().BeTrue();
 
             // Act
             testSubject.ClearBoundProject();
 
-            // Verify
-            Assert.IsFalse(testSubject.ManagedState.HasBoundProject);
+            // Assert
+            testSubject.ManagedState.HasBoundProject.Should().BeFalse();
             notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
         }
 
         [TestMethod]
         public void StateManager_SetBoundProject()
         {
-            // Setup
+            // Arrange
             var section = ConfigurableSectionController.CreateDefault();
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
@@ -257,28 +258,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             bool hasBoundProjectChanged = false;
             state.PropertyChanged += (o, e) =>
               {
-                  Assert.AreEqual(nameof(state.HasBoundProject), e.PropertyName);
+                  e.PropertyName.Should().Be(nameof(state.HasBoundProject));
                   hasBoundProjectChanged = true;
               };
 
             // Act
             testSubject.SetBoundProject(projects[1]);
 
-            // Verify
+            // Assert
             notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             var serverVM = state.ConnectedServers.Single();
             var project0VM = serverVM.Projects.Single(p => p.ProjectInformation == projects[0]);
             var project1VM = serverVM.Projects.Single(p => p.ProjectInformation == projects[1]);
-            Assert.IsTrue(project1VM.IsBound, "Expected to be bound");
-            Assert.IsFalse(project0VM.IsBound, "Not expected to be bound");
-            Assert.IsTrue(testSubject.ManagedState.HasBoundProject, "Expected a bound project");
-            Assert.IsTrue(hasBoundProjectChanged, "HasBoundProject expected to change");
+            project1VM.IsBound.Should().BeTrue();
+            project0VM.IsBound.Should().BeFalse();
+            testSubject.ManagedState.HasBoundProject.Should().BeTrue("Expected a bound project");
+            hasBoundProjectChanged.Should().BeTrue("HasBoundProject expected to change");
         }
 
         [TestMethod]
         public void StateManager_IsBusyChanged()
         {
-            // Setup
+            // Arrange
             var section = ConfigurableSectionController.CreateDefault();
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
@@ -286,43 +287,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Case 1: no active section -> no-op (i.e. no exception)
             testSubject.IsBusy = true;
-            Assert.IsTrue(testSubject.ManagedState.IsBusy);
+            testSubject.ManagedState.IsBusy.Should().BeTrue();
             testSubject.IsBusy = false;
-            Assert.IsFalse(testSubject.ManagedState.IsBusy);
+            testSubject.ManagedState.IsBusy.Should().BeFalse();
 
             // Case 2: has active section
             host.SetActiveSection(section);
 
             // Sanity (!IsBusy)
-            Assert.IsFalse(section.ViewModel.IsBusy);
+            section.ViewModel.IsBusy.Should().BeFalse();
 
             // Act (IsBusy -> IsBusy)
             testSubject.IsBusy = true;
 
-            // Verify
-            Assert.IsTrue(section.ViewModel.IsBusy);
-            Assert.IsTrue(testSubject.ManagedState.IsBusy);
+            // Assert
+            section.ViewModel.IsBusy.Should().BeTrue();
+            testSubject.ManagedState.IsBusy.Should().BeTrue();
 
             // Act (!IsBusy -> !IsBusy)
             testSubject.IsBusy = false;
 
-            // Verify
-            Assert.IsFalse(section.ViewModel.IsBusy);
-            Assert.IsFalse(testSubject.ManagedState.IsBusy);
+            // Assert
+            section.ViewModel.IsBusy.Should().BeFalse();
+            testSubject.ManagedState.IsBusy.Should().BeFalse();
 
             // Dispose (should stop updated the view model)
             testSubject.Dispose();
             testSubject.IsBusy = true;
 
-            // Verify
-            Assert.IsFalse(section.ViewModel.IsBusy);
-            Assert.IsTrue(testSubject.ManagedState.IsBusy);
+            // Assert
+            section.ViewModel.IsBusy.Should().BeFalse();
+            testSubject.ManagedState.IsBusy.Should().BeTrue();
         }
 
         [TestMethod]
         public void StateManager_BindingStateChanged()
         {
-            // Setup
+            // Arrange
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
             var countOnBindingStateChangeFired = 0;
@@ -333,82 +334,82 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             var allProjects = testSubject.ManagedState.ConnectedServers.SelectMany(s => s.Projects).ToList();
 
             // Sanity
-            Assert.AreEqual(0, countOnBindingStateChangeFired);
+            countOnBindingStateChangeFired.Should().Be(0);
 
             // Act
             testSubject.SetBoundProject(allProjects.First().ProjectInformation);
 
-            // Verify
-            Assert.AreEqual(1, countOnBindingStateChangeFired);
+            // Assert
+            countOnBindingStateChangeFired.Should().Be(1);
 
             // Act
             testSubject.ClearBoundProject();
 
-            // Verify
-            Assert.AreEqual(2, countOnBindingStateChangeFired);
+            // Assert
+            countOnBindingStateChangeFired.Should().Be(2);
         }
 
         [TestMethod]
         public void StateManager_IsConnected()
         {
-            // Setup
+            // Arrange
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
 
             // Sanity
-            Assert.IsFalse(testSubject.IsConnected);
+            testSubject.IsConnected.Should().BeFalse();
 
             // Act (connect)
             testSubject.SetProjects(new ConnectionInformation(new Uri("http://qwerty")), new ProjectInformation[0]);
 
-            // Verify
-            Assert.IsTrue(testSubject.IsConnected);
+            // Assert
+            testSubject.IsConnected.Should().BeTrue();
 
             // Act (disconnect)
             testSubject.SetProjects(new ConnectionInformation(new Uri("http://qwerty")), null);
 
-            // Verify
-            Assert.IsFalse(testSubject.IsConnected);
+            // Assert
+            testSubject.IsConnected.Should().BeFalse();
         }
 
         [TestMethod]
         public void StateManager_GetConnectedServers()
         {
-            // Setup
+            // Arrange
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
             var connection1 = new ConnectionInformation(new Uri("http://conn1"));
             var connection2 = new ConnectionInformation(new Uri("http://conn2"));
 
             // Sanity
-            Assert.IsFalse(testSubject.GetConnectedServers().Any());
+            testSubject.GetConnectedServers().Any().Should().BeFalse();
 
             // Act (connect)
             testSubject.SetProjects(connection1, new ProjectInformation[0]);
 
-            // Verify
+            // Assert
             CollectionAssert.AreEquivalent(new[] { connection1 } , testSubject.GetConnectedServers().ToArray());
 
             // Act (connect another one)
             testSubject.SetProjects(connection2, new ProjectInformation[0]);
 
-            // Verify
+            // Assert
             CollectionAssert.AreEquivalent(new[] { connection1, connection2 }, testSubject.GetConnectedServers().ToArray());
 
             // Act (disconnect)
             testSubject.SetProjects(connection1, null);
             testSubject.SetProjects(connection2, null);
 
-            // Verify
-            Assert.IsFalse(testSubject.GetConnectedServers().Any());
-            Assert.IsTrue(connection1.IsDisposed, "Leaking connections?");
-            Assert.IsTrue(connection2.IsDisposed, "Leaking connections?");
+            // Assert
+            testSubject.GetConnectedServers().Any().Should().BeFalse();
+            connection1.IsDisposed.Should().BeTrue("Leaking connections?");
+            connection2.IsDisposed.Should().BeTrue("Leaking connections?");
         }
 
         [TestMethod]
         public void StateManager_Dispose()
         {
-            // Setup
+            // Arrange
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
             var connection1 = new ConnectionInformation(new Uri("http://conn1"));
@@ -417,14 +418,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             // Act
             testSubject.Dispose();
 
-            // Verify
-            Assert.IsTrue(connection1.IsDisposed, "Leaking connections?");
+            // Assert
+            connection1.IsDisposed.Should().BeTrue("Leaking connections?");
         }
 
         [TestMethod]
         public void StateManager_GetConnectedServer()
         {
-            // Setup
+            // Arrange
             const string SharedKey = "Key"; // The key is the same for all projects on purpose
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
@@ -437,16 +438,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Case 1: Exists
             // Act+Verify
-            Assert.AreEqual(connection1, testSubject.GetConnectedServer(project1));
-            Assert.AreEqual(connection2, testSubject.GetConnectedServer(project2));
+            testSubject.GetConnectedServer(project1).Should().Be(connection1);
+            testSubject.GetConnectedServer(project2).Should().Be(connection2);
 
             // Case 2: Doesn't exist
             // Act+Verify
-            Assert.IsNull(testSubject.GetConnectedServer(new ProjectInformation { Key = SharedKey }));
+            testSubject.GetConnectedServer(new ProjectInformation { Key = SharedKey }).Should().BeNull();
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private StateManager CreateTestSubject(ConfigurableHost host, ConfigurableSectionController section = null)
         {
             var testSubject = new StateManager(host, new TransferableVisualState());
@@ -464,7 +467,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             AssertExpectedNumberOfCommands(serverVM.Commands, 4);
             VerifyServerViewModelCommand(serverVM, section.DisconnectCommand, fixedContext: serverVM, hasIcon: true);
             VerifyServerViewModelCommand(serverVM, section.RefreshCommand, fixedContext: serverVM, hasIcon: true);
-            VerifyServerViewModelCommand(serverVM, section.BrowseToUrlCommand, fixedContext: serverVM.ConnectionInformation.ServerUri, hasIcon: true);
+            VerifyServerViewModelCommand(serverVM, section.BrowseToUrlCommand, fixedContext: serverVM.ConnectionInformation.ServerUri.ToString(), hasIcon: true);
             VerifyServerViewModelCommand(serverVM, section.ToggleShowAllProjectsCommand, fixedContext: serverVM, hasIcon: false);
 
             foreach (ProjectViewModel project in serverVM.Projects)
@@ -478,39 +481,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         private static void VerifyNoCommands(ServerViewModel serverVM)
         {
             AssertExpectedNumberOfCommands(serverVM.Commands, 0);
-            Assert.AreEqual(0, serverVM.Projects.Sum(p => p.Commands.Count), "Not expecting any project commands");
+            serverVM.Projects.Sum(p => p.Commands.Count).Should().Be(0, "Not expecting any project commands");
         }
 
         private static void VerifyServerViewModelCommand(ServerViewModel serverVM, ICommand internalCommand, object fixedContext, bool hasIcon)
         {
             ContextualCommandViewModel commandVM = AssertCommandExists(serverVM.Commands, internalCommand);
-            Assert.IsNotNull(commandVM.DisplayText, "DisplayText expected");
-            Assert.AreEqual(fixedContext, commandVM.InternalFixedContext, "The fixed context is incorrect");
+            commandVM.DisplayText.Should().NotBeNull("DisplayText expected");
+            commandVM.InternalFixedContext.Should().Be(fixedContext, "The fixed context is incorrect");
             if (hasIcon)
             {
-                Assert.IsNotNull(commandVM.Icon, "Icon expected");
-                Assert.IsNotNull(commandVM.Icon.Moniker, "Icon moniker expected");
+                commandVM.Icon.Should().NotBeNull("Icon expected");
+                commandVM.Icon.Moniker.Should().NotBeNull("Icon moniker expected");
             }
             else
             {
-                Assert.IsNull(commandVM.Icon, "Icon not expected");
+                commandVM.Icon.Should().BeNull("Icon not expected");
             }
         }
 
         private static void VerifyProjectViewModelCommand(ProjectViewModel projectVM, ICommand internalCommand, object fixedContext, bool hasIcon)
         {
             ContextualCommandViewModel commandVM = AssertCommandExists(projectVM.Commands, internalCommand);
-            Assert.IsNotNull(commandVM.DisplayText, "DisplayText expected");
-            Assert.AreEqual(fixedContext, commandVM.InternalFixedContext, "The fixed context is incorrect");
-            Assert.AreEqual(internalCommand, commandVM.InternalRealCommand, "Unexpected command");
+            commandVM.DisplayText.Should().NotBeNull("DisplayText expected");
+            commandVM.InternalFixedContext.Should().Be(fixedContext, "The fixed context is incorrect");
+            commandVM.InternalRealCommand.Should().Be(internalCommand, "Unexpected command");
             if (hasIcon)
             {
-                Assert.IsNotNull(commandVM.Icon, "Icon expected");
-                Assert.IsNotNull(commandVM.Icon.Moniker, "Icon moniker expected");
+                commandVM.Icon.Should().NotBeNull("Icon expected");
+                commandVM.Icon.Moniker.Should().NotBeNull("Icon moniker expected");
             }
             else
             {
-                Assert.IsNull(commandVM.Icon, "Icon not expected");
+                commandVM.Icon.Should().BeNull("Icon not expected");
             }
         }
 
@@ -523,7 +526,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
         private static void AssertExpectedNumberOfCommands(IEnumerable<ContextualCommandViewModel> commands, int expectedCount)
         {
-            Assert.AreEqual(expectedCount, commands.Count(), "Unexpected commands. All command: {0}", string.Join(", ", commands.Select(c => c.DisplayText)));
+            commands.Should().HaveCount(expectedCount, "Unexpected commands. All command: {0}", string.Join(", ", commands.Select(c => c.DisplayText)));
         }
 
         private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasProjects(ConnectSectionViewModel vm, ConnectionInformation connection, ProjectInformation[] projects)
@@ -537,7 +540,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(ConnectSectionViewModel vm, ConnectionInformation connection)
         {
             ServerViewModel serverVM = VerifyConnectSectionViewModelIsConnected(vm, connection);
-            Assert.AreEqual(0, serverVM.Projects.Count, "Unexpected number of projects");
+            serverVM.Projects.Should().HaveCount(0, "Unexpected number of projects");
 
             return serverVM;
         }
@@ -545,21 +548,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         private static void VerifyConnectSectionViewModelIsNotConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
         {
             ServerViewModel serverVM = vm.State?.ConnectedServers?.SingleOrDefault(s => s.Url == connection.ServerUri);
-            Assert.IsNull(serverVM, "Should not find server view model for {0}", connection.ServerUri);
+            serverVM.Should().BeNull("Should not find server view model for {0}", connection.ServerUri);
         }
 
         private static ServerViewModel VerifyConnectSectionViewModelIsConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
         {
             ServerViewModel serverVM = vm.State?.ConnectedServers?.SingleOrDefault(s => s.Url == connection.ServerUri);
-            Assert.IsNotNull(serverVM, "Could not find server view model for {0}", connection.ServerUri);
+            serverVM.Should().NotBeNull("Could not find server view model for {0}", connection.ServerUri);
 
             return serverVM;
         }
 
         private static void VerifyConnectSectionViewModelHasNoBoundProjects(ConnectSectionViewModel vm)
         {
-            Assert.IsFalse(vm.State.HasBoundProject, "View model should not have any bound projects");
+            vm.State.HasBoundProject.Should().BeFalse("View model should not have any bound projects");
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

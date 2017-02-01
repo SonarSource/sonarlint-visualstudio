@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
+using System;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -50,6 +50,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.queryStatusFunc?.Invoke(command);
         }
 
-        #endregion
+        #endregion VsCommandBase
     }
 }

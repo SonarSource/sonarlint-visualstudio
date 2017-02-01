@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -50,8 +51,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         /// <returns>The notifier that was used for configuration of the assert exception</returns>
         public static ConfigurableErrorNotifier ConfigureToThrowAssertExceptions(SequentialProgressController controller)
         {
-            Assert.IsNotNull(controller, "Controller argument is required");
-            Assert.IsNotNull(controller.Steps, "Controller needs to be initialized");
+            controller.Should().NotBeNull("Controller argument is required");
+            controller.Steps.Should().NotBeNull("Controller needs to be initialized");
 
             ConfigurableErrorNotifier errorHandler = new ConfigurableErrorNotifier();
             controller.ErrorNotificationManager.AddNotifier(errorHandler);
@@ -74,7 +75,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
                 if (originalException != null)
                 {
-                    Assert.AreEqual(ProgressControllerResult.Failed, e.Result, "Expected to be failed since the assert failed which causes an exception");
+                    e.Result.Should().Be(ProgressControllerResult.Failed, "Expected to be failed since the assert failed which causes an exception");
                     throw new RestoredUnitTestAssertException(originalException.Message, originalException);
                 }
             };
@@ -97,6 +98,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Test helper class RestoredUnitTestAssertException : UnitTestAssertException
+
         private class RestoredUnitTestAssertException : UnitTestAssertException
         {
             public RestoredUnitTestAssertException()
@@ -118,6 +120,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             {
             }
         }
-        #endregion
+
+        #endregion Test helper class RestoredUnitTestAssertException : UnitTestAssertException
     }
 }

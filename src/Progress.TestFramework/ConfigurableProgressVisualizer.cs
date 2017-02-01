@@ -17,7 +17,6 @@
 
 using SonarLint.VisualStudio.Progress.Observation;
 using SonarLint.VisualStudio.Progress.Observation.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -26,7 +25,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// </summary>
     public partial class ConfigurableProgressVisualizer : IProgressVisualizer
     {
-        private bool isShown;
+        public bool IsShown { get; private set; }
+
         private ProgressControllerViewModel viewModel;
 
         public ConfigurableProgressVisualizer()
@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Customization properties
+
         public ProgressControllerViewModel Root
         {
             get { return this.viewModel; }
@@ -45,24 +46,17 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion Customization properties
 
         #region Verification methods
+
         public void Reset()
         {
             this.viewModel = new ProgressControllerViewModel();
-            this.isShown = false;
+            this.IsShown = false;
         }
 
-        public void AssertIsShown()
-        {
-            Assert.IsTrue(this.isShown, "Expected to be shown");
-        }
-
-        public void AssertIsHidden()
-        {
-            Assert.IsFalse(this.isShown, "Expected to be hidden");
-        }
-        #endregion
+        #endregion Verification methods
     }
 }

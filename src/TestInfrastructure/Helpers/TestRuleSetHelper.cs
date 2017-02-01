@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

@@ -15,6 +15,7 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -33,20 +34,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         [TestMethod]
         public void TransferableVisualState_DefaultState()
         {
-            // Setup
+            // Arrange
             var testSubject = new TransferableVisualState();
 
-            // Verify
-            Assert.IsFalse(testSubject.HasBoundProject);
-            Assert.IsFalse(testSubject.IsBusy);
-            Assert.IsNotNull(testSubject.ConnectedServers);
-            Assert.AreEqual(0, testSubject.ConnectedServers.Count);
+            // Assert
+            testSubject.HasBoundProject.Should().BeFalse();
+            testSubject.IsBusy.Should().BeFalse();
+            testSubject.ConnectedServers.Should().NotBeNull();
+            testSubject.ConnectedServers.Should().HaveCount(0);
         }
 
         [TestMethod]
         public void TransferableVisualState_BoundProjectManagement()
         {
-            // Setup
+            // Arrange
             var testSubject = new TransferableVisualState();
             var server = new ServerViewModel(new Integration.Service.ConnectionInformation(new System.Uri("http://server")));
             var project1 = new ProjectViewModel(server, new Integration.Service.ProjectInformation());
@@ -55,29 +56,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             // Act (bind to something)
             testSubject.SetBoundProject(project1);
 
-            // Verify
-            Assert.IsTrue(testSubject.HasBoundProject);
-            Assert.IsTrue(project1.IsBound);
-            Assert.IsFalse(project2.IsBound);
-            Assert.IsFalse(server.ShowAllProjects);
+            // Assert
+            testSubject.HasBoundProject.Should().BeTrue();
+            project1.IsBound.Should().BeTrue();
+            project2.IsBound.Should().BeFalse();
+            server.ShowAllProjects.Should().BeFalse();
 
             // Act (bind to something else)
             testSubject.SetBoundProject(project2);
 
-            // Verify
-            Assert.IsTrue(testSubject.HasBoundProject);
-            Assert.IsFalse(project1.IsBound);
-            Assert.IsTrue(project2.IsBound);
-            Assert.IsFalse(server.ShowAllProjects);
+            // Assert
+            testSubject.HasBoundProject.Should().BeTrue();
+            project1.IsBound.Should().BeFalse();
+            project2.IsBound.Should().BeTrue();
+            server.ShowAllProjects.Should().BeFalse();
 
             // Act(clear binding)
             testSubject.ClearBoundProject();
 
-            // Verify
-            Assert.IsFalse(testSubject.HasBoundProject);
-            Assert.IsFalse(project1.IsBound);
-            Assert.IsFalse(project2.IsBound);
-            Assert.IsTrue(server.ShowAllProjects);
+            // Assert
+            testSubject.HasBoundProject.Should().BeFalse();
+            project1.IsBound.Should().BeFalse();
+            project2.IsBound.Should().BeFalse();
+            server.ShowAllProjects.Should().BeTrue();
         }
     }
 }

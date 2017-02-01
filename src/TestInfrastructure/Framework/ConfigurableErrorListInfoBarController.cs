@@ -15,37 +15,25 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableErrorListInfoBarController : IErrorListInfoBarController
     {
-        private int refreshCalled;
-        private int resetCalled;
+        internal int RefreshCalledCount { get; private set; }
+        internal int ResetCalledCount { get; private set; }
 
         #region IErrorListInfoBarController
+
         void IErrorListInfoBarController.Refresh()
         {
-            this.refreshCalled++;
+            this.RefreshCalledCount++;
         }
 
         void IErrorListInfoBarController.Reset()
         {
-            this.resetCalled++;
-        }
-        #endregion
-
-        #region Test helpers
-        public void AssertRefreshCalled(int expectedNumberOfTimes)
-        {
-            Assert.AreEqual(expectedNumberOfTimes, this.refreshCalled, $"{nameof(IErrorListInfoBarController.Refresh)} called unexpected number of times");
+            this.ResetCalledCount++;
         }
 
-        public void AssertResetCalled(int expectedNumberOfTimes)
-        {
-            Assert.AreEqual(expectedNumberOfTimes, this.resetCalled, $"{nameof(IErrorListInfoBarController.Reset)} called unexpected number of times");
-        }
-        #endregion
+        #endregion IErrorListInfoBarController
     }
 }

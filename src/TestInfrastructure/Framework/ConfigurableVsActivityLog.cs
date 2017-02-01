@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableVsActivityLog : IVsActivityLog
     {
         #region IVsActivityLog
+
         int IVsActivityLog.LogEntry(uint actType, string pszSource, string pszDescription)
         {
             return Microsoft.VisualStudio.VSConstants.S_OK;
@@ -62,6 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             return Microsoft.VisualStudio.VSConstants.S_OK;
         }
-        #endregion
+
+        #endregion IVsActivityLog
     }
 }

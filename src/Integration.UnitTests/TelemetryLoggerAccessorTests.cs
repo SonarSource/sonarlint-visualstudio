@@ -15,6 +15,7 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -26,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void TelemetryLoggerAccessor_GetLogger()
         {
-            // Setup
+            // Arrange
             ConfigurableServiceProvider sp = new ConfigurableServiceProvider();
             var loggerInstance = new ConfigurableTelemetryLogger();
             var componentModel = ConfigurableComponentModel.CreateWithExports(
@@ -36,8 +37,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             ITelemetryLogger logger = TelemetryLoggerAccessor.GetLogger(sp);
 
-            // Verify
-            Assert.AreSame(loggerInstance, logger, "Failed to find the MEF service: {0}", nameof(ITelemetryLogger));
+            // Assert
+            logger.Should().Be(loggerInstance, "Failed to find the MEF service: {0}", nameof(ITelemetryLogger));
         }
     }
 }

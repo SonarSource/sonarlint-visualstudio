@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.ComponentModel.Design;
 using System.Globalization;
+using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

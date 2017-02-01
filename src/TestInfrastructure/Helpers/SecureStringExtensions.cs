@@ -24,6 +24,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     internal static class SecureStringForTestExtensions
     {
         // Copied from http://blogs.msdn.com/b/fpintos/archive/2009/06/12/how-to-properly-convert-securestring-to-string.aspx
+
         #region Conversion
 
         /// <summary>
@@ -71,6 +72,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        #endregion
+        #endregion Conversion
     }
 }

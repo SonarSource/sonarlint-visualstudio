@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -36,26 +36,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void TeamExplorerController_Ctor()
         {
             // Test case 1: no Team Explorer service
-            // Setup
+            // Arrange
             var serviceProvider = new ConfigurableServiceProvider(false);
 
-            // Act + Verify
+            // Act + Assert
             Exceptions.Expect<ArgumentException>(() => new TeamExplorerController(serviceProvider));
 
             // Test case 2: has TE service
-            // Setup
+            // Arrange
             var teService = new ConfigurableTeamExplorer();
             serviceProvider.RegisterService(typeof(ITeamExplorer), teService);
 
-            // Act + Verify
+            // Act + Assert
             var testSubject = new TeamExplorerController(serviceProvider);
-            Assert.AreSame(teService, testSubject.TeamExplorer, "Unexpected Team Explorer service");
+            testSubject.TeamExplorer.Should().Be(teService, "Unexpected Team Explorer service");
         }
 
         [TestMethod]
         public void TeamExplorerController_ShowConnectionsPage()
         {
-            // Setup
+            // Arrange
             var startPageId = new Guid(TeamExplorerPageIds.GitCommits);
 
             var serviceProvider = new ConfigurableServiceProvider();
@@ -71,8 +71,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             testSubject.ShowSonarQubePage();
 
-            // Verify
-            teService.AssertCurrentPage(sonarPageId);
+            // Assert
+            teService.CurrentPageId.Should().Be(sonarPageId);
         }
     }
 }

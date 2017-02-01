@@ -15,10 +15,9 @@
  * THE SOFTWARE.
  */
 
+using System;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -27,44 +26,33 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// </summary>
     public class StubVsActivityLog : IVsActivityLog
     {
-        private bool loggedEntry = false;
+        internal bool IsEntryLogged { get; private set; } = false;
 
         #region Configuration
+
         public Action<uint, string, string> LogEntryAction
         {
             get;
             set;
         }
-        #endregion
+
+        #endregion Configuration
 
         #region Test helpers
+
         public void Reset()
         {
-            this.loggedEntry = false;
-        }
-        #endregion
-
-        #region Verification
-        public void AssertEntryLogged()
-        {
-            Assert.IsTrue(this.loggedEntry, "No requests to log entry to activity log");
+            this.IsEntryLogged = false;
         }
 
-        public void AssertEntryNotLogged()
-        {
-            Assert.IsFalse(this.loggedEntry, "Not expected any requests to log to activity log");
-        }
-
-        #endregion
+        #endregion Test helpers
 
         #region IVsActivityLog
+
         int IVsActivityLog.LogEntry(uint actType, string pszSource, string pszDescription)
         {
-            this.loggedEntry = true;
-            if (this.LogEntryAction != null)
-            {
-                this.LogEntryAction(actType, pszSource, pszDescription);
-            }
+            this.IsEntryLogged = true;
+            this.LogEntryAction?.Invoke(actType, pszSource, pszDescription);
 
             return VSConstants.S_OK;
         }
@@ -103,6 +91,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsActivityLog
     }
 }

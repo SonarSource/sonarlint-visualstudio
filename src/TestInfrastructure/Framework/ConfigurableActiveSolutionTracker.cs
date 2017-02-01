@@ -24,10 +24,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public event EventHandler ActiveSolutionChanged;
 
         #region Test helpers
+
         public void SimulateActiveSolutionChanged()
         {
             this.ActiveSolutionChanged?.Invoke(this, EventArgs.Empty);
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

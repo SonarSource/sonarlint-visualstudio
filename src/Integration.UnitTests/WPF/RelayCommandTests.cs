@@ -15,8 +15,9 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.WPF;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
@@ -26,21 +27,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
         [TestMethod]
         public void RelayCommand_Ctor_EmptyPredicate_CanAlwaysExecute()
         {
-            // Setup
+            // Arrange
             var command = new RelayCommand(() => { });
 
-            // Act + Verify
-            Assert.IsTrue(command.CanExecute());
+            // Act + Assert
+            command.CanExecute().Should().BeTrue();
         }
 
         [TestMethod]
         public void RelayCommandOfT_Ctor_EmptyPredicate_CanAlwaysExecute()
         {
-            // Setup
+            // Arrange
             var command = new RelayCommand<object>(x => { });
 
-            // Act + Verify
-            Assert.IsTrue(command.CanExecute(null));
+            // Act + Assert
+            command.CanExecute(null).Should().BeTrue();
         }
     }
 }
