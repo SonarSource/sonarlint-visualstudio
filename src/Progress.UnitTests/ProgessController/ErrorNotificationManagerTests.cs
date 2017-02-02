@@ -80,13 +80,13 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject.RemoveNotifier(testNotifier);
             testNotifier.Reset();
             this.Notify();
-            testNotifier.Exceptions.Should().HaveCount(0);
+            testNotifier.Exceptions.Should().BeEmpty();
 
             // Remove non existing instance
             this.testSubject.RemoveNotifier(testNotifier);
             testNotifier.Reset();
             this.Notify();
-            testNotifier.Exceptions.Should().HaveCount(0);
+            testNotifier.Exceptions.Should().BeEmpty();
         }
 
         #endregion Tests

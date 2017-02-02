@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionBinding.CurrentBinding = null;
 
             // Act + Assert
-            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since solution is not bound");
+            testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since solution is not bound");
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidSolutionBinding();
 
             // Act + Assert
-            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since there are no projects");
+            testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since there are no projects");
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidProjects();
 
             // Act + Assert
-            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since the solution baseline is missing");
+            testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since the solution baseline is missing");
             this.outputWindowPane.AssertOutputStrings(1);
             this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0,
                 words: new[] { Constants.SonarQubeManagedFolderName },
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidSolutionRuleSetPerProjectKind();
 
             // Act + Assert
-            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since there are no project rulesets specified");
+            testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since there are no project rulesets specified");
             this.outputWindowPane.AssertOutputStrings(0);
         }
 
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             });
 
             // Act + Assert
-            testSubject.GetCurrentConflicts().Should().HaveCount(0, "Not expecting any conflicts since there are no conflicts");
+            testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since there are no conflicts");
             this.outputWindowPane.AssertOutputStrings(0);
             findConflictsWasCalled.Should().BeTrue();
         }

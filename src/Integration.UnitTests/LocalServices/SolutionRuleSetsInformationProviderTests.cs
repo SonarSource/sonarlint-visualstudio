@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Assert
-            info.Length.Should().Be(1, "Unexpected number of results");
+            info.Should().HaveCount(1, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             this.outputPane.AssertOutputStrings(0);
         }
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Assert
-            info.Length.Should().Be(2, "Unexpected number of results");
+            info.Should().HaveCount(2, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             VerifyRuleSetInformation(info[1], prop2);
             this.outputPane.AssertOutputStrings(0);
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Assert
-            info.Length.Should().Be(3, "Unexpected number of results");
+            info.Should().HaveCount(3, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             VerifyRuleSetInformation(info[1], prop2);
             VerifyRuleSetInformation(info[2], prop3);
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Assert
-            info.Length.Should().Be(0, "Unexpected number of results");
+            info.Should().BeEmpty("Unexpected number of results");
             this.outputPane.AssertOutputStrings(1);
         }
 
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Assert
-            info.Length.Should().Be(2, "Unexpected number of results");
+            info.Should().HaveCount(2, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], ruleSet1);
             VerifyRuleSetInformation(info[1], ruleSet2);
             this.outputPane.AssertOutputStrings(0);

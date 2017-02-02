@@ -213,7 +213,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 .Union(CreateRandomSteps(1, false, randomIndeterminate, true))
                 .Union(CreateRandomSteps(1, true, randomIndeterminate, true)).ToArray();
             result = ProgressObserver.GroupToExecutionUnits(visibleHiddenVisible);
-            result.Length.Should().Be(2, "Unexpected number of groups");
+            result.Should().HaveCount(2, "Unexpected number of groups");
             VerifyExecutionGroup(result[0], visibleHiddenVisible.Take(2));
             VerifyExecutionGroup(result[1], new[] { visibleHiddenVisible[2] });
 
@@ -223,14 +223,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 .Union(CreateRandomSteps(1, true, randomIndeterminate, true))
                 .Union(CreateRandomSteps(1, false, randomIndeterminate, true));
             result = ProgressObserver.GroupToExecutionUnits(hiddenVisibleHidden);
-            result.Length.Should().Be(1, "Unexpected number of groups");
+            result.Should().HaveCount(1, "Unexpected number of groups");
             VerifyExecutionGroup(result[0], hiddenVisibleHidden);
 
             // All visible
             randomIndeterminate = Environment.TickCount % 2 == 0;
             var allVisible = CreateRandomSteps(3, true, randomIndeterminate, true).ToArray();
             result = ProgressObserver.GroupToExecutionUnits(allVisible);
-            result.Length.Should().Be(3, "Unexpected number of groups");
+            result.Should().HaveCount(3, "Unexpected number of groups");
             VerifyExecutionGroup(result[0], new[] { allVisible[0] });
             VerifyExecutionGroup(result[1], new[] { allVisible[1] });
             VerifyExecutionGroup(result[2], new[] { allVisible[2] });
@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             randomIndeterminate = Environment.TickCount % 2 == 0;
             var allHidden = CreateRandomSteps(3, false, randomIndeterminate, true);
             result = ProgressObserver.GroupToExecutionUnits(allHidden);
-            result.Length.Should().Be(0, "Unexpected number of groups");
+            result.Should().BeEmpty("Unexpected number of groups");
         }
 
         #endregion Static methods tests
@@ -741,8 +741,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             IProgressStep[] nonVisualizedSteps = steps.Where(s => s.ImpactsProgress && s.Hidden).ToArray();
 
             // Cross check the event steps
-            visualizedSteps.Length.Should().Be(visible, "Inconclusive: unexpected number of visible steps");
-            nonVisualizedSteps.Length.Should().Be(hidden, "Inconclusive: unexpected number of visible steps");
+            visualizedSteps.Should().HaveCount(visible, "Inconclusive: unexpected number of visible steps");
+            nonVisualizedSteps.Should().HaveCount(hidden, "Inconclusive: unexpected number of visible steps");
 
             // Now do the verification
             int progessReportingSteps = visualizedSteps.Length;

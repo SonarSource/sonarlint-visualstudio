@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             string actualFileName = Path.GetFileNameWithoutExtension(actual);
-            actualFileName.Length.Should().Be(fileName.Length + 32 + 1, "Expected to append GUID to desired file name, actual: " + actualFileName);
+            actualFileName.Should().HaveLength(fileName.Length + 32 + 1, "Expected to append GUID to desired file name, actual: " + actualFileName);
         }
 
         [TestMethod]

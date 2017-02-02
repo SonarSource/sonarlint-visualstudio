@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var viewModel2 = new ServerViewModel(connInfo, isExpanded: false);
 
             // Assert
-            viewModel2.Projects.Should().HaveCount(0, "Not expecting projects");
+            viewModel2.Projects.Should().BeEmpty("Not expecting projects");
             viewModel2.IsExpanded.Should().BeFalse();
         }
 

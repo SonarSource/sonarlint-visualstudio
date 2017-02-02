@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertNoEventWasWritten()
         {
-            this.events.Should().HaveCount(0);
+            this.events.Should().BeEmpty();
         }
 
         public void DumpAllToOutput()

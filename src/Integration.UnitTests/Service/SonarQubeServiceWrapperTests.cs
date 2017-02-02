@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Assert
                 this.outputWindowPane.AssertOutputStrings(0);
                 projects.Should().NotBeNull("Expected projects");
-                projects.Length.Should().Be(0, "Expected an empty array");
+                projects.Should().BeEmpty("Expected an empty array");
             }
         }
 
@@ -210,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Assert
                 this.outputWindowPane.AssertOutputStrings(0);
                 projects.Should().NotBeNull("Expected projects");
-                projects.Length.Should().Be(0, "Expected an empty array");
+                projects.Should().BeEmpty("Expected an empty array");
             }
         }
 
@@ -891,7 +891,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             foreach (string pair in keyValues)
             {
                 string[] keyValue = pair.Split('=');
-                keyValue.Length.Should().Be(2);
+                keyValue.Should().HaveCount(2);
                 HttpUtility.UrlDecode(HttpUtility.UrlEncode(HttpUtility.UrlDecode(keyValue[1]))).Should().Be(HttpUtility.UrlDecode(keyValue[1]), "{0} was supposed to be encoded", keyValue[0]);
                 result[keyValue[0]] = HttpUtility.UrlDecode(keyValue[1]);
             }
@@ -901,7 +901,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void AssertEqualProjects(ProjectInformation[] expected, ProjectInformation[] actual)
         {
-            actual.Length.Should().Be(expected.Length, "Different array size");
+            actual.Should().HaveCount(expected.Length, "Different array size");
             for (int i = 0; i < expected.Length; i++)
             {
                 AssertProjectsEqualNotSame(expected[i], actual[i]);

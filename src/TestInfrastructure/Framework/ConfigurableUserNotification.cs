@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertNoShowErrorMessages()
         {
-            this.showErrorRequests.Should().HaveCount(0, "Unexpected messages: {0}", string.Join(", ", this.showErrorRequests));
+            this.showErrorRequests.Should().BeEmpty("Unexpected messages: {0}", string.Join(", ", this.showErrorRequests));
         }
 
         public void AssertSingleErrorMessage(string expected)

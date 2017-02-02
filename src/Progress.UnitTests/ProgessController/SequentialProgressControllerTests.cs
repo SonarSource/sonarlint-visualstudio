@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject.Start().Wait();
 
             // Assert
-            definitions.Length.Should().Be(expectedOperation, "Executed unexpected number of times");
+            definitions.Should().HaveCount(expectedOperation, "Executed unexpected number of times");
         }
 
         [TestMethod]

@@ -249,7 +249,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.queryEditAndSave.AssertAllBatchesCompleted(1);
             this.queryEditAndSave.AssertNoCreateRequested();
             this.queryEditAndSave.AssertNoEditRequested();
-            executionOrder.Should().HaveCount(0, "Unexpected execution occurred");
+            executionOrder.Should().BeEmpty("Unexpected execution occurred");
         }
 
         [TestMethod]
