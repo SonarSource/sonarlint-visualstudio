@@ -382,7 +382,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             var connection2 = new ConnectionInformation(new Uri("http://conn2"));
 
             // Sanity
-            testSubject.GetConnectedServers().Any().Should().BeFalse();
+            testSubject.GetConnectedServers().Should().BeEmpty();
 
             // Act (connect)
             testSubject.SetProjects(connection1, new ProjectInformation[0]);
@@ -401,7 +401,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.SetProjects(connection2, null);
 
             // Assert
-            testSubject.GetConnectedServers().Any().Should().BeFalse();
+            testSubject.GetConnectedServers().Should().BeEmpty();
             connection1.IsDisposed.Should().BeTrue("Leaking connections?");
             connection2.IsDisposed.Should().BeTrue("Leaking connections?");
         }
@@ -540,7 +540,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(ConnectSectionViewModel vm, ConnectionInformation connection)
         {
             ServerViewModel serverVM = VerifyConnectSectionViewModelIsConnected(vm, connection);
-            serverVM.Projects.Should().HaveCount(0, "Unexpected number of projects");
+            serverVM.Projects.Should().BeEmpty("Unexpected number of projects");
 
             return serverVM;
         }

@@ -709,12 +709,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void AssertNoMissingRules(RuleConflictInfo info)
         {
-            info.MissingRules.Should().HaveCount(0, "Actually missing: {0}", string.Join(", ", info.MissingRules.Select(r => r.FullId)));
+            info.MissingRules.Should().BeEmpty("Actually missing: {0}", string.Join(", ", info.MissingRules.Select(r => r.FullId)));
         }
 
         private static void AssertNoWeakRules(RuleConflictInfo info)
         {
-            info.WeakerActionRules.Should().HaveCount(0, "Actually weak: {0}", string.Join(", ", info.WeakerActionRules.Keys.Select(r => r.FullId)));
+            info.WeakerActionRules.Should().BeEmpty("Actually weak: {0}", string.Join(", ", info.WeakerActionRules.Keys.Select(r => r.FullId)));
         }
 
         private static IEnumerable<RuleAction> GetSupportedRuleActions()

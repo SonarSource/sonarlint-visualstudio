@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private static void VerifyProgressSequence(bool determinate, Tuple<string, double>[] expectedSequence, Tuple<string, double>[] actualSequence)
         {
             // There's an extra executing notification for the transition from NotStarted -> Executing
-            actualSequence.Length.Should().Be(expectedSequence.Length + 1, "Unexpected sequence length");
+            actualSequence.Should().HaveCount(expectedSequence.Length + 1, "Unexpected sequence length");
             actualSequence[0].Item1.Should().BeNull("The default transition should be with null display progress text");
             if (determinate)
             {

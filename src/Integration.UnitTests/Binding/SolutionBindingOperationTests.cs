@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[Language.VBNET] = new RuleSet("vb");
 
             // Sanity
-            testSubject.RuleSetsInformationMap.Should().HaveCount(0, "Not expecting any registered rulesets");
+            testSubject.RuleSetsInformationMap.Should().BeEmpty("Not expecting any registered rulesets");
 
             // Act
             testSubject.RegisterKnownRuleSets(ruleSetMap);
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projects = new[] { cs1Project, vbProject, cs2Project };
 
             // Sanity
-            testSubject.Binders.Should().HaveCount(0, "Not expecting any project binders");
+            testSubject.Binders.Should().BeEmpty("Not expecting any project binders");
 
             // Act
             testSubject.Initialize(projects, GetQualityProfiles());

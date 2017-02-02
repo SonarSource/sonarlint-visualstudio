@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IEnumerable<Project> actualProjects = testSubject.GetSelectedProjects();
 
             // Assert
-            actualProjects.Any().Should().BeFalse("Expected no projects to be returned");
+            actualProjects.Should().BeEmpty("Expected no projects to be returned");
         }
 
         [TestMethod]

@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertNoHierarchyEventSinks()
         {
-            this.sinks.Should().HaveCount(0, "Unexpected number of sync, forgot to Unadvise?");
+            this.sinks.Should().BeEmpty("Unexpected number of sync, forgot to Unadvise?");
         }
 
         #region IVsUIHierarchy

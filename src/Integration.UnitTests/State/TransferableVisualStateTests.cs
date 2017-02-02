@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.HasBoundProject.Should().BeFalse();
             testSubject.IsBusy.Should().BeFalse();
             testSubject.ConnectedServers.Should().NotBeNull();
-            testSubject.ConnectedServers.Should().HaveCount(0);
+            testSubject.ConnectedServers.Should().BeEmpty();
         }
 
         [TestMethod]

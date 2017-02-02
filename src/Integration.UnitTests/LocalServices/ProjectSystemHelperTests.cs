@@ -328,7 +328,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             project.Files.ContainsKey(file).Should().BeFalse("file should no longer be in project");
-            project.Files.Should().HaveCount(0, "project should have no files");
+            project.Files.Should().BeEmpty("project should have no files");
             this.solutionMock.Projects.Contains(project).Should().BeTrue("project should still be in solution");
         }
 
@@ -348,7 +348,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.testSubject.RemoveFileFromProject(project, file);
 
             // Assert
-            project.ProjectItems.Should().HaveCount(0, "project should have no files");
+            project.ProjectItems.Should().BeEmpty("project should have no files");
             this.solutionMock.Projects.Contains(project).Should().BeFalse("project should no longer be in solution");
         }
 
@@ -484,7 +484,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Guid[] actualGuids = this.testSubject.GetAggregateProjectKinds(project).ToArray();
 
             // Assert
-            actualGuids.Any().Should().BeFalse("Expected no GUIDs returned");
+            actualGuids.Should().BeEmpty("Expected no GUIDs returned");
         }
 
         [TestMethod]
