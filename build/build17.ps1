@@ -15,8 +15,8 @@ if ($env:IS_PULLREQUEST -eq "true") {
     Start-Process "build/vs2017.bat" -NoNewWindow -Wait
 
 } else {
-    if (($env:GITHUB_BRANCH -eq "multiVM") -or ($env:GITHUB_BRANCH -eq "refs/heads/master")) {
-        write-host -f green "Building multiVM branch"
+    if (($env:GITHUB_BRANCH -eq "master") -or ($env:GITHUB_BRANCH -eq "refs/heads/master")) {
+        write-host -f green "Building master branch"
 
         #generate build version from the build number
         $buildversion="$env:BUILD_NUMBER"
