@@ -704,4 +704,13 @@ This is the general format to use when writing errors to output window or when t
     <value>Cannot download the quality profile for language {0}</value>
     <comment>Output window message displayed when the application failed to download the quality profile associated to a language. {0} the language name.</comment>
   </data>
+  <data name="NoNuGetPackageForQualityProfile" xml:space="preserve">
+    <value>There is a problem with Sonar{0}, information about the associated NuGet package was not returned</value>
+    <comment>Output window message displayed when the result from the API export call returns no NuGet package info. {0} the language.</comment>
+  </data>
+  <data name="NoSonarAnalyzerActiveRulesForQualityProfile" xml:space="preserve">
+    <value>There are no active rules on the selected Quality Profile '{0}' for Language {1} (rules from the SonarAnalyzer repository). Connected mode requires at least one active rule.
+   Note that third party rules are excluded from SonarLint</value>
+    <comment>Output window message displayed when the result from the API export call returns no active rule from the SonarAnalyzer repository. {0} The name of the Quality Profile. {1} the language.</comment>
+  </data>
 </root>

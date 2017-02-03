@@ -666,6 +666,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is a problem with Sonar{0}, information about the associated NuGet package was not returned.
+        /// </summary>
+        public static string NoNuGetPackageForQualityProfile {
+            get {
+                return ResourceManager.GetString("NoNuGetPackageForQualityProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to None (for selected SonarQube project&apos;s quality profile).
         /// </summary>
         public static string NoProjectsApplicableForBinding {
@@ -680,6 +689,16 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string NoProjectsExcludedFromBinding {
             get {
                 return ResourceManager.GetString("NoProjectsExcludedFromBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There are no active rules on the selected Quality Profile &apos;{0}&apos; for Language {1} (rules from the SonarAnalyzer repository). Connected mode requires at least one active rule.
+        ///   Note that third party rules are excluded from SonarLint.
+        /// </summary>
+        public static string NoSonarAnalyzerActiveRulesForQualityProfile {
+            get {
+                return ResourceManager.GetString("NoSonarAnalyzerActiveRulesForQualityProfile", resourceCulture);
             }
         }
         
