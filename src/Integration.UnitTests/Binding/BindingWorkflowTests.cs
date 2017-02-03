@@ -186,7 +186,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void BindingWorkflow_DownloadQualityProfile_WithNoRules_Fails()
         {
-            // Setup
+            // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string SonarQubeProjectName = "SQProjectName";
             var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
@@ -206,10 +206,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
-            // Verify
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
-            controller.AssertNumberOfAbortRequests(1);
+            // Assert
+            testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 
@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void BindingWorkflow_DownloadQualityProfile_WithNoActiveRules_Fails()
         {
-            // Setup
+            // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string SonarQubeProjectName = "SQProjectName";
             var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
@@ -251,10 +251,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
-            // Verify
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
-            controller.AssertNumberOfAbortRequests(1);
+            // Assert
+            testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 
@@ -267,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void BindingWorkflow_DownloadQualityProfile_WithNoNugetPackage_Fails()
         {
-            // Setup
+            // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string SonarQubeProjectName = "SQProjectName";
             var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
@@ -291,11 +291,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
 
-            // Verify
-            // Verify
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
-            Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
-            controller.AssertNumberOfAbortRequests(1);
+            // Assert
+            testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 
