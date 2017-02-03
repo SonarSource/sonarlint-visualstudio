@@ -184,6 +184,128 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void BindingWorkflow_DownloadQualityProfile_WithNoRules_Fails()
+        {
+            // Setup
+            const string QualityProfileName = "SQQualityProfileName";
+            const string SonarQubeProjectName = "SQProjectName";
+            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
+            ConfigurableProgressController controller = new ConfigurableProgressController();
+            var notifications = new ConfigurableProgressStepExecutionEvents();
+
+            RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(Enumerable.Empty<string>());
+            var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
+            var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
+            RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
+
+            var language = Language.VBNET;
+            QualityProfile profile = this.ConfigureProfileExport(export, language);
+            profile.Name = QualityProfileName;
+
+            // Act
+            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+
+            // Verify
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
+            controller.AssertNumberOfAbortRequests(1);
+
+            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
+
+            this.outputWindowPane.AssertOutputStrings(1);
+            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
+                string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, QualityProfileName, language.Name));
+            this.outputWindowPane.AssertOutputStrings(expectedOutput);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DownloadQualityProfile_WithNoActiveRules_Fails()
+        {
+            // Setup
+            const string QualityProfileName = "SQQualityProfileName";
+            const string SonarQubeProjectName = "SQProjectName";
+            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
+            ConfigurableProgressController controller = new ConfigurableProgressController();
+            var notifications = new ConfigurableProgressStepExecutionEvents();
+
+            RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
+            foreach (var rule in ruleSet.Rules)
+            {
+                rule.Action = RuleAction.None;
+            }
+            var expectedRuleSet = new RuleSet(ruleSet)
+            {
+                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, SonarQubeProjectName, QualityProfileName),
+                NonLocalizedDescription = "\r\nhttp://connected/profiles/show?key="
+            };
+            var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
+            var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
+            RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
+
+            var language = Language.VBNET;
+            QualityProfile profile = this.ConfigureProfileExport(export, language);
+            profile.Name = QualityProfileName;
+
+            // Act
+            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+
+            // Verify
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
+            controller.AssertNumberOfAbortRequests(1);
+
+            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
+
+            this.outputWindowPane.AssertOutputStrings(1);
+            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
+                string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, QualityProfileName, language.Name));
+            this.outputWindowPane.AssertOutputStrings(expectedOutput);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_DownloadQualityProfile_WithNoNugetPackage_Fails()
+        {
+            // Setup
+            const string QualityProfileName = "SQQualityProfileName";
+            const string SonarQubeProjectName = "SQProjectName";
+            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
+            ConfigurableProgressController controller = new ConfigurableProgressController();
+            var notifications = new ConfigurableProgressStepExecutionEvents();
+
+            RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
+            var expectedRuleSet = new RuleSet(ruleSet)
+            {
+                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, SonarQubeProjectName, QualityProfileName),
+                NonLocalizedDescription = "\r\nhttp://connected/profiles/show?key="
+            };
+            var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
+            RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, Enumerable.Empty<PackageName>(), additionalFiles);
+
+            var language = Language.VBNET;
+            QualityProfile profile = this.ConfigureProfileExport(export, language);
+            profile.Name = QualityProfileName;
+
+            // Act
+            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+
+            // Verify
+            // Verify
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(Language.VBNET), "Not expecting any rules for this language");
+            Assert.IsFalse(testSubject.Rulesets.ContainsKey(language), "Not expecting any rules");
+            controller.AssertNumberOfAbortRequests(1);
+
+            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
+
+            this.outputWindowPane.AssertOutputStrings(1);
+            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
+                string.Format(Strings.NoNuGetPackageForQualityProfile, language.Name));
+            this.outputWindowPane.AssertOutputStrings(expectedOutput);
+        }
+
+        [TestMethod]
         public void BindingWorkflow_InstallPackages_WhenAllProjectsAreCSharp_Succeed()
         {
             BindingWorkflow_InstallPackages_Succeed(ProjectSystemHelper.CSharpProjectKind, Language.CSharp);

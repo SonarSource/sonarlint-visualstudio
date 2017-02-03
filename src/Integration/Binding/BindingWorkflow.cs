@@ -211,7 +211,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(controller != null);
             Debug.Assert(notificationEvents != null);
 
-            bool failed = false;
             var rulesets = new Dictionary<Language, RuleSet>();
             var languageList = languages as IList<Language> ?? languages.ToList();
             DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, languageList.Count);
@@ -222,44 +221,54 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 QualityProfile qualityProfileInfo;
                 if (!host.SonarQubeService.TryGetQualityProfile(this.connectionInformation, this.project, language, cancellationToken, out qualityProfileInfo))
                 {
-                    failed = true;
-                    InformAboutQualityProfileToDownload(qualityProfileInfo, language.Name, true);
-                    break;
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                        string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
+                    this.AbortWorkflow(controller, cancellationToken);
+                    return;
                 }
                 this.QualityProfiles[language] = qualityProfileInfo;
 
                 RoslynExportProfile export;
                 if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, qualityProfileInfo, language, cancellationToken, out export))
                 {
-                    failed = true;
-                    InformAboutQualityProfileToDownload(qualityProfileInfo, language.Name, true);
-                    break;
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                        string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
+                    this.AbortWorkflow(controller, cancellationToken);
+                    return;
                 }
-                this.NuGetPackages.Add(language, export.Deployment.NuGetPackages);
 
                 var tempRuleSetFilePath = Path.GetTempFileName();
                 File.WriteAllText(tempRuleSetFilePath, export.Configuration.RuleSet.OuterXml);
                 RuleSet ruleSet = RuleSet.LoadFromFile(tempRuleSetFilePath);
+
+                if (ruleSet == null ||
+                    ruleSet.Rules.Count == 0 ||
+                    ruleSet.Rules.All(rule => rule.Action == RuleAction.None))
+                {
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                        string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfileInfo.Name, language.Name)));
+                    this.AbortWorkflow(controller, cancellationToken);
+                    return;
+                }
+
+                if (export.Deployment.NuGetPackages.Count == 0)
+                {
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                        string.Format(Strings.NoNuGetPackageForQualityProfile, language.Name)));
+                    this.AbortWorkflow(controller, cancellationToken);
+                    return;
+                }
+
+                this.NuGetPackages.Add(language, export.Deployment.NuGetPackages);
 
                 // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
                 UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfileInfo);
 
                 rulesets[language] = ruleSet;
                 notifier.NotifyIncrementedProgress(string.Empty);
-                if (rulesets[language] == null)
-                {
-                    failed = true;
-                    InformAboutQualityProfileToDownload(qualityProfileInfo, language.Name, true);
-                    break;
-                }
 
-                InformAboutQualityProfileToDownload(qualityProfileInfo, language.Name, false);
-            }
-
-            if (failed)
-            {
-                this.AbortWorkflow(controller, cancellationToken);
-                return;
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                    string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
             }
 
             // Set the rule set which should be available for the following steps
@@ -443,18 +452,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             VsShellUtils.WriteToSonarLintOutputPane(this.host, output.ToString());
         }
 
-        private void InformAboutQualityProfileToDownload(QualityProfile profile, string languageName, bool isDownloadFailed)
-        {
-            var output =
-                profile == null
-                    ? string.Format(Strings.CannotDownloadQualityProfileForLanguage, languageName)
-                    : isDownloadFailed
-                        ? string.Format(Strings.QualityProfileDownloadFailedMessageFormat, profile.Name, profile.Key, languageName)
-                        : string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, profile.Name, profile.Key, languageName);
-            VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat, output));
-        }
-
         #endregion
-
     }
 }
