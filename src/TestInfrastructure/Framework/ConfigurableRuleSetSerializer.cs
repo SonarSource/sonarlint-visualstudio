@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -32,7 +32,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public ConfigurableRuleSetSerializer()
             : this(new ConfigurableFileSystem())
         {
-
         }
 
         public ConfigurableRuleSetSerializer(ConfigurableFileSystem fs)
@@ -41,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IRuleSetFileSystem
+
         RuleSet IRuleSetSerializer.LoadRuleSet(string path)
         {
             RuleSet rs = null;
@@ -61,9 +61,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             this.fileSystem.UpdateTimestamp(path);
         }
-        #endregion
+
+        #endregion IRuleSetFileSystem
 
         #region Test Helpers
+
         public IEnumerable<string> RegisteredRuleSets
         {
             get
@@ -105,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             RuleSet actualRuleSet = this.savedRuleSets[ruleSetPath];
 
-            Assert.IsNotNull(actualRuleSet, "Expected rule set to be written");
+            actualRuleSet.Should().NotBeNull("Expected rule set to be written");
             RuleSetAssert.AreEqual(expectedRuleSet, actualRuleSet);
         }
 
@@ -114,20 +116,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.AssertRuleSetExists(ruleSetPath);
 
             RuleSet actualRuleSet = this.savedRuleSets[ruleSetPath];
-            Assert.AreSame(expectedRuleSet, actualRuleSet);
+            actualRuleSet.Should().Be(expectedRuleSet);
         }
 
         public void AssertRuleSetLoaded(string ruleSet, int expectedNumberOfTimes)
         {
             int actual = 0;
             this.ruleSetLoaded.TryGetValue(ruleSet, out actual);
-            Assert.AreEqual(expectedNumberOfTimes, actual, "RuleSet {0} was loaded unexpected number of times", ruleSet);
+            actual.Should().Be(expectedNumberOfTimes, "RuleSet {0} was loaded unexpected number of times", ruleSet);
         }
 
         public void AssertAllRegisteredRuleSetsLoadedExactlyOnce()
         {
             this.RegisteredRuleSets.ToList().ForEach(rs => this.AssertRuleSetLoaded(rs, 1));
         }
-        #endregion
+
+        #endregion Test Helpers
     }
 }

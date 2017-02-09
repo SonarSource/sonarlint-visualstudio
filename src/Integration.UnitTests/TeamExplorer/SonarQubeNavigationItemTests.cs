@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -52,11 +53,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = new SonarQubeNavigationItem(controller);
 
             // Verify
-            Assert.IsTrue(testSubject.IsVisible, "Nav item should be visible");
-            Assert.IsTrue(testSubject.IsEnabled, "Nav item should be enabled");
-            Assert.AreEqual(Strings.TeamExplorerPageTitle, testSubject.Text, "Unexpected nav text");
+            testSubject.IsVisible.Should().BeTrue("Nav item should be visible");
+            testSubject.IsEnabled.Should().BeTrue("Nav item should be enabled");
+            testSubject.Text.Should().Be(Strings.TeamExplorerPageTitle, "Unexpected nav text");
 
-            Assert.IsNotNull(testSubject.Icon, "Icon should not be null");
+            testSubject.Icon.Should().NotBeNull("Icon should not be null");
         }
 
         [TestMethod]

@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Service;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Service
 {
@@ -45,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Service
             int result = VersionHelper.Compare("1.2.3", "1.2.3");
 
             // Verify
-            Assert.AreEqual(0, result);
+            result.Should().Be(0);
         }
 
         [TestMethod]
@@ -56,23 +57,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Service
             int result1 = VersionHelper.Compare("1.0-rc1", "1.0-rc2");
 
             // Verify
-            Assert.AreEqual(0, result1);
+            result1.Should().Be(0);
         }
 
         [TestMethod]
         public void VersionHelper_Compare_ReleaseAndPrerelease_ComparesOnlyNumericParts()
         {
             // Act + Verify
-            Assert.IsTrue(VersionHelper.Compare("1.1", "1.2-beta") < 0);
-            Assert.IsTrue(VersionHelper.Compare("1.1-beta", "1.2") < 0);
+            (VersionHelper.Compare("1.1", "1.2-beta") < 0).Should().BeTrue();
+            (VersionHelper.Compare("1.1-beta", "1.2") < 0).Should().BeTrue();
         }
 
         [TestMethod]
         public void VersionHelper_Compare_NextMinorVersion()
         {
             // Act + Verify
-            Assert.IsTrue(VersionHelper.Compare("1.2", "1.3") < 0);
-            Assert.IsTrue(VersionHelper.Compare("1.3", "1.2") > 0);
+            (VersionHelper.Compare("1.2", "1.3") < 0).Should().BeTrue();
+            (VersionHelper.Compare("1.3", "1.2") > 0).Should().BeTrue();
         }
     }
 }

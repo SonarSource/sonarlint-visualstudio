@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using SonarLint.VisualStudio.Integration.Resources;
 using System.Globalization;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -59,8 +60,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var emptyViewModel = new ServerViewModel(connInfo);
 
             // Verify
-            Assert.IsTrue(emptyViewModel.IsExpanded);
-            Assert.IsFalse(emptyViewModel.ShowAllProjects);
+            emptyViewModel.IsExpanded.Should().BeTrue();
+            emptyViewModel.ShowAllProjects.Should().BeFalse();
 
             // Case 1, projects with default IsExpanded value
             // Act
@@ -70,9 +71,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Verify
             string[] vmProjectKeys = viewModel.Projects.Select(x => x.Key).ToArray();
 
-            Assert.IsTrue(viewModel.ShowAllProjects);
-            Assert.IsTrue(viewModel.IsExpanded);
-            Assert.AreEqual(connInfo.ServerUri, viewModel.Url);
+            viewModel.ShowAllProjects.Should().BeTrue();
+            viewModel.IsExpanded.Should().BeTrue();
+            viewModel.Url.Should().Be(connInfo.ServerUri);
             CollectionAssert.AreEqual(
                 expected: projectKeys,
                 actual: vmProjectKeys,
@@ -84,8 +85,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var viewModel2 = new ServerViewModel(connInfo, isExpanded: false);
 
             // Verify
-            Assert.AreEqual(0, viewModel2.Projects.Count, "Not expecting projects");
-            Assert.IsFalse(viewModel2.IsExpanded);
+            viewModel2.Projects.Should().HaveCount(0, "Not expecting projects");
+            viewModel2.IsExpanded.Should().BeFalse();
         }
 
         [TestMethod]
@@ -118,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             viewModel.SetProjects(new[] { newProject });
 
             // Verify that the collection was replaced with the new one
-            Assert.AreSame(newProject, viewModel.Projects.SingleOrDefault()?.ProjectInformation, "Expected a single project to be present");
+            viewModel.Projects.SingleOrDefault()?.ProjectInformation.Should().Be(newProject, "Expected a single project to be present");
         }
 
         [TestMethod]
@@ -137,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var actualNoProjects = testSubject.AutomationName;
 
             // Verify
-            Assert.AreEqual(expectedNoProjects, actualNoProjects, "Unexpected description of SonarQube server without projects");
+            actualNoProjects.Should().Be(expectedNoProjects, "Unexpected description of SonarQube server without projects");
 
             // Test case 2: projects
             // Act
@@ -145,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var actualProjects = testSubject.AutomationName;
 
             // Verify
-            Assert.AreEqual(expectedProjects, actualProjects, "Unexpected description of SonarQube server with projects");
+            actualProjects.Should().Be(expectedProjects, "Unexpected description of SonarQube server with projects");
         }
     }
 }

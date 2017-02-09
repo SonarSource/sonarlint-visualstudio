@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 {
@@ -35,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             this.projectSystem = new ConfigurableVsProjectSystemHelper(sp);
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         [TestMethod]
         public void IProjectSystemHelperExtensions_IsKnownTestProject_ArgChecks()
@@ -56,8 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             vsProject.SetAggregateProjectTypeGuids(ProjectSystemHelper.TestProjectKindGuid);
 
             // Act + Verify
-            Assert.IsTrue(IProjectSystemHelperExtensions.IsKnownTestProject(this.projectSystem, vsProject),
-                "Expected project with test project kind to be known test project");
+            IProjectSystemHelperExtensions.IsKnownTestProject(this.projectSystem, vsProject).Should().BeTrue("Expected project with test project kind to be known test project");
         }
 
         [TestMethod]
@@ -67,8 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             var vsProject = new ProjectMock("myproject.proj");
 
             // Act + Verify
-            Assert.IsFalse(IProjectSystemHelperExtensions.IsKnownTestProject(this.projectSystem, vsProject),
-                "Expected project without test project kind NOT to be known test project");
+            IProjectSystemHelperExtensions.IsKnownTestProject(this.projectSystem, vsProject).Should().BeFalse("Expected project without test project kind NOT to be known test project");
         }
     }
 }

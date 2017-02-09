@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.AssertOnUnexpectedServiceRequest = assertOnUnexpectedServiceRequest;
         }
 
-        #endregion
+        #endregion Constructor(s)
 
         #region Test helpers
 
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void RegisterService(Type serviceType, object instance, bool replaceExisting)
         {
-            Assert.IsNotNull(serviceType, "Test setup error: serviceType should not be null");
+            serviceType.Should().NotBeNull("Test setup error: serviceType should not be null");
 
             if (!replaceExisting)
             {
@@ -103,8 +103,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void RegisterService(Type serviceType, Func<object> serviceConstructor, bool replaceExisting)
         {
-            Assert.IsNotNull(serviceType, "Test setup error: serviceType should not be null");
-            Assert.IsNotNull(serviceConstructor, "Test setup error: serviceConstructor should not be null");
+            serviceType.Should().NotBeNull("Test setup error: serviceType should not be null");
+            serviceConstructor.Should().NotBeNull("Test setup error: serviceConstructor should not be null");
             if (!replaceExisting)
             {
                 this.AssertServiceTypeNotRegistered(serviceType);
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         /// </summary>
         public void AssertServiceUsed(Type expectedServiceType)
         {
-            Assert.IsTrue(this.requestedServices.Contains(expectedServiceType), "Service Provider: service was not requested: {0}", expectedServiceType.FullName);
+            this.requestedServices.Contains(expectedServiceType).Should().BeTrue("Service Provider: service was not requested: {0}", expectedServiceType.FullName);
         }
 
         /// <summary>
@@ -162,16 +162,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertExpectedCallCount(int expected)
         {
-            Assert.AreEqual<int>(expected, this.ServiceCallCount, "GetService was not called the expected number of times");
+            this.ServiceCallCount.Should().Be(expected, "GetService was not called the expected number of times");
         }
 
-        #endregion
+        #endregion Test helpers
 
         #region IServiceProvider interface methods
 
         public object GetService(Type serviceType)
         {
-            Assert.IsNotNull(serviceType, "serviceType should not be null");
+            serviceType.Should().NotBeNull("serviceType should not be null");
             this.requestedServices.Add(serviceType);
             this.ServiceCallCount++;
 
@@ -194,13 +194,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             if (!found && this.AssertOnUnexpectedServiceRequest)
             {
-                Assert.Fail("Unexpected GetService for type: " + serviceType.FullName);
+                FluentAssertions.Execution.Execute.Assertion.FailWith("Unexpected GetService for type: " + serviceType.FullName);
             }
 
             return serviceInstance;
         }
 
-        #endregion
+        #endregion IServiceProvider interface methods
 
         #region OLE IServiceProvider
 
@@ -219,9 +219,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ppvObject = IntPtr.Zero;
             return Microsoft.VisualStudio.VSConstants.E_FAIL;
         }
-        #endregion
+
+        #endregion OLE IServiceProvider
 
         #region Private methods
+
         private Type FindTypeForGuid(Guid typeGuid)
         {
             return this.serviceInstances.Keys.Concat(this.serviceConstructors.Keys).First(t => t.GUID == typeGuid);
@@ -229,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void AssertServiceTypeNotRegistered(Type serviceType)
         {
-            Assert.IsFalse(this.AllRegisteredServices.Contains(serviceType), "Test setup error: a service instance or constructor for this type has already been registered: {0}",
+            this.AllRegisteredServices.Contains(serviceType).Should().BeFalse("Test setup error: a service instance or constructor for this type has already been registered: {0}",
                 serviceType.FullName);
         }
 
@@ -237,7 +239,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.serviceInstances[serviceType] = serviceInstance;
         }
-        #endregion
+
+        #endregion Private methods
 
         #region Helpers
 
@@ -249,13 +252,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return t1.IsEquivalentTo(t2);
             }
 
-
             public int GetHashCode(Type t)
             {
                 return t.FullName.GetHashCode();
             }
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

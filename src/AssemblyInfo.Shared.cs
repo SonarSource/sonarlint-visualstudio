@@ -22,14 +22,11 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("2.10.0")]
 [assembly: AssemblyFileVersion("2.10.0.0")] // This should exactly match the VSIX version
 [assembly: AssemblyInformationalVersion("Version:2.10.0.0 Branch:not-set Sha1:not-set")]
-
 [assembly: AssemblyConfiguration("")]
 [assembly: ComVisible(false)]
-
 [assembly: AssemblyProduct("SonarLint for Visual Studio")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCulture("")]
-
 [assembly: AssemblyCompany("SonarSource and Microsoft")]
 [assembly: AssemblyCopyright("Copyright © SonarSource SA and Microsoft Corporation 2016-2017")]
 [assembly: AssemblyTrademark("")]

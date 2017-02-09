@@ -15,6 +15,13 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -24,12 +31,6 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using System;
-using System.Globalization;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
@@ -81,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ConnectionWorkflow testSubject = new ConnectionWorkflow(null, new RelayCommand(() => { }));
 
             // Assert
-            Assert.Fail("Expected exception of type ArgumentNullException but no exception was thrown.");
+            FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception of type ArgumentNullException but no exception was thrown.");
         }
 
         [TestMethod]
@@ -92,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, null);
 
             // Assert
-            Assert.Fail("Expected exception of type ArgumentNullException but no exception was thrown.");
+            FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception of type ArgumentNullException but no exception was thrown.");
         }
 
         [TestMethod]
@@ -106,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectedServer = connectionInfo;
 
             // Assert
-            Assert.AreEqual(testSubject.ConnectedServer, connectionInfo);
+            connectionInfo.Should().Be(testSubject.ConnectedServer);
         }
 
         [TestMethod]
@@ -132,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.TestStateManager.SetProjectsAction = (c, p) =>
             {
                 projectChangedCallbackCalled = true;
-                Assert.AreSame(connectionInfo, c, "Unexpected connection");
+                c.Should().Be(connectionInfo, "Unexpected connection");
                 CollectionAssert.AreEqual(projects, p.ToArray(), "Unexpected projects");
             };
 
@@ -150,9 +151,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 connectionMessage,
                 Strings.DetectingServerPlugins,
                 Strings.ConnectionResultSuccess);
-            Assert.IsTrue(projectChangedCallbackCalled, "ConnectedProjectsCallaback was not called");
+            projectChangedCallbackCalled.Should().BeTrue("ConnectedProjectsCallaback was not called");
             sonarQubeService.AssertConnectRequests(1);
-            Assert.AreEqual(connectionInfo, testSubject.ConnectedServer);
+            testSubject.ConnectedServer.Should().Be(connectionInfo);
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
         }
@@ -194,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.TestStateManager.SetProjectsAction = (c, p) =>
             {
                 projectChangedCallbackCalled = true;
-                Assert.AreSame(connectionInfo, c, "Unexpected connection");
+                c.Should().Be(connectionInfo, "Unexpected connection");
                 CollectionAssert.AreEqual(projects, p.ToArray(), "Unexpected projects");
             };
 
@@ -213,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 connectionInfo.ServerUri.ToString(),
                 Strings.DetectingServerPlugins,
                 Strings.ConnectionResultFailure);
-            Assert.IsFalse(projectChangedCallbackCalled, "ConnectedProjectsCallaback was called");
+            projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
             notifications.AssertNotification(NotificationIds.BadServerPluginId, Strings.SolutionContainsNoSupportedProject);
         }
 
@@ -242,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.TestStateManager.SetProjectsAction = (c, p) =>
             {
                 projectChangedCallbackCalled = true;
-                Assert.AreSame(connectionInfo, c, "Unexpected connection");
+                c.Should().Be(connectionInfo, "Unexpected connection");
                 CollectionAssert.AreEqual(projects, p.ToArray(), "Unexpected projects");
             };
 
@@ -261,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 connectionInfo.ServerUri.ToString(),
                 Strings.DetectingServerPlugins,
                 Strings.ConnectionResultFailure);
-            Assert.IsFalse(projectChangedCallbackCalled, "ConnectedProjectsCallaback was called");
+            projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
             notifications.AssertNotification(NotificationIds.BadServerPluginId, string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, minimumSupportedServerPlugin.Language.Name));
         }
 
@@ -274,8 +275,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.TestStateManager.SetProjectsAction = (c, p) =>
             {
                 projectChangedCallbackCalled = true;
-                Assert.AreSame(connectionInfo, c, "Unexpected connection");
-                Assert.IsNull(p, "Not expecting any projects");
+                c.Should().Be(connectionInfo, "Unexpected connection");
+                p.Should().BeNull("Not expecting any projects");
             };
             this.projectSystemHelper.Projects = new[] { new ProjectMock("foo.csproj") { ProjectKind = ProjectSystemHelper.CSharpProjectKind } };
             var controller = new ConfigurableProgressController();
@@ -292,9 +293,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 connectionMessage,
                 Strings.DetectingServerPlugins,
                 Strings.ConnectionResultFailure);
-            Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
+            projectChangedCallbackCalled.Should().BeFalse("Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(1);
-            Assert.IsFalse(this.host.VisualStateManager.IsConnected);
+            this.host.VisualStateManager.IsConnected.Should().BeFalse();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
             // Act (reconnect with same bad connection)
@@ -307,9 +308,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 connectionMessage,
                 Strings.DetectingServerPlugins,
                 Strings.ConnectionResultFailure);
-            Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
+            projectChangedCallbackCalled.Should().BeFalse("Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(2);
-            Assert.IsFalse(this.host.VisualStateManager.IsConnected);
+            this.host.VisualStateManager.IsConnected.Should().BeFalse();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
             // Canceled connections
@@ -327,9 +328,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 connectionMessage,
                 Strings.DetectingServerPlugins,
                 Strings.ConnectionResultCancellation);
-            Assert.IsFalse(projectChangedCallbackCalled, "Callback should not have been called");
+            projectChangedCallbackCalled.Should().BeFalse("Callback should not have been called");
             this.sonarQubeService.AssertConnectRequests(3);
-            Assert.IsFalse(this.host.VisualStateManager.IsConnected);
+            this.host.VisualStateManager.IsConnected.Should().BeFalse();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
         }
 
@@ -343,7 +344,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
 
             // Sanity
-            Assert.IsFalse(this.sonarQubeService.ServerProperties.Any(x => x.Key != ServerProperty.TestProjectRegexKey), "Test project regex property should not be set");
+            this.sonarQubeService.ServerProperties.Any(x => x.Key != ServerProperty.TestProjectRegexKey).Should().BeFalse();
 
             // Act
             testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
@@ -422,12 +423,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
             controller.AssertNumberOfAbortRequests(1);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private static void AssertIfCalled()
         {
-            Assert.Fail("Command not expected to be called");
+            FluentAssertions.Execution.Execute.Assertion.FailWith("Command not expected to be called");
         }
 
         private ConnectionWorkflow SetTestSubjectWithConnectedServer()
@@ -437,6 +440,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectedServer = connectionInfo;
             return testSubject;
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

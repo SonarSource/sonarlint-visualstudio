@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using SonarLint.VisualStudio.Progress.Observation;
 using SonarLint.VisualStudio.Progress.Observation.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Customization properties
+
         public ProgressControllerViewModel Root
         {
             get { return this.viewModel; }
@@ -45,9 +46,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion Customization properties
 
         #region Verification methods
+
         public void Reset()
         {
             this.viewModel = new ProgressControllerViewModel();
@@ -56,13 +59,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         public void AssertIsShown()
         {
-            Assert.IsTrue(this.isShown, "Expected to be shown");
+            this.isShown.Should().BeTrue("Expected to be shown");
         }
 
         public void AssertIsHidden()
         {
-            Assert.IsFalse(this.isShown, "Expected to be hidden");
+            this.isShown.Should().BeFalse("Expected to be hidden");
         }
-        #endregion
+
+        #endregion Verification methods
     }
 }

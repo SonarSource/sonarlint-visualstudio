@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         #region Customization properties
+
         public Action<Exception> NotifyAction
         {
             get;
@@ -44,9 +45,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get;
             private set;
         }
-        #endregion
+
+        #endregion Customization properties
 
         #region Customization and verification methods
+
         public void Reset()
         {
             this.Exceptions = new List<Exception>();
@@ -55,24 +58,24 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         public void AssertNoExceptions()
         {
-            Assert.AreEqual(0, this.Exceptions.Count, "Not expecting any errors");
+            AssertExcepections(0);
         }
 
         public void AssertExcepections(int expectedNumberOfExceptions)
         {
-            Assert.AreEqual(expectedNumberOfExceptions, this.Exceptions.Count, "Unexpected number of exceptions");
+            this.Exceptions.Should().HaveCount(expectedNumberOfExceptions);
         }
-        #endregion
+
+        #endregion Customization and verification methods
 
         #region Test implementation of IProgressErrorHandler (not to be used explicitly by the test code)
+
         void IProgressErrorNotifier.Notify(Exception ex)
         {
             this.Exceptions.Add(ex);
-            if (this.NotifyAction != null)
-            {
-                this.NotifyAction(ex);
-            }
+            this.NotifyAction?.Invoke(ex);
         }
-        #endregion
+
+        #endregion Test implementation of IProgressErrorHandler (not to be used explicitly by the test code)
     }
 }

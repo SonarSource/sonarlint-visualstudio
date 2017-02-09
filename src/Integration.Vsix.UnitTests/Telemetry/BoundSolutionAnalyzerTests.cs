@@ -15,15 +15,15 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.IO;
+using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void BoundSolutionAnalyzer_ArgChecks()
         {
@@ -73,7 +74,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             DeleteBindingInformationFile(sonarQubeDirectory);
             using (var testSubject = new BoundSolutionAnalyzer(this.serviceProvider))
             {
-
                 // Act
                 this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
 
@@ -137,9 +137,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 DeleteBindingInformationFile(sonarQubeDirectory);
             }
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private static void GenerateBindingInformationFile(string directory)
         {
             if (Directory.Exists(directory))
@@ -162,6 +164,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 filesToDelete.ForEach(File.Delete);
             }
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
 {
@@ -59,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             {
                 this.dte.Commands.RaiseAction = (commandGroup, commandId) =>
                 {
-                    Assert.AreEqual(ExpectedCommandSetIdentifier, commandGroup, "Unexpected command group");
+                    commandGroup.Should().Be(ExpectedCommandSetIdentifier, "Unexpected command group");
                     discoveredMap[evnt] = commandId;
                 };
 

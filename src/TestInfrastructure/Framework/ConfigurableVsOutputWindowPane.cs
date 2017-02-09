@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -34,7 +35,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool ClearOnSolutionEvents { get; private set; }
 
-        public ConfigurableVsOutputWindowPane() { }
+        public ConfigurableVsOutputWindowPane()
+        {
+        }
 
         public ConfigurableVsOutputWindowPane(string name, bool initVisible, bool clearOnSolutionEvents)
         {
@@ -44,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IVsOutputWindowPane
+
         int IVsOutputWindowPane.Activate()
         {
             this.IsActivated = true;
@@ -101,11 +105,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return VSConstants.S_OK;
         }
 
-        #endregion
+        #endregion IVsOutputWindowPane
 
         public void AssertOutputStrings(int expectedOutputMessages)
         {
-            Assert.AreEqual(expectedOutputMessages, this.outputStrings.Count, "Unexpected number of messages. Messages: {0}", string.Join(", ", this.outputStrings));
+            this.outputStrings.Should().HaveCount(expectedOutputMessages, "Unexpected number of messages. Messages: {0}", string.Join(", ", this.outputStrings));
         }
 
         public void AssertOutputStrings(params string[] orderedOutputMessages)
@@ -116,10 +120,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertMessageContainsAllWordsCaseSensitive(int messageIndex, string[] words, char[] splitter = null)
         {
-            Assert.IsTrue(this.outputStrings.Count > messageIndex, "Message not found for specified index {0}", messageIndex);
+            (this.outputStrings.Count > messageIndex).Should().BeTrue("Message not found for specified index {0}", messageIndex);
 
             var allWords = new HashSet<string>(this.outputStrings[messageIndex].Split(splitter, StringSplitOptions.RemoveEmptyEntries));
-            Assert.IsTrue(allWords.IsSupersetOf(words), "Not all words found. Missing: {0}.\nAll words: {1}", string.Join(", ", words.Except(allWords)), string.Join(" ", allWords));
+            allWords.IsSupersetOf(words).Should().BeTrue("Not all words found. Missing: {0}.\nAll words: {1}", string.Join(", ", words.Except(allWords)), string.Join(" ", allWords));
         }
 
         public void Reset()

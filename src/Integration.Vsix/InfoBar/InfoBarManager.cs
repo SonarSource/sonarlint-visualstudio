@@ -15,16 +15,16 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Globalization;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using System;
-using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Globalization;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 {

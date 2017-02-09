@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Windows.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
-using System.Collections.Generic;
-using System.Collections;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -50,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.serviceProvider = provider;
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         #region Tests
 
@@ -179,8 +180,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             testSubject.QueryStatus(command, null);
 
             // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            command.Enabled.Should().BeFalse("Expected command to be disabled");
+            command.Visible.Should().BeFalse("Expected command to be hidden");
         }
 
         [TestMethod]
@@ -200,8 +201,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             testSubject.QueryStatus(command, null);
 
             // Verify
-            Assert.IsTrue(command.Enabled, "Expected command to be enabled");
-            Assert.IsTrue(command.Visible, "Expected command to be visible");
+            command.Enabled.Should().BeTrue("Expected command to be enabled");
+            command.Visible.Should().BeTrue("Expected command to be visible");
         }
 
         [TestMethod]
@@ -220,8 +221,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             testSubject.QueryStatus(command, null);
 
             // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            command.Enabled.Should().BeFalse("Expected command to be disabled");
+            command.Visible.Should().BeFalse("Expected command to be hidden");
         }
 
         [TestMethod]
@@ -339,7 +340,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 testSubject.QueryStatus(command, null);
 
                 // Verify
-                Assert.IsFalse(command.Checked, $"Expected command[{testSubject.CommandPropertyValue}] to be unchecked");
+                command.Checked.Should().BeFalse($"Expected command[{testSubject.CommandPropertyValue}] to be unchecked");
             }
         }
 
@@ -362,8 +363,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             testSubject.QueryStatus(command, null);
 
             // Verify
-            Assert.IsTrue(command.Enabled, "Expected command to be enabled");
-            Assert.IsTrue(command.Visible, "Expected command to be visible");
+            command.Enabled.Should().BeTrue("Expected command to be enabled");
+            command.Visible.Should().BeTrue("Expected command to be visible");
         }
 
         [TestMethod]
@@ -384,18 +385,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             testSubject.QueryStatus(command, null);
 
             // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            command.Enabled.Should().BeFalse("Expected command to be disabled");
+            command.Visible.Should().BeFalse("Expected command to be hidden");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Test helpers
 
         private void VerifyTestProperty(ProjectMock project, bool? expected)
         {
             bool? actual = this.GetTestProperty(project);
-            Assert.AreEqual(expected, actual, $"Expected property to be {expected}");
+            actual.Should().Be(expected, $"Expected property to be {expected}");
         }
 
         private bool? GetTestProperty(ProjectMock project)
@@ -429,11 +430,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             if (propertySameAsCommand)
             {
-                Assert.IsTrue(command.Checked, $"Expected command[{testSubjectCmdValue}] to be checked when property is '{actualPropertyValue}'");
+                command.Checked.Should().BeTrue($"Expected command[{testSubjectCmdValue}] to be checked when property is '{actualPropertyValue}'");
             }
             else
             {
-                Assert.IsFalse(command.Checked, $"Expected command[{testSubjectCmdValue}] to be unchecked when property is '{actualPropertyValue}'");
+                command.Checked.Should().BeFalse($"Expected command[{testSubjectCmdValue}] to be unchecked when property is '{actualPropertyValue}'");
             }
         }
 
@@ -482,9 +483,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 return this.AllCommands().GetEnumerator();
             }
 
-            #endregion
+            #endregion IEnumerable<ProjectTestPropertySetCommand>
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

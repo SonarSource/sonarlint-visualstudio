@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -31,14 +31,17 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private bool writtenToOutputWindow;
 
         #region Configuration
+
         public Action<string> OutputStringThreadSafeAction
         {
             get;
             set;
         }
-        #endregion
+
+        #endregion Configuration
 
         #region IVsOutputWindowPane
+
         int IVsOutputWindowPane.Activate()
         {
             this.activated = true;
@@ -95,36 +98,41 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsOutputWindowPane
 
         #region Verification
+
         public void AssertActivated()
         {
-            Assert.IsTrue(this.activated, "Expected the output window to be activated");
+            this.activated.Should().BeTrue("Expected the output window to be activated");
         }
 
         public void AssertNotActivated()
         {
-            Assert.IsFalse(this.activated, "Not expected the output window to be activated");
+            this.activated.Should().BeFalse("Not expected the output window to be activated");
         }
 
         public void AssertWrittenToOutputWindow()
         {
-            Assert.IsTrue(this.writtenToOutputWindow, "Expected to write to output window");
+            this.writtenToOutputWindow.Should().BeTrue("Expected to write to output window");
         }
 
         public void AssertNotWrittenToOutputWindow()
         {
-            Assert.IsFalse(this.writtenToOutputWindow, "Not expected to write to output window");
+            this.writtenToOutputWindow.Should().BeFalse("Not expected to write to output window");
         }
-        #endregion
+
+        #endregion Verification
 
         #region Test helpers
+
         public void Reset()
         {
             this.activated = false;
             this.writtenToOutputWindow = false;
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

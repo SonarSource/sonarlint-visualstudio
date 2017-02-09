@@ -15,13 +15,14 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Binding;
 using System;
 using System.IO;
 using System.Linq;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -49,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_Ctor_ArgChecks()
         {
@@ -76,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Verify
-            Assert.AreEqual(1, info.Length, "Unexpected number of results");
+            info.Length.Should().Be(1, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             this.outputPane.AssertOutputStrings(0);
         }
@@ -93,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Verify
-            Assert.AreEqual(2, info.Length, "Unexpected number of results");
+            info.Length.Should().Be(2, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             VerifyRuleSetInformation(info[1], prop2);
             this.outputPane.AssertOutputStrings(0);
@@ -112,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Verify
-            Assert.AreEqual(3, info.Length, "Unexpected number of results");
+            info.Length.Should().Be(3, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             VerifyRuleSetInformation(info[1], prop2);
             VerifyRuleSetInformation(info[2], prop3);
@@ -130,10 +132,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Verify
-            Assert.AreEqual(0, info.Length, "Unexpected number of results");
+            info.Length.Should().Be(0, "Unexpected number of results");
             this.outputPane.AssertOutputStrings(1);
         }
-
 
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_RuleSetsWithDirectories()
@@ -149,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
 
             // Verify
-            Assert.AreEqual(2, info.Length, "Unexpected number of results");
+            info.Length.Should().Be(2, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], ruleSet1);
             VerifyRuleSetInformation(info[1], ruleSet2);
             this.outputPane.AssertOutputStrings(0);
@@ -181,14 +182,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(), Language.VBNET);
 
             // Verify
-            Assert.AreEqual(@"z:\folder\solution\SonarQube\MyKey_VB.ruleset", ruleSetPath);
+            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\MyKey_VB.ruleset");
 
             // Case 2: C# + valid path characters
             // Act
             ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp);
 
             // Verify
-            Assert.AreEqual(@"z:\folder\solution\SonarQube\MyKeyCSharp.ruleset", ruleSetPath);
+            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\MyKeyCSharp.ruleset");
         }
 
         [TestMethod]
@@ -219,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string path = testSubject.GetSolutionSonarQubeRulesFolder();
 
             // Verify
-            Assert.AreEqual(@"z:\folder\solution\SonarQube", path);
+            path.Should().Be(@"z:\folder\solution\SonarQube");
         }
 
         [TestMethod]
@@ -236,9 +237,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string path = testSubject.GetSolutionSonarQubeRulesFolder();
 
             // Verify
-            Assert.IsNull(path);
+            path.Should().BeNull();
         }
-
 
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_TryGetProjectRuleSetFilePath()
@@ -256,10 +256,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem.RegisterFile(declaration.RuleSetPath);
 
             // Act
-            Assert.IsTrue(testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath));
+            testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath).Should().BeTrue();
 
             // Verify
-            Assert.AreEqual(@"c:\RuleSet.ruleset", ruleSetPath);
+            ruleSetPath.Should().Be(@"c:\RuleSet.ruleset");
 
             // Case 2: Declaration is relative to project and on disk
             fileSystem.ClearFiles();
@@ -267,24 +267,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem.RegisterFile(@"c:\Solution\RuleSet.ruleset");
 
             // Act
-            Assert.IsTrue(testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath));
+            testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath).Should().BeTrue();
 
             // Verify
-            Assert.AreEqual(@"c:\Solution\RuleSet.ruleset", ruleSetPath);
+            ruleSetPath.Should().Be(@"c:\Solution\RuleSet.ruleset");
 
             // Case 3: File doesn't exist
             fileSystem.ClearFiles();
             declaration = CreateDeclaration(project, "MyFile.ruleset");
 
             // Act
-            Assert.IsFalse(testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath));
+            testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath).Should().BeFalse();
 
             // Verify
-            Assert.IsNull(ruleSetPath);
+            ruleSetPath.Should().BeNull();
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
+
         private static RuleSetDeclaration CreateDeclaration(ProjectMock project, string ruleSetValue)
         {
             return new RuleSetDeclaration(project, new PropertyMock("never mind", null), ruleSetValue, "Configuration");
@@ -313,22 +315,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void VerifyRuleSetInformation(RuleSetDeclaration info, PropertyMock property)
         {
-            Assert.AreSame(property, info.DeclaringProperty);
-            Assert.AreEqual(property.Value, info.RuleSetPath);
+            info.DeclaringProperty.Should().Be(property);
+            info.RuleSetPath.Should().Be((string)property.Value);
 
             Configuration configuration = (Configuration)property.Collection.Parent;
             if (configuration == null)
             {
-                Assert.Inconclusive("Test setup error, expected to have configuration as parent");
+                FluentAssertions.Execution.Execute.Assertion.FailWith("Test setup error, expected to have configuration as parent");
             }
 
-            Assert.AreEqual(configuration.ConfigurationName, info.ConfigurationContext);
+            info.ConfigurationContext.Should().Be(configuration.ConfigurationName);
 
             Property ruleSetDirectory = configuration.Properties.OfType<Property>().SingleOrDefault(p => p.Name == Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
             string ruleSetDirectoryValue = ruleSetDirectory?.Value as string;
             if (string.IsNullOrWhiteSpace(ruleSetDirectoryValue))
             {
-                Assert.AreEqual(0, info.RuleSetDirectories.Count());
+                info.RuleSetDirectories.Should().BeEmpty();
             }
             else
             {
@@ -336,6 +338,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 CollectionAssert.AreEquivalent(expected, info.RuleSetDirectories.ToArray(), "Actual: {0}", string.Join(", ", info.RuleSetDirectories));
             }
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

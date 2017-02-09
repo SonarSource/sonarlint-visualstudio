@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Observation.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Progress.Observation.ViewModels;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -30,8 +31,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             ProgressViewModel testSubject = new ProgressViewModel();
 
-            ViewModelVerifier.RunVerificationTest<ProgressViewModel, double>(testSubject, "Value", double.NaN, 1.0);
-            ViewModelVerifier.RunVerificationTest<ProgressViewModel, bool>(testSubject, "IsIndeterminate", true, false);
+            ViewModelVerifier.RunVerificationTest(testSubject, "Value", double.NaN, 1.0);
+            ViewModelVerifier.RunVerificationTest(testSubject, "IsIndeterminate", true, false);
         }
 
         [TestMethod]
@@ -56,11 +57,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [TestMethod]
         public void ProgressViewModel_SetUpperBoundLimitedValue()
         {
-            // Setup
+            // Arrange
             ProgressViewModel testSubject = new ProgressViewModel();
 
             // Sanity
-            Assert.AreEqual(0, testSubject.Value, "Default value expected");
+            testSubject.Value.Should().Be(0, "Default value expected");
 
             // Act + Verify
 
@@ -71,29 +72,29 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.SetUpperBoundLimitedValue(1.0 + ProgressViewModel.UpperBoundMarginalErrorSupport + ProgressViewModel.UpperBoundMarginalErrorSupport));
 
             // Sanity
-            Assert.AreEqual(0.0, testSubject.Value, "Erroneous cases should not change the default value");
+            testSubject.Value.Should().Be(0.0, "Erroneous cases should not change the default value");
 
             // NaN supported
             testSubject.SetUpperBoundLimitedValue(double.NaN);
-            Assert.AreEqual(double.NaN, testSubject.Value);
+            testSubject.Value.Should().Be(double.NaN);
 
             // Zero in range
             testSubject.SetUpperBoundLimitedValue(0);
-            Assert.AreEqual(0.0, testSubject.Value);
+            testSubject.Value.Should().Be(0.0);
 
             // One is in range
             testSubject.SetUpperBoundLimitedValue(1);
-            Assert.AreEqual(1.0, testSubject.Value);
+            testSubject.Value.Should().Be(1.0);
 
             // Anything between zero and one is in range
             Random r = new Random();
             double val = r.NextDouble();
             testSubject.SetUpperBoundLimitedValue(val);
-            Assert.AreEqual(val, testSubject.Value);
+            testSubject.Value.Should().Be(val);
 
             // More than one (i.e floating point summation errors) will become one
             testSubject.SetUpperBoundLimitedValue(1.0 + ProgressViewModel.UpperBoundMarginalErrorSupport);
-            Assert.AreEqual(1.0, testSubject.Value);
+            testSubject.Value.Should().Be(1.0);
         }
     }
 }

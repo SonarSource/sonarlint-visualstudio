@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Service;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -41,9 +42,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConnectionInformation conn = input.CreateConnectionInformation();
 
             // Verify
-            Assert.AreEqual(input.ServerUri, conn.ServerUri);
-            Assert.IsNull(conn.UserName);
-            Assert.IsNull(conn.Password);
+            conn.ServerUri.Should().Be(input.ServerUri);
+            conn.UserName.Should().BeNull();
+            conn.Password.Should().BeNull();
         }
 
         [TestMethod]
@@ -57,9 +58,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConnectionInformation conn = input.CreateConnectionInformation();
 
             // Verify
-            Assert.AreEqual(input.ServerUri, conn.ServerUri);
-            Assert.AreEqual(creds.UserName, conn.UserName);
-            Assert.AreEqual(creds.Password.ToUnsecureString(), conn.Password.ToUnsecureString());
+            conn.ServerUri.Should().Be(input.ServerUri);
+            conn.UserName.Should().Be(creds.UserName);
+            conn.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
         }
     }
 }

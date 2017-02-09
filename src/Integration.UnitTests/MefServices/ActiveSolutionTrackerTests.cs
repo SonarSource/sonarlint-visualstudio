@@ -15,6 +15,7 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -48,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionMock.SimulateSolutionOpen();
 
             // Verify
-            Assert.AreEqual(0, counter, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised since disposed");
+            counter.Should().Be(0, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised since disposed");
         }
 
         [TestMethod]
@@ -63,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionMock.SimulateSolutionOpen();
 
             // Verify
-            Assert.AreEqual(1, counter, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
+            counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
         }
 
         [TestMethod]
@@ -78,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionMock.SimulateSolutionClose();
 
             // Verify
-            Assert.AreEqual(1, counter, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
+            counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
         }
 
         [TestMethod]
@@ -97,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionMock.SimulateProjectClose(project);
 
             // Verify
-            Assert.AreEqual(0, counter, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised");
+            counter.Should().Be(0, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised");
         }
     }
 }

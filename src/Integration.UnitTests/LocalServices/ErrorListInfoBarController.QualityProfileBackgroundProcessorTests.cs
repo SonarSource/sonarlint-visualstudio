@@ -15,17 +15,18 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.Service;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -56,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void QualityProfileBackgroundProcessor_ArgChecks()
         {
@@ -71,8 +73,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = this.GetTestSubject();
 
             // Verify
-            Assert.IsNotNull(testSubject.TokenSource);
-            Assert.AreNotEqual(CancellationToken.None, testSubject.TokenSource.Token);
+            testSubject.TokenSource.Should().NotBeNull();
+            testSubject.TokenSource.Token.Should().NotBe(CancellationToken.None);
 
             // Act
             testSubject.Dispose();
@@ -132,12 +134,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.QueueCheckIfUpdateIsRequired((customMessage) =>
             {
-                Assert.AreEqual(Strings.SonarLintInfoBarOldBindingFile, customMessage);
+                customMessage.Should().Be(Strings.SonarLintInfoBarOldBindingFile);
                 called++;
             });
 
             // Verify
-            Assert.AreEqual(1, called, "Expected the update action to be called");
+            called.Should().Be(1, "Expected the update action to be called");
             this.outputWindowPane.AssertOutputStrings(Strings.SonarLintProfileCheckNoProfiles);
         }
 
@@ -310,7 +312,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Strings.SonarLintProfileCheck,
                 Strings.SonarLintProfileCheckFailed);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
 
@@ -320,28 +323,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             int called = 0;
             testSubject.QueueCheckIfUpdateIsRequired((customMessage) =>
             {
-                Assert.IsNull(customMessage, "Not expecting any message customizations");
+                customMessage.Should().BeNull("Not expecting any message customizations");
                 called++;
             });
 
             // Verify
-            Assert.AreEqual(0, called, "Not expected to be immediate");
-            Assert.IsNotNull(testSubject.BackgroundTask, "Expected to start processing in the background");
+            called.Should().Be(0, "Not expected to be immediate");
+            testSubject.BackgroundTask.Should().NotBeNull("Expected to start processing in the background");
 
             // Run the background task
-            Assert.IsTrue(testSubject.BackgroundTask.Wait(TimeSpan.FromSeconds(2)), "Timeout waiting for the background task");
-            Assert.AreEqual(0, called, "The UI thread (this one) should be blocked");
+            testSubject.BackgroundTask.Wait(TimeSpan.FromSeconds(2)).Should().BeTrue("Timeout waiting for the background task");
+            called.Should().Be(0, "The UI thread (this one) should be blocked");
 
             // Run the UI async action
             DispatcherHelper.DispatchFrame(DispatcherPriority.Normal); // Allow the BeginInvoke to run
 
             if (updateRequired)
             {
-                Assert.AreEqual(1, called, "Expected to call the update action");
+                called.Should().Be(1, "Expected to call the update action");
             }
             else
             {
-                Assert.AreEqual(0, called, "Not expected to call the update action");
+                called.Should().Be(0, "Not expected to call the update action");
             }
 
             this.outputWindowPane.AssertOutputStrings(expectedOutput);
@@ -381,9 +384,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void AssertIfCalled(string customMessage)
         {
-            Assert.Fail("Not expected to be called");
+            FluentAssertions.Execution.Execute.Assertion.FailWith("Not expected to be called");
         }
-
 
         private void SetFilteredProjects(params Language[] languages)
         {
@@ -395,7 +397,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
            });
         }
 
-        #endregion
-
+        #endregion Helpers
     }
 }

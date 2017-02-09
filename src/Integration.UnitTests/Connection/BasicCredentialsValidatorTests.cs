@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Connection;
 using System.Linq;
 using System.Security;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Connection;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
@@ -82,11 +83,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             if (expectedValid)
             {
-                Assert.IsTrue(result, $"Username '{username}' and password '{password}' should be valid");
+                result.Should().BeTrue($"Username '{username}' and password '{password}' should be valid");
             }
             else
             {
-                Assert.IsFalse(result, $"Username '{username}' and password '{password}' should be invalid");
+                result.Should().BeFalse($"Username '{username}' and password '{password}' should be invalid");
             }
         }
 
@@ -98,15 +99,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             if (expectedValid)
             {
-                Assert.IsTrue(result, $"Username '{username}' should be valid");
+                result.Should().BeTrue("Username '{0}' should be valid", username);
             }
             else
             {
-                Assert.IsFalse(result, $"Username '{username}' should be invalid");
+                result.Should().BeFalse($"Username '{username}' should be invalid");
             }
         }
 
-        #endregion
-
+        #endregion Helpers
     }
 }

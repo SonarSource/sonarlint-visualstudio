@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -34,8 +34,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         Task<StepExecutionState> IProgressStepOperation.Run(CancellationToken cancellationToken, IProgressStepExecutionEvents executionNotify)
         {
-            Assert.IsNotNull(cancellationToken, "cancellationToken is not expected to be null");
-            Assert.IsNotNull(executionNotify, "executionNotify is not expected to be null");
+            cancellationToken.Should().NotBeNull("cancellationToken is not expected to be null");
+            executionNotify.Should().NotBeNull("executionNotify is not expected to be null");
             return Task.Factory.StartNew(() =>
             {
                 this.ExecutionState = StepExecutionState.Executing;

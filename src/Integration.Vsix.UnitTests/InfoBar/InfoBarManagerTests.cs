@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.InfoBar;
-using System;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void InfoBarManager_ArgChecks()
         {
@@ -86,30 +88,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             infoBarWrapper.Closed += (s, e) => closed = true;
 
             // Verify
-            Assert.IsNotNull(infoBarWrapper);
+            infoBarWrapper.Should().NotBeNull();
             host.AssertInfoBars(1);
             var infoBarUI = host.MockedElements.Single();
-            Assert.AreEqual(1, infoBarUI.Model.TextSpans.Count);
-            Assert.AreEqual("Hello", infoBarUI.Model.TextSpans.GetSpan(0).Text);
-            Assert.AreEqual(1, infoBarUI.Model.ActionItems.Count);
-            Assert.AreEqual("world", infoBarUI.Model.ActionItems.GetItem(0).Text);
+            infoBarUI.Model.TextSpans.Count.Should().Be(1);
+            infoBarUI.Model.TextSpans.GetSpan(0).Text.Should().Be("Hello");
+            infoBarUI.Model.ActionItems.Count.Should().Be(1);
+            infoBarUI.Model.ActionItems.GetItem(0).Text.Should().Be("world");
 
             // Sanity
-            Assert.IsFalse(actionClicked);
-            Assert.IsFalse(closed);
+            actionClicked.Should().BeFalse();
+            closed.Should().BeFalse();
 
             // Act (check if close event is fired)
             infoBarUI.SimulateClickEvent();
 
             // Verify
-            Assert.IsTrue(actionClicked);
-            Assert.IsFalse(closed);
+            actionClicked.Should().BeTrue();
+            closed.Should().BeFalse();
 
             // Act (check if close event is fired)
             infoBarUI.SimulateClosedEvent();
 
             // Verify
-            Assert.IsTrue(closed);
+            closed.Should().BeTrue();
 
             // Act (check that events won't fire once closed)
             actionClicked = false;
@@ -119,8 +121,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             infoBarUI.SimulateClosedEvent();
 
             // Verify
-            Assert.IsFalse(actionClicked);
-            Assert.IsFalse(closed);
+            actionClicked.Should().BeFalse();
+            closed.Should().BeFalse();
             frame.AssertShowNoActivateCalled(1); // Should only be called once in all this flow
         }
 
@@ -136,14 +138,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.AssertOnUnexpectedServiceRequest = false;
 
             // Act + Verify
-            Assert.IsNull(testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)));
+            testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
             frame.AssertShowNoActivateCalled(0);
 
             // Case 2: Service exists, no host for frame
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
 
             // Act + Verify
-            Assert.IsNull(testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)));
+            testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
             frame.AssertShowNoActivateCalled(0);
         }
 
@@ -177,10 +179,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.DetachInfoBar(infoBarWrapper);
 
             // Verify
-            Assert.IsTrue(closed, "Expected to auto-close");
+            closed.Should().BeTrue("Expected to auto-close");
             host.AssertInfoBars(0);
         }
-        #endregion
+
+        #endregion Tests
 
         #region Test helpers
 
@@ -190,6 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             frame.RegisterProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, host);
             return host;
         }
+
         private class InvalidInfoBar : IInfoBar
         {
             event EventHandler IInfoBar.ButtonClick
@@ -223,6 +227,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 throw new NotImplementedException();
             }
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

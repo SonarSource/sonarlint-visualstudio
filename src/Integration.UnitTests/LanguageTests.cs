@@ -15,10 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Diagnostics;
-using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -63,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Verify
             foreach(var supportedLang in Language.SupportedLanguages)
             {
-                Assert.IsTrue(supportedLang.IsSupported, "Supported language should be supported");
+                supportedLang.IsSupported.Should().BeTrue("Supported language should be supported");
             }
         }
 
@@ -84,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var otherProjectLanguage = Language.ForProject(otherProject);
 
             // Verify
-            Assert.AreEqual(Language.Unknown, otherProjectLanguage, "Unexpected Language for unknown project");
+            otherProjectLanguage.Should().Be(Language.Unknown, "Unexpected Language for unknown project");
 
             // Test case 2: C#
             // Setup
@@ -95,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var csProjectLanguage = Language.ForProject(csProject);
 
             // Verify
-            Assert.AreEqual(Language.CSharp, csProjectLanguage, "Unexpected Language for C# project");
+            csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# project");
 
             // Test case 3: VB
             // Setup
@@ -106,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var vbNetProjectLanguage = Language.ForProject(vbNetProject);
 
             // Verify
-            Assert.AreEqual(Language.VBNET, vbNetProjectLanguage, "Unexpected Language for C# project");
+            vbNetProjectLanguage.Should().Be(Language.VBNET, "Unexpected Language for C# project");
         }
 
         [TestMethod]
@@ -118,8 +117,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var lang2 = new Language("Language 2", "lang2", "{7A128822-05AA-49D0-A3C7-16F03F3A92E5}");
 
             // Act + Verify
-            Assert.AreEqual(lang1a, lang1b, "Languages with the same keys and GUIDs should be equal");
-            Assert.AreNotEqual(lang1a, lang2, "Languages with different keys and GUIDs should NOT be equal");
+            lang1b.Should().Be(lang1a, "Languages with the same keys and GUIDs should be equal");
+            lang2.Should().NotBe(lang1a, "Languages with different keys and GUIDs should NOT be equal");
         }
     }
 }

@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
 using System;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,14 +31,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Test helpers
+
         public WindowMock Window
         {
             get;
             set;
         }
-        #endregion
+
+        #endregion Test helpers
 
         #region UIHierarchy
+
         public DTE DTE
         {
             get
@@ -90,6 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion UIHierarchy
     }
 }

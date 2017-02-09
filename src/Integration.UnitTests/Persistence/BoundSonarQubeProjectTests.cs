@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.Persistence;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -37,10 +38,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             BoundSonarQubeProject deserialized = JsonHelper.Deserialize<BoundSonarQubeProject>(data);
 
             // Verify
-            Assert.AreNotSame(testSubject, deserialized);
-            Assert.AreEqual(testSubject.ProjectKey, deserialized.ProjectKey);
-            Assert.AreEqual(testSubject.ServerUri, deserialized.ServerUri);
-            Assert.IsNull(deserialized.Credentials);
+            deserialized.Should().NotBe(testSubject);
+            deserialized.ProjectKey.Should().Be(testSubject.ProjectKey);
+            deserialized.ServerUri.Should().Be(testSubject.ServerUri);
+            deserialized.Credentials.Should().BeNull();
         }
     }
 }

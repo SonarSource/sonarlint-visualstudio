@@ -16,9 +16,9 @@
  */
 
 using System;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

@@ -15,7 +15,7 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -25,6 +25,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private int clearCalled;
 
         #region IRuleSetConflictsController
+
         bool IRuleSetConflictsController.CheckForConflicts()
         {
             return this.HasConflicts;
@@ -34,15 +35,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.clearCalled++;
         }
-        #endregion
+
+        #endregion IRuleSetConflictsController
 
         #region Test helper
+
         public bool HasConflicts { get; set; }
 
         public void AssertClearCalled(int expectedNumberOfTimes)
         {
-            Assert.AreEqual(expectedNumberOfTimes, clearCalled, "Clear was called unexpected number of times");
+            clearCalled.Should().Be(expectedNumberOfTimes, "Clear was called unexpected number of times");
         }
-        #endregion
+
+        #endregion Test helper
     }
 }

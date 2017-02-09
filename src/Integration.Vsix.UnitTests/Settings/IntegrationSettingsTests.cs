@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             bool actual1 = testSubject.GetValueOrDefault("key1", true);
 
             // Verify
-            Assert.AreEqual(expected1, actual1, "Did not load existing value");
+            actual1.Should().Be(expected1, "Did not load existing value");
 
             // Test case 2: does NOT exist -> default
             // Setup
@@ -80,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             bool actual2 = testSubject.GetValueOrDefault("key2", expected2);
 
             // Verify
-            Assert.AreEqual(expected2, actual2, "Did not return default value");
+            actual2.Should().Be(expected2, "Did not return default value");
         }
 
         [TestMethod]
@@ -98,9 +99,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             bool actual = testSubject.GetValueOrDefault("key1", expected);
 
             // Verify
-            Assert.AreEqual(expected, actual, "Did not return default value in case of missing setting store");
+            actual.Should().Be(expected, "Did not return default value in case of missing setting store");
         }
-
 
         [TestMethod]
         public void IntegrationSettings_SetValue_Bool()
@@ -152,7 +152,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             return new IntegrationSettings(this.serviceProvider, this.settingsManager);
         }
 
-        #endregion
-
+        #endregion Helpers
     }
 }

@@ -15,8 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -34,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string actualEscaped = PathHelper.EscapeFileName(unescapedString);
 
             // Verify
-            Assert.AreEqual(expectedEscaped, actualEscaped);
+            actualEscaped.Should().Be(expectedEscaped);
         }
 
         [TestMethod]
@@ -45,10 +46,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string withoutSlash = @"X:\directories\all\the\way";
 
             // Test case: without trailing slash
-            Assert.AreEqual(withSlash, PathHelper.ForceDirectoryEnding(withoutSlash), "Expected to append trailing slash '\'");
+            PathHelper.ForceDirectoryEnding(withoutSlash).Should().Be(withSlash, "Expected to append trailing slash '\'");
 
             // Test case: with trailing slash
-            Assert.AreEqual(withSlash, PathHelper.ForceDirectoryEnding(withSlash), "Expected to return input string without modification");
+            PathHelper.ForceDirectoryEnding(withSlash).Should().Be(withSlash, "Expected to return input string without modification");
         }
 
         [TestMethod]
@@ -239,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             bool rootedIsRooted = PathHelper.IsPathRootedUnderRoot(rootedFile, root);
 
             // Verify
-            Assert.IsTrue(rootedIsRooted, $"Path '{rootedFile}' should be rooted under '{root}'");
+            rootedIsRooted.Should().BeTrue($"Path '{rootedFile}' should be rooted under '{root}'");
         }
 
         [TestMethod]
@@ -254,7 +255,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             bool unrootedIsRooted = PathHelper.IsPathRootedUnderRoot(unrootedFile, root);
 
             // Verify
-            Assert.IsFalse(unrootedIsRooted, $"Path '{unrootedFile}' should not be rooted under '{root}'");
+            unrootedIsRooted.Should().BeFalse($"Path '{unrootedFile}' should not be rooted under '{root}'");
         }
 
         [TestMethod]
@@ -268,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             bool rootedIsRooted = PathHelper.IsPathRootedUnderRoot(rootedFile, root);
 
             // Verify
-            Assert.IsTrue(rootedIsRooted, $"Path '{rootedFile}' should be rooted under '{root}'");
+            rootedIsRooted.Should().BeTrue($"Path '{rootedFile}' should be rooted under '{root}'");
         }
 
         #region Helpers
@@ -277,17 +278,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             string actual = PathHelper.CalculateRelativePath(fromPath, toPath);
 
-            Assert.AreEqual(expected, actual);
+            actual.Should().Be(expected);
         }
 
         private static void VerifyResolveRelativePath(string expected, string basePath, string relativePath)
         {
             string actual = PathHelper.ResolveRelativePath(relativePath, basePath);
 
-            Assert.AreEqual(expected, actual);
+            actual.Should().Be(expected);
         }
 
-        #endregion
-
+        #endregion Helpers
     }
 }

@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Connection;
-using SonarLint.VisualStudio.Integration.Service;
 using System;
 using System.Threading;
+using FluentAssertions;
+using SonarLint.VisualStudio.Integration.Connection;
+using SonarLint.VisualStudio.Integration.Service;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -45,22 +45,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information)
         {
             this.numberOfCalls++;
-            Assert.IsNotNull(information, "Should not request to establish to a null connection");
+            information.Should().NotBeNull("Should not request to establish to a null connection");
             // Simulate the expected behavior in product
             if (!this.sonarQubeService.TryGetProjects(information, CancellationToken.None, out this.lastConnectedProjects))
             {
-                Assert.Fail("Failed to establish connection");
+                FluentAssertions.Execution.Execute.Assertion.FailWith("Failed to establish connection");
             }
         }
 
-        #endregion
+        #endregion IConnectionWorkflowExecutor
 
         #region Test helpers
 
         public void AssertEstablishConnectionCalled(int expectedNumberOfCalls)
         {
-            Assert.AreEqual(expectedNumberOfCalls, this.numberOfCalls, "EstablishConnection was called unexpected number of times");
+            this.numberOfCalls.Should().Be(expectedNumberOfCalls, "EstablishConnection was called unexpected number of times");
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

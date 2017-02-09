@@ -15,13 +15,14 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Threading;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -49,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             provider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         #region Tests
 
@@ -80,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IEnumerable<Project> actualProjects = testSubject.GetSelectedProjects();
 
             // Verify
-            Assert.IsFalse(actualProjects.Any(), "Expected no projects to be returned");
+            actualProjects.Any().Should().BeFalse("Expected no projects to be returned");
         }
 
         [TestMethod]
@@ -118,28 +119,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             project.ClearBuildProperty(TestPropertyName);
 
             // Act + Verify
-            Assert.IsNull(testSubject.GetBooleanProperty(project, TestPropertyName), "Expected null for missing property value");
+            testSubject.GetBooleanProperty(project, TestPropertyName).Should().BeNull("Expected null for missing property value");
 
             // Test case 2: bad property -> null
             // Setup
             project.SetBuildProperty(TestPropertyName, "NotABool");
 
             // Act + Verify
-            Assert.IsNull(testSubject.GetBooleanProperty(project, TestPropertyName), "Expected null for bad property value");
+            testSubject.GetBooleanProperty(project, TestPropertyName).Should().BeNull("Expected null for bad property value");
 
             // Test case 3: true property -> true
             // Setup
             project.SetBuildProperty(TestPropertyName, true.ToString());
 
             // Act + Verify
-            Assert.IsTrue(testSubject.GetBooleanProperty(project, TestPropertyName).Value, "Expected true for 'true' property value");
+            testSubject.GetBooleanProperty(project, TestPropertyName).Value.Should().BeTrue("Expected true for 'true' property value");
 
             // Test case 4: false property -> false
             // Setup
             project.SetBuildProperty(TestPropertyName, false.ToString());
 
             // Act + Verify
-            Assert.IsFalse(testSubject.GetBooleanProperty(project, TestPropertyName).Value, "Expected true for 'true' property value");
+            testSubject.GetBooleanProperty(project, TestPropertyName).Value.Should().BeFalse("Expected true for 'true' property value");
         }
 
         [TestMethod]
@@ -155,23 +156,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.SetBooleanProperty(project, TestPropertyName, true);
 
             // Act + Verify
-            Assert.AreEqual(true.ToString(), project.GetBuildProperty(TestPropertyName),
-                ignoreCase: true, message: "Expected property value true for property true");
+            project.GetBuildProperty(TestPropertyName).Should().Be(true.ToString(), "Expected property value true for property true");
 
             // Test case 2: false -> property is set false
             // Setup
             testSubject.SetBooleanProperty(project, TestPropertyName, false);
 
             // Act + Verify
-            Assert.AreEqual(false.ToString(), project.GetBuildProperty(TestPropertyName),
-                ignoreCase: false, message: "Expected property value true for property true");
+            project.GetBuildProperty(TestPropertyName).Should().Be(false.ToString(), "Expected property value true for property true");
 
             // Test case 3: null -> property is cleared
             // Setup
             testSubject.SetBooleanProperty(project, TestPropertyName, null);
 
             // Act + Verify
-            Assert.IsNull(project.GetBuildProperty(TestPropertyName), "Expected property value null for property false");
+            project.GetBuildProperty(TestPropertyName).Should().BeNull("Expected property value null for property false");
         }
 
         [TestMethod]
@@ -198,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Exceptions.Expect<ArgumentNullException>(() => testSubject.SetBooleanProperty(project, null, true));
         }
 
-        #endregion
+        #endregion Tests
 
         #region Test helpers
 
@@ -207,6 +206,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return new ProjectPropertyManager(this.host);
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

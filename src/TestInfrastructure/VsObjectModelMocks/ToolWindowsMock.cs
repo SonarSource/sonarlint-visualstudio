@@ -15,9 +15,9 @@
  * THE SOFTWARE.
  */
 
+using System;
 using EnvDTE;
 using EnvDTE80;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -32,14 +32,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Test helpers
+
         public UIHierarchyMock SolutionExplorer
         {
             get;
             set;
         }
-        #endregion
+
+        #endregion Test helpers
 
         #region ToolWindows
+
         CommandWindow ToolWindows.CommandWindow
         {
             get
@@ -100,6 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion ToolWindows
     }
 }

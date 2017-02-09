@@ -22,10 +22,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class ConfigurableVsInfoBarUIFactory : IVsInfoBarUIFactory
     {
         #region IVsInfoBarUIFactory
+
         IVsInfoBarUIElement IVsInfoBarUIFactory.CreateInfoBar(IVsInfoBar infoBar)
         {
             return new ConfigurableVsInfoBarUIElement { Model = infoBar };
         }
-        #endregion
+
+        #endregion IVsInfoBarUIFactory
     }
 }

@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Dictionary<string, long> files = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
         #region IFileSystem
+
         void IFileSystem.CreateDirectory(string path)
         {
             this.directories.Add(path);
@@ -42,9 +43,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             return this.files.ContainsKey(filePath);
         }
+
         #endregion IFileSystem
 
         #region Test helpers
+
         public void ClearDirectories()
         {
             this.directories.Clear();
@@ -82,22 +85,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertFileExists(string file)
         {
-            Assert.IsTrue(this.files.ContainsKey(file), "File not exists: " + file);
+            this.files.ContainsKey(file).Should().BeTrue("File not exists: " + file);
         }
 
         public void AssertFileNotExists(string file)
         {
-            Assert.IsFalse(this.files.ContainsKey(file), "File exists: " + file);
+            this.files.ContainsKey(file).Should().BeFalse();
         }
 
         public void AssertDirectoryExists(string dir)
         {
-            Assert.IsTrue(this.directories.Contains(dir), "Directory not exists: " + dir);
+            this.directories.Contains(dir).Should().BeTrue("Directory not exists: " + dir);
         }
 
         public void AssertDirectoryNotExists(string dir)
         {
-            Assert.IsFalse(this.directories.Contains(dir), "Directory exists: " + dir);
+            this.directories.Contains(dir).Should().BeFalse();
         }
 
         public void AssertFileTimestampBefore(string file, long timestamp)
@@ -105,11 +108,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             long current;
             if (this.files.TryGetValue(file, out current))
             {
-                Assert.IsTrue(timestamp < current, $"Expected {timestamp} < {current}");
+                (timestamp < current).Should().BeTrue($"Expected {timestamp} < {current}");
             }
             else
             {
-                Assert.Fail("File not found " + file);
+                FluentAssertions.Execution.Execute.Assertion.FailWith("File not found " + file);
             }
         }
 
@@ -118,11 +121,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             long current;
             if (this.files.TryGetValue(file, out current))
             {
-                Assert.IsTrue(timestamp > current, $"Expected {timestamp} > {current}");
+                (timestamp > current).Should().BeTrue($"Expected {timestamp} > {current}");
             }
             else
             {
-                Assert.Fail("File not found " + file);
+                FluentAssertions.Execution.Execute.Assertion.FailWith("File not found " + file);
             }
         }
 
@@ -135,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             else
             {
-                Assert.Fail("File not found " + file);
+                FluentAssertions.Execution.Execute.Assertion.FailWith("File not found " + file);
                 return -1;
             }
         }
@@ -145,13 +148,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             long current;
             if (this.files.TryGetValue(file, out current))
             {
-                Assert.AreEqual(timestamp, current, $"Expected {timestamp} == {current}");
+                current.Should().Be(timestamp, $"Expected {timestamp} == {current}");
             }
             else
             {
-                Assert.Fail("File not found " + file);
+                FluentAssertions.Execution.Execute.Assertion.FailWith("File not found " + file);
             }
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

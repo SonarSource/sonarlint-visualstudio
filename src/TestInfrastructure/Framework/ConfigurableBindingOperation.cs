@@ -15,15 +15,16 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.Binding;
 using System;
 using System.Threading;
+using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableBindingOperation : IBindingOperation
     {
         #region IBindingOperation
+
         void IBindingOperation.Initialize()
         {
             this.InitializeAction?.Invoke();
@@ -38,15 +39,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.PrepareAction?.Invoke(token);
         }
-        #endregion
 
+        #endregion IBindingOperation
 
         #region Test helpers
+
         public Action InitializeAction { get; set; }
 
         public Action<CancellationToken> PrepareAction { get; set; }
 
         public Action CommitAction { get; set; }
-        #endregion
+
+        #endregion Test helpers
     }
 }

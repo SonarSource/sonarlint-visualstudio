@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -28,13 +28,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly List<Tuple<string, double>> progressEventsMessages = new List<Tuple<string, double>>();
 
         #region IProgressStepExecutionEvents
+
         void IProgressStepExecutionEvents.ProgressChanged(string progressDetailText, double progress)
         {
             this.progressEventsMessages.Add(Tuple.Create(progressDetailText, progress));
         }
-        #endregion
+
+        #endregion IProgressStepExecutionEvents
 
         #region Test helpers
+
         /// <summary>
         /// Verifies <see cref="IProgressStepExecutionEvents"/> messages
         /// </summary>
@@ -57,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.progressEventsMessages.Clear();
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

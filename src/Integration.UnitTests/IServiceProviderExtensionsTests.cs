@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -72,8 +73,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IService actual = this.serviceProvider.GetService<IService>();
 
             // Verify
-            Assert.IsNotNull(actual);
-            Assert.AreSame(this.serviceInstance, actual);
+            actual.Should().NotBeNull();
+            actual.Should().Be(this.serviceInstance);
         }
 
         [TestMethod]
@@ -83,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IMissingService service = this.serviceProvider.GetService<IMissingService>();
 
             // Verify
-            Assert.IsNull(service);
+            service.Should().BeNull();
         }
 
         [TestMethod]
@@ -93,8 +94,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IOther actual = this.serviceProvider.GetService<IService, IOther>();
 
             // Verify
-            Assert.IsNotNull(actual);
-            Assert.AreSame(this.serviceInstance, actual);
+            actual.Should().NotBeNull();
+            actual.Should().Be(this.serviceInstance);
         }
 
         [TestMethod]
@@ -104,8 +105,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IMefService actual = this.serviceProvider.GetMefService<IMefService>();
 
             // Verify
-            Assert.IsNotNull(actual);
-            Assert.AreSame(this.mefServiceInstance, actual);
+            actual.Should().NotBeNull();
+            actual.Should().Be(this.mefServiceInstance);
         }
 
         [TestMethod]
@@ -115,22 +116,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IMissingMefService mefService = this.serviceProvider.GetMefService<IMissingMefService>();
 
             // Verify
-            Assert.IsNull(mefService);
+            mefService.Should().BeNull();
         }
 
-        #endregion
+        #endregion Tests
 
         #region Test Services and Interfaces
 
         private interface IMissingService { }
+
         private interface IService { }
+
         private interface IOther { }
+
         private class TestService : IService, IOther { }
 
         private interface IMissingMefService { }
+
         private interface IMefService { }
+
         private class TestMefService : IMefService { }
 
-        #endregion
+        #endregion Test Services and Interfaces
     }
 }

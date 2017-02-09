@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Windows;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 {
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(null, null, null, null);
 
             // Assert
-            Assert.AreEqual(result, DependencyProperty.UnsetValue);
+            DependencyProperty.UnsetValue.Should().Be(result);
         }
 
         [TestMethod]
@@ -63,11 +64,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result5 = converter.Convert(new object[5], null, null, null);
 
             // Assert
-            Assert.AreEqual(result0, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result3, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result5, DependencyProperty.UnsetValue);
+            result0.Should().Be(DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
+            result3.Should().Be(DependencyProperty.UnsetValue);
+            result5.Should().Be(DependencyProperty.UnsetValue);
         }
 
         [TestMethod]
@@ -84,8 +85,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result2 = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
         }
 
         [TestMethod]
@@ -103,8 +104,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result2 = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
         }
 
         [TestMethod]
@@ -123,8 +124,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result2 = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
         }
 
         [TestMethod]
@@ -144,8 +145,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result2 = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.AreEqual(result1, DependencyProperty.UnsetValue);
-            Assert.AreEqual(result2, DependencyProperty.UnsetValue);
+            result1.Should().Be(DependencyProperty.UnsetValue);
+            result2.Should().Be(DependencyProperty.UnsetValue);
         }
 
         [TestMethod]
@@ -163,8 +164,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Visible);
+            result.Should().BeAssignableTo<Visibility>();
+            Visibility.Visible.Should().Be(result);
         }
 
         [TestMethod]
@@ -182,8 +183,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Collapsed);
+            result.Should().BeAssignableTo<Visibility>();
+            Visibility.Collapsed.Should().Be(result);
         }
 
         [TestMethod]
@@ -201,8 +202,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Visible);
+            result.Should().BeAssignableTo<Visibility>();
+            Visibility.Visible.Should().Be(result);
         }
 
         [TestMethod]
@@ -220,8 +221,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var result = converter.Convert(values, null, null, null);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(Visibility));
-            Assert.AreEqual(result, Visibility.Collapsed);
+            result.Should().BeAssignableTo<Visibility>();
+            Visibility.Collapsed.Should().Be(result);
         }
     }
 }

@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -30,34 +30,40 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private bool loggedEntry = false;
 
         #region Configuration
+
         public Action<uint, string, string> LogEntryAction
         {
             get;
             set;
         }
-        #endregion
+
+        #endregion Configuration
 
         #region Test helpers
+
         public void Reset()
         {
             this.loggedEntry = false;
         }
-        #endregion
+
+        #endregion Test helpers
 
         #region Verification
+
         public void AssertEntryLogged()
         {
-            Assert.IsTrue(this.loggedEntry, "No requests to log entry to activity log");
+            this.loggedEntry.Should().BeTrue("No requests to log entry to activity log");
         }
 
         public void AssertEntryNotLogged()
         {
-            Assert.IsFalse(this.loggedEntry, "Not expected any requests to log to activity log");
+            this.loggedEntry.Should().BeFalse("Not expected any requests to log to activity log");
         }
 
-        #endregion
+        #endregion Verification
 
         #region IVsActivityLog
+
         int IVsActivityLog.LogEntry(uint actType, string pszSource, string pszDescription)
         {
             this.loggedEntry = true;
@@ -103,6 +109,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsActivityLog
     }
 }

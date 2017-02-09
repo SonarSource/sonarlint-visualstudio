@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
+using FluentAssertions;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -43,10 +43,13 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
 #pragma warning disable 67
+
         public event EventHandler<StepExecutionChangedEventArgs> StateChanged;
+
 #pragma warning restore 67
 
         #region Customization methods
+
         /// <summary>
         /// Simulate this final execution result after running the operation
         /// </summary>
@@ -65,9 +68,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             set;
         }
 
-        #endregion
+        #endregion Customization methods
 
         #region IProgressStep
+
         public string DisplayText
         {
             get;
@@ -117,18 +121,21 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion IProgressStep
 
         #region Verification methods
+
         public void AssertExecuted()
         {
-            Assert.IsTrue(this.executed, "The operation was not executed");
+            this.executed.Should().BeTrue("The operation was not executed");
         }
 
         public void AssertNotExecuted()
         {
-            Assert.IsFalse(this.executed, "The operation was executed");
+            this.executed.Should().BeFalse("The operation was executed");
         }
-        #endregion
+
+        #endregion Verification methods
     }
 }

@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -25,17 +25,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly IList<string> navigatedUrls = new List<string>();
 
         #region Test Helpers
+
         public void AssertNavigateToCalls(int numCalls)
         {
-            Assert.AreEqual(numCalls, this.navigatedUrls.Count, "Unexpected number of calls to NavigateTo");
+            this.navigatedUrls.Should().HaveCount(numCalls, "Unexpected number of calls to NavigateTo");
         }
 
         public void AssertRequestToNavigateTo(string url)
         {
-            Assert.IsTrue(navigatedUrls.Contains(url), $"URL '{url}' was not navigated to");
+            navigatedUrls.Contains(url).Should().BeTrue($"URL '{url}' was not navigated to");
         }
 
-        #endregion
+        #endregion Test Helpers
 
         #region IWebBrowser
 
@@ -44,6 +45,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.navigatedUrls.Add(url);
         }
 
-        #endregion
+        #endregion IWebBrowser
     }
 }

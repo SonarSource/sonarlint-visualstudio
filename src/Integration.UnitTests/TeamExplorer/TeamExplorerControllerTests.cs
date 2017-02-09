@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Act + Verify
             var testSubject = new TeamExplorerController(serviceProvider);
-            Assert.AreSame(teService, testSubject.TeamExplorer, "Unexpected Team Explorer service");
+            testSubject.TeamExplorer.Should().Be(teService, "Unexpected Team Explorer service");
         }
 
         [TestMethod]
