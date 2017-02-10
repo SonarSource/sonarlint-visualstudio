@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
 using System;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Property
+
         public object Application
         {
             get
@@ -110,6 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion Property
     }
 }

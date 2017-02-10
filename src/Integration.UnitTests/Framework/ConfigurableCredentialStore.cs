@@ -15,18 +15,20 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.Alm.Authentication;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
+using Microsoft.Alm.Authentication;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableCredentialStore : ICredentialStore
     {
-        private readonly Dictionary<Uri, Credential> data = new Dictionary<Uri, Credential>();
+        internal readonly Dictionary<Uri, Credential> data =
+            new Dictionary<Uri, Credential>();
 
         #region ICredentialStore
+
         void ICredentialStore.DeleteCredentials(Uri targetUri)
         {
             this.data.Remove(targetUri);
@@ -41,18 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.data[targetUri] = credentials;
         }
-        #endregion
 
-        #region Helpers
-        public void AssertHasCredentials(Uri targetUri)
-        {
-            Assert.IsTrue(this.data.ContainsKey(targetUri), "Credentials not found for uri {0}", targetUri);
-        }
-
-        public void AssertHasNoCredentials(Uri targetUri)
-        {
-            Assert.IsFalse(this.data.ContainsKey(targetUri), "Credentials found for uri {0}", targetUri);
-        }
-        #endregion
+        #endregion ICredentialStore
     }
 }

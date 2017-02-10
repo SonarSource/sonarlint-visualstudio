@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Service;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -34,32 +35,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreateConnectionInformation_NoCredentials()
         {
-            // Setup
+            // Arrange
             var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey");
 
             // Act
             ConnectionInformation conn = input.CreateConnectionInformation();
 
-            // Verify
-            Assert.AreEqual(input.ServerUri, conn.ServerUri);
-            Assert.IsNull(conn.UserName);
-            Assert.IsNull(conn.Password);
+            // Assert
+            conn.ServerUri.Should().Be(input.ServerUri);
+            conn.UserName.Should().BeNull();
+            conn.Password.Should().BeNull();
         }
 
         [TestMethod]
         public void CreateConnectionInformation_BasicAuthCredentials()
         {
-            // Setup
+            // Arrange
             var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
             var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", creds);
 
             // Act
             ConnectionInformation conn = input.CreateConnectionInformation();
 
-            // Verify
-            Assert.AreEqual(input.ServerUri, conn.ServerUri);
-            Assert.AreEqual(creds.UserName, conn.UserName);
-            Assert.AreEqual(creds.Password.ToUnsecureString(), conn.Password.ToUnsecureString());
+            // Assert
+            conn.ServerUri.Should().Be(input.ServerUri);
+            conn.UserName.Should().Be(creds.UserName);
+            conn.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
         }
     }
 }

@@ -15,14 +15,6 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.Owin;
-using Microsoft.Owin.Testing;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Owin;
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,6 +26,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Serialization;
+using FluentAssertions;
+using Microsoft.Owin;
+using Microsoft.Owin.Testing;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Owin;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Service.DataModel;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -58,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
         [TestMethod]
         public void SonarQubeServiceWrapper_Ctor_ArgChecks()
         {
@@ -80,27 +82,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup case 1: first time connect
+                // Arrange case 1: first time connect
                 testSubject.AllowAnonymous = true;
                 testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new[] { p1 }) });
                 var connectionInfo1 = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
                 ProjectInformation[] projects = null;
-                Assert.IsTrue(testSubject.TryGetProjects(connectionInfo1, CancellationToken.None, out projects), "Expected to get the projects");
+                testSubject.TryGetProjects(connectionInfo1, CancellationToken.None, out projects).Should().BeTrue("Expected to get the projects");
 
-                // Verify
+                // Assert
                 AssertEqualProjects(new[] { p1 }, projects);
                 this.outputWindowPane.AssertOutputStrings(0);
 
-                // Setup case 2: second time connect
+                // Arrange case 2: second time connect
                 var connectionInfo2 = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
                 testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new[] { p1, p2 }) });
-                Assert.IsTrue(testSubject.TryGetProjects(connectionInfo2, CancellationToken.None, out projects), "Expected to get the projects");
+                testSubject.TryGetProjects(connectionInfo2, CancellationToken.None, out projects).Should().BeTrue("Expected to get the projects");
 
-                // Verify
+                // Assert
                 AssertEqualProjects(new[] { p1, p2 }, projects);
                 this.outputWindowPane.AssertOutputStrings(0);
             }
@@ -111,17 +113,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 testSubject.AllowAnonymous = true;
                 testSubject.RegisterConnectionHandler(new RequestHandler { ResponseStatusCode = HttpStatusCode.InternalServerError });
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
                 ProjectInformation[] projects = null;
-                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should fail");
+                testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects).Should().BeFalse();
 
-                // Verify
-                Assert.IsNull(projects);
+                // Assert
+                projects.Should().BeNull();
                 this.outputWindowPane.AssertOutputStrings(1);
             }
         }
@@ -131,18 +133,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider, timeoutInMilliseconds: 1))
             {
-                // Setup
+                // Arrange
                 testSubject.AllowAnonymous = true;
                 testSubject.DelayRequestInMilliseconds = 1000;
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
                 ProjectInformation[] projects = null;
-                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should timeout");
+                testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects).Should().BeFalse();
 
-                // Verify
+                // Assert
                 this.outputWindowPane.AssertOutputStrings(1);
-                Assert.IsNull(projects);
+                projects.Should().BeNull();
             }
         }
 
@@ -151,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider, timeoutInMilliseconds: 100))
             {
-                // Setup
+                // Arrange
                 testSubject.AllowAnonymous = true;
                 testSubject.DelayRequestInMilliseconds = 1000;
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
@@ -161,11 +163,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                     // Act
                     ProjectInformation[] projects = null;
-                    Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should be canceled");
+                    testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects).Should().BeFalse();
 
-                    // Verify
+                    // Assert
                     this.outputWindowPane.AssertOutputStrings(1);
-                    Assert.IsNull(projects);
+                    projects.Should().BeNull();
                 }
             }
         }
@@ -175,19 +177,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 testSubject.AllowAnonymous = true;
                 testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new ProjectInformation[0]) });
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
                 ProjectInformation[] projects = null;
-                Assert.IsTrue(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should be get an empty array of projects");
+                testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects).Should().BeTrue("Should be get an empty array of projects");
 
-                // Verify
+                // Assert
                 this.outputWindowPane.AssertOutputStrings(0);
-                Assert.IsNotNull(projects, "Expected projects");
-                Assert.AreEqual(0, projects.Length, "Expected an empty array");
+                projects.Should().NotBeNull("Expected projects");
+                projects.Should().BeEmpty("Expected an empty array");
             }
         }
 
@@ -196,19 +198,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 testSubject.BasicAuthUsers.Add("admin", "admin");
                 testSubject.RegisterConnectionHandler(new RequestHandler { ResponseText = Serialize(new ProjectInformation[0]) });
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"), "admin", "admin".ToSecureString());
 
                 // Act
                 ProjectInformation[] projects = null;
-                Assert.IsTrue(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Should be get an empty array of projects");
+                testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects).Should().BeTrue("Should be get an empty array of projects");
 
-                // Verify
+                // Assert
                 this.outputWindowPane.AssertOutputStrings(0);
-                Assert.IsNotNull(projects, "Expected projects");
-                Assert.AreEqual(0, projects.Length, "Expected an empty array");
+                projects.Should().NotBeNull("Expected projects");
+                projects.Should().BeEmpty("Expected an empty array");
             }
         }
 
@@ -217,39 +219,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup case 1: Invalid password
+                // Arrange case 1: Invalid password
                 testSubject.BasicAuthUsers.Add("admin", "admin1");
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"), "admin", "admin".ToSecureString());
 
                 // Act
                 ProjectInformation[] projects = null;
-                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Auth failed");
+                testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects).Should().BeFalse();
 
-                // Verify
+                // Assert
                 this.outputWindowPane.AssertOutputStrings(1);
-                Assert.IsNull(projects, "Not expecting projects");
+                projects.Should().BeNull("Not expecting projects");
 
-                // Setup case 2: Invalid user name
+                // Arrange case 2: Invalid user name
                 testSubject.BasicAuthUsers.Clear();
                 testSubject.BasicAuthUsers.Add("admin1", "admin");
 
                 // Act
-                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Auth failed");
+                testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects).Should().BeFalse();
 
-                // Verify
+                // Assert
                 this.outputWindowPane.AssertOutputStrings(2);
-                Assert.IsNull(projects, "Not expecting projects");
+                projects.Should().BeNull("Not expecting projects");
             }
         }
 
         [TestMethod]
         public void SonarQubeServiceWrapper_TryGetProjects_ArgChecks()
         {
-            // Setup
+            // Arrange
             var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
             ProjectInformation[] projects;
 
-            // Act + Verify
+            // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetProjects(null, CancellationToken.None, out projects));
         }
 
@@ -258,18 +260,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 testSubject.AllowAnonymous = true;
                 testSubject.RegisterConnectionHandler(new RequestHandler(ctx => { throw new InvalidOperationException(); }));
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 
                 // Act
                 ProjectInformation[] projects = null;
-                Assert.IsFalse(testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects), "Exception been thrown");
+                testSubject.TryGetProjects(connectionInfo, CancellationToken.None, out projects).Should().BeFalse();
 
-                // Verify
+                // Assert
                 this.outputWindowPane.AssertOutputStrings(1);
-                Assert.IsNull(projects, "Not expecting projects");
+                projects.Should().BeNull("Not expecting projects");
             }
         }
 
@@ -280,13 +282,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new ProjectInformation[0]);
 
-                // Setup
+                // Arrange
                 var property1 = new ServerProperty { Key = "prop1", Value = "val1" };
                 var property2 = new ServerProperty { Key = "prop2", Value = "val2" };
 
                 var expectedProperties = new[] { property1, property2 };
 
-                // Setup test server
+                // Arrange test server
                 RequestHandler handler = testSubject.RegisterRequestHandler(
                     SonarQubeServiceWrapper.PropertiesAPI,
                     ctx => ServiceServerProperties(ctx, expectedProperties)
@@ -294,30 +296,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Act
                 ServerProperty[] actualProperties;
-                Assert.IsTrue(testSubject.TryGetProperties(conn, CancellationToken.None, out actualProperties), "TryGetProperties failed unexpectedly");
+                testSubject.TryGetProperties(conn, CancellationToken.None, out actualProperties).Should().BeTrue("TryGetProperties failed unexpectedly");
 
-                // Verify
+                // Assert
                 CollectionAssert.AreEqual(expectedProperties.Select(x => x.Key).ToArray(), actualProperties.Select(x => x.Key).ToArray(), "Unexpected server property keys");
                 CollectionAssert.AreEqual(expectedProperties.Select(x => x.Value).ToArray(), actualProperties.Select(x => x.Value).ToArray(), "Unexpected server property values");
-                handler.AssertHandlerCalled(1);
+                handler.HandlerCalledCount.Should().Be(1);
             }
         }
 
         [TestMethod]
         public void SonarQubeServiceWrapper_TryGetProperties_ArgChecks()
         {
-            // Setup
+            // Arrange
             var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
             ServerProperty[] properties;
 
-            // Act + Verify
+            // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetProperties(null, CancellationToken.None, out properties));
         }
 
         [TestMethod]
         public void SonarQubeServiceWrapper_TryGetQualityProfile_ArgChecks()
         {
-            // Setup
+            // Arrange
             var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
             QualityProfile profile;
             var validConnection = new ConnectionInformation(new Uri("http://valid"));
@@ -325,7 +327,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var validLanguage = Language.CSharp;
             var cppLanguage = new Language("Cpp", "C++", Guid.NewGuid());
 
-            // Act + Verify
+            // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetQualityProfile(null, validProject, validLanguage, CancellationToken.None, out profile));
             Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetQualityProfile(validConnection, null, validLanguage, CancellationToken.None, out profile));
             Exceptions.Expect<ArgumentNullException>(() => testSubject.TryGetQualityProfile(validConnection, validProject, null, CancellationToken.None, out profile));
@@ -339,7 +341,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 Language language = Language.CSharp;
                 QualityProfile profile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
@@ -355,7 +357,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 };
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
-                // Setup test server
+                // Arrange test server
                 RegisterQualityProfileChangeLogValidator(testSubject);
 
                 RequestHandler getProfileHandler = testSubject.RegisterRequestHandler(
@@ -369,16 +371,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Act
                 QualityProfile actualProfile;
-                Assert.IsTrue(testSubject.TryGetQualityProfile(conn, project, language, CancellationToken.None, out actualProfile), "TryGetExportProfile failed unexpectedly");
+                testSubject.TryGetQualityProfile(conn, project, language, CancellationToken.None, out actualProfile).Should().BeTrue("TryGetExportProfile failed unexpectedly");
 
-                // Verify
-                Assert.IsNotNull(actualProfile, "Expected a profile to be returned");
-                Assert.AreEqual(profile.Key, actualProfile.Key);
-                Assert.AreEqual(profile.Name, actualProfile.Name);
-                Assert.AreEqual(changeLog.Events[0].Date, actualProfile.QualityProfileTimestamp);
+                // Assert
+                actualProfile.Should().NotBeNull("Expected a profile to be returned");
+                actualProfile.Key.Should().Be(profile.Key);
+                actualProfile.Name.Should().Be(profile.Name);
+                actualProfile.QualityProfileTimestamp.Should().Be(changeLog.Events[0].Date);
 
-                getProfileHandler.AssertHandlerCalled(1);
-                changeLogHandler.AssertHandlerCalled(1);
+                getProfileHandler.HandlerCalledCount.Should().Be(1);
+                changeLogHandler.HandlerCalledCount.Should().Be(1);
                 this.outputWindowPane.AssertOutputStrings(0);
             }
         }
@@ -399,12 +401,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 QualityProfile profile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
-                // Setup test server
+                // Arrange test server
                 RegisterQualityProfileChangeLogValidator(testSubject);
 
                 RequestHandler getProfileHandler = testSubject.RegisterRequestHandler(
@@ -418,16 +420,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Act
                 QualityProfile actualProfile;
-                Assert.IsTrue(testSubject.TryGetQualityProfile(conn, project, language, CancellationToken.None, out actualProfile), "TryGetExportProfile failed unexpectedly");
+                testSubject.TryGetQualityProfile(conn, project, language, CancellationToken.None, out actualProfile).Should().BeTrue("TryGetExportProfile failed unexpectedly");
 
-                // Verify
-                Assert.IsNotNull(actualProfile, "Expected a profile to be returned");
-                Assert.AreEqual(profile.Key, actualProfile.Key);
-                Assert.AreEqual(profile.Name, actualProfile.Name);
-                Assert.IsNull(actualProfile.QualityProfileTimestamp);
+                // Assert
+                actualProfile.Should().NotBeNull("Expected a profile to be returned");
+                actualProfile.Key.Should().Be(profile.Key);
+                actualProfile.Name.Should().Be(profile.Name);
+                actualProfile.QualityProfileTimestamp.Should().BeNull();
 
-                getProfileHandler.AssertHandlerCalled(1);
-                changeLogHandler.AssertHandlerCalled(1);
+                getProfileHandler.HandlerCalledCount.Should().Be(1);
+                changeLogHandler.HandlerCalledCount.Should().Be(1);
                 this.outputWindowPane.AssertOutputStrings(1);
             }
         }
@@ -448,14 +450,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 QualityProfile profile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 var expectedExport = RoslynExportProfileHelper.CreateExport(ruleSet: TestRuleSetHelper.CreateTestRuleSet(3));
                 var roslynExporter = SonarQubeServiceWrapper.CreateRoslynExporterName(language);
                 ConnectionInformation conn = ConfigureValidConnection(testSubject, new[] { project });
 
-                // Setup test server
+                // Arrange test server
                 RegisterProfileExportQueryValidator(testSubject);
 
                 RequestHandler getExportHandler = testSubject.RegisterRequestHandler(
@@ -465,12 +467,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Act
                 RoslynExportProfile actualExport;
-                Assert.IsTrue(testSubject.TryGetExportProfile(conn, profile, language, CancellationToken.None, out actualExport), "TryGetExportProfile failed unexpectedly");
+                testSubject.TryGetExportProfile(conn, profile, language, CancellationToken.None, out actualExport).Should().BeTrue("TryGetExportProfile failed unexpectedly");
 
-                // Verify
-                Assert.IsNotNull(actualExport, "Expected a profile export to be returned");
+                // Assert
+                actualExport.Should().NotBeNull("Expected a profile export to be returned");
                 RoslynExportProfileHelper.AssertAreEqual(expectedExport, actualExport);
-                getExportHandler.AssertHandlerCalled(1);
+                getExportHandler.HandlerCalledCount.Should().Be(1);
             }
         }
 
@@ -503,7 +505,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 HttpClient httpClient = testSubject.CreateHttpClient();
                 var language = Language.CSharp;
                 QualityProfile expectedProfile = CreateRandomQualityProfile(language, isDefault: true);
@@ -512,7 +514,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 ConfigureValidConnection(testSubject, new[] { project });
 
-                // Setup test server
+                // Arrange test server
                 RegisterQualityProfileQueryValidator(testSubject);
 
                 RequestHandler forProjectHandler = testSubject.RegisterRequestHandler(
@@ -528,11 +530,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 QualityProfile actualProfile = await SonarQubeServiceWrapper.DownloadQualityProfile(httpClient, project, language, CancellationToken.None);
 
-                // Verify
-                Assert.IsNotNull(actualProfile, "Expected a quality profile");
-                Assert.AreEqual(expectedProfile.Key, actualProfile.Key, "Unexpected quality profile returned");
-                forProjectHandler.AssertHandlerCalled(1);
-                forLanguageHandler.AssertHandlerCalled(1);
+                // Assert
+                actualProfile.Should().NotBeNull("Expected a quality profile");
+                actualProfile.Key.Should().Be(expectedProfile.Key, "Unexpected quality profile returned");
+                forProjectHandler.HandlerCalledCount.Should().Be(1);
+                forLanguageHandler.HandlerCalledCount.Should().Be(1);
             }
         }
 
@@ -541,14 +543,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 HttpClient httpClient = testSubject.CreateHttpClient();
                 var language = Language.CSharp;
                 QualityProfile expectedProfile = CreateRandomQualityProfile(language);
                 var project = new ProjectInformation { Key = "awesome1", Name = "My Awesome Project" };
                 ConfigureValidConnection(testSubject, new[] { project });
 
-                // Setup test server
+                // Arrange test server
                 RegisterQualityProfileQueryValidator(testSubject);
 
                 RequestHandler handler = testSubject.RegisterRequestHandler(
@@ -559,10 +561,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 QualityProfile actualProfile = await SonarQubeServiceWrapper.DownloadQualityProfile(httpClient, project, language, CancellationToken.None);
 
-                // Verify
-                Assert.IsNotNull(actualProfile, "Expected a quality profile");
-                Assert.AreEqual(expectedProfile.Key, actualProfile.Key, "Unexpected quality profile returned");
-                handler.AssertHandlerCalled(1);
+                // Assert
+                actualProfile.Should().NotBeNull("Expected a quality profile");
+                actualProfile.Key.Should().Be(expectedProfile.Key, "Unexpected quality profile returned");
+                handler.HandlerCalledCount.Should().Be(1);
             }
         }
 
@@ -586,14 +588,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
             {
-                // Setup
+                // Arrange
                 var connectionInfo = new ConnectionInformation(new Uri("http://servername"));
                 var plugin1 = new ServerPlugin { Key = "plugin1" };
                 var plugin2 = new ServerPlugin { Key = "plugin2" };
 
                 var expectedPlugins = new[] { plugin1, plugin2 };
 
-                // Setup test server
+                // Arrange test server
                 RequestHandler handler = testSubject.RegisterRequestHandler(
                     SonarQubeServiceWrapper.ServerPluginsInstalledAPI,
                     ctx => ServiceServerPlugins(ctx, expectedPlugins)
@@ -601,18 +603,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Act
                 ServerPlugin[] actualPlugins;
-                Assert.IsTrue(testSubject.TryGetPlugins(connectionInfo, CancellationToken.None, out actualPlugins), "TryGetPlugins failed unexpectedly");
+                testSubject.TryGetPlugins(connectionInfo, CancellationToken.None, out actualPlugins).Should().BeTrue("TryGetPlugins failed unexpectedly");
 
-                // Verify
+                // Assert
                 CollectionAssert.AreEqual(expectedPlugins.Select(x => x.Key).ToArray(), actualPlugins.Select(x => x.Key).ToArray(), "Unexpected server plugins");
-                handler.AssertHandlerCalled(1);
+                handler.HandlerCalledCount.Should().Be(1);
             }
         }
 
         [TestMethod]
         public void SonarQubeServiceWrapper_CreateProjectDashboardUrl()
         {
-            // Setup
+            // Arrange
             var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
 
             var serverUrl = new Uri("http://my-sonar-server:5555");
@@ -624,20 +626,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             var actualUrl = testSubject.CreateProjectDashboardUrl(connectionInfo, projectInfo);
 
-            // Verify
-            Assert.AreEqual(expectedUrl, actualUrl, "Unexpected project dashboard URL");
+            // Assert
+            actualUrl.Should().Be(expectedUrl, "Unexpected project dashboard URL");
         }
 
         [TestMethod]
         public void SonarQubeServiceWrapper_CreateProjectDashboardUrl_ArgChecks()
         {
-            // Setup
+            // Arrange
             var testSubject = new SonarQubeServiceWrapper(this.serviceProvider);
 
             var connectionInfo = new ConnectionInformation(new Uri("http://my-sonar-server:5555"));
             var projectInfo = new ProjectInformation { Key = "p1" };
 
-            // Act + Verify
+            // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.CreateProjectDashboardUrl(null, projectInfo));
             Exceptions.Expect<ArgumentNullException>(() => testSubject.CreateProjectDashboardUrl(connectionInfo, null));
         }
@@ -645,8 +647,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SonarQubeServiceWrapper_AppendQuery_NoQueryParameters_ReturnsBaseUrl()
         {
-            // Act + Verify
-            Assert.AreEqual("api/foobar", SonarQubeServiceWrapper.AppendQueryString("api/foobar", ""));
+            // Act + Assert
+            SonarQubeServiceWrapper.AppendQueryString("api/foobar", "").Should().Be("api/foobar");
         }
 
         [TestMethod]
@@ -658,8 +660,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 queryFormat: "?a={0}&b={2}&c={1}",
                 args: new[] { "1", "3", "2" });
 
-            // Verify
-            Assert.AreEqual("api/foobar?a=1&b=2&c=3", result);
+            // Assert
+            result.Should().Be("api/foobar?a=1&b=2&c=3");
         }
 
         [TestMethod]
@@ -670,8 +672,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 client: CreateClientWithAddress("http://hostname/"),
                 apiUrl: "foo/bar/baz");
 
-            // Verify
-            Assert.AreEqual("http://hostname/foo/bar/baz", result.ToString(), "Unexpected request URL for base address with host name only");
+            // Assert
+            result.ToString().Should().Be("http://hostname/foo/bar/baz", "Unexpected request URL for base address with host name only");
         }
 
         [TestMethod]
@@ -682,8 +684,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 client: CreateClientWithAddress("http://hostname/and/path/"),
                 apiUrl: "foo/bar/baz");
 
-            // Verify
-            Assert.AreEqual("http://hostname/and/path/foo/bar/baz", result.ToString(), "Unexpected request URL for base address with host name and path");
+            // Assert
+            result.ToString().Should().Be("http://hostname/and/path/foo/bar/baz", "Unexpected request URL for base address with host name and path");
         }
 
         [TestMethod]
@@ -697,8 +699,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     client: CreateClientWithAddress("http://localhost/no/trailing/slash"),
                     apiUrl: "/has/starting/slash");
 
-                // Verify
-                Assert.AreEqual("http://localhost/no/trailing/slash/has/starting/slash", result1.ToString());
+                // Assert
+                result1.ToString().Should().Be("http://localhost/no/trailing/slash/has/starting/slash");
 
                 // Test case 2: base => with slash; api => no slash
                 // Act
@@ -706,8 +708,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     client: CreateClientWithAddress("http://localhost/with/trailing/slash/"),
                     apiUrl: "no/starting/slash");
 
-                // Verify
-                Assert.AreEqual("http://localhost/with/trailing/slash/no/starting/slash", result2.ToString());
+                // Assert
+                result2.ToString().Should().Be("http://localhost/with/trailing/slash/no/starting/slash");
 
                 // Test case 3: base => no slash; api => no slash
                 // Act
@@ -715,8 +717,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     client: CreateClientWithAddress("http://localhost/no/trailing/slash"),
                     apiUrl: "no/starting/slash");
 
-                // Verify
-                Assert.AreEqual("http://localhost/no/trailing/slash/no/starting/slash", result3.ToString());
+                // Assert
+                result3.ToString().Should().Be("http://localhost/no/trailing/slash/no/starting/slash");
 
                 // Test case 3: base => with slash; api => with slash
                 // Act
@@ -724,12 +726,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     client: CreateClientWithAddress("http://localhost/with/trailing/slash/"),
                     apiUrl: "/with/starting/slash");
 
-                // Verify
-                Assert.AreEqual("http://localhost/with/trailing/slash/with/starting/slash", result4.ToString());
+                // Assert
+                result4.ToString().Should().Be("http://localhost/with/trailing/slash/with/starting/slash");
             }
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helpers
 
@@ -761,16 +763,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var queryMap = ParseQuery(request.Uri.Query);
                 if (queryMap.Count == 1)
                 {
-                    Assert.IsNotNull(queryMap["language"], "Missing query param: language");
+                    queryMap["language"].Should().NotBeNull("Missing query param: language");
                 }
                 else if (queryMap.Count == 2)
                 {
-                    Assert.IsNotNull(queryMap["language"], "Missing query param: language");
-                    Assert.IsNotNull(queryMap["project"], "Missing query param: project");
+                    queryMap["language"].Should().NotBeNull("Missing query param: language");
+                    queryMap["project"].Should().NotBeNull("Missing query param: project");
                 }
                 else
                 {
-                    Assert.Fail("Unexpected query params.: {0}", string.Join(", ", queryMap.Keys));
+                    FluentAssertions.Execution.Execute.Assertion.FailWith("Unexpected query params.: {0}", string.Join(", ", queryMap.Keys));
                 }
             });
         }
@@ -780,11 +782,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.RegisterQueryValidator(SonarQubeServiceWrapper.QualityProfileExportAPI, request =>
             {
                 var queryMap = ParseQuery(request.Uri.Query);
-                Assert.AreEqual(3, queryMap.Count, "Unexpected query params.: {0}", string.Join(", ", queryMap.Keys));
-                Assert.IsNotNull(queryMap["name"], "Missing query param: name");
-                Assert.IsNotNull(queryMap["language"], "Missing query param: language");
-                Assert.IsNotNull(queryMap["format"], "Missing query param: format");
-                Assert.AreEqual(SonarQubeServiceWrapper.RoslynExporterFormat, queryMap["format"], "Unexpected value for query param: format");
+                queryMap.Should().HaveCount(3, "Unexpected query params.: {0}", string.Join(", ", queryMap.Keys));
+                queryMap["name"].Should().NotBeNull("Missing query param: name");
+                queryMap["language"].Should().NotBeNull("Missing query param: language");
+                queryMap["format"].Should().NotBeNull("Missing query param: format");
+                queryMap["format"].Should().Be(SonarQubeServiceWrapper.RoslynExporterFormat, "Unexpected value for query param: format");
             });
         }
 
@@ -793,9 +795,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.RegisterQueryValidator(SonarQubeServiceWrapper.QualityProfileChangeLogAPI, request =>
             {
                 var queryMap = ParseQuery(request.Uri.Query);
-                Assert.AreEqual(2, queryMap.Count, "Unexpected query params.: {0}", string.Join(", ", queryMap.Keys));
-                Assert.IsNotNull(queryMap["profileKey"], "Missing query param: profileKey");
-                Assert.AreEqual("1", queryMap["ps"], "Expecting always page size 1");
+                queryMap.Should().HaveCount(2, "Unexpected query params.: {0}", string.Join(", ", queryMap.Keys));
+                queryMap["profileKey"].Should().NotBeNull("Missing query param: profileKey");
+                queryMap["ps"].Should().Be("1", "Expecting always page size 1");
             });
         }
 
@@ -839,7 +841,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 context.Response.Write(Serialize(serverPlugins.ToArray()));
             }
         }
-
 
         private static void ServiceServerProperties(IOwinContext context, IEnumerable<ServerProperty> serverProperties, bool simulateFault = false)
         {
@@ -890,8 +891,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             foreach (string pair in keyValues)
             {
                 string[] keyValue = pair.Split('=');
-                Assert.AreEqual(2, keyValue.Length);
-                Assert.AreEqual(HttpUtility.UrlDecode(keyValue[1]), HttpUtility.UrlDecode(HttpUtility.UrlEncode(HttpUtility.UrlDecode(keyValue[1]))), "{0} was supposed to be encoded", keyValue[0]);
+                keyValue.Should().HaveCount(2);
+                HttpUtility.UrlDecode(HttpUtility.UrlEncode(HttpUtility.UrlDecode(keyValue[1]))).Should().Be(HttpUtility.UrlDecode(keyValue[1]), "{0} was supposed to be encoded", keyValue[0]);
                 result[keyValue[0]] = HttpUtility.UrlDecode(keyValue[1]);
             }
 
@@ -900,7 +901,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void AssertEqualProjects(ProjectInformation[] expected, ProjectInformation[] actual)
         {
-            Assert.AreEqual(expected.Length, actual.Length, "Different array size");
+            actual.Should().HaveCount(expected.Length, "Different array size");
             for (int i = 0; i < expected.Length; i++)
             {
                 AssertProjectsEqualNotSame(expected[i], actual[i]);
@@ -909,9 +910,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void AssertProjectsEqualNotSame(ProjectInformation expected, ProjectInformation actual)
         {
-            Assert.AreNotSame(expected, actual);
-            Assert.AreEqual(expected.Key, actual.Key, "Unexpected Key");
-            Assert.AreEqual(expected.Name, actual.Name, "Unexpected Name");
+            actual.Should().NotBe(expected);
+            actual.Key.Should().Be(expected.Key, "Unexpected Key");
+            actual.Name.Should().Be(expected.Name, "Unexpected Name");
         }
 
         private static string Serialize<T>(T[] array)
@@ -926,7 +927,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class RequestHandler
         {
-            private int handlerCalled;
+            internal int HandlerCalledCount { get; private set; }
 
             public RequestHandler()
             {
@@ -943,14 +944,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public HttpStatusCode ResponseStatusCode { get; set; } = HttpStatusCode.OK;
 
-            public void AssertHandlerCalled(int expectedNumberOfTimes)
-            {
-                Assert.AreEqual(expectedNumberOfTimes, this.handlerCalled, "Handler was called unexpected number of times");
-            }
-
             public void HandlerRequest(IOwinContext context)
             {
-                this.handlerCalled++;
+                this.HandlerCalledCount++;
                 context.Response.StatusCode = (int)this.ResponseStatusCode;
                 if (this.ResponseText != null)
                 {
@@ -1027,7 +1023,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.RegisterRequestHandler(SonarQubeServiceWrapper.ProjectsAPI, handler);
             }
 
-            #endregion
+            #endregion Testing hooks
 
             #region Server mock
 
@@ -1095,7 +1091,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
             }
 
-            internal protected override HttpClient CreateHttpClient()
+            protected internal override HttpClient CreateHttpClient()
             {
                 return this.server?.HttpClient;
             }
@@ -1135,7 +1131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Any(token => token == keyValue[1]);
             }
 
-            #endregion
+            #endregion Server mock
 
             #region IDisposable Support
 
@@ -1159,9 +1155,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.Dispose(true);
             }
 
-            #endregion
+            #endregion IDisposable Support
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

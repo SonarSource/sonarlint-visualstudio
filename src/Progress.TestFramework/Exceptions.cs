@@ -16,8 +16,8 @@
  */
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [DebuggerStepThroughAttribute]
         public static TException Expect<TException>(string expectedMessage, Action action) where TException : Exception
         {
-            Action<Exception> checkMessage = e => Assert.AreEqual<string>(expectedMessage, e.Message, "Unexpected error message");
+            Action<Exception> checkMessage = e => e.Message.Should().Be(expectedMessage, "Unexpected error message");
 
             return Expect<TException>(checkMessage, action);
         }
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
                 if (!checkDerived && (ex.GetType() != typeof(TException)))
                 {
-                    Assert.Fail("Expected exception " + typeof(TException).FullName + " but got " + ex.GetType().FullName + "\n" + ex.ToString());
+                    FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName + " but got " + ex.GetType().FullName + "\n" + ex.ToString());
                 }
 
                 // Perform any additional checks that were supplied.
@@ -105,11 +105,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             }
             catch (Exception ex2)
             {
-                Assert.Fail("Expected exception " + typeof(TException).FullName + " but got " + ex2.GetType().FullName + "\n" + ex2.ToString());
+                FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName + " but got " + ex2.GetType().FullName + "\n" + ex2.ToString());
             }
 
             // No exception
-            Assert.Fail("Expected exception " + typeof(TException).FullName);
+            FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName);
 
             return null; // We'll never hit this, but it's required to stop the compiler complaining that not all code paths return a value.
         }

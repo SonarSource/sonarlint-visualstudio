@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -66,11 +66,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return VSConstants.E_FAIL;
         }
 
-        #endregion
+        #endregion IVsOutputWindow
 
         public void AssertPaneExists(Guid paneId)
         {
-            Assert.IsTrue(this.HasPane(paneId), $"Expected output window pane '{paneId}' to exist");
+            this.HasPane(paneId).Should().BeTrue($"Expected output window pane '{paneId}' to exist");
         }
 
         public bool HasPane(Guid paneId)
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var newPane = this.panes[paneId] as ConfigurableVsOutputWindowPane;
             if (newPane == null)
             {
-                Assert.Inconclusive($"Expected pane to be of type {nameof(ConfigurableVsOutputWindowPane)}");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Expected pane to be of type {nameof(ConfigurableVsOutputWindowPane)}");
             }
 
             return newPane;

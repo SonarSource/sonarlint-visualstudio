@@ -15,35 +15,21 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableWebBrowser : IWebBrowser
     {
-        private readonly IList<string> navigatedUrls = new List<string>();
-
-        #region Test Helpers
-        public void AssertNavigateToCalls(int numCalls)
-        {
-            Assert.AreEqual(numCalls, this.navigatedUrls.Count, "Unexpected number of calls to NavigateTo");
-        }
-
-        public void AssertRequestToNavigateTo(string url)
-        {
-            Assert.IsTrue(navigatedUrls.Contains(url), $"URL '{url}' was not navigated to");
-        }
-
-        #endregion
+        internal readonly IList<string> NavigatedUrls = new List<string>();
 
         #region IWebBrowser
 
         void IWebBrowser.NavigateTo(string url)
         {
-            this.navigatedUrls.Add(url);
+            this.NavigatedUrls.Add(url);
         }
 
-        #endregion
+        #endregion IWebBrowser
     }
 }

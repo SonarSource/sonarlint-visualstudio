@@ -15,10 +15,11 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -33,6 +34,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private VsMessageBoxNotifier testSubject;
 
         #region Test plumbing
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -51,9 +53,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.serviceProvider = null;
             this.testSubject = null;
         }
-        #endregion
+
+        #endregion Test plumbing
 
         #region Tests
+
         [TestMethod]
         [Description("Arg check tests")]
         public void VsMessageBoxNotifier_Args()
@@ -78,14 +82,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Verifies notifying of an exception message using a message box")]
         public void VsMessageBoxNotifier_MessageOnly()
         {
-            // Setup
+            // Arrange
             bool logWholeMessage = true;
             Exception ex = this.Setup(logWholeMessage);
 
-            // Execute
+            // Act
             ((IProgressErrorNotifier)this.testSubject).Notify(ex);
 
-            // Verify
+            // Assert
             this.uiSHell.AssertMessageBoxShown();
         }
 
@@ -93,17 +97,18 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Verifies notifying of a full exception using a message box")]
         public void VsMessageBoxNotifier_FullException()
         {
-            // Setup
+            // Arrange
             bool logWholeMessage = true;
             Exception ex = this.Setup(logWholeMessage);
 
-            // Execute
+            // Act
             ((IProgressErrorNotifier)this.testSubject).Notify(ex);
 
-            // Verify
+            // Assert
             this.uiSHell.AssertMessageBoxShown();
         }
-        #endregion
+
+        #endregion Tests
 
         #region Helpers
 
@@ -115,7 +120,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             Exception ex = this.GenerateException();
             this.uiSHell.ShowMessageBoxAction = (actualTitle, actualMessage) =>
             {
-                Assert.AreEqual(title, actualTitle, "Unexpected message box title");
+                actualTitle.Should().Be(title, "Unexpected message box title");
                 MessageVerificationHelper.VerifyNotificationMessage(actualMessage, format, ex, logWholeMessage);
             };
             return ex;
@@ -125,6 +130,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             return new Exception(this.TestContext.TestName, new Exception(Environment.TickCount.ToString()));
         }
-        #endregion
+
+        #endregion Helpers
     }
 }

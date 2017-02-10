@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
 {
@@ -52,14 +53,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         [TestMethod]
         public void TelemetryLogger_ReportEvent()
         {
-            // Setup
+            // Arrange
             Dictionary<TelemetryEvent, int> discoveredMap = new Dictionary<TelemetryEvent, int>();
 
             foreach (TelemetryEvent evnt in Enum.GetValues(typeof(TelemetryEvent)).OfType<TelemetryEvent>())
             {
                 this.dte.Commands.RaiseAction = (commandGroup, commandId) =>
                 {
-                    Assert.AreEqual(ExpectedCommandSetIdentifier, commandGroup, "Unexpected command group");
+                    commandGroup.Should().Be(ExpectedCommandSetIdentifier, "Unexpected command group");
                     discoveredMap[evnt] = commandId;
                 };
 
@@ -67,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
                 this.testSubject.ReportEvent(evnt);
             }
 
-            // Verify
+            // Assert
             TelemetryEvent[] expectedEvents = Enum.GetValues(typeof(TelemetryEvent)).Cast<TelemetryEvent>().ToArray();
             TelemetryEvent[] actualEvents = discoveredMap.Keys.ToArray();
 

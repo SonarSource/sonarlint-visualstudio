@@ -15,17 +15,18 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Persistence;
 using System;
+using FluentAssertions;
+using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableSolutionBindingSerializer : ISolutionBindingSerializer
     {
-        private int writtenFiles;
+        internal int WrittenFilesCount { get; private set; }
 
         #region ISolutionBindingSerializer
+
         BoundSonarQubeProject ISolutionBindingSerializer.ReadSolutionBinding()
         {
             this.ReadSolutionBindingAction?.Invoke();
@@ -34,26 +35,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         string ISolutionBindingSerializer.WriteSolutionBinding(BoundSonarQubeProject binding)
         {
-            Assert.IsNotNull(binding, "Required argument");
+            binding.Should().NotBeNull("Required argument");
 
             string filePath = this.WriteSolutionBindingAction?.Invoke(binding) ?? binding.ProjectKey;
-            this.writtenFiles++;
+            this.WrittenFilesCount++;
 
             return filePath;
         }
-        #endregion
+
+        #endregion ISolutionBindingSerializer
 
         #region Test helpers
-        public BoundSonarQubeProject CurrentBinding { get; set; }
 
-        public void AssertWrittenFiles(int expected)
-        {
-            Assert.AreEqual(expected, this.writtenFiles, "Unexpected number of pending files");
-        }
+        public BoundSonarQubeProject CurrentBinding { get; set; }
 
         public Func<BoundSonarQubeProject, string> WriteSolutionBindingAction { get; set; }
 
         public Action ReadSolutionBindingAction { get; set; }
-        #endregion
+
+        #endregion Test helpers
     }
 }

@@ -15,11 +15,11 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
-using System;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ProfileConflicts
 {
@@ -29,14 +29,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ProfileConflicts
         [TestMethod]
         public void RuleConflictInfo_Ctor_ArgChecks()
         {
-            // Setup
+            // Arrange
             IEnumerable<RuleReference> ruleRefs = null;
             IDictionary<RuleReference, RuleAction> rulesMap = null;
 
             IEnumerable<RuleReference> ruleRefsNull = new RuleReference[0];
             IDictionary<RuleReference, RuleAction> rulesMapNull = new Dictionary<RuleReference, RuleAction>();
 
-            // Act + Verify
+            // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => new RuleConflictInfo(ruleRefsNull, rulesMap));
             Exceptions.Expect<ArgumentNullException>(() => new RuleConflictInfo(ruleRefs, rulesMapNull));
         }

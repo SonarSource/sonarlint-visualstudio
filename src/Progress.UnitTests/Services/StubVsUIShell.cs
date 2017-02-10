@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         private bool messageBoxShown;
 
         #region Configuration
+
         public Func<Guid, IVsWindowFrame> FindToolWindowAction
         {
             get;
@@ -41,9 +42,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion Configuration
 
         #region IVsUIShell
+
         int IVsUIShell.AddNewBFNavigationItem(IVsWindowFrame pwindowFrame, string bstrData, object punk, int replaceCurrent)
         {
             throw new NotImplementedException();
@@ -256,19 +259,22 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IVsUIShell
 
         #region Verification
+
         public void AssertMessageBoxShown()
         {
-            Assert.IsTrue(this.messageBoxShown, "No requests to show the message box");
+            this.messageBoxShown.Should().BeTrue("No requests to show the message box");
         }
 
         public void AssertMessageBoxNotShown()
         {
-            Assert.IsFalse(this.messageBoxShown, "Not expected any requests to show the message box");
+            this.messageBoxShown.Should().BeFalse("Not expected any requests to show the message box");
         }
-        #endregion
+
+        #endregion Verification
 
         #region Test helpers
 
@@ -279,9 +285,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         internal class StubWindowFrame : IVsWindowFrame
         {
-            private bool shown;
+            internal bool WasShown { get; private set; }
 
             #region IVsWindowFrame
+
             int IVsWindowFrame.CloseFrame(uint grfSaveOptions)
             {
                 throw new NotImplementedException();
@@ -339,7 +346,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             int IVsWindowFrame.Show()
             {
-                this.shown = true;
+                this.WasShown = true;
                 return 0;
             }
 
@@ -347,27 +354,19 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             {
                 throw new NotImplementedException();
             }
-            #endregion
 
-            #region Verification
-            public void AssertShown()
-            {
-                Assert.IsTrue(this.shown, "The window frame is expected to be shown");
-            }
-
-            public void AssertNotShown()
-            {
-                Assert.IsFalse(this.shown, "The window frame is not expected to be shown");
-            }
-            #endregion
+            #endregion IVsWindowFrame
 
             #region Test helpers
+
             public void Reset()
             {
-                this.shown = false;
+                this.WasShown = false;
             }
-            #endregion
+
+            #endregion Test helpers
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

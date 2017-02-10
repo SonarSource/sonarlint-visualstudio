@@ -15,10 +15,9 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Diagnostics;
-using System.Linq;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -28,12 +27,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Language_Ctor_Guid_ArgChecks()
         {
-            // Setup
+            // Arrange
             var key = "k";
             var name = "MyName";
             var guid = Guid.NewGuid();
 
-            // Act + Verify
+            // Act + Assert
             // Nulls
             Exceptions.Expect<ArgumentNullException>(() => new Language(name, null, guid));
             Exceptions.Expect<ArgumentNullException>(() => new Language(null, key, guid));
@@ -42,12 +41,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Language_Ctor_GuidString_ArgChecks()
         {
-            // Setup
+            // Arrange
             var key = "k";
             var name = "MyName";
             var guidString = Guid.NewGuid().ToString("N");
 
-            // Act + Verify
+            // Act + Assert
             // Nulls
             Exceptions.Expect<ArgumentNullException>(() => new Language(name, null, guidString));
             Exceptions.Expect<ArgumentNullException>(() => new Language(null, key, guidString));
@@ -60,10 +59,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Language_IsSupported_SupportedLanguage_IsTrue()
         {
-            // Act + Verify
+            // Act + Assert
             foreach(var supportedLang in Language.SupportedLanguages)
             {
-                Assert.IsTrue(supportedLang.IsSupported, "Supported language should be supported");
+                supportedLang.IsSupported.Should().BeTrue("Supported language should be supported");
             }
         }
 
@@ -77,49 +76,49 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Language_ForProject_KnownLanguage_ReturnsCorrectLanguage()
         {
             // Test case 1: Unknown
-            // Setup
+            // Arrange
             var otherProject = new ProjectMock("other.proj");
 
             // Act
             var otherProjectLanguage = Language.ForProject(otherProject);
 
-            // Verify
-            Assert.AreEqual(Language.Unknown, otherProjectLanguage, "Unexpected Language for unknown project");
+            // Assert
+            otherProjectLanguage.Should().Be(Language.Unknown, "Unexpected Language for unknown project");
 
             // Test case 2: C#
-            // Setup
+            // Arrange
             var csProject = new ProjectMock("cs1.csproj");
             csProject.SetCSProjectKind();
 
             // Act
             var csProjectLanguage = Language.ForProject(csProject);
 
-            // Verify
-            Assert.AreEqual(Language.CSharp, csProjectLanguage, "Unexpected Language for C# project");
+            // Assert
+            csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# project");
 
             // Test case 3: VB
-            // Setup
+            // Arrange
             var vbNetProject = new ProjectMock("vb1.vbproj");
             vbNetProject.SetVBProjectKind();
 
             // Act
             var vbNetProjectLanguage = Language.ForProject(vbNetProject);
 
-            // Verify
-            Assert.AreEqual(Language.VBNET, vbNetProjectLanguage, "Unexpected Language for C# project");
+            // Assert
+            vbNetProjectLanguage.Should().Be(Language.VBNET, "Unexpected Language for C# project");
         }
 
         [TestMethod]
         public void Language_Equality()
         {
-            // Setup
+            // Arrange
             var lang1a = new Language("Language 1", "lang1", "{4FE75C7D-F43F-4A72-940C-47C97710BCCA}");
             var lang1b = new Language("Language 1", "lang1", "{4FE75C7D-F43F-4A72-940C-47C97710BCCA}");
             var lang2 = new Language("Language 2", "lang2", "{7A128822-05AA-49D0-A3C7-16F03F3A92E5}");
 
-            // Act + Verify
-            Assert.AreEqual(lang1a, lang1b, "Languages with the same keys and GUIDs should be equal");
-            Assert.AreNotEqual(lang1a, lang2, "Languages with different keys and GUIDs should NOT be equal");
+            // Act + Assert
+            lang1b.Should().Be(lang1a, "Languages with the same keys and GUIDs should be equal");
+            lang2.Should().NotBe(lang1a, "Languages with different keys and GUIDs should NOT be equal");
         }
     }
 }

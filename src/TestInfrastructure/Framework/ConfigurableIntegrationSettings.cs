@@ -23,6 +23,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool ShowServerNuGetTrustWarning { get; set; }
 
-        #endregion
+        #endregion IIntegrationSettings
     }
 }

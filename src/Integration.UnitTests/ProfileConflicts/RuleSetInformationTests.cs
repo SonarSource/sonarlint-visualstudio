@@ -15,9 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ProfileConflicts
 {
@@ -35,9 +36,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ProfileConflicts
             Exceptions.Expect<ArgumentNullException>(() => new RuleSetInformation(projectFullName, null, projectRuleSet, null));
             Exceptions.Expect<ArgumentNullException>(() => new RuleSetInformation(projectFullName, baselineRuleSet, null, null));
 
-            Assert.IsNotNull(new RuleSetInformation(projectFullName, baselineRuleSet, projectRuleSet, null), "Not expecting this to fail, just to make the static analyzer happy");
-            Assert.IsNotNull(new RuleSetInformation(projectFullName, baselineRuleSet, projectRuleSet, new string[0]), "Not expecting this to fail, just to make the static analyzer happy");
-            Assert.IsNotNull(new RuleSetInformation(projectFullName, baselineRuleSet, projectRuleSet, new string[] { "file" }), "Not expecting this to fail, just to make the static analyzer happy");
+            new RuleSetInformation(projectFullName, baselineRuleSet, projectRuleSet, null).Should().NotBeNull("Not expecting this to fail, just to make the static analyzer happy");
+            new RuleSetInformation(projectFullName, baselineRuleSet, projectRuleSet, new string[0]).Should().NotBeNull("Not expecting this to fail, just to make the static analyzer happy");
+            new RuleSetInformation(projectFullName, baselineRuleSet, projectRuleSet, new string[] { "file" }).Should().NotBeNull("Not expecting this to fail, just to make the static analyzer happy");
         }
     }
 }

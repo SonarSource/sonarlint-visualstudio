@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -27,13 +27,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly List<ProjectRuleSetConflict> currentConflicts = new List<ProjectRuleSetConflict>();
 
         #region IConflictsManager
+
         IReadOnlyList<ProjectRuleSetConflict> IConflictsManager.GetCurrentConflicts()
         {
             return this.currentConflicts;
         }
-        #endregion
+
+        #endregion IConflictsManager
 
         #region Test helpers
+
         public static ProjectRuleSetConflict CreateConflict(string projectFilePath = "project.csproj", string baselineRuleSet = "baseline.ruleset", string projectRuleSet = "project.csproj", int numberOfConflictingRules = 1)
         {
             IEnumerable<string> ids = Enumerable.Range(0, numberOfConflictingRules).Select(i => "id" + i);
@@ -44,8 +47,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     new RuleSetInformation(projectFilePath, baselineRuleSet, projectRuleSet, null));
 
             return conflict;
-
         }
+
         public ProjectRuleSetConflict AddConflict()
         {
             ProjectRuleSetConflict conflict = CreateConflict();
@@ -62,6 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.currentConflicts.Clear();
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

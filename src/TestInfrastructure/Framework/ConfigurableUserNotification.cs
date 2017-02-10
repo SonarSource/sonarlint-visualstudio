@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
+using FluentAssertions;
 using Microsoft.TeamFoundation.Controls;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -42,7 +42,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly List<string> showErrorRequests = new List<string>();
         private readonly IDictionary<Guid, Notification> notifications = new Dictionary<Guid, Notification>();
 
-        #region  IUserNotification
+        #region IUserNotification
+
         void IUserNotification.ShowBusy()
         {
             throw new NotImplementedException();
@@ -94,40 +95,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.notifications[notificationId] = new Notification(NotificationType.Warning, message);
         }
 
-        #endregion
+        #endregion IUserNotification
 
         #region Test helpers
 
         public void AssertNoShowErrorMessages()
         {
-            Assert.AreEqual(0, this.showErrorRequests.Count, "Unexpected messages: {0}", string.Join(", ", this.showErrorRequests));
+            this.showErrorRequests.Should().BeEmpty("Unexpected messages: {0}", string.Join(", ", this.showErrorRequests));
         }
 
         public void AssertSingleErrorMessage(string expected)
         {
-            Assert.AreEqual(1, this.showErrorRequests.Count, "Unexpected messages: {0}", string.Join(", ", this.showErrorRequests));
-            Assert.AreEqual(expected, this.showErrorRequests[0], "Unexpected message");
+            this.showErrorRequests.Should().HaveCount(1, "Unexpected messages: {0}", string.Join(", ", this.showErrorRequests));
+            this.showErrorRequests[0].Should().Be(expected, "Unexpected message");
         }
 
         public void AssertNotification(Guid notificationId, string expected)
         {
             string message = this.AssertNotification(notificationId);
-            Assert.AreEqual(expected, message, "Unexpected message");
+            message.Should().Be(expected, "Unexpected message");
         }
 
         public string AssertNotification(Guid notificationId)
         {
             Notification notification;
-            Assert.IsTrue(this.notifications.TryGetValue(notificationId, out notification), "Unexpected notificationId: {0}", notificationId);
+            this.notifications.TryGetValue(notificationId, out notification).Should().BeTrue("Unexpected notificationId: {0}", notificationId);
             return notification.Message;
         }
 
         public void AssertNoNotification(Guid notificationId)
         {
             Notification notification;
-            Assert.IsFalse(this.notifications.TryGetValue(notificationId, out notification), "Unexpected notification: {0}", notification?.Message);
+            this.notifications.TryGetValue(notificationId, out notification).Should().BeFalse("Unexpected notification: {0}", notification?.Message);
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

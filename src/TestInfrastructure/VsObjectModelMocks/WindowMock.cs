@@ -15,22 +15,25 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
 using System;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class WindowMock : Window
     {
         #region Test helpers
+
         public bool Active
         {
             get;
             set;
         }
-        #endregion
+
+        #endregion Test helpers
 
         #region Window
+
         bool Window.AutoHides
         {
             get
@@ -317,6 +320,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion Window
     }
 }

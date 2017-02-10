@@ -15,26 +15,29 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Service;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableConnectionInformationProvider : IConnectionInformationProvider
     {
         #region IConnectionInformationProvider
+
         ConnectionInformation IConnectionInformationProvider.GetConnectionInformation(ConnectionInformation currentConnection)
         {
             if (this.ExpectExistingConnection)
             {
-                Assert.IsNotNull(currentConnection, "No existing connection provided");
+                currentConnection.Should().NotBeNull("No existing connection provided");
             }
             return this.ConnectionInformationToReturn;
         }
-        #endregion
+
+        #endregion IConnectionInformationProvider
 
         #region Test helpers
+
         public bool ExpectExistingConnection
         {
             get; set;
@@ -45,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

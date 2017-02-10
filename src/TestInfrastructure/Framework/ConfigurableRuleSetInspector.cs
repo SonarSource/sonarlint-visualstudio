@@ -15,14 +15,15 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using System;
+using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableRuleSetInspector : IRuleSetInspector
     {
         #region IRuleSetInspector
+
         RuleConflictInfo IRuleSetInspector.FindConflictingRules(string baselineRuleSet, string targetRuleSet, params string[] ruleSetDirectories)
         {
             return this.FindConflictingRulesAction?.Invoke(baselineRuleSet, targetRuleSet, ruleSetDirectories);
@@ -32,9 +33,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             return this.FixConflictingRulesAction?.Invoke(baselineRuleSetPath, targetRuleSetPath, ruleSetDirectories);
         }
-        #endregion
+
+        #endregion IRuleSetInspector
 
         #region Test helpers
+
         public Func<string, string, string[], RuleConflictInfo> FindConflictingRulesAction
         {
             get; set;
@@ -44,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get; set;
         }
-        #endregion
+
+        #endregion Test helpers
     }
 }

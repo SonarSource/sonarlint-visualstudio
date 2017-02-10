@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections;
 using System.Linq;
+using EnvDTE;
+using EnvDTE80;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -369,7 +369,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-
         Project Solution2.Item(object index)
         {
             throw new NotImplementedException();
@@ -431,7 +430,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         Project Solution2.AddSolutionFolder(string Name)
         {
-            Assert.IsFalse(this.projects.ContainsKey(Name), "Solution folder already exists");
+            this.projects.Should().NotContainKey(Name, "Solution folder already exists");
             var solutionFolder = this.AddOrGetProject(Name);
             solutionFolder.ProjectKind = ProjectSystemHelper.VsProjectItemKindSolutionFolder;
 
@@ -464,6 +463,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Projects mock
+
         private class _ProjectsMock : Projects
         {
             private readonly SolutionMock parent;
@@ -523,6 +523,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 throw new NotImplementedException();
             }
         }
-        #endregion
+
+        #endregion Projects mock
     }
 }

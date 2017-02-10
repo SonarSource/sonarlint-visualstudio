@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
+using System;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Progress;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ProgressNotificationListener_RespondToStepExecutionChangedEvent()
         {
-            // Setup
+            // Arrange
             var serviceProvider = new ConfigurableServiceProvider();
 
             var outputWindow = new ConfigurableVsOutputWindow();
@@ -51,21 +51,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             progressEvents.SimulateStepExecutionChanged(message1, 0);
 
-            // Verify
+            // Assert
             outputWindowPane.AssertOutputStrings(message1);
 
             // Step 2: same message as before (ignore)
             // Act
             progressEvents.SimulateStepExecutionChanged(message1, 0);
 
-            // Verify
+            // Assert
             outputWindowPane.AssertOutputStrings(message1);
 
             // Step 3: whitespace message
             // Act
             progressEvents.SimulateStepExecutionChanged(" \t", 0);
 
-            // Verify
+            // Assert
             outputWindowPane.AssertOutputStrings(message1);
 
             // Step 4: formatting
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             progressEvents.SimulateStepExecutionChanged(formattedMessage2, 0);
 
-            // Verify
+            // Assert
             outputWindowPane.AssertOutputStrings(message1, "XXX" + formattedMessage2 + "YYY");
 
             // Step 5: different message than the previous one
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             progressEvents.SimulateStepExecutionChanged(message1, 0);
 
-            // Verify
+            // Assert
             outputWindowPane.AssertOutputStrings(message1, "XXX" + formattedMessage2 + "YYY", message1);
 
             // Step 6: dispose
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             progressEvents.SimulateStepExecutionChanged("123", 0);
 
-            // Verify
+            // Assert
             outputWindowPane.AssertOutputStrings(message1, "XXX" + formattedMessage2 + "YYY", message1);
         }
     }

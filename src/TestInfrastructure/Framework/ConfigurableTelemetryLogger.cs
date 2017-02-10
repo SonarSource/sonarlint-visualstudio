@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -27,13 +27,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly List<TelemetryEvent> events = new List<TelemetryEvent>();
 
         #region IVsTelemetryLogger
+
         void ITelemetryLogger.ReportEvent(TelemetryEvent telemetryEvent)
         {
             this.events.Add(telemetryEvent);
         }
-        #endregion
+
+        #endregion IVsTelemetryLogger
 
         #region Helpers
+
         public void Reset()
         {
             this.events.Clear();
@@ -41,14 +44,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertSingleEventWasWritten(TelemetryEvent expected)
         {
-            Assert.AreEqual(1, this.events.Count, "Unexpected events: {0}", string.Join(", ", this.events));
+            this.events.Should().HaveCount(1);
             TelemetryEvent actual = this.events.Single();
-            Assert.AreEqual(expected, actual, "Unexpected entry name");
+            actual.Should().Be(expected, "Unexpected entry name");
         }
 
         public void AssertNoEventWasWritten()
         {
-            Assert.AreEqual(0, this.events.Count, "Unexpected events: {0}", string.Join(", ", this.events));
+            this.events.Should().BeEmpty();
         }
 
         public void DumpAllToOutput()
@@ -56,6 +59,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.events.ForEach(e => Debug.WriteLine(e));
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

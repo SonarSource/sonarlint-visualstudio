@@ -15,14 +15,14 @@
  * THE SOFTWARE.
  */
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
+using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGet;
 using SonarLint.VisualStudio.Integration.Service;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public static void AssertAreEqual(RoslynExportProfile expected, RoslynExportProfile actual)
         {
-            Assert.AreEqual(expected.Version, actual.Version, "Unexpected export version");
+            actual.Version.Should().Be(expected.Version, "Unexpected export version");
             AssertConfigSectionEqual(expected.Configuration, actual.Configuration);
             AssertDeploymentSectionEqual(expected.Deployment, actual.Deployment);
         }

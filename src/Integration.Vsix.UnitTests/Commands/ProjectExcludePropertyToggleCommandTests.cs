@@ -15,12 +15,13 @@
  * THE SOFTWARE.
  */
 
+using System;
+using System.Windows.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -48,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.serviceProvider = provider;
         }
 
-        #endregion
+        #endregion Test boilerplate
 
         #region Tests
 
@@ -61,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_Invoke_SingleProject_TogglesValue()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
@@ -76,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyExcludeProperty(project, null);
 
             // Test case 2: no property --toggle--> true
@@ -85,14 +86,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyExcludeProperty(project, true);
         }
 
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_Invoke_MultipleProjects_ConsistentPropValues_TogglesValues()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
@@ -108,19 +109,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyExcludeProperty(p1, true);
             this.VerifyExcludeProperty(p2, true);
 
             // Test case 2: all true --toggle--> all not set
-            // Setup
+            // Arrange
             this.SetExcludeProperty(p1, true);
             this.SetExcludeProperty(p2, true);
 
             // Act
             testSubject.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyExcludeProperty(p1, null);
             this.VerifyExcludeProperty(p2, null);
         }
@@ -128,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_Invoke_MultipleProjects_MixedPropValues_SetIsExcludedTrue()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
@@ -149,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.Invoke(command, null);
 
-            // Verify
+            // Assert
             this.VerifyExcludeProperty(p1, true);
             this.VerifyExcludeProperty(p2, true);
             this.VerifyExcludeProperty(p3, true);
@@ -158,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_QueryStatus_MissingPropertyManager_IsDisabledIsHidden()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var localProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
@@ -172,15 +173,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            // Assert
+            command.Enabled.Should().BeFalse("Expected command to be disabled");
+            command.Visible.Should().BeFalse("Expected command to be hidden");
         }
 
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_SupportedProject_IsEnabledIsVisible()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectExcludePropertyToggleCommand(serviceProvider);
@@ -193,15 +194,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsTrue(command.Enabled, "Expected command to be enabled");
-            Assert.IsTrue(command.Visible, "Expected command to be visible");
+            // Assert
+            command.Enabled.Should().BeTrue("Expected command to be enabled");
+            command.Visible.Should().BeTrue("Expected command to be visible");
         }
 
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_UnsupportedProject_IsDisabledIsHidden()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectExcludePropertyToggleCommand(serviceProvider);
@@ -213,15 +214,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            // Assert
+            command.Enabled.Should().BeFalse("Expected command to be disabled");
+            command.Visible.Should().BeFalse("Expected command to be hidden");
         }
 
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_CheckedStateReflectsValues()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
@@ -235,8 +236,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Checked, "Expected command to be unchecked");
+            // Assert
+            command.Checked.Should().BeFalse("Expected command to be unchecked");
 
             // Test case 1: true -> is checked
             this.SetExcludeProperty(project, true);
@@ -244,14 +245,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsTrue(command.Checked, "Expected command to be checked");
+            // Assert
+            command.Checked.Should().BeTrue("Expected command to be checked");
         }
 
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_ConsistentPropValues_CheckedStateReflectsValues()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
@@ -267,8 +268,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Checked, "Expected command to be unchecked");
+            // Assert
+            command.Checked.Should().BeFalse("Expected command to be unchecked");
 
             // Test case 2: all true -> is checked
             this.SetExcludeProperty(p1, true);
@@ -277,14 +278,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsTrue(command.Checked, "Expected command to be checked");
+            // Assert
+            command.Checked.Should().BeTrue("Expected command to be checked");
         }
 
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_MixedPropValues_IsUnchecked()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
@@ -304,14 +305,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Checked, "Expected command to be unchecked");
+            // Assert
+            command.Checked.Should().BeFalse("Expected command to be unchecked");
         }
 
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_AllSupportedProjects_IsEnabledIsVisible()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
@@ -326,15 +327,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsTrue(command.Enabled, "Expected command to be enabled");
-            Assert.IsTrue(command.Visible, "Expected command to be visible");
+            // Assert
+            command.Enabled.Should().BeTrue("Expected command to be enabled");
+            command.Visible.Should().BeTrue("Expected command to be visible");
         }
 
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_MixedSupportedProject_IsDisabledIsHidden()
         {
-            // Setup
+            // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
@@ -348,19 +349,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Act
             testSubject.QueryStatus(command, null);
 
-            // Verify
-            Assert.IsFalse(command.Enabled, "Expected command to be disabled");
-            Assert.IsFalse(command.Visible, "Expected command to be hidden");
+            // Assert
+            command.Enabled.Should().BeFalse("Expected command to be disabled");
+            command.Visible.Should().BeFalse("Expected command to be hidden");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Test helpers
 
         private void VerifyExcludeProperty(ProjectMock project, bool? expected)
         {
             bool? actual = this.GetExcludeProperty(project);
-            Assert.AreEqual(expected, actual);
+            actual.Should().Be(expected);
         }
 
         private bool? GetExcludeProperty(ProjectMock project)
@@ -387,6 +388,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             }
         }
 
-        #endregion
+        #endregion Test helpers
     }
 }

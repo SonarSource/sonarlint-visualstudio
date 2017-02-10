@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region ConfigurationManager
+
         Configuration ConfigurationManager.ActiveConfiguration
         {
             get
@@ -141,6 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion ConfigurationManager
     }
 }

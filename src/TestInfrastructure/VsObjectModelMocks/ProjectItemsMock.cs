@@ -15,12 +15,12 @@
  * THE SOFTWARE.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
+using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region ProjectItems
+
         Project ProjectItems.ContainingProject
         {
             get
@@ -97,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         ProjectItem ProjectItems.AddFromFile(string FileName)
         {
-            Assert.IsFalse(this.items.Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, FileName)), "File already exists in project items");
+            this.items.Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, FileName)).Should().BeFalse("File already exists in project items");
 
             this.Project.AddOrGetFile(FileName);
             FileProjectItemMock fileItem = new FileProjectItemMock(this, FileName);
@@ -129,9 +130,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             return this.items[(int)index + 1];
         }
+
         #endregion ProjectItems
 
         #region FileProjectItemMock
+
         // Simplification over the exact structure
         internal class FileProjectItemMock : ProjectItem
         {
@@ -151,6 +154,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             #region ProjectItem
+
             public ProjectItems Collection
             {
                 get
@@ -319,8 +323,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 throw new NotImplementedException();
             }
-            #endregion
+
+            #endregion ProjectItem
         }
-        #endregion
+
+        #endregion FileProjectItemMock
     }
 }
