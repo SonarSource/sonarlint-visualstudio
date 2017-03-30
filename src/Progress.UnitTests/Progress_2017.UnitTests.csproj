@@ -162,9 +162,9 @@
     <Compile Include="Services\StubVsUIShell.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Progress.TestFramework\Progress.TestFramework.csproj">
+    <ProjectReference Include="..\Progress.TestFramework\Progress_2017.TestFramework.csproj">
       <Project>{ab7a8888-ef8b-4f6d-8005-398744a60ba2}</Project>
-      <Name>Progress.TestFramework</Name>
+      <Name>Progress_2017.TestFramework</Name>
     </ProjectReference>
     <ProjectReference Include="..\ProgressVS\ProgressVS_2017.csproj">
       <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>

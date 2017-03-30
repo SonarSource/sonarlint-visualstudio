@@ -299,17 +299,17 @@
       <Project>{03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f}</Project>
       <Name>Integration_2017</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ProgressVS\ProgressVS_2017.csproj">
+      <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
+      <Name>ProgressVS_2017</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Progress\Progress.csproj">
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
       <Name>Progress</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ProgressVS\ProgressVS.csproj">
-      <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
-      <Name>ProgressVS</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj">
+    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure_2017.csproj">
       <Project>{fbd8024a-9795-4e5b-938e-afe44fca240c}</Project>
-      <Name>TestInfrastructure</Name>
+      <Name>TestInfrastructure_2017</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

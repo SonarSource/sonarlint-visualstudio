@@ -302,9 +302,9 @@
       <Project>{03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f}</Project>
       <Name>Integration_2017</Name>
     </ProjectReference>
-    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj">
+    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure_2017.csproj">
       <Project>{fbd8024a-9795-4e5b-938e-afe44fca240c}</Project>
-      <Name>TestInfrastructure</Name>
+      <Name>TestInfrastructure_2017</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
