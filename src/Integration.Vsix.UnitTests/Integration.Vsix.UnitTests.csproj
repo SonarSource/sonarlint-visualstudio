@@ -265,8 +265,11 @@
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
-  <ItemGroup Label="GAC">
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <HintPath>$(VS140COMNTOOLS)\..\IDE\PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\ManageConnectionsCommandTests.cs" />
@@ -291,6 +294,10 @@
     <Compile Include="Telemetry\TelemetryLoggerTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Integration.Vsix\Integration.Vsix.csproj">
+      <Project>{ff2ad819-28f4-493a-8e9b-1d3f16bd4689}</Project>
+      <Name>Integration.Vsix</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Integration\Integration.csproj">
       <Project>{03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f}</Project>
       <Name>Integration</Name>
@@ -299,15 +306,11 @@
       <Project>{fbd8024a-9795-4e5b-938e-afe44fca240c}</Project>
       <Name>TestInfrastructure</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Integration.Vsix\Integration.Vsix.csproj">
-      <Project>{ff2ad819-28f4-493a-8e9b-1d3f16bd4689}</Project>
-      <Name>Integration.Vsix</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Integration.Vsix.UnitTests.ruleset" />
-    <None Include="packages.config" />
+    <None Include="packages.Integration.Vsix.UnitTests.config" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />

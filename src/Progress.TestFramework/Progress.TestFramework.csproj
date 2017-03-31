@@ -178,7 +178,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.Progress.TestFramework.config" />
     <None Include="Progress.TestFramework.ruleset" />
   </ItemGroup>
   <ItemGroup>
