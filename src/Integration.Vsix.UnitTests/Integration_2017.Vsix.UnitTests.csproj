@@ -282,8 +282,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <HintPath Condition="$(VisualStudioVersion) == '14.0'">$(VS140COMNTOOLS)\..\IDE\PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
-      <HintPath Condition="$(VisualStudioVersion) == '15.0'">$(VSAPPIDDIR)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+      <HintPath>$(VSAPPIDDIR)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

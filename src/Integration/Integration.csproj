@@ -165,23 +165,19 @@
   </ItemGroup>
   <ItemGroup Label="NonGac">
     <Reference Include="Microsoft.TeamFoundation.Client">
-      <HintPath Condition="$(VisualStudioVersion) == '14.0'">$(VS140COMNTOOLS)..\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
-      <HintPath Condition="$(VisualStudioVersion) == '15.0'">$(VSAPPIDDIR)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
+      <HintPath>$(VS140COMNTOOLS)..\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.Controls">
-      <HintPath Condition="$(VisualStudioVersion) == '14.0'">$(VS140COMNTOOLS)..\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
-      <HintPath Condition="$(VisualStudioVersion) == '15.0'">$(VSAPPIDDIR)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
+      <HintPath>$(VS140COMNTOOLS)..\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <HintPath Condition="$(VisualStudioVersion) == '14.0'">$(VS140COMNTOOLS)\..\IDE\PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
-      <HintPath Condition="$(VisualStudioVersion) == '15.0'">$(VSAPPIDDIR)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+      <HintPath>$(VS140COMNTOOLS)\..\IDE\PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.CodeAnalysis">
-      <HintPath Condition="$(VisualStudioVersion) == '14.0'">$(VS140COMNTOOLS)\..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
-      <HintPath Condition="$(VisualStudioVersion) == '15.0'">$(VSAPPIDDIR)..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
+      <HintPath>$(VS140COMNTOOLS)\..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
