@@ -310,7 +310,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Integration.Vsix.UnitTests.ruleset" />
-    <None Include="packages.Integration.Vsix.UnitTests.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />

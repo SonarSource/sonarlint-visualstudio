@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AB7A8888-EF8B-4F6D-8005-398744A60BA2}</ProjectGuid>
+    <ProjectGuid>{33315FCB-3D07-4177-944E-AA45CC3C5539}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarLint.VisualStudio.Progress.TestFramework</RootNamespace>
-    <AssemblyName>SonarLint.VisualStudio.Progress.TestFramework</AssemblyName>
+    <RootNamespace>SonarLint.VisualStudio.Progress.UnitTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Progress.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -17,6 +17,7 @@
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
     <TargetFrameworkProfile />
+    <ReferencedDirectory>..\Progress.UnitTests</ReferencedDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -26,7 +27,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Progress.TestFramework.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>$(ReferencedDirectory)\Progress.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +36,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Progress.TestFramework.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>$(ReferencedDirectory)\Progress.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Castle.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
@@ -148,36 +149,70 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="AssertIgnoreScope.cs" />
-    <Compile Include="ConfigurableErrorNotifier.cs" />
-    <Compile Include="ConfigurableProgressController.cs" />
-    <Compile Include="ConfigurableProgressController.IProgressController.cs" />
-    <Compile Include="ConfigurableProgressController.IProgressStepExecutionEvents.cs" />
-    <Compile Include="ConfigurableProgressEvents.cs" />
-    <Compile Include="ConfigurableProgressStepExecutionNotifier.cs" />
-    <Compile Include="ConfigurableProgressStepFactory.cs" />
-    <Compile Include="ConfigurableProgressTestOperation.cs" />
-    <Compile Include="ConfigurableProgressTestOperation.IProgressStepOperation.cs" />
-    <Compile Include="ConfigurableProgressVisualizer.cs" />
-    <Compile Include="ConfigurableProgressVisualizer.IProgressVisualizer.cs" />
-    <Compile Include="ConfigurableServiceProvider.cs" />
-    <Compile Include="Exceptions.cs" />
-    <Compile Include="ProgressEventsVerifier.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    <Compile Include="..\Progress.UnitTests\ProgessController\DefaultProgressStepFactoryTests.cs">
+      <Link>ProgessController\DefaultProgressStepFactoryTests.cs</Link>
     </Compile>
-    <Compile Include="SequentialProgressControllerHelper.cs" />
-    <Compile Include="Services\SingleThreadedTaskSchedulerService.cs" />
-    <Compile Include="StubProgressStepDefinition.cs" />
-    <Compile Include="StubProgressStepOperation.cs" />
-    <Compile Include="VerificationHelper.cs" />
-    <Compile Include="ViewModelVerifier.cs" />
+    <Compile Include="..\Progress.UnitTests\ProgessController\DeterminateStepProgressNotifierTests.cs">
+      <Link>ProgessController\DeterminateStepProgressNotifierTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgessController\ErrorNotificationManagerTests.cs">
+      <Link>ProgessController\ErrorNotificationManagerTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgessController\HelpersTests.cs">
+      <Link>ProgessController\HelpersTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgessController\MessageVerificationHelper.cs">
+      <Link>ProgessController\MessageVerificationHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgessController\ProgressControllerStepTests.cs">
+      <Link>ProgessController\ProgressControllerStepTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgessController\SequentialProgressControllerTests.cs">
+      <Link>ProgessController\SequentialProgressControllerTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgessController\VsActivityLogNotifierTests.cs">
+      <Link>ProgessController\VsActivityLogNotifierTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgessController\VsMessageBoxNotifierTests.cs">
+      <Link>ProgessController\VsMessageBoxNotifierTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgessController\VsOutputWindowPaneNotifierTests.cs">
+      <Link>ProgessController\VsOutputWindowPaneNotifierTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgressObserver\ProgressControllerViewModelTests.cs">
+      <Link>ProgressObserver\ProgressControllerViewModelTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgressObserver\ProgressObserverTests.cs">
+      <Link>ProgressObserver\ProgressObserverTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgressObserver\ProgressStepViewModelTests.cs">
+      <Link>ProgressObserver\ProgressStepViewModelTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\ProgressObserver\ProgressViewModelTests.cs">
+      <Link>ProgressObserver\ProgressViewModelTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\Services\StubVsActivityLog.cs">
+      <Link>Services\StubVsActivityLog.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\Services\StubVsOutputWindowPane.cs">
+      <Link>Services\StubVsOutputWindowPane.cs</Link>
+    </Compile>
+    <Compile Include="..\Progress.UnitTests\Services\StubVsUIShell.cs">
+      <Link>Services\StubVsUIShell.cs</Link>
+    </Compile>
+    <Compile Include="..\AssemblyInfo.Shared.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ProgressVS\ProgressVS_2017.csproj">
+    <ProjectReference Include="..\Progress.TestFramework_2017\Progress.TestFramework.csproj">
+      <Project>{ab7a8888-ef8b-4f6d-8005-398744a60ba2}</Project>
+      <Name>Progress.TestFramework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProgressVS_2017\ProgressVS.csproj">
       <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
-      <Name>ProgressVS_2017</Name>
+      <Name>ProgressVS</Name>
     </ProjectReference>
     <ProjectReference Include="..\Progress\Progress.csproj">
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
@@ -185,8 +220,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.Progress_2017.TestFramework.config" />
-    <None Include="Progress.TestFramework.ruleset" />
+    <None Include="packages.config" />
+    <None Include="$(ReferencedDirectory)\Progress.UnitTests.ruleset" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="..\SonarLint.xml">

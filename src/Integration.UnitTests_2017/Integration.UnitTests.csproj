@@ -17,6 +17,7 @@
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
     <TargetFrameworkProfile />
+    <ReferencedDirectory>..\Integration.UnitTests</ReferencedDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -26,7 +27,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.UnitTests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>$(ReferencedDirectory)\Integration.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +36,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Integration.UnitTests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>$(ReferencedDirectory)\Integration.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Castle.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
@@ -206,11 +207,11 @@
   <ItemGroup Label="NonGac">
     <Reference Include="Microsoft.TeamFoundation.Client">
       <HintPath>$(VSAPPIDDIR)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.Controls">
       <HintPath>$(VSAPPIDDIR)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.Common">
       <HintPath>$(VSAPPIDDIR)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Common.dll</HintPath>
@@ -218,106 +219,43 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
       <HintPath>$(VSAPPIDDIR)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.CodeAnalysis">
       <HintPath>$(VSAPPIDDIR)..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Binding\BindingControllerTests.cs" />
-    <Compile Include="Binding\BindingWorkflowTests.cs" />
-    <Compile Include="Binding\NuGetHelperTests.cs" />
-    <Compile Include="Binding\ProjectBindingOperationTests.cs" />
-    <Compile Include="Binding\SolutionBindingOperationTests.cs" />
-    <Compile Include="Connection\BasicCredentialsValidatorTests.cs" />
-    <Compile Include="Connection\ConnectControllerTests.cs" />
-    <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
-    <Compile Include="Framework\ConfigurableCredentialStore.cs" />
-    <Compile Include="IServiceProviderExtensionsTests.cs" />
-    <Compile Include="LanguageConverterTests.cs" />
-    <Compile Include="LocalServices\ErrorListInfoBarController.QualityProfileBackgroundProcessorTests.cs" />
-    <Compile Include="LocalServices\ErrorListInfoBarControllerTests.cs" />
-    <Compile Include="LocalServices\ProjectSystemHelperExtensionsTests.cs" />
-    <Compile Include="LocalServices\RuleSetSerializerTests.cs" />
-    <Compile Include="LocalServices\SolutionBindingInformationProviderTests.cs" />
-    <Compile Include="Persistence\BoundSonarQubeProjectExtensionsTests.cs" />
-    <Compile Include="Persistence\SolutionBindingSerializerTests.cs" />
-    <Compile Include="ProfileConflicts\ConflictsManagerTests.cs" />
-    <Compile Include="ProfileConflicts\FixedRuleSetInfoTests.cs" />
-    <Compile Include="ProfileConflicts\RuleConflictInfoTests.cs" />
-    <Compile Include="ProfileConflicts\ProjectRuleSetConflictTests.cs" />
-    <Compile Include="ProfileConflicts\RuleSetConflictsControllerTests.cs" />
-    <Compile Include="ProfileConflicts\RuleSetInformationTests.cs" />
-    <Compile Include="ProfileConflicts\RuleSetInspectorTests.cs" />
-    <Compile Include="LanguageTests.cs" />
-    <Compile Include="LocalServices\SolutionRuleSetsInformationProviderTests.cs" />
-    <Compile Include="LocalServices\SourceControlledFileSystemTests.cs" />
-    <Compile Include="PathHelperTests.cs" />
-    <Compile Include="Persistence\BoundSonarQubeProjectTests.cs" />
-    <Compile Include="Progress\ProgressNotificationListenerTests.cs" />
-    <Compile Include="Progress\ProgressStepRunnerTests.cs" />
-    <Compile Include="LocalServices\ProjectSystemFilterTests.cs" />
-    <Compile Include="MefServices\ProjectPropertyManagerTests.cs" />
-    <Compile Include="RuleSetHelperTests.cs" />
-    <Compile Include="SanityTests.cs" />
-    <Compile Include="Connection\ConnectionWorkflowTests.cs" />
-    <Compile Include="Service\AuthenticationHeaderProviderTests.cs" />
-    <Compile Include="Service\ConnectionInformationTests.cs" />
-    <Compile Include="Binding\ProjectBindingOperation.WriterTests.cs" />
-    <Compile Include="MefServices\ActiveSolutionTrackerTests.cs" />
-    <Compile Include="Service\VersionHelperTests.cs" />
-    <Compile Include="MefServices\ActiveSolutionBoundTrackerTests.cs" />
-    <Compile Include="State\StateManagerTests.cs" />
-    <Compile Include="State\TransferableVisualStateTests.cs" />
-    <Compile Include="TeamExplorer\ConnectSectionViewModelTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="$(ReferencedDirectory)\obj\**\*">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="Service\SonarQubeServiceWrapperTests.cs" />
-    <Compile Include="TeamExplorer\ProjectViewModelTests.cs" />
-    <Compile Include="TeamExplorer\SectionControllerTests.cs" />
-    <Compile Include="TeamExplorer\ServerViewModelTests.cs" />
-    <Compile Include="LocalServices\ProjectSystemHelperTests.cs" />
-    <Compile Include="TeamExplorer\SonarQubeNavigationItemTests.cs" />
-    <Compile Include="TeamExplorer\SonarQubePageTests.cs" />
-    <Compile Include="TeamExplorer\TeamExplorerControllerTests.cs" />
-    <Compile Include="TelemetryLoggerAccessorTests.cs" />
-    <Compile Include="UriExtensionsTests.cs" />
-    <Compile Include="MefServices\VsSessionHostTests.cs" />
-    <Compile Include="VsShellUtilsTests.cs" />
-    <Compile Include="WPF\BoolToVisibilityConverterTests.cs" />
-    <Compile Include="Connection\UriValidatorTests.cs" />
-    <Compile Include="Connection\ConnectDialogViewModelTests.cs" />
-    <Compile Include="WPF\ContextualCommandsCollectionTests.cs" />
-    <Compile Include="WPF\ContextualCommandViewModelTests.cs" />
-    <Compile Include="WPF\ProjectViewModelVisibilityConverterTests.cs" />
-    <Compile Include="WPF\RelayCommandTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Integration\Integration_2017.csproj">
+    <ProjectReference Include="..\Integration_2017\Integration.csproj">
       <Project>{03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f}</Project>
-      <Name>Integration_2017</Name>
+      <Name>Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ProgressVS\ProgressVS_2017.csproj">
+    <ProjectReference Include="..\ProgressVS_2017\ProgressVS.csproj">
       <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
-      <Name>ProgressVS_2017</Name>
+      <Name>ProgressVS</Name>
     </ProjectReference>
     <ProjectReference Include="..\Progress\Progress.csproj">
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
       <Name>Progress</Name>
     </ProjectReference>
-    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure_2017.csproj">
+    <ProjectReference Include="..\TestInfrastructure_2017\TestInfrastructure.csproj">
       <Project>{fbd8024a-9795-4e5b-938e-afe44fca240c}</Project>
-      <Name>TestInfrastructure_2017</Name>
+      <Name>TestInfrastructure</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Integration.UnitTests.ruleset" />
-    <None Include="packages.Integration_2017.UnitTests.config" />
+    <None Include="$(ReferencedDirectory)\Integration.UnitTests.ruleset" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

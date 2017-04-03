@@ -405,7 +405,7 @@
     <None Include="app.config" />
     <None Include="ArchetectureOverview.dgml" />
     <None Include="Integration.ruleset" />
-    <None Include="packages.Integration.config">
+    <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="TeamExplorer\Controllers.dgml" />
