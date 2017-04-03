@@ -1,5 +1,4 @@
 # SonarLint for Visual Studio
-[![Build status](https://ci.appveyor.com/api/projects/status/whymdllvp2qod82e/branch/master?svg=true)](https://ci.appveyor.com/project/SonarSource/sonarlint-visualstudio/branch/master)
 [![Quality Gate](https://next.sonarqube.com/sonarqube/api/badges/gate?key=sonarlint-visualstudio)](https://next.sonarqube.com/sonarqube/dashboard?id=sonarlint-visualstudio)
 [![Coverage](https://next.sonarqube.com/sonarqube/api/badges/measure?key=sonarlint-visualstudio&metric=coverage)](https://next.sonarqube.com/sonarqube/component_measures/domain/Coverage?id=sonarlint-visualstudio)
 
