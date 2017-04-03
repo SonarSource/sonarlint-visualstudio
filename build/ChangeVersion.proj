@@ -28,7 +28,7 @@
       <ReplaceWith>$(VsixVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </VsixVersion>
-	<VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix_VS2017\source.extension.vsixmanifest">
+	<VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix_2017\source.extension.vsixmanifest">
       <Find>(?&lt;=Identity.*Version=")([^"]*)</Find>
       <ReplaceWith>$(VsixVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
