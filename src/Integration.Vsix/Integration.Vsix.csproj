@@ -99,13 +99,13 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Integration.Vsix.ruleset" />
-    <None Include="packages.Integration.Vsix.config">
+    <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="Telemetry\SonarLintSqmData.ttinclude" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="VS2015\source.extension.vsixmanifest" />
+    <None Include="source.extension.vsixmanifest" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

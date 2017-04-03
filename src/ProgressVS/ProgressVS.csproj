@@ -190,7 +190,7 @@
     <Content Include="ProgressObservation\View\Images\CheckMark.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.ProgressVS.config" />
+    <None Include="packages.config" />
     <None Include="ProgressVS.ruleset" />
   </ItemGroup>
   <ItemGroup>
