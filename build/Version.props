@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <MainVersion>2.12.0</MainVersion>
+    <MainVersion>2.13.0</MainVersion>
     <AssemblyVersion>$(MainVersion)</AssemblyVersion>
     <!-- The file version is changed by the CI job to contain the build number -->
     <AssemblyFileVersion>$(MainVersion).0</AssemblyFileVersion>
