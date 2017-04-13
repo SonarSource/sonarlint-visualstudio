@@ -1,3 +1,9 @@
+### License
+
+Copyright 2016-2017 SonarSource.
+
+Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
+
 # SonarLint for Visual Studio
 [![Quality Gate](https://next.sonarqube.com/sonarqube/api/badges/gate?key=sonarlint-visualstudio)](https://next.sonarqube.com/sonarqube/dashboard?id=sonarlint-visualstudio)
 [![Coverage](https://next.sonarqube.com/sonarqube/api/badges/measure?key=sonarlint-visualstudio&metric=coverage)](https://next.sonarqube.com/sonarqube/component_measures/domain/Coverage?id=sonarlint-visualstudio)
