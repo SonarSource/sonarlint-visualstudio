@@ -30,9 +30,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A4C88C9A-7C47-47FE-8AB6-8D7588D05EF1}"
 	ProjectSection(SolutionItems) = preProject
 		AssemblyInfo.Shared.cs = AssemblyInfo.Shared.cs
-		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
-		SonarQube\sonarlint-visualstudioCSharp.ruleset = SonarQube\sonarlint-visualstudioCSharp.ruleset
-		SonarLint.xml = SonarLint.xml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarAnalyzerEmbedder.CSharp", "SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.CSharp.csproj", "{D993DAF3-5B68-4D43-B558-F6B9EF13C796}"
@@ -40,6 +37,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarAnalyzerEmbedder", "SonarAnalyzerEmbedder", "{244A2265-326C-40AE-8906-02CC250867AA}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SonarAnalyzerEmbedder.VisualBasic", "SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.VisualBasic.vbproj", "{112698A2-85C3-4357-AAA5-7658D29D27A1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{71E68181-C534-4C18-84AA-42A8C273414E}"
+	ProjectSection(SolutionItems) = preProject
+		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
+		SonarQube\sonarlint-visualstudioCSharp.ruleset = SonarQube\sonarlint-visualstudioCSharp.ruleset
+		SonarLint.xml = SonarLint.xml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
