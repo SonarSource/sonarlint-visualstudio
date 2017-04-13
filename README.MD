@@ -27,8 +27,3 @@ If you have a question on how to use the extension direct it to [StackOverflow](
 
 ## How to contribute
 Check out the [contributing](CONTRIBUTING.md) page to see the best places to log issues and start discussions.
-
-## License
-Copyright 2016-2017 SonarSource.
-
-Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
