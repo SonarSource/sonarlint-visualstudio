@@ -71,8 +71,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestCleanup]
         public void CleanUp()
         {
-            Directory.Delete(tempPath, true);
-            Directory.Delete(storagePath, true);
+            ForceDeleteDirectory(tempPath);
+            ForceDeleteDirectory(storagePath);
+        }
+
+        private static void ForceDeleteDirectory(string path)
+        {
+            var files = Directory.GetFiles(path);
+            var directories = Directory.GetDirectories(path);
+
+            foreach (string file in files)
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+                File.Delete(file);
+            }
+
+            foreach (string dir in directories)
+            {
+                ForceDeleteDirectory(dir);
+            }
+
+            Directory.Delete(path, false);
         }
     }
 }
