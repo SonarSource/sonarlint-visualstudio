@@ -130,26 +130,32 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         [TestMethod]
         [Description("Verifies that the controller can be executed from the UI thread")]
-        public void SequentialProgressController_Execution_UIThread()
+        public async Task SequentialProgressController_Execution_UIThread()
         {
             // Arrange
             this.threadingService.SetCurrentThreadIsUIThread(true);
             this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.None, this.DoNothing));
 
             // Act
-            this.testSubject.Start().Result.Should().Be(ProgressControllerResult.Succeeded, "Unexpected result");
+            var result = await this.testSubject.Start();
+
+            // Assert
+            result.Should().Be(ProgressControllerResult.Succeeded, "Unexpected result");
         }
 
         [TestMethod]
         [Description("Verifies that the controller can be executed from a non-UI thread")]
-        public void SequentialProgressController_Execution_NonUIThread()
+        public async Task SequentialProgressController_Execution_NonUIThread()
         {
             // Arrange
             this.threadingService.SetCurrentThreadIsUIThread(false);
             this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.None, this.DoNothing));
 
             // Act
-            this.testSubject.Start().Result.Should().Be(ProgressControllerResult.Succeeded, "Unexpected result");
+            var result = await this.testSubject.Start();
+
+            // Assert
+            result.Should().Be(ProgressControllerResult.Succeeded, "Unexpected result");
         }
 
         #endregion General tests
