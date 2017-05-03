@@ -18,32 +18,48 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.Resources;
-using System;
+using Microsoft.VisualStudio.Shell;
 using System.ComponentModel;
+using System.Windows;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    [AttributeUsage(AttributeTargets.All)]
-    internal sealed class LocalizedDisplayNameAttribute : DisplayNameAttribute
+    internal class GeneralOptionsDialogPage : UIElementDialogPage
     {
-        private bool isLoaded;
+        public const string PageName = "General";
 
-        public LocalizedDisplayNameAttribute(string displayNameResource)
-            : base(displayNameResource)
+        private GeneralOptionsDialogControl dialogControl;
+        private ISonarLintSettings settings;
+
+        protected override UIElement Child => dialogControl ?? (dialogControl = new GeneralOptionsDialogControl());
+
+        protected override void OnActivate(CancelEventArgs e)
         {
+            base.OnActivate(e);
+
+            // restore stored values here
         }
 
-        public override string DisplayName
+        protected override void OnApply(PageApplyEventArgs e)
+        {
+            if (e.ApplyBehavior == ApplyKind.Apply)
+            {
+                // Save values here
+            }
+
+            base.OnApply(e);
+        }
+
+        private ISonarLintSettings Settings
         {
             get
             {
-                if (!isLoaded)
+                if (this.settings == null)
                 {
-                    isLoaded = true;
-                    DisplayNameValue = Strings.ResourceManager.GetString(DisplayNameValue);
+                    this.settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
                 }
-                return DisplayNameValue;
+
+                return this.settings;
             }
         }
     }

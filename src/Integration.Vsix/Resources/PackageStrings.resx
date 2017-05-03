@@ -122,11 +122,15 @@
     <comment>Options group name</comment>
   </data>
   <data name="902" xml:space="preserve">
-    <value>Security</value>
-    <comment>Security options page name</comment>
+    <value>General</value>
+    <comment>General options page name</comment>
   </data>
   <data name="903" xml:space="preserve">
     <value>Change security settings for the SonarLint for Visual Studio extension</value>
-    <comment>Keywords for Security options page</comment>
+    <comment>Keywords for General options page</comment>
+  </data>
+  <data name="904" xml:space="preserve">
+    <value>Other</value>
+    <comment>Other options page name</comment>
   </data>
 </root>
