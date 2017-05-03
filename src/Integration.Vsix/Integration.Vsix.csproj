@@ -75,7 +75,6 @@
     <Compile Include="SolutionAnalysisRequester\WorkspaceConfigurator.cs" />
     <Compile Include="SonarAnalyzerManager.cs" />
     <Compile Include="SolutionAnalysisRequester\SolutionAnalysisRequester.cs" />
-    <Compile Include="SonarLintDaemon.cs" />
     <Compile Include="TcpUtil.cs" />
     <Compile Include="Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <AutoGen>True</AutoGen>
