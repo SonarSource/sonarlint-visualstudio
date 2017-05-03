@@ -287,7 +287,7 @@
     <Compile Include="Commands\ProjectExcludePropertyToggleCommandTests.cs" />
     <Compile Include="IEnumerableExtensionsTests.cs" />
     <Compile Include="InfoBar\InfoBarManagerTests.cs" />
-    <Compile Include="Settings\IntegrationSettingsTests.cs" />
+    <Compile Include="Settings\SonarLintSettingsTests.cs" />
     <Compile Include="SonarAnalyzer\ConfigurableSolutionAnalysisRequester.cs" />
     <Compile Include="SonarAnalyzer\SolutionAnalysisRequesterTests.cs" />
     <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.ForBound.cs" />

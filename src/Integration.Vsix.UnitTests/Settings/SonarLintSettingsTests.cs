@@ -18,15 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using FluentAssertions;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
+using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
     [TestClass]
-    public class IntegrationSettingsTests
+    public class SonarLintSettingsTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableWritableSettingsStore settingsStore;
@@ -43,32 +44,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         [TestMethod]
         public void IntegrationSettings_Ctor_NullArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new IntegrationSettings(null));
+            Exceptions.Expect<ArgumentNullException>(() => new SonarLintSettings((SettingsManager)null));
         }
 
         [TestMethod]
         public void IntegrationSettings_Ctor_InitializesStore()
         {
             // Sanity - should be empty store
-            this.settingsStore.AssertCollectionDoesNotExist(IntegrationSettings.SettingsRoot);
+            this.settingsStore.AssertCollectionDoesNotExist(SonarLintSettings.SettingsRoot);
 
             // Act
-            IntegrationSettings testSubject = this.CreateTestSubject();
+            SonarLintSettings testSubject = this.CreateTestSubject();
 
             // Assert
-            this.settingsStore.AssertCollectionExists(IntegrationSettings.SettingsRoot);
+            this.settingsStore.AssertCollectionExists(SonarLintSettings.SettingsRoot);
         }
 
         [TestMethod]
         public void IntegrationSettings_GetValueOrDefault_Bool()
         {
             // Arrange
-            IntegrationSettings testSubject = this.CreateTestSubject();
+            SonarLintSettings testSubject = this.CreateTestSubject();
 
             // Test case 1: exists -> value
             // Arrange
             bool expected1 = false;
-            this.settingsStore.SetBoolean(IntegrationSettings.SettingsRoot, "key1", expected1);
+            this.settingsStore.SetBoolean(SonarLintSettings.SettingsRoot, "key1", expected1);
 
             // Act
             bool actual1 = testSubject.GetValueOrDefault("key1", true);
@@ -92,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         {
             // Arrange
             bool expected = true;
-            IntegrationSettings testSubject;
+            SonarLintSettings testSubject;
             using (new AssertIgnoreScope())
             {
                 testSubject = this.CreateTestSubject(storeLoadFailure: true);
@@ -110,8 +111,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         {
             // Arrange
             const string propertyKey = "key1";
-            const string collection = IntegrationSettings.SettingsRoot;
-            IntegrationSettings testSubject = this.CreateTestSubject();
+            const string collection = SonarLintSettings.SettingsRoot;
+            SonarLintSettings testSubject = this.CreateTestSubject();
 
             // Sanity
             this.settingsStore.AssertCollectionPropertyCount(collection, 0);
@@ -137,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         public void IntegrationSettings_SetValue_Bool_NoStore()
         {
             // Arrange
-            IntegrationSettings testSubject;
+            SonarLintSettings testSubject;
             using (new AssertIgnoreScope())
             {
                 testSubject = this.CreateTestSubject(storeLoadFailure: true);
@@ -149,10 +150,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 
         #region Helpers
 
-        private IntegrationSettings CreateTestSubject(bool storeLoadFailure = false)
+        private SonarLintSettings CreateTestSubject(bool storeLoadFailure = false)
         {
             this.settingsManager.StoreFailsToLoad = storeLoadFailure;
-            return new IntegrationSettings(this.serviceProvider, this.settingsManager);
+            return new SonarLintSettings(this.settingsManager);
         }
 
         #endregion Helpers
