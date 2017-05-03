@@ -24,6 +24,16 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Windows;
+using Grpc.Core;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Sonarlint;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -53,6 +63,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
 
         private readonly ISonarLintDaemon daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
+
+        // TODO migrate to SonarLintDaemon
+        private static readonly string DAEMON_HOST = "localhost";
+        private static readonly int DAEMON_PORT = 8050;
+
+        public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
+
+        internal static SonarLintDaemonPackage Instance { get; private set; }
+
+        private string WorkDir;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -112,5 +132,69 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         #endregion
+
+        // TODO migrate to SonarLintDaemon
+        private void InitializeSonarLintDaemonFacade()
+        {
+            WorkDir = CreateTempDir();
+        }
+
+        private string CreateTempDir()
+        {
+            string tempDirectory = Path.Combine(Path.GetTempPath(), "SonarLintDaemon", Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDirectory);
+            return tempDirectory;
+        }
+
+        public void RequestAnalysis(string path, string charset)
+        {
+            Analyze(path, charset);
+        }
+
+        private async void Analyze(string path, string charset)
+        {
+            var channel = new Channel(string.Join(":", DAEMON_HOST, DAEMON_PORT), ChannelCredentials.Insecure);
+            var client = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
+
+            var inputFile = new InputFile
+            {
+                Path = path,
+                Charset = charset,
+            };
+
+            var request = new AnalysisReq
+            {
+                BaseDir = path,
+                WorkDir = WorkDir,
+            };
+            request.File.Add(inputFile);
+
+            try
+            {
+                using (var call = client.Analyze(request))
+                {
+                    await ProcessIssues(call, path);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Call to .Analyze failed: {0}", e);
+            }
+
+            await channel.ShutdownAsync();
+        }
+
+        private async System.Threading.Tasks.Task ProcessIssues(AsyncServerStreamingCall<Issue> call, string path)
+        {
+            var issues = new List<Issue>();
+
+            while (await call.ResponseStream.MoveNext())
+            {
+                var issue = call.ResponseStream.Current;
+                issues.Add(issue);
+            }
+
+            TaggerProvider.Instance.UpdateIssues(path, issues);
+        }
     }
 }
