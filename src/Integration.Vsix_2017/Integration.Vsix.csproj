@@ -46,8 +46,14 @@
     <CodeAnalysisRuleSet>$(ReferencedDirectory)\Integration.Vsix.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\*Designer.cs;**\Settings\*;**\Telemetry\GeneratedCode\*">
+    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\*Designer.cs;**\Settings\*;**\Telemetry\GeneratedCode\*;**\Protobuf\*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+    <Compile Include="$(ReferencedDirectory)\Protobuf\Sonarlint-daemonGrpc.cs">
+      <Link>Protobuf\Sonarlint-daemonGrpc.cs</Link>
+    </Compile>
+    <Compile Include="$(ReferencedDirectory)\Protobuf\SonarlintDaemon.cs">
+      <Link>Protobuf\SonarlintDaemon.cs</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\LocalizedCategoryAttribute.cs">
       <Link>Settings\LocalizedCategoryAttribute.cs</Link>
@@ -104,11 +110,16 @@
       <HintPath>..\..\packages\EnvDTE80.8.0.1\lib\net10\EnvDTE80.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Google.Protobuf, Version=3.2.0.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Google.Protobuf.3.2.0\lib\net45\Google.Protobuf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Grpc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Grpc.Core.1.2.2\lib\net45\Grpc.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Esent.Interop, Version=1.9.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\ManagedEsent.1.9.4\lib\net40\Esent.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="Google.Protobuf">
-      <HintPath>..\..\binaries\Google.Protobuf.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.CodeAnalysis.Common.2.0.0\lib\netstandard1.3\Microsoft.CodeAnalysis.dll</HintPath>
@@ -213,6 +224,10 @@
       <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Interop.9.0.9.0.30729\lib\Microsoft.VisualStudio.Shell.Interop.9.0.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\..\packages\Microsoft.VisualStudio.TextManager.Interop.7.10.6070\lib\Microsoft.VisualStudio.TextManager.Interop.dll</HintPath>
       <Private>True</Private>
@@ -233,6 +248,8 @@
       <HintPath>..\..\packages\Microsoft.VisualStudio.Validation.15.0.82\lib\net45\Microsoft.VisualStudio.Validation.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="SonarAnalyzer">
       <HintPath>..\..\binaries\SonarAnalyzer.dll</HintPath>
     </Reference>
@@ -296,6 +313,10 @@
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.IO.Compression.ZipFile, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.IO.Compression.ZipFile.4.3.0\lib\net46\System.IO.Compression.ZipFile.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Interactive.Async, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Interactive.Async.3.1.1\lib\net46\System.Interactive.Async.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.IO.FileSystem, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -477,6 +498,29 @@
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup>
     <PostBuildEvent>copy /y "$(TargetDir)SonarLint.vsix" "$(SolutionDir)..\binaries\SonarLint.2017.vsix"</PostBuildEvent>
+  </PropertyGroup>
+  <Import Project="..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets" Condition="Exists('..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets'))" />
+  </Target>
+  <Target Name="IncludeDllsVsix" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <Grpc_Regex>grpc_csharp_ext.*\.dll</Grpc_Regex>
+    </PropertyGroup>
+    <ItemGroup>
+      <Content Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Content.Identity)', '$(Grpc_Regex)'))">
+        <IncludeInVSIX>True</IncludeInVSIX>
+      </Content>
+    </ItemGroup>
+    <Message Text="Content: %(Content.Identity), IncludeInVSIX: %(Content.IncludeInVSIX)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Content.Identity)', '$(Grpc_Regex)'))" />
+  </Target>
+  <Import Project="..\..\packages\Microsoft.VSSDK.BuildTools.14.3.25407\build\Microsoft.VSSDK.BuildTools.targets" Condition="Exists('..\..\packages\Microsoft.VSSDK.BuildTools.14.3.25407\build\Microsoft.VSSDK.BuildTools.targets')" />
+  <PropertyGroup>
+    <PreBuildEvent>cd $(ProjectDir)..\Integration.Vsix\Protobuf
+build.bat</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

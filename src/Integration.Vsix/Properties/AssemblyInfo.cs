@@ -18,6 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Shell;
 using System.Reflection;
 
 [assembly: AssemblyTitle("SonarLint.VisualStudio.Integration.Vsix")]
+[assembly: ProvideBindingRedirection(AssemblyName = "System.Interactive.Async", NewVersion = "3.0.3000.0",
+    OldVersionLowerBound = "0.0.0.0", OldVersionUpperBound = "3.0.3000.0")]
+[assembly: ProvideBindingRedirection(AssemblyName = "Google.Protobuf", NewVersion = "3.2.0.0",
+    OldVersionLowerBound = "0.0.0.0", OldVersionUpperBound = "3.2.0.0")]
