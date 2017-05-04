@@ -38,18 +38,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         #region ITableEntriesSnapshotFactory members
-        public override int CurrentVersionNumber
-        {
-            get
-            {
-                return this.CurrentSnapshot.VersionNumber;
-            }
-        }
 
-        public override ITableEntriesSnapshot GetCurrentSnapshot()
-        {
-            return this.CurrentSnapshot;
-        }
+        public override int CurrentVersionNumber => CurrentSnapshot.VersionNumber;
+
+        public override ITableEntriesSnapshot GetCurrentSnapshot() => CurrentSnapshot;
 
         public override ITableEntriesSnapshot GetSnapshot(int versionNumber)
         {
@@ -57,6 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var snapshot = this.CurrentSnapshot;
             return (versionNumber == snapshot.VersionNumber) ? snapshot : null;
         }
+
         #endregion
     }
 }
