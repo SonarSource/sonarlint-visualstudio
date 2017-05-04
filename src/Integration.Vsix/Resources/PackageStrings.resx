@@ -117,6 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="110" xml:space="preserve">
+    <value>SonarLint for Visual Studio</value>
+    <comment>Package name in the Help/About</comment>
+  </data>
+  <data name="112" xml:space="preserve">
+    <value>SonarLint is an extension to your favorite IDE that provides on-the-fly feedback to developers on new bugs and quality issues injected into their code.</value>
+    <comment>Package description in the Help/About</comment>
+  </data>
   <data name="901" xml:space="preserve">
     <value>SonarLint for Visual Studio</value>
     <comment>Options group name</comment>
@@ -132,5 +140,9 @@
   <data name="904" xml:space="preserve">
     <value>Other</value>
     <comment>Other options page name</comment>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="400" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>sonarlint_32px.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
