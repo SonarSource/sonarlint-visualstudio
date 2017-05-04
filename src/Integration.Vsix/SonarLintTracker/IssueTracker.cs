@@ -118,8 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var oldSnapshot = this.Factory.CurrentSnapshot;
             var newMarkers = oldSnapshot.IssueMarkers
                 .Select(marker => marker.CloneAndTranslateTo(currentSnapshot))
-                .Where(clone => clone != null)
-                .ToList();
+                .Where(clone => clone != null);
 
             return new IssuesSnapshot(this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
         }
@@ -127,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal void UpdateIssues(IEnumerable<Issue> issues)
         {
             var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newMarkers = issues.Select(issue => CreateIssueMarker(issue)).ToList();
+            var newMarkers = issues.Select(issue => CreateIssueMarker(issue));
             var newSnapshot = new IssuesSnapshot(this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
             SnapToNewSnapshot(newSnapshot);
         }
