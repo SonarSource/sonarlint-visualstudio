@@ -68,9 +68,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (e.FileActionType == FileActionTypes.DocumentRenamed)
             {
-                var oldPath = FilePath;
+                provider.Rename(FilePath, e.FilePath);
                 FilePath = e.FilePath;
-                provider.Rename(oldPath, FilePath);
             }
             else if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
             {
@@ -120,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var newMarkers = new List<IssueMarker>();
 
             newMarkers.AddRange(oldSnapshot.IssueMarkers
-                .Select(marker => IssueMarker.CloneAndTranslateTo(marker, currentSnapshot))
+                .Select(marker => marker.CloneAndTranslateTo(currentSnapshot))
                 .Where(clone => clone != null));
 
             return new IssuesSnapshot(this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);

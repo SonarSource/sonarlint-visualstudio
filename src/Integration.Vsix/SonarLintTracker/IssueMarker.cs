@@ -34,21 +34,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.Span = span;
         }
 
-        public static IssueMarker Clone(IssueMarker marker)
+        public IssueMarker Clone()
         {
-            return new IssueMarker(marker.Issue, marker.Span);
+            return new IssueMarker(Issue, Span);
         }
 
-        public static IssueMarker CloneAndTranslateTo(IssueMarker marker, ITextSnapshot newSnapshot)
+        public IssueMarker CloneAndTranslateTo(ITextSnapshot newSnapshot)
         {
-            var newSpan = marker.Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
+            var newSpan = Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
 
-            // If the span changed, the marker is no longer valid
-            if (newSpan.Length != marker.Span.Length)
+            // If the span length changed, the marker is no longer valid
+            if (newSpan.Length != Span.Length)
             {
                 return null;
             }
-            return new IssueMarker(marker.Issue, newSpan);
+            return new IssueMarker(Issue, newSpan);
         }
     }
 }
