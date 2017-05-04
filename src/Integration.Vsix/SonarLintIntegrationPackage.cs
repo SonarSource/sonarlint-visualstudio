@@ -21,7 +21,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -80,6 +79,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.sonarAnalyzerManager = null;
             }
         }
-
     }
 }
