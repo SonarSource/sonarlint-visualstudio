@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         bool ShowServerNuGetTrustWarning { get; set; }
         bool IsAnonymousDataShared { get; set; }
+        bool SkipActivateMoreDialog { get; set; }
     }
 
     [Export(typeof(ISonarLintSettings))]
@@ -109,6 +110,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             get { return this.GetValueOrDefault(nameof(IsAnonymousDataShared), true); }
             set { this.SetValue(nameof(IsAnonymousDataShared), value); }
+        }
+
+        public bool SkipActivateMoreDialog
+        {
+            get { return this.GetValueOrDefault(nameof(SkipActivateMoreDialog), true); }
+            set { this.SetValue(nameof(SkipActivateMoreDialog), value); }
         }
     }
 }

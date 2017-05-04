@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Shell;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -32,25 +34,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             InitializeComponent();
         }
 
-        //private void OnDownloadButtonClicked(object sender, RoutedEventArgs e)
-        //{
-        //    // do your stuff
-        //    var result = MessageBox.Show("", "", MessageBoxButton.YesNo); // You can use more options
-        //    switch (result)
-        //    {
-        //        case MessageBoxResult.None:
-        //            break;
-        //        case MessageBoxResult.OK:
-        //            break;
-        //        case MessageBoxResult.Cancel:
-        //            break;
-        //        case MessageBoxResult.Yes:
-        //            break;
-        //        case MessageBoxResult.No:
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //}
+        private void OnInstallJavaScriptClicked(object sender, RoutedEventArgs e)
+        {
+            var daemon = GetDaemon();
+            if (!daemon.IsInstalled())
+            {
+                daemon.Install();
+                daemon.Start();
+            }
+        }
+
+        private ISonarLintDaemon GetDaemon()
+        {
+            return ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
+        }
     }
 }
