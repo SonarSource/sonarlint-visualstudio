@@ -110,17 +110,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         #region ITableDataSource members
+
         public string DisplayName => "SonarLint";
 
         public string Identifier => "SonarLint";
 
         public string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
 
-        public IDisposable Subscribe(ITableDataSink sink)
-        {
-            // This method is called by each consumer interested in errors. Probably only the Error List tool window.
-            return new SinkManager(this, sink);
-        }
+        // Note: Error List is the only expected subscriber
+        public IDisposable Subscribe(ITableDataSink sink) => new SinkManager(this, sink);
+
         #endregion
 
         private class TrackerManager
