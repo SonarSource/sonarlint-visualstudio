@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </para>
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [Guid(PackageGuidString)]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
@@ -88,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private bool SkipActivateMoreDialog()
         {
-            return GetSettings().SkipActivateMoreDialog;
+            return ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>().SkipActivateMoreDialog;
         }
 
         private void LaunchActivateMoreDialog()
@@ -98,17 +97,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var result = MessageBox.Show(message, title, MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
-                // TODO handle download failure
-                // TODO handle port unavailable
-                daemon.Install();
-                daemon.Start();
+                new SonarLintDaemonInstaller().Show();
             }
-            GetSettings().SkipActivateMoreDialog = true;
-        }
-
-        private ISonarLintSettings GetSettings()
-        {
-            return ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
         }
 
         protected override void Dispose(bool disposing)
