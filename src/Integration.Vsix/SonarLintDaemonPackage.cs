@@ -135,16 +135,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var channel = new Channel(string.Join(":", DAEMON_HOST, DAEMON_PORT), ChannelCredentials.Insecure);
             var client = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
 
-            try
+            using (var call = client.Analyze(request))
             {
-                using (var call = client.Analyze(request))
+                try
                 {
                     await ProcessIssues(call, path);
                 }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine("Call to .Analyze failed: {0}", e);
+                catch (Exception e)
+                {
+                    Debug.WriteLine("Call to .Analyze failed: {0}", e);
+                }
             }
 
             await channel.ShutdownAsync();
