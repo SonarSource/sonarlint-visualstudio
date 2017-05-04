@@ -116,11 +116,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IssuesSnapshot TranslateMarkerSpans()
         {
             var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newMarkers = new List<IssueMarker>();
-
-            newMarkers.AddRange(oldSnapshot.IssueMarkers
+            var newMarkers = oldSnapshot.IssueMarkers
                 .Select(marker => marker.CloneAndTranslateTo(currentSnapshot))
-                .Where(clone => clone != null));
+                .Where(clone => clone != null)
+                .ToList();
 
             return new IssuesSnapshot(this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
         }
