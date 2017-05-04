@@ -74,28 +74,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             // Only attempt to track the view's edit buffer.
             // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
-            if ((buffer == textView.TextBuffer) && (typeof(T) == typeof(IErrorTag)))
+            if (buffer != textView.TextBuffer || typeof(T) != typeof(IErrorTag))
             {
-                ITextDocument document;
-                if (TextDocumentFactoryService.TryGetTextDocument(textView.TextDataModel.DocumentBuffer, out document))
+                return null;
+            }
+
+            ITextDocument document;
+            if (!TextDocumentFactoryService.TryGetTextDocument(textView.TextDataModel.DocumentBuffer, out document))
+            {
+                return null;
+            }
+
+            var path = document.FilePath;
+            // TODO find a better way to detect JavaScript
+            if (!path.ToLowerInvariant().EndsWith(".js"))
+            {
+                return null;
+            }
+
+            lock (trackers)
+            {
+                if (!trackers.ExistsForFile(path))
                 {
-                    var path = document.FilePath;
-                    // TODO find a better way to detect JavaScript
-                    if (!path.ToLowerInvariant().EndsWith(".js"))
-                    {
-                        return null;
-                    }
-
-                    lock (trackers)
-                    {
-                        if (!trackers.ExistsForFile(path))
-                        {
-                            var tracker = new IssueTracker(this, buffer, document);
-                            return tracker as ITagger<T>;
-                        }
-                    }
+                    var tracker = new IssueTracker(this, buffer, document);
+                    return tracker as ITagger<T>;
                 }
-
             }
 
             return null;
