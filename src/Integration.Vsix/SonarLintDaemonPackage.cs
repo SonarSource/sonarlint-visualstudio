@@ -56,9 +56,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Guid(PackageGuidString)]
-    //TODO Temporarily disabled. Uncomment the next lines when the daemon installer is in place
-    //[ProvideAutoLoad(UIContextGuids80.SolutionExists)]
-    //[ProvideAutoLoad(UIContextGuids80.NoSolution)]
+    [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
+    [ProvideAutoLoad(UIContextGuids80.NoSolution)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class SonarLintDaemonPackage : Package
     {

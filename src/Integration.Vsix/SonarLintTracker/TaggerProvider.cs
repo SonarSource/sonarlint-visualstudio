@@ -36,8 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     ///
     /// It is also the <see cref="ITableDataSource"/> that reports Sonar errors.
     /// </summary>
-    //TODO Temporarily disabled. Uncomment the next lines when the daemon installer is in place
-    //[Export(typeof(IViewTaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
