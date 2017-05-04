@@ -57,70 +57,55 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return false;
             }
 
-            // TODO use correct issue type, such as bug, vulnerability, code smell
-            if (columnName == StandardTableKeyNames.DocumentName)
+            switch (columnName)
             {
-                content = filePath;
-                return true;
-            }
+                case StandardTableKeyNames.DocumentName:
+                    content = filePath;
+                    return true;
 
-            if (columnName == StandardTableKeyNames.Line)
-            {
-                content = this.issueMarkers[index].Span.Start.GetContainingLine().LineNumber;
-                return true;
-            }
+                case StandardTableKeyNames.Line:
+                    content = this.issueMarkers[index].Span.Start.GetContainingLine().LineNumber;
+                    return true;
 
-            if (columnName == StandardTableKeyNames.Column)
-            {
-                var position = this.issueMarkers[index].Span.Start;
-                var line = position.GetContainingLine();
-                content = position.Position - line.Start.Position;
-                return true;
-            }
+                case StandardTableKeyNames.Column:
+                    var position = this.issueMarkers[index].Span.Start;
+                    var line = position.GetContainingLine();
+                    content = position.Position - line.Start.Position;
+                    return true;
 
-            if (columnName == StandardTableKeyNames.Text)
-            {
-                content = this.issueMarkers[index].Issue.Message;
-                return true;
-            }
+                case StandardTableKeyNames.Text:
+                    content = this.issueMarkers[index].Issue.Message;
+                    return true;
 
-            if (columnName == StandardTableKeyNames.ErrorSeverity)
-            {
-                // TODO use correct icon type depending on severity
-                content = __VSERRORCATEGORY.EC_WARNING;
-                return true;
-            }
+                case StandardTableKeyNames.ErrorSeverity:
+                    // TODO use correct icon type depending on severity
+                    content = __VSERRORCATEGORY.EC_WARNING;
+                    return true;
 
-            if (columnName == StandardTableKeyNames.BuildTool)
-            {
-                // TODO get correct analyzer name
-                content = "SonarJS [SonarLint for Visual Studio 2015]";
-                return true;
-            }
+                case StandardTableKeyNames.BuildTool:
+                    // TODO get correct analyzer name
+                    content = "SonarJS [SonarLint for Visual Studio 2015]";
+                    return true;
 
-            if (columnName == StandardTableKeyNames.ErrorCode)
-            {
-                content = this.issueMarkers[index].Issue.RuleKey;
-                return true;
-            }
+                case StandardTableKeyNames.ErrorCode:
+                    content = this.issueMarkers[index].Issue.RuleKey;
+                    return true;
 
-            if ((columnName == StandardTableKeyNames.ErrorCodeToolTip) || (columnName == StandardTableKeyNames.HelpLink))
-            {
-                // TODO use correct version
-                // TODO add JavaScript rules on website
-                //content = string.Format(CultureInfo.InvariantCulture, "http://www.sonarlint.org/visualstudio/rules/index.html#version=5.9.0.992&ruleId={0}", this.issueMarkers[index].Issue.RuleKey);
-                //return true;
-            }
+                case StandardTableKeyNames.ErrorCodeToolTip:
+                case StandardTableKeyNames.HelpLink:
+                    // TODO use correct version
+                    // TODO add JavaScript rules on website
+                    //content = string.Format(CultureInfo.InvariantCulture, "http://www.sonarlint.org/visualstudio/rules/index.html#version=5.9.0.992&ruleId={0}", this.issueMarkers[index].Issue.RuleKey);
+                    content = null;
+                    return true;
 
-            if (columnName == StandardTableKeyNames.ProjectName)
-            {
-                // TODO get project name
-                content = "TODO";
-                return true;
-            }
+                case StandardTableKeyNames.ProjectName:
+                    // TODO get project name
 
-            content = null;
-            return false;
+                default:
+                    content = null;
+                    return false;
+            }
         }
 
         public override bool CanCreateDetailsContent(int index)
