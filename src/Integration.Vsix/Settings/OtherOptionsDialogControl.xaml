@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="SonarLint.VisualStudio.Integration.Vsix.OtherOptionsDialogControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources;assembly=SonarLint.VisualStudio.Integration"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             mc:Ignorable="d">
+
+    <!--  #Design  -->
+    <Grid Margin="5,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock FontWeight="Bold" Text="Statistics" />
+        <TextBlock Grid.Row="1"
+                   Margin="10,5" Foreground="Gray"
+                   TextWrapping="Wrap">
+            <Run Text="By sharing anonymous SonarLint usage statistics, you help us understand how SonarLint is used so we can improve the plugin to work even better for you. We don't collect source code, IP addresses, or any personally identifying information. And we don't share the data with anyone else." />
+            <LineBreak />
+            <Run Text="See a sample of data" />
+        </TextBlock>
+        <CheckBox x:Name="ShareAnonymousData" Grid.Row="3" Margin="10,5" Content="Share anonymous SonarLint statistics" />
+    </Grid>
+</UserControl>
