@@ -37,13 +37,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IssuesSnapshot NextSnapshot;
 
-        internal IssuesSnapshot(string filePath, int versionNumber, IList<IssueMarker> issueMarkers)
+        internal IssuesSnapshot(string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers)
         {
             this.filePath = filePath;
             this.versionNumber = versionNumber;
-
-            this.issueMarkers = issueMarkers;
-            this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(issueMarkers);
+            this.issueMarkers = new List<IssueMarker>(issueMarkers);
+            this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
         }
 
         public override int Count => this.issueMarkers.Count;
