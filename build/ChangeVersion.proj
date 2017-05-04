@@ -28,17 +28,17 @@
       <ReplaceWith>$(VsixVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </VsixVersion>
-	<VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix_2017\source.extension.vsixmanifest">
+    <VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix_2017\source.extension.vsixmanifest">
       <Find>(?&lt;=Identity.*Version=")([^"]*)</Find>
       <ReplaceWith>$(VsixVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </VsixVersion>
-	
-	<VsPackageVersion Include="$(SolutionRoot)\src\Integration.Vsix\SonarLintIntegrationPackage.cs">
-	  <Find>(?&lt;=\[InstalledProductRegistration\("#110", "#112", ")([^"]*)</Find>
+
+    <VsPackageVersion Include="$(SolutionRoot)\src\Integration.Vsix\SonarLintIntegrationPackage.cs">
+      <Find>(?&lt;=\[InstalledProductRegistration\("#110", "#112", ")([^"]*)</Find>
       <ReplaceWith>$(AssemblyFileVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
-	</VsPackageVersion>
+    </VsPackageVersion>
   </ItemGroup>
 
   <Target Name="UpdateAssemblyVersion">
@@ -46,6 +46,6 @@
     <RegexTransform Items="@(AssemblyFileVersion)" />
     <RegexTransform Items="@(AssemblyInformationalVersion)" />
     <RegexTransform Items="@(VsixVersion)" />
-	<RegexTransform Items="@(VsPackageVersion)" />
+    <RegexTransform Items="@(VsPackageVersion)" />
   </Target>
 </Project>
