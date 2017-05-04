@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal static SonarLintDaemonPackage Instance { get; private set; }
 
-        private string WorkDir;
+        private string workingDirectory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
-                daemon.Dispose();
+                Directory.Delete(workingDirectory, true);
             }
         }
 
@@ -138,10 +138,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         // TODO migrate to SonarLintDaemon
         private void InitializeSonarLintDaemonFacade()
         {
-            WorkDir = CreateTempDir();
+            workingDirectory = CreateTempDirectory();
         }
 
-        private string CreateTempDir()
+        private string CreateTempDirectory()
         {
             string tempDirectory = Path.Combine(Path.GetTempPath(), "SonarLintDaemon", Path.GetRandomFileName());
             Directory.CreateDirectory(tempDirectory);
@@ -155,21 +155,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async void Analyze(string path, string charset)
         {
-            var channel = new Channel(string.Join(":", DAEMON_HOST, DAEMON_PORT), ChannelCredentials.Insecure);
-            var client = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
-
-            var inputFile = new InputFile
-            {
-                Path = path,
-                Charset = charset,
-            };
-
             var request = new AnalysisReq
             {
                 BaseDir = path,
-                WorkDir = WorkDir,
+                WorkDir = workingDirectory,
             };
-            request.File.Add(inputFile);
+            request.File.Add(new InputFile
+            {
+                Path = path,
+                Charset = charset,
+            });
+
+            var channel = new Channel(string.Join(":", DAEMON_HOST, DAEMON_PORT), ChannelCredentials.Insecure);
+            var client = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
 
             try
             {
