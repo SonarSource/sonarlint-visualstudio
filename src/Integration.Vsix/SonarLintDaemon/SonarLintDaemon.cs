@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void Dispose()
         {
-            if (IsRunning())
+            if (IsRunning)
             {
                 Stop();
             }
@@ -44,18 +44,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Unzip();
         }
 
-        public bool IsRunning()
-        {
-            if (process == null)
-            {
-                return false;
-            }
-            return !process.HasExited;
-        }
+        public bool IsRunning => process != null && !process.HasExited;
 
         public void Start()
         {
-            if (IsRunning())
+            if (IsRunning)
             {
                 throw new InvalidOperationException("Process already running");
             }
@@ -80,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void Stop()
         {
-            if (!IsRunning())
+            if (!IsRunning)
             {
                 return;
                 // throw exception?
