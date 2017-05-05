@@ -46,24 +46,25 @@
     <CodeAnalysisRuleSet>$(ReferencedDirectory)\Integration.Vsix.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\*Designer.cs;**\Settings\*;**\Telemetry\GeneratedCode\*">
+    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\*Designer.cs;**\Settings\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-    <Compile Include="Settings\GeneralOptionsDialogControl.xaml.cs">
+    <Compile Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogControl.xaml.cs">
       <DependentUpon>GeneralOptionsDialogControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Settings\OtherOptionsDialogControl.xaml.cs">
+    <Compile Include="$(ReferencedDirectory)\Settings\OtherOptionsDialogControl.xaml.cs">
       <DependentUpon>OtherOptionsDialogControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Settings\OtherOptionsDialogPage.cs">
+    <Compile Include="$(ReferencedDirectory)\Settings\OtherOptionsDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Settings\GeneralOptionsDialogPage.cs">
+    <Compile Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="SonarLintDaemon\SonarLintDaemonInstaller.xaml.cs">
+    <Compile Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml.cs">
       <DependentUpon>SonarLintDaemonInstaller.xaml</DependentUpon>
     </Compile>
+    <Compile Include="$(ReferencedDirectory)\Settings\SonarLintSettings.cs" />
     <Compile Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -479,15 +480,15 @@
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.1\analyzers\SonarAnalyzer.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Settings\GeneralOptionsDialogControl.xaml">
+    <Page Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Settings\OtherOptionsDialogControl.xaml">
+    <Page Include="$(ReferencedDirectory)\Settings\OtherOptionsDialogControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SonarLintDaemon\SonarLintDaemonInstaller.xaml">
+    <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
