@@ -18,32 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.Resources;
-using System;
-using System.ComponentModel;
+using Microsoft.VisualStudio.Shell;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    [AttributeUsage(AttributeTargets.All)]
-    internal sealed class LocalizedDisplayNameAttribute : DisplayNameAttribute
+    /// <summary>
+    /// Interaction logic for GeneralOptionsDialogControl.xaml
+    /// </summary>
+    public partial class GeneralOptionsDialogControl : UserControl
     {
-        private bool isLoaded;
-
-        public LocalizedDisplayNameAttribute(string displayNameResource)
-            : base(displayNameResource)
+        public GeneralOptionsDialogControl()
         {
+            InitializeComponent();
         }
 
-        public override string DisplayName
+        private void OnInstallJavaScriptClicked(object sender, RoutedEventArgs e)
         {
-            get
+            var daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
+            if (!daemon.IsInstalled)
             {
-                if (!isLoaded)
-                {
-                    isLoaded = true;
-                    DisplayNameValue = Strings.ResourceManager.GetString(DisplayNameValue);
-                }
-                return DisplayNameValue;
+                new SonarLintDaemonInstaller().Show();
             }
         }
     }

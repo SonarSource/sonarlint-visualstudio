@@ -28,7 +28,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Guid(CommonGuids.Package)]
     [ProvideBindingPath]
     [ProvideAutoLoad(CommonGuids.PackageActivation)]
-    [ProvideOptionPage(typeof(OptionsPage), OptionsPage.CategoryName, OptionsPage.PageName, 901, 902, false, 903)]
+    [ProvideOptionPage(typeof(GeneralOptionsDialogPage), "SonarLint", GeneralOptionsDialogPage.PageName, 901, 902, false, 903)]
+    [ProvideOptionPage(typeof(OtherOptionsDialogPage), "SonarLint", OtherOptionsDialogPage.PageName, 901, 904, true)]
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
          "(HasCSProj | HasVBProj)",
         new string[] { "HasCSProj",

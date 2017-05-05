@@ -287,13 +287,14 @@
     <Compile Include="Commands\ProjectExcludePropertyToggleCommandTests.cs" />
     <Compile Include="IEnumerableExtensionsTests.cs" />
     <Compile Include="InfoBar\InfoBarManagerTests.cs" />
-    <Compile Include="Settings\IntegrationSettingsTests.cs" />
+    <Compile Include="Settings\SonarLintSettingsTests.cs" />
     <Compile Include="SonarAnalyzer\ConfigurableSolutionAnalysisRequester.cs" />
     <Compile Include="SonarAnalyzer\SolutionAnalysisRequesterTests.cs" />
     <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.ForBound.cs" />
     <Compile Include="SonarAnalyzer\ConfigurableAnalyzerReference.cs" />
     <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.cs" />
     <Compile Include="SonarAnalyzer\WorkspaceConfiguratorTests.cs" />
+    <Compile Include="SonarLintDaemonTests.cs" />
     <Compile Include="TcpUtilTests.cs" />
     <Compile Include="Telemetry\BoundSolutionAnalyzerTests.cs" />
     <Compile Include="Commands\PackageCommandManagerTests.cs" />

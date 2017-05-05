@@ -60,21 +60,31 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Include="Settings\IntegrationSettings.cs">
+    <Compile Include="Settings\GeneralOptionsDialogControl.xaml.cs">
+      <DependentUpon>GeneralOptionsDialogControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Settings\OtherOptionsDialogControl.xaml.cs">
+      <DependentUpon>OtherOptionsDialogControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Settings\OtherOptionsDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Settings\LocalizedCategoryAttribute.cs" />
-    <Compile Include="Settings\LocalizedDescriptionAttribute.cs" />
-    <Compile Include="Settings\LocalizedDisplayNameAttribute.cs" />
-    <Compile Include="Settings\OptionsPage.cs">
+    <Compile Include="Settings\GeneralOptionsDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Settings\SonarLintSettings.cs" />
     <Compile Include="SolutionAnalysisRequester\RoslynRuntimeOptions.cs" />
     <Compile Include="SolutionAnalysisRequester\ISolutionAnalysisRequester.cs" />
     <Compile Include="SolutionAnalysisRequester\IWorkspaceConfigurator.cs" />
     <Compile Include="SolutionAnalysisRequester\WorkspaceConfigurator.cs" />
     <Compile Include="SonarAnalyzerManager.cs" />
     <Compile Include="SolutionAnalysisRequester\SolutionAnalysisRequester.cs" />
+    <Compile Include="SonarLintDaemon\SonarLintDaemonInstaller.xaml.cs">
+      <DependentUpon>SonarLintDaemonInstaller.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SonarLintDaemonPackage.cs" />
+    <Compile Include="SonarLintDaemon\ISonarLintDaemon.cs" />
+    <Compile Include="SonarLintDaemon\SonarLintDaemon.cs" />
     <Compile Include="TcpUtil.cs" />
     <Compile Include="Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <AutoGen>True</AutoGen>
@@ -243,6 +253,8 @@
       <HintPath>..\..\packages\Microsoft.VisualStudio.Validation.14.1.111\lib\net45\Microsoft.VisualStudio.Validation.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="SonarAnalyzer">
       <HintPath>..\..\binaries\SonarAnalyzer.dll</HintPath>
     </Reference>
@@ -291,6 +303,7 @@
       <HintPath>..\..\packages\System.Console.4.3.0\lib\net46\System.Console.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Data" />
     <Reference Include="System.Diagnostics.FileVersionInfo, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Diagnostics.FileVersionInfo.4.3.0\lib\net46\System.Diagnostics.FileVersionInfo.dll</HintPath>
       <Private>True</Private>
@@ -345,6 +358,8 @@
       <HintPath>..\..\packages\System.Threading.Thread.4.3.0\lib\net46\System.Threading.Thread.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml.ReaderWriter, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -363,6 +378,8 @@
       <HintPath>..\..\packages\System.Xml.XPath.XDocument.4.3.0\lib\net46\System.Xml.XPath.XDocument.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Progress\Progress.csproj">
@@ -461,6 +478,20 @@
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.5.10.0.1302\analyzers\Google.Protobuf.dll" />
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.5.10.0.1302\analyzers\SonarAnalyzer.CSharp.dll" />
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.5.10.0.1302\analyzers\SonarAnalyzer.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Settings\GeneralOptionsDialogControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Settings\OtherOptionsDialogControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SonarLintDaemon\SonarLintDaemonInstaller.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />

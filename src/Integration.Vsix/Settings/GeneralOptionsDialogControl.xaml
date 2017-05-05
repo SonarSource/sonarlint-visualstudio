@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="SonarLint.VisualStudio.Integration.Vsix.GeneralOptionsDialogControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             mc:Ignorable="d">
+
+    <!--  #Design  -->
+    <StackPanel Margin="5,0">
+        <CheckBox x:Name="ShowServerNuGetTrustWarning"
+                  Content="Display a warning about NuGet packages" />
+        <TextBlock Margin="20,5,10,5"
+                   Text="Display a warning about automatically downloading NuGet packages when establishing a SonarQube server connection."
+                   TextWrapping="Wrap" />
+
+        <TextBlock FontWeight="Bold" Text="Activate more..."/>
+        <TextBlock Margin="20,5,10,5"
+                   Text="SonarLint for Visual Studio can also analyze JavaScript files, limited to standalone mode for now. After installing JavaScript support, it will be activated for newly opened files."
+                   TextWrapping="Wrap"/>
+        <Button Margin="20,5,10,5" Content="Install JavaScript support" Click="OnInstallJavaScriptClicked" />
+    </StackPanel>
+</UserControl>
