@@ -37,14 +37,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.OnActivate(e);
 
-            // restore stored values here
+            dialogControl.ShowServerNuGetTrustWarning.IsChecked = Settings.ShowServerNuGetTrustWarning;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
         {
             if (e.ApplyBehavior == ApplyKind.Apply)
             {
-                // Save values here
+                Settings.ShowServerNuGetTrustWarning = dialogControl.ShowServerNuGetTrustWarning.IsChecked.Value;
             }
 
             base.OnApply(e);
