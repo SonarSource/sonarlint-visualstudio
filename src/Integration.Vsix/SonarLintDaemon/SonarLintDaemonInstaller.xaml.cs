@@ -18,6 +18,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Window_ContentRendered(object sender, EventArgs args)
         {
+            // TODO rewrite using Task.Run, see: https://blog.stephencleary.com/2013/05/taskrun-vs-backgroundworker-intro.html
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
             worker.DoWork += worker_DoWork;
