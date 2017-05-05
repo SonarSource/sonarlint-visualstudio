@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             port = TcpUtil.FindFreePort(8050);
             process = new Process();
             process.StartInfo.UseShellExecute = false;
-            process.StartInfo.FileName = GetExePath();
+            process.StartInfo.FileName = ExePath;
             process.StartInfo.Arguments = GetCmdArgs(port);
             process.StartInfo.CreateNoWindow = true;
             process.Start();
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public bool IsInstalled()
         {
-            return Directory.Exists(GetInstallationPath()) && File.Exists(GetExePath());
+            return Directory.Exists(InstallationPath) && File.Exists(ExePath);
         }
 
         private void Download()
@@ -97,38 +97,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             string uri = string.Format(uriFormat, version);
             using (var client = new WebClient())
             {
-                client.DownloadFile(uri, GetZipFilePath());
+                client.DownloadFile(uri, ZipFilePath);
             }
         }
 
         private void Unzip()
         {
-            if (Directory.Exists(GetInstallationPath()))
+            if (Directory.Exists(InstallationPath))
             {
-                Directory.Delete(GetInstallationPath(), true);
+                Directory.Delete(InstallationPath, true);
             }
-            ZipFile.ExtractToDirectory(GetZipFilePath(), storagePath);
+            ZipFile.ExtractToDirectory(ZipFilePath, storagePath);
         }
 
-        private string GetInstallationPath()
-        {
-            return Path.Combine(storagePath, $"sonarlint-daemon-{version}-windows");
-        }
+        private string InstallationPath => Path.Combine(storagePath, $"sonarlint-daemon-{version}-windows");
 
-        private string GetZipFilePath()
-        {
-            return Path.Combine(tmpPath, $"sonarlint-daemon-{version}-windows.zip");
-        }
+        private string ZipFilePath => Path.Combine(tmpPath, $"sonarlint-daemon-{version}-windows.zip");
 
-        private string GetExePath()
-        {
-            return Path.Combine(GetInstallationPath(), "jre", "bin", "java.exe");
-        }
+        private string ExePath => Path.Combine(InstallationPath, "jre", "bin", "java.exe");
 
         private string GetCmdArgs(int port)
         {
-            string jarPath = Path.Combine(GetInstallationPath(), "lib", $"sonarlint-daemon-{version}.jar");
-            string logPath = Path.Combine(GetInstallationPath(), "conf", "logback.xml");
+            string jarPath = Path.Combine(InstallationPath, "lib", $"sonarlint-daemon-{version}.jar");
+            string logPath = Path.Combine(InstallationPath, "conf", "logback.xml");
             string className = "org.sonarlint.daemon.Daemon";
 
             return string.Format("-Djava.awt.headless=true" +
@@ -137,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 " \"-Dsonarlint.home={2}\"" +
                 " {3}" +
                 " \"--port\" \"{4}\"",
-                jarPath, logPath, GetInstallationPath(), className, port);
+                jarPath, logPath, InstallationPath, className, port);
         }
     }
 }
