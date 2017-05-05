@@ -294,6 +294,7 @@
     <Compile Include="SonarAnalyzer\ConfigurableAnalyzerReference.cs" />
     <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.cs" />
     <Compile Include="SonarAnalyzer\WorkspaceConfiguratorTests.cs" />
+    <Compile Include="SonarLintDaemonTests.cs" />
     <Compile Include="TcpUtilTests.cs" />
     <Compile Include="Telemetry\BoundSolutionAnalyzerTests.cs" />
     <Compile Include="Commands\PackageCommandManagerTests.cs" />
