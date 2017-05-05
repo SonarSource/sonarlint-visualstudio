@@ -7,6 +7,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         bool IsInstalled { get; }
 
         void Install();
+        bool IsRunning();
         void Start();
         void RequestAnalysis(string path, string charset);
     }
