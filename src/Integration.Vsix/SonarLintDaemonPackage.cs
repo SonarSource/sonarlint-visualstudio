@@ -24,16 +24,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Windows;
-using Grpc.Core;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Sonarlint;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Runtime.InteropServices;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -57,23 +47,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Guid(PackageGuidString)]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
-    [ProvideAutoLoad(UIContextGuids80.NoSolution)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class SonarLintDaemonPackage : Package
     {
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
 
         private readonly ISonarLintDaemon daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
-
-        // TODO migrate to SonarLintDaemon
-        private static readonly string DAEMON_HOST = "localhost";
-        private static readonly int DAEMON_PORT = 8050;
-
-        public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
-
-        internal static SonarLintDaemonPackage Instance { get; private set; }
-
-        private string workingDirectory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -128,72 +107,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
-                Directory.Delete(workingDirectory, true);
+                daemon.Dispose();
             }
         }
 
         #endregion
-
-        // TODO migrate to SonarLintDaemon
-        private void InitializeSonarLintDaemonFacade()
-        {
-            workingDirectory = CreateTempDirectory();
-        }
-
-        private string CreateTempDirectory()
-        {
-            string tempDirectory = Path.Combine(Path.GetTempPath(), "SonarLintDaemon", Path.GetRandomFileName());
-            Directory.CreateDirectory(tempDirectory);
-            return tempDirectory;
-        }
-
-        public void RequestAnalysis(string path, string charset)
-        {
-            Analyze(path, charset);
-        }
-
-        private async void Analyze(string path, string charset)
-        {
-            var request = new AnalysisReq
-            {
-                BaseDir = path,
-                WorkDir = workingDirectory,
-            };
-            request.File.Add(new InputFile
-            {
-                Path = path,
-                Charset = charset,
-            });
-
-            var channel = new Channel(string.Join(":", DAEMON_HOST, DAEMON_PORT), ChannelCredentials.Insecure);
-            var client = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
-
-            using (var call = client.Analyze(request))
-            {
-                try
-                {
-                    await ProcessIssues(call, path);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine("Call to .Analyze failed: {0}", e);
-                }
-            }
-
-            await channel.ShutdownAsync();
-        }
-
-        private async System.Threading.Tasks.Task ProcessIssues(AsyncServerStreamingCall<Issue> call, string path)
-        {
-            var issues = new List<Issue>();
-
-            while (await call.ResponseStream.MoveNext())
-            {
-                var issue = call.ResponseStream.Current;
-                issues.Add(issue);
-            }
-
-            TaggerProvider.Instance.UpdateIssues(path, issues);
-        }
     }
 }

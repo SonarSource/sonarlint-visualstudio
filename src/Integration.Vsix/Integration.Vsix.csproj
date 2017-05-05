@@ -114,7 +114,6 @@
     <Compile Include="Telemetry\SonarLintIntegrationPackage.IOleCommandTarget.cs" />
     <Compile Include="Telemetry\TelemetryLogger.cs" />
     <Compile Include="VisualStudioConstants.cs" />
-    <Compile Include="SonarLintDaemonPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

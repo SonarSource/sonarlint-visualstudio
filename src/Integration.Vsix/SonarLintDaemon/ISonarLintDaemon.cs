@@ -8,5 +8,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         void Install();
         void Start();
+        void RequestAnalysis(string path, string charset);
     }
 }

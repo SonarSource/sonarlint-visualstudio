@@ -48,10 +48,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly List<SinkManager> managers = new List<SinkManager>();
         private readonly TrackerManager trackers = new TrackerManager();
 
+        private readonly ISonarLintDaemon daemon;
+
         internal static TaggerProvider Instance { get; private set; }
 
         [ImportingConstructor]
-        internal TaggerProvider([Import] ITableManagerProvider provider, [Import] ITextDocumentFactoryService textDocumentFactoryService)
+        internal TaggerProvider([Import] ITableManagerProvider provider, [Import] ITextDocumentFactoryService textDocumentFactoryService, [Import] ISonarLintDaemon daemon)
         {
             this.ErrorTableManager = provider.GetTableManager(StandardTables.ErrorsTable);
             this.TextDocumentFactoryService = textDocumentFactoryService;
@@ -64,7 +66,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
                                                    StandardTableColumnDefinitions.ProjectName);
 
+            // TODO make this unnecessary
             TaggerProvider.Instance = this;
+
+            this.daemon = daemon;
         }
 
         /// <summary>
@@ -168,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(string path, string charset)
         {
-            SonarLintDaemonPackage.Instance.RequestAnalysis(path, charset);
+            daemon.RequestAnalysis(path, charset);
         }
 
         internal void UpdateIssues(string path, IList<Issue> issues)
