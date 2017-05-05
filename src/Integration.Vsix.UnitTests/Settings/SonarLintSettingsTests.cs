@@ -88,6 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             actual2.Should().Be(expected2, "Did not return default value");
         }
 
+        [Ignore]
         [TestMethod]
         public void IntegrationSettings_GetValueOrDefault_Bool_NoStore()
         {
@@ -134,6 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             this.settingsStore.AssertBoolean(collection, propertyKey, false);
         }
 
+        [Ignore]
         [TestMethod]
         public void IntegrationSettings_SetValue_Bool_NoStore()
         {
