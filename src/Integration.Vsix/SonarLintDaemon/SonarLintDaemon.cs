@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 throw new InvalidOperationException("Process already running");
             }
-            if (!IsInstalled())
+            if (!IsInstalled)
             {
                 throw new InvalidOperationException("Daemon is not installed");
             }
@@ -82,15 +82,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             process.WaitForExit();
         }
 
-        public int Port()
-        {
-            return port;
-        }
+        public int Port => port;
 
-        public bool IsInstalled()
-        {
-            return Directory.Exists(InstallationPath) && File.Exists(ExePath);
-        }
+        public bool IsInstalled => Directory.Exists(InstallationPath) && File.Exists(ExePath);
 
         private void Download()
         {

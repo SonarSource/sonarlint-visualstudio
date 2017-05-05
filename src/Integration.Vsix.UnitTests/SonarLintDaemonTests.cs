@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Not_Installed()
         {
-            Assert.IsFalse(daemon.IsInstalled());
+            Assert.IsFalse(daemon.IsInstalled);
             Assert.IsFalse(daemon.IsRunning);
         }
 
@@ -50,17 +50,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             daemon.Install();
             Assert.AreEqual(1, Directory.EnumerateFiles(tempPath).Count());
             Assert.AreEqual(1, Directory.EnumerateDirectories(storagePath).Count());
-            Assert.IsTrue(daemon.IsInstalled());
+            Assert.IsTrue(daemon.IsInstalled);
             Assert.IsFalse(daemon.IsRunning);
 
             daemon.Install();
             Assert.AreEqual(1, Directory.EnumerateFiles(tempPath).Count());
             Assert.AreEqual(1, Directory.EnumerateDirectories(storagePath).Count());
-            Assert.IsTrue(daemon.IsInstalled());
+            Assert.IsTrue(daemon.IsInstalled);
             Assert.IsFalse(daemon.IsRunning);
 
             daemon.Start();
-            Assert.IsTrue(daemon.IsInstalled());
+            Assert.IsTrue(daemon.IsInstalled);
             Assert.IsTrue(daemon.IsRunning);
             daemon.Stop();
             Assert.IsFalse(daemon.IsRunning);

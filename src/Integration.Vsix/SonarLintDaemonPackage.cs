@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.Initialize();
 
-            if (daemon.IsInstalled())
+            if (daemon.IsInstalled)
             {
                 daemon.Start();
             }

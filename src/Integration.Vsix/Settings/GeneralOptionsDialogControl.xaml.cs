@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private void OnInstallJavaScriptClicked(object sender, RoutedEventArgs e)
         {
             var daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
-            if (!daemon.IsInstalled())
+            if (!daemon.IsInstalled)
             {
                 new SonarLintDaemonInstaller().Show();
             }
