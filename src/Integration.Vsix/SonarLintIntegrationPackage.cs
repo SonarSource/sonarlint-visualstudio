@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,16 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell;
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    // Register this class as a VS package.
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Guid(CommonGuids.Package)]
     [ProvideBindingPath]
+    // Specify when to load the extension (GUID can be found in Microsoft.VisualStudio.VSConstants.UICONTEXT)
     [ProvideAutoLoad(CommonGuids.PackageActivation)]
+    // Register the information needed to show the package in the Help/About dialog of VS.
+    // NB: The version is automatically updated by the ChangeVersion.proj
+    [InstalledProductRegistration("#110", "#112", "3.0.0.0", IconResourceID = 400)]
     [ProvideOptionPage(typeof(GeneralOptionsDialogPage), "SonarLint", GeneralOptionsDialogPage.PageName, 901, 902, false, 903)]
     [ProvideOptionPage(typeof(OtherOptionsDialogPage), "SonarLint", OtherOptionsDialogPage.PageName, 901, 904, true)]
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
@@ -37,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         new string[] { "SolutionHasProjectCapability:CSharp",
                        "SolutionHasProjectCapability:VB" }
     )]
-
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
         "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
         Justification = "By-Design. The base class exposes a Dispose override in which the disposable instances will be disposed",
