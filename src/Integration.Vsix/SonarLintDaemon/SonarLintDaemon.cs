@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Grpc.Core;
+using Sonarlint;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -10,6 +13,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Export(typeof(ISonarLintDaemon))]
     class SonarLintDaemon : ISonarLintDaemon
     {
+        private static readonly string DAEMON_HOST = "localhost";
+        private static readonly int DEFAULT_DAEMON_PORT = 8050;
+
         public const string daemonVersion = "2.12.0.492";
         private const string uriFormat = "https://repox.sonarsource.com/sonarsource-public-builds/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
         private readonly string version;
@@ -18,6 +24,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private int port;
 
         private Process process;
+
+        private readonly string workingDirectory;
 
         public SonarLintDaemon() : this(daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath())
         {
@@ -28,10 +36,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.version = version;
             this.tmpPath = tmpPath;
             this.storagePath = storagePath;
+            this.workingDirectory = CreateTempDirectory();
         }
 
         public void Dispose()
         {
+            if (Directory.Exists(workingDirectory))
+            {
+                Directory.Delete(workingDirectory, true);
+            }
+
             if (IsRunning)
             {
                 Stop();
@@ -62,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 process.Close();
             }
 
-            port = TcpUtil.FindFreePort(8050);
+            port = TcpUtil.FindFreePort(DEFAULT_DAEMON_PORT);
             process = new Process();
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.FileName = ExePath;
@@ -123,6 +137,62 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 " {3}" +
                 " \"--port\" \"{4}\"",
                 jarPath, logPath, InstallationPath, className, port);
+        }
+
+        private string CreateTempDirectory()
+        {
+            string tempDirectory = Path.Combine(Path.GetTempPath(), "SonarLintDaemon", Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDirectory);
+            return tempDirectory;
+        }
+
+        public void RequestAnalysis(string path, string charset, IIssueConsumer consumer)
+        {
+            Analyze(path, charset, consumer);
+        }
+
+        private async void Analyze(string path, string charset, IIssueConsumer consumer)
+        {
+            var request = new AnalysisReq
+            {
+                BaseDir = path,
+                WorkDir = workingDirectory,
+            };
+            request.File.Add(new InputFile
+            {
+                Path = path,
+                Charset = charset,
+            });
+
+            var channel = new Channel($"{DAEMON_HOST}:{port}", ChannelCredentials.Insecure);
+            var client = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
+
+            using (var call = client.Analyze(request))
+            {
+                try
+                {
+                    await ProcessIssues(call, path, consumer);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("Call to client.Analyze failed: {0}", e);
+                }
+            }
+
+            await channel.ShutdownAsync();
+        }
+
+        private async System.Threading.Tasks.Task ProcessIssues(AsyncServerStreamingCall<Issue> call, string path, IIssueConsumer consumer)
+        {
+            var issues = new List<Issue>();
+
+            while (await call.ResponseStream.MoveNext())
+            {
+                var issue = call.ResponseStream.Current;
+                issues.Add(issue);
+            }
+
+            consumer.Accept(path, issues);
         }
     }
 }

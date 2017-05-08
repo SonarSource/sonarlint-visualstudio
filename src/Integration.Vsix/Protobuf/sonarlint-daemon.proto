@@ -1,0 +1,152 @@
+// SonarLint, open source software quality management tool.
+// Copyright (C) 2015-2017 SonarSource
+// mailto:contact AT sonarsource DOT com
+//
+// SonarLint is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// SonarLint is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program; if not, write to the Free Software Foundation,
+// Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+
+syntax = "proto3";
+
+package sonarlint;
+
+// The java package can be changed without breaking compatibility.
+// it impacts only the generated Java code.
+option java_package = "org.sonarsource.sonarlint.daemon.proto";
+option optimize_for = SPEED;
+
+service ConnectedSonarLint {
+  rpc Start(ConnectedConfiguration) returns (Void); // must be called before any other rpc
+  rpc Analyze(ConnectedAnalysisReq) returns (stream Issue);
+  rpc Update(ServerConfig) returns (Void); // updates storage using a provided server configuration
+  rpc UpdateModule(ModuleUpdateReq) returns (Void); // updates a module using a provided server configuration
+  rpc GetState(Void) returns (StorageState); // get state of the storage
+  rpc StreamLogs(Void) returns (stream LogEvent); // stream all logs from the server
+  rpc GetRuleDetails(RuleKey) returns (RuleDetails);
+}
+
+service StandaloneSonarLint {
+  rpc Analyze(AnalysisReq) returns (stream Issue);
+  rpc StreamLogs(Void) returns (stream LogEvent); // stream all logs from the server
+  rpc GetRuleDetails(RuleKey) returns (RuleDetails);
+}
+
+message ModuleUpdateReq {
+  ServerConfig server_config = 1;
+  string module_key = 2;
+}
+
+message RuleKey {
+  string key = 1;
+}
+
+message StorageState {
+  State state = 1;
+
+  enum State {
+    UNKNOW = 0;
+    UPDATING = 1;
+    NEVER_UPDATED = 2;
+    NEED_UPDATE = 3;
+    UPDATED = 4;
+  }
+}
+
+message Void {
+}
+
+message LogEvent {
+  string level = 1;
+  string log = 2;
+  bool is_debug = 3;
+
+  enum Level {
+    ERROR = 0;
+    WARN = 1;
+    INFO = 2;
+    DEBUG = 3;
+    TRACE = 4;
+  }
+}
+
+message ServerConfig {
+  string host_url = 1;
+  string user_agent = 2;
+  oneof auth {
+    string token = 3;
+    Credentials credentials = 4;
+  }
+
+  message Credentials {
+    string login = 1;
+    string password = 2;
+  }
+}
+
+message Issue {
+  Severity severity = 1;
+  int32 start_line = 2;
+  int32 start_line_offset = 3;
+  int32 end_line = 4;
+  int32 end_line_offset = 5;
+  string message = 6;
+  string rule_key = 7;
+  string rule_name = 8;
+  string file_path = 9;
+  string user_object = 10;
+
+  enum Severity {
+    BLOCKER = 0;
+    CRITICAL = 1;
+    MAJOR = 2;
+    MINOR = 3;
+    INFO = 4;
+  }
+}
+
+message RuleDetails {
+  string key = 1;
+  string name = 2;
+  string html_description = 3;
+  string language = 4;
+  string severity = 5;
+  repeated string tags = 6;
+}
+
+message AnalysisReq {
+  map<string, string> properties = 1;
+  repeated InputFile file = 2;
+  string base_dir = 3;
+  string work_dir = 4;
+}
+
+message InputFile {
+  string path = 1;
+  string charset = 2;
+  bool is_test = 3;
+  string user_object = 4;
+}
+
+message ConnectedAnalysisReq {
+  map<string, string> properties = 1;
+  repeated InputFile file = 2;
+  string base_dir = 3;
+  string work_dir = 4;
+  string module_key = 5;
+}
+
+message ConnectedConfiguration {
+  string storage_id = 1;
+  string home_path = 2;
+}
