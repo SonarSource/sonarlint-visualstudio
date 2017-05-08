@@ -146,12 +146,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return tempDirectory;
         }
 
-        public void RequestAnalysis(string path, string charset)
+        public void RequestAnalysis(string path, string charset, IIssueConsumer consumer)
         {
-            Analyze(path, charset);
+            Analyze(path, charset, consumer);
         }
 
-        private async void Analyze(string path, string charset)
+        private async void Analyze(string path, string charset, IIssueConsumer consumer)
         {
             var request = new AnalysisReq
             {
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 try
                 {
-                    await ProcessIssues(call, path);
+                    await ProcessIssues(call, path, consumer);
                 }
                 catch (Exception e)
                 {
@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             await channel.ShutdownAsync();
         }
 
-        private async System.Threading.Tasks.Task ProcessIssues(AsyncServerStreamingCall<Issue> call, string path)
+        private async System.Threading.Tasks.Task ProcessIssues(AsyncServerStreamingCall<Issue> call, string path, IIssueConsumer consumer)
         {
             var issues = new List<Issue>();
 
@@ -192,7 +192,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 issues.Add(issue);
             }
 
-            TaggerProvider.Instance.UpdateIssues(path, issues);
+            consumer.Accept(path, issues);
         }
     }
 }

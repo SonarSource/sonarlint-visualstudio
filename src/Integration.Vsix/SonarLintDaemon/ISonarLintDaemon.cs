@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Sonarlint;
+using System;
+using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -9,6 +11,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         void Install();
         void Start();
-        void RequestAnalysis(string path, string charset);
+        void RequestAnalysis(string path, string charset, IIssueConsumer consumer);
+    }
+
+    interface IIssueConsumer
+    {
+        void Accept(string path, IEnumerable<Issue> issue);
     }
 }

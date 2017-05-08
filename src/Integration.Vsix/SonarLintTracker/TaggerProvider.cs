@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class TaggerProvider : IViewTaggerProvider, ITableDataSource
+    internal sealed class TaggerProvider : IViewTaggerProvider, ITableDataSource, IIssueConsumer
     {
         internal readonly ITableManager ErrorTableManager;
         internal readonly ITextDocumentFactoryService TextDocumentFactoryService;
@@ -49,8 +49,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly TrackerManager trackers = new TrackerManager();
 
         private readonly ISonarLintDaemon daemon;
-
-        internal static TaggerProvider Instance { get; private set; }
 
         [ImportingConstructor]
         internal TaggerProvider([Import] ITableManagerProvider provider, [Import] ITextDocumentFactoryService textDocumentFactoryService, [Import] ISonarLintDaemon daemon)
@@ -65,9 +63,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                                    StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
                                                    StandardTableColumnDefinitions.ProjectName);
-
-            // TODO make this unnecessary
-            TaggerProvider.Instance = this;
 
             this.daemon = daemon;
         }
@@ -173,10 +168,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(string path, string charset)
         {
-            daemon.RequestAnalysis(path, charset);
+            daemon.RequestAnalysis(path, charset, this);
         }
 
-        internal void UpdateIssues(string path, IList<Issue> issues)
+        public void Accept(string path, IEnumerable<Issue> issues)
+        {
+            UpdateIssues(path, issues);
+        }
+
+        private void UpdateIssues(string path, IEnumerable<Issue> issues)
         {
             IssueTracker tracker;
             if (trackers.TryGetValue(path, out tracker))
