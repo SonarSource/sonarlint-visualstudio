@@ -72,6 +72,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// </summary>
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
+            if (!daemon.IsRunning)
+            {
+                return null;
+            }
+
             // Only attempt to track the view's edit buffer.
             // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
             if (buffer != textView.TextBuffer || typeof(T) != typeof(IErrorTag))
