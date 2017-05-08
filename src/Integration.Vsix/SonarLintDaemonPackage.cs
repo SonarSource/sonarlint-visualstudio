@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
 
+        private readonly ISonarLintSettings settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
         private readonly ISonarLintDaemon daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
 
         /// <summary>
@@ -75,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.Initialize();
 
-            if (daemon.IsInstalled)
+            if (settings.IsActivateMoreEnabled && daemon.IsInstalled)
             {
                 if (!daemon.IsRunning)
                 {
@@ -100,6 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var result = MessageBox.Show(message, title, MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
+                settings.IsActivateMoreEnabled = true;
                 new SonarLintDaemonInstaller().Show();
             }
         }

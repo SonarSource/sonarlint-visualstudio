@@ -21,6 +21,7 @@
 using Microsoft.VisualStudio.Shell;
 using System.Windows;
 using System.Windows.Controls;
+using System;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -29,17 +30,83 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     public partial class GeneralOptionsDialogControl : UserControl
     {
+        private ISonarLintSettings settings;
+        private ISonarLintDaemon daemon;
+
         public GeneralOptionsDialogControl()
         {
             InitializeComponent();
         }
 
-        private void OnInstallJavaScriptClicked(object sender, RoutedEventArgs e)
+        protected override void OnInitialized(EventArgs e)
         {
-            var daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
-            if (!daemon.IsInstalled)
+            base.OnInitialized(e);
+
+            UpdateActivateMoreButtonText();
+        }
+
+        private void UpdateActivateMoreButtonText()
+        {
+            string label;
+            if (Settings.IsActivateMoreEnabled)
             {
-                new SonarLintDaemonInstaller().Show();
+                label = "Deactivate JavaScript support";
+            }
+            else
+            {
+                label = "Install and activate JavaScript support";
+            }
+            ActivateMoreButton.Content = label;
+        }
+
+        private void OnActivateMoreClicked(object sender, RoutedEventArgs e)
+        {
+            if (Settings.IsActivateMoreEnabled)
+            {
+                if (Daemon.IsRunning)
+                {
+                    Daemon.Stop();
+                }
+            }
+            else
+            {
+                if (!Daemon.IsInstalled)
+                {
+                    new SonarLintDaemonInstaller().Show();
+                }
+                else if (!Daemon.IsRunning)
+                {
+                    Daemon.Start();
+                }
+            }
+
+            Settings.IsActivateMoreEnabled = !Settings.IsActivateMoreEnabled;
+            UpdateActivateMoreButtonText();
+        }
+
+        private ISonarLintSettings Settings
+        {
+            get
+            {
+                if (this.settings == null)
+                {
+                    this.settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
+                }
+
+                return this.settings;
+            }
+        }
+
+        private ISonarLintDaemon Daemon
+        {
+            get
+            {
+                if (this.daemon == null)
+                {
+                    this.daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
+                }
+
+                return this.daemon;
             }
         }
     }
