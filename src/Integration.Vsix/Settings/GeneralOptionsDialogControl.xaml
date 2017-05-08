@@ -19,6 +19,6 @@
         <TextBlock Margin="20,5,10,5"
                    Text="SonarLint for Visual Studio can also analyze JavaScript files, limited to standalone mode for now. After installing JavaScript support, it will be activated for newly opened files."
                    TextWrapping="Wrap"/>
-        <Button Margin="20,5,10,5" Content="Install JavaScript support" Click="OnInstallJavaScriptClicked" />
+        <Button Margin="20,5,10,5" Content="Install JavaScript support" Click="OnActivateMoreClicked" x:Name="ActivateMoreButton" />
     </StackPanel>
 </UserControl>

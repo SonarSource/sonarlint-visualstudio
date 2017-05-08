@@ -11,6 +11,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         void Install();
         void Start();
+        void Stop();
         void RequestAnalysis(string path, string charset, IIssueConsumer consumer);
     }
 
