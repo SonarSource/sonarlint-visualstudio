@@ -115,13 +115,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public bool SkipActivateMoreDialog
         {
-            get { return this.GetValueOrDefault(nameof(SkipActivateMoreDialog), true); }
+            get { return this.GetValueOrDefault(nameof(SkipActivateMoreDialog), false); }
             set { this.SetValue(nameof(SkipActivateMoreDialog), value); }
         }
 
         public bool IsActivateMoreEnabled
         {
-            get { return this.GetValueOrDefault(nameof(IsActivateMoreEnabled), true); }
+            get { return this.GetValueOrDefault(nameof(IsActivateMoreEnabled), false); }
             set { this.SetValue(nameof(IsActivateMoreEnabled), value); }
         }
     }
