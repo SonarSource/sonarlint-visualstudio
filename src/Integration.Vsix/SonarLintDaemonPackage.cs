@@ -104,6 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 settings.IsActivateMoreEnabled = true;
                 new SonarLintDaemonInstaller().Show();
             }
+            settings.SkipActivateMoreDialog = true;
         }
 
         protected override void Dispose(bool disposing)
