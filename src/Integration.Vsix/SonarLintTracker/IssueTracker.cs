@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal void UpdateIssues(IEnumerable<Issue> issues)
         {
             var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newMarkers = issues.Select(issue => CreateIssueMarker(issue));
+            var newMarkers = issues.Select(CreateIssueMarker);
             var newSnapshot = new IssuesSnapshot(this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
             SnapToNewSnapshot(newSnapshot);
         }
