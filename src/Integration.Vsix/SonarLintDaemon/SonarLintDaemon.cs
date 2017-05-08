@@ -164,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Charset = charset,
             });
 
-            var channel = new Channel(string.Join(":", DAEMON_HOST, port), ChannelCredentials.Insecure);
+            var channel = new Channel($"{DAEMON_HOST}:{port}", ChannelCredentials.Insecure);
             var client = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
 
             using (var call = client.Analyze(request))
