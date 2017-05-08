@@ -47,16 +47,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void UpdateActivateMoreButtonText()
         {
-            string label;
-            if (Settings.IsActivateMoreEnabled)
-            {
-                label = "Deactivate JavaScript support";
-            }
-            else
-            {
-                label = "Install and activate JavaScript support";
-            }
-            ActivateMoreButton.Content = label;
+            ActivateMoreButton.Content = Settings.IsActivateMoreEnabled
+                ? "Deactivate JavaScript support"
+                : "Install and activate JavaScript support";
         }
 
         private void OnActivateMoreClicked(object sender, RoutedEventArgs e)
