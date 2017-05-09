@@ -41,12 +41,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // TODO rewrite using Task.Run, see: https://blog.stephencleary.com/2013/05/taskrun-vs-backgroundworker-intro.html
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
-            worker.DoWork += worker_DoWork;
+            worker.DoWork += Worker_DoWork;
             worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
             worker.RunWorkerAsync();
         }
 
-        void worker_DoWork(object sender, DoWorkEventArgs eventArgs)
+        void Worker_DoWork(object sender, DoWorkEventArgs eventArgs)
         {
             try
             {
@@ -65,13 +65,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            pbStatus.Value = 100;
-            pbStatus.IsIndeterminate = false;
-            okButton.IsEnabled = true;
-            okButton.Focus();
+            ProgressBarStatus.Value = 100;
+            ProgressBarStatus.IsIndeterminate = false;
+            OkButton.IsEnabled = true;
+            OkButton.Focus();
         }
 
-        private void okButton_Click(object sender, RoutedEventArgs e)
+        private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }

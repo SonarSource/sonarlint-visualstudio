@@ -1,18 +1,18 @@
 ﻿<Window x:Class="SonarLint.VisualStudio.Integration.Vsix.SonarLintDaemonInstaller"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Installing JavaScript support..." Height="150" Width="400"
-        ContentRendered="Window_ContentRendered" WindowStyle="None"
-        WindowStartupLocation="CenterScreen">
-    <StackPanel Margin="5,0">
+        Title="Installing JavaScript support..." Width="400"
+        ContentRendered="Window_ContentRendered" WindowStyle="SingleBorderWindow"
+        WindowStartupLocation="CenterScreen" Topmost="True" SizeToContent="WidthAndHeight" >
+    <StackPanel Margin="5">
         <TextBlock Text="Installing JavaScript support..." Margin="0,5" FontWeight="Bold" FontSize="16"/>
         <TextBlock Text="(This could take a while, please wait)" Margin="0,5" FontStyle="Italic" />
-        <ProgressBar Minimum="0" Maximum="100" Name="pbStatus" IsIndeterminate="True" Height="20"/>
-        <Button Content="OK" IsEnabled="False" Name="okButton"
+        <ProgressBar Minimum="0" Maximum="100" x:Name="ProgressBarStatus" IsIndeterminate="True" Height="20"/>
+        <Button Content="OK" IsEnabled="False" x:Name="OkButton"
                 Padding="5" Margin="0,5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Width="50"
-                Click="okButton_Click"/>
+                MinWidth="50"
+                Click="OkButton_Click"/>
     </StackPanel>
 </Window>
