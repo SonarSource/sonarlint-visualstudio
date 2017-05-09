@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
@@ -88,7 +88,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             actual2.Should().Be(expected2, "Did not return default value");
         }
 
-        [Ignore]
         [TestMethod]
         public void IntegrationSettings_GetValueOrDefault_Bool_NoStore()
         {
@@ -135,7 +134,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             this.settingsStore.AssertBoolean(collection, propertyKey, false);
         }
 
-        [Ignore]
         [TestMethod]
         public void IntegrationSettings_SetValue_Bool_NoStore()
         {

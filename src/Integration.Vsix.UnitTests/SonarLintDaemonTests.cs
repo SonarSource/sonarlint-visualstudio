@@ -1,6 +1,27 @@
-﻿using System;
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2017 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
 using System.IO;
-using System.Linq;
+using System.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
 
@@ -26,8 +47,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Not_Installed()
         {
-            Assert.IsFalse(daemon.IsInstalled);
-            Assert.IsFalse(daemon.IsRunning);
+            daemon.IsInstalled.Should().BeFalse();
+            daemon.IsRunning.Should().BeFalse();
         }
 
         [TestMethod]
@@ -40,56 +61,55 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Stop_Without_Start_Has_No_Effect()
         {
+            daemon.IsRunning.Should().BeFalse(); // Sanity test
             daemon.Stop();
+            daemon.IsRunning.Should().BeFalse();
         }
 
         [TestMethod]
-        [Ignore]
         public void Install_Reinstall_Run()
         {
             daemon.Install();
-            Assert.AreEqual(1, Directory.EnumerateFiles(tempPath).Count());
-            Assert.AreEqual(1, Directory.EnumerateDirectories(storagePath).Count());
+            Directory.GetFiles(tempPath).Length.Should().Be(1);
+            Directory.GetDirectories(storagePath).Length.Should().Be(1);
             Assert.IsTrue(daemon.IsInstalled);
             Assert.IsFalse(daemon.IsRunning);
 
             daemon.Install();
-            Assert.AreEqual(1, Directory.EnumerateFiles(tempPath).Count());
-            Assert.AreEqual(1, Directory.EnumerateDirectories(storagePath).Count());
-            Assert.IsTrue(daemon.IsInstalled);
-            Assert.IsFalse(daemon.IsRunning);
+            Directory.GetFiles(tempPath).Length.Should().Be(1);
+            Directory.GetDirectories(storagePath).Length.Should().Be(1);
+            daemon.IsInstalled.Should().BeTrue();
+            daemon.IsRunning.Should().BeFalse();
 
             daemon.Start();
-            Assert.IsTrue(daemon.IsInstalled);
-            Assert.IsTrue(daemon.IsRunning);
+            daemon.IsInstalled.Should().BeTrue();
+            daemon.IsRunning.Should().BeTrue();
             daemon.Stop();
-            Assert.IsFalse(daemon.IsRunning);
+            daemon.IsRunning.Should().BeFalse();
         }
 
         [TestCleanup]
         public void CleanUp()
         {
-            //ForceDeleteDirectory(tempPath);
-            //ForceDeleteDirectory(storagePath);
+            ForceDeleteDirectory(tempPath);
+            ForceDeleteDirectory(storagePath);
         }
 
         private static void ForceDeleteDirectory(string path)
         {
-            var files = Directory.GetFiles(path);
-            var directories = Directory.GetDirectories(path);
-
-            foreach (string file in files)
+            foreach (string file in Directory.EnumerateFiles(path))
             {
                 File.SetAttributes(file, FileAttributes.Normal);
                 File.Delete(file);
             }
 
-            foreach (string dir in directories)
+            foreach (string dir in Directory.EnumerateDirectories(path))
             {
                 ForceDeleteDirectory(dir);
             }
 
-            Directory.Delete(path, true);
+            Thread.Sleep(1);
+            Directory.Delete(path);
         }
     }
 }

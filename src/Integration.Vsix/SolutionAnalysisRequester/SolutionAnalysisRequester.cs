@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.CodeAnalysis.Options;
-using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

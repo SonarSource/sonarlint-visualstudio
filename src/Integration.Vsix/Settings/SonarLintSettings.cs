@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
-using System;
-using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -57,7 +57,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             this.writableSettingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-            if (!this.writableSettingsStore.CollectionExists(SettingsRoot))
+            if (this.writableSettingsStore != null &&
+                !this.writableSettingsStore.CollectionExists(SettingsRoot))
             {
                 this.writableSettingsStore.CreateCollection(SettingsRoot);
             }
