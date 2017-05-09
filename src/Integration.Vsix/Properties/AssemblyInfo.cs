@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell;
 using System.Reflection;
+using Microsoft.VisualStudio.Shell;
 
 [assembly: AssemblyTitle("SonarLint.VisualStudio.Integration.Vsix")]
 [assembly: ProvideBindingRedirection(AssemblyName = "System.Interactive.Async", NewVersion = "3.0.3000.0",

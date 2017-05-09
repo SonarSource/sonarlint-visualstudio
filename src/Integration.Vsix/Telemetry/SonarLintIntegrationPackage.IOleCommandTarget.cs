@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Diagnostics;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using System;
-using System.Diagnostics;
 using OLEConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             Debug.Assert(this.sqmCommandHandler != null, "SQM handler should not be null");
 
-            // Delegate to SQM handler if commandIds are in SQM range. 
+            // Delegate to SQM handler if commandIds are in SQM range.
             if (SonarLintSqmCommandTarget.IsSqmCommand(pguidCmdGroup, (int)nCmdID))
             {
                 return this.sqmCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             Debug.Assert(this.sqmCommandHandler != null, "SQM handler should not be null");
 
-            // Delegate to SQM handler to see if the if commandIds are in SQM range. 
+            // Delegate to SQM handler to see if the if commandIds are in SQM range.
             int result = this.sqmCommandHandler.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
 
             Debug.Assert(result == (int)OLEConstants.OLECMDERR_E_NOTSUPPORTED ||

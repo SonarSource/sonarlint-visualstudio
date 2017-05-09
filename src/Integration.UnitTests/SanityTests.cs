@@ -57,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        [Ignore] // This should be an IT + targeting sonarqube.com seems wrong
         [Description("Use the live SQ server to verify that the API we use are still supported."
             + "The assumptions are:"
             + "(a) the site is alive "
