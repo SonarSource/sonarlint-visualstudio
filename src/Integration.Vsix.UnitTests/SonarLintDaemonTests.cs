@@ -23,7 +23,6 @@ using System.IO;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -97,19 +96,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void ForceDeleteDirectory(string path)
         {
-            foreach (string file in Directory.EnumerateFiles(path))
+            try
             {
-                File.SetAttributes(file, FileAttributes.Normal);
-                File.Delete(file);
+                Directory.Delete(path, true);
             }
-
-            foreach (string dir in Directory.EnumerateDirectories(path))
+            catch (IOException)
             {
-                ForceDeleteDirectory(dir);
+                Thread.Sleep(1);
+                Directory.Delete(path, true);
             }
-
-            Thread.Sleep(1);
-            Directory.Delete(path);
         }
     }
 }
