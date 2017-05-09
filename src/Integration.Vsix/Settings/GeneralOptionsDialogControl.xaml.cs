@@ -42,6 +42,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.OnInitialized(e);
 
+            if (!Daemon.IsInstalled)
+            {
+                Settings.IsActivateMoreEnabled = false;
+            }
+
             UpdateActivateMoreButtonText();
         }
 
