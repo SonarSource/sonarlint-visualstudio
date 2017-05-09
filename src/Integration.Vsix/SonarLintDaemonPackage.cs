@@ -96,8 +96,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void LaunchActivateMoreDialog()
         {
-            var title = "Activate SonarJS support in SonarLint";
-            var message = "SonarLint for Visual Studio can also analyze JavaScript files, limited to standalone mode for now. After installing JavaScript support, it will be activated for newly opened files.\n\nWould you like to download and activate SonarJS support in SonarLint now?";
+            var title = "Activate support for JavaScript in SonarLint";
+            var message = "SonarLint for Visual Studio can also analyze JavaScript files. After installing JavaScript support, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now.\n\nWould you like to download and activate JavaScript support in SonarLint now?";
             var result = MessageBox.Show(message, title, MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
