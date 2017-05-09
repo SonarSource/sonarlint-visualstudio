@@ -164,6 +164,8 @@
       <HintPath>..\..\packages\Moq.4.5.30\lib\net45\Moq.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <HintPath>..\..\packages\stdole.7.0.3300\lib\net10\stdole.dll</HintPath>
@@ -258,6 +260,7 @@
       <HintPath>..\..\packages\System.Threading.Thread.4.3.0\lib\net46\System.Threading.Thread.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml.ReaderWriter, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -291,6 +294,7 @@
     <Compile Include="Commands\ProjectExcludePropertyToggleCommandTests.cs" />
     <Compile Include="IEnumerableExtensionsTests.cs" />
     <Compile Include="InfoBar\InfoBarManagerTests.cs" />
+    <Compile Include="Settings\OtherOptionsDialogPageTests.cs" />
     <Compile Include="Settings\SonarLintSettingsTests.cs" />
     <Compile Include="SonarAnalyzer\ConfigurableSolutionAnalysisRequester.cs" />
     <Compile Include="SonarAnalyzer\SolutionAnalysisRequesterTests.cs" />

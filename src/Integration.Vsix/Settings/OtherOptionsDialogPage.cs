@@ -28,39 +28,47 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string PageName = "Other";
 
-        private OtherOptionsDialogControl optionsDialogControl;
-        private ISonarLintSettings settings;
+        private readonly ITelemetryManager telemetryManager;
 
+        private OtherOptionsDialogControl optionsDialogControl;
         protected override UIElement Child => optionsDialogControl ?? (optionsDialogControl = new OtherOptionsDialogControl());
+
+        public OtherOptionsDialogPage()
+            : this(ServiceProvider.GlobalProvider.GetMefService<ITelemetryManager>())
+        {
+        }
+
+        public OtherOptionsDialogPage(ITelemetryManager telemetryManager)
+        {
+            this.telemetryManager = telemetryManager;
+        }
 
         protected override void OnActivate(CancelEventArgs e)
         {
             base.OnActivate(e);
 
-            this.optionsDialogControl.ShareAnonymousData.IsChecked = Settings.IsAnonymousDataShared;
+            this.optionsDialogControl.ShareAnonymousData.IsChecked = this.telemetryManager?.IsAnonymousDataShared ?? false;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
         {
-            if (e.ApplyBehavior == ApplyKind.Apply)
+            if (e.ApplyBehavior == ApplyKind.Apply &&
+                this.telemetryManager != null)
             {
-                Settings.IsAnonymousDataShared = this.optionsDialogControl.ShareAnonymousData.IsChecked ?? true;
+                var wasShared = this.telemetryManager.IsAnonymousDataShared;
+                var isShared = this.optionsDialogControl.ShareAnonymousData.IsChecked ?? true;
+
+                if (wasShared && !isShared)
+                {
+                    this.telemetryManager.OptOut();
+                }
+                else if (!wasShared && isShared)
+                {
+                    this.telemetryManager.OptIn();
+                }
             }
 
             base.OnApply(e);
-        }
-
-        private ISonarLintSettings Settings
-        {
-            get
-            {
-                if (this.settings == null)
-                {
-                    this.settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
-                }
-
-                return this.settings;
-            }
         }
     }
 }
