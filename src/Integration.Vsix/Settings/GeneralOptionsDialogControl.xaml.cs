@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (!Daemon.IsInstalled)
                 {
-                    new SonarLintDaemonInstaller().Show();
+                    new SonarLintDaemonInstaller().Show(UpdateActivateMoreButtonText);
                 }
                 else if (!Daemon.IsRunning)
                 {

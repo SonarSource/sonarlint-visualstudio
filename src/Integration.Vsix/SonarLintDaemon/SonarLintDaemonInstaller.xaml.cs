@@ -37,6 +37,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private volatile bool canceled = false;
 
+        private Action callback;
+
         public SonarLintDaemonInstaller()
         {
             InitializeComponent();
@@ -72,10 +74,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 Daemon.Start();
                 Settings.IsActivateMoreEnabled = true;
+                if (callback != null)
+                {
+                    callback.DynamicInvoke();
+                }
             }
 
             OkButton.IsEnabled = true;
             OkButton.Focus();
+        }
+
+        internal void Show(Action callback)
+        {
+            this.callback = callback;
+            Show();
         }
 
         protected override void OnClosing(CancelEventArgs e)
