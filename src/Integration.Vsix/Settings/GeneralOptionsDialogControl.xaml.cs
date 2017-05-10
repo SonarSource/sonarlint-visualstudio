@@ -30,6 +30,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     public partial class GeneralOptionsDialogControl : UserControl
     {
+        private static readonly string ACTIVATE_LABEL = "Install and activate JavaScript support";
+        private static readonly string DEACTIVATE_LABEL = "Deactivate JavaScript support";
+
         private ISonarLintSettings settings;
         private ISonarLintDaemon daemon;
 
@@ -53,18 +56,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private void UpdateActivateMoreButtonText()
         {
             ActivateMoreButton.Content = Settings.IsActivateMoreEnabled
-                ? "Deactivate JavaScript support"
-                : "Install and activate JavaScript support";
+                ? DEACTIVATE_LABEL
+                : ACTIVATE_LABEL;
         }
 
         private void OnActivateMoreClicked(object sender, RoutedEventArgs e)
         {
-            if (Settings.IsActivateMoreEnabled)
+            if (ActivateMoreButton.Content.Equals(DEACTIVATE_LABEL))
             {
                 if (Daemon.IsRunning)
                 {
                     Daemon.Stop();
                 }
+                Settings.IsActivateMoreEnabled = false;
             }
             else
             {
@@ -75,10 +79,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 else if (!Daemon.IsRunning)
                 {
                     Daemon.Start();
+                    Settings.IsActivateMoreEnabled = true;
+                }
+                else
+                {
+                    Settings.IsActivateMoreEnabled = true;
                 }
             }
 
-            Settings.IsActivateMoreEnabled = !Settings.IsActivateMoreEnabled;
             UpdateActivateMoreButtonText();
         }
 

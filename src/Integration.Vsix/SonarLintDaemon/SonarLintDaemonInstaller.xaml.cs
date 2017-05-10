@@ -74,7 +74,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Settings.IsActivateMoreEnabled = true;
             }
 
-            ProgressBar.Value = 100;
             OkButton.IsEnabled = true;
             OkButton.Focus();
         }
