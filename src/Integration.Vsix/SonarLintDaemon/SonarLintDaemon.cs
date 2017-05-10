@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -72,10 +73,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void Install()
+        public void Install(DownloadProgressChangedEventHandler downloadProgressChanged, System.ComponentModel.AsyncCompletedEventHandler downloadFileCompleted)
         {
-            Download();
-            Unzip();
+            Download(downloadProgressChanged, downloadFileCompleted);
         }
 
         public bool IsRunning => process != null && !process.HasExited;
@@ -125,17 +125,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public bool IsInstalled => Directory.Exists(InstallationPath) && File.Exists(ExePath);
 
-        private void Download()
+        private void Download(DownloadProgressChangedEventHandler downloadProgressChanged, AsyncCompletedEventHandler downloadFileCompleted)
         {
-            string uri = string.Format(uriFormat, version);
+            Uri uri = new Uri(string.Format(uriFormat, version));
             using (var client = new WebClient())
             {
-                client.DownloadFile(uri, ZipFilePath);
+                client.DownloadProgressChanged += downloadProgressChanged;
+                client.DownloadFileCompleted += Unzip;
+                client.DownloadFileCompleted += downloadFileCompleted;
+                client.DownloadFileAsync(uri, ZipFilePath);
             }
         }
 
-        private void Unzip()
+        private void Unzip(object sender, AsyncCompletedEventArgs e)
         {
+            if (e.Error != null)
+            {
+                return;
+            }
+
             if (Directory.Exists(InstallationPath))
             {
                 Directory.Delete(InstallationPath, true);

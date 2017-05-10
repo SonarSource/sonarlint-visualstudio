@@ -6,8 +6,7 @@
         WindowStartupLocation="CenterScreen" Topmost="True" SizeToContent="WidthAndHeight" >
     <StackPanel Margin="5">
         <TextBlock Text="Installing JavaScript support..." Margin="0,5" FontWeight="Bold" FontSize="16"/>
-        <TextBlock Text="(This could take a while, please wait)" Margin="0,5" FontStyle="Italic" />
-        <ProgressBar Minimum="0" Maximum="100" x:Name="ProgressBarStatus" IsIndeterminate="True" Height="20"/>
+        <ProgressBar Minimum="0" Maximum="100" x:Name="ProgressBar" Height="20"/>
         <Button Content="OK" IsEnabled="False" x:Name="OkButton"
                 Padding="5" Margin="0,5"
                 HorizontalAlignment="Center"

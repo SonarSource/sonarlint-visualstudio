@@ -70,13 +70,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [Ignore]
         public void Install_Reinstall_Run()
         {
-            daemon.Install();
+            InstallDaemon();
             Directory.GetFiles(tempPath).Length.Should().Be(1);
             Directory.GetDirectories(storagePath).Length.Should().Be(1);
             Assert.IsTrue(daemon.IsInstalled);
             Assert.IsFalse(daemon.IsRunning);
 
-            daemon.Install();
+            InstallDaemon();
             Directory.GetFiles(tempPath).Length.Should().Be(1);
             Directory.GetDirectories(storagePath).Length.Should().Be(1);
             daemon.IsInstalled.Should().BeTrue();
@@ -107,6 +107,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Thread.Sleep(1);
                 Directory.Delete(path, true);
             }
+        }
+
+        private void InstallDaemon()
+        {
+            daemon.Install((object sender, DownloadProgressChangedEventArgs e) => { }, (object sender, AsyncCompletedEventArgs e) => { });
         }
     }
 }

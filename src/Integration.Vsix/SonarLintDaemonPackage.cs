@@ -101,7 +101,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var result = MessageBox.Show(message, title, MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
-                settings.IsActivateMoreEnabled = true;
                 new SonarLintDaemonInstaller().Show();
             }
             settings.SkipActivateMoreDialog = true;

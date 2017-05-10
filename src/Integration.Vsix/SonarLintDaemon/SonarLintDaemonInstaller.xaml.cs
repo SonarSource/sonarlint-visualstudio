@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 
@@ -31,6 +32,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     public partial class SonarLintDaemonInstaller : Window
     {
+        private ISonarLintSettings settings;
+        private ISonarLintDaemon daemon;
+
+        private volatile bool canceled = false;
+
         public SonarLintDaemonInstaller()
         {
             InitializeComponent();
@@ -38,42 +44,77 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Window_ContentRendered(object sender, EventArgs args)
         {
-            // TODO rewrite using Task.Run, see: https://blog.stephencleary.com/2013/05/taskrun-vs-backgroundworker-intro.html
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.WorkerReportsProgress = true;
-            worker.DoWork += Worker_DoWork;
-            worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
-            worker.RunWorkerAsync();
+            Daemon.Install(DownloadProgressChanged, DownloadFileCompleted);
         }
 
-        void Worker_DoWork(object sender, DoWorkEventArgs eventArgs)
+        private void DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            try
+            double bytesIn = double.Parse(e.BytesReceived.ToString());
+            double totalBytes = double.Parse(e.TotalBytesToReceive.ToString());
+            double percentage = bytesIn / totalBytes * 100;
+
+            ProgressBar.Value = (int) Math.Truncate(percentage);
+        }
+
+        private void DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        {
+            if (e.Error != null)
             {
-                var daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
-                daemon.Install();
-                daemon.Start();
-                ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>().SkipActivateMoreDialog = true;
-            }
-            catch (Exception e)
-            {
-                var message = string.Format("Failed to activate JavaScript support: {0}", e.Message);
+                var ex = e.Error;
+                var message = string.Format("Failed to activate JavaScript support: {0}", ex.Message);
                 MessageBox.Show(message, "Error", MessageBoxButton.OK);
-                Debug.WriteLine(message + "\n" + e.StackTrace);
+                Debug.WriteLine(message + "\n" + ex.StackTrace);
+                Close();
+                return;
             }
-        }
 
-        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            ProgressBarStatus.Value = 100;
-            ProgressBarStatus.IsIndeterminate = false;
+            if (!canceled)
+            {
+                Daemon.Start();
+                Settings.IsActivateMoreEnabled = true;
+            }
+
+            ProgressBar.Value = 100;
             OkButton.IsEnabled = true;
             OkButton.Focus();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            base.OnClosing(e);
+
+            canceled = true;
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private ISonarLintSettings Settings
+        {
+            get
+            {
+                if (this.settings == null)
+                {
+                    this.settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
+                }
+
+                return this.settings;
+            }
+        }
+
+        private ISonarLintDaemon Daemon
+        {
+            get
+            {
+                if (this.daemon == null)
+                {
+                    this.daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
+                }
+
+                return this.daemon;
+            }
         }
     }
 }
