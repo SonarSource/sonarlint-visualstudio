@@ -62,15 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void OnActivateMoreClicked(object sender, RoutedEventArgs e)
         {
-            if (ActivateMoreButton.Content.Equals(DEACTIVATE_LABEL))
-            {
-                if (Daemon.IsRunning)
-                {
-                    Daemon.Stop();
-                }
-                Settings.IsActivateMoreEnabled = false;
-            }
-            else
+            if (ActivateMoreButton.Content.Equals(ACTIVATE_LABEL))
             {
                 if (!Daemon.IsInstalled)
                 {
@@ -85,6 +77,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     Settings.IsActivateMoreEnabled = true;
                 }
+            }
+            else
+            {
+                if (Daemon.IsRunning)
+                {
+                    Daemon.Stop();
+                }
+                Settings.IsActivateMoreEnabled = false;
             }
 
             UpdateActivateMoreButtonText();
