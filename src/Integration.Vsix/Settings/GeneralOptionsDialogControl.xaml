@@ -9,16 +9,40 @@
 
     <!--  #Design  -->
     <StackPanel Margin="5,0">
+        <Grid x:Name="ActivateMoreGrid" Margin="0,0,0,5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="Activate more..." Click="OnActivateMoreClicked"
+                    Margin="5" Padding="5,2.5" />
+            <TextBlock Grid.Column="1"
+                       Text="Install and activate JavaScript support."
+                       Margin="5" TextWrapping="Wrap"/>
+
+            <Button Grid.Column="0" Grid.Row="1" Content="Deactivate" Click="OnDeactivateClicked"
+                    Margin="5" Padding="5,2.5" />
+            <TextBlock Grid.Column="1" Grid.Row="1"
+                       Text="Deactivate JavaScript support."
+                       Margin="5" TextWrapping="Wrap"/>
+
+            <TextBlock Grid.Column="1" Grid.Row="2"
+                       Text="SonarLint for Visual Studio can also analyze JavaScript files. After installing JavaScript support, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
+                       Margin="5" TextWrapping="Wrap" />
+        </Grid>
+
         <CheckBox x:Name="ShowServerNuGetTrustWarning"
                   Content="Display a warning about NuGet packages" />
         <TextBlock Margin="20,5,10,5"
                    Text="Display a warning about automatically downloading NuGet packages when establishing a SonarQube server connection."
                    TextWrapping="Wrap" />
 
-        <TextBlock FontWeight="Bold" Text="Activate more..."/>
-        <TextBlock Margin="20,5,10,5"
-                   Text="SonarLint for Visual Studio can also analyze JavaScript files, limited to standalone mode for now. After installing JavaScript support, it will be activated for newly opened files."
-                   TextWrapping="Wrap"/>
-        <Button Margin="20,5,10,5" Content="Install JavaScript support" Click="OnActivateMoreClicked" x:Name="ActivateMoreButton" HorizontalAlignment="Left" Padding="5,2.5"/>
     </StackPanel>
 </UserControl>

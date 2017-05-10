@@ -30,9 +30,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     public partial class GeneralOptionsDialogControl : UserControl
     {
-        private static readonly string ACTIVATE_LABEL = "Install and activate JavaScript support";
-        private static readonly string DEACTIVATE_LABEL = "Deactivate JavaScript support";
-
         private ISonarLintSettings settings;
         private ISonarLintDaemon daemon;
 
@@ -50,42 +47,49 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Settings.IsActivateMoreEnabled = false;
             }
 
-            UpdateActivateMoreButtonText();
+            UpdateActiveMoreControls();
         }
 
-        private void UpdateActivateMoreButtonText()
+        private void UpdateActiveMoreControls()
         {
-            ActivateMoreButton.Content = Settings.IsActivateMoreEnabled
-                ? DEACTIVATE_LABEL
-                : ACTIVATE_LABEL;
+            if (Settings.IsActivateMoreEnabled)
+            {
+                ActivateMoreGrid.RowDefinitions[0].Height = new GridLength(0);
+                ActivateMoreGrid.RowDefinitions[1].Height = new GridLength(1, GridUnitType.Auto);
+            }
+            else
+            {
+                ActivateMoreGrid.RowDefinitions[1].Height = new GridLength(0);
+                ActivateMoreGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Auto);
+            }
         }
 
         private void OnActivateMoreClicked(object sender, RoutedEventArgs e)
         {
-            if (ActivateMoreButton.Content.Equals(ACTIVATE_LABEL))
+            if (!Daemon.IsInstalled)
             {
-                if (!Daemon.IsInstalled)
-                {
-                    new SonarLintDaemonInstaller().Show(UpdateActivateMoreButtonText);
-                    return;
-                }
-
-                if (!Daemon.IsRunning)
-                {
-                    Daemon.Start();
-                }
-                Settings.IsActivateMoreEnabled = true;
-            }
-            else
-            {
-                if (Daemon.IsRunning)
-                {
-                    Daemon.Stop();
-                }
-                Settings.IsActivateMoreEnabled = false;
+                new SonarLintDaemonInstaller().Show(UpdateActiveMoreControls);
+                return;
             }
 
-            UpdateActivateMoreButtonText();
+            if (!Daemon.IsRunning)
+            {
+                Daemon.Start();
+            }
+            Settings.IsActivateMoreEnabled = true;
+
+            UpdateActiveMoreControls();
+        }
+
+        private void OnDeactivateClicked(object sender, RoutedEventArgs e)
+        {
+            if (Daemon.IsRunning)
+            {
+                Daemon.Stop();
+            }
+            Settings.IsActivateMoreEnabled = false;
+
+            UpdateActiveMoreControls();
         }
 
         private ISonarLintSettings Settings

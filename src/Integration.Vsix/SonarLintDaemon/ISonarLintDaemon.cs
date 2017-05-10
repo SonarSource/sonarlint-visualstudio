@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Net;
 using Sonarlint;
 
@@ -30,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         bool IsInstalled { get; }
         bool IsRunning { get; }
 
-        void Install(DownloadProgressChangedEventHandler downloadProgressChanged, System.ComponentModel.AsyncCompletedEventHandler downloadFileCompleted);
+        void Install(DownloadProgressChangedEventHandler downloadProgressChanged, AsyncCompletedEventHandler downloadFileCompleted);
         void Start();
         void Stop();
 
