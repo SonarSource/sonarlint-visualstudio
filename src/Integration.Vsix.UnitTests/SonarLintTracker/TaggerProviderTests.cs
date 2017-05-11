@@ -176,6 +176,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             provider.Accept("nonexistent.js", issues);
         }
 
+        [TestMethod]
+        public void Should_propagate_new_tracker_factories_to_existing_sink_managers()
+        {
+            var mockTableDataSink1 = new Mock<ITableDataSink>();
+            provider.Subscribe(mockTableDataSink1.Object);
+
+            var mockTableDataSink2 = new Mock<ITableDataSink>();
+            provider.Subscribe(mockTableDataSink2.Object);
+
+            var tracker = CreateTagger() as IssueTracker;
+
+            // factory of new tracker is propagated to all existing sink managers
+            mockTableDataSink1.Verify(s => s.AddFactory(tracker.Factory, false));
+            mockTableDataSink2.Verify(s => s.AddFactory(tracker.Factory, false));
+        }
+
+        [TestMethod]
+        public void Should_propagate_existing_tracker_factories_to_new_sink_managers()
+        {
+            SetMockDocumentFilename("foo.js");
+            var tracker1 = CreateTagger() as IssueTracker;
+
+            SetMockDocumentFilename("bar.js");
+            var tracker2 = CreateTagger() as IssueTracker;
+
+            var mockTableDataSink = new Mock<ITableDataSink>();
+            provider.Subscribe(mockTableDataSink.Object);
+
+            // factories of existing trackers are propagated to new sink manager
+            mockTableDataSink.Verify(s => s.AddFactory(tracker1.Factory, false));
+            mockTableDataSink.Verify(s => s.AddFactory(tracker2.Factory, false));
+        }
+
         private ITagger<IErrorTag> CreateTagger()
         {
             return provider.CreateTagger<IErrorTag>(textView, textBuffer);
