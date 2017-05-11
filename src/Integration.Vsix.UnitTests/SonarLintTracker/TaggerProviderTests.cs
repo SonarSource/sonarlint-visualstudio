@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -101,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreateTagger_should_return_null_for_not_js()
         {
-            mockTextDocument.Setup(d => d.FilePath).Returns(filename + ".java");
+            SetMockDocumentFilename(filename + ".java");
 
             CreateTagger().Should().BeNull();
         }
@@ -120,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var newName = "bar-" + filename;
             provider.Rename(filename, newName);
-            mockTextDocument.Setup(d => d.FilePath).Returns(newName);
+            SetMockDocumentFilename(newName);
 
             CreateTagger().Should().BeNull();
         }
@@ -141,17 +142,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CreateTagger_should_track_by_case_insensitive_name()
         {
             var lower = "foo.js";
-            mockTextDocument.Setup(d => d.FilePath).Returns(lower);
+            SetMockDocumentFilename(lower);
             CreateTagger().Should().NotBeNull();
 
-            mockTextDocument.Setup(d => d.FilePath).Returns(lower.ToUpperInvariant());
+            SetMockDocumentFilename(lower.ToUpperInvariant());
             CreateTagger().Should().BeNull();
 
             var upper = "BAR.JS";
-            mockTextDocument.Setup(d => d.FilePath).Returns(upper);
+            SetMockDocumentFilename(upper);
             CreateTagger().Should().NotBeNull();
 
-            mockTextDocument.Setup(d => d.FilePath).Returns(upper.ToLowerInvariant());
+            SetMockDocumentFilename(upper.ToLowerInvariant());
             CreateTagger().Should().BeNull();
         }
 
@@ -160,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var tagger1 = CreateTagger();
 
-            mockTextDocument.Setup(d => d.FilePath).Returns("bar.js");
+            SetMockDocumentFilename("bar-" + filename);
 
             var tagger2 = CreateTagger();
             tagger2.Should().NotBeNull();
@@ -170,6 +171,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ITagger<IErrorTag> CreateTagger()
         {
             return provider.CreateTagger<IErrorTag>(textView, textBuffer);
+        }
+
+        private void SetMockDocumentFilename(string filename)
+        {
+            mockTextDocument.Setup(d => d.FilePath).Returns(filename);
         }
     }
 }
