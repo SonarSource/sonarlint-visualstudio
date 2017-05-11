@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (e.Error != null)
             {
                 var ex = e.Error;
-                var message = string.Format("Failed to activate JavaScript support: {0}", ex.Message);
+                var message = string.Format($"Failed to activate JavaScript support: {ex.Message}");
                 MessageBox.Show(message, "Error", MessageBoxButton.OK);
                 Debug.WriteLine(message + "\n" + ex.StackTrace);
                 Close();
