@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ITextView textView;
         private ITextBuffer textBuffer;
 
+        private string filename = "foo.js";
         private Mock<ITextDocument> mockTextDocument;
 
         private TaggerProvider provider;
@@ -72,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.textView = mockTextView.Object;
 
             this.mockTextDocument = new Mock<ITextDocument>();
-            mockTextDocument.Setup(d => d.FilePath).Returns("foo.js");
+            mockTextDocument.Setup(d => d.FilePath).Returns(filename);
             mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
             var textDocument = mockTextDocument.Object;
 
@@ -100,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreateTagger_should_return_null_for_not_js()
         {
-            mockTextDocument.Setup(d => d.FilePath).Returns("foo.java");
+            mockTextDocument.Setup(d => d.FilePath).Returns(filename + ".java");
 
             CreateTagger().Should().BeNull();
         }
@@ -117,8 +118,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             CreateTagger().Should().NotBeNull();
 
-            var newName = "bar.js";
-            provider.Rename("foo.js", newName);
+            var newName = "bar-" + filename;
+            provider.Rename(filename, newName);
             mockTextDocument.Setup(d => d.FilePath).Returns(newName);
 
             CreateTagger().Should().BeNull();
