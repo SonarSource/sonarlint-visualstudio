@@ -26,7 +26,7 @@ using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    interface ISonarLintDaemon : IDisposable
+    public interface ISonarLintDaemon : IDisposable
     {
         bool IsInstalled { get; }
         bool IsRunning { get; }
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         void RequestAnalysis(string path, string charset, IIssueConsumer consumer);
     }
 
-    interface IIssueConsumer
+    public interface IIssueConsumer
     {
         void Accept(string path, IEnumerable<Issue> issue);
     }
