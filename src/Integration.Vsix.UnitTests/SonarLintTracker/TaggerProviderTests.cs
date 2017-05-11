@@ -138,6 +138,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void CreateTagger_should_track_by_case_insensitive_name()
+        {
+            var lower = "foo.js";
+            mockTextDocument.Setup(d => d.FilePath).Returns(lower);
+            CreateTagger().Should().NotBeNull();
+
+            mockTextDocument.Setup(d => d.FilePath).Returns(lower.ToUpperInvariant());
+            CreateTagger().Should().BeNull();
+
+            var upper = "BAR.JS";
+            mockTextDocument.Setup(d => d.FilePath).Returns(upper);
+            CreateTagger().Should().NotBeNull();
+
+            mockTextDocument.Setup(d => d.FilePath).Returns(upper.ToLowerInvariant());
+            CreateTagger().Should().BeNull();
+        }
+
+        [TestMethod]
         public void CreateTagger_should_be_distinct_per_file()
         {
             var tagger1 = CreateTagger();
