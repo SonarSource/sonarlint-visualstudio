@@ -113,9 +113,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void CreateTagger_should_return_null_for_already_tracked_renamed_file()
+        {
+            CreateTagger().Should().NotBeNull();
+
+            var newName = "bar.js";
+            provider.Rename("foo.js", newName);
+            mockTextDocument.Setup(d => d.FilePath).Returns(newName);
+
+            CreateTagger().Should().BeNull();
+        }
+
+        [TestMethod]
         public void CreateTagger_should_track_again_after_reopen()
         {
             var tracker = CreateTagger() as IssueTracker;
+
             CreateTagger().Should().BeNull();
 
             tracker.Dispose();
