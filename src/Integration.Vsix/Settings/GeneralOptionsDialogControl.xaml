@@ -9,7 +9,7 @@
 
     <!--  #Design  -->
     <StackPanel Margin="5,0">
-        <Grid x:Name="ActivateMoreGrid" Margin="0,0,0,5">
+        <Grid Margin="0,0,0,5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -21,19 +21,23 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="Activate more..." Click="OnActivateMoreClicked"
+            <Button Grid.Column="0" Grid.Row="0" Content="Activate more..." Click="OnActivateMoreClicked"
+                    x:Name="ActivateButton"
                     Margin="5" Padding="5,2.5" />
-            <TextBlock Grid.Column="1"
+            <TextBlock Grid.Column="1" Grid.Row="0"
+                       x:Name="ActivateText"
                        Text="Install and activate JavaScript support."
                        Margin="5" TextWrapping="Wrap"/>
 
-            <Button Grid.Column="0" Grid.Row="1" Content="Deactivate" Click="OnDeactivateClicked"
+            <Button Grid.Column="0" Grid.Row="0" Content="Deactivate" Click="OnDeactivateClicked"
+                    x:Name="DeactivateButton" Visibility="Collapsed"
                     Margin="5" Padding="5,2.5" />
-            <TextBlock Grid.Column="1" Grid.Row="1"
+            <TextBlock Grid.Column="1" Grid.Row="0"
+                       x:Name="DeactivateText" Visibility="Collapsed"
                        Text="Deactivate JavaScript support."
                        Margin="5" TextWrapping="Wrap"/>
 
-            <TextBlock Grid.Column="1" Grid.Row="2"
+            <TextBlock Grid.Column="1" Grid.Row="1"
                        Text="SonarLint for Visual Studio can also analyze JavaScript files. After installing JavaScript support, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
                        Margin="5" TextWrapping="Wrap" />
         </Grid>

@@ -54,13 +54,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (Settings.IsActivateMoreEnabled)
             {
-                ActivateMoreGrid.RowDefinitions[0].Height = new GridLength(0);
-                ActivateMoreGrid.RowDefinitions[1].Height = new GridLength(1, GridUnitType.Auto);
+                ActivateButton.Visibility = Visibility.Collapsed;
+                ActivateText.Visibility = Visibility.Collapsed;
+                DeactivateButton.Visibility = Visibility.Visible;
+                DeactivateText.Visibility = Visibility.Visible;
             }
             else
             {
-                ActivateMoreGrid.RowDefinitions[1].Height = new GridLength(0);
-                ActivateMoreGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Auto);
+                ActivateButton.Visibility = Visibility.Visible;
+                ActivateText.Visibility = Visibility.Visible;
+                DeactivateButton.Visibility = Visibility.Collapsed;
+                DeactivateText.Visibility = Visibility.Collapsed;
             }
         }
 
