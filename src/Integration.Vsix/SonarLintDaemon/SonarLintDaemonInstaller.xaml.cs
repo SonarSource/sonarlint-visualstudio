@@ -74,10 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 Daemon.Start();
                 Settings.IsActivateMoreEnabled = true;
-                if (callback != null)
-                {
-                    callback.DynamicInvoke();
-                }
+                callback?.DynamicInvoke();
             }
 
             OkButton.IsEnabled = true;
