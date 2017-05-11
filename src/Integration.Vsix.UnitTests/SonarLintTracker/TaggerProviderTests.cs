@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Collections.Generic;
 using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
+using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -166,6 +167,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var tagger2 = CreateTagger();
             tagger2.Should().NotBeNull();
             tagger1.Should().NotBe(tagger2);
+        }
+
+        [TestMethod]
+        public void Should_not_crash_on_issues_in_untracked_files()
+        {
+            var issues = new List<Issue> { new Issue() };
+            provider.Accept("nonexistent.js", issues);
         }
 
         private ITagger<IErrorTag> CreateTagger()
