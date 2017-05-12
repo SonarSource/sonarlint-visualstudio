@@ -64,6 +64,9 @@
     <Compile Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml.cs">
       <DependentUpon>SonarLintDaemonInstaller.xaml</DependentUpon>
     </Compile>
+    <Compile Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml.cs">
+      <DependentUpon>SonarLintDaemonSplashscreen.xaml</DependentUpon>
+    </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\SonarLintSettings.cs" />
     <Compile Include="$(ReferencedDirectory)\Protobuf\Sonarlint-daemonGrpc.cs">
       <Link>Protobuf\Sonarlint-daemonGrpc.cs</Link>
@@ -510,6 +513,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -21,7 +21,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -96,14 +95,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void LaunchActivateMoreDialog()
         {
-            var title = "Activate support for JavaScript in SonarLint";
-            var message = "SonarLint for Visual Studio can also analyze JavaScript files. After installing JavaScript support, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now.\n\nWould you like to download and activate JavaScript support in SonarLint now?";
-            var result = MessageBox.Show(message, title, MessageBoxButton.YesNo);
-            if (result == MessageBoxResult.Yes)
+            var result = new SonarLintDaemonSplashscreen().ShowDialog();
+            if (result == true)
             {
                 new SonarLintDaemonInstaller().Show();
             }
-            settings.SkipActivateMoreDialog = true;
         }
 
         protected override void Dispose(bool disposing)
