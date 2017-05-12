@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="300"
-             d:DesignWidth="300"
+             d:DesignWidth="400"
              mc:Ignorable="d">
 
     <Grid Margin="0,0,0,5">
@@ -26,6 +26,7 @@
         <TextBlock Grid.Column="1" Grid.Row="0"
                    x:Name="ActivateText"
                    Text="Install and activate JavaScript support."
+                   VerticalAlignment="Center"
                    Margin="5" TextWrapping="Wrap"/>
 
         <Button Grid.Column="0" Grid.Row="0" Content="Deactivate" Click="OnDeactivateClicked"
