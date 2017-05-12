@@ -46,7 +46,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Window_ContentRendered(object sender, EventArgs args)
         {
-            Daemon.Install(DownloadProgressChanged, DownloadFileCompleted);
+            Daemon.DownloadProgressChanged += DownloadProgressChanged;
+            Daemon.DownloadCompleted += DownloadCompleted;
+            Daemon.Install();
         }
 
         private void DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
@@ -58,8 +60,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ProgressBar.Value = (int) Math.Truncate(percentage);
         }
 
-        private void DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        private void DownloadCompleted(object sender, AsyncCompletedEventArgs e)
         {
+            Daemon.DownloadProgressChanged -= DownloadProgressChanged;
+            Daemon.DownloadCompleted -= DownloadCompleted;
+
             if (e.Error != null)
             {
                 var ex = e.Error;

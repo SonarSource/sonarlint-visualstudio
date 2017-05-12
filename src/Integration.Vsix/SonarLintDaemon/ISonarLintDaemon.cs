@@ -31,7 +31,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         bool IsInstalled { get; }
         bool IsRunning { get; }
 
-        void Install(DownloadProgressChangedEventHandler downloadProgressChanged, AsyncCompletedEventHandler downloadFileCompleted);
+        void Install();
+        event DownloadProgressChangedEventHandler DownloadProgressChanged;
+        event AsyncCompletedEventHandler DownloadCompleted;
+
         void Start();
         void Stop();
 

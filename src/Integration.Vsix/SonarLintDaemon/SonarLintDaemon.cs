@@ -48,6 +48,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly string workingDirectory;
 
+        public event DownloadProgressChangedEventHandler DownloadProgressChanged;
+        public event AsyncCompletedEventHandler DownloadCompleted;
+
         public SonarLintDaemon() : this(daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath())
         {
         }
@@ -73,9 +76,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void Install(DownloadProgressChangedEventHandler downloadProgressChanged, System.ComponentModel.AsyncCompletedEventHandler downloadFileCompleted)
+        public void Install()
         {
-            Download(downloadProgressChanged, downloadFileCompleted);
+            Download();
         }
 
         public bool IsRunning => process != null && !process.HasExited;
@@ -125,14 +128,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public bool IsInstalled => Directory.Exists(InstallationPath) && File.Exists(ExePath);
 
-        private void Download(DownloadProgressChangedEventHandler downloadProgressChanged, AsyncCompletedEventHandler downloadFileCompleted)
+        private void Download()
         {
             Uri uri = new Uri(string.Format(uriFormat, version));
             using (var client = new WebClient())
             {
-                client.DownloadProgressChanged += downloadProgressChanged;
+                client.DownloadProgressChanged += (sender, args) => DownloadProgressChanged?.Invoke(sender, args);
                 client.DownloadFileCompleted += Unzip;
-                client.DownloadFileCompleted += downloadFileCompleted;
+                client.DownloadFileCompleted += (sender, args) => DownloadCompleted?.Invoke(sender, args);
                 client.DownloadFileAsync(uri, ZipFilePath);
             }
         }
