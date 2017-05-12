@@ -20,22 +20,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Net;
 using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    interface ISonarLintDaemon : IDisposable
+    public interface ISonarLintDaemon : IDisposable
     {
         bool IsInstalled { get; }
         bool IsRunning { get; }
 
         void Install();
+        event DownloadProgressChangedEventHandler DownloadProgressChanged;
+        event AsyncCompletedEventHandler DownloadCompleted;
+
         void Start();
         void Stop();
+
         void RequestAnalysis(string path, string charset, IIssueConsumer consumer);
     }
 
-    interface IIssueConsumer
+    public interface IIssueConsumer
     {
         void Accept(string path, IEnumerable<Issue> issue);
     }

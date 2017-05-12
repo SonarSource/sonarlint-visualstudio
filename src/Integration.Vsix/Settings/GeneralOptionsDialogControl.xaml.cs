@@ -42,39 +42,58 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.OnInitialized(e);
 
-            UpdateActivateMoreButtonText();
+            if (!Daemon.IsInstalled)
+            {
+                Settings.IsActivateMoreEnabled = false;
+            }
+
+            UpdateActiveMoreControls();
         }
 
-        private void UpdateActivateMoreButtonText()
+        private void UpdateActiveMoreControls()
         {
-            ActivateMoreButton.Content = Settings.IsActivateMoreEnabled
-                ? "Deactivate JavaScript support"
-                : "Install and activate JavaScript support";
+            if (Settings.IsActivateMoreEnabled)
+            {
+                ActivateButton.Visibility = Visibility.Collapsed;
+                ActivateText.Visibility = Visibility.Collapsed;
+                DeactivateButton.Visibility = Visibility.Visible;
+                DeactivateText.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ActivateButton.Visibility = Visibility.Visible;
+                ActivateText.Visibility = Visibility.Visible;
+                DeactivateButton.Visibility = Visibility.Collapsed;
+                DeactivateText.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void OnActivateMoreClicked(object sender, RoutedEventArgs e)
         {
-            if (Settings.IsActivateMoreEnabled)
+            if (!Daemon.IsInstalled)
             {
-                if (Daemon.IsRunning)
-                {
-                    Daemon.Stop();
-                }
-            }
-            else
-            {
-                if (!Daemon.IsInstalled)
-                {
-                    new SonarLintDaemonInstaller().Show();
-                }
-                else if (!Daemon.IsRunning)
-                {
-                    Daemon.Start();
-                }
+                new SonarLintDaemonInstaller().Show(UpdateActiveMoreControls);
+                return;
             }
 
-            Settings.IsActivateMoreEnabled = !Settings.IsActivateMoreEnabled;
-            UpdateActivateMoreButtonText();
+            if (!Daemon.IsRunning)
+            {
+                Daemon.Start();
+            }
+            Settings.IsActivateMoreEnabled = true;
+
+            UpdateActiveMoreControls();
+        }
+
+        private void OnDeactivateClicked(object sender, RoutedEventArgs e)
+        {
+            if (Daemon.IsRunning)
+            {
+                Daemon.Stop();
+            }
+            Settings.IsActivateMoreEnabled = false;
+
+            UpdateActiveMoreControls();
         }
 
         private ISonarLintSettings Settings

@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -46,6 +47,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private Process process;
 
         private readonly string workingDirectory;
+
+        public event DownloadProgressChangedEventHandler DownloadProgressChanged;
+        public event AsyncCompletedEventHandler DownloadCompleted;
 
         public SonarLintDaemon() : this(daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath())
         {
@@ -75,7 +79,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void Install()
         {
             Download();
-            Unzip();
         }
 
         public bool IsRunning => process != null && !process.HasExited;
@@ -127,15 +130,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Download()
         {
-            string uri = string.Format(uriFormat, version);
+            Uri uri = new Uri(string.Format(uriFormat, version));
             using (var client = new WebClient())
             {
-                client.DownloadFile(uri, ZipFilePath);
+                client.DownloadProgressChanged += (sender, args) => DownloadProgressChanged?.Invoke(sender, args);
+                client.DownloadFileCompleted += Unzip;
+                client.DownloadFileCompleted += (sender, args) => DownloadCompleted?.Invoke(sender, args);
+                client.DownloadFileAsync(uri, ZipFilePath);
             }
         }
 
-        private void Unzip()
+        private void Unzip(object sender, AsyncCompletedEventArgs e)
         {
+            if (e.Error != null)
+            {
+                return;
+            }
+
             if (Directory.Exists(InstallationPath))
             {
                 Directory.Delete(InstallationPath, true);

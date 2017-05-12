@@ -42,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ITextSnapshot currentSnapshot;
         private NormalizedSnapshotSpanCollection dirtySpans;
 
+        private readonly ITextDocument document;
         internal string FilePath { get; private set; }
         internal string Charset { get; }
         internal SnapshotFactory Factory { get; }
@@ -55,11 +56,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.currentSnapshot = buffer.CurrentSnapshot;
             this.dirtySpans = new NormalizedSnapshotSpanCollection();
 
+            this.document = document;
             this.FilePath = document.FilePath;
             this.Charset = document.Encoding.WebName;
             this.Factory = new SnapshotFactory(new IssuesSnapshot(this.FilePath, 0, new List<IssueMarker>()));
-
-            document.FileActionOccurred += FileActionOccurred;
 
             this.Initialize();
         }
@@ -79,14 +79,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Initialize()
         {
-            textBuffer.ChangedLowPriority += this.OnBufferChange;
+            document.FileActionOccurred += FileActionOccurred;
+            textBuffer.ChangedLowPriority += OnBufferChange;
             provider.AddIssueTracker(this);
             provider.RequestAnalysis(FilePath, Charset);
         }
 
         public void Dispose()
         {
-            textBuffer.ChangedLowPriority -= this.OnBufferChange;
+            document.FileActionOccurred -= FileActionOccurred;
+            textBuffer.ChangedLowPriority -= OnBufferChange;
             provider.RemoveIssueTracker(this);
         }
 
