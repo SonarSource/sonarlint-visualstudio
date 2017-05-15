@@ -202,6 +202,7 @@
     <Compile Include="Binding\BindingController.cs" />
     <Compile Include="Binding\IBindingOperation.cs" />
     <Compile Include="Binding\RuleSetInformation.cs" />
+    <Compile Include="Helpers\PathHelper.cs" />
     <Compile Include="Helpers\RetryHelper.cs" />
     <Compile Include="LocalServices\IErrorListInfoBarController.cs" />
     <Compile Include="LocalServices\ErrorListInfoBarController.cs" />
@@ -285,7 +286,6 @@
     <Compile Include="MefServices\ITelemetryLogger.cs" />
     <Compile Include="Persistence\BoundSonarQubeProject.cs" />
     <Compile Include="Persistence\BasicAuthCredentials.cs" />
-    <Compile Include="PathHelper.cs" />
     <Compile Include="Persistence\ICredentials.cs" />
     <Compile Include="Persistence\SolutionBindingSerializer.cs" />
     <Compile Include="Progress\IProgressControlHost.cs" />
