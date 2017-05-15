@@ -35,6 +35,7 @@
         <TextBlock Grid.Column="1" Grid.Row="0"
                    x:Name="DeactivateText" Visibility="Collapsed"
                    Text="Deactivate JavaScript support."
+                   VerticalAlignment="Center"
                    Margin="5" TextWrapping="Wrap"/>
 
         <TextBlock Grid.Column="1" Grid.Row="1"
