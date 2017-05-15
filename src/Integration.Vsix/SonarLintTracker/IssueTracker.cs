@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.Snapshot = snapshot;
         }
 
-        internal void UpdateMarkers(ITextSnapshot currentSnapshot, IssuesSnapshot snapshot)
+        private void UpdateMarkers(ITextSnapshot currentSnapshot, IssuesSnapshot snapshot)
         {
             var oldSnapshot = this.Snapshot;
 
