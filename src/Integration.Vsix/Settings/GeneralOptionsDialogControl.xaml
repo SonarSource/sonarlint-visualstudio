@@ -38,7 +38,7 @@
                    Margin="5" TextWrapping="Wrap"/>
 
         <TextBlock Grid.Column="1" Grid.Row="1"
-                   Text="SonarLint for Visual Studio can also analyze JavaScript files. After installing JavaScript support, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
+                   Text="SonarLint can also analyze JavaScript files. After installing JavaScript support, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
                    Margin="5" TextWrapping="Wrap" />
 
         <CheckBox Grid.ColumnSpan="2" Grid.Row="2"

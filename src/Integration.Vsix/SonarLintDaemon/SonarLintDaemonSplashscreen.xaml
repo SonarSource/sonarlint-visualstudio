@@ -6,20 +6,24 @@
         >
     <StackPanel Margin="5">
         <TextBlock Margin="0,5"
-            Text="SonarLint for Visual Studio can also analyze JavaScript files. After installing JavaScript support, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
+            Text="SonarLint for Visual Studio can also analyze JavaScript files."
             TextWrapping="Wrap"/>
 
         <TextBlock Margin="0,5"
-            Text="Would you like to download and activate JavaScript support in SonarLint now?"
+            Text="Download and activate JavaScript support now?"
             TextWrapping="Wrap"/>
 
         <CheckBox Margin="10" HorizontalAlignment="Center"
                   x:Name="SkipActivateMoreDialogCheckBox"
-                  Content="Don't show this message again" IsChecked="True" />
+                  Content="Don't show this message again" />
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Background="AliceBlue">
             <Button Margin="5" Padding="20,5" IsDefault="True" Click="ClickYes">Yes</Button>
             <Button Margin="5" Padding="20,5" IsCancel="True">No</Button>
         </StackPanel>
+
+        <TextBlock Margin="0,10,0,0" HorizontalAlignment="Left" FontSize="10"
+            Text="Note that it doesn't benefit from the connected mode for now."
+            TextWrapping="Wrap"/>
     </StackPanel>
 </Window>

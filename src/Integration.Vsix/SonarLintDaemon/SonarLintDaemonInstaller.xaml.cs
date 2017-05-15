@@ -46,6 +46,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Window_ContentRendered(object sender, EventArgs args)
         {
+            ProgressBar.Visibility = Visibility.Visible;
+            CompletedMessage.Visibility = Visibility.Collapsed;
+
             Daemon.DownloadProgressChanged += DownloadProgressChanged;
             Daemon.DownloadCompleted += DownloadCompleted;
             Daemon.Install();
@@ -77,6 +80,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (!canceled)
             {
+                ProgressBar.Visibility = Visibility.Collapsed;
+                CompletedMessage.Visibility = Visibility.Visible;
+
                 Daemon.Start();
                 Settings.IsActivateMoreEnabled = true;
                 callback?.DynamicInvoke();
