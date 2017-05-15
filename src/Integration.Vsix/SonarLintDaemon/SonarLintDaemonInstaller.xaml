@@ -1,7 +1,7 @@
 ﻿<Window x:Class="SonarLint.VisualStudio.Integration.Vsix.SonarLintDaemonInstaller"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Installing JavaScript support..." MinWidth="400"
+        Title="Installing JavaScript support..." MinWidth="400" MinHeight="100"
         ContentRendered="Window_ContentRendered" WindowStyle="SingleBorderWindow"
         WindowStartupLocation="CenterScreen" Topmost="True" SizeToContent="WidthAndHeight" >
     <StackPanel Margin="5">
