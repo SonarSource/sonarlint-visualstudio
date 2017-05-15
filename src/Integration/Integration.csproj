@@ -13,6 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,6 +25,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>Integration.ruleset</CodeAnalysisRuleSet>
+    <DisableStrongNamer>true</DisableStrongNamer>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -59,11 +62,21 @@
       <HintPath>..\..\packages\EnvDTE90a.9.0.0\lib\net10\EnvDTE90a.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=2.20.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\Packages\Microsoft.IdentityModel.Clients.ActiveDirectory.2.20.301151232\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
+    <Reference Include="Microsoft.Alm.Authentication, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Alm.Authentication.4.0.0.1\lib\net451\Microsoft.Alm.Authentication.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory.WindowsForms, Version=2.20.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\Packages\Microsoft.IdentityModel.Clients.ActiveDirectory.2.20.301151232\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.WindowsForms.dll</HintPath>
+    <Reference Include="Microsoft.Alm.Git, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Alm.Authentication.4.0.0.1\lib\net451\Microsoft.Alm.Git.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=3.13.8.999, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.13.8\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory.Platform, Version=3.13.8.999, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.13.8\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.VisualStudio.ImageCatalog.14.3.25407\lib\net45\Microsoft.VisualStudio.ImageCatalog.dll</HintPath>
@@ -134,6 +147,10 @@
       <HintPath>..\..\packages\Microsoft.VisualStudio.Validation.14.1.111\lib\net45\Microsoft.VisualStudio.Validation.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.Vsts.Authentication, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Alm.Authentication.4.0.0.1\lib\net451\Microsoft.Vsts.Authentication.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -196,6 +213,7 @@
     <Compile Include="Persistence\ApplicableQualityProfile.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectExtensions.cs" />
     <Compile Include="LanguageConverter.cs" />
+    <Compile Include="Persistence\SecureStringHelpers.cs" />
     <Compile Include="ProfileConflicts\FixedRuleSetInfo.cs" />
     <Compile Include="LocalServices\ILocalService.cs" />
     <Compile Include="LocalServices\IRuleSetSerializer.cs" />
@@ -266,42 +284,6 @@
     <Compile Include="MefServices\ITelemetryLogger.cs" />
     <Compile Include="Persistence\BoundSonarQubeProject.cs" />
     <Compile Include="Persistence\BasicAuthCredentials.cs" />
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\SecretCache.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\BaseAuthentication.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\BaseSecureStore.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\Credential.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\IAuthentication.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\ICredentialStore.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\ITokenStore.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\NativeMethods.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\Secret.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\SecretStore.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\Token.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
-    <Compile Include="Persistence\Microsoft.Alm.Authentication\TokenType.cs">
-      <SonarQubeExclude>True</SonarQubeExclude>
-    </Compile>
     <Compile Include="PathHelper.cs" />
     <Compile Include="Persistence\ICredentials.cs" />
     <Compile Include="Persistence\SolutionBindingSerializer.cs" />
@@ -421,6 +403,13 @@
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.5.10.0.1302\analyzers\SonarAnalyzer.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\packages\StrongNamer.0.0.3\build\StrongNamer.targets" Condition="Exists('..\..\packages\StrongNamer.0.0.3\build\StrongNamer.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\StrongNamer.0.0.3\build\StrongNamer.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\StrongNamer.0.0.3\build\StrongNamer.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

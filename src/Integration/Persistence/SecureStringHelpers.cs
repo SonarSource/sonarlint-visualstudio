@@ -22,13 +22,11 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal static class SecureStringForTestExtensions
+    internal static class SecureStringHelpers
     {
         // Copied from http://blogs.msdn.com/b/fpintos/archive/2009/06/12/how-to-properly-convert-securestring-to-string.aspx
-
-        #region Conversion
 
         /// <summary>
         /// Create a read-only <see cref="SecureString"/> from this <see cref="string"/>.
@@ -74,7 +72,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Marshal.ZeroFreeGlobalAllocUnicode(unmanagedString);
             }
         }
-
-        #endregion Conversion
     }
 }

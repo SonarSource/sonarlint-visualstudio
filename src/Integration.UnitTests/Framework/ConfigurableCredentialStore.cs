@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
 using Microsoft.Alm.Authentication;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -30,19 +29,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         internal readonly Dictionary<Uri, Credential> data =
             new Dictionary<Uri, Credential>();
 
+        public string Namespace
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public Secret.UriNameConversion UriNameConversion
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         #region ICredentialStore
 
-        void ICredentialStore.DeleteCredentials(Uri targetUri)
+        void ICredentialStore.DeleteCredentials(TargetUri targetUri)
         {
             this.data.Remove(targetUri);
         }
 
-        bool ICredentialStore.ReadCredentials(Uri targetUri, out Credential credentials)
+        Credential ICredentialStore.ReadCredentials(TargetUri targetUri)
         {
-            return this.data.TryGetValue(targetUri, out credentials);
+            Credential credentials;
+            return this.data.TryGetValue(targetUri, out credentials) ? credentials : null;
         }
 
-        void ICredentialStore.WriteCredentials(Uri targetUri, Credential credentials)
+        void ICredentialStore.WriteCredentials(TargetUri targetUri, Credential credentials)
         {
             this.data[targetUri] = credentials;
         }

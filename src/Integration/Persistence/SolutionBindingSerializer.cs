@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Diagnostics;
+using System.IO;
 using EnvDTE;
 using Microsoft.Alm.Authentication;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Resources;
-using System;
-using System.Diagnostics;
-using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
@@ -155,12 +155,13 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         private BoundSonarQubeProject ReadBindingInformation(string configFile)
         {
             BoundSonarQubeProject bound = this.SafeDeserializeConfigFile(configFile);
-            if (bound != null)
+            if (bound?.ServerUri != null)
             {
-                Credential creds;
-                if (bound?.ServerUri != null && this.credentialStore.ReadCredentials(bound.ServerUri, out creds))
+                var credentials = this.credentialStore.ReadCredentials(bound.ServerUri);
+                if (credentials != null)
                 {
-                    bound.Credentials = new BasicAuthCredentials(creds.Username, creds.Password);
+                    bound.Credentials = new BasicAuthCredentials(credentials.Username,
+                        credentials.Password.ToSecureString());
                 }
             }
 
@@ -182,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                     Debug.Assert(credentials.UserName != null, "User name is not expected to be null");
                     Debug.Assert(credentials.Password != null, "Password name is not expected to be null");
 
-                    var creds = new Credential(credentials.UserName, credentials.Password);
+                    var creds = new Credential(credentials.UserName, credentials.Password.ToUnsecureString());
                     this.credentialStore.WriteCredentials(binding.ServerUri, creds);
                 }
                 return true;
