@@ -78,10 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private object GetValue(string columnName)
         {
             object content;
-            if (!snapshot.TryGetValue(0, columnName, out content))
-            {
-                throw new AssertFailedException($"Column must exist: {columnName}");
-            }
+            snapshot.TryGetValue(0, columnName, out content).Should().BeTrue();
             return content;
         }
     }
