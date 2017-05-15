@@ -128,17 +128,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal void UpdateIssues(IEnumerable<Issue> issues)
         {
             var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newMarkers = issues.Select(CreateIssueMarker).Where(m => m != null);
+            var newMarkers = issues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
             var newSnapshot = new IssuesSnapshot(this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
             SnapToNewSnapshot(newSnapshot);
         }
 
+        private bool IsValidIssueTextRange(Issue issue) => 1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
+
         private IssueMarker CreateIssueMarker(Issue issue)
         {
-            if (issue.StartLine < 1 || currentSnapshot.LineCount <= issue.EndLine - 1)
-            {
-                return null;
-            }
             int startPos = currentSnapshot.GetLineFromLineNumber(issue.StartLine - 1).Start.Position + issue.StartLineOffset;
             var start = new SnapshotPoint(currentSnapshot, startPos);
 
