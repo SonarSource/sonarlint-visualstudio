@@ -193,6 +193,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void Should_not_crash_when_sink_subscriber_gone()
+        {
+            var mockTableDataSink1 = new Mock<ITableDataSink>();
+            provider.Subscribe(mockTableDataSink1.Object);
+
+            var mockTableDataSink2 = new Mock<ITableDataSink>(MockBehavior.Strict);
+            var sinkManager = provider.Subscribe(mockTableDataSink2.Object);
+
+            sinkManager.Dispose();
+
+            var tracker = CreateTagger() as IssueTracker;
+
+            // factory of new tracker is propagated to all existing sink managers
+            mockTableDataSink1.Verify(s => s.AddFactory(tracker.Factory, false));
+        }
+
+        [TestMethod]
         public void Should_propagate_existing_tracker_factories_to_new_sink_managers()
         {
             SetMockDocumentFilename("foo.js");
