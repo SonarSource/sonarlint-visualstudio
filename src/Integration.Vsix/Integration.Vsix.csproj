@@ -46,15 +46,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commands\ProjectSonarLintMenuCommand.cs" />
-    <Compile Include="IEnumerableExtensions.cs" />
+    <Compile Include="Helpers\CommonGuids.cs" />
+    <Compile Include="Helpers\IEnumerableExtensions.cs" />
+    <Compile Include="Helpers\TcpUtil.cs" />
+    <Compile Include="Helpers\VisualStudioConstants.cs" />
     <Compile Include="Commands\PackageCommandId.cs" />
     <Compile Include="Commands\ProjectExcludePropertyToggleCommand.cs" />
     <Compile Include="Commands\ProjectTestPropertySetCommand.cs" />
     <Compile Include="Commands\VsCommandBase.cs" />
     <Compile Include="Commands\ManageConnectionsCommand.cs" />
     <Compile Include="Commands\PackageCommandManager.cs" />
-    <Compile Include="CommonGuids.cs" />
     <Compile Include="InfoBar\InfoBarManager.cs" />
+    <Compile Include="SonarLintDaemonPackage.cs" />
+    <Compile Include="SonarLintIntegrationPackage.cs" />
     <Compile Include="Protobuf\Sonarlint-daemonGrpc.cs" />
     <Compile Include="Protobuf\SonarlintDaemon.cs" />
     <Compile Include="Resources\Strings.Designer.cs">
@@ -84,7 +88,6 @@
     <Compile Include="SonarLintDaemon\SonarLintDaemonInstaller.xaml.cs">
       <DependentUpon>SonarLintDaemonInstaller.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SonarLintDaemonPackage.cs" />
     <Compile Include="SonarLintDaemon\ISonarLintDaemon.cs" />
     <Compile Include="SonarLintDaemon\SonarLintDaemon.cs" />
     <Compile Include="SonarLintDaemon\SonarLintDaemonSplashscreen.xaml.cs">
@@ -96,7 +99,7 @@
     <Compile Include="SonarLintTracker\SinkManager.cs" />
     <Compile Include="SonarLintTracker\SnapshotFactory.cs" />
     <Compile Include="SonarLintTracker\TaggerProvider.cs" />
-    <Compile Include="TcpUtil.cs" />
+    <Compile Include="SonarLintTelemetryPackage.cs" />
     <Compile Include="Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -112,11 +115,9 @@
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="SonarLintIntegrationPackage.cs" />
     <Compile Include="BoundSolutionAnalyzer.cs" />
     <Compile Include="Telemetry\SonarLintIntegrationPackage.IOleCommandTarget.cs" />
     <Compile Include="Telemetry\TelemetryLogger.cs" />
-    <Compile Include="VisualStudioConstants.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -321,6 +322,7 @@
       <HintPath>..\..\packages\Microsoft.Composition.1.0.30\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Console.4.3.0\lib\net46\System.Console.dll</HintPath>
       <Private>True</Private>

@@ -18,20 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.Windows.Controls;
+using System.Diagnostics;
+using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration
 {
-    /// <summary>
-    /// Interaction logic for OtherOptionsDialogControl.xaml
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    public partial class OtherOptionsDialogControl : UserControl
+    [DebuggerDisplay("Product: {SonarLintProduct}, Version: {SonarLintVersion}, DaysInstall: " +
+        "{NumberOfDaysSinceInstallation}, DaysOfUse: {NumberOfDaysOfUse}, IsConnected: {IsUsingConnectedMode}")]
+    public sealed class TelemetryPayload
     {
-        public OtherOptionsDialogControl()
-        {
-            InitializeComponent();
-        }
+        [JsonProperty("sonarlint_product")]
+        public string SonarLintProduct { get; set; }
+
+        [JsonProperty("sonarlint_version")]
+        public string SonarLintVersion { get; set; }
+
+        [JsonProperty("days_since_installation")]
+        public long NumberOfDaysSinceInstallation { get; set; }
+
+        [JsonProperty("days_of_use")]
+        public long NumberOfDaysOfUse { get; set; }
+
+        [JsonProperty("connected_mode_used")]
+        public bool IsUsingConnectedMode { get; set; }
     }
 }

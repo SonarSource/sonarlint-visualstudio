@@ -18,20 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.Windows.Controls;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+using System.Threading.Tasks;
+
+namespace SonarLint.VisualStudio.Integration
 {
-    /// <summary>
-    /// Interaction logic for OtherOptionsDialogControl.xaml
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    public partial class OtherOptionsDialogControl : UserControl
+    public interface ITelemetryClient
     {
-        public OtherOptionsDialogControl()
-        {
-            InitializeComponent();
-        }
+        Task<bool> SendPayload(TelemetryPayload payload);
+        Task<bool> OptOut(TelemetryPayload payload);
     }
 }
