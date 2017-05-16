@@ -46,7 +46,7 @@
     <CodeAnalysisRuleSet>$(ReferencedDirectory)\Integration.Vsix.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\*Designer.cs;**\Settings\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*">
+    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\*Designer.cs;**\Settings\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*;**\SonarLintDaemon\SonarLintDaemonSplashscreen.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogControl.xaml.cs">
@@ -63,6 +63,9 @@
     </Compile>
     <Compile Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml.cs">
       <DependentUpon>SonarLintDaemonInstaller.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml.cs">
+      <DependentUpon>SonarLintDaemonSplashscreen.xaml</DependentUpon>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\SonarLintSettings.cs" />
     <Compile Include="$(ReferencedDirectory)\Protobuf\Sonarlint-daemonGrpc.cs">
@@ -510,6 +513,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

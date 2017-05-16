@@ -87,6 +87,9 @@
     <Compile Include="SonarLintDaemonPackage.cs" />
     <Compile Include="SonarLintDaemon\ISonarLintDaemon.cs" />
     <Compile Include="SonarLintDaemon\SonarLintDaemon.cs" />
+    <Compile Include="SonarLintDaemon\SonarLintDaemonSplashscreen.xaml.cs">
+      <DependentUpon>SonarLintDaemonSplashscreen.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SonarLintTracker\IssueMarker.cs" />
     <Compile Include="SonarLintTracker\IssuesSnapshot.cs" />
     <Compile Include="SonarLintTracker\IssueTracker.cs" />
@@ -514,6 +517,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SonarLintDaemon\SonarLintDaemonInstaller.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SonarLintDaemon\SonarLintDaemonSplashscreen.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
