@@ -91,6 +91,55 @@
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
+    <Compile Include="$(ReferencedDirectory)\Resources\Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+      <Link>Resources\Strings.Designer.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(ReferencedDirectory)\Resources\PackageStrings.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+      <ManifestResourceName>VSPackage</ManifestResourceName>
+      <SubType>Designer</SubType>
+      <Link>Resources\PackageStrings.resx</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(ReferencedDirectory)\Resources\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <Link>Resources\Strings.resx</Link>
+    </EmbeddedResource>
+    <AdditionalFiles Include="..\SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
+    <VSCTCompile Include="$(ReferencedDirectory)\SonarLint.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
+      <Link>SonarLint.vsct</Link>
+    </VSCTCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Link>Settings\GeneralOptionsDialogControl.xaml</Link>
+    </Page>
+    <Page Include="$(ReferencedDirectory)\Settings\OtherOptionsDialogControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Link>Settings\OtherOptionsDialogControl.xaml</Link>
+    </Page>
+    <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Link>SonarLintDaemon\SonarLintDaemonInstaller.xaml</Link>
+    </Page>
+    <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Link>SonarLintDaemon\SonarLintDaemonSplashscreen.xaml</Link>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -104,9 +153,54 @@
     <None Include="$(ReferencedDirectory)\SonarLintTracker\README.md">
       <Link>SonarLintTracker\README.md</Link>
     </None>
+    <None Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmCommandFacade.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SqmCommandFacade.cs</LastGenOutput>
+      <Link>Telemetry\GeneratedCode\SqmCommandFacade.tt</Link>
+    </None>
+    <None Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmOleCommandTarget.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SqmOleCommandTarget.cs</LastGenOutput>
+      <Link>Telemetry\GeneratedCode\SqmOleCommandTarget.tt</Link>
+    </None>
+    <None Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmVsCommands.tt">
+      <AutoGen>True</AutoGen>
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SqmVsCommands.vsct</LastGenOutput>
+      <Link>Telemetry\GeneratedCode\SqmVsCommands.tt</Link>
+    </None>
+    <None Include="Resources\sonarlint_32px.ico" />
+    <None Include="source.extension.vsixmanifest" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="source.extension.vsixmanifest" />
+    <Content Include="$(ReferencedDirectory)\Commands\PackageCommands.vsct">
+      <SubType>Designer</SubType>
+      <Link>Commands\PackageCommands.vsct</Link>
+    </Content>
+    <Content Include="$(ReferencedDirectory)\Resources\sonarlint_200.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Link>Resources\sonarlint_200.png</Link>
+    </Content>
+    <Content Include="..\..\LICENSE">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Link>LICENSE</Link>
+    </Content>
+    <Content Include="$(ReferencedDirectory)\Resources\CommandIcons.png">
+      <Link>Resources\CommandIcons.png</Link>
+    </Content>
+    <Content Include="$(ReferencedDirectory)\Resources\sonarlint_32.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Link>Resources\sonarlint_32.png</Link>
+    </Content>
+    <Content Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmVsCommands.vsct">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SqmVsCommands.tt</DependentUpon>
+      <Link>Telemetry\GeneratedCode\SqmVsCommands.vsct</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -430,78 +524,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(ReferencedDirectory)\Resources\PackageStrings.resx">
-      <MergeWithCTO>true</MergeWithCTO>
-      <ManifestResourceName>VSPackage</ManifestResourceName>
-      <SubType>Designer</SubType>
-      <Link>Resources\PackageStrings.resx</Link>
-    </EmbeddedResource>
-    <Compile Include="$(ReferencedDirectory)\Resources\Strings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Strings.resx</DependentUpon>
-      <Link>Resources\Strings.Designer.cs</Link>
-    </Compile>
-    <EmbeddedResource Include="$(ReferencedDirectory)\Resources\Strings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-      <Link>Resources\Strings.resx</Link>
-    </EmbeddedResource>
-    <None Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmCommandFacade.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqmCommandFacade.cs</LastGenOutput>
-      <Link>Telemetry\GeneratedCode\SqmCommandFacade.tt</Link>
-    </None>
-    <None Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmOleCommandTarget.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqmOleCommandTarget.cs</LastGenOutput>
-      <Link>Telemetry\GeneratedCode\SqmOleCommandTarget.tt</Link>
-    </None>
-    <None Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmVsCommands.tt">
-      <AutoGen>True</AutoGen>
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqmVsCommands.vsct</LastGenOutput>
-      <Link>Telemetry\GeneratedCode\SqmVsCommands.tt</Link>
-    </None>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-    <Content Include="$(ReferencedDirectory)\Commands\PackageCommands.vsct">
-      <SubType>Designer</SubType>
-      <Link>Commands\PackageCommands.vsct</Link>
-    </Content>
-    <Content Include="$(ReferencedDirectory)\Resources\sonarlint_200.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Link>Resources\sonarlint_200.png</Link>
-    </Content>
-    <Content Include="..\..\LICENSE">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Link>LICENSE</Link>
-    </Content>
-    <Content Include="$(ReferencedDirectory)\Resources\CommandIcons.png">
-      <Link>Resources\CommandIcons.png</Link>
-    </Content>
-    <Content Include="$(ReferencedDirectory)\Resources\sonarlint_32.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Link>Resources\sonarlint_32.png</Link>
-    </Content>
-    <None Include="Resources\sonarlint_32px.ico" />
-    <Content Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmVsCommands.vsct">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SqmVsCommands.tt</DependentUpon>
-      <Link>Telemetry\GeneratedCode\SqmVsCommands.vsct</Link>
-    </Content>
-    <VSCTCompile Include="$(ReferencedDirectory)\SonarLint.vsct">
-      <ResourceName>Menus.ctmenu</ResourceName>
-      <SubType>Designer</SubType>
-      <Link>SonarLint.vsct</Link>
-    </VSCTCompile>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
@@ -510,28 +532,6 @@
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.1\analyzers\Google.Protobuf.dll" />
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.1\analyzers\SonarAnalyzer.CSharp.dll" />
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.1\analyzers\SonarAnalyzer.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <Link>Settings\GeneralOptionsDialogControl.xaml</Link>
-    </Page>
-    <Page Include="$(ReferencedDirectory)\Settings\OtherOptionsDialogControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <Link>Settings\OtherOptionsDialogControl.xaml</Link>
-    </Page>
-    <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <Link>SonarLintDaemon\SonarLintDaemonInstaller.xaml</Link>
-    </Page>
-    <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <Link>SonarLintDaemon\SonarLintDaemonInstaller.xaml</Link>
-    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
@@ -558,8 +558,10 @@
   </Target>
   <Import Project="..\..\packages\Microsoft.VSSDK.BuildTools.14.3.25407\build\Microsoft.VSSDK.BuildTools.targets" Condition="Exists('..\..\packages\Microsoft.VSSDK.BuildTools.14.3.25407\build\Microsoft.VSSDK.BuildTools.targets')" />
   <PropertyGroup>
-    <PreBuildEvent>cd $(ProjectDir)..\Integration.Vsix\Protobuf
-build.bat</PreBuildEvent>
+    <PreBuildEvent>
+      cd $(ProjectDir)..\Integration.Vsix\Protobuf
+      build.bat
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
