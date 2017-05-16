@@ -46,8 +46,14 @@
     <CodeAnalysisRuleSet>$(ReferencedDirectory)\Integration.Vsix.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\*Designer.cs;**\Settings\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*;**\SonarLintDaemon\SonarLintDaemonSplashscreen.*">
+    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\*Designer.cs;**\Settings\*;**\Protobuf\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*;**\SonarLintDaemon\SonarLintDaemonSplashscreen.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+    <Compile Include="$(ReferencedDirectory)\Protobuf\Sonarlint-daemonGrpc.cs">
+      <Link>Protobuf\Sonarlint-daemonGrpc.cs</Link>
+    </Compile>
+    <Compile Include="$(ReferencedDirectory)\Protobuf\SonarlintDaemon.cs">
+      <Link>Protobuf\SonarlintDaemon.cs</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogControl.xaml.cs">
       <DependentUpon>GeneralOptionsDialogControl.xaml</DependentUpon>
