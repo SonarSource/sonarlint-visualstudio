@@ -51,28 +51,26 @@
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogControl.xaml.cs">
       <DependentUpon>GeneralOptionsDialogControl.xaml</DependentUpon>
+      <Link>Settings\GeneralOptionsDialogControl.xaml.cs</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\OtherOptionsDialogControl.xaml.cs">
       <DependentUpon>OtherOptionsDialogControl.xaml</DependentUpon>
+      <Link>Settings\OtherOptionsDialogControl.xaml.cs</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\OtherOptionsDialogPage.cs">
       <SubType>Component</SubType>
+      <Link>Settings\OtherOptionsDialogPage.cs</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogPage.cs">
       <SubType>Component</SubType>
+      <Link>Settings\GeneralOptionsDialogPage.cs</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml.cs">
       <DependentUpon>SonarLintDaemonInstaller.xaml</DependentUpon>
+      <Link>Settings\SonarLintDaemonInstaller.xaml.cs</Link>
     </Compile>
-    <Compile Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml.cs">
-      <DependentUpon>SonarLintDaemonSplashscreen.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="$(ReferencedDirectory)\Settings\SonarLintSettings.cs" />
-    <Compile Include="$(ReferencedDirectory)\Protobuf\Sonarlint-daemonGrpc.cs">
-      <Link>Protobuf\Sonarlint-daemonGrpc.cs</Link>
-    </Compile>
-    <Compile Include="$(ReferencedDirectory)\Protobuf\SonarlintDaemon.cs">
-      <Link>Protobuf\SonarlintDaemon.cs</Link>
+    <Compile Include="$(ReferencedDirectory)\Settings\SonarLintSettings.cs">
+      <Link>Settings\SonarLintSettings.cs</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <AutoGen>True</AutoGen>
@@ -296,6 +294,7 @@
       <HintPath>..\..\packages\Microsoft.Composition.1.0.30\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Console.4.3.0\lib\net46\System.Console.dll</HintPath>
       <Private>True</Private>
@@ -507,14 +506,17 @@
     <Page Include="$(ReferencedDirectory)\Settings\GeneralOptionsDialogControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <Link>Settings\GeneralOptionsDialogControl.xaml</Link>
     </Page>
     <Page Include="$(ReferencedDirectory)\Settings\OtherOptionsDialogControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <Link>Settings\OtherOptionsDialogControl.xaml</Link>
     </Page>
     <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <Link>Settings\SonarLintDaemonInstaller.xaml</Link>
     </Page>
     <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml">
       <SubType>Designer</SubType>

@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
-        public async void OptOut_WhenMoreThanThreeFailures_ReturnsFalse()
+        public async Task OptOut_WhenMoreThanThreeFailures_ReturnsFalse()
         {
             // Arrange
             var httpHandler = new FakeHttpMessageHandler(x => { throw new Exception(); });
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
-        public async void OptOut_WhenSuccess_ReturnsTrue()
+        public async Task OptOut_WhenSuccess_ReturnsTrue()
         {
             // Arrange
             var response = new HttpResponseMessage(System.Net.HttpStatusCode.Created);
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
-        public async void SendPayload_WhenMoreThanThreeFailures_ReturnsFalse()
+        public async Task SendPayload_WhenMoreThanThreeFailures_ReturnsFalse()
         {
             // Arrange
             var httpHandler = new FakeHttpMessageHandler(x => { throw new Exception(); });
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
-        public async void SendPayload_WhenSuccess_ReturnsTrue()
+        public async Task SendPayload_WhenSuccess_ReturnsTrue()
         {
             // Arrange
             var response = new HttpResponseMessage(System.Net.HttpStatusCode.Created);
