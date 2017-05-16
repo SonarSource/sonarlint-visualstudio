@@ -128,10 +128,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal void UpdateIssues(IEnumerable<Issue> issues)
         {
             var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newMarkers = issues.Select(CreateIssueMarker);
+            var newMarkers = issues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
             var newSnapshot = new IssuesSnapshot(this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
             SnapToNewSnapshot(newSnapshot);
         }
+
+        private bool IsValidIssueTextRange(Issue issue) => 1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
         private IssueMarker CreateIssueMarker(Issue issue)
         {
@@ -155,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.Snapshot = snapshot;
         }
 
-        internal void UpdateMarkers(ITextSnapshot currentSnapshot, IssuesSnapshot snapshot)
+        private void UpdateMarkers(ITextSnapshot currentSnapshot, IssuesSnapshot snapshot)
         {
             var oldSnapshot = this.Snapshot;
 
