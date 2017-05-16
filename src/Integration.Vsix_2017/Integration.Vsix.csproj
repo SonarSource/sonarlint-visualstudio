@@ -67,7 +67,11 @@
     </Compile>
     <Compile Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml.cs">
       <DependentUpon>SonarLintDaemonInstaller.xaml</DependentUpon>
-      <Link>Settings\SonarLintDaemonInstaller.xaml.cs</Link>
+      <Link>SonarLintDaemon\SonarLintDaemonInstaller.xaml.cs</Link>
+    </Compile>
+    <Compile Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml.cs">
+      <DependentUpon>SonarLintDaemonSplashscreen.xaml</DependentUpon>
+      <Link>SonarLintDaemon\SonarLintDaemonSplashscreen.xaml.cs</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Settings\SonarLintSettings.cs">
       <Link>Settings\SonarLintSettings.cs</Link>
@@ -94,7 +98,12 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="$(ReferencedDirectory)\Telemetry\SonarLintSqmData.ttinclude" />
+    <None Include="$(ReferencedDirectory)\Telemetry\SonarLintSqmData.ttinclude">
+      <Link>Telemetry\SonarLintSqmData.ttinclude</Link>
+    </None>
+    <None Include="$(ReferencedDirectory)\SonarLintTracker\README.md">
+      <Link>SonarLintTracker\README.md</Link>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest" />
@@ -516,11 +525,12 @@
     <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonInstaller.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-      <Link>Settings\SonarLintDaemonInstaller.xaml</Link>
+      <Link>SonarLintDaemon\SonarLintDaemonInstaller.xaml</Link>
     </Page>
     <Page Include="$(ReferencedDirectory)\SonarLintDaemon\SonarLintDaemonSplashscreen.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <Link>SonarLintDaemon\SonarLintDaemonInstaller.xaml</Link>
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
