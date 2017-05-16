@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Controls;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -25,6 +26,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <summary>
     /// Interaction logic for OtherOptionsDialogControl.xaml
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public partial class OtherOptionsDialogControl : UserControl
     {
         public OtherOptionsDialogControl()

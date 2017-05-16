@@ -251,6 +251,7 @@
     <Compile Include="Connection\ConnectControllerTests.cs" />
     <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
     <Compile Include="Framework\ConfigurableCredentialStore.cs" />
+    <Compile Include="Helpers\RetryHelperTests.cs" />
     <Compile Include="IServiceProviderExtensionsTests.cs" />
     <Compile Include="LanguageConverterTests.cs" />
     <Compile Include="LocalServices\ErrorListInfoBarController.QualityProfileBackgroundProcessorTests.cs" />
@@ -270,13 +271,13 @@
     <Compile Include="LanguageTests.cs" />
     <Compile Include="LocalServices\SolutionRuleSetsInformationProviderTests.cs" />
     <Compile Include="LocalServices\SourceControlledFileSystemTests.cs" />
-    <Compile Include="PathHelperTests.cs" />
+    <Compile Include="Helpers\PathHelperTests.cs" />
     <Compile Include="Persistence\BoundSonarQubeProjectTests.cs" />
     <Compile Include="Progress\ProgressNotificationListenerTests.cs" />
     <Compile Include="Progress\ProgressStepRunnerTests.cs" />
     <Compile Include="LocalServices\ProjectSystemFilterTests.cs" />
     <Compile Include="MefServices\ProjectPropertyManagerTests.cs" />
-    <Compile Include="RuleSetHelperTests.cs" />
+    <Compile Include="Helpers\RuleSetHelperTests.cs" />
     <Compile Include="SanityTests.cs" />
     <Compile Include="Connection\ConnectionWorkflowTests.cs" />
     <Compile Include="Service\AuthenticationHeaderProviderTests.cs" />
@@ -304,9 +305,9 @@
     <Compile Include="Telemetry\TelemetryClientTests.cs" />
     <Compile Include="Telemetry\TelemetryDataRepositoryTests.cs" />
     <Compile Include="Telemetry\TelemetryManagerTests.cs" />
-    <Compile Include="UriExtensionsTests.cs" />
+    <Compile Include="Helpers\UriExtensionsTests.cs" />
     <Compile Include="MefServices\VsSessionHostTests.cs" />
-    <Compile Include="VsShellUtilsTests.cs" />
+    <Compile Include="Helpers\VsShellUtilsTests.cs" />
     <Compile Include="WPF\BoolToVisibilityConverterTests.cs" />
     <Compile Include="Connection\UriValidatorTests.cs" />
     <Compile Include="Connection\ConnectDialogViewModelTests.cs" />

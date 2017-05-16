@@ -182,6 +182,8 @@ namespace SonarLint.VisualStudio.Integration
 
         public void Dispose()
         {
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged -= this.OnSolutionBuilding;
+
             this.tryUploadDataTimer.Elapsed -= OnTryUploadDataTimerElapsed;
             this.tryUploadDataTimer.Dispose();
 

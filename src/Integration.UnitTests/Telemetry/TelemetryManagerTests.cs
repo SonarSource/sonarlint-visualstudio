@@ -79,12 +79,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Arrange
             var solutionBindingTracker = new Mock<IActiveSolutionBoundTracker>();
             var expectedValue = false;
-            var telemetryRepository = new Mock<ITelemetryDataRepository>();
-            telemetryRepository.Setup(x => x.Data.IsAnonymousDataShared).Returns(expectedValue);
+            var telemetryRepository = new TelemetryDataRepository();
+            telemetryRepository.Data.IsAnonymousDataShared = expectedValue;
             var telemetryClient = new Mock<ITelemetryClient>();
 
-            var manager = new TelemetryManager(solutionBindingTracker.Object, telemetryRepository.Object,
-                telemetryClient.Object);
+            var manager = new TelemetryManager(solutionBindingTracker.Object, telemetryRepository, telemetryClient.Object);
 
             // Act
             var result = manager.IsAnonymousDataShared;

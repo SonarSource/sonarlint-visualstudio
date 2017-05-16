@@ -22,6 +22,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,13 +33,31 @@ namespace SonarLint.VisualStudio.Integration.Tests
     public class TelemetryDataRepositoryTests
     {
         [TestMethod]
+        public void Ctor_AlwaysCreateStorageFileFolders()
+        {
+            // Arrange
+            var filePath = TelemetryDataRepository.GetStorageFilePath();
+            var directoryPath = Path.GetDirectoryName(filePath);
+
+            RetryHelper.RetryOnException(5, TimeSpan.FromSeconds(1), () => Directory.Delete(directoryPath, true));
+            Thread.Sleep(500);
+            Directory.Exists(directoryPath).Should().BeFalse(); // Sanity test
+
+            // Act
+            var repository = new TelemetryDataRepository();
+
+            // Assert
+            Directory.Exists(directoryPath).Should().BeTrue();
+        }
+
+        [TestMethod]
         public void Ctor_AlwaysCreateStorageFile()
         {
             // Arrange
             var filePath = TelemetryDataRepository.GetStorageFilePath();
 
             RetryHelper.RetryOnException(5, TimeSpan.FromSeconds(1), () => File.Delete(filePath));
-            Thread.Sleep(1000);
+            Thread.Sleep(500);
             File.Exists(filePath).Should().BeFalse(); // Sanity test
 
             // Act
@@ -106,7 +125,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Instance_AutomaticallyReadFileOnChange()
         {
             // Arrange
-            File.Delete(TelemetryDataRepository.GetStorageFilePath());
+            RetryHelper.RetryOnException(5, TimeSpan.FromSeconds(1),
+                () => File.Delete(TelemetryDataRepository.GetStorageFilePath()));
 
             var repository = new TelemetryDataRepository();
             repository.Data.IsAnonymousDataShared = false;
@@ -119,14 +139,14 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // Act
             repository.Save();
-            Thread.Sleep(1000);
+            Task.Delay(500).Wait();
 
             // Assert
-            otherRepository.Data.IsAnonymousDataShared.Should().BeFalse();
             otherRepository.Data.InstallationDate.Should().Be(DateTime.MaxValue);
             otherRepository.Data.LastSavedAnalysisDate.Should().Be(DateTime.MaxValue);
             otherRepository.Data.NumberOfDaysOfUse.Should().Be(long.MaxValue);
             otherRepository.Data.LastUploadDate.Should().Be(DateTime.MaxValue);
+            otherRepository.Data.IsAnonymousDataShared.Should().BeFalse();
         }
     }
 }
