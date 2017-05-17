@@ -149,61 +149,21 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="..\Progress.UnitTests\ProgessController\DefaultProgressStepFactoryTests.cs">
-      <Link>ProgessController\DefaultProgressStepFactoryTests.cs</Link>
+    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgessController\DeterminateStepProgressNotifierTests.cs">
-      <Link>ProgessController\DeterminateStepProgressNotifierTests.cs</Link>
+    <Compile Include="..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgessController\ErrorNotificationManagerTests.cs">
-      <Link>ProgessController\ErrorNotificationManagerTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgessController\HelpersTests.cs">
-      <Link>ProgessController\HelpersTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgessController\MessageVerificationHelper.cs">
-      <Link>ProgessController\MessageVerificationHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgessController\ProgressControllerStepTests.cs">
-      <Link>ProgessController\ProgressControllerStepTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgessController\SequentialProgressControllerTests.cs">
-      <Link>ProgessController\SequentialProgressControllerTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgessController\VsActivityLogNotifierTests.cs">
-      <Link>ProgessController\VsActivityLogNotifierTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgessController\VsMessageBoxNotifierTests.cs">
-      <Link>ProgessController\VsMessageBoxNotifierTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgessController\VsOutputWindowPaneNotifierTests.cs">
-      <Link>ProgessController\VsOutputWindowPaneNotifierTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgressObserver\ProgressControllerViewModelTests.cs">
-      <Link>ProgressObserver\ProgressControllerViewModelTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgressObserver\ProgressObserverTests.cs">
-      <Link>ProgressObserver\ProgressObserverTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgressObserver\ProgressStepViewModelTests.cs">
-      <Link>ProgressObserver\ProgressStepViewModelTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\ProgressObserver\ProgressViewModelTests.cs">
-      <Link>ProgressObserver\ProgressViewModelTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\Properties\AssemblyInfo.cs">
-      <Link>Properties\AssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\Services\StubVsActivityLog.cs">
-      <Link>Services\StubVsActivityLog.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\Services\StubVsOutputWindowPane.cs">
-      <Link>Services\StubVsOutputWindowPane.cs</Link>
-    </Compile>
-    <Compile Include="..\Progress.UnitTests\Services\StubVsUIShell.cs">
-      <Link>Services\StubVsUIShell.cs</Link>
-    </Compile>
-    <Compile Include="..\AssemblyInfo.Shared.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="$(ReferencedDirectory)\Progress.UnitTests.ruleset" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Progress.TestFramework_2017\Progress.TestFramework.csproj">
@@ -218,15 +178,6 @@
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
       <Name>Progress</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="$(ReferencedDirectory)\Progress.UnitTests.ruleset" />
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

@@ -141,31 +141,19 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="AssertIgnoreScope.cs" />
-    <Compile Include="ConfigurableErrorNotifier.cs" />
-    <Compile Include="ConfigurableProgressController.cs" />
-    <Compile Include="ConfigurableProgressController.IProgressController.cs" />
-    <Compile Include="ConfigurableProgressController.IProgressStepExecutionEvents.cs" />
-    <Compile Include="ConfigurableProgressEvents.cs" />
-    <Compile Include="ConfigurableProgressStepExecutionNotifier.cs" />
-    <Compile Include="ConfigurableProgressStepFactory.cs" />
-    <Compile Include="ConfigurableProgressTestOperation.cs" />
-    <Compile Include="ConfigurableProgressTestOperation.IProgressStepOperation.cs" />
-    <Compile Include="ConfigurableProgressVisualizer.cs" />
-    <Compile Include="ConfigurableProgressVisualizer.IProgressVisualizer.cs" />
-    <Compile Include="ConfigurableServiceProvider.cs" />
-    <Compile Include="Exceptions.cs" />
-    <Compile Include="ProgressEventsVerifier.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="**\*.cs" Exclude="**\obj\**\*" />
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="SequentialProgressControllerHelper.cs" />
-    <Compile Include="Services\SingleThreadedTaskSchedulerService.cs" />
-    <Compile Include="StubProgressStepDefinition.cs" />
-    <Compile Include="StubProgressStepOperation.cs" />
-    <Compile Include="VerificationHelper.cs" />
-    <Compile Include="ViewModelVerifier.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Progress.TestFramework.ruleset" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Progress\Progress.csproj">
@@ -176,15 +164,6 @@
       <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
       <Name>ProgressVS</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="Progress.TestFramework.ruleset" />
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

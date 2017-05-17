@@ -157,6 +157,15 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="$(ReferencedDirectory)\Progress.TestFramework.ruleset" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\ProgressVS_2017\ProgressVS.csproj">
       <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
       <Name>ProgressVS</Name>
@@ -165,15 +174,6 @@
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
       <Name>Progress</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="$(ReferencedDirectory)\Progress.TestFramework.ruleset" />
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

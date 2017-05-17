@@ -16,6 +16,7 @@
     <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
+    <VsCommonIdeDirectory>$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -283,36 +284,25 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <HintPath>$(VS140COMNTOOLS)\..\IDE\PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+      <HintPath>$(VsCommonIdeDirectory)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\ManageConnectionsCommandTests.cs" />
-    <Compile Include="Commands\ProjectSonarLintMenuCommandTests.cs" />
-    <Compile Include="Commands\ProjectTestPropertySetCommandTests.cs" />
-    <Compile Include="Commands\ProjectExcludePropertyToggleCommandTests.cs" />
-    <Compile Include="IEnumerableExtensionsTests.cs" />
-    <Compile Include="InfoBar\InfoBarManagerTests.cs" />
-    <Compile Include="Settings\OtherOptionsDialogPageTests.cs" />
-    <Compile Include="Settings\SonarLintSettingsTests.cs" />
-    <Compile Include="SonarAnalyzer\ConfigurableSolutionAnalysisRequester.cs" />
-    <Compile Include="SonarAnalyzer\SolutionAnalysisRequesterTests.cs" />
-    <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.ForBound.cs" />
-    <Compile Include="SonarAnalyzer\ConfigurableAnalyzerReference.cs" />
-    <Compile Include="SonarAnalyzer\SonarAnalyzerManagerTests.cs" />
-    <Compile Include="SonarAnalyzer\WorkspaceConfiguratorTests.cs" />
-    <Compile Include="SonarLintTracker\IssuesSnapshotTests.cs" />
-    <Compile Include="SonarLintTracker\TaggerProviderTests.cs" />
-    <Compile Include="SonarLintDaemonTests.cs" />
-    <Compile Include="TcpUtilTests.cs" />
-    <Compile Include="Telemetry\BoundSolutionAnalyzerTests.cs" />
-    <Compile Include="Commands\PackageCommandManagerTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="**\*.cs" Exclude="**\obj\**\*" />
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="Telemetry\TelemetryLoggerTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Integration.Vsix.UnitTests.ruleset" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Integration.Vsix\Integration.Vsix.csproj">
@@ -329,18 +319,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-    <None Include="Integration.Vsix.UnitTests.ruleset" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
