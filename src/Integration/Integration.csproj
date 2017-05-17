@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <VsCommonIdeDirectory>$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -182,180 +183,39 @@
   </ItemGroup>
   <ItemGroup Label="NonGac">
     <Reference Include="Microsoft.TeamFoundation.Client">
-      <HintPath>$(VS140COMNTOOLS)..\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
+      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.Controls">
-      <HintPath>$(VS140COMNTOOLS)..\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
+      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <HintPath>$(VS140COMNTOOLS)\..\IDE\PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+      <HintPath>$(VsCommonIdeDirectory)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.CodeAnalysis">
-      <HintPath>$(VS140COMNTOOLS)\..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
+      <HintPath>$(VsCommonIdeDirectory)..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Binding\BindingController.cs" />
-    <Compile Include="Binding\IBindingOperation.cs" />
-    <Compile Include="Binding\RuleSetInformation.cs" />
-    <Compile Include="Helpers\PathHelper.cs" />
-    <Compile Include="Helpers\RetryHelper.cs" />
-    <Compile Include="LocalServices\IErrorListInfoBarController.cs" />
-    <Compile Include="LocalServices\ErrorListInfoBarController.cs" />
-    <Compile Include="LocalServices\ISolutionBindingInformationProvider.cs" />
-    <Compile Include="LocalServices\IProjectSystemHelperExtensions.cs" />
-    <Compile Include="LocalServices\SolutionBindingInformationProvider.cs" />
-    <Compile Include="MefServices\IProjectPropertyManager.cs" />
-    <Compile Include="MefServices\IInfoBar.cs" />
-    <Compile Include="MefServices\IInfoBarManager.cs" />
-    <Compile Include="Persistence\ApplicableQualityProfile.cs" />
-    <Compile Include="Persistence\BoundSonarQubeProjectExtensions.cs" />
-    <Compile Include="LanguageConverter.cs" />
-    <Compile Include="Persistence\SecureStringHelpers.cs" />
-    <Compile Include="ProfileConflicts\FixedRuleSetInfo.cs" />
-    <Compile Include="LocalServices\ILocalService.cs" />
-    <Compile Include="LocalServices\IRuleSetSerializer.cs" />
-    <Compile Include="Binding\ISolutionRuleStore.cs" />
-    <Compile Include="Binding\ProjectBindingOperation.cs" />
-    <Compile Include="Binding\ProjectBindingOperation.Writer.cs" />
-    <Compile Include="MefServices\ProjectPropertyManager.cs" />
-    <Compile Include="ProfileConflicts\ConflictsManager.cs" />
-    <Compile Include="ProfileConflicts\IConflictsManager.cs" />
-    <Compile Include="ProfileConflicts\IRuleSetConflictsController.cs" />
-    <Compile Include="ProfileConflicts\ProjectRuleSetConflict.cs" />
-    <Compile Include="ProfileConflicts\RuleSetInformation.cs" />
-    <Compile Include="LocalServices\RuleSetSerializer.cs" />
-    <Compile Include="Binding\SolutionBindingOperation.cs" />
-    <Compile Include="Binding\NuGetHelper.cs" />
-    <Compile Include="Connection\ConnectionController.cs" />
-    <Compile Include="Connection\ConnectionWorkflow.cs" />
-    <Compile Include="Helpers\Constants.cs" />
-    <Compile Include="Binding\BindingWorkflow.cs" />
-    <Compile Include="Binding\IBindingWorkflowExecutor.cs" />
-    <Compile Include="HostedCommandControllerBase.cs" />
-    <Compile Include="MefServices\IHost.cs" />
-    <Compile Include="LocalServices\IProjectSystemHelper.cs" />
-    <Compile Include="MefServices\IActiveSolutionTracker.cs" />
-    <Compile Include="LocalServices\IProjectSystemFilter.cs" />
-    <Compile Include="Helpers\IServiceProviderExtensions.cs" />
-    <Compile Include="MefServices\IIntegrationSettings.cs" />
-    <Compile Include="MefServices\IWebBrowser.cs" />
-    <Compile Include="LocalServices\IFileSystem.cs" />
-    <Compile Include="ProfileConflicts\IRuleSetInspector.cs" />
-    <Compile Include="LocalServices\ISolutionRuleSetsInformationProvider.cs" />
-    <Compile Include="LocalServices\ISourceControlledFileSystem.cs" />
-    <Compile Include="ProfileConflicts\RuleConflictInfo.cs" />
-    <Compile Include="LocalServices\RuleSetDeclaration.cs" />
-    <Compile Include="ProfileConflicts\RuleSetInspector.cs" />
-    <Compile Include="LocalServices\SolutionRuleSetsInformationProvider.cs" />
-    <Compile Include="Persistence\ISolutionBindingSerializer.cs" />
-    <Compile Include="Progress\IProgressStepRunnerWrapper.cs" />
-    <Compile Include="ProfileConflicts\RuleSetConflictsController.cs" />
-    <Compile Include="Helpers\RuleSetHelper.cs" />
-    <Compile Include="Language.cs" />
-    <Compile Include="LocalServices\ProjectSystemFilter.cs" />
-    <Compile Include="Service\DataModel\MinimumSupportedServerPlugin.cs" />
-    <Compile Include="Service\DataModel\QualityProfileChangeLog.cs" />
-    <Compile Include="Service\DataModel\QualityProfileChangeLogEvent.cs" />
-    <Compile Include="Service\DataModel\QualityProfiles.cs" />
-    <Compile Include="Service\DataModel\ServerPlugin.cs" />
-    <Compile Include="Service\DataModel\ServerProperty.cs" />
-    <Compile Include="Service\RoslynExporter\AdditionalFile.cs" />
-    <Compile Include="Service\RoslynExporter\Configuration.cs" />
-    <Compile Include="Service\RoslynExporter\Deployment.cs" />
-    <Compile Include="Service\RoslynExporter\NuGetPackageInfo.cs" />
-    <Compile Include="Service\RoslynExporter\RoslynExportProfile.cs" />
-    <Compile Include="Service\VersionHelper.cs" />
-    <Compile Include="MefServices\ActiveSolutionBoundTracker.cs" />
-    <Compile Include="MefServices\IActiveSolutionBoundTracker.cs" />
-    <Compile Include="State\IStateManager.cs" />
-    <Compile Include="State\StateManager.cs" />
-    <Compile Include="LocalServices\SourceControlledFileSystem.cs" />
-    <Compile Include="State\TransferableVisualState.cs" />
-    <Compile Include="TeamExplorer\ITeamExplorerController.cs" />
-    <Compile Include="TeamExplorer\ResourceHelper.cs" />
-    <Compile Include="TeamExplorer\SectionController.cs" />
-    <Compile Include="TeamExplorer\SonarQubeNavigationItem.cs" />
-    <Compile Include="TeamExplorer\SonarQubePage.cs" />
-    <Compile Include="TeamExplorer\TeamExplorerController.cs" />
-    <Compile Include="TelemetryEvent.cs" />
-    <Compile Include="MefServices\ITelemetryLogger.cs" />
-    <Compile Include="Persistence\BoundSonarQubeProject.cs" />
-    <Compile Include="Persistence\BasicAuthCredentials.cs" />
-    <Compile Include="Persistence\ICredentials.cs" />
-    <Compile Include="Persistence\SolutionBindingSerializer.cs" />
-    <Compile Include="Progress\IProgressControlHost.cs" />
-    <Compile Include="Progress\ProgressNotificationListener.cs" />
-    <Compile Include="Service\AuthenticationHeaderProvider.cs" />
-    <Compile Include="Service\AuthenticationType.cs" />
-    <Compile Include="Service\DataModel\ConnectionInformation.cs" />
-    <Compile Include="Helpers\JsonHelper.cs" />
-    <Compile Include="Service\DataModel\ProjectInformation.cs" />
-    <Compile Include="Service\DataModel\QualityProfile.cs" />
-    <Compile Include="Service\SonarQubeServiceWrapper.cs" />
-    <Compile Include="Service\ISonarQubeServiceWrapper.cs" />
-    <Compile Include="Connection\BasicAuthenticationCredentialsValidator.cs" />
-    <Compile Include="Connection\IConnectionInformationProvider.cs" />
-    <Compile Include="Connection\IConnectionWorkflowExecutor.cs" />
-    <Compile Include="Service\SecureStringExtensions.cs" />
-    <Compile Include="Connection\ConnectionInformationDialog.cs" />
-    <Compile Include="Connection\UI\ConnectionInfoDialogView.xaml.cs">
-      <DependentUpon>ConnectionInfoDialogView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MefServices\ActiveSolutionTracker.cs" />
-    <Compile Include="TeamExplorer\ISectionController.cs" />
-    <Compile Include="TelemetryLoggerAccessor.cs" />
-    <Compile Include="Telemetry\ITelemetryClient.cs" />
-    <Compile Include="Telemetry\ITelemetryDataRepository.cs" />
-    <Compile Include="Telemetry\ITelemetryManager.cs" />
-    <Compile Include="Telemetry\TelemetryClient.cs" />
-    <Compile Include="Telemetry\TelemetryData.cs" />
-    <Compile Include="Telemetry\TelemetryDataRepository.cs" />
-    <Compile Include="Telemetry\TelemetryManager.cs" />
-    <Compile Include="Telemetry\TelemetryPayload.cs" />
-    <Compile Include="Helpers\UriExtensions.cs" />
-    <Compile Include="MefServices\VsSessionHost.cs" />
-    <Compile Include="MefServices\WebBrowser.cs" />
-    <Compile Include="WPF\ContextualCommandsCollection.cs" />
-    <Compile Include="WPF\IconViewModel.cs" />
-    <Compile Include="TeamExplorer\IUserNotification.cs" />
-    <Compile Include="TeamExplorer\NotificationIds.cs" />
-    <Compile Include="TeamExplorer\ServerViewModel.cs" />
-    <Compile Include="LocalServices\ProjectSystemHelper.cs" />
-    <Compile Include="Helpers\VsShellUtils.cs" />
-    <Compile Include="TeamExplorer\ProjectViewModel.cs" />
-    <Compile Include="WPF\BoolToVisiblityConverter.cs" />
-    <Compile Include="Connection\UI\ConnectionInfoDialogViewModel.cs" />
-    <Compile Include="WPF\ContextualCommandViewModel.cs" />
-    <Compile Include="WPF\NotifyErrorViewModelBase.cs" />
-    <Compile Include="WPF\ProjectViewModelVisibilityConverter.cs" />
-    <Compile Include="WPF\RelayCommand.cs" />
-    <Compile Include="WPF\RelayCommand`1.cs" />
-    <Compile Include="WPF\RelayCommandBase.cs" />
-    <Compile Include="WPF\ViewModelBase.cs" />
-    <Compile Include="InternalsVisibleTo.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="**\*.cs" Exclude="**\obj\**\*;**\*.xaml.cs;**\*.Designer.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
+    <Compile Include="**\*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Page Include="**\*.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Compile Include="Resources\Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Include="TeamExplorer\ConnectSectionViewModel.cs" />
-    <Compile Include="TeamExplorer\ConnectSectionView.xaml.cs">
-      <DependentUpon>ConnectSectionView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Progress\ProgressStepRunner.cs" />
-    <Compile Include="Progress\ProgressControl.xaml.cs">
-      <DependentUpon>ProgressControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Connection\UriValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Strings.resx">
@@ -363,34 +223,6 @@
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="TeamExplorer\CommonStyles.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Connection\UI\ConnectionInfoDialogView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="TeamExplorer\ConnectSectionView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Progress\ProgressControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Progress\Progress.csproj">
-      <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
-      <Name>Progress</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ProgressVS\ProgressVS.csproj">
-      <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
-      <Name>ProgressVS</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -405,6 +237,16 @@
     <AdditionalFiles Include="..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Progress\Progress.csproj">
+      <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
+      <Name>Progress</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProgressVS\ProgressVS.csproj">
+      <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
+      <Name>ProgressVS</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.5.10.0.1302\analyzers\Google.Protobuf.dll" />

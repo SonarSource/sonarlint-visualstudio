@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ReferencedDirectory>..\Integration</ReferencedDirectory>
+    <VsCommonIdeDirectory>$(VSAPPIDDIR)</VsCommonIdeDirectory>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -185,66 +186,52 @@
   </ItemGroup>
   <ItemGroup Label="NonGac">
     <Reference Include="Microsoft.TeamFoundation.Client">
-      <HintPath>$(VSAPPIDDIR)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
+      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.Controls">
-      <HintPath>$(VSAPPIDDIR)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
+      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <HintPath>$(VSAPPIDDIR)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+      <HintPath>$(VsCommonIdeDirectory)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.CodeAnalysis">
-      <HintPath>$(VSAPPIDDIR)..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
+      <HintPath>$(VsCommonIdeDirectory)..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\Microsoft.Alm.Authentication\*;$(ReferencedDirectory)\**\*.xaml.cs;$(ReferencedDirectory)\**\*.Designer.cs">
+    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;$(ReferencedDirectory)\**\*.xaml.cs;$(ReferencedDirectory)\**\*.Designer.cs">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-    <Compile Include="$(ReferencedDirectory)\Persistence\Microsoft.Alm.Authentication\*">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <SonarQubeExclude>True</SonarQubeExclude>
+    <Compile Include="..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
     <Page Include="$(ReferencedDirectory)\**\*.xaml">
-      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Page>
-    <Compile Include="..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="$(ReferencedDirectory)\Resources\Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
       <Link>Resources\Strings.Designer.cs</Link>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="$(ReferencedDirectory)\Resources\Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
       <Link>Resources\Strings.resx</Link>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ProgressVS_2017\ProgressVS.csproj">
-      <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
-      <Name>ProgressVS</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Progress\Progress.csproj">
-      <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
-      <Name>Progress</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -256,14 +243,24 @@
     <None Include="$(ReferencedDirectory)\TeamExplorer\Controllers.dgml" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.1\analyzers\Google.Protobuf.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.1\analyzers\SonarAnalyzer.CSharp.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.1.20.1\analyzers\SonarAnalyzer.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <AdditionalFiles Include="..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Progress\Progress.csproj">
+      <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
+      <Name>Progress</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProgressVS_2017\ProgressVS.csproj">
+      <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
+      <Name>ProgressVS</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.5.10.0.1302\analyzers\Google.Protobuf.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.5.10.0.1302\analyzers\SonarAnalyzer.CSharp.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.5.10.0.1302\analyzers\SonarAnalyzer.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\packages\StrongNamer.0.0.3\build\StrongNamer.targets" Condition="Exists('..\..\packages\StrongNamer.0.0.3\build\StrongNamer.targets')" />
