@@ -31,7 +31,7 @@ using SonarAnalyzer.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public sealed class SonarAnalyzerManager : IDisposable
+    public sealed class SonarAnalyzerManager
     {
         internal /*for testing purposes*/ enum ProjectAnalyzerStatus
         {
@@ -42,15 +42,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly Workspace workspace;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISolutionAnalysisRequester solutionAnalysisRequester;
 
         private static readonly AssemblyName AnalyzerAssemblyName =
             new AssemblyName(typeof(SonarAnalysisContext).Assembly.FullName);
         internal /*for testing purposes*/ static readonly Version AnalyzerVersion = AnalyzerAssemblyName.Version;
         internal /*for testing purposes*/ static readonly string AnalyzerName = AnalyzerAssemblyName.Name;
 
-        internal /*for testing purposes*/ SonarAnalyzerManager(IServiceProvider serviceProvider, Workspace workspace,
-            ISolutionAnalysisRequester solutionAnalysisRequester)
+        internal /*for testing purposes*/ SonarAnalyzerManager(IServiceProvider serviceProvider, Workspace workspace)
         {
             if (serviceProvider == null)
             {
@@ -70,20 +68,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Debug.Fail($"Could not get {nameof(IActiveSolutionBoundTracker)}");
             }
 
-            this.solutionAnalysisRequester = solutionAnalysisRequester;
-            this.activeSolutionBoundTracker.SolutionBindingChanged += this.ActiveSolutionBoundTracker_SolutionBindingChanged;
-
-            SonarAnalysisContext.ShouldAnalysisBeDisabled =
-                tree => ShouldAnalysisBeDisabledOnTree(tree);
+            SonarAnalysisContext.ShouldAnalysisBeDisabled = tree => ShouldAnalysisBeDisabledOnTree(tree);
         }
 
-        internal /*for testing purposes*/ SonarAnalyzerManager(IServiceProvider serviceProvider, Workspace workspace)
-            : this(serviceProvider, workspace, new SolutionAnalysisRequester(serviceProvider, new WorkspaceConfigurator(workspace)))
-        {
-        }
-
-        public SonarAnalyzerManager(IServiceProvider serviceProvider) :
-            this(serviceProvider, GetWorkspace(serviceProvider))
+        public SonarAnalyzerManager(IServiceProvider serviceProvider)
+            : this(serviceProvider, GetWorkspace(serviceProvider))
         {
         }
 
@@ -150,32 +139,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 ? ProjectAnalyzerStatus.DifferentVersion
                 : ProjectAnalyzerStatus.SameVersion;
         }
-
-        private void ActiveSolutionBoundTracker_SolutionBindingChanged(object sender, bool e)
-        {
-            this.solutionAnalysisRequester.ReanalyzeSolution();
-        }
-
-        #region IDisposable
-
-        private void Dispose(bool disposing)
-        {
-            if (!disposing)
-            {
-                return;
-            }
-
-            if (this.activeSolutionBoundTracker != null)
-            {
-                this.activeSolutionBoundTracker.SolutionBindingChanged -= this.ActiveSolutionBoundTracker_SolutionBindingChanged;
-            }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            this.Dispose(true);
-        }
-        #endregion
     }
 }
