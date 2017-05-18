@@ -15,10 +15,10 @@
  * THE SOFTWARE.
  */
 
-using SonarLint.VisualStudio.Progress.Observation.ViewModels;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
+using SonarLint.VisualStudio.Progress.Observation.ViewModels;
 
 namespace SonarLint.VisualStudio.Progress.Observation.View
 {

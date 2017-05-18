@@ -19,9 +19,7 @@
  */
 
 using System;
-using System.ComponentModel;
 using System.IO;
-using System.Net;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
 using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests

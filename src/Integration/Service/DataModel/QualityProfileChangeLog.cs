@@ -19,7 +19,6 @@
  */
 
 using Newtonsoft.Json;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.Service.DataModel
 {

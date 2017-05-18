@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.Resources;
 using DteProject = EnvDTE.Project;
 
 namespace SonarLint.VisualStudio.Integration

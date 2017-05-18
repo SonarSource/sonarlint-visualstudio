@@ -18,16 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio;
-using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using EnvDTE;
+using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 {

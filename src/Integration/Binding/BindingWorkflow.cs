@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration.Progress;
-using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,6 +26,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using EnvDTE;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Integration.Progress;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {

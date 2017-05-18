@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Imaging.Interop;
 using System;
+using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace SonarLint.VisualStudio.Integration.InfoBar
 {

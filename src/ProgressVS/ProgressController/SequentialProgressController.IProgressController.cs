@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using SonarLint.VisualStudio.Progress.Threading;
-using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
+using SonarLint.VisualStudio.Progress.Threading;
 using TPL = System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Progress.Controller

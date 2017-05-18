@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Progress.Observation;
-using SonarLint.VisualStudio.Progress.Observation.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
+using SonarLint.VisualStudio.Progress.Observation;
+using SonarLint.VisualStudio.Progress.Observation.ViewModels;
 
 namespace SonarLint.VisualStudio.Integration.Progress
 {

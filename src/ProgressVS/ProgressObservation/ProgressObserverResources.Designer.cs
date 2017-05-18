@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SonarLint.VisualStudio.Progress.Observation {
-    using System;
-    
-    
+namespace SonarLint.VisualStudio.Progress.Observation
+{
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>

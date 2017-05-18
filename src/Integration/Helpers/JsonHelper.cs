@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration
 {

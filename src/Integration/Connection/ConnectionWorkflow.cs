@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.Progress;
-using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.Service.DataModel;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Progress.Controller;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,6 +26,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Input;
+using SonarLint.VisualStudio.Integration.Progress;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Service.DataModel;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {

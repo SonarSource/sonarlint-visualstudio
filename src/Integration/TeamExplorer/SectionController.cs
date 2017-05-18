@@ -18,17 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.TeamFoundation.Client.CommandTarget;
-using Microsoft.TeamFoundation.Controls;
-using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
-using SonarLint.VisualStudio.Integration.Progress;
-using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
+using Microsoft.TeamFoundation.Client.CommandTarget;
+using Microsoft.TeamFoundation.Controls;
+using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Progress;
+using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {

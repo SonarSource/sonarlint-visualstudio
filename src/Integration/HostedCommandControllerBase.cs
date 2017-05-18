@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.TeamFoundation.Client.CommandTarget;
 using System;
+using Microsoft.TeamFoundation.Client.CommandTarget;
 
 namespace SonarLint.VisualStudio.Integration
 {

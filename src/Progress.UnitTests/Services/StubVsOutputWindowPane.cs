@@ -19,7 +19,6 @@
  */
 
 using System;
-using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 

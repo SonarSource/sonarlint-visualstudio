@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.PlatformUI;
 using System.Diagnostics;
 using System.Security;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
+using Microsoft.VisualStudio.PlatformUI;
 
 namespace SonarLint.VisualStudio.Integration.Connection.UI
 {

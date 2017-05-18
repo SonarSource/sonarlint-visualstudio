@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
 using System.Threading;
+using SonarLint.VisualStudio.Integration.Service.DataModel;
 
 namespace SonarLint.VisualStudio.Integration.Service
 {

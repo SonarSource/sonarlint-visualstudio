@@ -18,17 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Progress.Controller;
-using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
-using SonarLint.VisualStudio.Progress.Observation;
-using SonarLint.VisualStudio.Progress.Observation.ViewModels;
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration.Resources;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Progress.Controller;
+using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
+using SonarLint.VisualStudio.Progress.Observation;
+using SonarLint.VisualStudio.Progress.Observation.ViewModels;
 
 namespace SonarLint.VisualStudio.Integration.Progress
 {

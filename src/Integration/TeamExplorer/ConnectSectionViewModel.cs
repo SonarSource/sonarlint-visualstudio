@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.Integration.State;
-using System;
-using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {

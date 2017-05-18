@@ -24,7 +24,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Input;
-using FluentAssertions;
 using Microsoft.TeamFoundation.Controls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests

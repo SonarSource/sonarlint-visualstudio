@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.ComponentModelHost;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.ComponentModelHost;
 
 namespace SonarLint.VisualStudio.Integration
 {

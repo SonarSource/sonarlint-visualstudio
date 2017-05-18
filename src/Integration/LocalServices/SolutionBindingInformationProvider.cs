@@ -18,14 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using EnvDTE;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration
 {

@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.Progress;
 using System.Windows.Controls;
+using SonarLint.VisualStudio.Integration.Progress;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {

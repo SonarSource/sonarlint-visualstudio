@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.State
 {
