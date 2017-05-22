@@ -112,7 +112,15 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     stream = File.OpenRead(this.storageFilePath);
                     var serializer = new XmlSerializer(typeof(TelemetryData));
-                    this.Data = serializer.Deserialize(stream) as TelemetryData;
+                    try
+                    {
+                        this.Data = serializer.Deserialize(stream) as TelemetryData;
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        File.Delete(this.storageFilePath);
+                        EnsureFileExists(this.storageFilePath);
+                    }
                 });
             stream?.Dispose();
         }

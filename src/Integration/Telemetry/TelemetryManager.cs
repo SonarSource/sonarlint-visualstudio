@@ -72,11 +72,8 @@ namespace SonarLint.VisualStudio.Integration
 
             SaveInstallationDate();
 
-            this.tryUploadDataTimer = new Timer()
-            {
-                Interval = MillisecondsToWaitBetweenUpload,
-                AutoReset = true
-            };
+            this.tryUploadDataTimer = new Timer { Interval = MillisecondsToWaitBetweenUpload, AutoReset = true };
+            this.firstCallDelayer = new Timer(DelayBeforeFirstUpload) { AutoReset = false };
 
             if (IsAnonymousDataShared)
             {
@@ -84,7 +81,6 @@ namespace SonarLint.VisualStudio.Integration
                 this.tryUploadDataTimer.Elapsed += OnTryUploadDataTimerElapsed;
                 this.tryUploadDataTimer.Start();
 
-                this.firstCallDelayer = new Timer(DelayBeforeFirstUpload) { AutoReset = false };
                 this.firstCallDelayer.Elapsed += OnTryUploadDataTimerElapsed;
                 this.firstCallDelayer.Start();
             }

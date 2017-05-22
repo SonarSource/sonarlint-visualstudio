@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // Act
             repository.Save();
-            Task.Delay(500).Wait();
+            Task.Delay(700).Wait();
 
             // Assert
             otherRepository.Data.InstallationDate.Should().Be(DateTime.MaxValue);
