@@ -17,13 +17,14 @@ SonarLint is free, open source, and available in the Visual Studio Gallery.
 
 ## Useful links
 * [Project homepage](https://redirect.sonarsource.com/doc/sonar-visualstudio.html)
-* [Issue tracking](http://jira.sonarsource.com/browse/SVS)
+* [Issue tracking](https://github.com/SonarSource/sonarlint-visualstudio/issues)
 * [Google Group for feedback](https://groups.google.com/forum/#!forum/sonarlint)
 * [StackOverflow](https://stackoverflow.com/questions/tagged/sonarlint-vs)
+* [SonarC#](https://github.com/SonarSource/sonar-csharp)
 
 ## Have question or feedback?
-To provide feedback (request a feature, report a bug etc.) use the [SonarQube Google Group](https://groups.google.com/forum/#!forum/sonarlint). Please do not forget to specify the IDE (visualstudio), extension version, plugin version and SonarQube version.
-If you have a question on how to use the extension direct it to [StackOverflow](http://stackoverflow.com/questions/tagged/sonarlint-vs) tagged `sonarlint-vs`.
+To provide feedback (request a feature, report a bug etc.) or if you have a question, use the [Issue tracking](https://github.com/SonarSource/sonarlint-visualstudio/issues). Please do not forget to specify the IDE (visualstudio), extension version, plugin version and SonarQube version.
+Alternatively you can use [SonarQube Google Group](https://groups.google.com/forum/#!forum/sonarlint) or [StackOverflow](http://stackoverflow.com/questions/tagged/sonarlint-vs) with the tag `sonarlint-vs`.
 
 ## How to contribute
 Check out the [contributing](CONTRIBUTING.md) page to see the best places to log issues and start discussions.
