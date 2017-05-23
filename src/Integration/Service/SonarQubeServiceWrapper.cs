@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service.DataModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -35,6 +31,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Newtonsoft.Json.Linq;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.Service.DataModel;
 
 namespace SonarLint.VisualStudio.Integration.Service
 {
@@ -46,15 +47,21 @@ namespace SonarLint.VisualStudio.Integration.Service
     internal class SonarQubeServiceWrapper : ISonarQubeServiceWrapper
     {
         public const string ProjectsAPI = "api/projects/index";                                 // Since 2.10
+        public const string SearchProjectsAPI = "api/components/search_projects";               // Since 6.2; internal
         public const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins";   // Since 2.10; internal
         public const string QualityProfileListAPI = "api/qualityprofiles/search";               // Since 5.2
         public const string QualityProfileExportAPI = "api/qualityprofiles/export";             // Since 5.2
         public const string PropertiesAPI = "api/properties/";                                  // Since 2.6
         public const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog";       // Since 5.2
+        public const string OrganizationsAPI = "api/organizations/search";                      // Since 6.2; internal
+        public const string ServerVersionAPI = "api/server/version";                            // Since 2.10; internal
+        public const string ValidateCredentialsAPI = "api/authentication/validate";             // Since 3.3
 
         public const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
 
         public const string RoslynExporterFormat = "roslyn-{0}";
+
+        private const int MaxAllowedPageSize = 500;
 
         private static readonly IReadOnlyDictionary<Language, string> languageKeys = new ReadOnlyDictionary<Language, string>(
             new Dictionary<Language, string>
@@ -65,6 +72,8 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         private readonly IServiceProvider serviceProvider;
         private readonly TimeSpan requestTimeout;
+
+        private readonly Version OrganizationsSupportStartVersion = new Version(6, 2);
 
         #region Constructors
 
@@ -91,6 +100,36 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         #region ISonarQubeServiceWrapper
 
+        public bool AreCredentialsValid(ConnectionInformation connectionInformation, CancellationToken token)
+        {
+            if (connectionInformation == null)
+            {
+                throw new ArgumentNullException(nameof(connectionInformation));
+            }
+
+            return this.SafeUseHttpClient<bool>(connectionInformation,
+                client => this.ValidateCredentials(client, token));
+        }
+
+        public bool TryGetOrganizations(ConnectionInformation connectionInformation, CancellationToken token, out OrganizationInformation[] organizations)
+        {
+            if (connectionInformation == null)
+            {
+                throw new ArgumentNullException(nameof(connectionInformation));
+            }
+
+            if (!HasOrganizationsSupport(connectionInformation, token))
+            {
+                organizations = null;
+                return true;
+            }
+
+            organizations = this.SafeUseHttpClient<OrganizationInformation[]>(connectionInformation,
+                client => this.DownloadOrganizations(client, token));
+
+            return organizations != null;
+        }
+
         public bool TryGetProjects(ConnectionInformation connectionInformation, CancellationToken token, out ProjectInformation[] serverProjects)
         {
             if (connectionInformation == null)
@@ -99,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.Service
             }
 
             serverProjects = this.SafeUseHttpClient<ProjectInformation[]>(connectionInformation,
-                client => this.DownloadProjects(client, token));
+                client => this.DownloadProjects(client, token, connectionInformation.Organization?.Key));
 
             return serverProjects != null;
         }
@@ -219,12 +258,105 @@ namespace SonarLint.VisualStudio.Integration.Service
             return new HttpClient();
         }
 
+        private bool HasOrganizationsSupport(ConnectionInformation connectionInformation, CancellationToken token)
+        {
+            if (connectionInformation == null)
+            {
+                throw new ArgumentNullException(nameof(connectionInformation));
+            }
+
+            var stringVersion = this.SafeUseHttpClient<string>(connectionInformation, client => this.GetServerVersion(client, token));
+            if (stringVersion == null)
+            {
+                return false;
+            }
+
+            Version version;
+            if (!Version.TryParse(stringVersion, out version))
+            {
+                return false;
+            }
+
+            return version >= OrganizationsSupportStartVersion;
+        }
+
+        private async Task<string> GetServerVersion(HttpClient configuredClient, CancellationToken token)
+        {
+            var response = await InvokeGetRequest(configuredClient, ServerVersionAPI, token);
+            token.ThrowIfCancellationRequested();
+
+            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        }
+
+        private async Task<bool> ValidateCredentials(HttpClient configuredClient, CancellationToken token)
+        {
+            var httpResponse = await InvokeGetRequest(configuredClient, ValidateCredentialsAPI, token);
+            var stringResponse = await ReadResponse(httpResponse, token);
+
+            return (bool)JObject.Parse(stringResponse).SelectToken("valid");
+        }
+
         #region Download projects
 
-        private async Task<ProjectInformation[]> DownloadProjects(HttpClient configuredClient, CancellationToken token)
+        private async Task<OrganizationInformation[]> DownloadOrganizations(HttpClient configuredClient, CancellationToken token)
         {
-            HttpResponseMessage downloadProjectsResponse = await InvokeGetRequest(configuredClient, ProjectsAPI, token);
-            return await ProcessJsonResponse<ProjectInformation[]>(downloadProjectsResponse, token);
+            int currentPage = 1;
+            var allOrganizations = new List<OrganizationInformation>();
+            OrganizationInformation[] currentPageOrganizations;
+
+            do
+            {
+                var query = string.Format("{0}?ps={1}&p={2}", OrganizationsAPI, MaxAllowedPageSize, currentPage);
+                var httpResponse = await InvokeGetRequest(configuredClient, query, token);
+                var stringResponse = await ReadResponse(httpResponse, token);
+                currentPageOrganizations = JObject.Parse(stringResponse)["organizations"].ToObject<OrganizationInformation[]>();
+                if (currentPageOrganizations == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    allOrganizations.AddRange(currentPageOrganizations);
+                }
+
+                currentPage++;
+            } while (currentPageOrganizations.Length > 0);
+
+            return allOrganizations.ToArray();
+        }
+
+        private async Task<ProjectInformation[]> DownloadProjects(HttpClient configuredClient, CancellationToken token,
+            string organizationKey)
+        {
+            if (string.IsNullOrEmpty(organizationKey))
+            {
+                var httpResponse = await InvokeGetRequest(configuredClient, ProjectsAPI, token);
+                var stringResponse = await ReadResponse(httpResponse, token);
+
+                return ProcessJsonResponse<ProjectInformation[]>(stringResponse, token);
+            }
+
+            int currentPage = 1;
+            bool hasOtherPages = false;
+            var allProjects = new List<ComponentResult>();
+            ComponentResult[] currentPageProjects;
+
+            do
+            {
+                var query = string.Format("{0}?asc&organization={1}&ps={2}&p={3}", SearchProjectsAPI, organizationKey,
+                    MaxAllowedPageSize, currentPage);
+                var httpResponse = await InvokeGetRequest(configuredClient, query, token);
+                var stringResponse = await ReadResponse(httpResponse, token);
+
+                currentPageProjects = JObject.Parse(stringResponse)["components"].ToObject<ComponentResult[]>();
+                allProjects.AddRange(currentPageProjects);
+
+                var totalCount = JObject.Parse(stringResponse)["paging"]["total"].ToObject<int>();
+                hasOtherPages = currentPage * MaxAllowedPageSize < totalCount;
+                currentPage++;
+            } while (hasOtherPages);
+
+            return allProjects.Select(x => new ProjectInformation { Key = x.Key, Name = x.Name }).ToArray();
         }
 
         #endregion
@@ -234,9 +366,10 @@ namespace SonarLint.VisualStudio.Integration.Service
         private static async Task<ServerPlugin[]> DownloadPluginInformation(HttpClient client, CancellationToken token)
         {
             string getPluginsUrl = ServerPluginsInstalledAPI;
-            HttpResponseMessage response = await InvokeGetRequest(client, getPluginsUrl, token);
+            var httpResponse = await InvokeGetRequest(client, getPluginsUrl, token);
+            var stringResponse = await ReadResponse(httpResponse, token);
 
-            return await ProcessJsonResponse<ServerPlugin[]>(response, token);
+            return ProcessJsonResponse<ServerPlugin[]>(stringResponse, token);
         }
 
         #endregion
@@ -255,19 +388,21 @@ namespace SonarLint.VisualStudio.Integration.Service
         internal /*for testing purposes*/ static async Task<QualityProfile> DownloadQualityProfile(HttpClient client, ProjectInformation project, Language language, CancellationToken token)
         {
             string apiUrl = CreateQualityProfileUrl(language, project);
-            HttpResponseMessage response = await InvokeGetRequest(client, apiUrl, token, ensureSuccess: false);
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            HttpResponseMessage httpResponse = await InvokeGetRequest(client, apiUrl, token, ensureSuccess: false);
+            if (httpResponse.StatusCode == HttpStatusCode.NotFound)
             {
                 // Special handling for the case when a project was not analyzed yet, in which case a 404 is returned
                 // Request the profile without the project
                 bool ensureSuccess = true;
                 apiUrl = CreateQualityProfileUrl(language);
-                response = await InvokeGetRequest(client, apiUrl, token, ensureSuccess);
+                httpResponse = await InvokeGetRequest(client, apiUrl, token, ensureSuccess);
             }
 
-            response.EnsureSuccessStatusCode(); // Bubble up the rest of the errors
+            httpResponse.EnsureSuccessStatusCode(); // Bubble up the rest of the errors
 
-            var profiles = await ProcessJsonResponse<QualityProfiles>(response, token);
+
+            var stringResponse = await ReadResponse(httpResponse, token);
+            var profiles = ProcessJsonResponse<QualityProfiles>(stringResponse, token);
             var serverLanguage = GetServerLanguageKey(language);
             var profilesWithGivenLanguage = profiles.Profiles.Where(x => x.Language == serverLanguage).ToList();
 
@@ -310,9 +445,10 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         private static async Task<ServerProperty[]> GetServerProperties(HttpClient client, CancellationToken token)
         {
-            HttpResponseMessage response = await InvokeGetRequest(client, PropertiesAPI, token);
+            var httpResponse = await InvokeGetRequest(client, PropertiesAPI, token);
+            var stringResponse = await ReadResponse(httpResponse, token);
 
-            return await ProcessJsonResponse<ServerProperty[]>(response, token);
+            return ProcessJsonResponse<ServerProperty[]>(stringResponse, token);
         }
 
         #endregion
@@ -327,16 +463,18 @@ namespace SonarLint.VisualStudio.Integration.Service
         private async Task<QualityProfileChangeLog> DownloadQualityProfileChangeLog(HttpClient client, QualityProfile profile, CancellationToken token)
         {
             string api = CreateQualityProfileChangeLogUrl(profile);
-            HttpResponseMessage response = await InvokeGetRequest(client, api, token, ensureSuccess: false);
+            HttpResponseMessage httpResponse = await InvokeGetRequest(client, api, token, ensureSuccess: false);
             // The service doesn't exist on older versions, and it's not absolutely mandatory since we can work
             // without the information provided, only with reduced functionality.
-            if (response.IsSuccessStatusCode)
+            if (httpResponse.IsSuccessStatusCode)
             {
-                return await ProcessJsonResponse<QualityProfileChangeLog>(response, token);
+                var stringResponse = await ReadResponse(httpResponse, token);
+
+                return ProcessJsonResponse<QualityProfileChangeLog>(stringResponse, token);
             }
             else
             {
-                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.SonarQubeOptionalServiceFailed, QualityProfileChangeLogAPI, (int)response.StatusCode);
+                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.SonarQubeOptionalServiceFailed, QualityProfileChangeLogAPI, (int)httpResponse.StatusCode);
                 return null;
             }
         }
@@ -384,13 +522,16 @@ namespace SonarLint.VisualStudio.Integration.Service
             return response;
         }
 
-        private static async Task<T> ProcessJsonResponse<T>(HttpResponseMessage response, CancellationToken token)
+        private static async Task<string> ReadResponse(HttpResponseMessage response, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
-            string content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        }
 
+        private static T ProcessJsonResponse<T>(string jsonResponse, CancellationToken token)
+        {
             token.ThrowIfCancellationRequested();
-            return JsonHelper.Deserialize<T>(content);
+            return JsonHelper.Deserialize<T>(jsonResponse);
         }
 
         private T SafeUseHttpClient<T>(ConnectionInformation connectionInformation, Func<HttpClient, Task<T>> sendRequestsAsync)

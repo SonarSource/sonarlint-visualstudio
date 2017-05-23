@@ -90,6 +90,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get { return this.connectionInformation.ServerUri; }
         }
 
+        public string OrganizationName => this.connectionInformation.Organization?.Name;
+
         public ObservableCollection<ProjectViewModel> Projects
         {
             get { return this.projects; }

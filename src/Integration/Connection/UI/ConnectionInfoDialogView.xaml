@@ -1,99 +1,99 @@
 ﻿<vsui:DialogWindow x:Class="SonarLint.VisualStudio.Integration.Connection.UI.ConnectionInfoDialogView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             
-             xmlns:converters="clr-namespace:SonarLint.VisualStudio.Integration.WPF"
-             xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
-                   
-             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
-             xmlns:vsimaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
-             xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
-             xmlns:vstheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
-             xmlns:vsutilities="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
-             
-             Title="{x:Static resx:Strings.ConnectDialogTitle}"
-             ResizeMode="NoResize"
-             SizeToContent="WidthAndHeight"
-             WindowStartupLocation="CenterOwner"
-             FocusManager.FocusedElement="{Binding ElementName=ServerUrlInput}"
-              
-             DataContext="{Binding Path=ViewModel, RelativeSource={RelativeSource Self}}"
-                   
-             mc:Ignorable="d"
-             d:DataContext="{d:DesignData Source=/DesignData/ConnectDialogDesignData.xaml}" Loaded="OnLoaded">
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:converters="clr-namespace:SonarLint.VisualStudio.Integration.WPF"
+                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                   xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
+                   xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+                   xmlns:vsimaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+                   xmlns:vstheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+                   xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+                   xmlns:vsutilities="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
+                   Title="{x:Static resx:Strings.ConnectDialogTitle}"
+                   d:DataContext="{d:DesignData Source=/DesignData/ConnectDialogDesignData.xaml}"
+                   DataContext="{Binding Path=ViewModel,
+                                         RelativeSource={RelativeSource Self}}"
+                   FocusManager.FocusedElement="{Binding ElementName=ServerUrlInput}"
+                   Loaded="OnLoaded"
+                   ResizeMode="NoResize"
+                   SizeToContent="WidthAndHeight"
+                   WindowStartupLocation="CenterOwner"
+                   mc:Ignorable="d"
+                   >
 
     <vsui:DialogWindow.Resources>
 
-        <converters:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" TrueValue="Visible" FalseValue="Collapsed" />
-        <converters:BoolToVisibilityConverter x:Key="FalseToVisibleConverter" TrueValue="Collapsed" FalseValue="Visible" />
-        <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="TrueToVisibleConverter"
+                                              FalseValue="Collapsed" TrueValue="Visible"
+                                              />
+        <converters:BoolToVisibilityConverter x:Key="FalseToVisibleConverter"
+                                              FalseValue="Visible" TrueValue="Collapsed"
+                                              />
+        <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter" />
 
         <ControlTemplate x:Key="InputErrorTemplate">
             <AdornedElementPlaceholder x:Name="Adorner">
-                <DockPanel LastChildFill="True"
-                                   vstheming:ImageThemingUtilities.ImageBackgroundColor="{Binding
-                                        Background,
-                                        RelativeSource={RelativeSource Self},
-                                        Converter={StaticResource BrushToColorConverter}
-                                   }">
-                    <vsimaging:CrispImage DockPanel.Dock="Right"
-                                                  VerticalAlignment="Center"
-                                                  Margin="4"
-                                                  Height="16" Width="16"
-                                                  Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusInvalid}">
+                <DockPanel vstheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}" LastChildFill="True">
+                    <vsimaging:CrispImage Width="16" Height="16" Margin="4"
+                                          VerticalAlignment="Center"
+                                          DockPanel.Dock="Right"
+                                          Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusInvalid}"
+                                          >
                         <vsimaging:CrispImage.ToolTip>
-                            <Binding ElementName="Adorner" Path="AdornedElement.(Validation.Errors).CurrentItem.ErrorContent"/>
+                            <Binding ElementName="Adorner" Path="AdornedElement.(Validation.Errors).CurrentItem.ErrorContent" />
                         </vsimaging:CrispImage.ToolTip>
                     </vsimaging:CrispImage>
-                    <ContentPresenter/>
+                    <ContentPresenter />
                 </DockPanel>
             </AdornedElementPlaceholder>
         </ControlTemplate>
 
         <Style x:Key="DialogContent" TargetType="StackPanel">
-            <Setter Property="Margin" Value="12"/>
+            <Setter Property="Margin" Value="12" />
         </Style>
 
         <Style x:Key="DialogSeparator" TargetType="Separator">
-            <Setter Property="Margin" Value="0,6,0,9"/>
+            <Setter Property="Margin" Value="0,6,0,9" />
         </Style>
 
         <Style x:Key="DialogButtonsPanel" TargetType="StackPanel">
-            <Setter Property="Orientation" Value="Horizontal"/>
-            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Orientation" Value="Horizontal" />
             <Style.Resources>
                 <Style TargetType="vsui:DialogButton">
-                    <Setter Property="Margin" Value="6,0,0,0"/>
+                    <Setter Property="Margin" Value="6,0,0,0" />
                 </Style>
             </Style.Resources>
         </Style>
 
         <Style x:Key="InputErrorMessage" TargetType="Grid">
-            <Setter Property="Margin" Value="0,0,0,9"/>
+            <Setter Property="Margin" Value="0,0,0,9" />
         </Style>
 
         <Style x:Key="LabelStyle" TargetType="Label">
-            <Setter Property="Margin" Value="0,0,12,9"/>
-            <Setter Property="Padding" Value="0,5"/>
+            <Setter Property="Margin" Value="0,0,12,9" />
+            <Setter Property="Padding" Value="0,5" />
         </Style>
 
         <Style x:Key="InputStyle" TargetType="Control">
-            <Setter Property="Margin" Value="0,0,0,9"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,9" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
 
-        <Style x:Key="ValidatedInputStyle" TargetType="Control" BasedOn="{StaticResource InputStyle}">
-            <Setter Property="Validation.ErrorTemplate" Value="{StaticResource InputErrorTemplate}"/>
+        <Style x:Key="ValidatedInputStyle"
+               BasedOn="{StaticResource InputStyle}"
+               TargetType="Control"
+               >
+            <Setter Property="Validation.ErrorTemplate" Value="{StaticResource InputErrorTemplate}" />
             <Style.Triggers>
                 <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlEditRequiredBackgroundBrushKey}}" />
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlEditHintTextBrushKey}}" />
-                    <Setter Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlEditRequiredBackgroundBrushKey }}" />
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlEditRequiredHintTextBrushKey }}" />
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlEditRequiredHintTextBrushKey}}" />
                     <Setter Property="ToolTip">
                         <Setter.Value>
-                            <Binding Path="(Validation.Errors).CurrentItem.ErrorContent" RelativeSource="{x:Static RelativeSource.Self}"/>
+                            <Binding Path="(Validation.Errors).CurrentItem.ErrorContent" RelativeSource="{x:Static RelativeSource.Self}" />
                         </Setter.Value>
                     </Setter>
                 </Trigger>
@@ -105,79 +105,95 @@
     <StackPanel Style="{StaticResource DialogContent}">
         <Grid Grid.IsSharedSizeScope="True">
             <Grid.RowDefinitions>
-                <RowDefinition x:Uid="serverUrlRow" Height="Auto"/>
-                <RowDefinition x:Uid="securityWarningRow" Height="Auto"/>
-                <RowDefinition x:Uid="userNameRow" Height="Auto"/>
-                <RowDefinition x:Uid="passwordRow" Height="Auto"/>
+                <RowDefinition x:Uid="serverUrlRow" Height="Auto" />
+                <RowDefinition x:Uid="securityWarningRow" Height="Auto" />
+                <RowDefinition x:Uid="userNameRow" Height="Auto" />
+                <RowDefinition x:Uid="passwordRow" Height="Auto" />
             </Grid.RowDefinitions>
 
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" SharedSizeGroup="GridGroupLabels"/>
-                <ColumnDefinition Width="350" SharedSizeGroup="GridGroupInputs"/>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="GridGroupLabels" />
+                <ColumnDefinition Width="350" SharedSizeGroup="GridGroupInputs" />
             </Grid.ColumnDefinitions>
 
-            <!-- Server URL -->
-            <Label Grid.Row="0" Grid.Column="0"
-                   x:Name="ServerUrlLabel"
+            <!--  Server URL  -->
+            <Label x:Name="ServerUrlLabel"
+                   Grid.Row="0" Grid.Column="0"
                    Content="{x:Static resx:Strings.SonarQubeServerLabel}"
                    Style="{StaticResource LabelStyle}"
-                   Target="{Binding ElementName=ServerUrlInput}"/>
+                   Target="{Binding ElementName=ServerUrlInput}"
+                   />
             <TextBox x:Name="ServerUrlInput"
                      Grid.Row="0" Grid.Column="1"
+                     AutomationProperties.LabeledBy="{Binding ElementName=ServerUrlLabel}"
                      Style="{StaticResource ValidatedInputStyle}"
-                     Text="{Binding ServerUrlRaw, ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}"
-                     AutomationProperties.LabeledBy="{Binding ElementName=ServerUrlLabel}"/>
+                     Text="{Binding ServerUrlRaw,
+                                    ValidatesOnNotifyDataErrors=True,
+                                    UpdateSourceTrigger=PropertyChanged}"
+                     />
 
-            <!-- Protocol security warning -->
+            <!--  Protocol security warning  -->
             <Grid Grid.Row="1" Grid.Column="1"
                   Style="{StaticResource InputErrorMessage}"
-                  Visibility="{Binding ShowSecurityWarning, Converter={StaticResource TrueToVisibleConverter}}">
+                  Visibility="{Binding ShowSecurityWarning,
+                                       Converter={StaticResource TrueToVisibleConverter}}"
+                  >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <vsimaging:CrispImage Grid.Row="0" Grid.Column="0"
                                       VerticalAlignment="Top"
-                                      Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusWarning}"/>
+                                      Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusWarning}"
+                                      />
                 <TextBlock Grid.Row="0" Grid.Column="1"
-                           Margin="4,0" KeyboardNavigation.IsTabStop="False"
+                           Margin="4,0"
+                           Focusable="True" KeyboardNavigation.IsTabStop="False"
                            Text="{x:Static resx:Strings.InsecureProtocolWarning}"
                            TextWrapping="Wrap"
-                           Focusable="True"/>
+                           />
             </Grid>
 
-            <!-- Username -->
-            <Label Grid.Row="2" Grid.Column="0"
-                   x:Name="UsernameLabel"
+            <!--  Username  -->
+            <Label x:Name="UsernameLabel"
+                   Grid.Row="2" Grid.Column="0"
                    Content="{x:Static resx:Strings.UsernameLabel}"
                    Style="{StaticResource LabelStyle}"
-                   Target="{Binding ElementName=UsernameInput}"/>
+                   Target="{Binding ElementName=UsernameInput}"
+                   />
             <TextBox x:Name="UsernameInput"
                      Grid.Row="2" Grid.Column="1"
+                     AutomationProperties.LabeledBy="{Binding ElementName=UsernameLabel}"
                      Style="{StaticResource ValidatedInputStyle}"
-                     Text="{Binding Username, ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}"
+                     Text="{Binding Username,
+                                    ValidatesOnNotifyDataErrors=True,
+                                    UpdateSourceTrigger=PropertyChanged}"
                      TextChanged="UsernameInput_TextChanged"
-                     AutomationProperties.LabeledBy="{Binding ElementName=UsernameLabel}"/>
-            <!-- Cannot bind password field for validation on view model side -->
+                     />
+            <!--  Cannot bind password field for validation on view model side  -->
 
-            <!-- Password -->
+            <!--  Password  -->
             <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
-                      Style="{StaticResource InputErrorMessage}">
+                  Style="{StaticResource InputErrorMessage}"
+                  >
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="GridGroupLabels"/>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="GridGroupInputs"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="GridGroupLabels" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="GridGroupInputs" />
                 </Grid.ColumnDefinitions>
-                <Label Grid.Column="0"
-                       x:Name="PasswordLabel"
+                <Label x:Name="PasswordLabel"
+                       Grid.Column="0"
                        Content="{x:Static resx:Strings.PasswordLabel}"
                        Style="{StaticResource LabelStyle}"
-                       Target="{Binding ElementName=PasswordInput}"/>
-                <!-- Cannot bind password field for validation on view model side so using an event -->
+                       Target="{Binding ElementName=PasswordInput}"
+                       />
+                <!--  Cannot bind password field for validation on view model side so using an event  -->
                 <PasswordBox x:Name="PasswordInput"
                              Grid.Column="1"
-                             Height="{Binding ElementName=UsernameInput, Path=ActualHeight}"
+                             Height="{Binding ElementName=UsernameInput,
+                                              Path=ActualHeight}"
+                             AutomationProperties.LabeledBy="{Binding ElementName=PasswordLabel}"
                              PasswordChanged="PasswordInput_PasswordChanged"
-                             AutomationProperties.LabeledBy="{Binding ElementName=PasswordLabel}">
+                             >
                     <PasswordBox.Style>
                         <Style BasedOn="{StaticResource InputStyle}" TargetType="PasswordBox" />
                     </PasswordBox.Style>
@@ -185,15 +201,15 @@
             </Grid>
         </Grid>
 
-        <Separator Style="{StaticResource DialogSeparator}"/>
+        <Separator Style="{StaticResource DialogSeparator}" />
 
-        <StackPanel VerticalAlignment="Center"
-                    Style="{StaticResource DialogButtonsPanel}">
-            <vsui:DialogButton Content="{x:Static resx:Strings.ConnectButtonText}"
+        <StackPanel VerticalAlignment="Center" Style="{StaticResource DialogButtonsPanel}">
+            <vsui:DialogButton Click="ConnectButton_Click"
+                               Content="{x:Static resx:Strings.ConnectButtonText}"
                                IsDefault="True"
-                               IsEnabled="{Binding IsValid}" Click="ConnectButton_Click"/>
-            <vsui:DialogButton Content="{x:Static resx:Strings.CancelButtonText}"
-                               IsCancel="True"/>
+                               IsEnabled="{Binding IsValid}"
+                               />
+            <vsui:DialogButton Content="{x:Static resx:Strings.CancelButtonText}" IsCancel="True" />
         </StackPanel>
 
     </StackPanel>

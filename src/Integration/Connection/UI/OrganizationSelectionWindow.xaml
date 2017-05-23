@@ -1,0 +1,86 @@
+﻿<vsui:DialogWindow x:Class="SonarLint.VisualStudio.Integration.Connection.UI.OrganizationSelectionWindow"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                   xmlns:data="clr-namespace:SonarLint.VisualStudio.Integration.Service"
+                   xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.Connection.UI"
+                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                   xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
+                   xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+                   Title="Select the organization"
+                   MaxWidth="400"
+                   FocusManager.FocusedElement="{Binding ElementName=OrganizationComboBox}"
+                   ResizeMode="NoResize"
+                   SizeToContent="WidthAndHeight"
+                   WindowStartupLocation="CenterOwner"
+                   mc:Ignorable="d">
+
+    <!--  Resources  -->
+    <vsui:DialogWindow.Resources>
+        <!--  Converters  -->
+        <vsui:NotNullConverter x:Key="NotNullConverter" />
+
+        <!--  Styles  -->
+        <Style x:Key="DialogContent" TargetType="{x:Type StackPanel}">
+            <Setter Property="Margin" Value="12" />
+        </Style>
+
+        <Style x:Key="DialogButtonsPanel" TargetType="{x:Type StackPanel}">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Style.Resources>
+                <Style TargetType="vsui:DialogButton">
+                    <Setter Property="Margin" Value="6,0,0,0" />
+                </Style>
+            </Style.Resources>
+        </Style>
+
+        <Style x:Key="DialogSeparator" TargetType="Separator">
+            <Setter Property="Margin" Value="0,6,0,9" />
+        </Style>
+    </vsui:DialogWindow.Resources>
+
+    <!--  Design  -->
+    <StackPanel Style="{StaticResource DialogContent}">
+        <TextBlock Margin="0,0,0,8"
+                   FontStyle="Italic" Text="This SonarQube server supports organizations, please select the organization you want to bind to." TextWrapping="Wrap" />
+
+        <StackPanel Orientation="Horizontal">
+            <TextBlock VerticalAlignment="Center" Text="Organizations" />
+            <ComboBox x:Name="OrganizationComboBox"
+                      Width="250" Margin="12,0,0,0"
+                      HorizontalContentAlignment="Stretch"
+                      IsEditable="True" IsTextSearchCaseSensitive="False" IsTextSearchEnabled="True"
+                      TextSearch.TextPath="Name">
+                <ComboBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ComboBox.ItemsPanel>
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ComboBoxItem}">
+                        <Setter Property="Width" Value="230" />
+                    </Style>
+                </ComboBox.ItemContainerStyle>
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type data:OrganizationInformation}">
+                        <TextBlock TextTrimming="CharacterEllipsis">
+                            <Run Text="{Binding Name, Mode=OneWay}" />
+                            <Run Text="(" /><Run Text="{Binding Key, Mode=OneWay}" /><Run Text=")" />
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <Separator Style="{StaticResource DialogSeparator}" />
+
+        <StackPanel VerticalAlignment="Center" Style="{StaticResource DialogButtonsPanel}">
+            <vsui:DialogButton Click="OnOkButtonClick" Content="OK" IsDefault="True"
+                               IsEnabled="{Binding ElementName=OrganizationComboBox,
+                                                   Path=SelectedItem,
+                                                   Converter={StaticResource NotNullConverter}}" />
+            <vsui:DialogButton Content="Cancel" IsCancel="True" />
+        </StackPanel>
+    </StackPanel>
+</vsui:DialogWindow>

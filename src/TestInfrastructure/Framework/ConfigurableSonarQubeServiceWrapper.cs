@@ -127,6 +127,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region ISonarQubeServiceWrapper
 
+        public bool TryGetOrganizations(ConnectionInformation serverConnection, CancellationToken token, out OrganizationInformation[] organizations)
+        {
+            throw new NotImplementedException();
+        }
+
         bool ISonarQubeServiceWrapper.TryGetProjects(ConnectionInformation serverConnection, CancellationToken token, out ProjectInformation[] serverProjects)
         {
             this.AssertExpectedConnection(serverConnection);
@@ -208,6 +213,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             return profile != null;
+        }
+
+        public bool AreCredentialsValid(ConnectionInformation serverConnection, CancellationToken token)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion ISonarQubeServiceWrapper

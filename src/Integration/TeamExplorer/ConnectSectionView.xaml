@@ -39,9 +39,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Image Grid.Column="0"
-                       Width="32"
-                       Height="32"
-                       Margin="0,0,6,0"
+                       Width="32" Height="32" Margin="0,0,6,0"
                        VerticalAlignment="Center"
                        SnapsToDevicePixels="True"
                        Source="{StaticResource SonarQubeServerIcon}" />
@@ -79,9 +77,10 @@
             <TextBox x:Name="FilterTextBox" Style="{StaticResource FilterTextBox}" />
 
             <TextBlock Margin="6,0"
+                       KeyboardNavigation.IsTabStop="False"
                        Style="{StaticResource SQStaticTextStyle}"
                        Text="{x:Static resx:Strings.SelectSonarQubeProjectInstruction}"
-                       TextWrapping="Wrap" KeyboardNavigation.IsTabStop="False"
+                       TextWrapping="Wrap"
                        Visibility="{Binding State.HasBoundProject,
                                             Converter={StaticResource TrueToVisibleConverter},
                                             ConverterParameter=Invert}" />
@@ -90,16 +89,41 @@
                       Margin="6,3,6,6"
                       ItemContainerStyle="{StaticResource SQServerTreeViewItemStyle}"
                       ItemsSource="{Binding State.ConnectedServers}"
-                      Style="{StaticResource SQTreeViewStyle}">
+                      Style="{StaticResource SQTreeViewStyle}"
+                      VirtualizingPanel.IsVirtualizing="True">
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type local:ServerViewModel}"
                                               ItemContainerStyle="{StaticResource SQProjectTreeViewItemStyle}"
                                               ItemsSource="{Binding Projects}">
                         <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
                             <Image Source="{StaticResource SonarQubeServerIcon}" Style="{StaticResource SQTreeViewIconStyle}" />
-                            <TextBlock AutomationProperties.Name="{Binding AutomationName}"
-                                       Style="{StaticResource EmphasizedText}"
-                                       Text="{Binding Url}" />
+                            <TextBlock AutomationProperties.Name="{Binding AutomationName}" Text="{Binding Url}">
+                                <TextBlock.Style>
+                                    <Style BasedOn="{StaticResource EmphasizedText}" TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding OrganizationName}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock AutomationProperties.Name="{Binding AutomationName}">
+                                <Run Text="{Binding Url, Mode=OneWay}" />
+                                <Run Text="-" />
+                                <Run Text="{Binding OrganizationName, Mode=OneWay}" />
+                                <TextBlock.Style>
+                                    <Style BasedOn="{StaticResource EmphasizedText}" TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding OrganizationName}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                             <TextBlock Margin="6,0,0,0"
                                        Style="{StaticResource SubduedText}"
                                        Text="{x:Static resx:Strings.ServerNoProjectsInlineText}"
@@ -143,9 +167,7 @@
                                 </TextBlock.Style>
                             </TextBlock>
                             <vsimaging:CrispImage Grid.Column="2"
-                                                  Width="16"
-                                                  Height="16"
-                                                  Margin="12,1,0,1"
+                                                  Width="16" Height="16" Margin="12,1,0,1"
                                                   Moniker="{x:Static vsimagecatalog:KnownMonikers.Link}"
                                                   Visibility="{Binding IsBound,
                                                                        Converter={StaticResource TrueToVisibleConverter}}" />
