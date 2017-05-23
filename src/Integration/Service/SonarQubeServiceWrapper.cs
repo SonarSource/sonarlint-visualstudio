@@ -111,17 +111,33 @@ namespace SonarLint.VisualStudio.Integration.Service
                 client => this.ValidateCredentials(client, token));
         }
 
-        public bool TryGetOrganizations(ConnectionInformation connectionInformation, CancellationToken token, out OrganizationInformation[] organizations)
+        public bool HasOrganizationsSupport(ConnectionInformation connectionInformation, CancellationToken token)
         {
             if (connectionInformation == null)
             {
                 throw new ArgumentNullException(nameof(connectionInformation));
             }
 
-            if (!HasOrganizationsSupport(connectionInformation, token))
+            var stringVersion = this.SafeUseHttpClient<string>(connectionInformation, client => this.GetServerVersion(client, token));
+            if (stringVersion == null)
             {
-                organizations = null;
-                return true;
+                return false;
+            }
+
+            Version version;
+            if (!Version.TryParse(stringVersion, out version))
+            {
+                return false;
+            }
+
+            return version >= OrganizationsSupportStartVersion;
+        }
+
+        public bool TryGetOrganizations(ConnectionInformation connectionInformation, CancellationToken token, out OrganizationInformation[] organizations)
+        {
+            if (connectionInformation == null)
+            {
+                throw new ArgumentNullException(nameof(connectionInformation));
             }
 
             organizations = this.SafeUseHttpClient<OrganizationInformation[]>(connectionInformation,
@@ -256,28 +272,6 @@ namespace SonarLint.VisualStudio.Integration.Service
         internal /*for testing purposes*/ protected virtual HttpClient CreateHttpClient()
         {
             return new HttpClient();
-        }
-
-        private bool HasOrganizationsSupport(ConnectionInformation connectionInformation, CancellationToken token)
-        {
-            if (connectionInformation == null)
-            {
-                throw new ArgumentNullException(nameof(connectionInformation));
-            }
-
-            var stringVersion = this.SafeUseHttpClient<string>(connectionInformation, client => this.GetServerVersion(client, token));
-            if (stringVersion == null)
-            {
-                return false;
-            }
-
-            Version version;
-            if (!Version.TryParse(stringVersion, out version))
-            {
-                return false;
-            }
-
-            return version >= OrganizationsSupportStartVersion;
         }
 
         private async Task<string> GetServerVersion(HttpClient configuredClient, CancellationToken token)

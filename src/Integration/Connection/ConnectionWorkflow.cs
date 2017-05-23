@@ -122,33 +122,31 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             notifications.ProgressChanged(connection.ServerUri.ToString());
 
-            notifications.ProgressChanged("Validating credentials");
+            notifications.ProgressChanged(Strings.ConnectionStepValidatinCredentials);
             if (!this.host.SonarQubeService.AreCredentialsValid(connection, cancellationToken))
             {
                 AbortWithMessage(notifications, controller, cancellationToken);
                 return;
             }
 
-            notifications.ProgressChanged("Retrieving organizations");
-            OrganizationInformation[] organizations;
-            if (!this.host.SonarQubeService.TryGetOrganizations(connection, cancellationToken, out organizations))
+            if (connection.Organization == null &&
+                this.host.SonarQubeService.HasOrganizationsSupport(connection, cancellationToken))
             {
-                AbortWithMessage(notifications, controller, cancellationToken);
-                return;
-            }
-            if (organizations != null) // SQ server supports organizations
-            {
-                switch (organizations.Length)
+                notifications.ProgressChanged(Strings.ConnectionStepRetrievingOrganizations);
+                OrganizationInformation[] organizations;
+                if (!this.host.SonarQubeService.TryGetOrganizations(connection, cancellationToken, out organizations))
                 {
-                    case 0:
-                        connection.Organization = null;
-                        break;
-                    case 1:
-                        connection.Organization = organizations[0];
-                        break;
-                    default:
-                        connection.Organization = AskUserToSelectOrganizationOnUIThread(organizations);
-                        break;
+                    AbortWithMessage(notifications, controller, cancellationToken);
+                    return;
+                }
+
+                if (organizations.Length <= 1)
+                {
+                    connection.Organization = null;
+                }
+                else
+                {
+                    connection.Organization = AskUserToSelectOrganizationOnUIThread(organizations);
                 }
             }
 
@@ -159,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             this.ConnectedServer = connection;
 
-            notifications.ProgressChanged("Retrieving projects");
+            notifications.ProgressChanged(Strings.ConnectionStepRetrievingProjects);
             ProjectInformation[] projects;
             if (!this.host.SonarQubeService.TryGetProjects(connection, cancellationToken, out projects))
             {

@@ -37,7 +37,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool AllowConnections { get; set; } = true;
 
+        public bool HasOrganizationsSupport { get; set; }
+        public bool AreCredentialsValid { get; set; } = true;
+
         public ProjectInformation[] ReturnProjectInformation { get; set; }
+        public OrganizationInformation[] ReturnOrganizationInformation { get; set; }
 
         public ISet<ServerPlugin> ServerPlugins { get; } = new HashSet<ServerPlugin>();
 
@@ -127,9 +131,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region ISonarQubeServiceWrapper
 
-        public bool TryGetOrganizations(ConnectionInformation serverConnection, CancellationToken token, out OrganizationInformation[] organizations)
+        bool ISonarQubeServiceWrapper.TryGetOrganizations(ConnectionInformation serverConnection, CancellationToken token, out OrganizationInformation[] organizations)
         {
-            throw new NotImplementedException();
+            this.AssertExpectedConnection(serverConnection);
+            this.ConnectionRequestsCount++;
+
+            if (this.AllowConnections && !token.IsCancellationRequested)
+            {
+                organizations = this.ReturnOrganizationInformation;
+                return true;
+            }
+            else
+            {
+                organizations = null;
+                return false;
+            }
         }
 
         bool ISonarQubeServiceWrapper.TryGetProjects(ConnectionInformation serverConnection, CancellationToken token, out ProjectInformation[] serverProjects)
@@ -215,9 +231,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return profile != null;
         }
 
-        public bool AreCredentialsValid(ConnectionInformation serverConnection, CancellationToken token)
+        bool ISonarQubeServiceWrapper.AreCredentialsValid(ConnectionInformation serverConnection, CancellationToken token)
         {
-            throw new NotImplementedException();
+            this.AssertExpectedConnection(serverConnection);
+
+            return AreCredentialsValid;
+        }
+
+        bool ISonarQubeServiceWrapper.HasOrganizationsSupport(ConnectionInformation serverConnection, CancellationToken token)
+        {
+            this.AssertExpectedConnection(serverConnection);
+
+            return HasOrganizationsSupport;
         }
 
         #endregion ISonarQubeServiceWrapper

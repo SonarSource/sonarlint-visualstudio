@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         public ConnectionInformation Clone()
         {
-            return new ConnectionInformation(this.ServerUri, this.UserName, this.Password?.CopyAsReadOnly());
+            return new ConnectionInformation(this.ServerUri, this.UserName, this.Password?.CopyAsReadOnly()) { Organization = Organization };
         }
 
         object ICloneable.Clone()

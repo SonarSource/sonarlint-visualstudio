@@ -202,7 +202,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             ConnectionWorkflow workflow = new ConnectionWorkflow(this.host, this.ConnectCommand);
             IProgressEvents progressEvents = workflow.Run(information);
-            this.SetConnectionInProgress(progressEvents);
+            SetConnectionInProgress(progressEvents);
         }
 
         internal /*for testing purposes*/ void SetConnectionInProgress(IProgressEvents progressEvents)

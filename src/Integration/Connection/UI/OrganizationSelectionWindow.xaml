@@ -43,7 +43,7 @@
     <!--  Design  -->
     <StackPanel Style="{StaticResource DialogContent}">
         <TextBlock Margin="0,0,0,8"
-                   FontStyle="Italic" Text="This SonarQube server supports organizations, please select the organization you want to bind to." TextWrapping="Wrap" />
+                   FontStyle="Italic" Text="Please select the organization you want to bind to." TextWrapping="Wrap" />
 
         <StackPanel Orientation="Horizontal">
             <TextBlock VerticalAlignment="Center" Text="Organizations" />

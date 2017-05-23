@@ -31,6 +31,8 @@ namespace SonarLint.VisualStudio.Integration.Service
     {
         bool AreCredentialsValid(ConnectionInformation serverConnection, CancellationToken token);
 
+        bool HasOrganizationsSupport(ConnectionInformation connectionInformation, CancellationToken token);
+
         bool TryGetOrganizations(ConnectionInformation serverConnection, CancellationToken token, out OrganizationInformation[] organizations);
 
         /// <summary>

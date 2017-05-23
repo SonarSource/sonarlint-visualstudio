@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security;
@@ -39,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
         } = true;
         private string serverUrlRaw;
         private string username;
-        private readonly ObservableCollection<OrganizationInformation> allOrganizations = new ObservableCollection<OrganizationInformation>();
         private OrganizationInformation selectedOrganization;
 
         public ConnectionInfoDialogViewModel()
@@ -125,14 +123,6 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
         public override bool HasErrors
         {
             get { return !this.IsValid; }
-        }
-
-        public ObservableCollection<OrganizationInformation> Organizations => this.allOrganizations;
-
-        public OrganizationInformation SelectedOrganization
-        {
-            get { return this.selectedOrganization; }
-            set { SetAndRaisePropertyChanged(ref this.selectedOrganization, value); }
         }
 
         #endregion
