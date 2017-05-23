@@ -185,6 +185,8 @@ namespace SonarLint.VisualStudio.Integration
 
             this.tryUploadDataTimer.Dispose();
             this.firstCallDelayer.Dispose();
+            this.telemetryClient.Dispose();
+            this.telemetryRepository.Dispose();
         }
     }
 }

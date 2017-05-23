@@ -43,6 +43,12 @@ namespace SonarLint.VisualStudio.Integration
             {
                 BaseAddress = new Uri("https://chestnutsl.sonarsource.com", UriKind.RelativeOrAbsolute)
             };
+            this.client.DefaultRequestHeaders.Add("User-Agent", "SonarLint");
+        }
+
+        public void Dispose()
+        {
+            this.client.Dispose();
         }
 
         public async Task<bool> OptOut(TelemetryPayload payload)
@@ -67,8 +73,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private async Task<HttpResponseMessage> SendAsync(HttpMethod method, TelemetryPayload payload)
         {
-            this.client.DefaultRequestHeaders.Add("User-Agent", "SonarLint");
-
             var request = new HttpRequestMessage(method, "telemetry")
             {
                 Content = new StringContent(JsonHelper.Serialize(payload), Encoding.UTF8, "application/json")

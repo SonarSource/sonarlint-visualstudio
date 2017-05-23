@@ -19,11 +19,12 @@
  */
 
 
+using System;
 using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITelemetryClient
+    public interface ITelemetryClient : IDisposable
     {
         Task<bool> SendPayload(TelemetryPayload payload);
         Task<bool> OptOut(TelemetryPayload payload);
