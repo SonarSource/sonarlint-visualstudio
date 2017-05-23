@@ -37,8 +37,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
 
-        public const string daemonVersion = "2.12.0.492";
-        private const string uriFormat = "https://repox.sonarsource.com/sonarsource-public-builds/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
+        public const string daemonVersion = "2.13.0.606";
+        private const string uriFormat = "https://sonarsource.bintray.com/Distribution/sonarlint-daemon/sonarlint-daemon-{0}-windows.zip";
         private readonly string version;
         private readonly string tmpPath;
         private readonly string storagePath;
