@@ -29,23 +29,23 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)] // MEF singleton
     public sealed class TelemetryDataRepository : ITelemetryDataRepository
     {
+        private static readonly string StorageFilePath = GetStorageFilePath();
+
         private readonly FileSystemWatcher fileWatcher;
-        private readonly string storageFilePath = GetStorageFilePath();
 
         private bool ignoreFileChange;
-
 
         public TelemetryData Data { get; private set; } = new TelemetryData { IsAnonymousDataShared = true };
 
         public TelemetryDataRepository()
         {
-            EnsureFileExists(storageFilePath);
+            EnsureFileExists(StorageFilePath);
             ReadFromXmlFile();
 
             this.fileWatcher = new FileSystemWatcher
             {
-                Path = Path.GetDirectoryName(this.storageFilePath),
-                Filter = Path.GetFileName(this.storageFilePath),
+                Path = Path.GetDirectoryName(StorageFilePath),
+                Filter = Path.GetFileName(StorageFilePath),
                 NotifyFilter = NotifyFilters.LastWrite,
                 EnableRaisingEvents = true
             };
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration
         internal static string GetStorageFilePath()
         {
             var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var filePath = Path.Combine(appDataFolder, "..", "Local", "SonarSource", "telemetry.xml");
+            var filePath = Path.Combine(appDataFolder, "SonarLint for Visual Studio", "telemetry.xml");
             return Path.GetFullPath(filePath); // get rid of the .. in file path
         }
 
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration
                 () =>
                 {
                     var serializer = new XmlSerializer(typeof(TelemetryData));
-                    writer = new StreamWriter(this.storageFilePath, false);
+                    writer = new StreamWriter(StorageFilePath, false);
                     this.ignoreFileChange = true;
                     serializer.Serialize(writer, Data);
                     writer.Flush();
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration
             RetryHelper.RetryOnException(3, TimeSpan.FromSeconds(2),
                 () =>
                 {
-                    stream = File.OpenRead(this.storageFilePath);
+                    stream = File.OpenRead(StorageFilePath);
                     var serializer = new XmlSerializer(typeof(TelemetryData));
                     try
                     {
@@ -118,8 +118,8 @@ namespace SonarLint.VisualStudio.Integration
                     }
                     catch (InvalidOperationException)
                     {
-                        File.Delete(this.storageFilePath);
-                        EnsureFileExists(this.storageFilePath);
+                        File.Delete(StorageFilePath);
+                        EnsureFileExists(StorageFilePath);
                     }
                 });
             stream?.Dispose();
@@ -132,7 +132,8 @@ namespace SonarLint.VisualStudio.Integration
 
         public void Dispose()
         {
-            fileWatcher.Dispose();
+            this.fileWatcher.Changed -= OnStorageFileChanged;
+            this.fileWatcher.Dispose();
         }
     }
 }

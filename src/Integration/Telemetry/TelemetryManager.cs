@@ -35,12 +35,15 @@ namespace SonarLint.VisualStudio.Integration
         private const double MillisecondsToWaitBetweenUpload = 1000 * 60 * 60 * 5; // 5 hours
         private const double DelayBeforeFirstUpload = 1000 * 60 * 5; // 5 minutes
 
+        private static readonly string SonarLintVersion =
+            FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
+
         private readonly ITelemetryDataRepository telemetryRepository;
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
         private readonly ITelemetryClient telemetryClient;
         private readonly Timer tryUploadDataTimer;
         private readonly Timer firstCallDelayer;
-        private readonly string sonarLintVersion;
+
 
         public bool IsAnonymousDataShared
         {
@@ -68,21 +71,18 @@ namespace SonarLint.VisualStudio.Integration
             this.telemetryClient = telemetryClient;
             this.telemetryRepository = telemetryRepository;
 
-            this.sonarLintVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
-
-            SaveInstallationDate();
+            if (this.telemetryRepository.Data.InstallationDate == DateTime.MinValue)
+            {
+                this.telemetryRepository.Data.InstallationDate = DateTime.Now;
+                this.telemetryRepository.Save();
+            }
 
             this.tryUploadDataTimer = new Timer { Interval = MillisecondsToWaitBetweenUpload, AutoReset = true };
             this.firstCallDelayer = new Timer(DelayBeforeFirstUpload) { AutoReset = false };
 
             if (IsAnonymousDataShared)
             {
-                KnownUIContexts.SolutionBuildingContext.UIContextChanged += this.OnSolutionBuilding;
-                this.tryUploadDataTimer.Elapsed += OnTryUploadDataTimerElapsed;
-                this.tryUploadDataTimer.Start();
-
-                this.firstCallDelayer.Elapsed += OnTryUploadDataTimerElapsed;
-                this.firstCallDelayer.Start();
+                EnableAllEvents();
             }
         }
 
@@ -106,16 +106,7 @@ namespace SonarLint.VisualStudio.Integration
                 (DateTime.Now - lastUploadDate).TotalHours >= MinHoursBetweenUpload;
         }
 
-        private void SaveInstallationDate()
-        {
-            if (this.telemetryRepository.Data.InstallationDate == DateTime.MinValue)
-            {
-                this.telemetryRepository.Data.InstallationDate = DateTime.Now;
-                this.telemetryRepository.Save();
-            }
-        }
-
-        private void OnSolutionBuilding(object sender, UIContextChangedEventArgs e)
+        private void OnAnalysisRun(object sender, UIContextChangedEventArgs e)
         {
             if (!e.Activated)
             {
@@ -139,11 +130,35 @@ namespace SonarLint.VisualStudio.Integration
             return new TelemetryPayload
             {
                 SonarLintProduct = "SonarLint Visual Studio",
-                SonarLintVersion = this.sonarLintVersion,
+                SonarLintVersion = SonarLintVersion,
                 NumberOfDaysSinceInstallation = numberOfDaysSinceInstallation,
                 NumberOfDaysOfUse = this.telemetryRepository.Data.NumberOfDaysOfUse,
                 IsUsingConnectedMode = this.solutionBindingTracker.IsActiveSolutionBound
             };
+        }
+
+        private void EnableAllEvents()
+        {
+            this.tryUploadDataTimer.Elapsed += OnTryUploadDataTimerElapsed;
+            this.tryUploadDataTimer.Start();
+
+            this.firstCallDelayer.Elapsed += OnTryUploadDataTimerElapsed;
+            this.firstCallDelayer.Start();
+
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged += this.OnAnalysisRun;
+            KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged += this.OnAnalysisRun;
+        }
+
+        private void DisableAllEvents()
+        {
+            this.tryUploadDataTimer.Elapsed -= OnTryUploadDataTimerElapsed;
+            this.tryUploadDataTimer.Stop();
+
+            this.firstCallDelayer.Elapsed -= OnTryUploadDataTimerElapsed;
+            this.firstCallDelayer.Stop();
+
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged -= this.OnAnalysisRun;
+            KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= this.OnAnalysisRun;
         }
 
         public void OptIn()
@@ -151,13 +166,7 @@ namespace SonarLint.VisualStudio.Integration
             this.telemetryRepository.Data.IsAnonymousDataShared = true;
             this.telemetryRepository.Save();
 
-            this.tryUploadDataTimer.Elapsed += OnTryUploadDataTimerElapsed;
-            this.tryUploadDataTimer.Start();
-
-            this.firstCallDelayer.Elapsed += OnTryUploadDataTimerElapsed;
-            this.firstCallDelayer.Start();
-
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += this.OnSolutionBuilding;
+            EnableAllEvents();
         }
 
         public async void OptOut()
@@ -165,25 +174,16 @@ namespace SonarLint.VisualStudio.Integration
             this.telemetryRepository.Data.IsAnonymousDataShared = false;
             this.telemetryRepository.Save();
 
-            this.tryUploadDataTimer.Elapsed -= OnTryUploadDataTimerElapsed;
-            this.tryUploadDataTimer.Stop();
-
-            this.firstCallDelayer.Elapsed -= OnTryUploadDataTimerElapsed;
-            this.firstCallDelayer.Stop();
-
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged -= this.OnSolutionBuilding;
+            DisableAllEvents();
 
             await this.telemetryClient.OptOut(GetPayload());
         }
 
         public void Dispose()
         {
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged -= this.OnSolutionBuilding;
+            DisableAllEvents();
 
-            this.tryUploadDataTimer.Elapsed -= OnTryUploadDataTimerElapsed;
             this.tryUploadDataTimer.Dispose();
-
-            this.firstCallDelayer.Elapsed -= OnTryUploadDataTimerElapsed;
             this.firstCallDelayer.Dispose();
         }
     }

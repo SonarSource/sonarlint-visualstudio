@@ -30,7 +30,20 @@
                    >
             <Run Text="By sharing anonymous SonarLint usage statistics, you help us understand how SonarLint is used so we can improve the plugin to work even better for you. We don't collect source code, IP addresses, or any personally identifying information. And we don't share the data with anyone else." />
             <LineBreak />
-            <Run Text="See a sample of data" />
+            <Hyperlink>
+                <TextBlock Text="See a sample of data" />
+                <Hyperlink.ToolTip>
+                    <StackPanel>
+                        <TextBlock Text="{}{" />
+                        <TextBlock Text="    &quot;days_since_installation&quot;: 120," />
+                        <TextBlock Text="    &quot;days_of_use&quot;: 40," />
+                        <TextBlock Text="    &quot;sonarlint_version&quot;: &quot;3.0&quot;," />
+                        <TextBlock Text="    &quot;sonarlint_product&quot;: &quot;SonarLint Visual Studio&quot;," />
+                        <TextBlock Text="    &quot;connected_mode_used&quot;: true" />
+                        <TextBlock Text="}" />
+                    </StackPanel>
+                </Hyperlink.ToolTip>
+            </Hyperlink>
         </TextBlock>
 
         <CheckBox x:Name="ShareAnonymousData"
