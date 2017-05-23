@@ -22,7 +22,6 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Connection.UI
@@ -38,7 +37,6 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
         } = true;
         private string serverUrlRaw;
         private string username;
-        private OrganizationInformation selectedOrganization;
 
         public ConnectionInfoDialogViewModel()
             : this(new UriValidator(), new BasicAuthenticationCredentialsValidator())
