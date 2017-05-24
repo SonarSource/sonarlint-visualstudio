@@ -89,8 +89,7 @@
                       Margin="6,3,6,6"
                       ItemContainerStyle="{StaticResource SQServerTreeViewItemStyle}"
                       ItemsSource="{Binding State.ConnectedServers}"
-                      Style="{StaticResource SQTreeViewStyle}"
-                      VirtualizingPanel.IsVirtualizing="True">
+                      Style="{StaticResource SQTreeViewStyle}">
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type local:ServerViewModel}"
                                               ItemContainerStyle="{StaticResource SQProjectTreeViewItemStyle}"
