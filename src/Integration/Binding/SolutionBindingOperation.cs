@@ -246,7 +246,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 };
             }
 
-            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials);
+            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials,
+                connInfo.Organization);
             bound.Profiles = map;
 
             binding.WriteSolutionBinding(bound);

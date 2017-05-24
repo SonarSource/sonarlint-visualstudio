@@ -25,7 +25,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Windows;
 using System.Windows.Input;
+using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
@@ -112,32 +114,78 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Workflow steps
 
-        internal /* for testing purposes */ void ConnectionStep(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
+        internal /* for testing purposes */ void ConnectionStep(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection,
+            IProgressStepExecutionEvents notifications)
         {
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToConnectId);
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.BadServerPluginId);
 
             notifications.ProgressChanged(connection.ServerUri.ToString());
 
+            notifications.ProgressChanged(Strings.ConnectionStepValidatinCredentials);
+            if (!this.host.SonarQubeService.AreCredentialsValid(connection, cancellationToken))
+            {
+                AbortWithMessage(notifications, controller, cancellationToken);
+                return;
+            }
+
+            if (connection.Organization == null &&
+                this.host.SonarQubeService.HasOrganizationsSupport(connection, cancellationToken))
+            {
+                notifications.ProgressChanged(Strings.ConnectionStepRetrievingOrganizations);
+                OrganizationInformation[] organizations;
+                if (!this.host.SonarQubeService.TryGetOrganizations(connection, cancellationToken, out organizations))
+                {
+                    AbortWithMessage(notifications, controller, cancellationToken);
+                    return;
+                }
+
+                if (organizations.Length <= 1)
+                {
+                    connection.Organization = null;
+                }
+                else
+                {
+                    connection.Organization = AskUserToSelectOrganizationOnUIThread(organizations);
+                }
+            }
+
             if (!this.AreSolutionProjectsAndServerPluginsCompatible(controller, cancellationToken, connection, notifications))
             {
-                return;
+                return; // Message is already displayed by the method
             }
 
             this.ConnectedServer = connection;
 
+            notifications.ProgressChanged(Strings.ConnectionStepRetrievingProjects);
             ProjectInformation[] projects;
             if (!this.host.SonarQubeService.TryGetProjects(connection, cancellationToken, out projects))
             {
-                notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure);
-                this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);
-
-                AbortWorkflow(controller, cancellationToken);
+                AbortWithMessage(notifications, controller, cancellationToken);
                 return;
             }
 
             this.OnProjectsChanged(connection, projects);
             notifications.ProgressChanged(Strings.ConnectionResultSuccess);
+        }
+
+        private void AbortWithMessage(IProgressStepExecutionEvents notifications, IProgressController controller, CancellationToken cancellationToken)
+        {
+            notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure);
+            this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);
+
+            AbortWorkflow(controller, cancellationToken);
+        }
+
+        private OrganizationInformation AskUserToSelectOrganizationOnUIThread(IEnumerable<OrganizationInformation> organizations)
+        {
+            return Application.Current.Dispatcher.Invoke(() =>
+            {
+                var organizationDialog = new OrganizationSelectionWindow(organizations) { Owner = Application.Current.MainWindow };
+                var hasUserClickedOk = organizationDialog.ShowDialog().GetValueOrDefault();
+
+                return hasUserClickedOk ? organizationDialog.GetSelectedOrganization() : null;
+            });
         }
 
         internal /*for testing purposes*/ void DownloadServiceParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)

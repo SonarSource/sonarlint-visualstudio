@@ -152,7 +152,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             controller.NumberOfAbortRequests.Should().Be(0);
             executionEvents.AssertProgressMessages(
                 connectionMessage,
+                Strings.ConnectionStepValidatinCredentials,
                 Strings.DetectingServerPlugins,
+                Strings.ConnectionStepRetrievingProjects,
                 Strings.ConnectionResultSuccess);
             projectChangedCallbackCalled.Should().BeTrue("ConnectedProjectsCallaback was not called");
             sonarQubeService.ConnectionRequestsCount.Should().Be(1);
@@ -182,6 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             controller.NumberOfAbortRequests.Should().Be(1);
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),
+                Strings.ConnectionStepValidatinCredentials,
                 Strings.DetectingServerPlugins,
                 Strings.ConnectionResultFailure);
             notifications.AssertNotification(NotificationIds.BadServerPluginId, Strings.ServerHasNoSupportedPluginVersion);
@@ -215,6 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             controller.NumberOfAbortRequests.Should().Be(1);
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),
+                Strings.ConnectionStepValidatinCredentials,
                 Strings.DetectingServerPlugins,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
@@ -263,6 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             controller.NumberOfAbortRequests.Should().Be(1);
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),
+                Strings.ConnectionStepValidatinCredentials,
                 Strings.DetectingServerPlugins,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
@@ -294,7 +299,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Assert
             executionEvents.AssertProgressMessages(
                 connectionMessage,
+                Strings.ConnectionStepValidatinCredentials,
                 Strings.DetectingServerPlugins,
+                Strings.ConnectionStepRetrievingProjects,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("Callback should not have been called");
             this.sonarQubeService.ConnectionRequestsCount.Should().Be(1);
@@ -309,7 +316,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Assert
             executionEvents.AssertProgressMessages(
                 connectionMessage,
+                Strings.ConnectionStepValidatinCredentials,
                 Strings.DetectingServerPlugins,
+                Strings.ConnectionStepRetrievingProjects,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("Callback should not have been called");
             this.sonarQubeService.ConnectionRequestsCount.Should().Be(2);
@@ -329,7 +338,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Assert
             executionEvents.AssertProgressMessages(
                 connectionMessage,
+                Strings.ConnectionStepValidatinCredentials,
                 Strings.DetectingServerPlugins,
+                Strings.ConnectionStepRetrievingProjects,
                 Strings.ConnectionResultCancellation);
             projectChangedCallbackCalled.Should().BeFalse("Callback should not have been called");
             this.sonarQubeService.ConnectionRequestsCount.Should().Be(3);

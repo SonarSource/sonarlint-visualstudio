@@ -350,6 +350,33 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Retrieving organizations.
+        /// </summary>
+        public static string ConnectionStepRetrievingOrganizations {
+            get {
+                return ResourceManager.GetString("ConnectionStepRetrievingOrganizations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Retrieving projects.
+        /// </summary>
+        public static string ConnectionStepRetrievingProjects {
+            get {
+                return ResourceManager.GetString("ConnectionStepRetrievingProjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Validating credentials.
+        /// </summary>
+        public static string ConnectionStepValidatinCredentials {
+            get {
+                return ResourceManager.GetString("ConnectionStepValidatinCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connect....
         /// </summary>
         public static string ConnectLinkText {

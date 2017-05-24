@@ -29,6 +29,12 @@ namespace SonarLint.VisualStudio.Integration.Service
     /// </summary>
     internal interface ISonarQubeServiceWrapper
     {
+        bool AreCredentialsValid(ConnectionInformation serverConnection, CancellationToken token);
+
+        bool HasOrganizationsSupport(ConnectionInformation connectionInformation, CancellationToken token);
+
+        bool TryGetOrganizations(ConnectionInformation serverConnection, CancellationToken token, out OrganizationInformation[] organizations);
+
         /// <summary>
         /// Retrieves all the server projects
         /// </summary>

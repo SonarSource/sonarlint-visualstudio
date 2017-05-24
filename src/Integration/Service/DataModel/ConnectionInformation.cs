@@ -76,9 +76,11 @@ namespace SonarLint.VisualStudio.Integration.Service
             }
         }
 
+        public OrganizationInformation Organization { get; set; }
+
         public ConnectionInformation Clone()
         {
-            return new ConnectionInformation(this.ServerUri, this.UserName, this.Password?.CopyAsReadOnly());
+            return new ConnectionInformation(this.ServerUri, this.UserName, this.Password?.CopyAsReadOnly()) { Organization = Organization };
         }
 
         object ICloneable.Clone()

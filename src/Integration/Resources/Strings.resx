@@ -713,4 +713,13 @@ This is the general format to use when writing errors to output window or when t
    Note that third party rules are excluded from SonarLint</value>
     <comment>Output window message displayed when the result from the API export call returns no active rule from the SonarAnalyzer repository. {0} The name of the Quality Profile. {1} the language.</comment>
   </data>
+  <data name="ConnectionStepRetrievingOrganizations" xml:space="preserve">
+    <value>Retrieving organizations</value>
+  </data>
+  <data name="ConnectionStepRetrievingProjects" xml:space="preserve">
+    <value>Retrieving projects</value>
+  </data>
+  <data name="ConnectionStepValidatinCredentials" xml:space="preserve">
+    <value>Validating credentials</value>
+  </data>
 </root>
