@@ -147,6 +147,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 else
                 {
                     connection.Organization = AskUserToSelectOrganizationOnUIThread(organizations);
+                    if (connection.Organization == null) // User clicked cancel
+                    {
+                        AbortWithMessage(notifications, controller, cancellationToken);
+                        return;
+                    }
+
                 }
             }
 
