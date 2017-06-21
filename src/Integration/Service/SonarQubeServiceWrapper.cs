@@ -337,7 +337,7 @@ namespace SonarLint.VisualStudio.Integration.Service
 
             do
             {
-                var query = string.Format("{0}?asc&organization={1}&ps={2}&p={3}", SearchProjectsAPI, organizationKey,
+                var query = string.Format("{0}?asc=true&organization={1}&ps={2}&p={3}", SearchProjectsAPI, organizationKey,
                     MaxAllowedPageSize, currentPage);
                 var httpResponse = await InvokeGetRequest(configuredClient, query, token);
                 var stringResponse = await ReadResponse(httpResponse, token);

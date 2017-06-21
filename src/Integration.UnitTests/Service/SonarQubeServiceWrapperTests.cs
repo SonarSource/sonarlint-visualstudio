@@ -113,6 +113,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void SonarQubeServiceWrapper_TryGetProjects_Organization()
+        {
+            var p1 = new ComponentResult
+            {
+                Name = "Project 1",
+                Key = "1"
+            };
+            var p2 = new ComponentResult
+            {
+                Name = "Project 2",
+                Key = "2"
+            };
+
+            using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
+            {
+                testSubject.RegisterQueryValidator("api/components/search_projects", request =>
+                {
+                    request.QueryString.HasValue.Should().BeTrue();
+                    request.QueryString.Value.Should().Be("asc=true&organization=myorg&ps=500&p=1");
+                });
+
+                // Arrange
+                testSubject.AllowAnonymous = true;
+                testSubject.RegisterRequestHandler("api/components/search_projects?asc=true&organization=myorg&ps=500&p=1",
+                    new RequestHandler { ResponseText = Serialize(new { paging = new { total = 0 }, components = new[] { p1 } }) });
+                var connectionInfo1 = new ConnectionInformation(new Uri("http://server"))
+                {
+                    Organization = new OrganizationInformation { Key = "myorg", Name = "My org" }
+                };
+
+                // Act
+                ProjectInformation[] projects = null;
+                testSubject.TryGetProjects(connectionInfo1, CancellationToken.None, out projects)
+                    .Should().BeTrue("Expected to get the projects");
+
+                // Assert
+                projects.Should().Equal(new[] { p1 }, (x, y) => x.Key == y.Key && x.Name == y.Name);
+                this.outputWindowPane.AssertOutputStrings(0);
+            }
+        }
+
+        [TestMethod]
         public void SonarQubeServiceWrapper_TryGetProjects_InvalidStatusCode()
         {
             using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
