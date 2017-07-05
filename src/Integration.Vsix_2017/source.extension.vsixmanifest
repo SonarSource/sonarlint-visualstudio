@@ -4,7 +4,7 @@
     <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
     <Identity Id="SonarLint.36871a7b-4853-481f-bb52-1835a874e81b" Version="3.2.0.0" Language="en-US" Publisher="SonarSource SA" />
     <DisplayName>SonarLint for Visual Studio 2017</DisplayName>
-    <Description xml:space="preserve">SonarLint provides on-the-fly feedback to developers on new bugs and quality issues injected into C# and VB.Net code. In addition the connected mode allows to enforce governance policies by reporting the same issues in Visual Studio and in SonarQube server.</Description>
+    <Description xml:space="preserve">SonarLint provides on-the-fly feedback to developers on new bugs and quality issues injected into C#, VB.Net and JavaScript code. In addition the connected mode allows to enforce governance policies by reporting the same issues in Visual Studio and in SonarQube server.</Description>
     <MoreInfo>http://vs.sonarlint.org</MoreInfo>
     <License>LICENSE</License>
     <GettingStartedGuide>http://vs.sonarlint.org</GettingStartedGuide>
