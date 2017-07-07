@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly TaggerProvider provider;
         private readonly ITextBuffer textBuffer;
+        private readonly string sqLanguage;
 
         private ITextSnapshot currentSnapshot;
         private NormalizedSnapshotSpanCollection dirtySpans;
@@ -49,10 +50,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal IssuesSnapshot Snapshot { get; set; }
 
-        internal IssueTracker(TaggerProvider provider, ITextBuffer buffer, ITextDocument document)
+        internal IssueTracker(TaggerProvider provider, ITextBuffer buffer, ITextDocument document, string sqLanguage)
         {
             this.provider = provider;
             this.textBuffer = buffer;
+            this.sqLanguage = sqLanguage;
             this.currentSnapshot = buffer.CurrentSnapshot;
             this.dirtySpans = new NormalizedSnapshotSpanCollection();
 
@@ -73,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             else if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
             {
-                provider.RequestAnalysis(FilePath, Charset);
+                provider.RequestAnalysis(FilePath, Charset, sqLanguage);
             }
         }
 
@@ -82,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             document.FileActionOccurred += FileActionOccurred;
             textBuffer.ChangedLowPriority += OnBufferChange;
             provider.AddIssueTracker(this);
-            provider.RequestAnalysis(FilePath, Charset);
+            provider.RequestAnalysis(FilePath, Charset, sqLanguage);
         }
 
         public void Dispose()
