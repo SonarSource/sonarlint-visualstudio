@@ -264,16 +264,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return tempDirectory;
         }
 
-        public void RequestAnalysis(string path, string charset, IIssueConsumer consumer)
+        public void RequestAnalysis(string path, string charset, string sqLanguage, IIssueConsumer consumer)
         {
             WritelnToPane($"Analysing {path}");
             if (daemonClient != null)
             {
-                Analyze(path, charset, consumer);
+                Analyze(path, charset, sqLanguage, consumer);
             }
         }
 
-        private async void Analyze(string path, string charset, IIssueConsumer consumer)
+        private async void Analyze(string path, string charset, string sqLanguage, IIssueConsumer consumer)
         {
             var request = new AnalysisReq
             {
@@ -283,7 +283,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             request.File.Add(new InputFile
             {
                 Path = path,
-                Charset = charset
+                Charset = charset,
+                Language = sqLanguage
             });
 
             using (var call = daemonClient.Analyze(request))

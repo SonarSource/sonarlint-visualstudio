@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Sonarlint;
+using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -44,6 +45,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         internal readonly ITableManager ErrorTableManager;
         internal readonly ITextDocumentFactoryService TextDocumentFactoryService;
+        internal readonly IContentTypeRegistryService ContentTypeRegistryService;
+        internal readonly IFileExtensionRegistryService FileExtensionRegistryService;
 
         private readonly List<SinkManager> managers = new List<SinkManager>();
         private readonly TrackerManager trackers = new TrackerManager();
@@ -51,10 +54,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLintDaemon daemon;
 
         [ImportingConstructor]
-        internal TaggerProvider([Import] ITableManagerProvider provider, [Import] ITextDocumentFactoryService textDocumentFactoryService, [Import] ISonarLintDaemon daemon)
+        internal TaggerProvider([Import] ITableManagerProvider provider,
+            [Import] ITextDocumentFactoryService textDocumentFactoryService,
+            [Import] IContentTypeRegistryService contentTypeRegistryService,
+            [Import] IFileExtensionRegistryService fileExtensionRegistryService,
+            [Import] ISonarLintDaemon daemon)
         {
             this.ErrorTableManager = provider.GetTableManager(StandardTables.ErrorsTable);
             this.TextDocumentFactoryService = textDocumentFactoryService;
+            this.ContentTypeRegistryService = contentTypeRegistryService;
+            this.FileExtensionRegistryService = fileExtensionRegistryService;
 
             this.ErrorTableManager.AddSource(this, StandardTableColumnDefinitions.DetailsExpander,
                                                    StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
@@ -90,18 +99,49 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return null;
             }
 
-            var path = document.FilePath;
-            // TODO find a better way to detect JavaScript
-            if (!path.ToLowerInvariant().EndsWith(".js"))
+            var filePath = document.FilePath;
+            var fileExtension = Path.GetExtension(filePath).Replace(".", "");
+
+            List<IContentType> contentTypes = new List<IContentType>();
+            foreach (IContentType type in ContentTypeRegistryService.ContentTypes)
+            {
+                foreach (string extension in FileExtensionRegistryService.GetExtensionsForContentType(type))
+                {
+                    if (extension == fileExtension)
+                    {
+                        contentTypes.Add(type);
+                    }
+                }
+            }
+            if (contentTypes.Count == 0 && buffer.ContentType != null)
+            {
+                // Fallback on TextBuffer content type
+                contentTypes.Add(buffer.ContentType);
+            }
+            string sqLanguage = null;
+            foreach (IContentType type in contentTypes)
+            {
+                if (type.IsOfType("JavaScript"))
+                {
+                    sqLanguage = "js";
+                    break;
+                }
+                if (type.IsOfType("C/C++"))
+                {
+                    sqLanguage = "cpp";
+                    break;
+                }
+            }
+            if (sqLanguage == null)
             {
                 return null;
             }
 
             lock (trackers)
             {
-                if (!trackers.ExistsForFile(path))
+                if (!trackers.ExistsForFile(filePath))
                 {
-                    var tracker = new IssueTracker(this, buffer, document);
+                    var tracker = new IssueTracker(this, buffer, document, sqLanguage);
                     return tracker as ITagger<T>;
                 }
             }
@@ -171,9 +211,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RequestAnalysis(string path, string charset)
+        public void RequestAnalysis(string path, string charset, string sqLanguage)
         {
-            daemon.RequestAnalysis(path, charset, this);
+            daemon.RequestAnalysis(path, charset, sqLanguage, this);
         }
 
         public void Accept(string path, IEnumerable<Issue> issues)
