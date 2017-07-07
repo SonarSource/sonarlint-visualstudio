@@ -26,8 +26,11 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Threading.Tasks;
 using Grpc.Core;
 using Sonarlint;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -37,8 +40,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
 
-        public const string daemonVersion = "2.14.0.669";
-        private const string uriFormat = "https://repox.sonarsource.com/sonarsource-public-builds/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
+        public const string daemonVersion = "2.17.0.831";
+        private const string uriFormat = "https://repox.sonarsource.com/sonarsource-dev/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
         private readonly string version;
         private readonly string tmpPath;
         private readonly string storagePath;
@@ -50,6 +53,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public event DownloadProgressChangedEventHandler DownloadProgressChanged;
         public event AsyncCompletedEventHandler DownloadCompleted;
+
+        private Channel channel;
+        private StandaloneSonarLint.StandaloneSonarLintClient daemonClient;
 
         public SonarLintDaemon() : this(daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath())
         {
@@ -94,11 +100,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 throw new InvalidOperationException("Daemon is not installed");
             }
 
-            if (process != null)
-            {
-                process.Close();
-            }
-
             port = TcpUtil.FindFreePort(DEFAULT_DAEMON_PORT);
             process = new Process
             {
@@ -107,10 +108,80 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     UseShellExecute = false,
                     FileName = ExePath,
                     Arguments = GetCmdArgs(port),
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
                 }
             };
-            process.Start();
+            process.OutputDataReceived += (sender, args) =>
+            {
+                string data = args.Data;
+                if (data != null)
+                {
+                    if (data.Contains("Server started"))
+                    {
+                        CreateChannelAndStremLogs();
+                    }
+                    WritelnToPane(data);
+                }
+            };
+            process.ErrorDataReceived += (sender, args) =>
+            {
+                string data = args.Data;
+                if (data != null)
+                {
+                    WritelnToPane(data);
+                }
+            };
+            WritelnToPane($"Running {ExePath}");
+            try
+            {
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Unable to start SonarLint daemon: {0}", e);
+                WritelnToPane($"Unable to start SonarLint daemon {e.Message}");
+            }
+        }
+
+        private void CreateChannelAndStremLogs()
+        {
+            channel = new Channel($"{DAEMON_HOST}:{port}", ChannelCredentials.Insecure);
+            daemonClient = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
+            ListenForLogs();
+        }
+
+        private async System.Threading.Tasks.Task ListenForLogs()
+        {
+            try
+            {
+                using (var streamLogs = daemonClient.StreamLogs(new Sonarlint.Void(), new CallOptions(null, null, channel.ShutdownToken).WithWaitForReady(true)))
+                {
+                    while (await streamLogs.ResponseStream.MoveNext())
+                    {
+                        var log = streamLogs.ResponseStream.Current;
+                        if ("Still alive" != log.Log)
+                        {
+                            WritelnToPane($"{log.Level} {log.Log}");
+                        }
+                    }
+                }
+            }
+            catch (RpcException e)
+            {
+                Debug.WriteLine("RPC failed: {0}", e);
+                WritelnToPane("RPC failed " + e);
+                throw;
+            }
+        }
+
+        private void WritelnToPane(string msg)
+        {
+            VsShellUtils.WriteToSonarLintOutputPane(ServiceProvider.GlobalProvider, msg);
         }
 
         public void Stop()
@@ -120,6 +191,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
                 // throw exception?
             }
+            channel.ShutdownAsync().Wait();
             process.Kill();
             process.WaitForExit();
         }
@@ -184,7 +256,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(string path, string charset, IIssueConsumer consumer)
         {
-            Analyze(path, charset, consumer);
+            WritelnToPane($"Analysis requested for {path}");
+            if (daemonClient != null)
+            {
+                Analyze(path, charset, consumer);
+            }
         }
 
         private async void Analyze(string path, string charset, IIssueConsumer consumer)
@@ -197,13 +273,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             request.File.Add(new InputFile
             {
                 Path = path,
-                Charset = charset,
+                Charset = charset
             });
 
-            var channel = new Channel($"{DAEMON_HOST}:{port}", ChannelCredentials.Insecure);
-            var client = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
-
-            using (var call = client.Analyze(request))
+            using (var call = daemonClient.Analyze(request))
             {
                 try
                 {
@@ -214,8 +287,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     Debug.WriteLine("Call to client.Analyze failed: {0}", e);
                 }
             }
-
-            await channel.ShutdownAsync();
         }
 
         private async System.Threading.Tasks.Task ProcessIssues(AsyncServerStreamingCall<Issue> call, string path, IIssueConsumer consumer)

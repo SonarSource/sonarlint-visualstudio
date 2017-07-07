@@ -110,7 +110,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Grpc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Grpc.Core.1.2.2\lib\net45\Grpc.Core.dll</HintPath>
+      <HintPath>..\..\packages\Grpc.Core.1.4.1\lib\net45\Grpc.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -477,12 +477,12 @@
   <PropertyGroup>
     <PostBuildEvent>copy /y "$(TargetDir)SonarLint.vsix" "$(SolutionDir)..\binaries\SonarLint.2015.vsix"</PostBuildEvent>
   </PropertyGroup>
-  <Import Project="..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets" Condition="Exists('..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets')" />
+  <Import Project="..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets" Condition="Exists('..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets'))" />
+    <Error Condition="!Exists('..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets'))" />
   </Target>
   <Target Name="IncludeDllsVsix" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

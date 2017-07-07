@@ -63,6 +63,28 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        /// <summary>
+        /// Writes a message to the SonarLint output pane. Will append a new line after the message.
+        /// </summary>
+        public static void WriteToSonarLintOutputPane(IServiceProvider serviceProvider, string message)
+        {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            IVsOutputWindowPane sonarLintPane = GetOrCreateSonarLintOutputPane(serviceProvider);
+            if (sonarLintPane != null)
+            {
+                WriteLineToPane(sonarLintPane, message);
+            }
+        }
+
         public static bool IsSolutionExistsAndNotBuildingAndNotDebugging()
         {
             Debug.Assert(KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext != null, "KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebugging is null");
@@ -152,9 +174,16 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             const bool makeVisible = true;
-            const bool clearWithSolution = true;
+            const bool clearWithSolution = false;
 
             IVsOutputWindowPane pane;
+
+            int hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
+            if (ErrorHandler.Succeeded(hrGetPane))
+            {
+                return pane;
+            }
+
             int hrCreatePane = outputWindow.CreatePane(
                 ref SonarLintOutputPaneGuid,
                 Strings.SonarLintOutputPaneTitle,
@@ -162,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration
                 Convert.ToInt32(clearWithSolution));
             Debug.Assert(ErrorHandler.Succeeded(hrCreatePane), "Failed in outputWindow.CreatePane: " + hrCreatePane.ToString());
 
-            int hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
+            hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
             Debug.Assert(ErrorHandler.Succeeded(hrGetPane), "Failed in outputWindow.GetPane: " + hrGetPane.ToString());
 
             return pane;
@@ -171,6 +200,12 @@ namespace SonarLint.VisualStudio.Integration
         private static void WriteLineToPane(IVsOutputWindowPane pane, string messageFormat, params object[] args)
         {
             int hr = pane.OutputStringThreadSafe(string.Format(CultureInfo.CurrentCulture, messageFormat, args: args) + Environment.NewLine);
+            Debug.Assert(ErrorHandler.Succeeded(hr), "Failed in OutputStringThreadSafe: " + hr.ToString());
+        }
+
+        private static void WriteLineToPane(IVsOutputWindowPane pane, string message)
+        {
+            int hr = pane.OutputStringThreadSafe(message + Environment.NewLine);
             Debug.Assert(ErrorHandler.Succeeded(hr), "Failed in OutputStringThreadSafe: " + hr.ToString());
         }
 
