@@ -27,8 +27,8 @@ option java_package = "org.sonarsource.sonarlint.daemon.proto";
 option optimize_for = SPEED;
 
 service ConnectedSonarLint {
-  rpc Start(ConnectedConfiguration) returns (Void); // must be called before any other rpc 
-  rpc Analyze(ConnectedAnalysisReq) returns (stream Issue); 
+  rpc Start(ConnectedConfiguration) returns (Void); // must be called before any other rpc
+  rpc Analyze(ConnectedAnalysisReq) returns (stream Issue);
   rpc Update(ServerConfig) returns (Void); // updates storage using a provided server configuration
   rpc UpdateModule(ModuleUpdateReq) returns (Void); // updates a module using a provided server configuration
   rpc GetState(Void) returns (StorageState); // get state of the storage
