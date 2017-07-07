@@ -4,6 +4,8 @@
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -25,6 +27,9 @@
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <ReferencedDirectory>..\Integration.Vsix</ReferencedDirectory>
     <VsCommonIdeDirectory>$(VSAPPIDDIR)</VsCommonIdeDirectory>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(DevEnvDir)\devenv.exe</StartProgram>
+    <StartArguments>/rootsuffix Exp</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -224,12 +229,11 @@
       <HintPath>..\..\packages\Google.Protobuf.3.2.0\lib\net45\Google.Protobuf.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Grpc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Grpc.Core.1.2.2\lib\net45\Grpc.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Esent.Interop, Version=1.9.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\ManagedEsent.1.9.4\lib\net40\Esent.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Grpc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Grpc.Core.1.4.1\lib\net45\Grpc.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.CodeAnalysis.Common.1.0.0\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
@@ -545,13 +549,6 @@
   <PropertyGroup>
     <PostBuildEvent>copy /y "$(TargetDir)SonarLint.vsix" "$(SolutionDir)..\binaries\SonarLint.2017.vsix"</PostBuildEvent>
   </PropertyGroup>
-  <Import Project="..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets" Condition="Exists('..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Grpc.Core.1.2.2\build\net45\Grpc.Core.targets'))" />
-  </Target>
   <Target Name="IncludeDllsVsix" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <Grpc_Regex>grpc_csharp_ext.*\.dll</Grpc_Regex>
@@ -570,6 +567,13 @@
       build.bat
     </PreBuildEvent>
   </PropertyGroup>
+  <Import Project="..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets" Condition="Exists('..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
