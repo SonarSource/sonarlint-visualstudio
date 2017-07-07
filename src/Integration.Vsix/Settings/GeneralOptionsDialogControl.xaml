@@ -27,7 +27,7 @@
                 Margin="5" Padding="5,2.5" />
         <TextBlock Grid.Column="1" Grid.Row="0"
                    x:Name="ActivateText"
-                   Text="Install and activate JavaScript support."
+                   Text="Install and activate support for JavaScript, C and C++."
                    VerticalAlignment="Center"
                    Margin="5" TextWrapping="Wrap"/>
 
@@ -36,19 +36,19 @@
                 Margin="5" Padding="5,2.5" />
         <TextBlock Grid.Column="1" Grid.Row="0"
                    x:Name="DeactivateText" Visibility="Collapsed"
-                   Text="Deactivate JavaScript support."
+                   Text="Deactivate JavaScript, C and C++ support."
                    VerticalAlignment="Center"
                    Margin="5" TextWrapping="Wrap"/>
 
         <TextBlock Grid.Column="1" Grid.Row="1"
-                   Text="SonarLint can also analyze JavaScript files. After installing JavaScript support, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
+                   Text="SonarLint can also analyze JavaScript, C and C++ files. After installing the support for these languages, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
                    Margin="5" TextWrapping="Wrap" />
 
         <TextBlock Grid.Row="2"
                    Text="Verbosity of the SonarLint daemon logs displayed in the SonarLint Output:"
                    Margin="5" TextWrapping="Wrap" Grid.ColumnSpan="2" />
 
-        <ComboBox x:Name="DaemonVerbosity" Grid.Row="3" VerticalAlignment="Top" SelectedIndex="2" Grid.ColumnSpan="2" HorizontalContentAlignment="Stretch"/>
+        <ComboBox x:Name="DaemonVerbosity" Grid.Row="3" VerticalAlignment="Top" SelectedIndex="2" Grid.ColumnSpan="2" HorizontalContentAlignment="Stretch" Margin="0,0,0,5"/>
 
         <CheckBox Grid.ColumnSpan="2" Grid.Row="4"
                   x:Name="ShowServerNuGetTrustWarning"
