@@ -27,11 +27,15 @@ using Microsoft.VisualStudio.Shell.Settings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+
+    public enum DaemonLogLevel { VERBOSE, INFO, ERROR};
+
     public interface ISonarLintSettings
     {
         bool ShowServerNuGetTrustWarning { get; set; }
         bool IsActivateMoreEnabled { get; set; }
         bool SkipActivateMoreDialog { get; set; }
+        DaemonLogLevel DaemonLogLevel { get; set; }
     }
 
     [Export(typeof(ISonarLintSettings))]
@@ -72,6 +76,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /* testing purposes */ void SetValue(string key, bool value)
         {
             this.writableSettingsStore?.SetBoolean(SettingsRoot, key, value);
+        }
+
+        internal /* testing purposes */ string GetValueOrDefault(string key, string defaultValue)
+        {
+            return this.writableSettingsStore?.GetString(SettingsRoot, key, defaultValue)
+                ?? defaultValue;
+        }
+
+        internal /* testing purposes */ void SetValue(string key, string value)
+        {
+            this.writableSettingsStore?.SetString(SettingsRoot, key, value);
         }
 
         #region IProfileManager
@@ -117,6 +132,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             get { return this.GetValueOrDefault(nameof(IsActivateMoreEnabled), false); }
             set { this.SetValue(nameof(IsActivateMoreEnabled), value); }
+        }
+
+        public DaemonLogLevel DaemonLogLevel
+        {
+            get { return (DaemonLogLevel) Enum.Parse(typeof(DaemonLogLevel), this.GetValueOrDefault(nameof(DaemonLogLevel), DaemonLogLevel.ERROR.ToString())); }
+            set { this.SetValue(nameof(DaemonLogLevel), value.ToString()); }
         }
     }
 }

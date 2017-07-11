@@ -121,5 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return this.daemon;
             }
         }
+
+
     }
 }
