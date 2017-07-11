@@ -31,6 +31,7 @@ using Grpc.Core;
 using Sonarlint;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -157,6 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async System.Threading.Tasks.Task ListenForLogs()
         {
+            ISonarLintSettings settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
             try
             {
                 using (var streamLogs = daemonClient.StreamLogs(new Sonarlint.Void(), new CallOptions(null, null, channel.ShutdownToken).WithWaitForReady(true)))
@@ -164,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     while (await streamLogs.ResponseStream.MoveNext())
                     {
                         var log = streamLogs.ResponseStream.Current;
-                        if ("Still alive" != log.Log)
+                        if (ShouldLog(settings, log))
                         {
                             WritelnToPane($"{log.Level} {log.Log}");
                         }
@@ -177,6 +179,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 WritelnToPane("RPC failed " + e);
                 throw;
             }
+        }
+
+        private static bool ShouldLog(ISonarLintSettings settings, LogEvent log)
+        {
+            return "Still alive" != log.Log
+                && (settings.DaemonLogLevel == DaemonLogLevel.ERROR && log.Level == "ERROR"
+                || settings.DaemonLogLevel == DaemonLogLevel.INFO && new[] { "ERROR", "WARN", "INFO" }.Contains(log.Level)
+                || settings.DaemonLogLevel == DaemonLogLevel.VERBOSE);
         }
 
         private void WritelnToPane(string msg)
@@ -256,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(string path, string charset, IIssueConsumer consumer)
         {
-            WritelnToPane($"Analysis requested for {path}");
+            WritelnToPane($"Analysing {path}");
             if (daemonClient != null)
             {
                 Analyze(path, charset, consumer);
@@ -292,12 +302,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private async System.Threading.Tasks.Task ProcessIssues(AsyncServerStreamingCall<Issue> call, string path, IIssueConsumer consumer)
         {
             var issues = new List<Issue>();
-
+            int issueCount = 0;
             while (await call.ResponseStream.MoveNext())
             {
                 var issue = call.ResponseStream.Current;
                 issues.Add(issue);
+                issueCount++;
             }
+            WritelnToPane($"Found {issueCount} issue(s)");
 
             consumer.Accept(path, issues);
         }

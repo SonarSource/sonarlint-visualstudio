@@ -13,6 +13,8 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -42,11 +44,17 @@
                    Text="SonarLint can also analyze JavaScript files. After installing JavaScript support, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
                    Margin="5" TextWrapping="Wrap" />
 
-        <CheckBox Grid.ColumnSpan="2" Grid.Row="2"
+        <TextBlock Grid.Row="2"
+                   Text="Verbosity of the SonarLint daemon logs displayed in the SonarLint Output:"
+                   Margin="5" TextWrapping="Wrap" Grid.ColumnSpan="2" />
+
+        <ComboBox x:Name="DaemonVerbosity" Grid.Row="3" VerticalAlignment="Top" SelectedIndex="2" Grid.ColumnSpan="2" HorizontalContentAlignment="Stretch"/>
+
+        <CheckBox Grid.ColumnSpan="2" Grid.Row="4"
                   x:Name="ShowServerNuGetTrustWarning"
                   Content="Display a warning about NuGet packages" />
 
-        <TextBlock Grid.ColumnSpan="2" Grid.Row="3"
+        <TextBlock Grid.ColumnSpan="2" Grid.Row="5"
                    Text="Display a warning about automatically downloading NuGet packages when establishing a SonarQube server connection."
                    Margin="20,5,10,5" TextWrapping="Wrap" />
 

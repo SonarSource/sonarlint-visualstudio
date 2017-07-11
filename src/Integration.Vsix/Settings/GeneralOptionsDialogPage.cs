@@ -21,6 +21,8 @@
 using System.ComponentModel;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
+using System;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -38,6 +40,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             base.OnActivate(e);
 
             dialogControl.ShowServerNuGetTrustWarning.IsChecked = Settings.ShowServerNuGetTrustWarning;
+            dialogControl.DaemonVerbosity.ItemsSource = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
+            dialogControl.DaemonVerbosity.SelectedItem = Settings.DaemonLogLevel;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -45,6 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (e.ApplyBehavior == ApplyKind.Apply)
             {
                 Settings.ShowServerNuGetTrustWarning = dialogControl.ShowServerNuGetTrustWarning.IsChecked.Value;
+                Settings.DaemonLogLevel = (DaemonLogLevel) dialogControl.DaemonVerbosity.SelectedItem;
             }
 
             base.OnApply(e);
