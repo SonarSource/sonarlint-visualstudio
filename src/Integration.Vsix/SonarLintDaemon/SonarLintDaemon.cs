@@ -154,6 +154,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             channel = new Channel($"{DAEMON_HOST}:{port}", ChannelCredentials.Insecure);
             daemonClient = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
             ListenForLogs();
+            StartHeartBeat();
         }
 
         private async System.Threading.Tasks.Task ListenForLogs()
@@ -181,12 +182,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
+        private async System.Threading.Tasks.Task StartHeartBeat()
+        {
+            try
+            {
+                using (var heartBeat = daemonClient.HeartBeat(new CallOptions(null, null, channel.ShutdownToken).WithWaitForReady(true)))
+                {
+                    await heartBeat.ResponseAsync;
+                    WritelnToPane("Server died?");
+                }
+            }
+            catch (RpcException e)
+            {
+                Debug.WriteLine("RPC failed: {0}", e);
+                WritelnToPane("RPC failed " + e);
+                throw;
+            }
+        }
+
         private static bool ShouldLog(ISonarLintSettings settings, LogEvent log)
         {
-            return "Still alive" != log.Log
-                && (settings.DaemonLogLevel == DaemonLogLevel.ERROR && log.Level == "ERROR"
+            return settings.DaemonLogLevel == DaemonLogLevel.ERROR && log.Level == "ERROR"
                 || settings.DaemonLogLevel == DaemonLogLevel.INFO && new[] { "ERROR", "WARN", "INFO" }.Contains(log.Level)
-                || settings.DaemonLogLevel == DaemonLogLevel.VERBOSE);
+                || settings.DaemonLogLevel == DaemonLogLevel.VERBOSE;
         }
 
         private void WritelnToPane(string msg)
