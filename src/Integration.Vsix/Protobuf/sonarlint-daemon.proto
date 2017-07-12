@@ -108,6 +108,7 @@ message Issue {
   string rule_name = 8;
   string file_path = 9;
   string user_object = 10;
+  Type type = 11;
 
   enum Severity {
     BLOCKER = 0;
@@ -115,6 +116,12 @@ message Issue {
     MAJOR = 2;
     MINOR = 3;
     INFO = 4;
+  }
+  
+  enum Type {
+    CODE_SMELL = 0;
+    BUG = 1;
+    VULNERABILITY = 2;
   }
 }
 

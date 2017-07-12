@@ -23,11 +23,16 @@ using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using System.Globalization;
+using Sonarlint;
+using System;
+using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class IssuesSnapshot : WpfTableEntriesSnapshotBase
     {
+        private readonly string projectName;
         private readonly string filePath;
         private readonly int versionNumber;
 
@@ -37,8 +42,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IssuesSnapshot NextSnapshot;
 
-        internal IssuesSnapshot(string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers)
+        internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers)
         {
+            this.projectName = projectName;
             this.filePath = filePath;
             this.versionNumber = versionNumber;
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
@@ -83,28 +89,45 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.BuildTool:
-                    // TODO get correct analyzer name
-                    content = "SonarJS [SonarLint for Visual Studio 2015]";
+                    content = "SonarLint";
                     return true;
 
                 case StandardTableKeyNames.ErrorCode:
                     content = this.issueMarkers[index].Issue.RuleKey;
                     return true;
 
+                case StandardTableKeyNames.ErrorRank:
+                    content = ErrorRank.Other;
+                    return true;
+
+                case StandardTableKeyNames.ErrorCategory:
+                    content = ToString(this.issueMarkers[index].Issue.Type);
+                    return true;
+
                 case StandardTableKeyNames.ErrorCodeToolTip:
                 case StandardTableKeyNames.HelpLink:
                     // TODO use correct version
-                    // TODO add JavaScript rules on website
-                    //content = string.Format(CultureInfo.InvariantCulture, "http://www.sonarlint.org/visualstudio/rules/index.html#version=5.9.0.992&ruleId={0}", this.issueMarkers[index].Issue.RuleKey);
-                    content = null;
+                    content = string.Format(CultureInfo.InvariantCulture, "http://vs.sonarlint.org/rules/index.html#version=5.9.0.992&ruleId={0}", this.issueMarkers[index].Issue.RuleKey);
                     return true;
 
                 case StandardTableKeyNames.ProjectName:
-                    // TODO get project name
-
+                    content = projectName;
+                    return true;
                 default:
                     content = null;
                     return false;
+            }
+        }
+
+        private object ToString(Issue.Types.Type type)
+        {
+            switch (type)
+            {
+                case Issue.Types.Type.Vulnerability: return "Vulnerability";
+                case Issue.Types.Type.Bug: return "Bug";
+                case Issue.Types.Type.CodeSmell:
+                default:
+                    return "Code Smell";
             }
         }
 

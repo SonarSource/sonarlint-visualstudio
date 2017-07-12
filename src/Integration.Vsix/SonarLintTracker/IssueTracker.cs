@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Sonarlint;
+using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -40,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ITextBuffer textBuffer;
         private readonly string sqLanguage;
 
+        private EnvDTE.ProjectItem ProjectItem;
         private ITextSnapshot currentSnapshot;
         private NormalizedSnapshotSpanCollection dirtySpans;
 
@@ -60,10 +62,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.document = document;
             this.FilePath = document.FilePath;
+            EnvDTE.DTE dte = ServiceProvider.GlobalProvider.GetService<EnvDTE.DTE>();
+            this.ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
             this.Charset = document.Encoding.WebName;
-            this.Factory = new SnapshotFactory(new IssuesSnapshot(this.FilePath, 0, new List<IssueMarker>()));
+            this.Factory = new SnapshotFactory(new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, 0, new List<IssueMarker>()));
 
             this.Initialize();
+
         }
 
         private void FileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -72,6 +77,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 provider.Rename(FilePath, e.FilePath);
                 FilePath = e.FilePath;
+                EnvDTE.DTE dte = ServiceProvider.GlobalProvider.GetService<EnvDTE.DTE>();
+                ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
             }
             else if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
             {
@@ -124,14 +131,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 .Select(marker => marker.CloneAndTranslateTo(currentSnapshot))
                 .Where(clone => clone != null);
 
-            return new IssuesSnapshot(this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
+            return new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
         }
 
         internal void UpdateIssues(IEnumerable<Issue> issues)
         {
             var oldSnapshot = this.Factory.CurrentSnapshot;
             var newMarkers = issues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
-            var newSnapshot = new IssuesSnapshot(this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
+            var newSnapshot = new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
             SnapToNewSnapshot(newSnapshot);
         }
 
