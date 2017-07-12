@@ -27,19 +27,22 @@ option java_package = "org.sonarsource.sonarlint.daemon.proto";
 option optimize_for = SPEED;
 
 service ConnectedSonarLint {
-  rpc Start(ConnectedConfiguration) returns (Void); // must be called before any other rpc
-  rpc Analyze(ConnectedAnalysisReq) returns (stream Issue);
+  rpc Start(ConnectedConfiguration) returns (Void); // must be called before any other rpc 
+  rpc Analyze(ConnectedAnalysisReq) returns (stream Issue); 
   rpc Update(ServerConfig) returns (Void); // updates storage using a provided server configuration
   rpc UpdateModule(ModuleUpdateReq) returns (Void); // updates a module using a provided server configuration
   rpc GetState(Void) returns (StorageState); // get state of the storage
   rpc StreamLogs(Void) returns (stream LogEvent); // stream all logs from the server
   rpc GetRuleDetails(RuleKey) returns (RuleDetails);
+  rpc Shutdown(Void) returns (Void); // ask the server to stop
 }
 
 service StandaloneSonarLint {
   rpc Analyze(AnalysisReq) returns (stream Issue);
   rpc StreamLogs(Void) returns (stream LogEvent); // stream all logs from the server
   rpc GetRuleDetails(RuleKey) returns (RuleDetails);
+  rpc Shutdown(Void) returns (Void); // ask the server to stop
+  rpc HeartBeat(stream Void) returns (Void); // long running connection initiated by the client to tell it's still alive
 }
 
 message ModuleUpdateReq {
