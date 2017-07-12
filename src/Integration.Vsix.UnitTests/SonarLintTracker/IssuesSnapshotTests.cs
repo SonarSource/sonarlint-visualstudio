@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var marker = new IssueMarker(issue, new SnapshotSpan());
 
-            snapshot = new IssuesSnapshot(path, 1, new List<IssueMarker>() { marker });
+            snapshot = new IssuesSnapshot("MyProject", path, 1, new List<IssueMarker>() { marker });
         }
 
         [TestMethod]

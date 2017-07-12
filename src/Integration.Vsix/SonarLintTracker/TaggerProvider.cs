@@ -29,6 +29,8 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Sonarlint;
 using System.IO;
+using Microsoft.VisualStudio.Shell;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -47,6 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal readonly ITextDocumentFactoryService TextDocumentFactoryService;
         internal readonly IContentTypeRegistryService ContentTypeRegistryService;
         internal readonly IFileExtensionRegistryService FileExtensionRegistryService;
+        internal readonly _DTE dte;
 
         private readonly List<SinkManager> managers = new List<SinkManager>();
         private readonly TrackerManager trackers = new TrackerManager();
@@ -58,7 +61,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             [Import] ITextDocumentFactoryService textDocumentFactoryService,
             [Import] IContentTypeRegistryService contentTypeRegistryService,
             [Import] IFileExtensionRegistryService fileExtensionRegistryService,
-            [Import] ISonarLintDaemon daemon)
+            [Import] ISonarLintDaemon daemon,
+            [Import] SVsServiceProvider serviceProvider)
         {
             this.ErrorTableManager = provider.GetTableManager(StandardTables.ErrorsTable);
             this.TextDocumentFactoryService = textDocumentFactoryService;
@@ -74,6 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                                    StandardTableColumnDefinitions.ProjectName);
 
             this.daemon = daemon;
+            this.dte = (_DTE) serviceProvider.GetService(typeof(_DTE));
         }
 
         /// <summary>
@@ -118,21 +123,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // Fallback on TextBuffer content type
                 contentTypes.Add(buffer.ContentType);
             }
-            string sqLanguage = null;
+            bool supported = false;
             foreach (IContentType type in contentTypes)
             {
                 if (type.IsOfType("JavaScript"))
                 {
-                    sqLanguage = "js";
+                    supported = true;
                     break;
                 }
                 if (type.IsOfType("C/C++"))
                 {
-                    sqLanguage = "cpp";
+                    supported = true;
                     break;
                 }
             }
-            if (sqLanguage == null)
+            if (!supported)
             {
                 return null;
             }
@@ -141,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (!trackers.ExistsForFile(filePath))
                 {
-                    var tracker = new IssueTracker(this, buffer, document, sqLanguage);
+                    var tracker = new IssueTracker(dte, this, buffer, document, contentTypes);
                     return tracker as ITagger<T>;
                 }
             }
@@ -211,9 +216,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RequestAnalysis(string path, string charset, string sqLanguage)
+        public void RequestAnalysis(string path, string charset, List<IContentType> contentTypes)
         {
-            daemon.RequestAnalysis(path, charset, sqLanguage, this);
+            IssueTracker tracker;
+            if (trackers.TryGetValue(path, out tracker))
+            {
+                foreach (IContentType type in contentTypes)
+                {
+                    if (type.IsOfType("JavaScript"))
+                    {
+                        daemon.RequestAnalysis(path, charset, "js", null, this);
+                        return;
+                    }
+                    if (type.IsOfType("C/C++"))
+                    {
+                        string sqLanguage;
+                        string json = CFamily.TryGetConfig(tracker.ProjectItem, path, out sqLanguage);
+                        if (json != null && sqLanguage != null)
+                        {
+                            daemon.RequestAnalysis(path, charset, "cpp", json, this);
+                        }
+                        return;
+                    }
+                }
+                VsShellUtils.WriteToSonarLintOutputPane(ServiceProvider.GlobalProvider, "Unsupported content type for " + path);
+            }
         }
 
         public void Accept(string path, IEnumerable<Issue> issues)
