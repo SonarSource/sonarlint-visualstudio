@@ -1,10 +1,11 @@
 {
   "ServerUri": "https://next.sonarqube.com/sonarqube/",
+  "Organization": null,
   "ProjectKey": "sonarlint-visualstudio",
   "Profiles": {
     "CSharp": {
       "ProfileKey": "cs-c-qp-for-sonarsource-73109",
-      "ProfileTimestamp": "2017-04-20T17:25:37+02:00"
+      "ProfileTimestamp": "2017-06-28T17:29:53+02:00"
     }
   }
 }

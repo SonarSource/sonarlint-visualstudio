@@ -41,8 +41,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
 
-        public const string daemonVersion = "2.17.0.831";
-        private const string uriFormat = "https://repox.sonarsource.com/sonarsource-dev/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
+        public const string daemonVersion = "2.17.0.856";
+        private const string uriFormat = "https://repox.sonarsource.com/sonarsource-public-builds/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
         private readonly string version;
         private readonly string tmpPath;
         private readonly string storagePath;
@@ -277,21 +277,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private string CreateTempDirectory()
         {
-            string tempDirectory = Path.Combine(Path.GetTempPath(), "SonarLintDaemon", Path.GetRandomFileName());
+            return CreateTempDirectory(Path.Combine(Path.GetTempPath(), "SonarLintDaemon"));
+        }
+
+        private static string CreateTempDirectory(string path)
+        {
+            string tempDirectory = Path.Combine(path, Path.GetRandomFileName());
             Directory.CreateDirectory(tempDirectory);
             return tempDirectory;
         }
 
-        public void RequestAnalysis(string path, string charset, string sqLanguage, IIssueConsumer consumer)
+        public void RequestAnalysis(string path, string charset, string sqLanguage, string json, IIssueConsumer consumer)
         {
             WritelnToPane($"Analysing {path}");
             if (daemonClient != null)
             {
-                Analyze(path, charset, sqLanguage, consumer);
+                Analyze(path, charset, sqLanguage, json, consumer);
             }
         }
 
-        private async void Analyze(string path, string charset, string sqLanguage, IIssueConsumer consumer)
+        private async void Analyze(string path, string charset, string sqLanguage, string json, IIssueConsumer consumer)
         {
             var request = new AnalysisReq
             {
@@ -305,6 +310,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Language = sqLanguage
             });
 
+            // Concurrent requests should not use same directory:
+            var bwDir = CreateTempDirectory(workingDirectory);
+
+            if (sqLanguage == CFamily.C_LANGUAGE_KEY || sqLanguage == CFamily.CPP_LANGUAGE_KEY)
+            {
+                request.Properties.Add("sonar.cfamily.useCache", bool.FalseString);
+                if (json != null)
+                {
+                    ISonarLintSettings settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
+                    if (settings.DaemonLogLevel == DaemonLogLevel.VERBOSE)
+                    {
+                        WritelnToPane("Build wrapper output:" + Environment.NewLine + json);
+                    }
+
+                    File.WriteAllText(Path.Combine(bwDir, "build-wrapper-dump.json"), json);
+                    request.Properties.Add("sonar.cfamily.build-wrapper-output", bwDir);
+                }
+            }
+
             using (var call = daemonClient.Analyze(request))
             {
                 try
@@ -314,6 +338,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 catch (Exception e)
                 {
                     Debug.WriteLine("Call to client.Analyze failed: {0}", e);
+                } finally
+                {
+                    Directory.Delete(bwDir, true);
                 }
             }
         }

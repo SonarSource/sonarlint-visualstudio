@@ -26,22 +26,25 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Sonarlint;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Utilities;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     ///<summary>
-    /// Tracks Sonar errors for a specific buffer.
+    /// Tracks SonarLint errors for a specific buffer.
     ///</summary>
     /// <remarks><para>The lifespan of this object is tied to the lifespan of the taggers on the view. On creation of the first tagger,
     /// it starts tracking errors. On the disposal of the last tagger, it shuts down.</para>
     /// </remarks>
     internal class IssueTracker : ITagger<IErrorTag>, IDisposable
     {
+        private readonly _DTE dte;
         private readonly TaggerProvider provider;
         private readonly ITextBuffer textBuffer;
-        private readonly string sqLanguage;
+        private readonly List<IContentType> contentTypes;
 
-        private EnvDTE.ProjectItem ProjectItem;
+        internal EnvDTE.ProjectItem ProjectItem { get; private set; }
         private ITextSnapshot currentSnapshot;
         private NormalizedSnapshotSpanCollection dirtySpans;
 
@@ -52,17 +55,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal IssuesSnapshot Snapshot { get; set; }
 
-        internal IssueTracker(TaggerProvider provider, ITextBuffer buffer, ITextDocument document, string sqLanguage)
+        internal IssueTracker(_DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document, List<IContentType> contentTypes)
         {
+            this.dte = dte;
             this.provider = provider;
             this.textBuffer = buffer;
-            this.sqLanguage = sqLanguage;
+            this.contentTypes = contentTypes;
             this.currentSnapshot = buffer.CurrentSnapshot;
             this.dirtySpans = new NormalizedSnapshotSpanCollection();
 
             this.document = document;
             this.FilePath = document.FilePath;
-            EnvDTE.DTE dte = ServiceProvider.GlobalProvider.GetService<EnvDTE.DTE>();
             this.ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
             this.Charset = document.Encoding.WebName;
             this.Factory = new SnapshotFactory(new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, 0, new List<IssueMarker>()));
@@ -77,12 +80,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 provider.Rename(FilePath, e.FilePath);
                 FilePath = e.FilePath;
-                EnvDTE.DTE dte = ServiceProvider.GlobalProvider.GetService<EnvDTE.DTE>();
                 ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
             }
             else if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
             {
-                provider.RequestAnalysis(FilePath, Charset, sqLanguage);
+                provider.RequestAnalysis(FilePath, Charset, contentTypes);
             }
         }
 
@@ -91,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             document.FileActionOccurred += FileActionOccurred;
             textBuffer.ChangedLowPriority += OnBufferChange;
             provider.AddIssueTracker(this);
-            provider.RequestAnalysis(FilePath, Charset, sqLanguage);
+            provider.RequestAnalysis(FilePath, Charset, contentTypes);
         }
 
         public void Dispose()

@@ -31,6 +31,8 @@ using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix;
 using Microsoft.VisualStudio.Utilities;
 using System.Linq;
+using Microsoft.VisualStudio.Shell;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -68,6 +70,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockContentTypeRegistryService.Setup(c => c.ContentTypes).Returns(Enumerable.Empty<IContentType>());
             var contentTypeRegistryService = mockContentTypeRegistryService.Object;
 
+            var mockProject = new Mock<Project>();
+            mockProject.Setup(p => p.Name).Returns("MyProject");
+            var project = mockProject.Object;
+
+            var mockProjectItem = new Mock<ProjectItem>();
+            mockProjectItem.Setup(s => s.ContainingProject).Returns(project);
+            var projectItem = mockProjectItem.Object;
+
+            var mockSolution = new Mock<Solution>();
+            mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>())).Returns(projectItem);
+            var solution = mockSolution.Object;
+
+            var mockDTE = new Mock<_DTE>();
+            mockDTE.Setup(d => d.Solution).Returns(solution);
+            var dte = mockDTE.Object;
+
+            var mockSVsServiceProvider = new Mock<SVsServiceProvider>();
+            mockSVsServiceProvider.Setup(s => s.GetService(typeof(_DTE))).Returns(dte);
+            var SVsServiceProvider = mockSVsServiceProvider.Object;
+
             var mockFileExtensionRegistryService = new Mock<IFileExtensionRegistryService>();
             var fileExtensionRegistryService = mockFileExtensionRegistryService.Object;
 
@@ -86,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Setup(t => t.TryGetTextDocument(It.IsAny<ITextBuffer>(), out textDocument))
                 .Returns(true);
 
-            this.provider = new TaggerProvider(tableManagerProvider, textDocumentFactoryService, contentTypeRegistryService, fileExtensionRegistryService, daemon);
+            this.provider = new TaggerProvider(tableManagerProvider, textDocumentFactoryService, contentTypeRegistryService, fileExtensionRegistryService, daemon, SVsServiceProvider);
         }
 
         [TestMethod]
