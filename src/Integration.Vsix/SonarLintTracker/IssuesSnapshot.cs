@@ -27,6 +27,7 @@ using System.Globalization;
 using Sonarlint;
 using System;
 using System.Threading;
+using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -35,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string projectName;
         private readonly string filePath;
         private readonly int versionNumber;
+        private readonly string SonarLintVersion;
 
         private readonly IList<IssueMarker> issueMarkers;
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
@@ -49,6 +51,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.versionNumber = versionNumber;
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
             this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
+            SonarLintVersion = FileVersionInfo.GetVersionInfo(typeof(IssuesSnapshot).Assembly.Location).FileVersion;
+            // Remove last version digit since rule website URL is only based on the 3 first digits
+            SonarLintVersion = SonarLintVersion.Substring(0, SonarLintVersion.LastIndexOf('.'));
         }
 
         public override int Count => this.issueMarkers.Count;
@@ -105,9 +110,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCodeToolTip:
+                    content = $"Open description of rule {this.issueMarkers[index].Issue.RuleKey}";
+                    return true;
+
                 case StandardTableKeyNames.HelpLink:
-                    // TODO use correct version
-                    content = string.Format(CultureInfo.InvariantCulture, "http://vs.sonarlint.org/rules/index.html#version=5.9.0.992&ruleId={0}", this.issueMarkers[index].Issue.RuleKey);
+                    string ruleKey = this.issueMarkers[index].Issue.RuleKey;
+                    string ruleId = ruleKey.Substring(ruleKey.IndexOf(':') + 1);
+                    string repo = ruleKey.Substring(0, ruleKey.IndexOf(':'));
+                    string language = GetLanguage(repo);
+                    string url = $"http://vs.sonarlint.org/rules/index.html#sonarLintVersion={SonarLintVersion}&ruleId={ruleId}";
+                    if (language != null)
+                    {
+                        url += $"&language={Uri.EscapeDataString(language)}";
+                    }
+                    content = url;
                     return true;
 
                 case StandardTableKeyNames.ProjectName:
@@ -116,6 +132,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 default:
                     content = null;
                     return false;
+            }
+        }
+
+        private string GetLanguage(string repo)
+        {
+            switch (repo)
+            {
+                case "javascript": return "JavaScript";
+                case "c": return "C";
+                case "cpp": return "C++";
+                default: return null;
             }
         }
 
