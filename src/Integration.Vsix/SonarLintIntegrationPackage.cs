@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ProvideAutoLoad(CommonGuids.PackageActivation)]
     // Register the information needed to show the package in the Help/About dialog of VS.
     // NB: The version is automatically updated by the ChangeVersion.proj
-    [InstalledProductRegistration("#110", "#112", "3.2.1.0", IconResourceID = 400)]
+    [InstalledProductRegistration("#110", "#112", "3.3.0.0", IconResourceID = 400)]
     [ProvideOptionPage(typeof(GeneralOptionsDialogPage), "SonarLint", GeneralOptionsDialogPage.PageName, 901, 902, false, 903)]
     [ProvideOptionPage(typeof(OtherOptionsDialogPage), "SonarLint", OtherOptionsDialogPage.PageName, 901, 904, true)]
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
