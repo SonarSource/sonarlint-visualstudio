@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreateTagger_should_track_again_after_reopen()
         {
-            var tracker = CreateTagger(jsContentType) as IssueTracker;
+            var tracker = CreateTagger(jsContentType) as IssueTagger;
 
             CreateTagger(jsContentType).Should().BeNull();
 
@@ -210,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var mockTableDataSink2 = new Mock<ITableDataSink>();
             provider.Subscribe(mockTableDataSink2.Object);
 
-            var tracker = CreateTagger(jsContentType) as IssueTracker;
+            var tracker = CreateTagger(jsContentType) as IssueTagger;
 
             // factory of new tracker is propagated to all existing sink managers
             mockTableDataSink1.Verify(s => s.AddFactory(tracker.Factory, false));
@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             sinkManager.Dispose();
 
-            var tracker = CreateTagger(jsContentType) as IssueTracker;
+            var tracker = CreateTagger(jsContentType) as IssueTagger;
 
             // factory of new tracker is propagated to all existing sink managers
             mockTableDataSink1.Verify(s => s.AddFactory(tracker.Factory, false));
@@ -238,10 +238,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Should_propagate_existing_tracker_factories_to_new_sink_managers()
         {
             SetMockDocumentFilename("foo.js");
-            var tracker1 = CreateTagger(jsContentType) as IssueTracker;
+            var tracker1 = CreateTagger(jsContentType) as IssueTagger;
 
             SetMockDocumentFilename("bar.js");
-            var tracker2 = CreateTagger(jsContentType) as IssueTracker;
+            var tracker2 = CreateTagger(jsContentType) as IssueTagger;
 
             var mockTableDataSink = new Mock<ITableDataSink>();
             provider.Subscribe(mockTableDataSink.Object);

@@ -31,6 +31,7 @@ using Sonarlint;
 using System.IO;
 using Microsoft.VisualStudio.Shell;
 using EnvDTE;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -107,37 +108,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var filePath = document.FilePath;
             var fileExtension = Path.GetExtension(filePath).Replace(".", "");
 
-            List<IContentType> contentTypes = new List<IContentType>();
-            foreach (IContentType type in ContentTypeRegistryService.ContentTypes)
-            {
-                foreach (string extension in FileExtensionRegistryService.GetExtensionsForContentType(type))
-                {
-                    if (extension == fileExtension)
-                    {
-                        contentTypes.Add(type);
-                    }
-                }
-            }
+            var contentTypes = ContentTypeRegistryService.ContentTypes
+                .Where(type => FileExtensionRegistryService.GetExtensionsForContentType(type).Any(e => e == fileExtension))
+                .ToList();
+
             if (contentTypes.Count == 0 && buffer.ContentType != null)
             {
                 // Fallback on TextBuffer content type
                 contentTypes.Add(buffer.ContentType);
             }
-            bool supported = false;
-            foreach (IContentType type in contentTypes)
-            {
-                if (type.IsOfType("JavaScript"))
-                {
-                    supported = true;
-                    break;
-                }
-                if (type.IsOfType("C/C++"))
-                {
-                    supported = true;
-                    break;
-                }
-            }
-            if (!supported)
+
+            if (!contentTypes.Any(t => t.IsOfType("JavaScript") || t.IsOfType("C/C++")))
             {
                 return null;
             }
@@ -146,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (!trackers.ExistsForFile(filePath))
                 {
-                    var tracker = new IssueTracker(dte, this, buffer, document, contentTypes);
+                    var tracker = new IssueTagger(dte, this, buffer, document, contentTypes);
                     return tracker as ITagger<T>;
                 }
             }
@@ -174,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private class TrackerManager
         {
-            private readonly IDictionary<string, IssueTracker> trackers = new Dictionary<string, IssueTracker>();
+            private readonly IDictionary<string, IssueTagger> trackers = new Dictionary<string, IssueTagger>();
 
             public bool ExistsForFile(string path)
             {
@@ -182,22 +163,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return trackers.ContainsKey(key);
             }
 
-            public void Add(IssueTracker tracker)
+            public void Add(IssueTagger tracker)
             {
                 trackers.Add(Key(tracker.FilePath), tracker);
             }
 
-            public void Remove(IssueTracker tracker)
+            public void Remove(IssueTagger tracker)
             {
                 trackers.Remove(Key(tracker.FilePath));
             }
 
-            public bool TryGetValue(string path, out IssueTracker tracker)
+            public bool TryGetValue(string path, out IssueTagger tracker)
             {
                 return trackers.TryGetValue(Key(path), out tracker);
             }
 
-            public IEnumerable<IssueTracker> Values => trackers.Values;
+            public IEnumerable<IssueTagger> Values => trackers.Values;
 
             private string Key(string path)
             {
@@ -207,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             internal void Rename(string oldPath, string newPath)
             {
                 string oldKey = Key(oldPath);
-                IssueTracker tracker;
+                IssueTagger tracker;
                 if (trackers.TryGetValue(oldKey, out tracker))
                 {
                     trackers.Add(Key(newPath), tracker);
@@ -216,9 +197,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RequestAnalysis(string path, string charset, List<IContentType> contentTypes)
+        public void RequestAnalysis(string path, string charset, IList<IContentType> contentTypes)
         {
-            IssueTracker tracker;
+            IssueTagger tracker;
             if (trackers.TryGetValue(path, out tracker))
             {
                 foreach (IContentType type in contentTypes)
@@ -234,7 +215,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                         string json = CFamily.TryGetConfig(tracker.ProjectItem, path, out sqLanguage);
                         if (json != null && sqLanguage != null)
                         {
-                            daemon.RequestAnalysis(path, charset, "cpp", json, this);
+                            daemon.RequestAnalysis(path, charset, sqLanguage, json, this);
                         }
                         return;
                     }
@@ -250,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void UpdateIssues(string path, IEnumerable<Issue> issues)
         {
-            IssueTracker tracker;
+            IssueTagger tracker;
             if (trackers.TryGetValue(path, out tracker))
             {
                 tracker.UpdateIssues(issues);
@@ -278,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void AddIssueTracker(IssueTracker tracker)
+        public void AddIssueTracker(IssueTagger tracker)
         {
             lock (managers)
             {
@@ -291,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RemoveIssueTracker(IssueTracker tracker)
+        public void RemoveIssueTracker(IssueTagger tracker)
         {
             lock (managers)
             {

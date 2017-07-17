@@ -28,6 +28,7 @@ using Sonarlint;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 using EnvDTE;
+using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -37,12 +38,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <remarks><para>The lifespan of this object is tied to the lifespan of the taggers on the view. On creation of the first tagger,
     /// it starts tracking errors. On the disposal of the last tagger, it shuts down.</para>
     /// </remarks>
-    internal class IssueTracker : ITagger<IErrorTag>, IDisposable
+    internal class IssueTagger : ITagger<IErrorTag>, IDisposable
     {
         private readonly _DTE dte;
         private readonly TaggerProvider provider;
         private readonly ITextBuffer textBuffer;
-        private readonly List<IContentType> contentTypes;
+        private readonly IList<IContentType> contentTypes;
 
         internal EnvDTE.ProjectItem ProjectItem { get; private set; }
         private ITextSnapshot currentSnapshot;
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal IssuesSnapshot Snapshot { get; set; }
 
-        internal IssueTracker(_DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document, List<IContentType> contentTypes)
+        internal IssueTagger(_DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document, IList<IContentType> contentTypes)
         {
             this.dte = dte;
             this.provider = provider;
