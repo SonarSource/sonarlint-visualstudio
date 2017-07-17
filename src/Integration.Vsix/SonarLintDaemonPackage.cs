@@ -82,6 +82,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     daemon.Start();
                 }
             }
+            else if (settings.IsActivateMoreEnabled)
+            {
+                // User already aggreed to have the daemon installed, so directly start download
+                new SonarLintDaemonInstaller().Show();
+            }
             else if (!SkipActivateMoreDialog())
             {
                 LaunchActivateMoreDialog();

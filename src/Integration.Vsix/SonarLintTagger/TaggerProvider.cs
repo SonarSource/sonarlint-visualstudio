@@ -56,6 +56,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly TrackerManager trackers = new TrackerManager();
 
         private readonly ISonarLintDaemon daemon;
+        private readonly ISonarLintSettings settings;
+
 
         [ImportingConstructor]
         internal TaggerProvider([Import] ITableManagerProvider provider,
@@ -63,7 +65,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             [Import] IContentTypeRegistryService contentTypeRegistryService,
             [Import] IFileExtensionRegistryService fileExtensionRegistryService,
             [Import] ISonarLintDaemon daemon,
-            [Import] SVsServiceProvider serviceProvider)
+            [Import] SVsServiceProvider serviceProvider,
+            [Import] ISonarLintSettings settings)
         {
             this.ErrorTableManager = provider.GetTableManager(StandardTables.ErrorsTable);
             this.TextDocumentFactoryService = textDocumentFactoryService;
@@ -80,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.daemon = daemon;
             this.dte = (_DTE) serviceProvider.GetService(typeof(_DTE));
+            this.settings = settings;
         }
 
         /// <summary>
@@ -87,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// </summary>
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
-            if (!daemon.IsRunning)
+            if (!settings.IsActivateMoreEnabled)
             {
                 return null;
             }

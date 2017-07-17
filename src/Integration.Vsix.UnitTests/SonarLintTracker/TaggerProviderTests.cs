@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private ISonarLintDaemon daemon;
         private Mock<ISonarLintDaemon> mockDaemon;
+        private Mock<ISonarLintSettings> mockISonarLintSettings;
 
         private string filename = "foo.js";
         private Mock<ITextDocument> mockTextDocument;
@@ -104,11 +105,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
             var textDocument = mockTextDocument.Object;
 
+            mockISonarLintSettings = new Mock<ISonarLintSettings>();
+            mockISonarLintSettings.Setup(s => s.IsActivateMoreEnabled).Returns(true);
+            var sonarLintSettings = mockISonarLintSettings.Object;
+
             mockTextDocumentFactoryService
                 .Setup(t => t.TryGetTextDocument(It.IsAny<ITextBuffer>(), out textDocument))
                 .Returns(true);
 
-            this.provider = new TaggerProvider(tableManagerProvider, textDocumentFactoryService, contentTypeRegistryService, fileExtensionRegistryService, daemon, SVsServiceProvider);
+            this.provider = new TaggerProvider(tableManagerProvider, textDocumentFactoryService, contentTypeRegistryService, fileExtensionRegistryService, daemon, SVsServiceProvider, sonarLintSettings);
         }
 
         [TestMethod]
@@ -118,9 +123,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void CreateTagger_should_return_null_when_daemon_not_running()
+        public void CreateTagger_should_return_null_when_daemon_not_activated()
         {
-            mockDaemon.Setup(d => d.IsRunning).Returns(false);
+            mockISonarLintSettings.Setup(s => s.IsActivateMoreEnabled).Returns(false);
 
             CreateTagger(jsContentType).Should().BeNull();
         }
