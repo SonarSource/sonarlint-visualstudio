@@ -185,14 +185,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (oldSnapshot != null && oldSnapshot.Count > 0)
             {
-                start = oldSnapshot.IssueMarkers.First().Span.Start.TranslateTo(currentSnapshot, PointTrackingMode.Negative);
-                end = oldSnapshot.IssueMarkers.Last().Span.End.TranslateTo(currentSnapshot, PointTrackingMode.Positive);
+                start = oldSnapshot.IssueMarkers.Select(i => i.Span.Start.TranslateTo(currentSnapshot, PointTrackingMode.Negative)).Min();
+                end = oldSnapshot.IssueMarkers.Select(i => i.Span.End.TranslateTo(currentSnapshot, PointTrackingMode.Positive)).Max();
             }
 
             if (snapshot.Count > 0)
             {
-                start = Math.Min(start, snapshot.IssueMarkers.First().Span.Start.Position);
-                end = Math.Max(end, snapshot.IssueMarkers.Last().Span.End.Position);
+                start = Math.Min(start, snapshot.IssueMarkers.Select(i => i.Span.Start.Position).Min());
+                end = Math.Max(end, snapshot.IssueMarkers.Select(i => i.Span.End.Position).Max());
             }
 
             if (start < end)
