@@ -58,6 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 ActivateText.Visibility = Visibility.Collapsed;
                 DeactivateButton.Visibility = Visibility.Visible;
                 DeactivateText.Visibility = Visibility.Visible;
+                VerbosityPanel.Visibility = Visibility.Visible;
             }
             else
             {
@@ -65,6 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 ActivateText.Visibility = Visibility.Visible;
                 DeactivateButton.Visibility = Visibility.Collapsed;
                 DeactivateText.Visibility = Visibility.Collapsed;
+                VerbosityPanel.Visibility = Visibility.Collapsed;
             }
         }
 

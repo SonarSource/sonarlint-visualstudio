@@ -42,8 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
         public IEnumerable<IssueMarker> IssueMarkers => readonlyIssueMarkers;
 
-        public IssuesSnapshot NextSnapshot;
-
         internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers)
         {
             this.projectName = projectName;

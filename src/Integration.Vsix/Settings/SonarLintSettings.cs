@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.Shell.Settings;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
 
-    public enum DaemonLogLevel { VERBOSE, INFO, ERROR};
+    public enum DaemonLogLevel { Verbose, Info, Error};
 
     public interface ISonarLintSettings
     {
@@ -69,8 +69,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* testing purposes */ bool GetValueOrDefault(string key, bool defaultValue)
         {
-            return this.writableSettingsStore?.GetBoolean(SettingsRoot, key, defaultValue)
+            try
+            {
+                return this.writableSettingsStore?.GetBoolean(SettingsRoot, key, defaultValue)
                 ?? defaultValue;
+            }
+            catch (System.ArgumentException e)
+            {
+                return defaultValue;
+            }
         }
 
         internal /* testing purposes */ void SetValue(string key, bool value)
@@ -80,13 +87,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* testing purposes */ string GetValueOrDefault(string key, string defaultValue)
         {
-            return this.writableSettingsStore?.GetString(SettingsRoot, key, defaultValue)
+            try
+            {
+                return this.writableSettingsStore?.GetString(SettingsRoot, key, defaultValue)
                 ?? defaultValue;
+            }
+            catch (System.ArgumentException e)
+            {
+                return defaultValue;
+            }
         }
 
         internal /* testing purposes */ void SetValue(string key, string value)
         {
             this.writableSettingsStore?.SetString(SettingsRoot, key, value);
+        }
+
+        internal /* testing purposes */ int GetValueOrDefault(string key, int defaultValue)
+        {
+            try
+            {
+                return this.writableSettingsStore?.GetInt32(SettingsRoot, key, defaultValue)
+                    ?? defaultValue;
+            } catch (System.ArgumentException e)
+            {
+                return defaultValue;
+            }
+        }
+
+        internal /* testing purposes */ void SetValue(string key, int value)
+        {
+            this.writableSettingsStore?.SetInt32(SettingsRoot, key, value);
         }
 
         #region IProfileManager
@@ -136,8 +167,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public DaemonLogLevel DaemonLogLevel
         {
-            get { return (DaemonLogLevel) Enum.Parse(typeof(DaemonLogLevel), this.GetValueOrDefault(nameof(DaemonLogLevel), DaemonLogLevel.ERROR.ToString())); }
-            set { this.SetValue(nameof(DaemonLogLevel), value.ToString()); }
+            get { return (DaemonLogLevel) this.GetValueOrDefault(nameof(DaemonLogLevel), (int) DaemonLogLevel.Error); }
+            set { this.SetValue(nameof(DaemonLogLevel), (int) value); }
         }
     }
 }

@@ -33,7 +33,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal void UpdateMarkers(IssuesSnapshot snapshot)
         {
-            this.CurrentSnapshot.NextSnapshot = snapshot;
             this.CurrentSnapshot = snapshot;
         }
 

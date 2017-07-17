@@ -124,7 +124,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     {
                         CreateChannelAndStremLogs();
                     }
-                    WritelnToPane(data);
+                    if (IsVerbose())
+                    {
+                        WritelnToPane(data);
+                    }
                 }
             };
             process.ErrorDataReceived += (sender, args) =>
@@ -135,7 +138,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     WritelnToPane(data);
                 }
             };
-            WritelnToPane($"Running {ExePath}");
+            if (IsVerbose())
+            {
+                WritelnToPane($"Running {ExePath}");
+            }
             try
             {
                 process.Start();
@@ -202,9 +208,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private static bool ShouldLog(ISonarLintSettings settings, LogEvent log)
         {
-            return settings.DaemonLogLevel == DaemonLogLevel.ERROR && log.Level == "ERROR"
-                || settings.DaemonLogLevel == DaemonLogLevel.INFO && new[] { "ERROR", "WARN", "INFO" }.Contains(log.Level)
-                || settings.DaemonLogLevel == DaemonLogLevel.VERBOSE;
+            return settings.DaemonLogLevel == DaemonLogLevel.Error && log.Level == "ERROR"
+                || settings.DaemonLogLevel == DaemonLogLevel.Info && new[] { "ERROR", "WARN", "INFO" }.Contains(log.Level)
+                || settings.DaemonLogLevel == DaemonLogLevel.Verbose;
         }
 
         private void WritelnToPane(string msg)
@@ -315,18 +321,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (sqLanguage == CFamily.C_LANGUAGE_KEY || sqLanguage == CFamily.CPP_LANGUAGE_KEY)
             {
-                request.Properties.Add("sonar.cfamily.useCache", bool.FalseString);
-                if (json != null)
-                {
-                    ISonarLintSettings settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
-                    if (settings.DaemonLogLevel == DaemonLogLevel.VERBOSE)
-                    {
-                        WritelnToPane("Build wrapper output:" + Environment.NewLine + json);
-                    }
-
-                    File.WriteAllText(Path.Combine(bwDir, "build-wrapper-dump.json"), json);
-                    request.Properties.Add("sonar.cfamily.build-wrapper-output", bwDir);
-                }
+                PrepareSonarCFamilyProps(json, request, bwDir);
             }
 
             using (var call = daemonClient.Analyze(request))
@@ -343,6 +338,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     Directory.Delete(bwDir, true);
                 }
             }
+        }
+
+        private void PrepareSonarCFamilyProps(string json, AnalysisReq request, string bwDir)
+        {
+            request.Properties.Add("sonar.cfamily.useCache", bool.FalseString);
+            if (json != null)
+            {
+                if (IsVerbose())
+                {
+                    WritelnToPane("Build wrapper output:" + Environment.NewLine + json);
+                }
+
+                try
+                {
+                    File.WriteAllText(Path.Combine(bwDir, "build-wrapper-dump.json"), json);
+                    request.Properties.Add("sonar.cfamily.build-wrapper-output", bwDir);
+                }
+                catch (Exception e)
+                {
+                    WritelnToPane("Unable to write build wrapper file in " + bwDir + ": " + e.StackTrace);
+                }
+            }
+        }
+
+        private bool IsVerbose()
+        {
+            ISonarLintSettings settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
+            return settings.DaemonLogLevel == DaemonLogLevel.Verbose;
         }
 
         private async System.Threading.Tasks.Task ProcessIssues(AsyncServerStreamingCall<Issue> call, string path, IIssueConsumer consumer)
