@@ -21,6 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
+using System.Linq;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -28,10 +32,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Sonarlint;
-using System.IO;
-using Microsoft.VisualStudio.Shell;
-using EnvDTE;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -60,13 +60,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
 
         [ImportingConstructor]
-        internal TaggerProvider([Import] ITableManagerProvider provider,
-            [Import] ITextDocumentFactoryService textDocumentFactoryService,
-            [Import] IContentTypeRegistryService contentTypeRegistryService,
-            [Import] IFileExtensionRegistryService fileExtensionRegistryService,
-            [Import] ISonarLintDaemon daemon,
-            [Import] SVsServiceProvider serviceProvider,
-            [Import] ISonarLintSettings settings)
+        internal TaggerProvider(ITableManagerProvider provider,
+            ITextDocumentFactoryService textDocumentFactoryService,
+            IContentTypeRegistryService contentTypeRegistryService,
+            IFileExtensionRegistryService fileExtensionRegistryService,
+            ISonarLintDaemon daemon,
+            SVsServiceProvider serviceProvider,
+            ISonarLintSettings settings)
         {
             this.ErrorTableManager = provider.GetTableManager(StandardTables.ErrorsTable);
             this.TextDocumentFactoryService = textDocumentFactoryService;
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                                    StandardTableColumnDefinitions.ProjectName);
 
             this.daemon = daemon;
-            this.dte = (_DTE) serviceProvider.GetService(typeof(_DTE));
+            this.dte = (_DTE)serviceProvider.GetService(typeof(_DTE));
             this.settings = settings;
         }
 

@@ -4,8 +4,6 @@
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -52,95 +50,8 @@
     <CodeAnalysisRuleSet>$(ReferencedDirectory)\Integration.Vsix.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\Integration.Vsix\BoundSolutionAnalyzer.cs">
-      <Link>BoundSolutionAnalyzer.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Commands\ManageConnectionsCommand.cs">
-      <Link>Commands\ManageConnectionsCommand.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Commands\PackageCommandId.cs">
-      <Link>Commands\PackageCommandId.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Commands\PackageCommandManager.cs">
-      <Link>Commands\PackageCommandManager.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Commands\ProjectExcludePropertyToggleCommand.cs">
-      <Link>Commands\ProjectExcludePropertyToggleCommand.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Commands\ProjectSonarLintMenuCommand.cs">
-      <Link>Commands\ProjectSonarLintMenuCommand.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Commands\ProjectTestPropertySetCommand.cs">
-      <Link>Commands\ProjectTestPropertySetCommand.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Commands\VsCommandBase.cs">
-      <Link>Commands\VsCommandBase.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Helpers\CommonGuids.cs">
-      <Link>Helpers\CommonGuids.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Helpers\IEnumerableExtensions.cs">
-      <Link>Helpers\IEnumerableExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Helpers\TcpUtil.cs">
-      <Link>Helpers\TcpUtil.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Helpers\VisualStudioConstants.cs">
-      <Link>Helpers\VisualStudioConstants.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\InfoBar\InfoBarManager.cs">
-      <Link>InfoBar\InfoBarManager.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\InternalsVisibleTo.cs">
-      <Link>InternalsVisibleTo.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Properties\AssemblyInfo.cs">
-      <Link>Properties\AssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarAnalyzerManager.cs">
-      <Link>SonarAnalyzerManager.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintDaemonPackage.cs">
-      <Link>SonarLintDaemonPackage.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintDaemon\CFamily.cs">
-      <Link>SonarLintDaemon\CFamily.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintDaemon\ISonarLintDaemon.cs">
-      <Link>SonarLintDaemon\ISonarLintDaemon.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintDaemon\SonarLintDaemon.cs">
-      <Link>SonarLintDaemon\SonarLintDaemon.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintIntegrationPackage.cs">
-      <Link>SonarLintIntegrationPackage.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintTelemetryPackage.cs">
-      <Link>SonarLintTelemetryPackage.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintTagger\IssueMarker.cs">
-      <Link>SonarLintTagger\IssueMarker.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintTagger\IssuesSnapshot.cs">
-      <Link>SonarLintTagger\IssuesSnapshot.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintTagger\IssueTagger.cs">
-      <Link>SonarLintTagger\IssueTagger.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintTagger\SinkManager.cs">
-      <Link>SonarLintTagger\SinkManager.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintTagger\SnapshotFactory.cs">
-      <Link>SonarLintTagger\SnapshotFactory.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\SonarLintTagger\TaggerProvider.cs">
-      <Link>SonarLintTagger\TaggerProvider.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Telemetry\SonarLintIntegrationPackage.IOleCommandTarget.cs">
-      <Link>Telemetry\SonarLintIntegrationPackage.IOleCommandTarget.cs</Link>
-    </Compile>
-    <Compile Include="..\Integration.Vsix\Telemetry\TelemetryLogger.cs">
-      <Link>Telemetry\TelemetryLogger.cs</Link>
+    <Compile Include="$(ReferencedDirectory)\**\*.cs" Exclude="**\obj\**\*;**\*Designer.cs;**\Settings\*;**\Protobuf\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*;**\SonarLintDaemon\SonarLintDaemonSplashscreen.*">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
     <Compile Include="$(ReferencedDirectory)\Protobuf\Sonarlint-daemonGrpc.cs">
       <Link>Protobuf\Sonarlint-daemonGrpc.cs</Link>
@@ -249,7 +160,7 @@
     <None Include="$(ReferencedDirectory)\Telemetry\SonarLintSqmData.ttinclude">
       <Link>Telemetry\SonarLintSqmData.ttinclude</Link>
     </None>
-    <None Include="..\Integration.Vsix\SonarLintTracker\README.md">
+    <None Include="$(ReferencedDirectory)\SonarLintTagger\README.md">
       <Link>SonarLintTagger\README.md</Link>
     </None>
     <None Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmCommandFacade.tt">

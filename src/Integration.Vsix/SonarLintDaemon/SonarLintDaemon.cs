@@ -25,13 +25,11 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
-using System.Threading.Tasks;
-using Grpc.Core;
-using Sonarlint;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System.Linq;
+using System.Net;
+using Grpc.Core;
+using Microsoft.VisualStudio.Shell;
+using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -41,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
 
-        public const string daemonVersion = "2.17.0.872";
+        public const string daemonVersion = "2.17.0.877";
         private const string uriFormat = "https://repox.sonarsource.com/sonarsource-public-builds/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
         private readonly string version;
         private readonly string tmpPath;
@@ -182,9 +180,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (RpcException e)
             {
+                if (e.Status.StatusCode == StatusCode.Cancelled)
+                {
+                    return;
+                }
                 Debug.WriteLine("RPC failed: {0}", e);
-                WritelnToPane("RPC failed " + e);
-                throw;
+                WritelnToPane("Unexpected error: " + e);
             }
         }
 
@@ -200,15 +201,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (RpcException e)
             {
+                if (e.Status.StatusCode == StatusCode.Cancelled)
+                {
+                    return;
+                }
                 Debug.WriteLine("RPC failed: {0}", e);
-                WritelnToPane("RPC failed " + e);
-                throw;
+                WritelnToPane("Unexpected error: " + e);
             }
         }
 
         private static bool ShouldLog(ISonarLintSettings settings, LogEvent log)
         {
-            return settings.DaemonLogLevel == DaemonLogLevel.Error && log.Level == "ERROR"
+            return settings.DaemonLogLevel == DaemonLogLevel.Minimal && log.Level == "ERROR"
                 || settings.DaemonLogLevel == DaemonLogLevel.Info && new[] { "ERROR", "WARN", "INFO" }.Contains(log.Level)
                 || settings.DaemonLogLevel == DaemonLogLevel.Verbose;
         }
@@ -317,11 +321,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             });
 
             // Concurrent requests should not use same directory:
-            var bwDir = CreateTempDirectory(workingDirectory);
+            var buildWrapperOutDir = CreateTempDirectory(workingDirectory);
 
             if (sqLanguage == CFamily.C_LANGUAGE_KEY || sqLanguage == CFamily.CPP_LANGUAGE_KEY)
             {
-                PrepareSonarCFamilyProps(json, request, bwDir);
+                PrepareSonarCFamilyProps(json, request, buildWrapperOutDir);
             }
 
             using (var call = daemonClient.Analyze(request))
@@ -333,9 +337,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 catch (Exception e)
                 {
                     Debug.WriteLine("Call to client.Analyze failed: {0}", e);
-                } finally
+                }
+                finally
                 {
-                    Directory.Delete(bwDir, true);
+                    Directory.Delete(buildWrapperOutDir, true);
                 }
             }
         }
@@ -343,22 +348,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private void PrepareSonarCFamilyProps(string json, AnalysisReq request, string bwDir)
         {
             request.Properties.Add("sonar.cfamily.useCache", bool.FalseString);
-            if (json != null)
+            if (json == null)
             {
-                if (IsVerbose())
-                {
-                    WritelnToPane("Build wrapper output:" + Environment.NewLine + json);
-                }
+                return;
+            }
 
-                try
-                {
-                    File.WriteAllText(Path.Combine(bwDir, "build-wrapper-dump.json"), json);
-                    request.Properties.Add("sonar.cfamily.build-wrapper-output", bwDir);
-                }
-                catch (Exception e)
-                {
-                    WritelnToPane("Unable to write build wrapper file in " + bwDir + ": " + e.StackTrace);
-                }
+            if (IsVerbose())
+            {
+                WritelnToPane("Build wrapper output:" + Environment.NewLine + json);
+            }
+
+            try
+            {
+                File.WriteAllText(Path.Combine(bwDir, "build-wrapper-dump.json"), json);
+                request.Properties.Add("sonar.cfamily.build-wrapper-output", bwDir);
+            }
+            catch (Exception e)
+            {
+                WritelnToPane("Unable to write build wrapper file in " + bwDir + ": " + e.StackTrace);
             }
         }
 
