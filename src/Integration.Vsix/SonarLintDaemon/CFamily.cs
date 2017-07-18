@@ -18,14 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Microsoft.VisualStudio.Shell;
+using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -194,13 +193,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 c.Env.Add("INCLUDE=" + IncludeDirectories);
                 c.Cmd.Add(c.Executable);
                 Add(c.Cmd, "true".Equals(IgnoreStandardIncludePath) ? "/X" : "");
-                AddList(c.Cmd, "/I", AdditionalIncludeDirectories.Split(';'));
-                AddList(c.Cmd, "/FI", ForcedIncludeFiles.Split(';'));
+                AddRange(c.Cmd, "/I", AdditionalIncludeDirectories.Split(';'));
+                AddRange(c.Cmd, "/FI", ForcedIncludeFiles.Split(';'));
                 Add(c.Cmd, "/Yu", PrecompiledHeaderFile);
 
                 Add(c.Cmd, "true".Equals(UndefineAllPreprocessorDefinitions) ? "/u" : "");
-                AddList(c.Cmd, "/D", PreprocessorDefinitions.Split(';'));
-                AddList(c.Cmd, "/U", UndefinePreprocessorDefinitions.Split(';'));
+                AddRange(c.Cmd, "/D", PreprocessorDefinitions.Split(';'));
+                AddRange(c.Cmd, "/U", UndefinePreprocessorDefinitions.Split(';'));
 
                 Add(c.Cmd, ConvertCompileAsAndGetSqLanguage(CompileAs, path, out sqLanguage));
                 Add(c.Cmd, ConvertCompileAsManaged(CompileAsManaged));
@@ -218,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Add(c.Cmd, ConvertBasicRuntimeChecks(BasicRuntimeChecks));
 
                 // TODO Q: what if it contains space in double quotes?
-                AddList(c.Cmd, AdditionalOptions.Split(' '));
+                AddRange(c.Cmd, AdditionalOptions.Split(' '));
 
                 c.Cmd.Add(AbsoluteFilePath);
 
@@ -251,7 +250,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (platformToolset)
                 {
                     default:
-                        throw new Exception("Unsupported PlatformToolset: " + platformToolset);
+                        throw new ArgumentException("Unsupported PlatformToolset: " + platformToolset);
                     case "v141":
                     case "v141_xp":
                         return "19.10.00";
@@ -276,7 +275,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new Exception("Unsupported CompileAs: " + value);
+                        throw new ArgumentException("Unsupported CompileAs: " + value);
                     case "Default":
                         // Compile files with extensions ".cpp", ".cxx" and ".cc" as Cpp and files with extension ".c" as C
                         if (path.ToLowerInvariant().EndsWith(".cpp") || path.ToLowerInvariant().EndsWith(".cxx") || path.ToLowerInvariant().EndsWith(".cc"))
@@ -306,7 +305,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new Exception("Unsupported CompileAsManaged: " + value);
+                        throw new ArgumentException("Unsupported CompileAsManaged: " + value);
                     case "":
                     case "false":
                         return "";
@@ -324,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new Exception("Unsupported RuntimeLibrary: " + value);
+                        throw new ArgumentException("Unsupported RuntimeLibrary: " + value);
                     case "MultiThreaded":
                         return "/MT"; // defines macro "_MT"
                     case "MultiThreadedDebug":
@@ -343,7 +342,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new Exception("Unsupported EnableEnhancedInstructionSet: " + value);
+                        throw new ArgumentException("Unsupported EnableEnhancedInstructionSet: " + value);
                     case "NotSet":
                         return "";
                     case "AdvancedVectorExtensions":
@@ -364,7 +363,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new Exception("Unsupported ExceptionHandling: " + value);
+                        throw new ArgumentException("Unsupported ExceptionHandling: " + value);
                     case "false":
                         return "";
                     // all options below define macro "_CPPUNWIND":
@@ -382,7 +381,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new Exception("Unsupported BasicRuntimeChecks: " + value);
+                        throw new ArgumentException("Unsupported BasicRuntimeChecks: " + value);
                     case "Default":
                         return "";
                     // all options below define macro "__MSVC_RUNTIME_CHECKS":
@@ -396,7 +395,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private static void AddList(List<string> cmd, string[] values)
+        private static void AddRange(IList<string> cmd, string[] values)
         {
             foreach (string value in values)
             {
@@ -404,7 +403,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private static void AddList(List<string> cmd, string prefix, string[] values)
+        private static void AddRange(IList<string> cmd, string prefix, string[] values)
         {
             foreach (string value in values)
             {
@@ -412,7 +411,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private static void Add(List<String> cmd, string value)
+        private static void Add(IList<String> cmd, string value)
         {
             if (!string.IsNullOrEmpty(value))
             {
@@ -420,7 +419,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private static void Add(List<string> cmd, string prefix, string value)
+        private static void Add(IList<string> cmd, string prefix, string value)
         {
             if (!string.IsNullOrEmpty(value))
             {

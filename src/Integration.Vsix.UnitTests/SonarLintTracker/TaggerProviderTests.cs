@@ -19,20 +19,20 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using EnvDTE;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix;
-using Microsoft.VisualStudio.Utilities;
-using System.Linq;
-using Microsoft.VisualStudio.Shell;
-using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

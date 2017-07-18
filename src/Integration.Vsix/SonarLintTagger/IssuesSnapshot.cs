@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using System.Globalization;
 using Sonarlint;
-using System;
-using System.Threading;
-using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -36,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string projectName;
         private readonly string filePath;
         private readonly int versionNumber;
-        private readonly string SonarLintVersion;
+        private readonly string sonarLintVersion;
 
         private readonly IList<IssueMarker> issueMarkers;
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
@@ -49,9 +47,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.versionNumber = versionNumber;
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
             this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
-            SonarLintVersion = FileVersionInfo.GetVersionInfo(typeof(IssuesSnapshot).Assembly.Location).FileVersion;
+            sonarLintVersion = FileVersionInfo.GetVersionInfo(typeof(IssuesSnapshot).Assembly.Location).FileVersion;
             // Remove last version digit since rule website URL is only based on the 3 first digits
-            SonarLintVersion = SonarLintVersion.Substring(0, SonarLintVersion.LastIndexOf('.'));
+            sonarLintVersion = sonarLintVersion.Substring(0, sonarLintVersion.LastIndexOf('.'));
         }
 
         public override int Count => this.issueMarkers.Count;
@@ -116,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     string ruleId = ruleKey.Substring(ruleKey.IndexOf(':') + 1);
                     string repo = ruleKey.Substring(0, ruleKey.IndexOf(':'));
                     string language = GetLanguage(repo);
-                    string url = $"http://vs.sonarlint.org/rules/index.html#sonarLintVersion={SonarLintVersion}&ruleId={ruleId}";
+                    string url = $"http://vs.sonarlint.org/rules/index.html#sonarLintVersion={sonarLintVersion}&ruleId={ruleId}";
                     if (language != null)
                     {
                         url += $"&language={Uri.EscapeDataString(language)}";

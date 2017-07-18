@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
-using System;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (e.ApplyBehavior == ApplyKind.Apply)
             {
                 Settings.ShowServerNuGetTrustWarning = dialogControl.ShowServerNuGetTrustWarning.IsChecked.Value;
-                Settings.DaemonLogLevel = (DaemonLogLevel) dialogControl.DaemonVerbosity.SelectedItem;
+                Settings.DaemonLogLevel = (DaemonLogLevel)dialogControl.DaemonVerbosity.SelectedItem;
             }
 
             base.OnApply(e);

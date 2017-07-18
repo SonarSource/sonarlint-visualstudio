@@ -45,16 +45,15 @@
 
         <StackPanel x:Name="VerbosityPanel" Grid.Row="2" Grid.ColumnSpan="2">
 
-            <TextBlock Grid.Row="0"
-                       Text="Verbosity of the SonarLint daemon logs displayed in the SonarLint Output:"
+            <TextBlock Text="SonarLint output verbosity for the analysis of additional languages:"
                        Margin="5" TextWrapping="Wrap" />
 
-            <ComboBox x:Name="DaemonVerbosity" Grid.Row="1" VerticalAlignment="Top" SelectedIndex="2" HorizontalContentAlignment="Stretch" Margin="0,0,0,5"/>
+            <ComboBox x:Name="DaemonVerbosity" SelectedIndex="2" HorizontalContentAlignment="Stretch" Margin="5" Padding="5,2.5"/>
         </StackPanel>
 
         <CheckBox Grid.ColumnSpan="2" Grid.Row="3"
                   x:Name="ShowServerNuGetTrustWarning"
-                  Content="Display a warning about NuGet packages" />
+                  Content="Display a warning about NuGet packages" Margin="5"/>
 
         <TextBlock Grid.ColumnSpan="2" Grid.Row="4"
                    Text="Display a warning about automatically downloading NuGet packages when establishing a SonarQube server connection."

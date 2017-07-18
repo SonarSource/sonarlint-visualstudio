@@ -21,14 +21,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnvDTE;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
-using Sonarlint;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
-using EnvDTE;
-using System.Diagnostics;
+using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

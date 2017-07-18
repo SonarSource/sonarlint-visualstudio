@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.Shell.Settings;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
 
-    public enum DaemonLogLevel { Verbose, Info, Error};
+    public enum DaemonLogLevel { Verbose, Info, Minimal };
 
     public interface ISonarLintSettings
     {
@@ -109,7 +109,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 return this.writableSettingsStore?.GetInt32(SettingsRoot, key, defaultValue)
                     ?? defaultValue;
-            } catch (System.ArgumentException e)
+            }
+            catch (System.ArgumentException e)
             {
                 return defaultValue;
             }
@@ -167,8 +168,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public DaemonLogLevel DaemonLogLevel
         {
-            get { return (DaemonLogLevel) this.GetValueOrDefault(nameof(DaemonLogLevel), (int) DaemonLogLevel.Error); }
-            set { this.SetValue(nameof(DaemonLogLevel), (int) value); }
+            get { return (DaemonLogLevel)this.GetValueOrDefault(nameof(DaemonLogLevel), (int)DaemonLogLevel.Minimal); }
+            set { this.SetValue(nameof(DaemonLogLevel), (int)value); }
         }
     }
 }
