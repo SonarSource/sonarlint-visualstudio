@@ -26,6 +26,9 @@ using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+
+    public delegate void DaemonEventHandler(object sender, EventArgs e);
+
     public interface ISonarLintDaemon : IDisposable
     {
         bool IsInstalled { get; }
@@ -34,6 +37,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         void Install();
         event DownloadProgressChangedEventHandler DownloadProgressChanged;
         event AsyncCompletedEventHandler DownloadCompleted;
+
+        event EventHandler<EventArgs> Ready;
 
         void Start();
         void Stop();

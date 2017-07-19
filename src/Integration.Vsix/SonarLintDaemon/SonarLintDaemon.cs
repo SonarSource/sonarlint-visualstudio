@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public event DownloadProgressChangedEventHandler DownloadProgressChanged;
         public event AsyncCompletedEventHandler DownloadCompleted;
+        public event EventHandler<EventArgs> Ready;
 
         private Channel channel;
         private StandaloneSonarLint.StandaloneSonarLintClient daemonClient;
@@ -120,7 +121,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     if (data.Contains("Server started"))
                     {
-                        CreateChannelAndStremLogs();
+                        CreateChannelAndStreamLogs();
+                        Ready?.Invoke(this, EventArgs.Empty);
                     }
                     if (IsVerbose())
                     {
@@ -153,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private void CreateChannelAndStremLogs()
+        private void CreateChannelAndStreamLogs()
         {
             channel = new Channel($"{DAEMON_HOST}:{port}", ChannelCredentials.Insecure);
             daemonClient = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
@@ -299,11 +301,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(string path, string charset, string sqLanguage, string json, IIssueConsumer consumer)
         {
-            WritelnToPane($"Analysing {path}");
-            if (daemonClient != null)
+            if (daemonClient == null)
             {
-                Analyze(path, charset, sqLanguage, json, consumer);
+                Debug.WriteLine("Daemon not ready yet");
+                return;
             }
+            WritelnToPane($"Analyzing {path}");
+            Analyze(path, charset, sqLanguage, json, consumer);
         }
 
         private async void Analyze(string path, string charset, string sqLanguage, string json, IIssueConsumer consumer)
