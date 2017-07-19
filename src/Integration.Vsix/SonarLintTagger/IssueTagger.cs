@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             else if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
             {
-                provider.RequestAnalysis(FilePath, Charset, contentTypes);
+                RequestAnalysis();
             }
         }
 
@@ -91,7 +91,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             document.FileActionOccurred += FileActionOccurred;
             textBuffer.ChangedLowPriority += OnBufferChange;
-            provider.AddIssueTracker(this);
+            provider.AddIssueTagger(this);
+            RequestAnalysis();
+        }
+
+        internal void DaemonStarted(object sender, EventArgs e)
+        {
+            RequestAnalysis();
+        }
+
+        private void RequestAnalysis()
+        {
             provider.RequestAnalysis(FilePath, Charset, contentTypes);
         }
 
@@ -99,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             document.FileActionOccurred -= FileActionOccurred;
             textBuffer.ChangedLowPriority -= OnBufferChange;
-            provider.RemoveIssueTracker(this);
+            provider.RemoveIssueTagger(this);
         }
 
         private void OnBufferChange(object sender, TextContentChangedEventArgs e)

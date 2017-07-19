@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal readonly _DTE dte;
 
         private readonly List<SinkManager> managers = new List<SinkManager>();
-        private readonly TrackerManager trackers = new TrackerManager();
+        private readonly TrackerManager taggers = new TrackerManager();
 
         private readonly ISonarLintDaemon daemon;
         private readonly ISonarLintSettings settings;
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         /// <summary>
-        /// Create a tagger that will track Sonar issues on the view/buffer combination.
+        /// Create a tagger that will track SonarLint issues on the view/buffer combination.
         /// </summary>
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
@@ -127,9 +127,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return null;
             }
 
-            lock (trackers)
+            lock (taggers)
             {
-                if (!trackers.ExistsForFile(filePath))
+                if (!taggers.ExistsForFile(filePath))
                 {
                     var tracker = new IssueTagger(dte, this, buffer, document, contentTypes);
                     return tracker as ITagger<T>;
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal void Rename(string oldPath, string newPath)
         {
-            trackers.Rename(oldPath, newPath);
+            taggers.Rename(oldPath, newPath);
         }
 
         #region ITableDataSource members
@@ -204,7 +204,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void RequestAnalysis(string path, string charset, IList<IContentType> contentTypes)
         {
             IssueTagger tracker;
-            if (trackers.TryGetValue(path, out tracker))
+            if (taggers.TryGetValue(path, out tracker))
             {
                 foreach (IContentType type in contentTypes)
                 {
@@ -235,10 +235,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void UpdateIssues(string path, IEnumerable<Issue> issues)
         {
-            IssueTagger tracker;
-            if (trackers.TryGetValue(path, out tracker))
+            IssueTagger tagger;
+            if (taggers.TryGetValue(path, out tagger))
             {
-                tracker.UpdateIssues(issues);
+                tagger.UpdateIssues(issues);
             }
         }
 
@@ -248,9 +248,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 managers.Add(manager);
 
-                foreach (var tracker in trackers.Values)
+                foreach (var tagger in taggers.Values)
                 {
-                    manager.AddFactory(tracker.Factory);
+                    manager.AddFactory(tagger.Factory);
                 }
             }
         }
@@ -263,28 +263,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void AddIssueTracker(IssueTagger tracker)
+        public void AddIssueTagger(IssueTagger tagger)
         {
             lock (managers)
             {
-                trackers.Add(tracker);
+                taggers.Add(tagger);
+                daemon.Ready += tagger.DaemonStarted;
 
                 foreach (var manager in managers)
                 {
-                    manager.AddFactory(tracker.Factory);
+                    manager.AddFactory(tagger.Factory);
                 }
             }
         }
 
-        public void RemoveIssueTracker(IssueTagger tracker)
+        public void RemoveIssueTagger(IssueTagger tagger)
         {
             lock (managers)
             {
-                trackers.Remove(tracker);
+                taggers.Remove(tagger);
+                daemon.Ready -= tagger.DaemonStarted;
 
                 foreach (var manager in managers)
                 {
-                    manager.RemoveFactory(tracker.Factory);
+                    manager.RemoveFactory(tagger.Factory);
                 }
             }
         }
