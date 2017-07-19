@@ -231,9 +231,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
                 // throw exception?
             }
+            daemonClient = null;
             channel.ShutdownAsync().Wait();
+            channel = null;
             process.Kill();
             process.WaitForExit();
+            process = null;
         }
 
         public int Port => port;
