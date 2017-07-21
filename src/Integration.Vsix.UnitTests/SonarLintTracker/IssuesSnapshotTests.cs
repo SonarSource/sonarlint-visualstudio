@@ -19,10 +19,12 @@
  */
 
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
+using Moq;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix;
 
@@ -46,9 +48,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Severity = Issue.Types.Severity.Blocker,
             };
 
-            var marker = new IssueMarker(issue, new SnapshotSpan());
+            var mockTextSnap = new Mock<ITextSnapshot>();
+            mockTextSnap.Setup(t => t.Length).Returns(50);
+
+            var mockTextSnapLine = new Mock<ITextSnapshotLine>();
+            mockTextSnapLine.Setup(l => l.LineNumber).Returns(12);
+            mockTextSnapLine.Setup(l => l.Start).Returns(new SnapshotPoint(mockTextSnap.Object, 10));
+
+            mockTextSnap.Setup(t => t.GetLineFromPosition(25)).Returns(mockTextSnapLine.Object);
+            var textSnap = mockTextSnap.Object;
+
+            var marker = new IssueMarker(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
 
             snapshot = new IssuesSnapshot("MyProject", path, 1, new List<IssueMarker>() { marker });
+        }
+
+        [TestMethod]
+        public void Line()
+        {
+            GetValue(StandardTableKeyNames.Line).Should().Be(12);
+        }
+
+        [TestMethod]
+        public void Column()
+        {
+            GetValue(StandardTableKeyNames.Column).Should().Be(25 - 10);
         }
 
         [TestMethod]
@@ -74,6 +98,62 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             GetValue(StandardTableKeyNames.ErrorSeverity).Should().NotBeNull();
         }
+
+        [TestMethod]
+        public void BuildTool()
+        {
+            GetValue(StandardTableKeyNames.BuildTool).Should().Be("SonarLint");
+        }
+
+        [TestMethod]
+        public void ErrorRank_Other()
+        {
+            GetValue(StandardTableKeyNames.ErrorRank).Should().Be(ErrorRank.Other);
+        }
+
+        [TestMethod]
+        public void ErrorCategory_Is_CodeSmell_By_Default()
+        {
+            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Code Smell");
+        }
+
+        [TestMethod]
+        public void ErrorCategory_Is_Issue_Type()
+        {
+            issue.Type = Issue.Types.Type.Bug;
+            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Bug");
+            issue.Type = Issue.Types.Type.CodeSmell;
+            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Code Smell");
+            issue.Type = Issue.Types.Type.Vulnerability;
+            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Vulnerability");
+        }
+
+        [TestMethod]
+        public void ErrorCodeToolTip()
+        {
+            issue.RuleKey = "javascript:123";
+            GetValue(StandardTableKeyNames.ErrorCodeToolTip).Should().Be("Open description of rule javascript:123");
+        }
+
+        [TestMethod]
+        public void HelpLink()
+        {
+            issue.RuleKey = "javascript:123";
+            GetValue(StandardTableKeyNames.HelpLink).Should().Match(s => new Regex("http://vs.sonarlint.org/rules/index.html#sonarLintVersion=(.*)&ruleId=123&language=JavaScript").IsMatch((string)s));
+            issue.RuleKey = "c:456";
+            GetValue(StandardTableKeyNames.HelpLink).Should().Match(s => new Regex("http://vs.sonarlint.org/rules/index.html#sonarLintVersion=(.*)&ruleId=456&language=C").IsMatch((string)s));
+            issue.RuleKey = "cpp:789";
+            GetValue(StandardTableKeyNames.HelpLink).Should().Match(s => new Regex("http://vs.sonarlint.org/rules/index.html#sonarLintVersion=(.*)&ruleId=789&language=C%2B%2B").IsMatch((string)s));
+            issue.RuleKey = "php:101112";
+            GetValue(StandardTableKeyNames.HelpLink).Should().Match(s => new Regex("http://vs.sonarlint.org/rules/index.html#sonarLintVersion=(.*)&ruleId=101112").IsMatch((string)s));
+        }
+
+        [TestMethod]
+        public void ProjectName()
+        {
+            GetValue(StandardTableKeyNames.ProjectName).Should().Be("MyProject");
+        }
+
 
         private object GetValue(string columnName)
         {
