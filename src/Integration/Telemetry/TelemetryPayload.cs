@@ -23,8 +23,9 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    [DebuggerDisplay("Product: {SonarLintProduct}, Version: {SonarLintVersion}, DaysInstall: " +
-        "{NumberOfDaysSinceInstallation}, DaysOfUse: {NumberOfDaysOfUse}, IsConnected: {IsUsingConnectedMode}")]
+    [DebuggerDisplay("Product: {SonarLintProduct}, SonarLintVersion: {SonarLintVersion}, " +
+        "VisualStudioVersion: {VisualStudioVersion}, DaysInstall: {NumberOfDaysSinceInstallation}, " +
+        "DaysOfUse: {NumberOfDaysOfUse}, IsConnected: {IsUsingConnectedMode}")]
     public sealed class TelemetryPayload
     {
         [JsonProperty("sonarlint_product")]
@@ -32,6 +33,9 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("sonarlint_version")]
         public string SonarLintVersion { get; set; }
+
+        [JsonProperty("ide_version")]
+        public string VisualStudioVersion { get; set; }
 
         [JsonProperty("days_since_installation")]
         public long NumberOfDaysSinceInstallation { get; set; }

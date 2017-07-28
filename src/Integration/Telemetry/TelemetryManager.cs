@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Timers;
 using Microsoft.VisualStudio.Shell;
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ITelemetryClient telemetryClient;
         private readonly Timer tryUploadDataTimer;
         private readonly Timer firstCallDelayer;
-
+        private readonly string visualStudioVersion;
 
         public bool IsAnonymousDataShared
         {
@@ -70,6 +71,11 @@ namespace SonarLint.VisualStudio.Integration
             this.solutionBindingTracker = solutionBindingTracker;
             this.telemetryClient = telemetryClient;
             this.telemetryRepository = telemetryRepository;
+
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "msenv.dll");
+            visualStudioVersion = File.Exists(path)
+                ? FileVersionInfo.GetVersionInfo(path).ProductVersion
+                : string.Empty;
 
             if (this.telemetryRepository.Data.InstallationDate == DateTime.MinValue)
             {
@@ -126,11 +132,11 @@ namespace SonarLint.VisualStudio.Integration
         private TelemetryPayload GetPayload()
         {
             var numberOfDaysSinceInstallation = (long)(DateTime.Now - this.telemetryRepository.Data.InstallationDate).TotalDays;
-
             return new TelemetryPayload
             {
                 SonarLintProduct = "SonarLint Visual Studio",
                 SonarLintVersion = SonarLintVersion,
+                VisualStudioVersion = visualStudioVersion,
                 NumberOfDaysSinceInstallation = numberOfDaysSinceInstallation,
                 NumberOfDaysOfUse = this.telemetryRepository.Data.NumberOfDaysOfUse,
                 IsUsingConnectedMode = this.solutionBindingTracker.IsActiveSolutionBound
