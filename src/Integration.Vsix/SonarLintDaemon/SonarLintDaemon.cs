@@ -232,10 +232,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // throw exception?
             }
             daemonClient = null;
-            channel.ShutdownAsync().Wait();
+            channel?.ShutdownAsync().Wait();
             channel = null;
-            process.Kill();
-            process.WaitForExit();
+            process?.Kill();
+            process?.WaitForExit();
             process = null;
         }
 
