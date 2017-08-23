@@ -45,11 +45,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Guid(PackageGuidString)]
     [ProvideAutoLoad(UIContextGuids.NoSolution)]
+    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
     public sealed class SonarLintDaemonPackage : Package
     {
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
 
         private ISonarLintDaemon daemon;
+        private EnvDTE.DTEEvents dteEvents;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -72,8 +74,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.Initialize();
 
+            var dte = (EnvDTE.DTE)GetService(typeof(EnvDTE.DTE));
+            this.dteEvents = dte.Events.DTEEvents;
+            this.dteEvents.OnStartupComplete += OnIdeStartupComplete;
+            this.daemon = this.GetMefService<ISonarLintDaemon>();
+        }
+
+        private void OnIdeStartupComplete()
+        {
+            this.dteEvents.OnStartupComplete -= OnIdeStartupComplete;
             var settings = this.GetMefService<ISonarLintSettings>();
-            daemon = this.GetMefService<ISonarLintDaemon>();
 
             if (settings.IsActivateMoreEnabled && daemon.IsInstalled)
             {
@@ -103,8 +113,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
-                daemon?.Dispose();
-                daemon = null;
+                this.dteEvents.OnStartupComplete -= OnIdeStartupComplete;
+                this.daemon?.Dispose();
+                this.daemon = null;
             }
         }
 
