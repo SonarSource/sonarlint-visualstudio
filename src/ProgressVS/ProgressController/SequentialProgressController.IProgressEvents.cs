@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
     "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
-        Justification = "cancellationTokenSource is being disposed OnFinish whish is guaranteed (tested) to be called in the end",
+        Justification = "cancellationTokenSource is being disposed OnFinish wish is guaranteed (tested) to be called in the end",
         Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Progress.Controller.SequentialProgressController")]
     public partial class SequentialProgressController : IProgressEvents

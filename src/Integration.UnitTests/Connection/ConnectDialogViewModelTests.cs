@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         [TestMethod]
         public void ConnectDialogViewModel_GetErrorForProperty_ServerUrlRaw_NoValidationErrorWhenPristine()
         {
-            // Test case 1: new model has prestine URL
+            // Test case 1: new model has pristine URL
             // Arrange
             var testSubject1 = new ConnectionInfoDialogViewModel();
 
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             string validationError1 = GetErrorForProperty(testSubject1, nameof(testSubject1.ServerUrlRaw));
 
             // Assert
-            testSubject1.IsUrlPristine.Should().BeTrue("Server URL should be prestine on initial view model construction");
+            testSubject1.IsUrlPristine.Should().BeTrue("Server URL should be pristine on initial view model construction");
             validationError1.Should().BeNull("Validation error should be null on initial view model construction");
 
             // Test case 2a: setting raw server url makes it 'dirty' valid URL
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             string validationError2a = GetErrorForProperty(testSubject2a, nameof(testSubject2a.ServerUrlRaw));
 
             // Assert
-            testSubject2a.IsUrlPristine.Should().BeFalse("Server URL should no longer be prestine once set to a valid URL");
+            testSubject2a.IsUrlPristine.Should().BeFalse("Server URL should no longer be pristine once set to a valid URL");
             validationError2a.Should().BeNull("Validation error should be null for valid URL");
 
             // Test case 2b: setting raw server url makes it 'dirty' invalid URL
@@ -68,10 +68,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             string validationError2b = GetErrorForProperty(testSubject2b, nameof(testSubject2b.ServerUrlRaw));
 
             // Assert
-            testSubject2b.IsUrlPristine.Should().BeFalse("Server URL should no longer be prestine once set to an invalid URL");
+            testSubject2b.IsUrlPristine.Should().BeFalse("Server URL should no longer be pristine once set to an invalid URL");
             validationError2b.Should().NotBeNull("Validation error should not be null for invalid URL");
 
-            // Test case 3: clearing a non-prestine view model should still be non-prestine
+            // Test case 3: clearing a non-pristine view model should still be non-pristine
             // Arrange
             var testSubject3 = new ConnectionInfoDialogViewModel();
             testSubject3.ServerUrlRaw = "blah"; // Makes url field dirty
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject3.ServerUrlRaw = null; // Clear field
 
             // Assert
-            testSubject3.IsUrlPristine.Should().BeFalse("Server URL should still be non-prestine even after clearing the field");
+            testSubject3.IsUrlPristine.Should().BeFalse("Server URL should still be non-pristine even after clearing the field");
         }
 
         [TestMethod]
