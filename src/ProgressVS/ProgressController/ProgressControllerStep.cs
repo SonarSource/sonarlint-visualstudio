@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
         }
 
         /// <summary>
-        /// Sets the whether <see cref="Indeterminate"/> and updates the inital <see cref="Progress"/>
+        /// Sets the whether <see cref="Indeterminate"/> and updates the initial <see cref="Progress"/>
         /// </summary>
         /// <param name="indeterminate">Whether requested an indeterminate step</param>
         protected void SetStepKind(bool indeterminate)

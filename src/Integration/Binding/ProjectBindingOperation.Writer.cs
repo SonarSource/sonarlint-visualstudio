@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// Generate a new project level rule set with the provided inclusions (if not an ignored rule set).
         /// </summary>
         /// <param name="solutionIncludePath">Solution level rule set include path (always included)</param>
-        /// <param name="currentRuleSetPath">Original rule set include path (only included if not whitelisted as 'ignore')</param>
+        /// <param name="currentRuleSetPath">Original rule set include path (only included if not white-listed as 'ignore')</param>
         /// <param name="ruleSetName">The name given to the project ruleset.</param>
         internal /* testing purposes */ static RuleSet GenerateNewProjectRuleSet(string solutionIncludePath, string currentRuleSetPath, string ruleSetName)
         {
