@@ -458,6 +458,10 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="Resources\sonarlint_32px.ico" />
+    <Content Include="Resources\sonarlint_wave_128px.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Telemetry\GeneratedCode\SqmVsCommands.vsct">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -179,7 +179,16 @@
       <LastGenOutput>SqmVsCommands.vsct</LastGenOutput>
       <Link>Telemetry\GeneratedCode\SqmVsCommands.tt</Link>
     </None>
-    <None Include="Resources\sonarlint_32px.ico" />
+    <Content Include="$(ReferencedDirectory)\Resources\sonarlint_wave_128px.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Link>Resources\sonarlint_wave_128px.png</Link>
+    </Content>
+    <Content Include="$(ReferencedDirectory)\Resources\sonarlint_32px.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Link>Resources\sonarlint_32px.ico</Link>
+    </Content>
     <None Include="source.extension.vsixmanifest" />
   </ItemGroup>
   <ItemGroup>
