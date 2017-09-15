@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal interface IWebBrowser
+    public interface IWebBrowser
     {
         /// <summary>
         /// Opens the current user's preferred web browser at the provided URL.

@@ -376,6 +376,14 @@
       <HintPath>..\..\packages\System.Xml.XPath.XDocument.4.3.0\lib\net46\System.Xml.XPath.XDocument.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SystemInterface, Version=0.22.0.141, Culture=neutral, PublicKeyToken=fbc3a63dd3cf8960, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SystemWrapper.Interfaces.0.22.0.141\lib\net45\SystemInterface.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SystemWrapper, Version=0.22.0.141, Culture=neutral, PublicKeyToken=fbc3a63dd3cf8960, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SystemWrapper.Wrappers.0.22.0.141\lib\net45\SystemWrapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="UIAutomationProvider" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
@@ -462,6 +470,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Resource Include="Resources\sonarqube_green.ico" />
+    <Resource Include="Resources\sonarqube_red.ico" />
     <Content Include="Telemetry\GeneratedCode\SqmVsCommands.vsct">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -215,6 +215,7 @@
       <HintPath>..\..\packages\System.Diagnostics.StackTrace.4.3.0\lib\net46\System.Diagnostics.StackTrace.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.IO.Compression.4.3.0\lib\net46\System.IO.Compression.dll</HintPath>
       <Private>True</Private>
@@ -278,6 +279,14 @@
     </Reference>
     <Reference Include="System.Xml.XPath.XDocument, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Xml.XPath.XDocument.4.3.0\lib\net46\System.Xml.XPath.XDocument.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SystemInterface, Version=0.22.0.141, Culture=neutral, PublicKeyToken=fbc3a63dd3cf8960, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SystemWrapper.Interfaces.0.22.0.141\lib\net45\SystemInterface.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SystemWrapper, Version=0.22.0.141, Culture=neutral, PublicKeyToken=fbc3a63dd3cf8960, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SystemWrapper.Wrappers.0.22.0.141\lib\net45\SystemWrapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WindowsBase" />
