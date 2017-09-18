@@ -154,6 +154,84 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
+
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_HasNotificationSupport()
+        {
+            Test(HttpStatusCode.NotFound, false);
+            Test(HttpStatusCode.OK, true);
+            Test(HttpStatusCode.Unauthorized, true);
+            Test(HttpStatusCode.Forbidden, true);
+        }
+
+        private void Test(HttpStatusCode responseCode, bool expectedSupported)
+        {
+            using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
+            {
+                testSubject.RegisterQueryValidator("api/developers/search_events", request =>
+                {
+                    request.QueryString.HasValue.Should().BeTrue();
+                });
+
+                // Arrange
+                testSubject.AllowAnonymous = true;
+                testSubject.RegisterRequestHandler("api/developers/search_events",
+                    new RequestHandler { ResponseStatusCode = responseCode });
+
+                var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+
+                // Act
+
+                testSubject.HasNotificationSupport(connectionInfo, CancellationToken.None)
+                    .Should().Be(expectedSupported);
+
+                // Assert
+                this.outputWindowPane.AssertOutputStrings(0);
+            }
+        }
+
+        [TestMethod]
+        public void SonarQubeServiceWrapper_TryGetNotifications()
+        {
+            var expected = new NotificationEvent[]
+            {
+                new NotificationEvent { Category = "QUALITY_GATE",
+                    Message =  "Quality Gate of project 'test' is now Red (was Green)",
+                    Link = new Uri("http://localhost:9000/dashboard?id=test"),
+                    Date = new DateTimeOffset(2017, 1, 1, 9, 55, 1, 0, TimeSpan.FromHours(1)),
+                    Project = "test" }
+            };
+
+            using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
+            {
+                testSubject.RegisterQueryValidator("api/developers/search_events", request =>
+                {
+                    request.QueryString.HasValue.Should().BeTrue();
+                    request.QueryString.Value.Should().Be("projects=test&from=2017-09-14T10%3a00%3a00%2b0200");
+                });
+
+                // Arrange
+                testSubject.AllowAnonymous = true;
+                testSubject.RegisterRequestHandler("api/developers/search_events?projects=test&from=2017-01-01T07%3a55%3a01%2b0200",
+                    new RequestHandler { ResponseText = Serialize(new { events = expected }) });
+
+                var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+                var project = new ProjectInformation { Key = "test", Name = "foo" };
+                var dateLastCheck = new DateTimeOffset(2017, 1, 1, 7, 55, 1, 0, TimeSpan.FromHours(2));
+
+                // Act
+                NotificationEvent[] events;
+
+                testSubject.TryGetNotificationEvents(connectionInfo, CancellationToken.None, project, dateLastCheck,
+                    out events).Should().BeTrue("Expected to get the notifications");
+
+                // Assert
+                AssertEqual(expected, events);
+                this.outputWindowPane.AssertOutputStrings(0);
+            }
+        }
+
         [TestMethod]
         public void SonarQubeServiceWrapper_TryGetProjects_InvalidStatusCode()
         {
@@ -1001,6 +1079,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Let the processor to set the final state, if exists.
                 this.RequestProcessor?.Invoke(context);
+            }
+        }
+
+        private void AssertEqual(NotificationEvent x, NotificationEvent y, int itemIndex)
+        {
+            Assert.AreEqual(x.Category, y.Category, string.Format("Category, item {0}", itemIndex));
+            Assert.AreEqual(x.Date, y.Date, string.Format("Date, item {0}", itemIndex));
+            Assert.AreEqual(x.Link, y.Link, string.Format("Link, item {0}", itemIndex));
+            Assert.AreEqual(x.Message, y.Message, string.Format("Message, item {0}", itemIndex));
+        }
+
+        private void AssertEqual(NotificationEvent[] expected, NotificationEvent[] actual)
+        {
+            Assert.AreEqual(expected.Length, actual.Length);
+
+            for (int i = 0; i < expected.Length; i++)
+            {
+                AssertEqual(expected[i], actual[i], i);
             }
         }
 
