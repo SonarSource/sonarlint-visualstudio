@@ -18,22 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
-    public interface INotifyIcon
+    public partial class NotificationIndicator : UserControl
     {
-        bool HasEvents { get; set; }
+        public NotificationIndicator()
+        {
+            InitializeComponent();
+        }
 
-        string Text { get; set; }
+        public void ShowBalloonTip()
+        {
+            PART_Button.IsChecked = true;
+        }
 
-        string BalloonTipText { get; set; }
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            PART_Button.IsChecked = false;
+        }
 
-        bool IsVisible { get; set; }
-
-        event EventHandler BalloonTipClick;
-
-        void ShowBalloonTip();
+        private void ShowMore_Click(object sender, RoutedEventArgs e)
+        {
+            (DataContext as StatusBarIconWrapper)?.OnBalloonTipClicked();
+        }
     }
 }

@@ -21,11 +21,9 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Timers;
-using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
@@ -39,20 +37,20 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     {
         public event EventHandler ShowDetails;
 
-        private readonly INotifyIcon notifyIcon;
+        private INotifyIcon notifyIcon;
         private readonly ITimer timer;
         private const string iconPath = "pack://application:,,,/SonarLint;component/Resources/sonarqube_green.ico";
         private const string tooltipTitle = "SonarQube notification";
         private string message;
         private DateTimeOffset lastRequestDate = DateTimeOffset.MinValue;
-        private readonly ISonarQubeServiceWrapper sqServiceWrapper;
+        private readonly ISonarQubeServiceWrapper sonarQubeService;
         private readonly IStateManager stateManager;
         private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
 
         [ImportingConstructor]
         [ExcludeFromCodeCoverage] // Do not unit test MEF constructor
         internal SonarQubeNotifications(IHost host)
-            : this(host.SonarQubeService, host.VisualStateManager, new TaskbarNotifyIcon(),
+            : this(host.SonarQubeService, host.VisualStateManager, new StatusBarIconWrapper(),
                   new TimerWrap())
         {
         }
@@ -63,13 +61,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         {
             this.notifyIcon = notifyIcon;
             this.timer = timer;
-            this.sqServiceWrapper = sonarQubeService;
+            this.sonarQubeService = sonarQubeService;
             this.stateManager = stateManager;
-
-            notifyIcon.Click += (s, e) => ShowNofitication();
-            notifyIcon.DoubleClick += (s, e) => OnShowDetails(EventArgs.Empty);
-            notifyIcon.BalloonTipClicked += (s, e) => OnShowDetails(EventArgs.Empty);
-            notifyIcon.Icon = new Icon(Application.GetResourceStream(new Uri(iconPath)).Stream);
 
             timer.Elapsed += OnTimerElapsed;
             timer.Interval = timerIntervalMilliseconds;
@@ -77,24 +70,32 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         public void Start()
         {
+            notifyIcon.BalloonTipClick += OnBalloonTipClick;
+            notifyIcon.IsVisible = true;
+
             var serverConnection = ThreadHelper.Generic.Invoke(() => stateManager.GetConnectedServers().FirstOrDefault());
 
             timer.Start();
         }
 
+        private void OnBalloonTipClick(object sender, EventArgs e)
+        {
+            ShowDetails?.Invoke(this, e);
+        }
+
         public void Stop()
         {
             cancellation.Cancel();
-            timer.Elapsed -= OnTimerElapsed;
+
             timer.Stop();
-            notifyIcon.Icon.Dispose();
-            notifyIcon.Dispose();
+
+            notifyIcon.BalloonTipClick -= OnBalloonTipClick;
+            notifyIcon.IsVisible = false;
         }
 
         private void OnTimerElapsed(object sender, ElapsedEventArgs e)
         {
             UpdateMessage();
-            ShowNofitication();
         }
 
         private void UpdateMessage()
@@ -106,11 +107,18 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             if (serverConnection == null ||
                 projectKey == null)
             {
+                var demoMode = true;
+                if (demoMode)
+                {
+                    notifyIcon.HasEvents = true;
+                    notifyIcon.BalloonTipText = "We have some messagesssssssssssssssss for youuuuuuuuuuuuuuu";
+                }
+
                 return;
             }
 
             NotificationEvent[] events;
-            var isSuccess = sqServiceWrapper.TryGetNotificationEvents(serverConnection, cancellation.Token,
+            var isSuccess = sonarQubeService.TryGetNotificationEvents(serverConnection, cancellation.Token,
                 projectKey, lastRequestDate, out events);
 
             if (isSuccess && events != null)
@@ -118,28 +126,15 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                 message = string.Join(Environment.NewLine + Environment.NewLine,
                     events.Select(ev => ev.Message));
                 lastRequestDate = events.Max(ev => ev.Date);
+                notifyIcon.HasEvents = true;
+                notifyIcon.BalloonTipText = message;
             }
-        }
-
-        private void ShowNofitication()
-        {
-            if (message != string.Empty)
-            {
-                notifyIcon.Visible = true;
-
-                ThreadHelper.Generic.Invoke(() =>
-                    notifyIcon?.ShowBalloonTip((int)TimeSpan.FromSeconds(10).TotalMilliseconds,
-                        tooltipTitle, message));
-            }
-        }
-
-        private void OnShowDetails(EventArgs e)
-        {
-            ShowDetails?.Invoke(this, e);
         }
 
         public void Dispose()
         {
+            timer.Elapsed -= OnTimerElapsed;
+
             Stop();
         }
     }
