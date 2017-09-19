@@ -154,43 +154,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-
-
-        [TestMethod]
-        public void SonarQubeServiceWrapper_HasNotificationSupport()
-        {
-            Test(HttpStatusCode.NotFound, false);
-            Test(HttpStatusCode.OK, true);
-            Test(HttpStatusCode.Unauthorized, true);
-            Test(HttpStatusCode.Forbidden, true);
-        }
-
-        private void Test(HttpStatusCode responseCode, bool expectedSupported)
-        {
-            using (var testSubject = new TestableSonarQubeServiceWrapper(this.serviceProvider))
-            {
-                testSubject.RegisterQueryValidator("api/developers/search_events", request =>
-                {
-                    request.QueryString.HasValue.Should().BeTrue();
-                });
-
-                // Arrange
-                testSubject.AllowAnonymous = true;
-                testSubject.RegisterRequestHandler("api/developers/search_events",
-                    new RequestHandler { ResponseStatusCode = responseCode });
-
-                var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-
-                // Act
-
-                testSubject.HasNotificationSupport(connectionInfo, CancellationToken.None)
-                    .Should().Be(expectedSupported);
-
-                // Assert
-                this.outputWindowPane.AssertOutputStrings(0);
-            }
-        }
-
         [TestMethod]
         public void SonarQubeServiceWrapper_TryGetNotifications()
         {
@@ -217,13 +180,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     new RequestHandler { ResponseText = Serialize(new { events = expected }) });
 
                 var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-                var project = new ProjectInformation { Key = "test", Name = "foo" };
+                var projectKey = "test";
                 var dateLastCheck = new DateTimeOffset(2017, 1, 1, 7, 55, 1, 0, TimeSpan.FromHours(2));
 
                 // Act
                 NotificationEvent[] events;
 
-                testSubject.TryGetNotificationEvents(connectionInfo, CancellationToken.None, project, dateLastCheck,
+                testSubject.TryGetNotificationEvents(connectionInfo, CancellationToken.None, projectKey, dateLastCheck,
                     out events).Should().BeTrue("Expected to get the notifications");
 
                 // Assert

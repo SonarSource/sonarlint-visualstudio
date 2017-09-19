@@ -35,9 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         bool TryGetOrganizations(ConnectionInformation serverConnection, CancellationToken token, out OrganizationInformation[] organizations);
 
-        bool HasNotificationSupport(ConnectionInformation serverConnection, CancellationToken token);
-
-        bool TryGetNotificationEvents(ConnectionInformation serverConnection, CancellationToken token, ProjectInformation project, DateTimeOffset eventsSince, out NotificationEvent[] events);
+        bool TryGetNotificationEvents(ConnectionInformation serverConnection, CancellationToken token, string projectKey, DateTimeOffset eventsSince, out NotificationEvent[] events);
 
         /// <summary>
         /// Retrieves all the server projects

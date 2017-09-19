@@ -1,19 +1,41 @@
-﻿using System;
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2017 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.State;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SystemInterface.Timers;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Notifications.UnitTests
+namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 {
     [TestClass]
     public class SonarQubeNotifications_EventTests
     {
-        private Mock<INotifyIconFactory> notifyIconFactoryMock;
-        private Mock<ITimerFactory> timerFactoryMock;
-
         private Mock<INotifyIcon> notifyIconMock;
         private Mock<ITimer> timerMock;
+        private ISonarQubeServiceWrapper sqService;
+        private IStateManager stateManager;
 
         static SonarQubeNotifications_EventTests()
         {
@@ -27,18 +49,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Notifications.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
+            sqService = new ConfigurableSonarQubeServiceWrapper();
+            stateManager = new ConfigurableStateManager();
+
             timerMock = new Mock<ITimer>();
             notifyIconMock = new Mock<INotifyIcon>();
-
-            timerFactoryMock = new Mock<ITimerFactory>();
-            timerFactoryMock
-                .Setup(mock => mock.Create())
-                .Returns(timerMock.Object);
-
-            notifyIconFactoryMock = new Mock<INotifyIconFactory>();
-            notifyIconFactoryMock
-               .Setup(mock => mock.Create())
-               .Returns(notifyIconMock.Object);
         }
 
         [TestMethod]
@@ -48,7 +63,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Notifications.UnitTests
             notifyIconMock
                 .Setup(mock => mock.ShowBalloonTip(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()));
 
-            var notifications = new SonarQubeNotifications(notifyIconFactoryMock.Object, timerFactoryMock.Object);
+            var notifications = new SonarQubeNotifications(sqService, stateManager,
+                notifyIconMock.Object, timerMock.Object);
 
             notifications.Start();
 
@@ -63,7 +79,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Notifications.UnitTests
         public void NotifyIcon_DoubleClick_Raises_ShowDetails()
         {
             // Arrange
-            var notifications = new SonarQubeNotifications(notifyIconFactoryMock.Object, timerFactoryMock.Object);
+            var notifications = new SonarQubeNotifications(sqService, stateManager,
+                notifyIconMock.Object, timerMock.Object);
             notifications.MonitorEvents();
             notifications.Start();
 
@@ -78,7 +95,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Notifications.UnitTests
         public void NotifyIcon_BalloonTipClicked_Raises_ShowDetails()
         {
             // Arrange
-            var notifications = new SonarQubeNotifications(notifyIconFactoryMock.Object, timerFactoryMock.Object);
+            var notifications = new SonarQubeNotifications(sqService, stateManager,
+                notifyIconMock.Object, timerMock.Object);
             notifications.MonitorEvents();
             notifications.Start();
 

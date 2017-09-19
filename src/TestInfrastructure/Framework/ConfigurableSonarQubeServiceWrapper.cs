@@ -39,7 +39,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool HasOrganizationsSupport { get; set; }
         public bool AreCredentialsValid { get; set; } = true;
-        public bool AreNotificationsSupported { get; set; }
 
         public ProjectInformation[] ReturnProjectInformation { get; set; }
         public NotificationEvent[] ReturnNotificationEvents { get; set; }
@@ -247,13 +246,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return HasOrganizationsSupport;
         }
 
-        public bool HasNotificationSupport(ConnectionInformation serverConnection, CancellationToken token)
-        {
-            this.AssertExpectedConnection(serverConnection);
-            return AreNotificationsSupported;
-        }
-
-        public bool TryGetNotificationEvents(ConnectionInformation serverConnection, CancellationToken token, ProjectInformation project, DateTimeOffset eventsSince, out NotificationEvent[] events)
+        public bool TryGetNotificationEvents(ConnectionInformation serverConnection, CancellationToken token, string projectKey, DateTimeOffset eventsSince, out NotificationEvent[] events)
         {
             this.AssertExpectedConnection(serverConnection);
             events = ReturnNotificationEvents;

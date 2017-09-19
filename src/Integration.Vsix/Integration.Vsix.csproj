@@ -471,7 +471,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Resource Include="Resources\sonarqube_green.ico" />
-    <Resource Include="Resources\sonarqube_red.ico" />
     <Content Include="Telemetry\GeneratedCode\SqmVsCommands.vsct">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

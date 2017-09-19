@@ -147,19 +147,8 @@ namespace SonarLint.VisualStudio.Integration.Service
             return organizations != null;
         }
 
-        public bool HasNotificationSupport(ConnectionInformation serverConnection, CancellationToken token)
-        {
-            if (serverConnection == null)
-            {
-                throw new ArgumentNullException(nameof(serverConnection));
-            }
-
-            return this.SafeUseHttpClient<bool>(serverConnection,
-                client => HasNotificationSupport(client, token));
-        }
-
         public bool TryGetNotificationEvents(ConnectionInformation serverConnection,
-            CancellationToken token, ProjectInformation project, DateTimeOffset eventsSince, out NotificationEvent[] events)
+            CancellationToken token, string projectKey, DateTimeOffset eventsSince, out NotificationEvent[] events)
         {
             if (serverConnection == null)
             {
@@ -167,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Service
             }
 
             events = this.SafeUseHttpClient<NotificationEvent[]>(serverConnection,
-                client => GetNotificationEvents(client, token, project, eventsSince));
+                client => GetNotificationEvents(client, token, projectKey, eventsSince));
 
             return events != null;
         }
@@ -475,18 +464,12 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         #region Notifications
 
-        private static async Task<bool> HasNotificationSupport(HttpClient client, CancellationToken token)
-        {
-            var httpResponse = await InvokeGetRequest(client, NotificationsAPI, token, false);
-            return httpResponse.StatusCode != HttpStatusCode.NotFound;
-        }
-
         private static async Task<NotificationEvent[]> GetNotificationEvents(HttpClient client,
-            CancellationToken token, ProjectInformation project, DateTimeOffset eventsSince)
+            CancellationToken token, string projectKey, DateTimeOffset eventsSince)
         {
             var queryParameters = new Dictionary<string, object>
             {
-                { "projects", project.Key },
+                { "projects", projectKey },
                 { "from", ToJavaTimeFormat(eventsSince) }
             };
 
@@ -494,7 +477,18 @@ namespace SonarLint.VisualStudio.Integration.Service
             var httpResponse = await InvokeGetRequest(client, url, token);
             var stringResponse = await ReadResponse(httpResponse, token);
 
-            return ProcessJsonResponse<NotificationEvents>(stringResponse, token).Events;
+            switch (httpResponse.StatusCode)
+            {
+                case HttpStatusCode.NotFound:
+                    return null;
+
+                case HttpStatusCode.OK:
+                    return ProcessJsonResponse<NotificationEvents>(stringResponse, token).Events
+                        ?? new NotificationEvent[0];
+
+                default:
+                    return new NotificationEvent[0];
+            }
         }
 
         private static string ToJavaTimeFormat(DateTimeOffset date)

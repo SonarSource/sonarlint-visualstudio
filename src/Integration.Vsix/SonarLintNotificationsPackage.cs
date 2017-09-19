@@ -1,16 +1,29 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="SonarLintNotifications.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2017 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.Vsix.Notifications;
-using SystemWrapper.Timers;
+using SonarLint.VisualStudio.Integration.Notifications;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -27,19 +40,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// </summary>
         public const string PackageGuidString = "c26b6802-dd9c-4a49-b8a5-0ad8ef04c579";
 
-        private SonarQubeNotifications notifications;
+        private ISonarQubeNotifications notifications;
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
-
-        public SonarLintNotificationsPackage()
-        {
-        }
 
         protected override void Initialize()
         {
             base.Initialize();
 
-            notifications = new SonarQubeNotifications(new NotifyIconFactory(), new TimerFactory());
-
+            notifications = this.GetMefService<ISonarQubeNotifications>();
             activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
         }

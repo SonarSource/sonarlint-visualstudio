@@ -170,8 +170,10 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -247,6 +249,16 @@
       <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
       <Name>ProgressVS</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="SystemInterface, Version=0.22.0.141, Culture=neutral, PublicKeyToken=fbc3a63dd3cf8960, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SystemWrapper.Interfaces.0.22.0.141\lib\net45\SystemInterface.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SystemWrapper, Version=0.22.0.141, Culture=neutral, PublicKeyToken=fbc3a63dd3cf8960, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SystemWrapper.Wrappers.0.22.0.141\lib\net45\SystemWrapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.5.10.0.1302\analyzers\Google.Protobuf.dll" />
