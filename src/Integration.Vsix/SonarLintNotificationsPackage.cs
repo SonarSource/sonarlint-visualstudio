@@ -43,6 +43,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ISonarQubeNotifications notifications;
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
 
+        private NotificationIndicator notificationIcon;
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -54,6 +56,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void OnSolutionBindingChanged(object sender, bool isBound)
         {
+            if (notificationIcon == null)
+            {
+                notificationIcon = new NotificationIndicator();
+                notificationIcon.DataContext = notifications;
+                VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIcon);
+            }
+
             if (isBound)
             {
                 notifications.Start();
@@ -67,6 +76,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
+            if (notificationIcon != null)
+            {
+                VisualStudioStatusBarHelper.RemoveStatusBarIcon(notificationIcon);
+            }
 
             activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
 

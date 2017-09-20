@@ -30,19 +30,9 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             InitializeComponent();
         }
 
-        public void ShowBalloonTip()
-        {
-            PART_Button.IsChecked = true;
-        }
-
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             PART_Button.IsChecked = false;
-        }
-
-        private void ShowMore_Click(object sender, RoutedEventArgs e)
-        {
-            (DataContext as StatusBarIconWrapper)?.OnBalloonTipClicked();
         }
     }
 }

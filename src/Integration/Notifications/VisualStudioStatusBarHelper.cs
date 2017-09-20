@@ -18,13 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
+    [ExcludeFromCodeCoverage] // Not really unit-testable
     public static class VisualStudioStatusBarHelper
     {
         private const string SccStatusBarHostName = "PART_SccStatusBarHost";
@@ -33,12 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         public static void RemoveStatusBarIcon(FrameworkElement statusBarIcon)
         {
             var dockPanel = statusBarIcon.Parent as DockPanel;
-            if (dockPanel == null)
-            {
-                return;
-            }
-
-            dockPanel.Children.Remove(statusBarIcon);
+            dockPanel?.Children.Remove(statusBarIcon);
         }
 
         public static void AddStatusBarIcon(FrameworkElement statusBarIcon)
@@ -52,11 +48,10 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                 return;
             }
 
-            var index = GetStatusBarHostIndex(dockPanel);
-
             DockPanel.SetDock(statusBarIcon, Dock.Right);
 
-            dockPanel.Children.Insert(Math.Max(1, index + 1), statusBarIcon);
+            var sourceControlHostIndex = GetStatusBarSourceControlHostIndex(dockPanel);
+            dockPanel.Children.Insert(sourceControlHostIndex + 1, statusBarIcon);
         }
 
         private static DockPanel GetStatusBarPanel(DependencyObject mainWindow)
@@ -72,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             return null;
         }
 
-        private static int GetStatusBarHostIndex(DockPanel dockPanel)
+        private static int GetStatusBarSourceControlHostIndex(DockPanel dockPanel)
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(dockPanel); i++)
             {
