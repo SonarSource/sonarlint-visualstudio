@@ -17,6 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
 using System;
 using System.Security.Cryptography;
 using System.Text;
@@ -49,9 +50,12 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         /// <summary>
         /// Converts an array of bytes into a string containing the hexadecimal representation of each byte
         /// </summary>
-        public static string EncodeHex(byte[] data)
+        private static string EncodeHex(byte[] data)
         {
             const string HexAlphabet = "0123456789abcdef";
+
+            const byte HighOrderBitsOn = 240; //  128 + 64 + 32 + 16
+            const byte LowOrderBitsOn = 15;   //  8 + 4 + 2 + 1
 
             int length = data.Length;
             char[] encodedData = new char[length * 2];
@@ -59,8 +63,13 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             for (int sourceIndex = 0; sourceIndex < length; sourceIndex++)
             {
-                encodedData[targetIndex++] = HexAlphabet[((240 & data[sourceIndex]) >> 4)];
-                encodedData[targetIndex++] = HexAlphabet[15 & data[sourceIndex]];
+                // Converting an 8-bit binary to the corresponding 2-character hex representation:
+                // The binary representation is AAAABBBB where
+                //  AAAA is a number between 0 and 15 that represents the first hex char.
+                //  BBBB is a number between 0 and 15 that represents the second hex char.
+                // To convert, extract AAAA and BBBB in turn and look up the corresponding hex representation (0-9a-f)
+                encodedData[targetIndex++] = HexAlphabet[((HighOrderBitsOn & data[sourceIndex]) >> 4)]; // extract AAAA----
+                encodedData[targetIndex++] = HexAlphabet[LowOrderBitsOn & data[sourceIndex]]; // extract ----BBBB
             }
 
             return new string(encodedData);

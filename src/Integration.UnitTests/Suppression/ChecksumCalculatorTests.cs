@@ -19,6 +19,7 @@
  */
 
 using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Suppression;
 
@@ -38,18 +39,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // 1. If the input only varies by whitespace then the checksums should be the same
             var checksum1 = ChecksumCalculator.Calculate("abc");
-            var checksum2 = ChecksumCalculator.Calculate(" a  b  \r\n\t c \n\n");
-            Assert.AreEqual(checksum1, checksum2);
+            ChecksumCalculator.Calculate(" a  b  \r\n\t c \n\n").Should().Be(checksum1);
 
-            // 2. Logically, a whitespace-only string should have the same checksum as an empty tring
+            ChecksumCalculator.Calculate("\ra\rb\r\rc\r").Should().Be(checksum1);
+            ChecksumCalculator.Calculate("\na\nb\n\nc\n").Should().Be(checksum1);
+            ChecksumCalculator.Calculate("\r\na\r\nb\r\n\r\nc\r\n").Should().Be(checksum1);
+
+
+            // 2. Logically, a whitespace-only string should have the same checksum as an empty string
             var emptyChecksum = ChecksumCalculator.Calculate("");
             var whitespaceOnlyChecksum = ChecksumCalculator.Calculate("\r \t\n\n\r\t  ");
-            Assert.AreEqual(emptyChecksum, whitespaceOnlyChecksum);
+            emptyChecksum.Should().Be(whitespaceOnlyChecksum);
         }
 
         [TestMethod]
         public void Checksum_ExpectedValues()
         {
+            // The expected values for this test were generated using a small Java app that used the same code as SLI/SLE to encode the strings.
+            // See https://github.com/SonarSource/sonarlint-intellij/blob/6b0431be1cbdd892e310a6aedbc81ec5c468b6f9/src/main/java/org/sonarlint/intellij/issue/LiveIssue.java#L92
+            // for the implementation as at 09 September 2017
+
             // Alpha-numerical
             AssertExpectedChecksum("1234567890abcdefghijklmnopqrstuvwxyz", "928f7bcdcd08869cc44c1bf24e7abec6");
             AssertExpectedChecksum("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", "b8ea760cc575698b7aaf5afadd72f639");
