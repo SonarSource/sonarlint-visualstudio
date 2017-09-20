@@ -2,7 +2,7 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace SonarQube.Client
+namespace SonarQube.Client.Helpers
 {
     internal static class JsonHelper
     {

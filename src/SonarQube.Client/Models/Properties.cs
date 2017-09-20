@@ -2,20 +2,20 @@
 
 namespace SonarQube.Client.Models
 {
-    public class Property
+    public class SonarQubeProperty
     {
         public string Key { get; }
         public string Value { get; }
 
-        public Property(string key, string value)
+        public SonarQubeProperty(string key, string value)
         {
             Key = key;
             Value = value;
         }
 
-        public static Property FromDto(PropertyDTO dto)
+        public static SonarQubeProperty FromDto(PropertyDTO dto)
         {
-            return new Property(dto.Key, dto.Value);
+            return new SonarQubeProperty(dto.Key, dto.Value);
         }
     }
 

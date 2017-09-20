@@ -5,6 +5,9 @@ namespace SonarQube.Client.Models
 {
     public class QualityProfile
     {
+        // Ordinal comparer, similar to project key comparer
+        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+
         public string Key { get; }
         public string Name { get; }
         public string Language { get; }

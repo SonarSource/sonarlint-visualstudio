@@ -2,20 +2,20 @@
 
 namespace SonarQube.Client.Models
 {
-    public class Plugin
+    public class SonarQubePlugin
     {
         public string Key { get; }
         public string Version { get; }
 
-        public Plugin(string key, string version)
+        public SonarQubePlugin(string key, string version)
         {
             Key = key;
             Version = version;
         }
 
-        public static Plugin FromDto(PluginDTO dto)
+        public static SonarQubePlugin FromDto(PluginDTO dto)
         {
-            return new Plugin(dto.Key, dto.Version);
+            return new SonarQubePlugin(dto.Key, dto.Version);
         }
     }
 

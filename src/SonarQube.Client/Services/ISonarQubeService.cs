@@ -10,18 +10,21 @@ namespace SonarQube.Client.Services
     {
         bool HasOrganizationsFeature { get; }
 
-        Task ConnectAsync(Connection connection, CancellationToken token);
+        Task ConnectAsync(ConnectionInformation connection, CancellationToken token);
 
         Task<IList<Organization>> GetAllOrganizationsAsync(CancellationToken token);
 
-        Task<IList<Plugin>> GetAllPluginsAsync(CancellationToken token);
+        Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token);
 
-        Task<IList<Project>> GetAllProjectsAsync(string organizationKey, CancellationToken token);
+        Task<IList<SonarQubeProject>> GetAllProjectsAsync(string organizationKey, CancellationToken token);
 
-        Task<IList<Property>> GetAllPropertiesAsync(CancellationToken token);
+        Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(CancellationToken token);
+
+        Uri GetProjectDashboardUrl(string projectKey);
 
         Task<QualityProfile> GetQualityProfileAsync(string projectKey, ServerLanguage language, CancellationToken token);
 
-        Uri GetProjectDashboardUrl(string projectKey);
+        Task<RoslynExportProfile> GetRoslynExportProfileAsync(string qualityProfileName, ServerLanguage language,
+            CancellationToken token);
     }
 }

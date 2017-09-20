@@ -29,10 +29,11 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -43,11 +44,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IHost host;
         private readonly ConnectionInformation connectionInformation;
-        private readonly ProjectInformation project;
+        private readonly SonarQubeProject project;
         private readonly IProjectSystemHelper projectSystem;
         private readonly SolutionBindingOperation solutionBindingOperation;
 
-        public BindingWorkflow(IHost host, ConnectionInformation connectionInformation, ProjectInformation project)
+        public BindingWorkflow(IHost host, ConnectionInformation connectionInformation, SonarQubeProject project)
         {
             if (host == null)
             {
@@ -151,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.DiscoverProjects(controller, notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.DownloadQualityProfile(controller, token, notifications, this.GetBindingLanguages())),
+                        (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, this.GetBindingLanguages(), token)),
 
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => { NuGetHelper.LoadService(this.host); /*The service needs to be loaded on UI thread*/ }),
@@ -209,7 +210,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        internal /*for testing purposes*/ void DownloadQualityProfile(IProgressController controller, CancellationToken cancellationToken, IProgressStepExecutionEvents notificationEvents, IEnumerable<Language> languages)
+        internal /*for testing purposes*/ async System.Threading.Tasks.Task DownloadQualityProfileAsync(
+            IProgressController controller, IProgressStepExecutionEvents notificationEvents, IEnumerable<Language> languages,
+            CancellationToken cancellationToken)
         {
             Debug.Assert(controller != null);
             Debug.Assert(notificationEvents != null);
@@ -221,27 +224,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
             notifier.NotifyCurrentProgress(Strings.DownloadingQualityProfileProgressMessage);
             foreach (var language in languageList)
             {
-                QualityProfile qualityProfileInfo;
-                if (!host.SonarQubeService.TryGetQualityProfile(this.connectionInformation, this.project, language, cancellationToken, out qualityProfileInfo))
-                {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
-                        string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
-                    this.AbortWorkflow(controller, cancellationToken);
-                    return;
-                }
+                var serverLanguage = language.ToServerLanguage();
+
+                var qualityProfileInfo = await this.host.SonarQubeService.GetQualityProfileAsync(this.project.Key,
+                    serverLanguage, cancellationToken); // TODO: Handle errors
+                //VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                //string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
+                //this.AbortWorkflow(controller, cancellationToken);
+                //return;
                 this.QualityProfiles[language] = qualityProfileInfo;
 
-                RoslynExportProfile export;
-                if (!this.host.SonarQubeService.TryGetExportProfile(this.connectionInformation, qualityProfileInfo, language, cancellationToken, out export))
-                {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
-                        string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
-                    this.AbortWorkflow(controller, cancellationToken);
-                    return;
-                }
+                var roslynProfileExporter = await this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
+                    serverLanguage, cancellationToken); // TODO: Handle errors
+                //VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                //    string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
+                //this.AbortWorkflow(controller, cancellationToken);
+                //return;
 
                 var tempRuleSetFilePath = Path.GetTempFileName();
-                File.WriteAllText(tempRuleSetFilePath, export.Configuration.RuleSet.OuterXml);
+                File.WriteAllText(tempRuleSetFilePath, roslynProfileExporter.Configuration.RuleSet.OuterXml);
                 RuleSet ruleSet = RuleSet.LoadFromFile(tempRuleSetFilePath);
 
                 if (ruleSet == null ||
@@ -254,7 +255,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
-                if (export.Deployment.NuGetPackages.Count == 0)
+                if (roslynProfileExporter.Deployment.NuGetPackages.Count == 0)
                 {
                     VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
                         string.Format(Strings.NoNuGetPackageForQualityProfile, language.Name)));
@@ -262,7 +263,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
-                this.NuGetPackages.Add(language, export.Deployment.NuGetPackages);
+                this.NuGetPackages.Add(language, roslynProfileExporter.Deployment.NuGetPackages);
 
                 // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
                 UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfileInfo);

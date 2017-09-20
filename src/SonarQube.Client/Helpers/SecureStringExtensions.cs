@@ -20,9 +20,9 @@
 
 using System.Security;
 
-namespace SonarLint.VisualStudio.Integration.Service
+namespace SonarQube.Client.Helpers
 {
-    internal static class SecureStringExtensions
+    public static class SecureStringExtensions
     {
         /// <summary>
         /// Create a read-only copy of a <see cref="SecureString"/>.

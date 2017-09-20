@@ -415,9 +415,9 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Detecting server plugins.
         /// </summary>
-        public static string DetectingServerPlugins {
+        public static string DetectingSonarQubePlugins {
             get {
-                return ResourceManager.GetString("DetectingServerPlugins", resourceCulture);
+                return ResourceManager.GetString("DetectingSonarQubePlugins", resourceCulture);
             }
         }
         
@@ -668,9 +668,9 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Language: &apos;{0}&apos;, Minimum version: &apos;{1}&apos;.
         /// </summary>
-        public static string MinimumSupportedServerPlugin {
+        public static string MinimumSupportedSonarQubePlugin {
             get {
-                return ResourceManager.GetString("MinimumSupportedServerPlugin", resourceCulture);
+                return ResourceManager.GetString("MinimumSupportedSonarQubePlugin", resourceCulture);
             }
         }
         

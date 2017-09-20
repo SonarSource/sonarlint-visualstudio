@@ -26,10 +26,10 @@ using Microsoft.TeamFoundation.Client.CommandTarget;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -93,15 +93,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool OnBindStatus(ProjectViewModel projectVM)
         {
-            return this.OnBindStatus(projectVM?.ProjectInformation);
+            return this.OnBindStatus(projectVM?.SonarQubeProject);
         }
 
         private void OnBind(ProjectViewModel projectVM)
         {
-            this.OnBind(projectVM?.ProjectInformation);
+            this.OnBind(projectVM?.SonarQubeProject);
         }
 
-        private bool OnBindStatus(ProjectInformation projectInformation)
+        private bool OnBindStatus(SonarQubeProject projectInformation)
         {
             return projectInformation != null
                 && this.host.VisualStateManager.IsConnected
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 && (this.projectSystemHelper.GetSolutionProjects()?.Any() ?? false);
         }
 
-        private void OnBind(ProjectInformation projectInformation)
+        private void OnBind(SonarQubeProject projectInformation)
         {
             Debug.Assert(this.OnBindStatus(projectInformation));
 
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region IBindingWorkflowExecutor
 
-        void IBindingWorkflowExecutor.BindProject(ProjectInformation projectInformation)
+        void IBindingWorkflowExecutor.BindProject(SonarQubeProject projectInformation)
         {
             ConnectionInformation connection = this.host.VisualStateManager.GetConnectedServer(projectInformation);
             Debug.Assert(connection != null, "Could not find a connected server for project: " + projectInformation?.Key);
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.SetBindingInProgress(progressEvents, projectInformation);
         }
 
-        internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, ProjectInformation projectInformation)
+        internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, SonarQubeProject projectInformation)
         {
             this.OnBindingStarted();
 
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToBindId);
         }
 
-        private void OnBindingFinished(ProjectInformation projectInformation, bool isFinishedSuccessfully)
+        private void OnBindingFinished(SonarQubeProject projectInformation, bool isFinishedSuccessfully)
         {
             this.IsBindingInProgress = false;
             this.host.VisualStateManager.ClearBoundProject();
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 if (notifications != null)
                 {
                     // Create a command with a fixed argument with the help of ContextualCommandViewModel that creates proxy command for the contextual (fixed) instance and the passed in ICommand that expects it
-                    ICommand rebindCommand = new ContextualCommandViewModel(projectInformation, new RelayCommand<ProjectInformation>(this.OnBind, this.OnBindStatus)).Command;
+                    ICommand rebindCommand = new ContextualCommandViewModel(projectInformation, new RelayCommand<SonarQubeProject>(this.OnBind, this.OnBindStatus)).Command;
                     notifications.ShowNotificationError(Strings.FailedToToBindSolution, NotificationIds.FailedToBindId, rebindCommand);
                 }
             }

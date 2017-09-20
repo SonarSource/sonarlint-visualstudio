@@ -25,6 +25,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using SonarLint.VisualStudio.Integration.Connection.UI;
@@ -34,6 +35,7 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
@@ -89,14 +91,17 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private ProgressStepDefinition[] CreateConnectionSteps(IProgressController controller, ConnectionInformation connection)
         {
-            string connectStepDisplayText = string.Format(CultureInfo.CurrentCulture, Resources.Strings.ConnectingToSever, connection.ServerUri);
+            string connectStepDisplayText = string.Format(CultureInfo.CurrentCulture, Strings.ConnectingToSever,
+                connection.ServerUri);
             return new[]
             {
-                    new ProgressStepDefinition(connectStepDisplayText, StepAttributes.Indeterminate | StepAttributes.BackgroundThread,
-                        (cancellationToken, notifications) => this.ConnectionStep(controller, cancellationToken, connection, notifications)),
+                new ProgressStepDefinition(connectStepDisplayText, StepAttributes.Indeterminate | StepAttributes.BackgroundThread,
+                    async (cancellationToken, notifications) =>
+                        await this.ConnectionStepAsync(connection, controller, notifications, cancellationToken)),
 
-                    new ProgressStepDefinition(connectStepDisplayText, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.DownloadServiceParameters(controller, token, notifications)),
+                new ProgressStepDefinition(connectStepDisplayText, StepAttributes.BackgroundThread,
+                    async (token, notifications) =>
+                        await this.DownloadServiceParametersAsync(controller, notifications, token)),
 
                 };
         }
@@ -105,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Workflow events
 
-        private void OnProjectsChanged(ConnectionInformation connection, ProjectInformation[] projects)
+        private void OnProjectsChanged(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects)
         {
             this.host.VisualStateManager.SetProjects(connection, projects);
         }
@@ -114,76 +119,76 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Workflow steps
 
-        internal /* for testing purposes */ void ConnectionStep(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection,
-            IProgressStepExecutionEvents notifications)
+        internal /* for testing purposes */ async Task ConnectionStepAsync(ConnectionInformation connection,
+            IProgressController controller, IProgressStepExecutionEvents notifications, CancellationToken cancellationToken)
         {
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToConnectId);
-            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.BadServerPluginId);
+            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.BadSonarQubePluginId);
 
             notifications.ProgressChanged(connection.ServerUri.ToString());
 
-            notifications.ProgressChanged(Strings.ConnectionStepValidatinCredentials);
-            if (!this.host.SonarQubeService.AreCredentialsValid(connection, cancellationToken))
+            try
             {
-                AbortWithMessage(notifications, controller, cancellationToken);
-                return;
-            }
+                notifications.ProgressChanged(Strings.ConnectionStepValidatinCredentials);
+                await this.host.SonarQubeService.ConnectAsync(connection, cancellationToken); // TODO: Handle errors
 
-            if (connection.Organization == null &&
-                this.host.SonarQubeService.HasOrganizationsSupport(connection, cancellationToken))
-            {
-                notifications.ProgressChanged(Strings.ConnectionStepRetrievingOrganizations);
-                OrganizationInformation[] organizations;
-                if (!this.host.SonarQubeService.TryGetOrganizations(connection, cancellationToken, out organizations))
+                if (connection.Organization == null &&
+                    this.host.SonarQubeService.HasOrganizationsFeature)
                 {
-                    AbortWithMessage(notifications, controller, cancellationToken);
-                    return;
-                }
+                    notifications.ProgressChanged(Strings.ConnectionStepRetrievingOrganizations);
+                    var organizations = await this.host.SonarQubeService.GetAllOrganizationsAsync(cancellationToken);
 
-                if (organizations.Length <= 1)
-                {
-                    connection.Organization = null;
-                }
-                else
-                {
-                    connection.Organization = AskUserToSelectOrganizationOnUIThread(organizations);
-                    if (connection.Organization == null) // User clicked cancel
+                    if (organizations.Count <= 1) // Only 1 org means the SQ server is recent enough but the feature is not active
                     {
-                        AbortWithMessage(notifications, controller, cancellationToken);
-                        return;
+                        connection.Organization = null;
                     }
+                    else
+                    {
+                        connection.Organization = AskUserToSelectOrganizationOnUIThread(organizations);
+                        if (connection.Organization == null) // User clicked cancel
+                        {
+                            AbortWithMessage(notifications, controller, cancellationToken); // TODO: Might be worth throwing
+                            return;
+                        }
 
+                    }
                 }
+
+                var isCompatible = await
+                    this.AreSolutionProjectsAndSonarQubePluginsCompatible(controller, cancellationToken, connection, notifications);
+                if (!isCompatible)
+                {
+                    return; // Message is already displayed by the method
+                }
+
+                this.ConnectedServer = connection;
+
+                notifications.ProgressChanged(Strings.ConnectionStepRetrievingProjects);
+                var projects = await this.host.SonarQubeService.GetAllProjectsAsync(connection.Organization.Key,
+                    cancellationToken);
+
+                this.OnProjectsChanged(connection, projects);
+                notifications.ProgressChanged(Strings.ConnectionResultSuccess);
             }
-
-            if (!this.AreSolutionProjectsAndServerPluginsCompatible(controller, cancellationToken, connection, notifications))
-            {
-                return; // Message is already displayed by the method
-            }
-
-            this.ConnectedServer = connection;
-
-            notifications.ProgressChanged(Strings.ConnectionStepRetrievingProjects);
-            ProjectInformation[] projects;
-            if (!this.host.SonarQubeService.TryGetProjects(connection, cancellationToken, out projects))
+            catch (Exception ex)
             {
                 AbortWithMessage(notifications, controller, cancellationToken);
-                return;
             }
-
-            this.OnProjectsChanged(connection, projects);
-            notifications.ProgressChanged(Strings.ConnectionResultSuccess);
         }
 
-        private void AbortWithMessage(IProgressStepExecutionEvents notifications, IProgressController controller, CancellationToken cancellationToken)
+        private void AbortWithMessage(IProgressStepExecutionEvents notifications, IProgressController controller,
+            CancellationToken cancellationToken)
         {
-            notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure);
-            this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);
+            notifications.ProgressChanged(cancellationToken.IsCancellationRequested
+                ? Strings.ConnectionResultCancellation
+                : Strings.ConnectionResultFailure);
+            this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed,
+                NotificationIds.FailedToConnectId, this.parentCommand);
 
             AbortWorkflow(controller, cancellationToken);
         }
 
-        private OrganizationInformation AskUserToSelectOrganizationOnUIThread(IEnumerable<OrganizationInformation> organizations)
+        private Organization AskUserToSelectOrganizationOnUIThread(IEnumerable<Organization> organizations)
         {
             return Application.Current.Dispatcher.Invoke(() =>
             {
@@ -194,28 +199,28 @@ namespace SonarLint.VisualStudio.Integration.Connection
             });
         }
 
-        internal /*for testing purposes*/ void DownloadServiceParameters(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notifications)
+        internal /*for testing purposes*/ async Task DownloadServiceParametersAsync(IProgressController controller,
+            IProgressStepExecutionEvents notifications, CancellationToken token)
         {
             Debug.Assert(this.ConnectedServer != null);
 
-            // Should never realistically take more than 1 second to match against a project name
-            var timeout = TimeSpan.FromSeconds(1);
-            var defaultRegex = new Regex(ServerProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
+            const string TestProjectRegexKey = "sonar.cs.msbuild.testProjectPattern";
+            const string TestProjectRegexDefaultValue = @"[^\\]*test[^\\]*$";
+
+        // Should never realistically take more than 1 second to match against a project name
+        var timeout = TimeSpan.FromSeconds(1);
+            var defaultRegex = new Regex(TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
 
             notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage);
 
-            ServerProperty[] properties;
-            if (!this.host.SonarQubeService.TryGetProperties(this.ConnectedServer, token, out properties) || token.IsCancellationRequested)
+            var properties = await this.host.SonarQubeService.GetAllPropertiesAsync(token);
+            if (token.IsCancellationRequested)
             {
                 AbortWorkflow(controller, token);
                 return;
             }
 
-            var testProjRegexProperty = properties.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, ServerProperty.TestProjectRegexKey));
-
-            // Using this older API, if the property hasn't been explicitly set no default value is returned.
-            // http://jira.sonarsource.com/browse/SONAR-5891
-            var testProjRegexPattern = testProjRegexProperty?.Value ?? ServerProperty.TestProjectRegexDefaultValue;
+            var testProjRegexPattern = properties.First(x => StringComparer.Ordinal.Equals(x.Key, TestProjectRegexKey)).Value;
 
             Regex regex = null;
             if (testProjRegexPattern != null)
@@ -229,7 +234,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 }
                 catch (ArgumentException)
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.InvalidTestProjectRegexPattern,
+                        testProjRegexPattern);
                 }
             }
 
@@ -242,24 +248,23 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Helpers
 
-        private bool AreSolutionProjectsAndServerPluginsCompatible(IProgressController controller, CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
+        private async Task<bool> AreSolutionProjectsAndSonarQubePluginsCompatible(IProgressController controller,
+            CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
         {
-            notifications.ProgressChanged(Strings.DetectingServerPlugins);
+            notifications.ProgressChanged(Strings.DetectingSonarQubePlugins);
 
-            ServerPlugin[] plugins;
-            if (!this.host.SonarQubeService.TryGetPlugins(connection, cancellationToken, out plugins))
-            {
-                notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure);
-                this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);
+            var plugins = await this.host.SonarQubeService.GetAllPluginsAsync(cancellationToken); // TODO: decide what to do on error
+            //notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure);
+            //this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);
 
-                AbortWorkflow(controller, cancellationToken);
-                return false;
-            }
+            //AbortWorkflow(controller, cancellationToken);
+            //return false;
 
             var csharpOrVbNetProjects = new HashSet<EnvDTE.Project>(this.projectSystem.GetSolutionProjects());
-            this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(MinimumSupportedServerPlugin.All
-                                                                                                           .Where(lang => IsServerPluginSupported(plugins, lang))
-                                                                                                           .Select(lang => lang.Language)));
+            var supportedSonarQubePlugins = MinimumSupportedSonarQubePlugin.All
+                .Where(lang => IsSonarQubePluginSupported(plugins, lang))
+                .Select(lang => lang.Language);
+            this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(supportedSonarQubePlugins));
 
             // If any of the project can be bound then return success
             if (csharpOrVbNetProjects.Select(Language.ForProject)
@@ -269,7 +274,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             }
 
             string errorMessage = GetPluginProjectMismatchErrorMessage(csharpOrVbNetProjects);
-            this.host.ActiveSection?.UserNotifications?.ShowNotificationError(errorMessage, NotificationIds.BadServerPluginId, null);
+            this.host.ActiveSection?.UserNotifications?.ShowNotificationError(errorMessage, NotificationIds.BadSonarQubePluginId, null);
             VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, errorMessage);
             notifications.ProgressChanged(Strings.ConnectionResultFailure);
 
@@ -277,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             return false;
         }
 
-        private string GetPluginProjectMismatchErrorMessage(ISet<EnvDTE.Project> csharpOrVbNetProjects)
+        private string GetPluginProjectMismatchErrorMessage(ICollection<EnvDTE.Project> csharpOrVbNetProjects)
         {
             if (this.host.SupportedPluginLanguages.Count == 0)
             {
@@ -292,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             return string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, this.host.SupportedPluginLanguages.First().Name);
         }
 
-        private bool IsServerPluginSupported(ServerPlugin[] plugins, MinimumSupportedServerPlugin minimumSupportedPlugin)
+        private bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> plugins, MinimumSupportedSonarQubePlugin minimumSupportedPlugin)
         {
             var plugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
             var isPluginSupported = !string.IsNullOrWhiteSpace(plugin?.Version) && VersionHelper.Compare(plugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;

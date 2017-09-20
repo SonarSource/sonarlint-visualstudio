@@ -2,9 +2,9 @@
                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                   xmlns:data="clr-namespace:SonarLint.VisualStudio.Integration.Service"
                    xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.Connection.UI"
                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                   xmlns:models="clr-namespace:SonarQube.Client.Models;assembly=SonarQube.Client"
                    xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
                    xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
                    Title="Select the organization"
@@ -63,7 +63,7 @@
                     </Style>
                 </ComboBox.ItemContainerStyle>
                 <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type data:OrganizationInformation}">
+                    <DataTemplate DataType="{x:Type models:Organization}">
                         <TextBlock TextTrimming="CharacterEllipsis">
                             <Run Text="{Binding Name, Mode=OneWay}" />
                             <Run Text="(" /><Run Text="{Binding Key, Mode=OneWay}" /><Run Text=")" />

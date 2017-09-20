@@ -660,11 +660,11 @@ This is the general format to use when writing errors to output window or when t
     <value>   {0}</value>
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
   </data>
-  <data name="MinimumSupportedServerPlugin" xml:space="preserve">
+  <data name="MinimumSupportedSonarQubePlugin" xml:space="preserve">
     <value>Language: '{0}', Minimum version: '{1}'</value>
     <comment>Error message displayed for every supported plugin when none of them match the minimum required version. {0} the plugin language name, {1} the plugin minimum version.</comment>
   </data>
-  <data name="DetectingServerPlugins" xml:space="preserve">
+  <data name="DetectingSonarQubePlugins" xml:space="preserve">
     <value>Detecting server plugins</value>
     <comment>Output window message printed before accessing to server plugins.</comment>
   </data>

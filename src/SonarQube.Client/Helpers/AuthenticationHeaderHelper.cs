@@ -26,7 +26,7 @@ using System.Security;
 using System.Text;
 using SonarQube.Client.Models;
 
-namespace SonarQube.Client
+namespace SonarQube.Client.Helpers
 {
     internal static class AuthenticationHeaderHelper
     {

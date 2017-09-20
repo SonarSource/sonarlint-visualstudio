@@ -1,26 +1,30 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace SonarQube.Client.Models
 {
-    public class Project
+    public class SonarQubeProject
     {
+        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
+        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+
         public string Key { get; }
         public string Name { get; }
 
-        public Project(string key, string name)
+        public SonarQubeProject(string key, string name)
         {
             Key = key;
             Name = name;
         }
 
-        public static Project FromDto(ProjectDTO dto)
+        public static SonarQubeProject FromDto(ProjectDTO dto)
         {
-            return new Project(dto.Key, dto.Name);
+            return new SonarQubeProject(dto.Key, dto.Name);
         }
 
-        public static Project FromDto(ComponentDTO dto)
+        public static SonarQubeProject FromDto(ComponentDTO dto)
         {
-            return new Project(dto.Key, dto.Name);
+            return new SonarQubeProject(dto.Key, dto.Name);
         }
     }
 

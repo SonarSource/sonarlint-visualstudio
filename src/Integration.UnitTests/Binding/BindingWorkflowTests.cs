@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             profile.Name = QualityProfileName;
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             RuleSetAssert.AreEqual(expectedRuleSet, testSubject.Rulesets[language], "Unexpected rule set");
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProfileExport(null, Language.VBNET);
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProfileExport(null, language);
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             profile.Name = QualityProfileName;
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
@@ -252,7 +252,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             profile.Name = QualityProfileName;
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
@@ -292,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             profile.Name = QualityProfileName;
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");

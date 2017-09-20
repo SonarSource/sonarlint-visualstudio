@@ -4,11 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarQube.Client.Models;
-using SonarQube.Client.Services;
 
-namespace SonarQube.Client
+namespace SonarQube.Client.Services
 {
-    public class SonarQubeService
+    public class SonarQubeService : ISonarQubeService
     {
         internal const int MaximumPageSize = 500;
         internal readonly Version OrganizationsFeatureMinimalVersion = new Version(6, 2);
@@ -28,27 +27,21 @@ namespace SonarQube.Client
         {
             get
             {
-                if (!this.isConnected)
-                {
-                    throw new InvalidOperationException("This operation expects the service to be connected.");
-                }
+                EnsureIsConnected();
 
                 return this.serverVersion >= OrganizationsFeatureMinimalVersion;
             }
         }
 
-        public async Task ConnectAsync(Connection connection, CancellationToken token)
+        public async Task ConnectAsync(ConnectionInformation connection, CancellationToken token)
         {
-            if (this.isConnected)
-            {
-                throw new InvalidOperationException("This operation expects the service to be connected.");
-            }
+            EnsureIsConnected();
 
             var connectionDto = new ConnectionDTO
             {
                 Authentication = connection.Authentication,
                 ServerUri = connection.ServerUri,
-                Login = connection.Login,
+                Login = connection.UserName,
                 Password = connection.Password
             };
 
@@ -81,10 +74,7 @@ namespace SonarQube.Client
         }
         public async Task<IList<Organization>> GetAllOrganizationsAsync(CancellationToken token)
         {
-            if (!this.isConnected)
-            {
-                throw new InvalidOperationException("This operation expects the service to be connected.");
-            }
+            EnsureIsConnected();
 
             int currentPage = 1;
             var allOrganizations = new List<OrganizationDTO>();
@@ -111,7 +101,7 @@ namespace SonarQube.Client
             return allOrganizations.Select(Organization.FromDto).ToList();
         }
 
-        public async Task<IList<Plugin>> GetAllPluginsAsync(CancellationToken token)
+        public async Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token)
         {
             if (!this.isConnected)
             {
@@ -124,15 +114,12 @@ namespace SonarQube.Client
                 // TODO: something went wrong
             }
 
-            return pluginsResult.Value.Select(Plugin.FromDto).ToList();
+            return pluginsResult.Value.Select(SonarQubePlugin.FromDto).ToList();
         }
 
-        public async Task<IList<Project>> GetAllProjects(string organizationKey, CancellationToken token)
+        public async Task<IList<SonarQubeProject>> GetAllProjectsAsync(string organizationKey, CancellationToken token)
         {
-            if (!this.isConnected)
-            {
-                throw new InvalidOperationException("This operation expects the service to be connected.");
-            }
+            EnsureIsConnected();
 
             if (organizationKey == null) // Orgs are not supported or not enabled
             {
@@ -142,7 +129,7 @@ namespace SonarQube.Client
                     // TODO: something went wrong
                 }
 
-                return projectsResult.Value.Select(Project.FromDto).ToList();
+                return projectsResult.Value.Select(SonarQubeProject.FromDto).ToList();
             }
 
             int currentPage = 1;
@@ -168,15 +155,12 @@ namespace SonarQube.Client
             }
             while (componentsResult.Value.Length > 0);
 
-            return allProjects.Select(Project.FromDto).ToList();
+            return allProjects.Select(SonarQubeProject.FromDto).ToList();
         }
 
-        public async Task<IList<Property>> GetAllPropertiesAsync(CancellationToken token)
+        public async Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(CancellationToken token)
         {
-            if (!this.isConnected)
-            {
-                throw new InvalidOperationException("This operation expects the service to be connected.");
-            }
+            EnsureIsConnected();
 
             var propertiesResult = await this.sonarqubeClient.GetPropertiesAsync(this.connection, token);
             if (propertiesResult.IsFailure)
@@ -184,16 +168,21 @@ namespace SonarQube.Client
                 // TODO: something went wrong
             }
 
-            return propertiesResult.Value.Select(Property.FromDto).ToList();
+            return propertiesResult.Value.Select(SonarQubeProperty.FromDto).ToList();
+        }
+
+        public Uri GetProjectDashboardUrl(string projectKey)
+        {
+            EnsureIsConnected();
+
+            const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
+            return new Uri(this.connection.ServerUri, string.Format(ProjectDashboardRelativeUrl, projectKey));
         }
 
         public async Task<QualityProfile> GetQualityProfileAsync(string projectKey, ServerLanguage language,
-            CancellationToken token)
+                    CancellationToken token)
         {
-            if (!this.isConnected)
-            {
-                throw new InvalidOperationException("This operation expects the service to be connected.");
-            }
+            EnsureIsConnected();
 
             var qualityProfileRequest = new QualityProfileRequest { ProjectKey = projectKey };
             var qualityProfilesResult = await this.sonarqubeClient.GetQualityProfilesAsync(this.connection,
@@ -221,16 +210,25 @@ namespace SonarQube.Client
 
             return QualityProfile.FromDto(qualityProfile, changeLog.Value.Events.Single().Date);
         }
+        public async Task<RoslynExportProfile> GetRoslynExportProfileAsync(string qualityProfileName, ServerLanguage language,
+            CancellationToken token)
+        {
+            var request = new RoslynExportProfileRequest { QualityProfileName = qualityProfileName, Language = language };
+            var roslynExportResult = await this.sonarqubeClient.GetRoslynExportProfileAsync(this.connection, request, token);
+            if (roslynExportResult.IsFailure)
+            {
+                // TODO: something went wrong
+            }
 
-        public Uri GetProjectDashboardUrl(string projectKey)
+            return roslynExportResult.Value;
+        }
+
+        private void EnsureIsConnected()
         {
             if (!this.isConnected)
             {
                 throw new InvalidOperationException("This operation expects the service to be connected.");
             }
-
-            const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
-            return new Uri(this.connection.ServerUri, string.Format(ProjectDashboardRelativeUrl, projectKey));
         }
 
         private void HandleFailures<T>(Result<T> result, CancellationToken token)
