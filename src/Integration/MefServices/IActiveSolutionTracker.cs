@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface IActiveSolutionTracker
+    internal interface IActiveSolutionTracker
     {
         /// <summary>
         /// The active solution has changed (either opened or closed).

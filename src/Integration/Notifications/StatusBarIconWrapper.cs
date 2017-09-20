@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -87,19 +88,22 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
             set
             {
-                ThreadHelper.Generic.Invoke(() =>
-                {
-                    if (!isInVisualTree)
-                    {
-                        isInVisualTree = true;
-                        VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIndicator);
-                    }
-
-                    notificationIndicator.Visibility = value
-                            ? Visibility.Visible
-                            : Visibility.Collapsed;
-                });
+                ThreadHelper.Generic.Invoke(() => SetVisibility(value));
             }
+        }
+
+        private void SetVisibility(bool visibility)
+        {
+            if (!isInVisualTree)
+            {
+                isInVisualTree = true;
+                Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be running on the UI thread");
+                VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIndicator);
+            }
+
+            notificationIndicator.Visibility = visibility
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
         }
 
         public void OnBalloonTipClicked()

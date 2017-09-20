@@ -186,10 +186,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 NotificationEvent[] events;
 
-                testSubject.TryGetNotificationEvents(connectionInfo, CancellationToken.None, projectKey, dateLastCheck,
-                    out events).Should().BeTrue("Expected to get the notifications");
+                var isSuccess = testSubject.TryGetNotificationEvents(connectionInfo, CancellationToken.None, projectKey, dateLastCheck,
+                    out events);
 
                 // Assert
+                isSuccess.Should().BeTrue("Expected to get the notifications");
                 AssertEqual(expected, events);
                 this.outputWindowPane.AssertOutputStrings(0);
             }

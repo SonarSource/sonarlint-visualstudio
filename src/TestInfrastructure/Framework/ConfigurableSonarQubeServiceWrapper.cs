@@ -250,7 +250,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.AssertExpectedConnection(serverConnection);
             events = ReturnNotificationEvents;
-            return true;
+            return ReturnNotificationEvents != null;
         }
 
         #endregion ISonarQubeServiceWrapper

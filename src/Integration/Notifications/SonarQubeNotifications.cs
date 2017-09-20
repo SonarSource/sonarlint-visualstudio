@@ -37,15 +37,19 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     {
         public event EventHandler ShowDetails;
 
-        private INotifyIcon notifyIcon;
-        private readonly ITimer timer;
         private const string iconPath = "pack://application:,,,/SonarLint;component/Resources/sonarqube_green.ico";
         private const string tooltipTitle = "SonarQube notification";
-        private string message;
-        private DateTimeOffset lastRequestDate = DateTimeOffset.MinValue;
+
+        private readonly INotifyIcon notifyIcon;
+        private readonly ITimer timer;
         private readonly ISonarQubeServiceWrapper sonarQubeService;
         private readonly IStateManager stateManager;
         private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
+
+        private DateTimeOffset lastRequestDate = DateTimeOffset.MinValue;
+        private bool disposed;
+        private ConnectionInformation serverConnection;
+        private string projectKey;
 
         [ImportingConstructor]
         [ExcludeFromCodeCoverage] // Do not unit test MEF constructor
@@ -72,8 +76,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         {
             notifyIcon.BalloonTipClick += OnBalloonTipClick;
             notifyIcon.IsVisible = true;
-
-            var serverConnection = ThreadHelper.Generic.Invoke(() => stateManager.GetConnectedServers().FirstOrDefault());
 
             timer.Start();
         }
@@ -123,19 +125,33 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
             if (isSuccess && events != null)
             {
-                message = string.Join(Environment.NewLine + Environment.NewLine,
+                var message = string.Join(Environment.NewLine + Environment.NewLine,
                     events.Select(ev => ev.Message));
                 lastRequestDate = events.Max(ev => ev.Date);
-                notifyIcon.HasEvents = true;
-                notifyIcon.BalloonTipText = message;
+
+                if (message != null)
+                {
+                    notifyIcon.HasEvents = true;
+                    notifyIcon.BalloonTipText = message;
+                }
             }
         }
 
         public void Dispose()
         {
-            timer.Elapsed -= OnTimerElapsed;
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-            Stop();
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                timer.Elapsed -= OnTimerElapsed;
+                Stop();
+
+                disposed = true;
+            }
         }
     }
 }
