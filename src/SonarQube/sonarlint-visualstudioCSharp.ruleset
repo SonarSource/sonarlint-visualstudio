@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="SonarQube - SonarLint for Visual Studio C# QP for SonarSource" Description="This rule set was automatically generated from SonarQube.&#xD;&#xA;https://next.sonarqube.com/sonarqube/profiles/show?key=cs-c-qp-for-sonarsource-73109" ToolsVersion="15.0">
+<RuleSet Name="SonarQube - SonarLint for Visual Studio C# QP for SonarSource" Description="This rule set was automatically generated from SonarQube.&#xD;&#xA;https://next.sonarqube.com/sonarqube/profiles/show?key=cs-c-qp-for-sonarsource-73109" ToolsVersion="14.0">
   <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
     <Rule Id="S100" Action="None" />
     <Rule Id="S1006" Action="Warning" />

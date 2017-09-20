@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Services;
 
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.errorListInfoBarController = this.extensionHost.GetService<IErrorListInfoBarController>();
             this.errorListInfoBarController.AssertLocalServiceIsNotNull();
-            
+
             //TODO: check whether the errorListInfobarController needs to be refreshed
 
             // The user changed the binding through the Team Explorer
@@ -76,15 +77,15 @@ namespace SonarLint.VisualStudio.Integration
         }
 
 
-        private void OnActiveSolutionChanged(object sender, EventArgs e)
+        private async void OnActiveSolutionChanged(object sender, EventArgs e)
         {
-            UpdateConnection();
+            await UpdateConnection();
 
             this.RaiseAnalyzersChangedIfBindingChanged();
             this.errorListInfoBarController.Refresh();
         }
 
-        private void UpdateConnection()
+        private async Task UpdateConnection()
         {
             ISonarQubeService sqService = this.extensionHost.SonarQubeService;
             if (sqService.IsConnected)
@@ -108,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 // TODO: handle connection failure
                 // TODO: block until the connection is complete
-                this.extensionHost.SonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None);
+                await this.extensionHost.SonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None);
             }
         }
 
@@ -134,9 +135,9 @@ namespace SonarLint.VisualStudio.Integration
 
         #region IPartImportsSatisfiedNotification
 
-        public void OnImportsSatisfied()
+        public async void OnImportsSatisfied()
         {
-            UpdateConnection();
+            await UpdateConnection();
         }
 
         #endregion
