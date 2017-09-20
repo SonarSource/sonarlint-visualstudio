@@ -22,10 +22,35 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarQube.Client.Helpers
 {
-    internal static class SecureStringHelpers
+    public static class SecureStringHelper
     {
+        /// <summary>
+        /// Create a read-only copy of a <see cref="SecureString"/>.
+        /// </summary>
+        /// <remarks>
+        /// Equivalent to calling <see cref="SecureString.Copy"/> followed by <see cref="SecureString.MakeReadOnly"/>.
+        /// </remarks>
+        /// <returns>Read-only copy of <see cref="SecureString"/></returns>
+        public static SecureString CopyAsReadOnly(this SecureString secureString)
+        {
+            SecureString copy = secureString.Copy();
+            copy.MakeReadOnly();
+            return copy;
+        }
+
+        public static bool IsEmpty(this SecureString secureString)
+        {
+            return secureString.Length == 0;
+        }
+
+        public static bool IsNullOrEmpty(this SecureString secureString)
+        {
+            return secureString == null || secureString.IsEmpty();
+        }
+
+
         // Copied from http://blogs.msdn.com/b/fpintos/archive/2009/06/12/how-to-properly-convert-securestring-to-string.aspx
 
         /// <summary>

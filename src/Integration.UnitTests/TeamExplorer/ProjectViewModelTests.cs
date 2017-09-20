@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                new ProjectViewModel(null, new ProjectInformation());
+                new ProjectViewModel(null, new SonarQubeProject());
             });
 
             Exceptions.Expect<ArgumentNullException>(() =>
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void ProjectViewModel_Ctor()
         {
             // Arrange
-            var projectInfo = new ProjectInformation
+            var projectInfo = new SonarQubeProject
             {
                 Key = "P1",
                 Name = "Project1"
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             viewModel.IsBound.Should().BeFalse();
             viewModel.Key.Should().Be(projectInfo.Key);
             viewModel.ProjectName.Should().Be(projectInfo.Name);
-            viewModel.ProjectInformation.Should().Be(projectInfo);
+            viewModel.SonarQubeProject.Should().Be(projectInfo);
             viewModel.Owner.Should().Be(serverVM);
         }
 
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void ProjectViewModel_ToolTipProjectName_RespectsIsBound()
         {
             // Arrange
-            var projectInfo = new ProjectInformation
+            var projectInfo = new SonarQubeProject
             {
                 Key = "P1",
                 Name = "Project1"
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void ProjectViewModel_AutomationName()
         {
             // Arrange
-            var projectInfo = new ProjectInformation
+            var projectInfo = new SonarQubeProject
             {
                 Key = "P1",
                 Name = "Project1"

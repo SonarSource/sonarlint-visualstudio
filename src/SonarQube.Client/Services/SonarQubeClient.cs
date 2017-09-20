@@ -20,6 +20,16 @@ namespace SonarQube.Client.Services
 
         public SonarQubeClient(HttpMessageHandler messageHandler, TimeSpan requestTimeout)
         {
+            if (messageHandler == null)
+            {
+                throw new ArgumentNullException(nameof(messageHandler));
+            }
+
+            if (requestTimeout <= TimeSpan.Zero)
+            {
+                throw new ArgumentException("Doesn't expect a zero or negative timeout.", nameof(requestTimeout));
+            }
+
             this.messageHandler = messageHandler;
             this.requestTimeout = requestTimeout;
         }
@@ -32,11 +42,12 @@ namespace SonarQube.Client.Services
             return SafeUseHttpClient(connection,
                 async client =>
                 {
-                    var query = AppendQueryString(SearchProjectsAPI, "?organization={0}&p={1}&ps={2}&asc=true"); // TODO: should handle optional params
+                    var query = AppendQueryString(SearchProjectsAPI, "?organization={0}&p={1}&ps={2}&asc=true",
+                        request.OrganizationKey, request.Page, request.PageSize); // TODO: should handle optional params
                     var httpResponse = await InvokeGetRequest(client, query, token);
                     var stringResponse = await GetStringResultAsync(httpResponse, token);
 
-                    return ProcessJsonResponse<ComponentDTO[]>(stringResponse, token);
+                    return JObject.Parse(stringResponse)["components"].ToObject<ComponentDTO[]>();
                 });
         }
 
@@ -184,7 +195,7 @@ namespace SonarQube.Client.Services
                 });
         }
 
-        internal /*for testing purposes*/ static string AppendQueryString(string urlBase, string queryFormat,
+        public static string AppendQueryString(string urlBase, string queryFormat,
             params object[] args)
         {
             return urlBase +
@@ -192,7 +203,7 @@ namespace SonarQube.Client.Services
                     args.Select(x => HttpUtility.UrlEncode(x.ToString())).ToArray());
         }
 
-        internal /*for testing purposes*/ static Uri CreateRequestUrl(HttpClient client, string apiUrl)
+        public static Uri CreateRequestUrl(HttpClient client, string apiUrl)
         {
             // We normalize these inputs to that the client base address always has a trailing slash,
             // and the API URL has no leading slash.
@@ -209,7 +220,7 @@ namespace SonarQube.Client.Services
             return new Uri(normalBaseUri, normalApiUrl);
         }
 
-        private static async Task<string> GetStringResultAsync(HttpResponseMessage response,
+        public static async Task<string> GetStringResultAsync(HttpResponseMessage response,
             CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
@@ -218,7 +229,7 @@ namespace SonarQube.Client.Services
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
 
-        private static async Task<HttpResponseMessage> InvokeGetRequest(HttpClient client, string apiUrl,
+        public static async Task<HttpResponseMessage> InvokeGetRequest(HttpClient client, string apiUrl,
                     CancellationToken token)
         {
             var uri = CreateRequestUrl(client, apiUrl);
@@ -228,13 +239,13 @@ namespace SonarQube.Client.Services
 
             return httpResponse;
         }
-        private static T ProcessJsonResponse<T>(string jsonResponse, CancellationToken token)
+        public static T ProcessJsonResponse<T>(string jsonResponse, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             return JsonHelper.Deserialize<T>(jsonResponse);
         }
 
-        private async Task<Result<T>> SafeUseHttpClient<T>(ConnectionDTO connection, Func<HttpClient, Task<T>> sendRequestsAsync)
+        public async Task<Result<T>> SafeUseHttpClient<T>(ConnectionDTO connection, Func<HttpClient, Task<T>> sendRequestsAsync)
         {
             using (HttpClient client = new HttpClient(this.messageHandler))
             {

@@ -25,9 +25,9 @@ using FluentAssertions;
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 2: re-initialization with connection but no projects
             this.host.TestStateManager.IsConnected = true;
-            this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
+            this.sonarQubeService.ReturnSonarQubeProject = new SonarQubeProject[0];
             ReInitialize(testSubject, this.host);
 
             // Assert
@@ -90,8 +90,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
             // Case 3: re-initialization with connection and projects
-            var projects = new[] { new ProjectInformation() };
-            this.sonarQubeService.ReturnProjectInformation = projects;
+            var projects = new[] { new SonarQubeProject() };
+            this.sonarQubeService.ReturnSonarQubeProject = projects;
             ReInitialize(testSubject, this.host);
 
             // Assert
@@ -229,7 +229,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var testSubject = this.CreateTestSubject();
             var connInfo = new ConnectionInformation(new Uri("http://localhost"));
-            var projectInfo = new ProjectInformation { Key = "p1", Name = "proj1" };
+            var projectInfo = new SonarQubeProject { Key = "p1", Name = "proj1" };
             var server = new ServerViewModel(connInfo);
             var project = new ProjectViewModel(server, projectInfo);
             server.Projects.Add(project);
@@ -297,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = this.CreateTestSubject(webBrowser);
             var serverUrl = new Uri("http://my-sonar-server:5555");
             var connectionInfo = new ConnectionInformation(serverUrl);
-            var projectInfo = new ProjectInformation { Key = "p1" };
+            var projectInfo = new SonarQubeProject { Key = "p1" };
 
             Uri expectedUrl = new Uri(serverUrl, string.Format(SonarQubeServiceWrapper.ProjectDashboardRelativeUrl, projectInfo.Key));
             this.sonarQubeService.RegisterProjectDashboardUrl(connectionInfo, projectInfo, expectedUrl);

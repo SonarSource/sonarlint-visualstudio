@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var connection = new ConnectionInformation(new Uri("https://sonarqube.com"));
 
             // Step 1: Connect anonymously
-            ProjectInformation[] projects = null;
+            SonarQubeProject[] projects = null;
 
             RetryAction(() => s.TryGetProjects(connection, CancellationToken.None, out projects),
                                         "Get projects from SonarQube server");

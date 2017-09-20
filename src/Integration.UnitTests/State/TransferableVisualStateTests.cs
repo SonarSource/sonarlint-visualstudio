@@ -53,8 +53,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             // Arrange
             var testSubject = new TransferableVisualState();
             var server = new ServerViewModel(new Integration.Service.ConnectionInformation(new System.Uri("http://server")));
-            var project1 = new ProjectViewModel(server, new Integration.Service.ProjectInformation());
-            var project2 = new ProjectViewModel(server, new Integration.Service.ProjectInformation());
+            var project1 = new ProjectViewModel(server, new Integration.Service.SonarQubeProject());
+            var project2 = new ProjectViewModel(server, new Integration.Service.SonarQubeProject());
 
             // Act (bind to something)
             testSubject.SetBoundProject(project1);

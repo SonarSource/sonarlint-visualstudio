@@ -328,11 +328,95 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="**\obj\**\*" />
+    <Compile Include="Framework\ConfigurableActiveSolutionBoundTracker.cs" />
+    <Compile Include="Framework\ConfigurableActiveSolutionTracker.cs" />
+    <Compile Include="Framework\ConfigurableBindingOperation.cs" />
+    <Compile Include="Framework\ConfigurableComponentModel.cs" />
+    <Compile Include="Framework\ConfigurableCompositionService.cs" />
+    <Compile Include="Framework\ConfigurableConflictsManager.cs" />
+    <Compile Include="Framework\ConfigurableConnectionInformationProvider.cs" />
+    <Compile Include="Framework\ConfigurableConnectionWorkflow.cs" />
+    <Compile Include="Framework\ConfigurableErrorListInfoBarController.cs" />
+    <Compile Include="Framework\ConfigurableFileSystem.cs" />
+    <Compile Include="Framework\ConfigurableHost.cs" />
+    <Compile Include="Framework\ConfigurableInfoBar.cs" />
+    <Compile Include="Framework\ConfigurableInfoBarManager.cs" />
+    <Compile Include="Framework\ConfigurableIntegrationSettings.cs" />
+    <Compile Include="Framework\ConfigurableMenuCommandService.cs" />
+    <Compile Include="Framework\ConfigurablePackageInstaller.cs" />
+    <Compile Include="Framework\ConfigurableProgressControlHost.cs" />
+    <Compile Include="Framework\ConfigurableProgressController.cs" />
+    <Compile Include="Framework\ConfigurableProgressEvents.cs" />
+    <Compile Include="Framework\ConfigurableProgressStep.cs" />
+    <Compile Include="Framework\ConfigurableProgressStepExecutionEvents.cs" />
+    <Compile Include="Framework\ConfigurableProgressStepRunner.cs" />
+    <Compile Include="Framework\ConfigurableProjectSystemFilter.cs" />
+    <Compile Include="Framework\ConfigurableRuleSetConflictsController.cs" />
+    <Compile Include="Framework\ConfigurableRuleSetInspector.cs" />
+    <Compile Include="Framework\ConfigurableRuleSetSerializer.cs" />
+    <Compile Include="Framework\ConfigurableSectionController.cs" />
+    <Compile Include="Framework\ConfigurableServiceProvider.cs" />
+    <Compile Include="Framework\ConfigurableSettingsManager.cs" />
+    <Compile Include="Framework\ConfigurableSolutionBindingInformationProvider.cs" />
+    <Compile Include="Framework\ConfigurableSolutionBindingSerializer.cs" />
+    <Compile Include="Framework\ConfigurableSolutionRuleSetsInformationProvider.cs" />
+    <Compile Include="Framework\ConfigurableSolutionRuleStore.cs" />
+    <Compile Include="Framework\ConfigurableSourceControlledFileSystem.cs" />
+    <Compile Include="Framework\ConfigurableStateManager.cs" />
+    <Compile Include="Framework\ConfigurableTeamExplorer.cs" />
+    <Compile Include="Framework\ConfigurableTeamExplorerController.cs" />
+    <Compile Include="Framework\ConfigurableTeamExplorerPage.cs" />
+    <Compile Include="Framework\ConfigurableTelemetryLogger.cs" />
+    <Compile Include="Framework\ConfigurableUriValidator.cs" />
+    <Compile Include="Framework\ConfigurableUserNotification.cs" />
+    <Compile Include="Framework\ConfigurableVsActivityLog.cs" />
+    <Compile Include="Framework\ConfigurableVsCommand.cs" />
+    <Compile Include="Framework\ConfigurableVsInfoBar.cs" />
+    <Compile Include="Framework\ConfigurableVsInfoBarHost.cs" />
+    <Compile Include="Framework\ConfigurableVsInfoBarUIElement.cs" />
+    <Compile Include="Framework\ConfigurableVsInfoBarUIFactory.cs" />
+    <Compile Include="Framework\ConfigurableVsMonitorSelection.cs" />
+    <Compile Include="Framework\ConfigurableVsOutputWindow.cs" />
+    <Compile Include="Framework\ConfigurableVsOutputWindowPane.cs" />
+    <Compile Include="Framework\ConfigurableVsProjectSystemHelper.cs" />
+    <Compile Include="Framework\ConfigurableVsQueryEditQuerySave2.cs" />
+    <Compile Include="Framework\ConfigurableVsShell.cs" />
+    <Compile Include="Framework\ConfigurableVsUIShell.cs" />
+    <Compile Include="Framework\ConfigurableVsWindowFrame.cs" />
+    <Compile Include="Framework\ConfigurableWebBrowser.cs" />
+    <Compile Include="Framework\ConfigurableWritableSettingsStore.cs" />
+    <Compile Include="Helpers\AssertIgnoreScope.cs" />
+    <Compile Include="Helpers\CommandHelper.cs" />
+    <Compile Include="Helpers\DispatcherHelper.cs" />
+    <Compile Include="Helpers\Exceptions.cs" />
+    <Compile Include="Helpers\KnownUIContextsAccessor.cs" />
+    <Compile Include="Helpers\MefTestHelpers.cs" />
+    <Compile Include="Helpers\RoslynExportProfileHelper.cs" />
+    <Compile Include="Helpers\RuleSetAssert.cs" />
+    <Compile Include="Helpers\SingleObjectImporter.cs" />
+    <Compile Include="Helpers\TestRuleSetHelper.cs" />
+    <Compile Include="Helpers\ThreadHelper.cs" />
+    <Compile Include="Helpers\VsServiceProviderHelper.cs" />
+    <Compile Include="InternalsVisibleTo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VsObjectModelMocks\CommandsMock.cs" />
+    <Compile Include="VsObjectModelMocks\ConfigurationManagerMock.cs" />
+    <Compile Include="VsObjectModelMocks\ConfigurationMock.cs" />
+    <Compile Include="VsObjectModelMocks\DTEMock.cs" />
+    <Compile Include="VsObjectModelMocks\EnumBase.cs" />
+    <Compile Include="VsObjectModelMocks\ProjectItemsMock.cs" />
+    <Compile Include="VsObjectModelMocks\ProjectMock.cs" />
+    <Compile Include="VsObjectModelMocks\PropertiesMock.cs" />
+    <Compile Include="VsObjectModelMocks\PropertyMock.cs" />
+    <Compile Include="VsObjectModelMocks\SolutionMock.cs" />
+    <Compile Include="VsObjectModelMocks\SolutionMock.Solution2.cs" />
+    <Compile Include="VsObjectModelMocks\ToolWindowsMock.cs" />
+    <Compile Include="VsObjectModelMocks\UIHierarchyMock.cs" />
+    <Compile Include="VsObjectModelMocks\VsUIHierarchyMock.cs" />
+    <Compile Include="VsObjectModelMocks\WindowMock.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="Framework\ConnectionInformation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -22,35 +22,38 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarQube.Client.Helpers.Tests
 {
     [TestClass]
-    public class UriExtensionsTests
+    public class UriHelperTests
     {
         [TestMethod]
-        public void UriExtensions_NullArgChecks()
+        public void UriHelper_NullArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => UriExtensions.EnsureTrailingSlash(null));
+            Action action = () => UriHelper.EnsureTrailingSlash(null);
+            action.ShouldThrow<ArgumentNullException>();
         }
 
         [TestMethod]
-        public void UriExtensions_EnsureTrailingSlash_NoTrailingSlash_AppendsSlash()
+        public void UriHelper_EnsureTrailingSlash_NoTrailingSlash_AppendsSlash()
         {
             // Act
-            var noSlashResult = UriExtensions.EnsureTrailingSlash(new Uri("http://localhost/NoSlash"));
+            var noSlashResult = UriHelper.EnsureTrailingSlash(new Uri("http://localhost/NoSlash"));
 
             // Assert
-            noSlashResult.ToString().Should().Be("http://localhost/NoSlash/", "Unexpected normalization of URI without trailing slash");
+            noSlashResult.ToString().Should().Be("http://localhost/NoSlash/",
+                "Unexpected normalization of URI without trailing slash");
         }
 
         [TestMethod]
-        public void UriExtensions_EnsureTrailingSlash_HasTrailingSlash_ReturnsSameInstance()
+        public void UriHelper_EnsureTrailingSlash_HasTrailingSlash_ReturnsSameInstance()
         {
             // Act
-            var withSlashResult = UriExtensions.EnsureTrailingSlash(new Uri("http://localhost/WithSlash/"));
+            var withSlashResult = UriHelper.EnsureTrailingSlash(new Uri("http://localhost/WithSlash/"));
 
             // Assert
-            withSlashResult.ToString().Should().Be("http://localhost/WithSlash/", "Unexpected normalization of URI already with trailing slash");
+            withSlashResult.ToString().Should().Be("http://localhost/WithSlash/",
+                "Unexpected normalization of URI already with trailing slash");
         }
     }
 }

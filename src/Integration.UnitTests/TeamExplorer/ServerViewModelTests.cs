@@ -25,8 +25,8 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -49,12 +49,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Arrange
             var connInfo = new ConnectionInformation(new Uri("https://myawesomeserver:1234/"));
-            IEnumerable<ProjectInformation> projects = new[]
+            IEnumerable<SonarQubeProject> projects = new[]
             {
-                new ProjectInformation { Name = "Project1", Key="1" },
-                new ProjectInformation { Name = "Project2", Key="2" },
-                new ProjectInformation { Name = "Project3", Key="3" },
-                new ProjectInformation { Name = "Project4", Key="4" }
+                new SonarQubeProject { Name = "Project1", Key="1" },
+                new SonarQubeProject { Name = "Project2", Key="2" },
+                new SonarQubeProject { Name = "Project3", Key="3" },
+                new SonarQubeProject { Name = "Project4", Key="4" }
             };
             string[] projectKeys = projects.Select(x => x.Key).ToArray();
 
@@ -98,11 +98,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var connInfo = new ConnectionInformation(new Uri("https://myawesomeserver:1234/"));
             var viewModel = new ServerViewModel(connInfo);
-            IEnumerable<ProjectInformation> projects = new[]
+            IEnumerable<SonarQubeProject> projects = new[]
             {
-                new ProjectInformation { Name = "Project3", Key="1" },
-                new ProjectInformation { Name = "Project2", Key="2" },
-                new ProjectInformation { Name = "project1", Key="3" },
+                new SonarQubeProject { Name = "Project3", Key="1" },
+                new SonarQubeProject { Name = "Project2", Key="2" },
+                new SonarQubeProject { Name = "project1", Key="3" },
             };
             string[] expectedOrderedProjectNames = projects.Select(p => p.Name).OrderBy(n => n, StringComparer.CurrentCulture).ToArray();
 
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             viewModel.SetProjects(projects);
 
             // Assert
-            string[] actualProjectNames = viewModel.Projects.Select(p => p.ProjectInformation.Name).OrderBy(n => n, StringComparer.CurrentCulture).ToArray();
+            string[] actualProjectNames = viewModel.Projects.Select(p => p.SonarQubeProject.Name).OrderBy(n => n, StringComparer.CurrentCulture).ToArray();
             CollectionAssert.AreEqual(
                expectedOrderedProjectNames,
                actualProjectNames,
@@ -118,11 +118,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
            );
 
             // Act again
-            var newProject = new ProjectInformation();
+            var newProject = new SonarQubeProject();
             viewModel.SetProjects(new[] { newProject });
 
             // Assert that the collection was replaced with the new one
-            viewModel.Projects.SingleOrDefault()?.ProjectInformation.Should().Be(newProject, "Expected a single project to be present");
+            viewModel.Projects.SingleOrDefault()?.SonarQubeProject.Should().Be(newProject, "Expected a single project to be present");
         }
 
         [TestMethod]
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var connInfo = new ConnectionInformation(new Uri("https://myawesomeserver:1234/"));
             var testSubject = new ServerViewModel(connInfo);
-            var projects = new[] { new ProjectInformation { Key = "P", Name = "A Project" } };
+            var projects = new[] { new SonarQubeProject { Key = "P", Name = "A Project" } };
 
             var expectedProjects = string.Format(CultureInfo.CurrentCulture, Strings.AutomationServerDescription, connInfo.ServerUri);
             var expectedNoProjects = string.Format(CultureInfo.CurrentCulture, Strings.AutomationServerNoProjectsDescription, connInfo.ServerUri);

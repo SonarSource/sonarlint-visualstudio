@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.solutionBindingInformationProvider.SolutionBound = true;
-            this.host.VisualStateManager.SetBoundProject(new ProjectInformation());
+            this.host.VisualStateManager.SetBoundProject(new SonarQubeProject());
 
             // Act
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             solutionBinding.CurrentBinding = new BoundSonarQubeProject();
             this.solutionBindingInformationProvider.SolutionBound = true;
             // Act
-            host.VisualStateManager.SetBoundProject(new ProjectInformation());
+            host.VisualStateManager.SetBoundProject(new SonarQubeProject());
 
             // Assert
             testSubject.IsActiveSolutionBound.Should().BeTrue("Bound solution should report true activation");

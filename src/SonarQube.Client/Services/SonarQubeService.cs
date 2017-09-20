@@ -20,6 +20,11 @@ namespace SonarQube.Client.Services
 
         public SonarQubeService(ISonarQubeClient sonarqubeClient)
         {
+            if (sonarqubeClient == null)
+            {
+                throw new ArgumentNullException(nameof(sonarqubeClient));
+            }
+
             this.sonarqubeClient = sonarqubeClient;
         }
 
@@ -35,7 +40,10 @@ namespace SonarQube.Client.Services
 
         public async Task ConnectAsync(ConnectionInformation connection, CancellationToken token)
         {
-            EnsureIsConnected();
+            if (this.isConnected)
+            {
+                throw new InvalidOperationException("This operation expects the service not to be connected.");
+            }
 
             var connectionDto = new ConnectionDTO
             {
@@ -48,8 +56,7 @@ namespace SonarQube.Client.Services
             var credentialsValidationResult = await this.sonarqubeClient.ValidateCredentialsAsync(connectionDto, token);
             if (credentialsValidationResult.IsFailure)
             {
-
-                // TODO: something went wrong
+                HandleFailures(credentialsValidationResult, token);
             }
             if (!credentialsValidationResult.Value.AreValid)
             {
@@ -59,7 +66,7 @@ namespace SonarQube.Client.Services
             var versionResult = await this.sonarqubeClient.GetVersionAsync(connectionDto, token);
             if (versionResult.IsFailure)
             {
-                // TODO: something went wrong
+                HandleFailures(versionResult, token);
             }
 
             Version version;
@@ -87,7 +94,7 @@ namespace SonarQube.Client.Services
 
                 if (organizationsResult.IsFailure)
                 {
-                    // TODO: something went wrong
+                    HandleFailures(organizationsResult, token);
                 }
                 else
                 {
@@ -103,15 +110,12 @@ namespace SonarQube.Client.Services
 
         public async Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token)
         {
-            if (!this.isConnected)
-            {
-                throw new InvalidOperationException("This operation expects the service to be connected.");
-            }
+            EnsureIsConnected();
 
             var pluginsResult = await this.sonarqubeClient.GetPluginsAsync(this.connection, token);
             if (pluginsResult.IsFailure)
             {
-                // TODO: something went wrong
+                HandleFailures(pluginsResult, token);
             }
 
             return pluginsResult.Value.Select(SonarQubePlugin.FromDto).ToList();
@@ -126,7 +130,7 @@ namespace SonarQube.Client.Services
                 var projectsResult = await this.sonarqubeClient.GetProjectsAsync(this.connection, token);
                 if (projectsResult.IsFailure)
                 {
-                    // TODO: something went wrong
+                    HandleFailures(projectsResult, token);
                 }
 
                 return projectsResult.Value.Select(SonarQubeProject.FromDto).ToList();
@@ -135,7 +139,6 @@ namespace SonarQube.Client.Services
             int currentPage = 1;
             var allProjects = new List<ComponentDTO>();
             Result<ComponentDTO[]> componentsResult;
-
             do
             {
                 var request = new ComponentRequest { Page = currentPage, PageSize = MaximumPageSize };
@@ -144,7 +147,7 @@ namespace SonarQube.Client.Services
 
                 if (componentsResult.IsFailure)
                 {
-                    // TODO: something went wrong
+                    HandleFailures(componentsResult, token);
                 }
                 else
                 {
@@ -165,7 +168,7 @@ namespace SonarQube.Client.Services
             var propertiesResult = await this.sonarqubeClient.GetPropertiesAsync(this.connection, token);
             if (propertiesResult.IsFailure)
             {
-                // TODO: something went wrong
+                HandleFailures(propertiesResult, token);
             }
 
             return propertiesResult.Value.Select(SonarQubeProperty.FromDto).ToList();
@@ -192,7 +195,7 @@ namespace SonarQube.Client.Services
                 // Special handling for the case when a project was not analyzed yet, in which case a 404 is returned
                 // TODO: Request the profile without the project
 
-                // TODO: something went wrong
+                HandleFailures(qualityProfilesResult, token);
             }
 
             var profilesWithGivenLanguage = qualityProfilesResult.Value.Where(x => x.Language == language.Key).ToList();
@@ -205,11 +208,12 @@ namespace SonarQube.Client.Services
             var changeLog = await this.sonarqubeClient.GetQualityProfileChangeLogAsync(this.connection, qualityProfileChangeLogRequest, token);
             if (changeLog.IsFailure)
             {
-                // TODO: something went wrong
+                HandleFailures(changeLog, token);
             }
 
             return QualityProfile.FromDto(qualityProfile, changeLog.Value.Events.Single().Date);
         }
+
         public async Task<RoslynExportProfile> GetRoslynExportProfileAsync(string qualityProfileName, ServerLanguage language,
             CancellationToken token)
         {
@@ -217,13 +221,13 @@ namespace SonarQube.Client.Services
             var roslynExportResult = await this.sonarqubeClient.GetRoslynExportProfileAsync(this.connection, request, token);
             if (roslynExportResult.IsFailure)
             {
-                // TODO: something went wrong
+                HandleFailures(roslynExportResult, token);
             }
 
             return roslynExportResult.Value;
         }
 
-        private void EnsureIsConnected()
+        public void EnsureIsConnected()
         {
             if (!this.isConnected)
             {
@@ -231,7 +235,7 @@ namespace SonarQube.Client.Services
             }
         }
 
-        private void HandleFailures<T>(Result<T> result, CancellationToken token)
+        public void HandleFailures<T>(Result<T> result, CancellationToken token)
         {
             if (result.Exception is TaskCanceledException)
             {

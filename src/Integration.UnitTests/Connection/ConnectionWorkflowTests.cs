@@ -114,8 +114,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
     //    {
     //        // Arrange
     //        var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-    //        var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
-    //        this.sonarQubeService.ReturnProjectInformation = projects;
+    //        var projects = new SonarQubeProject[] { new SonarQubeProject { Key = "project1" } };
+    //        this.sonarQubeService.ReturnSonarQubeProject = projects;
     //        this.projectSystemHelper.Projects = new[] { new ProjectMock(projectName) { ProjectKind = projectKind } };
     //        bool projectChangedCallbackCalled = false;
     //        this.host.TestStateManager.SetProjectsAction = (c, p) =>
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
     //        ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(() => { }));
     //        var controller = new ConfigurableProgressController();
     //        this.sonarQubeService.AllowConnections = true;
-    //        this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
+    //        this.sonarQubeService.ReturnSonarQubeProject = new SonarQubeProject[0];
     //        this.sonarQubeService.ClearServerPlugins();
     //        this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
     //        ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
@@ -180,8 +180,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
     //    {
     //        // Arrange
     //        var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-    //        var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
-    //        this.sonarQubeService.ReturnProjectInformation = projects;
+    //        var projects = new SonarQubeProject[] { new SonarQubeProject { Key = "project1" } };
+    //        this.sonarQubeService.ReturnSonarQubeProject = projects;
     //        bool projectChangedCallbackCalled = false;
     //        this.host.TestStateManager.SetProjectsAction = (c, p) =>
     //        {
@@ -226,8 +226,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
     //    {
     //        // Arrange
     //        var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-    //        var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
-    //        this.sonarQubeService.ReturnProjectInformation = projects;
+    //        var projects = new SonarQubeProject[] { new SonarQubeProject { Key = "project1" } };
+    //        this.sonarQubeService.ReturnSonarQubeProject = projects;
     //        this.sonarQubeService.ClearServerPlugins();
     //        this.sonarQubeService.RegisterServerPlugin(new ServerPlugin { Key = minimumSupportedServerPlugin.Key, Version = minimumSupportedServerPlugin.MinimumVersion });
     //        this.projectSystemHelper.Projects = new[] { new ProjectMock(projectName) { ProjectKind = projectKind } };

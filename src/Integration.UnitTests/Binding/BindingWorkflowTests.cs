@@ -37,7 +37,7 @@ using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void BindingWorkflow_ArgChecks()
         {
             var validConnection = new ConnectionInformation(new Uri("http://server"));
-            var validProjectInfo = new ProjectInformation();
+            var validProjectInfo = new SonarQubeProject();
             var validHost = new ConfigurableHost();
 
             Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(null, validConnection, validProjectInfo));
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string SonarQubeProjectName = "SQProjectName";
-            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            var projectInfo = new SonarQubeProject { Key = "key", Name = SonarQubeProjectName };
             BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
@@ -192,7 +192,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string SonarQubeProjectName = "SQProjectName";
-            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            var projectInfo = new SonarQubeProject { Key = "key", Name = SonarQubeProjectName };
             BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string SonarQubeProjectName = "SQProjectName";
-            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            var projectInfo = new SonarQubeProject { Key = "key", Name = SonarQubeProjectName };
             BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
@@ -273,7 +273,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string SonarQubeProjectName = "SQProjectName";
-            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            var projectInfo = new SonarQubeProject { Key = "key", Name = SonarQubeProjectName };
             BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
@@ -770,11 +770,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null)
+        private BindingWorkflow CreateTestSubject(SonarQubeProject projectInfo = null)
         {
             ConnectionInformation connected = new ConnectionInformation(new Uri("http://connected"));
             this.host.SonarQubeService = this.sonarQubeService;
-            var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
+            var useProjectInfo = projectInfo ?? new SonarQubeProject { Key = "key" };
             return new BindingWorkflow(this.host, connected, useProjectInfo);
         }
 

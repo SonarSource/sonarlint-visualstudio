@@ -243,7 +243,73 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="**\obj\**\*;**\*.xaml.cs;**\*.Designer.cs" />
+    <Compile Include="Binding\BindingControllerTests.cs" />
+    <Compile Include="Binding\BindingWorkflowTests.cs" />
+    <Compile Include="Binding\NuGetHelperTests.cs" />
+    <Compile Include="Binding\ProjectBindingOperation.WriterTests.cs" />
+    <Compile Include="Binding\ProjectBindingOperationTests.cs" />
+    <Compile Include="Binding\SolutionBindingOperationTests.cs" />
+    <Compile Include="Connection\BasicCredentialsValidatorTests.cs" />
+    <Compile Include="Connection\ConnectControllerTests.cs" />
+    <Compile Include="Connection\ConnectDialogViewModelTests.cs" />
+    <Compile Include="Connection\ConnectionInformationDialogTests.cs" />
+    <Compile Include="Connection\ConnectionWorkflowTests.cs" />
+    <Compile Include="Connection\UriValidatorTests.cs" />
+    <Compile Include="Framework\ConfigurableCredentialStore.cs" />
+    <Compile Include="Helpers\PathHelperTests.cs" />
+    <Compile Include="Helpers\RetryHelperTests.cs" />
+    <Compile Include="Helpers\RuleSetHelperTests.cs" />
+    <Compile Include="Helpers\VsShellUtilsTests.cs" />
+    <Compile Include="IServiceProviderExtensionsTests.cs" />
+    <Compile Include="LanguageConverterTests.cs" />
+    <Compile Include="LanguageTests.cs" />
+    <Compile Include="LocalServices\ErrorListInfoBarController.QualityProfileBackgroundProcessorTests.cs" />
+    <Compile Include="LocalServices\ErrorListInfoBarControllerTests.cs" />
+    <Compile Include="LocalServices\ProjectSystemFilterTests.cs" />
+    <Compile Include="LocalServices\ProjectSystemHelperExtensionsTests.cs" />
+    <Compile Include="LocalServices\ProjectSystemHelperTests.cs" />
+    <Compile Include="LocalServices\RuleSetSerializerTests.cs" />
+    <Compile Include="LocalServices\SolutionBindingInformationProviderTests.cs" />
+    <Compile Include="LocalServices\SolutionRuleSetsInformationProviderTests.cs" />
+    <Compile Include="LocalServices\SourceControlledFileSystemTests.cs" />
+    <Compile Include="MefServices\ActiveSolutionBoundTrackerTests.cs" />
+    <Compile Include="MefServices\ActiveSolutionTrackerTests.cs" />
+    <Compile Include="MefServices\ProjectPropertyManagerTests.cs" />
+    <Compile Include="MefServices\VsSessionHostTests.cs" />
+    <Compile Include="Persistence\BoundSonarQubeProjectExtensionsTests.cs" />
+    <Compile Include="Persistence\BoundSonarQubeProjectTests.cs" />
+    <Compile Include="Persistence\SolutionBindingSerializerTests.cs" />
+    <Compile Include="ProfileConflicts\ConflictsManagerTests.cs" />
+    <Compile Include="ProfileConflicts\FixedRuleSetInfoTests.cs" />
+    <Compile Include="ProfileConflicts\ProjectRuleSetConflictTests.cs" />
+    <Compile Include="ProfileConflicts\RuleConflictInfoTests.cs" />
+    <Compile Include="ProfileConflicts\RuleSetConflictsControllerTests.cs" />
+    <Compile Include="ProfileConflicts\RuleSetInformationTests.cs" />
+    <Compile Include="ProfileConflicts\RuleSetInspectorTests.cs" />
+    <Compile Include="Progress\ProgressNotificationListenerTests.cs" />
+    <Compile Include="Progress\ProgressStepRunnerTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SanityTests.cs" />
+    <Compile Include="Service\ConnectionInformationTests.cs" />
+    <Compile Include="Service\VersionHelperTests.cs" />
+    <Compile Include="State\StateManagerTests.cs" />
+    <Compile Include="State\TransferableVisualStateTests.cs" />
+    <Compile Include="TeamExplorer\ConnectSectionViewModelTests.cs" />
+    <Compile Include="TeamExplorer\ProjectViewModelTests.cs" />
+    <Compile Include="TeamExplorer\SectionControllerTests.cs" />
+    <Compile Include="TeamExplorer\ServerViewModelTests.cs" />
+    <Compile Include="TeamExplorer\SonarQubeNavigationItemTests.cs" />
+    <Compile Include="TeamExplorer\SonarQubePageTests.cs" />
+    <Compile Include="TeamExplorer\TeamExplorerControllerTests.cs" />
+    <Compile Include="TelemetryLoggerAccessorTests.cs" />
+    <Compile Include="Telemetry\TelemetryClientTests.cs" />
+    <Compile Include="Telemetry\TelemetryDataRepositoryTests.cs" />
+    <Compile Include="Telemetry\TelemetryManagerTests.cs" />
+    <Compile Include="WPF\BoolToVisibilityConverterTests.cs" />
+    <Compile Include="WPF\ContextualCommandsCollectionTests.cs" />
+    <Compile Include="WPF\ContextualCommandViewModelTests.cs" />
+    <Compile Include="WPF\ProjectViewModelVisibilityConverterTests.cs" />
+    <Compile Include="WPF\RelayCommandTests.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>

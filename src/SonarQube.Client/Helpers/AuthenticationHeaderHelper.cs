@@ -28,7 +28,7 @@ using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Helpers
 {
-    internal static class AuthenticationHeaderHelper
+    public static class AuthenticationHeaderHelper
     {
         public const string BasicAuthUserNameAndPasswordSeparator = ":";
 
@@ -54,7 +54,7 @@ namespace SonarQube.Client.Helpers
             }
         }
 
-        internal /*for testing purposes*/ static string GetBasicAuthToken(string user, SecureString password)
+        public static string GetBasicAuthToken(string user, SecureString password)
         {
             if (!string.IsNullOrEmpty(user) && user.Contains(BasicAuthUserNameAndPasswordSeparator))
             {

@@ -19,21 +19,21 @@
  */
 
 using System;
-using System.Threading;
 using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Connection;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableConnectionWorkflow : IConnectionWorkflowExecutor
     {
-        private readonly ISonarQubeServiceWrapper sonarQubeService;
+        private readonly ISonarQubeService sonarQubeService;
 
         internal int NumberOfCalls { get; private set; }
-        private ProjectInformation[] lastConnectedProjects;
+        private SonarQubeProject[] lastConnectedProjects;
 
-        public ConfigurableConnectionWorkflow(ISonarQubeServiceWrapper sonarQubeService)
+        public ConfigurableConnectionWorkflow(ISonarQubeService sonarQubeService)
         {
             if (sonarQubeService == null)
             {
@@ -50,10 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.NumberOfCalls++;
             information.Should().NotBeNull("Should not request to establish to a null connection");
             // Simulate the expected behavior in product
-            if (!this.sonarQubeService.TryGetProjects(information, CancellationToken.None, out this.lastConnectedProjects))
-            {
-                FluentAssertions.Execution.Execute.Assertion.FailWith("Failed to establish connection");
-            }
+            //this.lastConnectedProjects = this.sonarQubeService.GetAllProjectsAsync("", CancellationToken.None); // TODO: AMAURY
         }
 
         #endregion IConnectionWorkflowExecutor

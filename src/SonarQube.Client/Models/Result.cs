@@ -5,8 +5,8 @@ namespace SonarQube.Client.Models
 {
     public struct Result<TValue>
     {
-        public bool IsSuccess => StatusCode.HasValue || Exception != null || ErrorMessage != null;
-        public bool IsFailure => !IsSuccess;
+        public bool IsFailure => StatusCode.HasValue || Exception != null || ErrorMessage != null;
+        public bool IsSuccess => !IsFailure;
 
         public TValue Value { get; private set; }
         public HttpStatusCode? StatusCode { get; private set; }

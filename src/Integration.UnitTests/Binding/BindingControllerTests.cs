@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ServerViewModel serverVM = CreateServerViewModel();
             serverVM.SetProjects(new[]
             {
-                new ProjectInformation { Key = "key1" }
+                new SonarQubeProject { Key = "key1" }
             });
             ProjectViewModel projectVM = serverVM.Projects.First();
             BindingController testSubject = this.PrepareCommandForExecution();
@@ -233,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Arrange
-                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.SonarQubeProject);
                 testSubject.IsBindingInProgress.Should().BeTrue();
 
                 // Act
@@ -244,7 +244,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 if (result == ProgressControllerResult.Succeeded)
                 {
-                    this.host.TestStateManager.BoundProject.Should().Be(projectVM.ProjectInformation);
+                    this.host.TestStateManager.BoundProject.Should().Be(projectVM.SonarQubeProject);
                 }
                 else
                 {
@@ -314,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ServerViewModel serverVM = CreateServerViewModel();
             serverVM.SetProjects(new[]
             {
-                new ProjectInformation { Key = "key1" }
+                new SonarQubeProject { Key = "key1" }
             });
             ProjectViewModel projectVM = serverVM.Projects.ToArray()[0];
             BindingController testSubject = this.PrepareCommandForExecution();
@@ -327,7 +327,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Act - start
-                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.SonarQubeProject);
 
                 // Assert
                 userNotifications.AssertNoNotification(NotificationIds.FailedToBindId);

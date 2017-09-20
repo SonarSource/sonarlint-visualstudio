@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace SonarQube.Client.Helpers
 {
-    internal static class JsonHelper
+    public static class JsonHelper
     {
         public static T Deserialize<T>(string json)
         {
