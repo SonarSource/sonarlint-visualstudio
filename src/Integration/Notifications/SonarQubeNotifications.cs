@@ -22,15 +22,12 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using System.Timers;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
-using SystemInterface.Timers;
-using SystemWrapper.Timers;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
@@ -44,31 +41,30 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         private bool isBalloonTooltipVisible;
 
         private DateTimeOffset lastRequestDate = DateTimeOffset.MinValue;
-        private readonly ITimer timer;
+        private readonly Timer timer;
         private readonly IStateManager stateManager;
         private readonly ISonarQubeServiceWrapper sonarQubeService;
-        private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
+        private readonly System.Threading.CancellationTokenSource cancellation =
+            new System.Threading.CancellationTokenSource();
 
         public event EventHandler ShowDetails;
 
         [ImportingConstructor]
         [ExcludeFromCodeCoverage] // Do not unit test MEF constructor
         internal SonarQubeNotifications(IHost host)
-            : this(host.SonarQubeService, host.VisualStateManager, new TimerWrap())
+            : this(host.SonarQubeService, host.VisualStateManager,
+                  new Timer { Interval = 60000 /* 60sec */ })
         {
         }
 
         internal SonarQubeNotifications(ISonarQubeServiceWrapper sonarQubeService,
-            IStateManager stateManager, ITimer timer,
-            double timerIntervalMilliseconds = 60000 /* 60sec */)
+            IStateManager stateManager, Timer timer)
         {
             this.timer = timer;
             this.sonarQubeService = sonarQubeService;
             this.stateManager = stateManager;
 
             timer.Elapsed += OnTimerElapsed;
-            timer.Interval = timerIntervalMilliseconds;
-
             ShowDetailsCommand = new RelayCommand(ShowDetailsCommandExecuted);
         }
 
