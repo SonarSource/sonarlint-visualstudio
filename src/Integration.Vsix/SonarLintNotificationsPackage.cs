@@ -50,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             base.Initialize();
 
             notifications = this.GetMefService<ISonarQubeNotifications>();
+
             activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
         }
@@ -90,5 +91,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 notifications = null;
             }
         }
+
     }
 }

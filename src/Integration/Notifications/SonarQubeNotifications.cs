@@ -29,38 +29,41 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
 
+using CancellationTokenSource = System.Threading.CancellationTokenSource;
+
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
     [Export(typeof(ISonarQubeNotifications))]
     internal class SonarQubeNotifications : ViewModelBase, ISonarQubeNotifications
     {
-        private string balloonTipText;
-        private string text;
+        private string balloonTipText = "No new events.";
+        private string text = "No new events.";
         private bool hasEvents;
         private bool isVisible;
         private bool isBalloonTooltipVisible;
 
         private DateTimeOffset lastRequestDate = DateTimeOffset.MinValue;
         private readonly Timer timer;
+        private readonly IWebBrowser webBrowser;
         private readonly IStateManager stateManager;
         private readonly ISonarQubeServiceWrapper sonarQubeService;
-        private readonly System.Threading.CancellationTokenSource cancellation =
-            new System.Threading.CancellationTokenSource();
+        private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
 
         public event EventHandler ShowDetails;
 
         [ImportingConstructor]
         [ExcludeFromCodeCoverage] // Do not unit test MEF constructor
-        internal SonarQubeNotifications(IHost host)
-            : this(host.SonarQubeService, host.VisualStateManager,
+        internal SonarQubeNotifications(IHost host, IWebBrowser webBrowser)
+            : this(host.SonarQubeService, webBrowser, host.VisualStateManager,
                   new Timer { Interval = 60000 /* 60sec */ })
         {
         }
 
         internal SonarQubeNotifications(ISonarQubeServiceWrapper sonarQubeService,
-            IStateManager stateManager, Timer timer)
+            IWebBrowser webBrowser, IStateManager stateManager, Timer timer)
         {
             this.timer = timer;
+            this.webBrowser = webBrowser;
             this.sonarQubeService = sonarQubeService;
             this.stateManager = stateManager;
 
@@ -128,12 +131,18 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             set
             {
                 SetAndRaisePropertyChanged(ref isBalloonTooltipVisible, value);
+
+                if (!isBalloonTooltipVisible)
+                {
+                    HasEvents = false;
+                }
             }
         }
 
         private void ShowDetailsCommandExecuted()
         {
-            ShowDetails?.Invoke(this, EventArgs.Empty);
+            var url = "http://peach.sonarsource.com"; // TODO: use real url
+            webBrowser.NavigateTo(url);
         }
 
         public void Start()
