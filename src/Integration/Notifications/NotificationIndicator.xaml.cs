@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Navigation;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
@@ -30,9 +33,27 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             InitializeComponent();
         }
 
+        private void Close()
+        {
+            PART_Button.SetCurrentValue(ToggleButton.IsCheckedProperty, false);
+        }
+
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            PART_Button.IsChecked = false;
+            Close();
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Close();
+
+            e.Handled = true;
+
+            var startInfo = new ProcessStartInfo(e.Uri.AbsoluteUri)
+            {
+                UseShellExecute = true
+            };
+            Process.Start(startInfo);
         }
     }
 }

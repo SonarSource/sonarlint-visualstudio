@@ -19,9 +19,11 @@
  */
 
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
@@ -36,8 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     [Export(typeof(ISonarQubeNotifications))]
     internal class SonarQubeNotifications : ViewModelBase, ISonarQubeNotifications
     {
-        private string balloonTipText = "No new events.";
-        private string text = "No new events.";
+        private string text = "You have no events.";
         private bool hasEvents;
         private bool isVisible;
         private bool isBalloonTooltipVisible;
@@ -49,13 +50,11 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         private readonly ISonarQubeServiceWrapper sonarQubeService;
         private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
 
-        public event EventHandler ShowDetails;
-
         [ImportingConstructor]
         [ExcludeFromCodeCoverage] // Do not unit test MEF constructor
         internal SonarQubeNotifications(IHost host, IWebBrowser webBrowser)
             : this(host.SonarQubeService, webBrowser, host.VisualStateManager,
-                  new Timer { Interval = 60000 /* 60sec */ })
+                  new Timer { Interval = 20000 /* should be 60sec */ })
         {
         }
 
@@ -69,21 +68,10 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
             timer.Elapsed += OnTimerElapsed;
             ShowDetailsCommand = new RelayCommand(ShowDetailsCommandExecuted);
+            NotificationEvents = new ObservableCollection<NotificationEvent>();
         }
 
         public ICommand ShowDetailsCommand { get; }
-
-        public string BalloonTipText
-        {
-            get
-            {
-                return balloonTipText;
-            }
-            set
-            {
-                SetAndRaisePropertyChanged(ref balloonTipText, value);
-            }
-        }
 
         public string Text
         {
@@ -107,7 +95,21 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             set
             {
                 SetAndRaisePropertyChanged(ref hasEvents, value);
+
+                UpdateTooltipText();
+
+                if (value)
+                {
+                    AnimateBalloonTooltip();
+                }
             }
+        }
+
+        private async void AnimateBalloonTooltip()
+        {
+            IsBalloonTooltipVisible = true;
+            await System.Threading.Tasks.Task.Delay(4000);
+            IsBalloonTooltipVisible = false;
         }
 
         public bool IsVisible
@@ -131,13 +133,10 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             set
             {
                 SetAndRaisePropertyChanged(ref isBalloonTooltipVisible, value);
-
-                if (!isBalloonTooltipVisible)
-                {
-                    HasEvents = false;
-                }
             }
         }
+
+        public ObservableCollection<NotificationEvent> NotificationEvents { get; }
 
         private void ShowDetailsCommandExecuted()
         {
@@ -163,39 +162,70 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         private void OnTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            UpdateMessage();
+            ThreadHelper.Generic.Invoke(() => UpdateMessage());
         }
 
         private void UpdateMessage()
         {
-            var serverConnection = ThreadHelper.Generic.Invoke(() => stateManager?.GetConnectedServers().FirstOrDefault());
+            var events = GetNotificationEvents();
+
+            // TODO: Remove this code
+            if (events.Length == 0)
+            {
+                events = new[]
+                {
+                    new NotificationEvent
+                    {
+                        Date = DateTimeOffset.UtcNow,
+                        Message = "Quality gate is red (it was green).",
+                        Link = new Uri("http://peach.sonarsource.com")
+                    },
+                    new NotificationEvent
+                    {
+                        Date = DateTimeOffset.UtcNow,
+                        Message = "You have 15 new issues.",
+                        Link = new Uri("http://peach.sonarsource.com")
+                    }
+                };
+            }
+
+            if (events.Length > 0)
+            {
+                NotificationEvents.Clear();
+                Array.ForEach(events, NotificationEvents.Add);
+
+                HasEvents = true;
+            }
+        }
+
+        private void UpdateTooltipText()
+        {
+            var count = NotificationEvents.Count == 0
+                ? "no"
+                : NotificationEvents.Count.ToString();
+
+            var isNew = HasEvents ? "new " : string.Empty;
+
+            Text = $"You have {count} {isNew}events.";
+        }
+
+        private NotificationEvent[] GetNotificationEvents()
+        {
+            var connection = ThreadHelper.Generic.Invoke(() => stateManager?.GetConnectedServers().FirstOrDefault());
             var projectKey = stateManager?.BoundProjectKey;
 
-            if (serverConnection == null ||
-                projectKey == null)
+            NotificationEvent[] events = null;
+
+            if (connection != null && projectKey != null)
             {
-                // TODO: delete me
-                var demoMode = true;
-                if (demoMode)
+                if (sonarQubeService.TryGetNotificationEvents(connection, cancellation.Token, projectKey,
+                    lastRequestDate, out events))
                 {
-                    HasEvents = true;
-                    BalloonTipText = "Weeeeeeeee have sssssssssome messagessssssssssss fooooor youuuuuuuuusssssss..........";
+                    lastRequestDate = events.Max(ev => ev.Date);
                 }
-
-                return;
             }
 
-            NotificationEvent[] events;
-            var isSuccess = sonarQubeService.TryGetNotificationEvents(serverConnection, cancellation.Token,
-                projectKey, lastRequestDate, out events);
-
-            if (isSuccess && events != null)
-            {
-                lastRequestDate = events.Max(ev => ev.Date);
-                HasEvents = true;
-                BalloonTipText = string.Join(Environment.NewLine + Environment.NewLine,
-                    events.Select(ev => ev.Message));
-            }
+            return events ?? new NotificationEvent[0];
         }
 
         public void Dispose()

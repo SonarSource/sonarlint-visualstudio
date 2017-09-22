@@ -5,8 +5,10 @@
         xmlns:integration="clr-namespace:SonarLint.VisualStudio.Integration.WPF">
     <UserControl.Resources>
         <integration:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <ControlTemplate x:Key="ImageButtonTemplate">
-            <Grid x:Name="Root" Width="36" Height="16" Background="Transparent">
+        <integration:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" TrueValue="Collapsed"
+                FalseValue="Visible" />
+        <ControlTemplate x:Key="ImageButtonTemplate" TargetType="ToggleButton">
+            <Grid x:Name="Root" Width="30" Height="16" Background="Transparent">
                 <Grid Margin="3,1,1,1" HorizontalAlignment="Left">
                     <Path Data="M13.9,16h-1.8v-0.5c0-6.2-5.1-11.3-11.5-11.3H0.1V2.3h0.5c7.3,0,13.3,5.9,13.3,13.1V16z"
                             Fill="#D5D5D5" />
@@ -17,9 +19,7 @@
                             Data="M14.5,7.3l-0.2-0.5c-1-2.1-2.6-3.9-4.6-5.1L9.3,1.4l0.8-1.3l0.4,0.3c2.3,1.4,4.1,3.4,5.2,5.8l0.2,0.5L14.5,7.3z"
                             Fill="#D5D5D5" />
                 </Grid>
-                <Ellipse Width="10" Height="10" Margin="0,0,5,0" HorizontalAlignment="Right" VerticalAlignment="Center"
-                        Fill="Red"
-                        Visibility="{Binding HasEvents, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <ContentPresenter Content="{TemplateBinding Content}" />
             </Grid>
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
@@ -27,30 +27,57 @@
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
-        <ControlTemplate x:Key="LinkButtonTemplate" TargetType="Button">
-            <ContentPresenter Content="{TemplateBinding Content}" Cursor="Hand" />
-        </ControlTemplate>
     </UserControl.Resources>
     <UserControl.Visibility>
         <Binding Path="IsVisible" Converter="{StaticResource BoolToVisibilityConverter}" />
     </UserControl.Visibility>
     <Grid>
         <ToggleButton x:Name="PART_Button" ClickMode="Press" Template="{StaticResource ImageButtonTemplate}"
-                ToolTip="{Binding Text}" IsChecked="{Binding IsBalloonTooltipVisible, Mode=TwoWay}" />
+                ToolTip="{Binding Text}" IsChecked="{Binding IsBalloonTooltipVisible, Mode=TwoWay}">
+            <Ellipse x:Name="PART_Ellipse" Width="5" Height="5" Margin="0,0,5,0" HorizontalAlignment="Right"
+                    VerticalAlignment="Center" Fill="LightYellow"
+                    Visibility="{Binding HasEvents, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Ellipse.Triggers>
+                    <EventTrigger RoutedEvent="Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation To=".2" Storyboard.TargetProperty="Opacity"
+                                        RepeatBehavior="Forever" AutoReverse="True" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Ellipse.Triggers>
+            </Ellipse>
+        </ToggleButton>
         <Popup IsOpen="{Binding IsChecked, ElementName=PART_Button, Mode=TwoWay}"
                 PlacementTarget="{Binding ElementName=PART_Button}" VerticalOffset="-3" Placement="Top"
                 StaysOpen="False" PopupAnimation="Fade" AllowsTransparency="True">
-            <Grid Width="360" Height="80">
-                <Border Background="#EEEEF2" BorderBrush="#7DA9C9" BorderThickness="2" />
-                <TextBlock Text="{Binding DataContext.BalloonTipText, ElementName=UserControl}" TextWrapping="Wrap"
-                        Margin="10,10,23,20" />
-                <Button Command="{Binding DataContext.ShowDetailsCommand, ElementName=UserControl}"
-                        VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="3,3,6,3"
-                        Template="{StaticResource LinkButtonTemplate}" Click="Close_Click">Show details</Button>
-                <Button Width="14" Height="14" Padding="0,-8,0,0" Margin="4" HorizontalAlignment="Right"
-                        VerticalAlignment="Top" Background="Transparent" Foreground="#FF1E1E1E" FontWeight="Bold"
-                        BorderThickness="0" ClickMode="Press" FontSize="18" Click="Close_Click">×</Button>
-            </Grid>
+            <Border Background="#EEEEF2" Width="360" Height="80" BorderBrush="#7DA9C9" BorderThickness="2">
+                <Grid Margin="5,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Latest SonarQube Events" FontWeight="Bold" Margin="4,8,0,0" />
+                    <ItemsControl x:Name="PART_Events" Grid.Row="1" Margin="5,5,0,0"
+                            Visibility="{Binding HasItems, Converter={StaticResource BoolToVisibilityConverter}, RelativeSource={RelativeSource Self}}"
+                            ItemsSource="{Binding DataContext.NotificationEvents, ElementName=UserControl}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Margin="0,2,0,3">
+                                    <Run Text="{Binding Message}" />
+                                    <Run Text=" " />
+                                    <Hyperlink NavigateUri="{Binding Link}" RequestNavigate="Hyperlink_RequestNavigate">more...</Hyperlink></TextBlock>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Grid.Row="1" Text="Congratulations, you have no new events!" Margin="4,0,0,3"
+                            Visibility="{Binding HasItems, Converter={StaticResource InvertedBoolToVisibilityConverter}, ElementName=PART_Events}" />
+                    <Button Width="14" Height="14" Padding="0,-8,0,0" Margin="4" HorizontalAlignment="Right"
+                            VerticalAlignment="Top" Background="Transparent" Foreground="#FF1E1E1E" FontWeight="Bold"
+                            BorderThickness="0" ClickMode="Press" FontSize="18" Click="Close_Click">×</Button>
+                </Grid>
+            </Border>
         </Popup>
     </Grid>
 </UserControl>
