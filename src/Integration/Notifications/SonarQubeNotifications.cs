@@ -23,9 +23,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Timers;
-using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
@@ -39,39 +37,34 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     internal class SonarQubeNotifications : ViewModelBase, ISonarQubeNotifications
     {
         private string text = "You have no events.";
-        private bool hasEvents;
+        private bool hasUnreadEvents;
         private bool isVisible;
         private bool isBalloonTooltipVisible;
 
         private DateTimeOffset lastRequestDate = DateTimeOffset.MinValue;
-        private readonly Timer timer;
-        private readonly IWebBrowser webBrowser;
+        private readonly ITimer timer;
         private readonly IStateManager stateManager;
         private readonly ISonarQubeServiceWrapper sonarQubeService;
         private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
 
         [ImportingConstructor]
         [ExcludeFromCodeCoverage] // Do not unit test MEF constructor
-        internal SonarQubeNotifications(IHost host, IWebBrowser webBrowser)
-            : this(host.SonarQubeService, webBrowser, host.VisualStateManager,
-                  new Timer { Interval = 20000 /* should be 60sec */ })
+        internal SonarQubeNotifications(IHost host)
+            : this(host.SonarQubeService, host.VisualStateManager,
+                  new TimerWrapper { Interval = 10000 /* should be 60sec */ })
         {
         }
 
         internal SonarQubeNotifications(ISonarQubeServiceWrapper sonarQubeService,
-            IWebBrowser webBrowser, IStateManager stateManager, Timer timer)
+            IStateManager stateManager, ITimer timer)
         {
             this.timer = timer;
-            this.webBrowser = webBrowser;
             this.sonarQubeService = sonarQubeService;
             this.stateManager = stateManager;
 
             timer.Elapsed += OnTimerElapsed;
-            ShowDetailsCommand = new RelayCommand(ShowDetailsCommandExecuted);
             NotificationEvents = new ObservableCollection<NotificationEvent>();
         }
-
-        public ICommand ShowDetailsCommand { get; }
 
         public string Text
         {
@@ -85,31 +78,19 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
         }
 
-        public bool HasEvents
+        public bool HasUnreadEvents
         {
             get
             {
-                return hasEvents;
+                return hasUnreadEvents;
             }
 
             set
             {
-                SetAndRaisePropertyChanged(ref hasEvents, value);
+                SetAndRaisePropertyChanged(ref hasUnreadEvents, value);
 
                 UpdateTooltipText();
-
-                if (value)
-                {
-                    AnimateBalloonTooltip();
-                }
             }
-        }
-
-        private async void AnimateBalloonTooltip()
-        {
-            IsBalloonTooltipVisible = true;
-            await System.Threading.Tasks.Task.Delay(4000);
-            IsBalloonTooltipVisible = false;
         }
 
         public bool IsVisible
@@ -138,12 +119,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         public ObservableCollection<NotificationEvent> NotificationEvents { get; }
 
-        private void ShowDetailsCommandExecuted()
-        {
-            var url = "http://peach.sonarsource.com"; // TODO: use real url
-            webBrowser.NavigateTo(url);
-        }
-
         public void Start()
         {
             IsVisible = true;
@@ -161,11 +136,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         }
 
         private void OnTimerElapsed(object sender, ElapsedEventArgs e)
-        {
-            ThreadHelper.Generic.Invoke(() => UpdateMessage());
-        }
-
-        private void UpdateMessage()
         {
             var events = GetNotificationEvents();
 
@@ -189,30 +159,38 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                 };
             }
 
+            ThreadHelper.Generic.Invoke(() => SetNotificationEvents(events));
+        }
+
+        private async void AnimateBalloonTooltip()
+        {
+            IsBalloonTooltipVisible = true;
+            await System.Threading.Tasks.Task.Delay(4000);
+            IsBalloonTooltipVisible = false;
+        }
+
+        private void SetNotificationEvents(NotificationEvent[] events)
+        {
             if (events.Length > 0)
             {
                 NotificationEvents.Clear();
                 Array.ForEach(events, NotificationEvents.Add);
 
-                HasEvents = true;
+                HasUnreadEvents = true;
             }
         }
 
         private void UpdateTooltipText()
         {
-            var count = NotificationEvents.Count == 0
-                ? "no"
-                : NotificationEvents.Count.ToString();
-
-            var isNew = HasEvents ? "new " : string.Empty;
-
-            Text = $"You have {count} {isNew}events.";
+            Text = NotificationEvents.Count > 0 && HasUnreadEvents
+                ? $"You have {NotificationEvents.Count} unread events."
+                : "You have no unread events.";
         }
 
         private NotificationEvent[] GetNotificationEvents()
         {
-            var connection = ThreadHelper.Generic.Invoke(() => stateManager?.GetConnectedServers().FirstOrDefault());
-            var projectKey = stateManager?.BoundProjectKey;
+            var connection = ThreadHelper.Generic.Invoke(() => stateManager.GetConnectedServers().FirstOrDefault());
+            var projectKey = stateManager.BoundProjectKey;
 
             NotificationEvent[] events = null;
 
@@ -233,6 +211,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             timer.Elapsed -= OnTimerElapsed;
 
             Stop();
+
+            timer.Dispose();
         }
     }
 }

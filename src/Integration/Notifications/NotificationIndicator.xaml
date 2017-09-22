@@ -36,20 +36,20 @@
                 ToolTip="{Binding Text}" IsChecked="{Binding IsBalloonTooltipVisible, Mode=TwoWay}">
             <Ellipse x:Name="PART_Ellipse" Width="5" Height="5" Margin="0,0,5,0" HorizontalAlignment="Right"
                     VerticalAlignment="Center" Fill="LightYellow"
-                    Visibility="{Binding HasEvents, Converter={StaticResource BoolToVisibilityConverter}}">
+                    Visibility="{Binding HasUnreadEvents, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Ellipse.Triggers>
                     <EventTrigger RoutedEvent="Loaded">
                         <BeginStoryboard>
                             <Storyboard>
-                                <DoubleAnimation To=".2" Storyboard.TargetProperty="Opacity"
-                                        RepeatBehavior="Forever" AutoReverse="True" />
+                                <DoubleAnimation To=".2" Storyboard.TargetProperty="Opacity" RepeatBehavior="Forever"
+                                        AutoReverse="True" />
                             </Storyboard>
                         </BeginStoryboard>
                     </EventTrigger>
                 </Ellipse.Triggers>
             </Ellipse>
         </ToggleButton>
-        <Popup IsOpen="{Binding IsChecked, ElementName=PART_Button, Mode=TwoWay}"
+        <Popup x:Name="PART_Popup" IsOpen="{Binding IsChecked, ElementName=PART_Button, Mode=TwoWay}"
                 PlacementTarget="{Binding ElementName=PART_Button}" VerticalOffset="-3" Placement="Top"
                 StaysOpen="False" PopupAnimation="Fade" AllowsTransparency="True">
             <Border Background="#EEEEF2" Width="360" Height="80" BorderBrush="#7DA9C9" BorderThickness="2">
@@ -78,6 +78,24 @@
                             BorderThickness="0" ClickMode="Press" FontSize="18" Click="Close_Click">×</Button>
                 </Grid>
             </Border>
+            <!--<Popup.Style>
+                <Style>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasUnreadEvents}" Value="True">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="IsOpen"
+                                                Duration="0:0:4">
+                                            <DiscreteBooleanKeyFrame KeyTime="0:0:4" Value="False" />
+                                        </BooleanAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Popup.Style>-->
         </Popup>
     </Grid>
 </UserControl>
