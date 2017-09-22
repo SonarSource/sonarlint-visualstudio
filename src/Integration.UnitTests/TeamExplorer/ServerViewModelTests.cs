@@ -51,10 +51,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var connInfo = new ConnectionInformation(new Uri("https://myawesomeserver:1234/"));
             IEnumerable<SonarQubeProject> projects = new[]
             {
-                new SonarQubeProject { Name = "Project1", Key="1" },
-                new SonarQubeProject { Name = "Project2", Key="2" },
-                new SonarQubeProject { Name = "Project3", Key="3" },
-                new SonarQubeProject { Name = "Project4", Key="4" }
+                new SonarQubeProject("1", "Project1"),
+                new SonarQubeProject("2", "Project2"),
+                new SonarQubeProject("3", "Project3"),
+                new SonarQubeProject("4", "Project4")
             };
             string[] projectKeys = projects.Select(x => x.Key).ToArray();
 
@@ -100,9 +100,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var viewModel = new ServerViewModel(connInfo);
             IEnumerable<SonarQubeProject> projects = new[]
             {
-                new SonarQubeProject { Name = "Project3", Key="1" },
-                new SonarQubeProject { Name = "Project2", Key="2" },
-                new SonarQubeProject { Name = "project1", Key="3" },
+                new SonarQubeProject("1", "Project3"),
+                new SonarQubeProject("2", "Project2"),
+                new SonarQubeProject("3", "project1"),
             };
             string[] expectedOrderedProjectNames = projects.Select(p => p.Name).OrderBy(n => n, StringComparer.CurrentCulture).ToArray();
 
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
            );
 
             // Act again
-            var newProject = new SonarQubeProject();
+            var newProject = new SonarQubeProject("", "");
             viewModel.SetProjects(new[] { newProject });
 
             // Assert that the collection was replaced with the new one
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var connInfo = new ConnectionInformation(new Uri("https://myawesomeserver:1234/"));
             var testSubject = new ServerViewModel(connInfo);
-            var projects = new[] { new SonarQubeProject { Key = "P", Name = "A Project" } };
+            var projects = new[] { new SonarQubeProject("P", "A Project") };
 
             var expectedProjects = string.Format(CultureInfo.CurrentCulture, Strings.AutomationServerDescription, connInfo.ServerUri);
             var expectedNoProjects = string.Format(CultureInfo.CurrentCulture, Strings.AutomationServerNoProjectsDescription, connInfo.ServerUri);

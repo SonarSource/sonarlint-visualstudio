@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -154,8 +155,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
                     }
                 }
 
-                var isCompatible = await
-                    this.AreSolutionProjectsAndSonarQubePluginsCompatible(controller, cancellationToken, connection, notifications);
+                var isCompatible = await this.AreSolutionProjectsAndSonarQubePluginsCompatible(controller, notifications,
+                    cancellationToken);
                 if (!isCompatible)
                 {
                     return; // Message is already displayed by the method
@@ -170,8 +171,23 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 this.OnProjectsChanged(connection, projects);
                 notifications.ProgressChanged(Strings.ConnectionResultSuccess);
             }
+            catch (HttpRequestException e)
+            {
+                // For some errors we will get an inner exception which will have a more specific information
+                // that we would like to show i.e.when the host could not be resolved
+                var innerException = e.InnerException as System.Net.WebException;
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
+                AbortWithMessage(notifications, controller, cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                // Canceled or timeout
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestTimeoutOrCancelled);
+                AbortWithMessage(notifications, controller, cancellationToken);
+            }
             catch (Exception ex)
             {
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestFailed, ex.Message, null);
                 AbortWithMessage(notifications, controller, cancellationToken);
             }
         }
@@ -249,16 +265,11 @@ namespace SonarLint.VisualStudio.Integration.Connection
         #region Helpers
 
         private async Task<bool> AreSolutionProjectsAndSonarQubePluginsCompatible(IProgressController controller,
-            CancellationToken cancellationToken, ConnectionInformation connection, IProgressStepExecutionEvents notifications)
+            IProgressStepExecutionEvents notifications, CancellationToken cancellationToken)
         {
             notifications.ProgressChanged(Strings.DetectingSonarQubePlugins);
 
-            var plugins = await this.host.SonarQubeService.GetAllPluginsAsync(cancellationToken); // TODO: decide what to do on error
-            //notifications.ProgressChanged(cancellationToken.IsCancellationRequested ? Strings.ConnectionResultCancellation : Strings.ConnectionResultFailure);
-            //this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed, NotificationIds.FailedToConnectId, this.parentCommand);
-
-            //AbortWorkflow(controller, cancellationToken);
-            //return false;
+            var plugins = await this.host.SonarQubeService.GetAllPluginsAsync(cancellationToken);
 
             var csharpOrVbNetProjects = new HashSet<EnvDTE.Project>(this.projectSystem.GetSolutionProjects());
             var supportedSonarQubePlugins = MinimumSupportedSonarQubePlugin.All

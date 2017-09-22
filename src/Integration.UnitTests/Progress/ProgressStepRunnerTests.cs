@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
             foreach (ProgressControllerResult progressResult in Enum.GetValues(typeof(ProgressControllerResult)))
             {
                 result = null;
-                Helpers.RunOnFinished(progressEvents, action);
+                progressEvents.RunOnFinished(action);
 
                 // Act
                 progressEvents.SimulateFinished(progressResult);

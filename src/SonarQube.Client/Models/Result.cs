@@ -18,39 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net;
+using System.Net.Http;
 
 namespace SonarQube.Client.Models
 {
     public struct Result<TValue>
     {
-        public bool IsFailure => StatusCode.HasValue || Exception != null || ErrorMessage != null;
-        public bool IsSuccess => !IsFailure;
+        private HttpResponseMessage response;
 
-        public TValue Value { get; private set; }
-        public HttpStatusCode? StatusCode { get; private set; }
-        public Exception Exception { get; private set; }
-        public string ErrorMessage { get; private set; }
+        public TValue Value { get; }
+        public HttpStatusCode StatusCode { get; }
+        public bool IsSuccess { get; }
 
-        public static Result<T> Ok<T>(T value)
+        public Result(HttpResponseMessage response, TValue value)
         {
-            return new Result<T> { Value = value };
+            this.response = response;
+            IsSuccess = response.IsSuccessStatusCode;
+            StatusCode = response.StatusCode;
+            Value = value;
         }
 
-        public static Result<T> Fail<T>(HttpStatusCode statusCode)
+        public void EnsureSuccess()
         {
-            return new Result<T> { StatusCode = statusCode };
-        }
-
-        public static Result<T> Fail<T>(Exception exception)
-        {
-            return new Result<T> { Exception = exception };
-        }
-
-        public static Result<T> Fail<T>(string errorMessage)
-        {
-            return new Result<T> { ErrorMessage = errorMessage };
+            response.EnsureSuccessStatusCode();
         }
     }
 }

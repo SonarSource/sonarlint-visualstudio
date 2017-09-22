@@ -1,5 +1,5 @@
 /*
- * SonarLint for Visual Studio
+ * SonarQube Client
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace SonarQube.Client.Helpers.Tests
 {
     [TestClass]
-    public class AuthenticationHeaderHelperTests
+    public class AuthenticationHeaderFactoryTests
     {
         [TestMethod]
         public void AuthenticationHeaderHelper_GetAuthToken()
@@ -33,30 +33,36 @@ namespace SonarQube.Client.Helpers.Tests
             // Invalid input
             string user = "hello:";
             string password = "world";
-            Action action = () => AuthenticationHeaderHelper.GetBasicAuthToken(user, password.ToSecureString());
+            Action action = () => AuthenticationHeaderFactory.GetBasicAuthToken(user, password.ToSecureString());
             action.ShouldThrow<ArgumentOutOfRangeException>();
 
             // ASCII
             user = "hello";
             password = "world";
-            AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderHelper.GetBasicAuthToken(user, password.ToSecureString()));
+            AssertAreEqualUserNameAndPassword(user, password,
+                AuthenticationHeaderFactory.GetBasicAuthToken(user, password.ToSecureString()));
 
             // UTF-8
             user = "שלום"; // hello in Russian
             password = "你好"; // hello in Chinese
-            AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderHelper.GetBasicAuthToken(user, password.ToSecureString()));
+            AssertAreEqualUserNameAndPassword(user, password,
+                AuthenticationHeaderFactory.GetBasicAuthToken(user, password.ToSecureString()));
 
             // Digits and signs (including ':' in the password)
             user = "1234567890";
             password = "+-/*!:%^&*(){}[];@~#<>,.?|`";
-            AssertAreEqualUserNameAndPassword(user, password, AuthenticationHeaderHelper.GetBasicAuthToken(user, password.ToSecureString()));
+            AssertAreEqualUserNameAndPassword(user, password,
+                AuthenticationHeaderFactory.GetBasicAuthToken(user, password.ToSecureString()));
         }
 
-        private void AssertAreEqualUserNameAndPassword(string expectedUser, string expectedPassword, string userAndPasswordBase64String)
+        private void AssertAreEqualUserNameAndPassword(string expectedUser, string expectedPassword,
+            string userAndPasswordBase64String)
         {
-            string userNameAndPassword = AuthenticationHeaderHelper.BasicAuthEncoding.GetString(Convert.FromBase64String(userAndPasswordBase64String));
+            string userNameAndPassword =
+                AuthenticationHeaderFactory.BasicAuthEncoding.GetString(Convert.FromBase64String(userAndPasswordBase64String));
             // Find first Colon (can't use Split since password may contain ':')
-            int index = userNameAndPassword.IndexOf(AuthenticationHeaderHelper.BasicAuthUserNameAndPasswordSeparator, StringComparison.Ordinal);
+            int index = userNameAndPassword.IndexOf(AuthenticationHeaderFactory.BasicAuthUserNameAndPasswordSeparator,
+                StringComparison.Ordinal);
             (index >= 0).Should().BeTrue("Expected a string in user:password format, got instead '{0}'", userNameAndPassword);
 
             string[] userNameAndPasswordTokens = new string[2];

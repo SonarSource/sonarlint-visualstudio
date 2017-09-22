@@ -24,8 +24,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell;
@@ -222,24 +224,34 @@ namespace SonarLint.VisualStudio.Integration.Binding
             DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, languageList.Count);
 
             notifier.NotifyCurrentProgress(Strings.DownloadingQualityProfileProgressMessage);
+
             foreach (var language in languageList)
             {
                 var serverLanguage = language.ToServerLanguage();
 
-                var qualityProfileInfo = await this.host.SonarQubeService.GetQualityProfileAsync(this.project.Key,
-                    serverLanguage, cancellationToken); // TODO: Handle errors
-                //VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
-                //string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
-                //this.AbortWorkflow(controller, cancellationToken);
-                //return;
+                var qualityProfileInfo = await SafeServiceCall(
+                    () => this.host.SonarQubeService.GetQualityProfileAsync(this.project.Key, serverLanguage, cancellationToken),
+                    controller, cancellationToken);
+                if (qualityProfileInfo == null)
+                {
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                       string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
+                    this.AbortWorkflow(controller, cancellationToken);
+                    return;
+                }
                 this.QualityProfiles[language] = qualityProfileInfo;
 
-                var roslynProfileExporter = await this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
-                    serverLanguage, cancellationToken); // TODO: Handle errors
-                //VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
-                //    string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
-                //this.AbortWorkflow(controller, cancellationToken);
-                //return;
+                var roslynProfileExporter = await SafeServiceCall(
+                    () => this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name, serverLanguage,
+                        cancellationToken), controller, cancellationToken);
+                if (roslynProfileExporter == null)
+                {
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                        string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfileInfo.Name,
+                            qualityProfileInfo.Key, language.Name)));
+                    this.AbortWorkflow(controller, cancellationToken);
+                    return;
+                }
 
                 var tempRuleSetFilePath = Path.GetTempFileName();
                 File.WriteAllText(tempRuleSetFilePath, roslynProfileExporter.Configuration.RuleSet.OuterXml);
@@ -399,6 +411,32 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Helpers
+
+        private async Task<T> SafeServiceCall<T>(Func<Task<T>> call, IProgressController controller, CancellationToken token)
+        {
+            try
+            {
+                return await call();
+            }
+            catch (HttpRequestException e)
+            {
+                // For some errors we will get an inner exception which will have a more specific information
+                // that we would like to show i.e.when the host could not be resolved
+                var innerException = e.InnerException as System.Net.WebException;
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
+            }
+            catch (TaskCanceledException)
+            {
+                // Canceled or timeout
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestTimeoutOrCancelled);
+            }
+            catch (Exception ex)
+            {
+                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestFailed, ex.Message, null);
+            }
+
+            return default(T);
+        }
 
         private void AbortWorkflow(IProgressController controller, CancellationToken token)
         {

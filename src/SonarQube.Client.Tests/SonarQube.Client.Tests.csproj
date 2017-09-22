@@ -69,7 +69,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Helpers\AuthenticationHeaderHelperTests.cs" />
+    <Compile Include="Helpers\AuthenticationHeaderFactoryTests.cs" />
     <Compile Include="Helpers\UriHelperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\SonarQubeClientTests.cs" />

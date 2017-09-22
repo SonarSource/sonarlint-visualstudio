@@ -45,7 +45,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="**\obj\**\*" />
+    <Compile Include="Helpers\AuthenticationHeaderFactory.cs" />
+    <Compile Include="Helpers\JsonHelper.cs" />
+    <Compile Include="Helpers\SecureStringHelper.cs" />
+    <Compile Include="Helpers\UriHelper.cs" />
+    <Compile Include="InternalsVisibleTo.cs" />
+    <Compile Include="Models\AuthenticationType.cs" />
+    <Compile Include="Models\Components.cs" />
+    <Compile Include="Models\Connections.cs" />
+    <Compile Include="Models\Credentials.cs" />
+    <Compile Include="Models\Organizations.cs" />
+    <Compile Include="Models\Plugins.cs" />
+    <Compile Include="Models\Projects.cs" />
+    <Compile Include="Models\Properties.cs" />
+    <Compile Include="Models\QualityProfiles.cs" />
+    <Compile Include="Models\Result.cs" />
+    <Compile Include="Models\RoslynExportProfiles.cs" />
+    <Compile Include="Models\Versions.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ISonarQubeClient.cs" />
+    <Compile Include="Services\ISonarQubeService.cs" />
+    <Compile Include="Services\SonarQubeClient.cs" />
+    <Compile Include="Services\SonarQubeService.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

@@ -78,13 +78,7 @@ namespace SonarQube.Client.Models
             get;
         }
 
-        internal /*for testing purposes*/ bool IsDisposed
-        {
-            get
-            {
-                return this.isDisposed;
-            }
-        }
+        public bool IsDisposed => this.isDisposed;
 
         public Organization Organization { get; set; }
 

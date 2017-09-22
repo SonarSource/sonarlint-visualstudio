@@ -22,6 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.State
 {
@@ -52,9 +53,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         {
             // Arrange
             var testSubject = new TransferableVisualState();
-            var server = new ServerViewModel(new Integration.Service.ConnectionInformation(new System.Uri("http://server")));
-            var project1 = new ProjectViewModel(server, new Integration.Service.SonarQubeProject());
-            var project2 = new ProjectViewModel(server, new Integration.Service.SonarQubeProject());
+            var server = new ServerViewModel(new ConnectionInformation(new System.Uri("http://server")));
+            var project1 = new ProjectViewModel(server, new SonarQubeProject("", ""));
+            var project2 = new ProjectViewModel(server, new SonarQubeProject("", ""));
 
             // Act (bind to something)
             testSubject.SetBoundProject(project1);

@@ -589,9 +589,9 @@ namespace SonarLint.VisualStudio.Integration
                 VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheck);
 
                 CancellationToken token = this.TokenSource.Token;
-                this.BackgroundTask = System.Threading.Tasks.Task.Run(async () =>
+                this.BackgroundTask = System.Threading.Tasks.Task.Run(() =>
                 {
-                    if (await this.IsUpdateRequiredAsync(binding, languages, token))
+                    if (this.IsUpdateRequired(binding, languages, token))
                     {
                         this.host.UIDispatcher.BeginInvoke(new Action(() =>
                         {
@@ -605,14 +605,21 @@ namespace SonarLint.VisualStudio.Integration
                 }, token);
             }
 
-            private async Task<bool> IsUpdateRequiredAsync(BoundSonarQubeProject binding, IEnumerable<Language> projectLanguages,
+            private bool IsUpdateRequired(BoundSonarQubeProject binding, IEnumerable<Language> projectLanguages,
                 CancellationToken token)
             {
                 Debug.Assert(binding != null);
 
-                var newProfiles = await TryGetLatestProfilesAsync(binding, projectLanguages, token); // TODO: Handle errors
-                //VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckFailed);
-                //return false; // Error, can't proceed
+                IDictionary<Language, QualityProfile> newProfiles = null;
+                try
+                {
+                    newProfiles = TryGetLatestProfilesAsync(binding, projectLanguages, token).GetAwaiter().GetResult();
+                }
+                catch (Exception)
+                {
+                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckFailed);
+                    return false; // Error, can't proceed
+                }
 
                 if (!newProfiles.Keys.All(binding.Profiles.ContainsKey))
                 {
@@ -666,10 +673,8 @@ namespace SonarLint.VisualStudio.Integration
                 foreach (Language language in projectLanguages)
                 {
                     var serverLanguage = language.ToServerLanguage();
-                    var profile = await this.host.SonarQubeService.GetQualityProfileAsync(binding.ProjectKey, serverLanguage,
-                        token); // TODO: Handle errors
-
-                    newProfiles[language] = profile;
+                    newProfiles[language] = await this.host.SonarQubeService.GetQualityProfileAsync(binding.ProjectKey,
+                        serverLanguage, token);
                 }
 
                 return newProfiles;

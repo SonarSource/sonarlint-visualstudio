@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarQube.Client.Models;
@@ -31,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly ISonarQubeService sonarQubeService;
 
         internal int NumberOfCalls { get; private set; }
-        private SonarQubeProject[] lastConnectedProjects;
+        private IEnumerable<SonarQubeProject> lastConnectedProjects;
 
         public ConfigurableConnectionWorkflow(ISonarQubeService sonarQubeService)
         {
@@ -50,7 +52,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.NumberOfCalls++;
             information.Should().NotBeNull("Should not request to establish to a null connection");
             // Simulate the expected behavior in product
-            //this.lastConnectedProjects = this.sonarQubeService.GetAllProjectsAsync("", CancellationToken.None); // TODO: AMAURY
+            this.sonarQubeService.ConnectAsync(information, CancellationToken.None).GetAwaiter().GetResult();
+            this.lastConnectedProjects = this.sonarQubeService
+                .GetAllProjectsAsync(information.Organization.Key, CancellationToken.None)
+                .GetAwaiter()
+                .GetResult();
         }
 
         #endregion IConnectionWorkflowExecutor

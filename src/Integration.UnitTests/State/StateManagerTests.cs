@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             section.ViewModel.State = testSubject.ManagedState;
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
             var connection2 = new ConnectionInformation(new Uri("http://127.0.0.2"));
-            var projects = new[] { new SonarQubeProject(), new SonarQubeProject() };
+            var projects = new[] { new SonarQubeProject("", ""), new SonarQubeProject("", "") };
             host.SetActiveSection(section);
             ServerViewModel serverVM;
 
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host, section);
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
-            var projects = new SonarQubeProject[] { new SonarQubeProject(), new SonarQubeProject() };
+            var projects = new SonarQubeProject[] { new SonarQubeProject("", ""), new SonarQubeProject("", "") };
             testSubject.SetProjects(connection1, projects);
             ServerViewModel serverVM = testSubject.ManagedState.ConnectedServers.Single();
 
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host, section);
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
-            var projects = new SonarQubeProject[] { new SonarQubeProject(), new SonarQubeProject() };
+            var projects = new SonarQubeProject[] { new SonarQubeProject("", ""), new SonarQubeProject("", "") };
             testSubject.SetProjects(connection1, projects);
             ServerViewModel serverVM = testSubject.ManagedState.ConnectedServers.Single();
             host.SetActiveSection(section);
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host, section);
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
-            var projects = new SonarQubeProject[] { new SonarQubeProject() };
+            var projects = new SonarQubeProject[] { new SonarQubeProject("", "") };
             testSubject.SetProjects(connection1, projects);
             ProjectViewModel projectVM = testSubject.ManagedState.ConnectedServers.Single().Projects.Single();
             host.SetActiveSection(section);
@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.ManagedState.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz1"))));
             testSubject.ManagedState.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz2"))));
-            testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new SonarQubeProject())));
+            testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new SonarQubeProject("", ""))));
             var allProjects = testSubject.ManagedState.ConnectedServers.SelectMany(s => s.Projects).ToList();
             testSubject.SetBoundProject(allProjects.First().SonarQubeProject);
 
@@ -255,7 +255,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             var conn = new ConnectionInformation(new Uri("http://xyz"));
-            var projects = new[] { new SonarQubeProject(), new SonarQubeProject() };
+            var projects = new[] { new SonarQubeProject("", ""), new SonarQubeProject("", "") };
             testSubject.SetProjects(conn, projects);
             TransferableVisualState state = testSubject.ManagedState;
             bool hasBoundProjectChanged = false;
@@ -333,7 +333,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.BindingStateChanged += (sender, e) => countOnBindingStateChangeFired++;
 
             testSubject.ManagedState.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz1"))));
-            testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new SonarQubeProject())));
+            testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new SonarQubeProject("", ""))));
             var allProjects = testSubject.ManagedState.ConnectedServers.SelectMany(s => s.Projects).ToList();
 
             // Sanity
@@ -433,9 +433,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
             var connection1 = new ConnectionInformation(new Uri("http://conn1"));
-            var project1 = new SonarQubeProject { Key = SharedKey };
+            var project1 = new SonarQubeProject(SharedKey, "");
             var connection2 = new ConnectionInformation(new Uri("http://conn2"));
-            var project2 = new SonarQubeProject { Key = SharedKey };
+            var project2 = new SonarQubeProject(SharedKey, "");
             testSubject.SetProjects(connection1, new SonarQubeProject[] { project1 });
             testSubject.SetProjects(connection2, new SonarQubeProject[] { project2 });
 
@@ -446,7 +446,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Case 2: Doesn't exist
             // Act+Verify
-            testSubject.GetConnectedServer(new SonarQubeProject { Key = SharedKey }).Should().BeNull();
+            testSubject.GetConnectedServer(new SonarQubeProject(SharedKey, "")).Should().BeNull();
         }
 
         #endregion Tests

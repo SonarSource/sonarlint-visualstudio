@@ -21,23 +21,22 @@
 using System;
 using System.Diagnostics;
 using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Helpers
 {
-    public static class AuthenticationHeaderHelper
+    public static class AuthenticationHeaderFactory
     {
-        public const string BasicAuthUserNameAndPasswordSeparator = ":";
+        internal const string BasicAuthUserNameAndPasswordSeparator = ":";
 
         /// <summary>
         /// Encoding used to create the basic authentication token
         /// </summary>
-        public static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
+        internal static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
 
-        public static AuthenticationHeaderValue GetAuthenticationHeader(ConnectionDTO connectionInfo)
+        public static AuthenticationHeaderValue Create(ConnectionDTO connectionInfo)
         {
             if (connectionInfo.Authentication == AuthenticationType.Basic)
             {
@@ -54,7 +53,7 @@ namespace SonarQube.Client.Helpers
             }
         }
 
-        public static string GetBasicAuthToken(string user, SecureString password)
+        internal static string GetBasicAuthToken(string user, SecureString password)
         {
             if (!string.IsNullOrEmpty(user) && user.Contains(BasicAuthUserNameAndPasswordSeparator))
             {
@@ -64,33 +63,7 @@ namespace SonarQube.Client.Helpers
             }
 
             return Convert.ToBase64String(BasicAuthEncoding.GetBytes(string.Join(BasicAuthUserNameAndPasswordSeparator,
-                user, ConvertToUnsecureString(password))));
-        }
-
-        // Copied from http://blogs.msdn.com/b/fpintos/archive/2009/06/12/how-to-properly-convert-securestring-to-string.aspx
-        /// <summary>
-        /// WARNING: This will create plain-text <see cref="string"/> version of the <see cref="SecureString"/> in
-        /// memory which is not encrypted. This could lead to leaking of sensitive information and other security
-        /// vulnerabilities - heavy caution is advised.
-        /// </summary>
-        [SecurityCritical]
-        private static string ConvertToUnsecureString(SecureString secureString)
-        {
-            if (secureString == null)
-            {
-                throw new ArgumentNullException(nameof(secureString));
-            }
-
-            IntPtr unmanagedString = IntPtr.Zero;
-            try
-            {
-                unmanagedString = Marshal.SecureStringToGlobalAllocUnicode(secureString);
-                return Marshal.PtrToStringUni(unmanagedString);
-            }
-            finally
-            {
-                Marshal.ZeroFreeGlobalAllocUnicode(unmanagedString);
-            }
+                user, password.ToUnsecureString())));
         }
     }
 }

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarQube.Client.Models;
@@ -74,31 +75,21 @@ namespace SonarQube.Client.Services
             };
 
             var credentialsValidationResult = await this.sonarqubeClient.ValidateCredentialsAsync(connectionDto, token);
-            if (credentialsValidationResult.IsFailure)
-            {
-                HandleFailures(credentialsValidationResult, token);
-            }
+            credentialsValidationResult.EnsureSuccess();
+
             if (!credentialsValidationResult.Value.AreValid)
             {
-                // TODO: credentials are not valid
+                throw new Exception("Invalid credentials."); // TODO: Provide better exception
             }
 
             var versionResult = await this.sonarqubeClient.GetVersionAsync(connectionDto, token);
-            if (versionResult.IsFailure)
-            {
-                HandleFailures(versionResult, token);
-            }
+            versionResult.EnsureSuccess();
 
-            Version version;
-            if (!Version.TryParse(versionResult.Value.Version, out version))
-            {
-                // TODO: version is not valid
-            }
-
+            this.serverVersion = Version.Parse(versionResult.Value.Version);
             this.connection = connectionDto;
-            this.serverVersion = version;
             this.isConnected = true;
         }
+
         public async Task<IList<Organization>> GetAllOrganizationsAsync(CancellationToken token)
         {
             EnsureIsConnected();
@@ -111,15 +102,9 @@ namespace SonarQube.Client.Services
             {
                 var request = new OrganizationRequest { Page = currentPage, PageSize = MaximumPageSize };
                 organizationsResult = await this.sonarqubeClient.GetOrganizationsAsync(this.connection, request, token);
+                organizationsResult.EnsureSuccess();
 
-                if (organizationsResult.IsFailure)
-                {
-                    HandleFailures(organizationsResult, token);
-                }
-                else
-                {
-                    allOrganizations.AddRange(organizationsResult.Value);
-                }
+                allOrganizations.AddRange(organizationsResult.Value);
 
                 currentPage++;
             }
@@ -133,10 +118,7 @@ namespace SonarQube.Client.Services
             EnsureIsConnected();
 
             var pluginsResult = await this.sonarqubeClient.GetPluginsAsync(this.connection, token);
-            if (pluginsResult.IsFailure)
-            {
-                HandleFailures(pluginsResult, token);
-            }
+            pluginsResult.EnsureSuccess();
 
             return pluginsResult.Value.Select(SonarQubePlugin.FromDto).ToList();
         }
@@ -148,10 +130,7 @@ namespace SonarQube.Client.Services
             if (organizationKey == null) // Orgs are not supported or not enabled
             {
                 var projectsResult = await this.sonarqubeClient.GetProjectsAsync(this.connection, token);
-                if (projectsResult.IsFailure)
-                {
-                    HandleFailures(projectsResult, token);
-                }
+                projectsResult.EnsureSuccess();
 
                 return projectsResult.Value.Select(SonarQubeProject.FromDto).ToList();
             }
@@ -164,16 +143,9 @@ namespace SonarQube.Client.Services
                 var request = new ComponentRequest { Page = currentPage, PageSize = MaximumPageSize };
                 componentsResult = await this.sonarqubeClient.GetComponentsSearchProjectsAsync(this.connection,
                     request, token);
+                componentsResult.EnsureSuccess();
 
-                if (componentsResult.IsFailure)
-                {
-                    HandleFailures(componentsResult, token);
-                }
-                else
-                {
-                    allProjects.AddRange(componentsResult.Value);
-                }
-
+                allProjects.AddRange(componentsResult.Value);
                 currentPage++;
             }
             while (componentsResult.Value.Length > 0);
@@ -186,10 +158,7 @@ namespace SonarQube.Client.Services
             EnsureIsConnected();
 
             var propertiesResult = await this.sonarqubeClient.GetPropertiesAsync(this.connection, token);
-            if (propertiesResult.IsFailure)
-            {
-                HandleFailures(propertiesResult, token);
-            }
+            propertiesResult.EnsureSuccess();
 
             return propertiesResult.Value.Select(SonarQubeProperty.FromDto).ToList();
         }
@@ -199,6 +168,7 @@ namespace SonarQube.Client.Services
             EnsureIsConnected();
 
             const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
+
             return new Uri(this.connection.ServerUri, string.Format(ProjectDashboardRelativeUrl, projectKey));
         }
 
@@ -208,15 +178,18 @@ namespace SonarQube.Client.Services
             EnsureIsConnected();
 
             var qualityProfileRequest = new QualityProfileRequest { ProjectKey = projectKey };
-            var qualityProfilesResult = await this.sonarqubeClient.GetQualityProfilesAsync(this.connection,
-                qualityProfileRequest, token);
-            if (qualityProfilesResult.IsFailure)
-            {
-                // Special handling for the case when a project was not analyzed yet, in which case a 404 is returned
-                // TODO: Request the profile without the project
+            var qualityProfilesResult = await this.sonarqubeClient.GetQualityProfilesAsync(this.connection, qualityProfileRequest,
+                token);
 
-                HandleFailures(qualityProfilesResult, token);
+            // Special handling for the case when a project was not analyzed yet, in which case a 404 is returned
+            if (qualityProfilesResult.StatusCode == HttpStatusCode.NotFound)
+            {
+                qualityProfileRequest = new QualityProfileRequest { ProjectKey = null };
+                qualityProfilesResult = await this.sonarqubeClient.GetQualityProfilesAsync(this.connection, qualityProfileRequest,
+                    token);
             }
+
+            qualityProfilesResult.EnsureSuccess();
 
             var profilesWithGivenLanguage = qualityProfilesResult.Value.Where(x => x.Language == language.Key).ToList();
 
@@ -224,12 +197,14 @@ namespace SonarQube.Client.Services
                 ? profilesWithGivenLanguage.Single(x => x.IsDefault)
                 : profilesWithGivenLanguage.Single();
 
-            var qualityProfileChangeLogRequest = new QualityProfileChangeLogRequest { PageSize = 1, QualityProfileKey = qualityProfile.Key };
-            var changeLog = await this.sonarqubeClient.GetQualityProfileChangeLogAsync(this.connection, qualityProfileChangeLogRequest, token);
-            if (changeLog.IsFailure)
+            var qualityProfileChangeLogRequest = new QualityProfileChangeLogRequest
             {
-                HandleFailures(changeLog, token);
-            }
+                PageSize = 1,
+                QualityProfileKey = qualityProfile.Key
+            };
+            var changeLog = await this.sonarqubeClient.GetQualityProfileChangeLogAsync(this.connection,
+                qualityProfileChangeLogRequest, token);
+            changeLog.EnsureSuccess();
 
             return QualityProfile.FromDto(qualityProfile, changeLog.Value.Events.Single().Date);
         }
@@ -239,37 +214,17 @@ namespace SonarQube.Client.Services
         {
             var request = new RoslynExportProfileRequest { QualityProfileName = qualityProfileName, Language = language };
             var roslynExportResult = await this.sonarqubeClient.GetRoslynExportProfileAsync(this.connection, request, token);
-            if (roslynExportResult.IsFailure)
-            {
-                HandleFailures(roslynExportResult, token);
-            }
+            roslynExportResult.EnsureSuccess();
 
             return roslynExportResult.Value;
         }
 
-        public void EnsureIsConnected()
+        internal void EnsureIsConnected()
         {
             if (!this.isConnected)
             {
                 throw new InvalidOperationException("This operation expects the service to be connected.");
             }
-        }
-
-        public void HandleFailures<T>(Result<T> result, CancellationToken token)
-        {
-            if (result.Exception is TaskCanceledException)
-            {
-                if (token.IsCancellationRequested)
-                {
-                    // TODO: user cancellation
-                }
-                else
-                {
-                    // TODO: timeout
-                }
-            }
-
-            // TODO: others
         }
     }
 }
