@@ -46,7 +46,7 @@
     <CodeAnalysisRuleSet>Integration.Vsix.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="**\obj\**\*;**\*.Designer.cs;Settings\*;**\Protobuf\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*;**\SonarLintDaemon\SonarLintDaemonSplashscreen.*;**\Notifications\NotificationIndicator.*" />
+    <Compile Include="**\*.cs" Exclude="**\obj\**\*;**\*.Designer.cs;Settings\*;**\Protobuf\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*;**\SonarLintDaemon\SonarLintDaemonSplashscreen.*" />
     <Compile Include="Protobuf\Sonarlint-daemonGrpc.cs" />
     <Compile Include="Protobuf\SonarlintDaemon.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs">
@@ -462,7 +462,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Resource Include="Resources\sonarqube_green.ico" />
     <Content Include="Telemetry\GeneratedCode\SqmVsCommands.vsct">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

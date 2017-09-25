@@ -139,26 +139,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         {
             var events = GetNotificationEvents();
 
-            // TODO: Remove this code
-            if (events.Length == 0)
-            {
-                events = new[]
-                {
-                    new NotificationEvent
-                    {
-                        Date = DateTimeOffset.UtcNow,
-                        Message = "Quality gate is red (it was green).",
-                        Link = new Uri("http://peach.sonarsource.com")
-                    },
-                    new NotificationEvent
-                    {
-                        Date = DateTimeOffset.UtcNow,
-                        Message = "You have 15 new issues.",
-                        Link = new Uri("http://peach.sonarsource.com")
-                    }
-                };
-            }
-
             ThreadHelper.Generic.Invoke(() => SetNotificationEvents(events));
         }
 
