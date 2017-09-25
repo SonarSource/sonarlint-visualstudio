@@ -201,7 +201,7 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Colon (":") is not a permitted character.</value>
     <comment>Error message indicating that the string must not contain an a colon (":") as is it an invalid character</comment>
   </data>
-  <data name="SelectSonarQubeProjectInstruction" xml:space="preserve">
+  <data name="SelectProjectInstruction" xml:space="preserve">
     <value>Select a SonarQube project and bind it to the current solution.</value>
     <comment>Message instructing the user to select from the presented list of SonarQube projects with which to bind the current solution to.</comment>
   </data>
@@ -660,11 +660,11 @@ This is the general format to use when writing errors to output window or when t
     <value>   {0}</value>
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
   </data>
-  <data name="MinimumSupportedServerPlugin" xml:space="preserve">
+  <data name="MinimumSupportedSonarQubePlugin" xml:space="preserve">
     <value>Language: '{0}', Minimum version: '{1}'</value>
     <comment>Error message displayed for every supported plugin when none of them match the minimum required version. {0} the plugin language name, {1} the plugin minimum version.</comment>
   </data>
-  <data name="DetectingServerPlugins" xml:space="preserve">
+  <data name="DetectingSonarQubePlugins" xml:space="preserve">
     <value>Detecting server plugins</value>
     <comment>Output window message printed before accessing to server plugins.</comment>
   </data>

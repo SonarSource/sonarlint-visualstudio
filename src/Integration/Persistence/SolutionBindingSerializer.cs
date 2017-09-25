@@ -25,6 +25,7 @@ using EnvDTE;
 using Microsoft.Alm.Authentication;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
@@ -172,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             "S3215:\"interface\" instances should not be cast to concrete types",
             Justification = "Casting as BasicAuthCredentials is because it's the only credential type we support. Once we add more we need to think again on how to refactor the code to avoid this",
             Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Integration.Persistence.SolutionBinding.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundSonarQubeProject)~System.Boolean")]
+            Target = "~M:SonarLint.VisualStudio.Integration.Persistence.SolutionBinding.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundProject)~System.Boolean")]
         private bool WriteBindingInformation(string configFile, BoundSonarQubeProject binding)
         {
             if (this.SafePerformFileSystemOperation(() => WriteConfig(configFile, binding)))

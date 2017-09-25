@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Helpers;
-using SonarQube.Client.Models;
+using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Services
 {
@@ -54,7 +54,7 @@ namespace SonarQube.Client.Services
             this.requestTimeout = requestTimeout;
         }
 
-        public Task<Result<ComponentDTO[]>> GetComponentsSearchProjectsAsync(ConnectionDTO connection,
+        public Task<Result<ComponentResponse[]>> GetComponentsSearchProjectsAsync(ConnectionRequest connection,
                                             ComponentRequest request, CancellationToken token)
         {
             const string SearchProjectsAPI = "api/components/search_projects"; // Since 6.2; internal
@@ -63,10 +63,10 @@ namespace SonarQube.Client.Services
                         request.OrganizationKey, request.Page, request.PageSize); // TODO: should handle optional params
 
             return InvokeSonarQubeApi(connection, query, token,
-                stringResponse => JObject.Parse(stringResponse)["components"].ToObject<ComponentDTO[]>());
+                stringResponse => JObject.Parse(stringResponse)["components"].ToObject<ComponentResponse[]>());
         }
 
-        public Task<Result<OrganizationDTO[]>> GetOrganizationsAsync(ConnectionDTO connection,
+        public Task<Result<OrganizationResponse[]>> GetOrganizationsAsync(ConnectionRequest connection,
             OrganizationRequest request, CancellationToken token)
         {
             const string OrganizationsAPI = "api/organizations/search"; // Since 6.2; internal
@@ -74,34 +74,34 @@ namespace SonarQube.Client.Services
             var query = AppendQueryString(OrganizationsAPI, "?p={0}&ps={1}", request.Page, request.PageSize); // TODO: should handle optional params
 
             return InvokeSonarQubeApi(connection, query, token,
-                stringResponse => JObject.Parse(stringResponse)["organizations"].ToObject<OrganizationDTO[]>());
+                stringResponse => JObject.Parse(stringResponse)["organizations"].ToObject<OrganizationResponse[]>());
         }
 
-        public Task<Result<PluginDTO[]>> GetPluginsAsync(ConnectionDTO connection, CancellationToken token)
+        public Task<Result<PluginResponse[]>> GetPluginsAsync(ConnectionRequest connection, CancellationToken token)
         {
             const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins"; // Since 2.10; internal
 
             return InvokeSonarQubeApi(connection, ServerPluginsInstalledAPI, token,
-                stringResponse => ProcessJsonResponse<PluginDTO[]>(stringResponse, token));
+                stringResponse => ProcessJsonResponse<PluginResponse[]>(stringResponse, token));
         }
 
-        public Task<Result<ProjectDTO[]>> GetProjectsAsync(ConnectionDTO connection, CancellationToken token)
+        public Task<Result<ProjectResponse[]>> GetProjectsAsync(ConnectionRequest connection, CancellationToken token)
         {
             const string ProjectsAPI = "api/projects/index"; // Since 2.10
 
             return InvokeSonarQubeApi(connection, ProjectsAPI, token,
-                stringResponse => ProcessJsonResponse<ProjectDTO[]>(stringResponse, token));
+                stringResponse => ProcessJsonResponse<ProjectResponse[]>(stringResponse, token));
         }
 
-        public Task<Result<PropertyDTO[]>> GetPropertiesAsync(ConnectionDTO connection, CancellationToken token)
+        public Task<Result<PropertyResponse[]>> GetPropertiesAsync(ConnectionRequest connection, CancellationToken token)
         {
             const string PropertiesAPI = "api/properties/"; // Since 2.6
 
             return InvokeSonarQubeApi(connection, PropertiesAPI, token,
-                stringResponse => ProcessJsonResponse<PropertyDTO[]>(stringResponse, token));
+                stringResponse => ProcessJsonResponse<PropertyResponse[]>(stringResponse, token));
         }
 
-        public Task<Result<QualityProfileChangeLogDTO>> GetQualityProfileChangeLogAsync(ConnectionDTO connection,
+        public Task<Result<QualityProfileChangeLogResponse>> GetQualityProfileChangeLogAsync(ConnectionRequest connection,
             QualityProfileChangeLogRequest request, CancellationToken token)
         {
             const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog"; // Since 5.2
@@ -110,10 +110,10 @@ namespace SonarQube.Client.Services
                         request.QualityProfileKey, request.PageSize); // TODO: should handle optional params
 
             return InvokeSonarQubeApi(connection, query, token,
-                stringResponse => ProcessJsonResponse<QualityProfileChangeLogDTO>(stringResponse, token));
+                stringResponse => ProcessJsonResponse<QualityProfileChangeLogResponse>(stringResponse, token));
         }
 
-        public Task<Result<QualityProfileDTO[]>> GetQualityProfilesAsync(ConnectionDTO connection,
+        public Task<Result<QualityProfileResponse[]>> GetQualityProfilesAsync(ConnectionRequest connection,
            QualityProfileRequest request, CancellationToken token)
         {
             const string QualityProfileListAPI = "api/qualityprofiles/search"; // Since 5.2
@@ -123,44 +123,44 @@ namespace SonarQube.Client.Services
                 : AppendQueryString(QualityProfileListAPI, "?projectKey={0}", request.ProjectKey);
 
             return InvokeSonarQubeApi(connection, query, token,
-                stringResponse => JObject.Parse(stringResponse)["profiles"].ToObject<QualityProfileDTO[]>());
+                stringResponse => JObject.Parse(stringResponse)["profiles"].ToObject<QualityProfileResponse[]>());
         }
 
-        public Task<Result<RoslynExportProfile>> GetRoslynExportProfileAsync(ConnectionDTO connection,
+        public Task<Result<RoslynExportProfileResponse>> GetRoslynExportProfileAsync(ConnectionRequest connection,
             RoslynExportProfileRequest request, CancellationToken token)
         {
             const string QualityProfileExportAPI = "api/qualityprofiles/export"; // Since 5.2
 
             var roslynExporterName = string.Format(CultureInfo.InvariantCulture, "roslyn-{0}",
-                        request.Language.Key);
+                        request.LanguageKey);
             var query = AppendQueryString(QualityProfileExportAPI, "?name={0}&language={1}&exporterKey={2}",
-                request.QualityProfileName, request.Language.Key, roslynExporterName); // TODO: should handle optional params
+                request.QualityProfileName, request.LanguageKey, roslynExporterName); // TODO: should handle optional params
 
             return InvokeSonarQubeApi(connection, query, token,
                 stringResponse =>
                 {
                     using (var reader = new StringReader(stringResponse))
                     {
-                        return RoslynExportProfile.Load(reader);
+                        return RoslynExportProfileResponse.Load(reader);
                     }
                 });
         }
 
-        public Task<Result<VersionDTO>> GetVersionAsync(ConnectionDTO connection, CancellationToken token)
+        public Task<Result<VersionResponse>> GetVersionAsync(ConnectionRequest connection, CancellationToken token)
         {
             const string ServerVersionAPI = "api/server/version"; // Since 2.10; internal
 
             return InvokeSonarQubeApi(connection, ServerVersionAPI, token,
-                stringResponse => new VersionDTO { Version = stringResponse });
+                stringResponse => new VersionResponse { Version = stringResponse });
         }
 
-        public Task<Result<CredentialsDTO>> ValidateCredentialsAsync(ConnectionDTO connection,
+        public Task<Result<CredentialResponse>> ValidateCredentialsAsync(ConnectionRequest connection,
             CancellationToken token)
         {
             const string ValidateCredentialsAPI = "api/authentication/validate"; // Since 3.3
 
             return InvokeSonarQubeApi(connection, ValidateCredentialsAPI, token,
-                stringResponse => new CredentialsDTO { AreValid = (bool)JObject.Parse(stringResponse).SelectToken("valid") });
+                stringResponse => new CredentialResponse { IsValid = (bool)JObject.Parse(stringResponse).SelectToken("valid") });
         }
 
         private static string AppendQueryString(string urlBase, string queryFormat, params object[] args)
@@ -212,7 +212,7 @@ namespace SonarQube.Client.Services
             return JsonHelper.Deserialize<T>(jsonResponse);
         }
 
-        private HttpClient CreateHttpClient(ConnectionDTO connection)
+        private HttpClient CreateHttpClient(ConnectionRequest connection)
         {
             var httpClient = new HttpClient(this.messageHandler)
             {
@@ -224,7 +224,7 @@ namespace SonarQube.Client.Services
             return httpClient;
         }
 
-        private async Task<Result<T>> InvokeSonarQubeApi<T>(ConnectionDTO connection, string query, CancellationToken token,
+        private async Task<Result<T>> InvokeSonarQubeApi<T>(ConnectionRequest connection, string query, CancellationToken token,
             Func<string, T> parseStringResult)
         {
             using (var client = CreateHttpClient(connection))

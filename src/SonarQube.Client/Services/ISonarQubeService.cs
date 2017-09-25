@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Services
@@ -32,7 +33,7 @@ namespace SonarQube.Client.Services
 
         Task ConnectAsync(ConnectionInformation connection, CancellationToken token);
 
-        Task<IList<Organization>> GetAllOrganizationsAsync(CancellationToken token);
+        Task<IList<SonarQubeOrganization>> GetAllOrganizationsAsync(CancellationToken token);
 
         Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token);
 
@@ -42,9 +43,9 @@ namespace SonarQube.Client.Services
 
         Uri GetProjectDashboardUrl(string projectKey);
 
-        Task<QualityProfile> GetQualityProfileAsync(string projectKey, ServerLanguage language, CancellationToken token);
+        Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, SonarQubeLanguage language, CancellationToken token);
 
-        Task<RoslynExportProfile> GetRoslynExportProfileAsync(string qualityProfileName, ServerLanguage language,
+        Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName, SonarQubeLanguage language,
             CancellationToken token);
     }
 }

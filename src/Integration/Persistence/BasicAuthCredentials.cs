@@ -20,7 +20,7 @@
 
 using System;
 using System.Security;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
