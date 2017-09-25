@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             // Arrange
             timerMock.Setup(mock => mock.Stop());
 
-            var notifications = new SonarQubeNotifications(sqService, stateManager, timerMock.Object);
+            var notifications = new SonarQubeNotifications(sqService, stateManager, timerMock.Object, new Mock<ITimer>().Object);
             notifications.IsVisible = true;
 
             // Act

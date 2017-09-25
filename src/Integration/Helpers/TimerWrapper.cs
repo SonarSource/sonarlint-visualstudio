@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Timers;
 
 namespace SonarLint.VisualStudio.Integration
@@ -28,7 +29,8 @@ namespace SonarLint.VisualStudio.Integration
 
         public TimerWrapper()
         {
-            this.timer = new Timer();
+            timer = new Timer();
+            timer.Elapsed += OnTimerElapsed;
         }
 
         public bool AutoReset
@@ -49,14 +51,16 @@ namespace SonarLint.VisualStudio.Integration
             set { timer.Interval = value; }
         }
 
-        public event ElapsedEventHandler Elapsed
+        public event EventHandler Elapsed;
+
+        private void OnTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            add { timer.Elapsed += value; }
-            remove { timer.Elapsed -= value; }
+            Elapsed?.Invoke(this, EventArgs.Empty);
         }
 
         public void Dispose()
         {
+            timer.Elapsed -= OnTimerElapsed;
             timer.Dispose();
         }
 

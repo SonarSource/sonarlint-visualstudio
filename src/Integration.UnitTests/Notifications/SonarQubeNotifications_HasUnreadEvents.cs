@@ -34,8 +34,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            notifications = new SonarQubeNotifications(
-                new ConfigurableSonarQubeServiceWrapper(), new ConfigurableStateManager(), new Mock<ITimer>().Object);
+            notifications = new SonarQubeNotifications(new ConfigurableSonarQubeServiceWrapper(), new ConfigurableStateManager(), new Mock<ITimer>().Object,
+                new Mock<ITimer>().Object);
         }
 
         [TestMethod]

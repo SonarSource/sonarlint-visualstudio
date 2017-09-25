@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Timers;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -28,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration
         bool AutoReset { get; set; }
         bool Enabled { get; set; }
         double Interval { get; set; }
-        event ElapsedEventHandler Elapsed;
+        event EventHandler Elapsed;
 
         void Start();
         void Stop();

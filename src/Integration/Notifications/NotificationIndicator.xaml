@@ -32,8 +32,8 @@
         <Binding Path="IsVisible" Converter="{StaticResource BoolToVisibilityConverter}" />
     </UserControl.Visibility>
     <Grid>
-        <ToggleButton x:Name="PART_Button" ClickMode="Press" Template="{StaticResource ImageButtonTemplate}"
-                ToolTip="{Binding Text}" IsChecked="{Binding IsBalloonTooltipVisible, Mode=TwoWay}">
+        <ToggleButton x:Name="PART_Button" Template="{StaticResource ImageButtonTemplate}" ToolTip="{Binding Text}"
+                IsChecked="{Binding IsBalloonTooltipVisible, Mode=TwoWay}" Command="{Binding ClearUnreadEventsCommand}">
             <Ellipse x:Name="PART_Ellipse" Width="5" Height="5" Margin="0,0,5,0" HorizontalAlignment="Right"
                     VerticalAlignment="Center" Fill="LightYellow"
                     Visibility="{Binding HasUnreadEvents, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -49,15 +49,17 @@
                 </Ellipse.Triggers>
             </Ellipse>
             <ToggleButton.ContextMenu>
-                <ContextMenu>
+                <ContextMenu PlacementTarget="{Binding ElementName=PART_Button}">
                     <MenuItem Header="Enable notifications for this solution" IsCheckable="True"
-                            IsChecked="{Binding DataContext.IsEnabled, ElementName=UserControl}" />
+                            DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu}}"
+                            IsChecked="{Binding IsEnabled}" />
                 </ContextMenu>
             </ToggleButton.ContextMenu>
         </ToggleButton>
-        <Popup x:Name="PART_Popup" IsOpen="{Binding IsChecked, ElementName=PART_Button, Mode=TwoWay}"
+        <Popup x:Name="PART_Popup" DataContext="{Binding DataContext, ElementName=PART_Button}"
+                IsOpen="{Binding IsBalloonTooltipVisible, Mode=TwoWay}"
                 PlacementTarget="{Binding ElementName=PART_Button}" VerticalOffset="-3" Placement="Top"
-                StaysOpen="False" PopupAnimation="Fade" AllowsTransparency="True">
+                PopupAnimation="Fade" AllowsTransparency="True">
             <Border Background="#EEEEF2" Width="360" Height="80" BorderBrush="#7DA9C9" BorderThickness="2">
                 <Grid Margin="5,0,0,0">
                     <Grid.RowDefinitions>
@@ -67,7 +69,7 @@
                     <TextBlock Text="Latest SonarQube Events" FontWeight="Bold" Margin="4,8,0,0" />
                     <ItemsControl x:Name="PART_Events" Grid.Row="1" Margin="5,5,0,0"
                             Visibility="{Binding HasItems, Converter={StaticResource BoolToVisibilityConverter}, RelativeSource={RelativeSource Self}}"
-                            ItemsSource="{Binding DataContext.NotificationEvents, ElementName=UserControl}">
+                            ItemsSource="{Binding NotificationEvents}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Margin="0,2,0,3">
@@ -80,28 +82,11 @@
                     <TextBlock Grid.Row="1" Text="Congratulations, you have no new events!" Margin="4,0,0,3"
                             Visibility="{Binding HasItems, Converter={StaticResource InvertedBoolToVisibilityConverter}, ElementName=PART_Events}" />
                     <Button Width="14" Height="14" Padding="0,-8,0,0" Margin="4" HorizontalAlignment="Right"
-                            VerticalAlignment="Top" Background="Transparent" Foreground="#FF1E1E1E" FontWeight="Bold"
-                            BorderThickness="0" ClickMode="Press" FontSize="18" Click="Close_Click">×</Button>
+                            VerticalAlignment="Top" Background="Transparent" Foreground="#1E1E1E" FontWeight="Bold"
+                            BorderThickness="0" ClickMode="Press" FontSize="18" Click="Close_Click"
+                            Command="{Binding ClearUnreadEventsCommand}">×</Button>
                 </Grid>
             </Border>
-            <!--<Popup.Style>
-                <Style>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding HasUnreadEvents}" Value="True">
-                            <DataTrigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="IsOpen"
-                                                Duration="0:0:4">
-                                            <DiscreteBooleanKeyFrame KeyTime="0:0:4" Value="False" />
-                                        </BooleanAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </DataTrigger.EnterActions>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Popup.Style>-->
         </Popup>
     </Grid>
 </UserControl>

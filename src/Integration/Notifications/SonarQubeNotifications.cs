@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Timers;
+using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
@@ -42,7 +43,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         private bool isBalloonTooltipVisible;
 
         private DateTimeOffset lastRequestDate = DateTimeOffset.MinValue;
-        private readonly ITimer timer;
+        private readonly ITimer notificationsTimer;
+        private readonly ITimer autocloseTimer;
         private readonly IStateManager stateManager;
         private readonly ISonarQubeServiceWrapper sonarQubeService;
         private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
@@ -52,20 +54,32 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         [ExcludeFromCodeCoverage] // Do not unit test MEF constructor
         internal SonarQubeNotifications(IHost host)
             : this(host.SonarQubeService, host.VisualStateManager,
-                  new TimerWrapper { Interval = 10000 /* should be 60sec */ })
+                    new TimerWrapper { Interval = 20000 /* should be 60sec */ },
+                    new TimerWrapper { Interval = 3000 })
         {
         }
 
         internal SonarQubeNotifications(ISonarQubeServiceWrapper sonarQubeService,
-            IStateManager stateManager, ITimer timer)
+            IStateManager stateManager, ITimer notificationsTimer, ITimer autocloseTimer)
         {
-            this.timer = timer;
             this.sonarQubeService = sonarQubeService;
             this.stateManager = stateManager;
 
-            timer.Elapsed += OnTimerElapsed;
+            this.notificationsTimer = notificationsTimer;
+            notificationsTimer.Elapsed += OnTimerElapsed;
+
+            this.autocloseTimer = autocloseTimer;
+            autocloseTimer.Elapsed += OnAutocloseTimerElapsed;
+
             NotificationEvents = new ObservableCollection<NotificationEvent>();
+
+            ClearUnreadEventsCommand = new RelayCommand(() =>
+            {
+                HasUnreadEvents = false;
+            });
         }
+
+        public ICommand ClearUnreadEventsCommand { get; }
 
         public string Text
         {
@@ -85,7 +99,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             {
                 return hasUnreadEvents;
             }
-
             set
             {
                 SetAndRaisePropertyChanged(ref hasUnreadEvents, value);
@@ -127,6 +140,15 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             set
             {
                 SetAndRaisePropertyChanged(ref isBalloonTooltipVisible, value);
+
+                if (isBalloonTooltipVisible)
+                {
+                    autocloseTimer.Start();
+                }
+                else
+                {
+                    autocloseTimer.Stop();
+                }
             }
         }
 
@@ -136,40 +158,39 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         {
             IsVisible = true;
 
-            timer.Start();
+            notificationsTimer.Start();
         }
 
         public void Stop()
         {
             cancellation.Cancel();
 
-            timer.Stop();
+            notificationsTimer.Stop();
 
             IsVisible = false;
         }
 
-        private void OnTimerElapsed(object sender, ElapsedEventArgs e)
+        private void OnTimerElapsed(object sender, EventArgs e)
         {
             var events = GetNotificationEvents();
 
             ThreadHelper.Generic.Invoke(() => SetNotificationEvents(events));
         }
 
-        private async void AnimateBalloonTooltip()
+        private void OnAutocloseTimerElapsed(object sender, EventArgs e)
         {
-            IsBalloonTooltipVisible = true;
-            await System.Threading.Tasks.Task.Delay(4000);
             IsBalloonTooltipVisible = false;
         }
 
         private void SetNotificationEvents(NotificationEvent[] events)
         {
-            if (events.Length > 0)
+            //if (events.Length > 0)
             {
                 NotificationEvents.Clear();
                 Array.ForEach(events, NotificationEvents.Add);
 
                 HasUnreadEvents = true;
+                IsBalloonTooltipVisible = true;
             }
         }
 
@@ -201,11 +222,11 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         public void Dispose()
         {
-            timer.Elapsed -= OnTimerElapsed;
+            notificationsTimer.Elapsed -= OnTimerElapsed;
 
             Stop();
 
-            timer.Dispose();
+            notificationsTimer.Dispose();
         }
     }
 }

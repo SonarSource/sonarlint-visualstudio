@@ -41,12 +41,12 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
+            e.Handled = true;
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
             Close();
-
             e.Handled = true;
 
             var startInfo = new ProcessStartInfo(e.Uri.AbsoluteUri)
