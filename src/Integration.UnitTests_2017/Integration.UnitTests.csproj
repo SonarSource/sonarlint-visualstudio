@@ -277,6 +277,10 @@
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
       <Name>Progress</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
+      <Project>{5e513fc3-bda7-40f2-8b6a-1bb9372acb99}</Project>
+      <Name>SonarQube.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TestInfrastructure_2017\TestInfrastructure.csproj">
       <Project>{fbd8024a-9795-4e5b-938e-afe44fca240c}</Project>
       <Name>TestInfrastructure</Name>

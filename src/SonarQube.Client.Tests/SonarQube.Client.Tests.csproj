@@ -69,12 +69,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="AssertIgnoreScope.cs" />
-    <Compile Include="Helpers\AuthenticationHeaderFactoryTests.cs" />
-    <Compile Include="Helpers\UriHelperTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\SonarQubeClientTests.cs" />
-    <Compile Include="Services\SonarQubeServiceTests.cs" />
+    <Compile Include="**\*.cs" Exclude="**\obj\**\*" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
