@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         private readonly IStateManager stateManager;
         private readonly ISonarQubeServiceWrapper sonarQubeService;
         private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
+        private bool isEnabled = true;
 
         [ImportingConstructor]
         [ExcludeFromCodeCoverage] // Do not unit test MEF constructor
@@ -102,6 +103,18 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             set
             {
                 SetAndRaisePropertyChanged(ref isVisible, value);
+            }
+        }
+
+        public bool IsEnabled
+        {
+            get
+            {
+                return isEnabled;
+            }
+            set
+            {
+                SetAndRaisePropertyChanged(ref isEnabled, value);
             }
         }
 
