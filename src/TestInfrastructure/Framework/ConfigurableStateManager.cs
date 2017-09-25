@@ -21,14 +21,14 @@
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableStateManager : IStateManager
     {
-        internal ProjectInformation BoundProject { get; private set; }
+        internal SonarQubeProject BoundProject { get; private set; }
 
         public ConfigurableStateManager()
         {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public void SetBoundProject(ProjectInformation project)
+        public void SetBoundProject(SonarQubeProject project)
         {
             project.Should().NotBeNull();
 
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects)
+        public void SetProjects(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects)
         {
             this.VerifyActiveSection();
             this.SetProjectsAction?.Invoke(connection, projects);
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.ConnectedServers;
         }
 
-        public ConnectionInformation GetConnectedServer(ProjectInformation project)
+        public ConnectionInformation GetConnectedServer(SonarQubeProject project)
         {
             ConnectionInformation conn;
             var isFound = this.ProjectServerMap.TryGetValue(project, out conn);
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public HashSet<ConnectionInformation> ConnectedServers { get; } = new HashSet<ConnectionInformation>();
 
-        public Dictionary<ProjectInformation, ConnectionInformation> ProjectServerMap { get; } = new Dictionary<ProjectInformation, ConnectionInformation>();
+        public Dictionary<SonarQubeProject, ConnectionInformation> ProjectServerMap { get; } = new Dictionary<SonarQubeProject, ConnectionInformation>();
 
         public TransferableVisualState ManagedState { get; set; }
 
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool? ExpectActiveSection { get; set; }
 
-        public Action<ConnectionInformation, IEnumerable<ProjectInformation>> SetProjectsAction { get; set; }
+        public Action<ConnectionInformation, IEnumerable<SonarQubeProject>> SetProjectsAction { get; set; }
 
         public Action SyncCommandFromActiveSectionAction { get; set; }
 

@@ -25,6 +25,7 @@ using EnvDTE;
 using Microsoft.Alm.Authentication;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {

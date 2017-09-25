@@ -324,7 +324,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             if (project != null)
             {
-                var url = this.Host.SonarQubeService.CreateProjectDashboardUrl(project.Owner.ConnectionInformation, project.ProjectInformation);
+                var url = this.Host.SonarQubeService.GetProjectDashboardUrl(project.SonarQubeProject.Key);
                 return this.CanExecBrowseToUrl(url.ToString());
             }
 
@@ -337,7 +337,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.BrowseToProjectDashboardCommandCommandCalled);
 
-            var url = this.Host.SonarQubeService.CreateProjectDashboardUrl(project.Owner.ConnectionInformation, project.ProjectInformation);
+            var url = this.Host.SonarQubeService.GetProjectDashboardUrl(project.SonarQubeProject.Key);
             this.webBrowser.NavigateTo(url.ToString());
         }
 

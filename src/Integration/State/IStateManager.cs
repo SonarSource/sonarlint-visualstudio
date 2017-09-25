@@ -20,7 +20,7 @@
 
 using System;
 using System.Collections.Generic;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.State
 {
@@ -55,11 +55,11 @@ namespace SonarLint.VisualStudio.Integration.State
 
         IEnumerable<ConnectionInformation> GetConnectedServers();
 
-        ConnectionInformation GetConnectedServer(ProjectInformation project);
+        ConnectionInformation GetConnectedServer(SonarQubeProject project);
 
-        void SetProjects(ConnectionInformation connection, IEnumerable<ProjectInformation> projects);
+        void SetProjects(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects);
 
-        void SetBoundProject(ProjectInformation project);
+        void SetBoundProject(SonarQubeProject project);
 
         void ClearBoundProject();
 
