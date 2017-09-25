@@ -19,21 +19,25 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client.Models;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
@@ -41,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
     public class ConnectionWorkflowTests
     {
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableSonarQubeServiceWrapper sonarQubeService;
+        private Mock<ISonarQubeService> sonarQubeServiceMock;
         private ConfigurableHost host;
         private ConfigurableIntegrationSettings settings;
         private ConfigurableProjectSystemFilter filter;
@@ -52,14 +56,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void TestInit()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
-            this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
+            this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.host.SonarQubeService = this.sonarQubeService;
+            this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
 
-            this.sonarQubeService.RegisterServerPlugin(new ServerPlugin { Key = MinimumSupportedServerPlugin.CSharp.Key, Version = MinimumSupportedServerPlugin.CSharp.MinimumVersion });
-            this.sonarQubeService.RegisterServerPlugin(new ServerPlugin { Key = MinimumSupportedServerPlugin.VbNet.Key, Version = MinimumSupportedServerPlugin.VbNet.MinimumVersion });
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPluginsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<SonarQubePlugin>
+                {
+                    new SonarQubePlugin(MinimumSupportedSonarQubePlugin.CSharp.Key, MinimumSupportedSonarQubePlugin.CSharp.MinimumVersion),
+                    new SonarQubePlugin(MinimumSupportedSonarQubePlugin.VbNet.Key, MinimumSupportedSonarQubePlugin.VbNet.MinimumVersion)
+                });
             this.settings = new ConfigurableIntegrationSettings();
 
             var mefExports = MefTestHelpers.CreateExport<IIntegrationSettings>(settings);
@@ -114,23 +122,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_ConnectionStep_WhenCSharpPluginAndAnyCSharpProject_SuccessfulConnection()
+        public async Task ConnectionWorkflow_ConnectionStep_WhenCSharpPluginAndAnyCSharpProject_SuccessfulConnection()
         {
-            ConnectionWorkflow_ConnectionStep_WhenXPluginAndAnyXProject_SuccessfulConnection("foo.csproj", ProjectSystemHelper.CSharpProjectKind);
+            await ConnectionWorkflow_ConnectionStep_WhenXPluginAndAnyXProject_SuccessfulConnection("foo.csproj", ProjectSystemHelper.CSharpProjectKind);
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_ConnectionStep_WhenVBNetPluginAndAnyVBNetProject_SuccessfulConnection()
+        public async Task ConnectionWorkflow_ConnectionStep_WhenVBNetPluginAndAnyVBNetProject_SuccessfulConnection()
         {
-            ConnectionWorkflow_ConnectionStep_WhenXPluginAndAnyXProject_SuccessfulConnection("foo.vbproj", ProjectSystemHelper.VbProjectKind);
+            await ConnectionWorkflow_ConnectionStep_WhenXPluginAndAnyXProject_SuccessfulConnection("foo.vbproj", ProjectSystemHelper.VbProjectKind);
         }
 
-        private void ConnectionWorkflow_ConnectionStep_WhenXPluginAndAnyXProject_SuccessfulConnection(string projectName, string projectKind)
+        private async Task ConnectionWorkflow_ConnectionStep_WhenXPluginAndAnyXProject_SuccessfulConnection(string projectName, string projectKind)
         {
             // Arrange
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
-            this.sonarQubeService.ReturnProjectInformation = projects;
+            var projects = new List<SonarQubeProject> { new SonarQubeProject("project1", "") };
+            this.sonarQubeServiceMock.Setup(x => x.ConnectAsync(connectionInfo, It.IsAny<CancellationToken>()))
+                .Returns(Task.Delay(0));
+            this.sonarQubeServiceMock.Setup(x => x.GetAllProjectsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(projects);
             this.projectSystemHelper.Projects = new[] { new ProjectMock(projectName) { ProjectKind = projectKind } };
             bool projectChangedCallbackCalled = false;
             this.host.TestStateManager.SetProjectsAction = (c, p) =>
@@ -146,57 +157,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
 
             // Act
-            testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
+            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(0);
             executionEvents.AssertProgressMessages(
                 connectionMessage,
                 Strings.ConnectionStepValidatinCredentials,
-                Strings.DetectingServerPlugins,
+                Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionStepRetrievingProjects,
                 Strings.ConnectionResultSuccess);
             projectChangedCallbackCalled.Should().BeTrue("ConnectedProjectsCallaback was not called");
-            sonarQubeService.ConnectionRequestsCount.Should().Be(1);
+            this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
+                It.IsAny<CancellationToken>()), Times.Once());
             testSubject.ConnectedServer.Should().Be(connectionInfo);
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_ConnectionStep_WhenMissingCSharpPluginAndVBNetPlugin_AbortsWorkflowAndDisconnects()
+        public async Task ConnectionWorkflow_ConnectionStep_WhenMissingCSharpPluginAndVBNetPlugin_AbortsWorkflowAndDisconnects()
         {
             // Arrange
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
             ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(() => { }));
             var controller = new ConfigurableProgressController();
-            this.sonarQubeService.AllowConnections = true;
-            this.sonarQubeService.ReturnProjectInformation = new ProjectInformation[0];
-            this.sonarQubeService.ClearServerPlugins();
+            this.sonarQubeServiceMock.Setup(x => x.GetAllProjectsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<SonarQubeProject>());
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPluginsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<SonarQubePlugin>());
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
 
             // Act
-            testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
+            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(1);
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),
                 Strings.ConnectionStepValidatinCredentials,
-                Strings.DetectingServerPlugins,
+                Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionResultFailure);
-            notifications.AssertNotification(NotificationIds.BadServerPluginId, Strings.ServerHasNoSupportedPluginVersion);
+            notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, Strings.ServerHasNoSupportedPluginVersion);
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_ConnectionStep_WhenPluginOkAndNoProjects_AbortsWorkflowAndDisconnects()
+        public async Task ConnectionWorkflow_ConnectionStep_WhenPluginOkAndNoProjects_AbortsWorkflowAndDisconnects()
         {
             // Arrange
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
-            this.sonarQubeService.ReturnProjectInformation = projects;
+            var projects = new List<SonarQubeProject> { new SonarQubeProject("project1", "") };
+            this.sonarQubeServiceMock.Setup(x => x.GetAllProjectsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(projects);
             bool projectChangedCallbackCalled = false;
             this.host.TestStateManager.SetProjectsAction = (c, p) =>
             {
@@ -212,39 +226,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
 
             // Act
-            testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
+            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(1);
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),
                 Strings.ConnectionStepValidatinCredentials,
-                Strings.DetectingServerPlugins,
+                Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
-            notifications.AssertNotification(NotificationIds.BadServerPluginId, Strings.SolutionContainsNoSupportedProject);
+            notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, Strings.SolutionContainsNoSupportedProject);
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_ConnectionStep_WhenCSharpPluginAndNoCSharpProject_AbortsWorkflowAndDisconnects()
+        public async Task ConnectionWorkflow_ConnectionStep_WhenCSharpPluginAndNoCSharpProject_AbortsWorkflowAndDisconnects()
         {
-            ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.vbproj", ProjectSystemHelper.VbProjectKind, MinimumSupportedServerPlugin.CSharp);
+            await ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.vbproj", ProjectSystemHelper.VbProjectKind, MinimumSupportedSonarQubePlugin.CSharp);
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_ConnectionStep_WhenVBNetPluginAndNoVBNetProject_AbortsWorkflowAndDisconnects()
+        public async Task ConnectionWorkflow_ConnectionStep_WhenVBNetPluginAndNoVBNetProject_AbortsWorkflowAndDisconnects()
         {
-            ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.csproj", ProjectSystemHelper.CSharpProjectKind, MinimumSupportedServerPlugin.VbNet);
+            await ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.csproj", ProjectSystemHelper.CSharpProjectKind, MinimumSupportedSonarQubePlugin.VbNet);
         }
 
-        private void ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects(string projectName, string projectKind, MinimumSupportedServerPlugin minimumSupportedServerPlugin)
+        private async Task ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects(string projectName, string projectKind, MinimumSupportedSonarQubePlugin minimumSupportedSonarQubePlugin)
         {
             // Arrange
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
-            var projects = new ProjectInformation[] { new ProjectInformation { Key = "project1" } };
-            this.sonarQubeService.ReturnProjectInformation = projects;
-            this.sonarQubeService.ClearServerPlugins();
-            this.sonarQubeService.RegisterServerPlugin(new ServerPlugin { Key = minimumSupportedServerPlugin.Key, Version = minimumSupportedServerPlugin.MinimumVersion });
+            var projects = new List<SonarQubeProject> { new SonarQubeProject("project1", "") };
+            this.sonarQubeServiceMock.Setup(x => x.GetAllProjectsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(projects);
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPluginsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<SonarQubePlugin> { new SonarQubePlugin(minimumSupportedSonarQubePlugin.Key, minimumSupportedSonarQubePlugin.MinimumVersion) });
             this.projectSystemHelper.Projects = new[] { new ProjectMock(projectName) { ProjectKind = projectKind } };
             bool projectChangedCallbackCalled = false;
             this.host.TestStateManager.SetProjectsAction = (c, p) =>
@@ -261,23 +276,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
 
             // Act
-            testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
+            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(1);
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),
                 Strings.ConnectionStepValidatinCredentials,
-                Strings.DetectingServerPlugins,
+                Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
-            notifications.AssertNotification(NotificationIds.BadServerPluginId, string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, minimumSupportedServerPlugin.Language.Name));
+            notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, minimumSupportedSonarQubePlugin.Language.Name));
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_ConnectionStep_UnsuccessfulConnection()
+        public async Task ConnectionWorkflow_ConnectionStep_UnsuccessfulConnection()
         {
             // Arrange
+            this.sonarQubeServiceMock.Setup(x => x.GetAllProjectsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(() => { throw new Exception(); });
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
             bool projectChangedCallbackCalled = false;
             this.host.TestStateManager.SetProjectsAction = (c, p) =>
@@ -288,40 +305,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             };
             this.projectSystemHelper.Projects = new[] { new ProjectMock("foo.csproj") { ProjectKind = ProjectSystemHelper.CSharpProjectKind } };
             var controller = new ConfigurableProgressController();
-            this.sonarQubeService.AllowConnections = false;
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
             var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
 
             // Act
-            testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
+            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
 
             // Assert
             executionEvents.AssertProgressMessages(
                 connectionMessage,
                 Strings.ConnectionStepValidatinCredentials,
-                Strings.DetectingServerPlugins,
+                Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionStepRetrievingProjects,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("Callback should not have been called");
-            this.sonarQubeService.ConnectionRequestsCount.Should().Be(1);
+            this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
+                It.IsAny<CancellationToken>()), Times.Once());
             this.host.VisualStateManager.IsConnected.Should().BeFalse();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
             // Act (reconnect with same bad connection)
             executionEvents.Reset();
             projectChangedCallbackCalled = false;
-            testSubject.ConnectionStep(controller, CancellationToken.None, connectionInfo, executionEvents);
+            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
 
             // Assert
             executionEvents.AssertProgressMessages(
                 connectionMessage,
                 Strings.ConnectionStepValidatinCredentials,
-                Strings.DetectingServerPlugins,
+                Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionStepRetrievingProjects,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("Callback should not have been called");
-            this.sonarQubeService.ConnectionRequestsCount.Should().Be(2);
+            this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
             this.host.VisualStateManager.IsConnected.Should().BeFalse();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
 
@@ -333,35 +351,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             tokenSource.Cancel();
 
             // Act
-            testSubject.ConnectionStep(controller, token, connectionInfo, executionEvents);
+            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, token);
 
             // Assert
             executionEvents.AssertProgressMessages(
                 connectionMessage,
                 Strings.ConnectionStepValidatinCredentials,
-                Strings.DetectingServerPlugins,
+                Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionStepRetrievingProjects,
                 Strings.ConnectionResultCancellation);
             projectChangedCallbackCalled.Should().BeFalse("Callback should not have been called");
-            this.sonarQubeService.ConnectionRequestsCount.Should().Be(3);
+            this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(3));
             this.host.VisualStateManager.IsConnected.Should().BeFalse();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_DownloadServiceParameters_RegexPropertyNotSet_SetsFilterWithDefaultExpression()
+        public async Task ConnectionWorkflow_DownloadServiceParameters_RegexPropertyNotSet_SetsFilterWithDefaultExpression()
         {
             // Arrange
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<SonarQubeProperty> { new SonarQubeProperty(SonarQubeProperty.TestProjectRegexKey,
+                    SonarQubeProperty.TestProjectRegexDefaultValue) });
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
-            var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
+            var expectedExpression = SonarQubeProperty.TestProjectRegexDefaultValue;
             ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
 
-            // Sanity
-            this.sonarQubeService.ServerProperties.Any(x => x.Key != ServerProperty.TestProjectRegexKey).Should().BeFalse();
-
             // Act
-            testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
+            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
 
             // Assert
             filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
@@ -369,23 +388,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_DownloadServiceParameters_CustomRegexProperty_SetsFilterWithCorrectExpression()
+        public async Task ConnectionWorkflow_DownloadServiceParameters_CustomRegexProperty_SetsFilterWithCorrectExpression()
         {
             // Arrange
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
             var expectedExpression = ".*spoon.*";
-            this.sonarQubeService.RegisterServerProperty(new ServerProperty
-            {
-                Key = ServerProperty.TestProjectRegexKey,
-                Value = expectedExpression
-            });
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<SonarQubeProperty> { new SonarQubeProperty(SonarQubeProperty.TestProjectRegexKey, expectedExpression) });
 
             ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
 
             // Act
-            testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
+            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
 
             // Assert
             filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
@@ -393,24 +409,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_DownloadServiceParameters_InvalidRegex_UsesDefault()
+        public async Task ConnectionWorkflow_DownloadServiceParameters_InvalidRegex_UsesDefault()
         {
             // Arrange
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
             var badExpression = "*-gf/d*-b/try\\*-/r-*yeb/\\";
-            var expectedExpression = ServerProperty.TestProjectRegexDefaultValue;
-            this.sonarQubeService.RegisterServerProperty(new ServerProperty
-            {
-                Key = ServerProperty.TestProjectRegexKey,
-                Value = badExpression
-            });
+            var expectedExpression = SonarQubeProperty.TestProjectRegexDefaultValue;
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<SonarQubeProperty> { new SonarQubeProperty(SonarQubeProperty.TestProjectRegexKey, badExpression) });
 
             ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
 
             // Act
-            testSubject.DownloadServiceParameters(controller, CancellationToken.None, progressEvents);
+            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
 
             // Assert
             filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
@@ -419,7 +432,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void ConnectionWorkflow_DownloadServiceParameters_Cancelled_AbortsWorkflow()
+        public async Task ConnectionWorkflow_DownloadServiceParameters_Cancelled_AbortsWorkflow()
         {
             // Arrange
             var controller = new ConfigurableProgressController();
@@ -431,7 +444,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             cts.Cancel();
 
             // Act
-            testSubject.DownloadServiceParameters(controller, cts.Token, progressEvents);
+            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, cts.Token);
 
             // Assert
             progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);

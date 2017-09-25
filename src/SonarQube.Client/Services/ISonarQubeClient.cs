@@ -20,50 +20,50 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using SonarQube.Client.Models;
+using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Services
 {
     public interface ISonarQubeClient
     {
         /// <summary>
-        ///
+        ///     Retrieves all components from the given SonarQube server.
         /// </summary>
-        Task<Result<ComponentDTO[]>> GetComponentsSearchProjectsAsync(ConnectionDTO connection,
+        Task<Result<ComponentResponse[]>> GetComponentsSearchProjectsAsync(ConnectionRequest connection,
             ComponentRequest request, CancellationToken token);
 
         /// <summary>
         ///     Retrieves all organizations from the given SonarQube server.
         /// </summary>
-        Task<Result<OrganizationDTO[]>> GetOrganizationsAsync(ConnectionDTO connection,
+        Task<Result<OrganizationResponse[]>> GetOrganizationsAsync(ConnectionRequest connection,
             OrganizationRequest request, CancellationToken token);
 
         /// <summary>
         ///     Retrieves all plugins installed on the given SonarQube server.
         /// </summary>
         /// <returns></returns>
-        Task<Result<PluginDTO[]>> GetPluginsAsync(ConnectionDTO connection, CancellationToken token);
+        Task<Result<PluginResponse[]>> GetPluginsAsync(ConnectionRequest connection, CancellationToken token);
 
         /// <summary>
         ///     Retrieves all the projects from the given SonarQube server.
         /// </summary>
-        Task<Result<ProjectDTO[]>> GetProjectsAsync(ConnectionDTO connection, CancellationToken token);
+        Task<Result<ProjectResponse[]>> GetProjectsAsync(ConnectionRequest connection, CancellationToken token);
 
         /// <summary>
         ///     Retrieves all the properties for the given SonarQube server.
         /// </summary>
-        Task<Result<PropertyDTO[]>> GetPropertiesAsync(ConnectionDTO connection, CancellationToken token);
+        Task<Result<PropertyResponse[]>> GetPropertiesAsync(ConnectionRequest connection, CancellationToken token);
 
         /// <summary>
         ///     Retrieves the change log for the given quality profile.
         /// </summary>
-        Task<Result<QualityProfileChangeLogDTO>> GetQualityProfileChangeLogAsync(ConnectionDTO connection,
+        Task<Result<QualityProfileChangeLogResponse>> GetQualityProfileChangeLogAsync(ConnectionRequest connection,
             QualityProfileChangeLogRequest request, CancellationToken token);
 
         /// <summary>
         ///     Retrieves the quality profile for the specified project and language.
         /// </summary>
-        Task<Result<QualityProfileDTO[]>> GetQualityProfilesAsync(ConnectionDTO connection,
+        Task<Result<QualityProfileResponse[]>> GetQualityProfilesAsync(ConnectionRequest connection,
            QualityProfileRequest request, CancellationToken token);
 
         /// <summary>
@@ -74,17 +74,17 @@ namespace SonarQube.Client.Services
         ///     analysis, including: the Code Analysis rule set, analyzer NuGet packages, and any other additional
         ///     files for the analyzers.
         /// </remarks>
-        Task<Result<RoslynExportProfile>> GetRoslynExportProfileAsync(ConnectionDTO connection,
+        Task<Result<RoslynExportProfileResponse>> GetRoslynExportProfileAsync(ConnectionRequest connection,
             RoslynExportProfileRequest request, CancellationToken token);
 
         /// <summary>
         ///     Retrieves the version of the given SonarQube server.
         /// </summary>
-        Task<Result<VersionDTO>> GetVersionAsync(ConnectionDTO connection, CancellationToken token);
+        Task<Result<VersionResponse>> GetVersionAsync(ConnectionRequest connection, CancellationToken token);
 
         /// <summary>
         ///     Validates the given credentials on the given SonarQube server.
         /// </summary>
-        Task<Result<CredentialsDTO>> ValidateCredentialsAsync(ConnectionDTO connection, CancellationToken token);
+        Task<Result<CredentialResponse>> ValidateCredentialsAsync(ConnectionRequest connection, CancellationToken token);
     }
 }

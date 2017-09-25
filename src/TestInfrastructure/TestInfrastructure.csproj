@@ -356,6 +356,10 @@
       <Project>{03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f}</Project>
       <Name>Integration</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
+      <Project>{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}</Project>
+      <Name>SonarQube.Client</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />

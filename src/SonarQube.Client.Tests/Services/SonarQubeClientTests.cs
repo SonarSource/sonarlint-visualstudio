@@ -27,7 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
-using SonarQube.Client.Models;
+using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Services.Tests
 {
@@ -125,14 +125,14 @@ namespace SonarQube.Client.Services.Tests
         [TestMethod]
         public async Task GetRoslynExportProfileAsync_CallsTheExpectedUri()
         {
-            var request = new RoslynExportProfileRequest { QualityProfileName = "qp", Language = ServerLanguage.CSharp };
+            var request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "cs" };
             await Method_CallsTheExpectedUri(
                 new Uri("api/qualityprofiles/export?name=qp&language=cs&exporterKey=roslyn-cs", UriKind.RelativeOrAbsolute),
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
 </RoslynExportProfile>", (c, co, t) => c.GetRoslynExportProfileAsync(co, request, t));
 
-            request = new RoslynExportProfileRequest { QualityProfileName = "qp", Language = ServerLanguage.VbNet };
+            request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "vbnet" };
             await Method_CallsTheExpectedUri(
                 new Uri("api/qualityprofiles/export?name=qp&language=vbnet&exporterKey=roslyn-vbnet", UriKind.RelativeOrAbsolute),
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -153,13 +153,13 @@ namespace SonarQube.Client.Services.Tests
         }
 
         private async Task Method_CallsTheExpectedUri<T>(Uri expectedRelativeUri, string resultContent,
-            Func<SonarQubeClient, ConnectionDTO, CancellationToken, Task<Result<T>>> call)
+            Func<SonarQubeClient, ConnectionRequest, CancellationToken, Task<Result<T>>> call)
         {
             // Arrange
             var httpHandler = new Mock<HttpMessageHandler>();
             var client = new SonarQubeClient(httpHandler.Object, TimeSpan.FromSeconds(10));
             var serverUri = new Uri("http://mysq.com/");
-            var connection = new ConnectionDTO { ServerUri = serverUri };
+            var connection = new ConnectionRequest { ServerUri = serverUri };
 
             httpHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
@@ -244,7 +244,7 @@ namespace SonarQube.Client.Services.Tests
         [TestMethod]
         public async Task GetRoslynExportProfileAsync_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData()
         {
-            var request = new RoslynExportProfileRequest { QualityProfileName = "qp", Language = ServerLanguage.CSharp };
+            var request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "cs" };
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
                 (c, co, t) => c.GetRoslynExportProfileAsync(co, request, t),
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -284,11 +284,11 @@ namespace SonarQube.Client.Services.Tests
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
                 (c, co, t) => c.ValidateCredentialsAsync(co, t),
                 "{\"valid\": true}",
-                value => value.AreValid.Should().BeTrue());
+                value => value.IsValid.Should().BeTrue());
         }
 
         private async Task Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData<T>(
-            Func<SonarQubeClient, ConnectionDTO, CancellationToken, Task<Result<T>>> call, string resultContent,
+            Func<SonarQubeClient, ConnectionRequest, CancellationToken, Task<Result<T>>> call, string resultContent,
             Action<T> extraAssertions)
         {
             // Arrange
@@ -302,7 +302,7 @@ namespace SonarQube.Client.Services.Tests
                     Content = new StringContent(resultContent)
                 }));
             var client = new SonarQubeClient(httpHandler.Object, TimeSpan.FromSeconds(10));
-            var connection = new ConnectionDTO { ServerUri = new Uri("http://mysq.com/") };
+            var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
 
             // Act & Assert
             var result = await call(client, connection, CancellationToken.None);
@@ -358,7 +358,7 @@ namespace SonarQube.Client.Services.Tests
         [TestMethod]
         public void GetRoslynExportProfileAsync_WhenCancellationRequested_ThrowsException()
         {
-            var request = new RoslynExportProfileRequest { QualityProfileName = "qp", Language = ServerLanguage.CSharp };
+            var request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "cs" };
             Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetRoslynExportProfileAsync(co, request, t));
         }
         [TestMethod]
@@ -373,7 +373,7 @@ namespace SonarQube.Client.Services.Tests
         }
 
         private void Method_WhenCancellationRequested_ThrowsException<T>(
-            Func<SonarQubeClient, ConnectionDTO, CancellationToken, Task<Result<T>>> call)
+            Func<SonarQubeClient, ConnectionRequest, CancellationToken, Task<Result<T>>> call)
         {
             // Arrange
             var httpHandler = new Mock<HttpMessageHandler>();
@@ -386,7 +386,7 @@ namespace SonarQube.Client.Services.Tests
                     Content = new StringContent("")
                 }));
             var client = new SonarQubeClient(httpHandler.Object, TimeSpan.FromSeconds(10));
-            var connection = new ConnectionDTO { ServerUri = new Uri("http://mysq.com/") };
+            var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
             var cancellationToken = new CancellationTokenSource();
             cancellationToken.Cancel();
 
@@ -441,7 +441,7 @@ namespace SonarQube.Client.Services.Tests
         [TestMethod]
         public void GetRoslynExportProfileAsync_WhenExceptionThrown_PropagateIt()
         {
-            var request = new RoslynExportProfileRequest { QualityProfileName = "qp", Language = ServerLanguage.CSharp };
+            var request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "cs" };
             Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetRoslynExportProfileAsync(co, request, t));
         }
         [TestMethod]
@@ -456,7 +456,7 @@ namespace SonarQube.Client.Services.Tests
         }
 
         private void Method_WhenExceptionThrown_PropagateIt<T>(
-            Func<SonarQubeClient, ConnectionDTO, CancellationToken, Task<Result<T>>> call)
+            Func<SonarQubeClient, ConnectionRequest, CancellationToken, Task<Result<T>>> call)
         {
             // Arrange
             var expectedException = new Exception("foo text.");
@@ -467,7 +467,7 @@ namespace SonarQube.Client.Services.Tests
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(() => { throw expectedException; });
             var client = new SonarQubeClient(httpHandler.Object, TimeSpan.FromSeconds(10));
-            var connection = new ConnectionDTO { ServerUri = new Uri("http://mysq.com/") };
+            var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
 
             // Act & Assert
             Func<Task<Result<T>>> funct = async () => await call(client, connection, CancellationToken.None);

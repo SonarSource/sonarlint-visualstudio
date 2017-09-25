@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     // Test only interface
     internal interface IBindingWorkflowExecutor
     {
-        void BindProject(ProjectInformation projectInformation);
+        void BindProject(SonarQubeProject projectInformation);
     }
 }
