@@ -47,15 +47,16 @@ namespace SonarLint.VisualStudio.Integration.Service
     internal class SonarQubeServiceWrapper : ISonarQubeServiceWrapper
     {
         public const string ProjectsAPI = "api/projects/index";                                 // Since 2.10
-        public const string SearchProjectsAPI = "api/components/search_projects";               // Since 6.2; internal
+        public const string SearchProjectsAPI = "api/components/search_projects";               // Since 6.2;  internal
         public const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins";   // Since 2.10; internal
         public const string QualityProfileListAPI = "api/qualityprofiles/search";               // Since 5.2
         public const string QualityProfileExportAPI = "api/qualityprofiles/export";             // Since 5.2
         public const string PropertiesAPI = "api/properties/";                                  // Since 2.6
         public const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog";       // Since 5.2
-        public const string OrganizationsAPI = "api/organizations/search";                      // Since 6.2; internal
+        public const string OrganizationsAPI = "api/organizations/search";                      // Since 6.2;  internal
         public const string ServerVersionAPI = "api/server/version";                            // Since 2.10; internal
         public const string ValidateCredentialsAPI = "api/authentication/validate";             // Since 3.3
+        public const string NotificationsAPI = "api/developers/search_events";                  // Since 6.6;  internal
 
         public const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
 
@@ -144,6 +145,20 @@ namespace SonarLint.VisualStudio.Integration.Service
                 client => this.DownloadOrganizations(client, token));
 
             return organizations != null;
+        }
+
+        public bool TryGetNotificationEvents(ConnectionInformation serverConnection,
+            CancellationToken token, string projectKey, DateTimeOffset eventsSince, out NotificationEvent[] events)
+        {
+            if (serverConnection == null)
+            {
+                throw new ArgumentNullException(nameof(serverConnection));
+            }
+
+            events = this.SafeUseHttpClient<NotificationEvent[]>(serverConnection,
+                client => GetNotificationEvents(client, token, projectKey, eventsSince));
+
+            return events != null;
         }
 
         public bool TryGetProjects(ConnectionInformation connectionInformation, CancellationToken token, out ProjectInformation[] serverProjects)
@@ -443,6 +458,58 @@ namespace SonarLint.VisualStudio.Integration.Service
             var stringResponse = await ReadResponse(httpResponse, token);
 
             return ProcessJsonResponse<ServerProperty[]>(stringResponse, token);
+        }
+
+        #endregion
+
+        #region Notifications
+
+        private static async Task<NotificationEvent[]> GetNotificationEvents(HttpClient client,
+            CancellationToken token, string projectKey, DateTimeOffset eventsSince)
+        {
+            var queryParameters = new Dictionary<string, object>
+            {
+                { "projects", projectKey },
+                { "from", ToJavaTimeFormat(eventsSince) }
+            };
+
+            var url = BuildNotificationsUrl(queryParameters);
+            var httpResponse = await InvokeGetRequest(client, url, token);
+            var stringResponse = await ReadResponse(httpResponse, token);
+
+            switch (httpResponse.StatusCode)
+            {
+                case HttpStatusCode.NotFound:
+                    return null;
+
+                case HttpStatusCode.OK:
+                    return ProcessJsonResponse<NotificationEvents>(stringResponse, token).Events
+                        ?? new NotificationEvent[0];
+
+                default:
+                    return new NotificationEvent[0];
+            }
+        }
+
+        private static string ToJavaTimeFormat(DateTimeOffset date)
+        {
+            // This is the only format the API accepts. ISO 8601 formats don't work.
+            // For example 2013-05-01T13:00:00+0100
+            var dateTime = date.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+            var timezone = date.ToString("zzz", CultureInfo.InvariantCulture).Replace(":", "");
+
+            return dateTime + timezone;
+        }
+
+        private static string BuildNotificationsUrl(Dictionary<string, object> queryParameters)
+        {
+            var query = HttpUtility.ParseQueryString("");
+            foreach (var kvp in queryParameters)
+            {
+                query[kvp.Key] = kvp.Value.ToString();
+            }
+
+            return NotificationsAPI + "?" + query.ToString();
         }
 
         #endregion
