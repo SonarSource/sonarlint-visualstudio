@@ -24,13 +24,13 @@ using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Service.DataModel
 {
-    internal class MinimumSupportedServerPlugin
+    internal class MinimumSupportedSonarQubePlugin
     {
-        public static readonly MinimumSupportedServerPlugin CSharp = new MinimumSupportedServerPlugin("csharp", Language.CSharp, "5.0");
-        public static readonly MinimumSupportedServerPlugin VbNet = new MinimumSupportedServerPlugin("vbnet", Language.VBNET, "3.0");
-        public static readonly IEnumerable<MinimumSupportedServerPlugin> All = new[] { CSharp, VbNet };
+        public static readonly MinimumSupportedSonarQubePlugin CSharp = new MinimumSupportedSonarQubePlugin("csharp", Language.CSharp, "5.0");
+        public static readonly MinimumSupportedSonarQubePlugin VbNet = new MinimumSupportedSonarQubePlugin("vbnet", Language.VBNET, "3.0");
+        public static readonly IEnumerable<MinimumSupportedSonarQubePlugin> All = new[] { CSharp, VbNet };
 
-        private MinimumSupportedServerPlugin(string key, Language language, string minimumVersion)
+        private MinimumSupportedSonarQubePlugin(string key, Language language, string minimumVersion)
         {
             Key = key;
             Language = language;
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Service.DataModel
 
         public override string ToString()
         {
-            return string.Format(CultureInfo.CurrentCulture, Strings.MinimumSupportedServerPlugin, Language.Name, MinimumVersion);
+            return string.Format(CultureInfo.CurrentCulture, Strings.MinimumSupportedSonarQubePlugin, Language.Name, MinimumVersion);
         }
 
         public bool ISupported(EnvDTE.Project project)

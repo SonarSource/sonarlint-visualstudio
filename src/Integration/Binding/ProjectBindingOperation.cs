@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region IBindingOperation
         public void Initialize()
         {
-            this.CaptureProjectInformation();
+            this.CaptureSonarQubeProject();
             this.CalculateRuleSetInformation();
         }
 
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region Helpers
 
-        private void CaptureProjectInformation()
+        private void CaptureSonarQubeProject()
         {
             this.ProjectLanguage = Language.ForProject(this.initializedProject);
             this.ProjectFullPath = this.initializedProject.FullName;

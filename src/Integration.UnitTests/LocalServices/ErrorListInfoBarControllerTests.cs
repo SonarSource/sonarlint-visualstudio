@@ -29,11 +29,13 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client.Models;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -213,9 +215,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProfileKey = "Profile",
                 ProfileTimestamp = DateTime.Now
             };
-            var sqService = new ConfigurableSonarQubeServiceWrapper();
-            this.host.SonarQubeService = sqService;
-            sqService.ReturnProfile[Language.CSharp] = new QualityProfile();
+            var sqService = new Mock<ISonarQubeService>();
+            //this.host.SonarQubeService = sqService;
+            //sqService.ReturnProfile[Language.CSharp] = new QualityProfile();
 
             // Act
             testSubject.ProcessSolutionBinding();
@@ -821,7 +823,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             section.ViewModel.State.ConnectedServers.Clear();
             var serverVM = new ServerViewModel(new ConnectionInformation(serverUri));
             section.ViewModel.State.ConnectedServers.Add(serverVM);
-            var projectVM = new ProjectViewModel(serverVM, new ProjectInformation { Key = projectKey });
+            var projectVM = new ProjectViewModel(serverVM, new SonarQubeProject(projectKey, ""));
             serverVM.Projects.Add(projectVM);
 
             return projectVM;

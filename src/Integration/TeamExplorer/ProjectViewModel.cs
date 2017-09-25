@@ -21,8 +21,8 @@
 using System;
 using System.Globalization;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
         public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
 
-        public ProjectViewModel(ServerViewModel owner, ProjectInformation projectInformation)
+        public ProjectViewModel(ServerViewModel owner, SonarQubeProject projectInformation)
         {
             if (owner == null)
             {
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             }
 
             this.Owner = owner;
-            this.ProjectInformation = projectInformation;
+            this.SonarQubeProject = projectInformation;
         }
 
         #region Properties
@@ -56,19 +56,19 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get;
         }
 
-        public ProjectInformation ProjectInformation
+        public SonarQubeProject SonarQubeProject
         {
             get;
         }
 
         public string Key
         {
-            get { return this.ProjectInformation.Key; }
+            get { return this.SonarQubeProject.Key; }
         }
 
         public string ProjectName
         {
-            get { return this.ProjectInformation.Name; }
+            get { return this.SonarQubeProject.Name; }
         }
 
         public bool IsBound

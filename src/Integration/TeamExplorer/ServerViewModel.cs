@@ -24,8 +24,8 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -50,9 +50,9 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         /// <summary>
         /// Will clear any existing project view models and will replace them with the specified ones.
-        /// The project view models will be alphabetically sorted by <see cref="ProjectInformation.Name"/> for the <see cref="StringComparer.CurrentCulture"/>
+        /// The project view models will be alphabetically sorted by <see cref="SonarQubeProject.Name"/> for the <see cref="StringComparer.CurrentCulture"/>
         /// </summary>
-        public void SetProjects(IEnumerable<ProjectInformation> projectsToSet)
+        public void SetProjects(IEnumerable<SonarQubeProject> projectsToSet)
         {
             this.Projects.Clear();
             if (projectsToSet == null)

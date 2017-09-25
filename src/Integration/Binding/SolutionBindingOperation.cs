@@ -26,7 +26,7 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 map[keyValue.Key] = new ApplicableQualityProfile
                 {
                     ProfileKey = keyValue.Value.Key,
-                    ProfileTimestamp = keyValue.Value.QualityProfileTimestamp
+                    ProfileTimestamp = keyValue.Value.TimeStamp
                 };
             }
 
