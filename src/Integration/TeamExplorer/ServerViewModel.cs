@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         /// <summary>
         /// Will clear any existing project view models and will replace them with the specified ones.
-        /// The project view models will be alphabetically sorted by <see cref="Project.Name"/> for the <see cref="StringComparer.CurrentCulture"/>
+        /// The project view models will be alphabetically sorted by <see cref="SonarQubeProject.Name"/> for the <see cref="StringComparer.CurrentCulture"/>
         /// </summary>
         public void SetProjects(IEnumerable<SonarQubeProject> projectsToSet)
         {
