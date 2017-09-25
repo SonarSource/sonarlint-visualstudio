@@ -23,16 +23,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -263,7 +265,7 @@ namespace SonarLint.VisualStudio.Integration
             if (binding == null
                 || this.infoBarBinding == null
                 || binding.ServerUri != this.infoBarBinding.ServerUri
-                || !ProjectInformation.KeyComparer.Equals(binding.ProjectKey, this.infoBarBinding.ProjectKey))
+                || !SonarQubeProject.KeyComparer.Equals(binding.ProjectKey, this.infoBarBinding.ProjectKey))
             {
                 // Not bound anymore, or bound to something else entirely
                 this.ClearCurrentInfoBar();
@@ -511,7 +513,7 @@ namespace SonarLint.VisualStudio.Integration
             private ProjectViewModel FindProject(Uri serverUri, string projectKey)
             {
                 ServerViewModel serverVM = this.State.ConnectedServers.SingleOrDefault(s => s.Url == serverUri);
-                return serverVM?.Projects.SingleOrDefault(p => ProjectInformation.KeyComparer.Equals(p.Key, projectKey));
+                return serverVM?.Projects.SingleOrDefault(p => SonarQubeProject.KeyComparer.Equals(p.Key, projectKey));
             }
         }
 
@@ -603,13 +605,17 @@ namespace SonarLint.VisualStudio.Integration
                 }, token);
             }
 
-            private bool IsUpdateRequired(BoundSonarQubeProject binding, IEnumerable<Language> projectLanguages, CancellationToken token)
+            private bool IsUpdateRequired(BoundSonarQubeProject binding, IEnumerable<Language> projectLanguages,
+                CancellationToken token)
             {
                 Debug.Assert(binding != null);
 
-                ConnectionInformation connection = binding.CreateConnectionInformation();
-                Dictionary<Language, QualityProfile> newProfiles;
-                if (!this.TryGetLatestProfiles(binding, projectLanguages, token, connection, out newProfiles))
+                IDictionary<Language, QualityProfile> newProfiles = null;
+                try
+                {
+                    newProfiles = TryGetLatestProfilesAsync(binding, projectLanguages, token).GetAwaiter().GetResult();
+                }
+                catch (Exception)
                 {
                     VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckFailed);
                     return false; // Error, can't proceed
@@ -651,7 +657,7 @@ namespace SonarLint.VisualStudio.Integration
                     return true; // The profile change to a different one
                 }
 
-                if (oldProfileInfo.ProfileTimestamp != newProfileInfo.QualityProfileTimestamp)
+                if (oldProfileInfo.ProfileTimestamp != newProfileInfo.TimeStamp)
                 {
                     VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckProfileUpdated);
                     return true; // The profile was updated
@@ -660,23 +666,18 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
 
-            private bool TryGetLatestProfiles(BoundSonarQubeProject binding, IEnumerable<Language> projectLanguages, CancellationToken token, ConnectionInformation connection, out Dictionary<Language, QualityProfile> newProfiles)
+            private async Task<IDictionary<Language, QualityProfile>> TryGetLatestProfilesAsync(BoundSonarQubeProject binding,
+                IEnumerable<Language> projectLanguages, CancellationToken token)
             {
-                newProfiles = new Dictionary<Language, QualityProfile>();
+                var newProfiles = new Dictionary<Language, QualityProfile>();
                 foreach (Language language in projectLanguages)
                 {
-                    QualityProfile profile;
-                    if (this.host.SonarQubeService.TryGetQualityProfile(connection, new ProjectInformation { Key = binding.ProjectKey }, language, token, out profile))
-                    {
-                        newProfiles[language] = profile;
-                    }
-                    else
-                    {
-                        return false; // Failed
-                    }
+                    var serverLanguage = language.ToServerLanguage();
+                    newProfiles[language] = await this.host.SonarQubeService.GetQualityProfileAsync(binding.ProjectKey,
+                        serverLanguage, token);
                 }
 
-                return true;
+                return newProfiles;
             }
 
             #region IDisposable Support

@@ -29,7 +29,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -322,7 +322,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[Language.CSharp] = new RuleSet("cs");
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             var profiles = GetQualityProfiles();
-            profiles[Language.CSharp] = new QualityProfile { Key = "C# Profile", QualityProfileTimestamp = DateTime.Now };
+            profiles[Language.CSharp] = new QualityProfile("C# Profile", "", "", false, DateTime.Now);
             testSubject.Initialize(projects, profiles);
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool commitCalledForBinder = false;
@@ -335,7 +335,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 QualityProfile csProfile = profiles[Language.CSharp];
                 bindingInfo.Profiles[Language.CSharp].ProfileKey.Should().Be(csProfile.Key);
-                bindingInfo.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(csProfile.QualityProfileTimestamp);
+                bindingInfo.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(csProfile.TimeStamp);
 
                 return "Doesn't matter";
             };

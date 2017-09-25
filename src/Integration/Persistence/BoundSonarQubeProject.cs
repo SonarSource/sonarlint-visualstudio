@@ -21,7 +21,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
@@ -31,8 +31,8 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         {
         }
 
-        public BoundSonarQubeProject(Uri serverUri, string projectKey, ICredentials credentials = null, 
-            OrganizationInformation organization = null)
+        public BoundSonarQubeProject(Uri serverUri, string projectKey, ICredentials credentials = null,
+            Organization organization = null)
             : this()
         {
             if (serverUri == null)
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         }
 
         public Uri ServerUri { get; set; }
-        public OrganizationInformation Organization { get; set; }
+        public Organization Organization { get; set; }
 
         public string ProjectKey { get; set; }
 

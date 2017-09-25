@@ -243,7 +243,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="**\obj\**\*;**\*.xaml.cs;**\*.Designer.cs" />
+    <Compile Include="**\*.cs" Exclude="**\obj\**\*" />
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
@@ -253,7 +253,6 @@
     <None Include="Integration.UnitTests.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <AdditionalFiles Include="..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
@@ -271,6 +270,10 @@
     <ProjectReference Include="..\Integration\Integration.csproj">
       <Project>{03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f}</Project>
       <Name>Integration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
+      <Project>{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}</Project>
+      <Name>SonarQube.Client</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj">
       <Project>{fbd8024a-9795-4e5b-938e-afe44fca240c}</Project>

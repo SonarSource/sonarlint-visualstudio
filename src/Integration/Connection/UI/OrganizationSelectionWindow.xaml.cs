@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection.UI
 {
@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
     /// </summary>
     public partial class OrganizationSelectionWindow
     {
-        internal OrganizationSelectionWindow(IEnumerable<OrganizationInformation> organizations)
+        internal OrganizationSelectionWindow(IEnumerable<Organization> organizations)
         {
             InitializeComponent();
 
@@ -44,9 +44,9 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
             this.DialogResult = true;
         }
 
-        internal OrganizationInformation GetSelectedOrganization()
+        internal Organization GetSelectedOrganization()
         {
-            return OrganizationComboBox?.SelectedItem as OrganizationInformation;
+            return OrganizationComboBox?.SelectedItem as Organization;
         }
     }
 }

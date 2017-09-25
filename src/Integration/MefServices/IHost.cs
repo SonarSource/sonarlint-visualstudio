@@ -21,9 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Threading;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -35,9 +35,9 @@ namespace SonarLint.VisualStudio.Integration
         Dispatcher UIDispatcher { get; }
 
         /// <summary>
-        /// <see cref="ISonarQubeServiceWrapper"/>. Not null.
+        /// <see cref="ISonarQubeService"/>. Not null.
         /// </summary>
-        ISonarQubeServiceWrapper SonarQubeService { get; }
+        ISonarQubeService SonarQubeService { get; }
 
         /// <summary>
         /// The visual state manager. Not null.
