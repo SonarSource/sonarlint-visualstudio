@@ -244,7 +244,7 @@ namespace SonarQube.Client.Services
         }
 
         public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
-        DateTimeOffset eventsSince, CancellationToken token)
+            DateTimeOffset eventsSince, CancellationToken token)
         {
             EnsureIsConnected();
 
