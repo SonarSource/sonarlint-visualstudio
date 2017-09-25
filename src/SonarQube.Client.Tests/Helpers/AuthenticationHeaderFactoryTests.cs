@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Client.Tests;
 
 namespace SonarQube.Client.Helpers.Tests
 {
@@ -33,8 +34,11 @@ namespace SonarQube.Client.Helpers.Tests
             // Invalid input
             string user = "hello:";
             string password = "world";
-            Action action = () => AuthenticationHeaderFactory.GetBasicAuthToken(user, password.ToSecureString());
-            action.ShouldThrow<ArgumentOutOfRangeException>();
+            using (new AssertIgnoreScope())
+            {
+                Action action = () => AuthenticationHeaderFactory.GetBasicAuthToken(user, password.ToSecureString());
+                action.ShouldThrow<ArgumentOutOfRangeException>();
+            }
 
             // ASCII
             user = "hello";

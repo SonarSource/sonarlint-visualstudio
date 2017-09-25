@@ -69,6 +69,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="AssertIgnoreScope.cs" />
     <Compile Include="Helpers\AuthenticationHeaderFactoryTests.cs" />
     <Compile Include="Helpers\UriHelperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
