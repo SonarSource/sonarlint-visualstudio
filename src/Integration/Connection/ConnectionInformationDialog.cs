@@ -23,7 +23,7 @@ using System.Diagnostics;
 using System.Security;
 using System.Windows;
 using SonarLint.VisualStudio.Integration.Connection.UI;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {

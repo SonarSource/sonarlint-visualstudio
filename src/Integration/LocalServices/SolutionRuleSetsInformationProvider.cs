@@ -88,11 +88,11 @@ namespace SonarLint.VisualStudio.Integration
             return ruleSetDirectoryRoot;
         }
 
-        public string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, Language language)
+        public string CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language)
         {
-            if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
+            if (string.IsNullOrWhiteSpace(ProjectKey))
             {
-                throw new ArgumentNullException(nameof(sonarQubeProjectKey));
+                throw new ArgumentNullException(nameof(ProjectKey));
             }
 
             string ruleSetDirectoryRoot = this.GetSolutionSonarQubeRulesFolder();
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             string fileNameSuffix = language.Id;
-            return GenerateSolutionRuleSetPath(ruleSetDirectoryRoot, sonarQubeProjectKey, fileNameSuffix);
+            return GenerateSolutionRuleSetPath(ruleSetDirectoryRoot, ProjectKey, fileNameSuffix);
         }
 
         public bool TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath)
@@ -130,16 +130,16 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         /// <summary>
-        /// Generate a solution level rule set file path base on <paramref name="sonarQubeProjectKey"/> and <see cref="fileNameSuffix"/>
+        /// Generate a solution level rule set file path base on <paramref name="ProjectKey"/> and <see cref="fileNameSuffix"/>
         /// </summary>
         /// <param name="ruleSetRootPath">Root directory to generate the full file path under</param>
-        /// <param name="sonarQubeProjectKey">SonarQube project key to generate a rule set file name path for</param>
+        /// <param name="ProjectKey">SonarQube project key to generate a rule set file name path for</param>
         /// <param name="fileNameSuffix">Fixed file name suffix</param>
-        private static string GenerateSolutionRuleSetPath(string ruleSetRootPath, string sonarQubeProjectKey, string fileNameSuffix)
+        private static string GenerateSolutionRuleSetPath(string ruleSetRootPath, string ProjectKey, string fileNameSuffix)
         {
             // Cannot use Path.ChangeExtension here because if the sonar project name contains
             // a dot (.) then everything after this will be replaced with .ruleset
-            string fileName = $"{PathHelper.EscapeFileName(sonarQubeProjectKey + fileNameSuffix)}.{Constants.RuleSetFileExtension}";
+            string fileName = $"{PathHelper.EscapeFileName(ProjectKey + fileNameSuffix)}.{Constants.RuleSetFileExtension}";
             return Path.Combine(ruleSetRootPath, fileName);
         }
     }

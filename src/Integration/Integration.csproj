@@ -200,7 +200,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="**\obj\**\*;**\*.xaml.cs;**\*.Designer.cs" />
+    <Compile Include="**\*.cs" Exclude="**\obj\**\*;**\*.Designer.cs;**\*.xaml.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
@@ -246,6 +246,10 @@
     <ProjectReference Include="..\ProgressVS\ProgressVS.csproj">
       <Project>{b00c57eb-f4ec-43ce-a849-90da04775b84}</Project>
       <Name>ProgressVS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
+      <Project>{5e513fc3-bda7-40f2-8b6a-1bb9372acb99}</Project>
+      <Name>SonarQube.Client</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

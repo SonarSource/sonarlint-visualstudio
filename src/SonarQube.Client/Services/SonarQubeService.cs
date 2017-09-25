@@ -24,6 +24,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Services
@@ -35,7 +36,7 @@ namespace SonarQube.Client.Services
 
         private readonly ISonarQubeClient sonarqubeClient;
 
-        private ConnectionDTO connection;
+        private ConnectionRequest connection;
         private bool isConnected;
         private Version serverVersion;
 
@@ -66,7 +67,7 @@ namespace SonarQube.Client.Services
                 throw new InvalidOperationException("This operation expects the service not to be connected.");
             }
 
-            var connectionDto = new ConnectionDTO
+            var ConnectionRequest = new ConnectionRequest
             {
                 Authentication = connection.Authentication,
                 ServerUri = connection.ServerUri,
@@ -74,29 +75,29 @@ namespace SonarQube.Client.Services
                 Password = connection.Password
             };
 
-            var credentialsValidationResult = await this.sonarqubeClient.ValidateCredentialsAsync(connectionDto, token);
+            var credentialsValidationResult = await this.sonarqubeClient.ValidateCredentialsAsync(ConnectionRequest, token);
             credentialsValidationResult.EnsureSuccess();
 
-            if (!credentialsValidationResult.Value.AreValid)
+            if (!credentialsValidationResult.Value.IsValid)
             {
                 throw new Exception("Invalid credentials."); // TODO: Provide better exception
             }
 
-            var versionResult = await this.sonarqubeClient.GetVersionAsync(connectionDto, token);
+            var versionResult = await this.sonarqubeClient.GetVersionAsync(ConnectionRequest, token);
             versionResult.EnsureSuccess();
 
             this.serverVersion = Version.Parse(versionResult.Value.Version);
-            this.connection = connectionDto;
+            this.connection = ConnectionRequest;
             this.isConnected = true;
         }
 
-        public async Task<IList<Organization>> GetAllOrganizationsAsync(CancellationToken token)
+        public async Task<IList<SonarQubeOrganization>> GetAllOrganizationsAsync(CancellationToken token)
         {
             EnsureIsConnected();
 
             int currentPage = 1;
-            var allOrganizations = new List<OrganizationDTO>();
-            Result<OrganizationDTO[]> organizationsResult;
+            var allOrganizations = new List<OrganizationResponse>();
+            Result<OrganizationResponse[]> organizationsResult;
 
             do
             {
@@ -110,7 +111,7 @@ namespace SonarQube.Client.Services
             }
             while (organizationsResult.Value.Length > 0);
 
-            return allOrganizations.Select(Organization.FromDto).ToList();
+            return allOrganizations.Select(SonarQubeOrganization.FromResponse).ToList();
         }
 
         public async Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token)
@@ -120,7 +121,7 @@ namespace SonarQube.Client.Services
             var pluginsResult = await this.sonarqubeClient.GetPluginsAsync(this.connection, token);
             pluginsResult.EnsureSuccess();
 
-            return pluginsResult.Value.Select(SonarQubePlugin.FromDto).ToList();
+            return pluginsResult.Value.Select(SonarQubePlugin.FromResponse).ToList();
         }
 
         public async Task<IList<SonarQubeProject>> GetAllProjectsAsync(string organizationKey, CancellationToken token)
@@ -132,12 +133,12 @@ namespace SonarQube.Client.Services
                 var projectsResult = await this.sonarqubeClient.GetProjectsAsync(this.connection, token);
                 projectsResult.EnsureSuccess();
 
-                return projectsResult.Value.Select(SonarQubeProject.FromDto).ToList();
+                return projectsResult.Value.Select(SonarQubeProject.FromResponse).ToList();
             }
 
             int currentPage = 1;
-            var allProjects = new List<ComponentDTO>();
-            Result<ComponentDTO[]> componentsResult;
+            var allProjects = new List<ComponentResponse>();
+            Result<ComponentResponse[]> componentsResult;
             do
             {
                 var request = new ComponentRequest { Page = currentPage, PageSize = MaximumPageSize };
@@ -150,7 +151,7 @@ namespace SonarQube.Client.Services
             }
             while (componentsResult.Value.Length > 0);
 
-            return allProjects.Select(SonarQubeProject.FromDto).ToList();
+            return allProjects.Select(SonarQubeProject.FromResponse).ToList();
         }
 
         public async Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(CancellationToken token)
@@ -160,7 +161,7 @@ namespace SonarQube.Client.Services
             var propertiesResult = await this.sonarqubeClient.GetPropertiesAsync(this.connection, token);
             propertiesResult.EnsureSuccess();
 
-            return propertiesResult.Value.Select(SonarQubeProperty.FromDto).ToList();
+            return propertiesResult.Value.Select(SonarQubeProperty.FromResponse).ToList();
         }
 
         public Uri GetProjectDashboardUrl(string projectKey)
@@ -172,7 +173,7 @@ namespace SonarQube.Client.Services
             return new Uri(this.connection.ServerUri, string.Format(ProjectDashboardRelativeUrl, projectKey));
         }
 
-        public async Task<QualityProfile> GetQualityProfileAsync(string projectKey, ServerLanguage language,
+        public async Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, SonarQubeLanguage language,
                     CancellationToken token)
         {
             EnsureIsConnected();
@@ -206,13 +207,13 @@ namespace SonarQube.Client.Services
                 qualityProfileChangeLogRequest, token);
             changeLog.EnsureSuccess();
 
-            return QualityProfile.FromDto(qualityProfile, changeLog.Value.Events.Single().Date);
+            return SonarQubeQualityProfile.FromResponse(qualityProfile, changeLog.Value.Events.Single().Date);
         }
 
-        public async Task<RoslynExportProfile> GetRoslynExportProfileAsync(string qualityProfileName, ServerLanguage language,
-            CancellationToken token)
+        public async Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName,
+            SonarQubeLanguage language, CancellationToken token)
         {
-            var request = new RoslynExportProfileRequest { QualityProfileName = qualityProfileName, Language = language };
+            var request = new RoslynExportProfileRequest { QualityProfileName = qualityProfileName, LanguageKey = language.Key };
             var roslynExportResult = await this.sonarqubeClient.GetRoslynExportProfileAsync(this.connection, request, token);
             roslynExportResult.EnsureSuccess();
 

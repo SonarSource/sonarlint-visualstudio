@@ -65,7 +65,7 @@ namespace SonarQube.Client.Helpers.Tests
             string userNameAndPassword =
                 AuthenticationHeaderFactory.BasicAuthEncoding.GetString(Convert.FromBase64String(userAndPasswordBase64String));
             // Find first Colon (can't use Split since password may contain ':')
-            int index = userNameAndPassword.IndexOf(AuthenticationHeaderFactory.BasicAuthUserNameAndPasswordSeparator,
+            int index = userNameAndPassword.IndexOf(AuthenticationHeaderFactory.BasicAuthCredentialSeparator,
                 StringComparison.Ordinal);
             (index >= 0).Should().BeTrue("Expected a string in user:password format, got instead '{0}'", userNameAndPassword);
 

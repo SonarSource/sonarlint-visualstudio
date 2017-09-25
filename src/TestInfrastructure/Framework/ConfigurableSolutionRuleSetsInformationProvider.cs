@@ -50,9 +50,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return Path.Combine(this.SolutionRootFolder, Constants.SonarQubeManagedFolderName);
         }
 
-        string ISolutionRuleSetsInformationProvider.CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, Language language)
+        string ISolutionRuleSetsInformationProvider.CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language)
         {
-            string fileName = $"{sonarQubeProjectKey}{language.Id}.{Constants.RuleSetFileExtension}";
+            string fileName = $"{ProjectKey}{language.Id}.{Constants.RuleSetFileExtension}";
             return Path.Combine(((ISolutionRuleSetsInformationProvider)this).GetSolutionSonarQubeRulesFolder(), fileName);
         }
 

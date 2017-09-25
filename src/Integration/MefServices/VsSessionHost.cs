@@ -29,9 +29,10 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarQube.Client.Models;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -64,7 +65,8 @@ namespace SonarLint.VisualStudio.Integration
         private bool resetBindingWhenAttaching = true;
 
         [ImportingConstructor]
-        public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, SonarQubeServiceWrapper sonarQubeService, IActiveSolutionTracker solutionTacker)
+        public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            ISonarQubeService sonarQubeService, IActiveSolutionTracker solutionTacker)
             : this(serviceProvider, null, null, sonarQubeService, solutionTacker, Dispatcher.CurrentDispatcher)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
@@ -73,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration
         internal /*for test purposes*/ VsSessionHost(IServiceProvider serviceProvider,
                                     IStateManager state,
                                     IProgressStepRunnerWrapper progressStepRunner,
-                                    ISonarQubeServiceWrapper sonarQubeService,
+                                    ISonarQubeService sonarQubeService,
                                     IActiveSolutionTracker solutionTacker,
                                     Dispatcher uiDispatcher)
         {
@@ -127,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public IStateManager VisualStateManager { get; }
 
-        public ISonarQubeServiceWrapper SonarQubeService { get; }
+        public ISonarQubeService SonarQubeService { get; }
 
         public ISectionController ActiveSection { get; private set; }
 

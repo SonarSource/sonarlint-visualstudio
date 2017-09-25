@@ -23,7 +23,7 @@ using System.Globalization;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
