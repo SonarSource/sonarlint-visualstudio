@@ -25,7 +25,7 @@ namespace SonarQube.Client.Models
 {
     public struct Result<TValue>
     {
-        private HttpResponseMessage response;
+        private readonly HttpResponseMessage response;
 
         public TValue Value { get; }
         public HttpStatusCode StatusCode { get; }
