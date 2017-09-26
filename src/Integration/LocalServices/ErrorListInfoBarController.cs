@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ISolutionBindingInformationProvider bindingInformationProvider;
         private IInfoBar currentErrorWindowInfoBar;
         private bool currentErrorWindowInfoBarHandlingClick;
-        private BoundProject infoBarBinding;
+        private BoundSonarQubeProject infoBarBinding;
         private bool isDisposed;
 
         public ErrorListInfoBarController(IHost host)
@@ -261,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration
             var bindingSerialzer = this.host.GetService<ISolutionBindingSerializer>();
             bindingSerialzer.AssertLocalServiceIsNotNull();
 
-            BoundProject binding = bindingSerialzer.ReadSolutionBinding();
+            BoundSonarQubeProject binding = bindingSerialzer.ReadSolutionBinding();
             if (binding == null
                 || this.infoBarBinding == null
                 || binding.ServerUri != this.infoBarBinding.ServerUri
@@ -279,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private void ExecuteUpdate(BoundProject binding)
+        private void ExecuteUpdate(BoundSonarQubeProject binding)
         {
             Debug.Assert(binding != null);
 
@@ -329,9 +329,9 @@ namespace SonarLint.VisualStudio.Integration
         private class EventDrivenBindingUpdate
         {
             private readonly IHost host;
-            private readonly BoundProject binding;
+            private readonly BoundSonarQubeProject binding;
 
-            public EventDrivenBindingUpdate(IHost host, BoundProject binding)
+            public EventDrivenBindingUpdate(IHost host, BoundSonarQubeProject binding)
             {
                 Debug.Assert(host != null);
                 Debug.Assert(binding != null);
@@ -605,7 +605,7 @@ namespace SonarLint.VisualStudio.Integration
                 }, token);
             }
 
-            private bool IsUpdateRequired(BoundProject binding, IEnumerable<Language> projectLanguages,
+            private bool IsUpdateRequired(BoundSonarQubeProject binding, IEnumerable<Language> projectLanguages,
                 CancellationToken token)
             {
                 Debug.Assert(binding != null);
@@ -666,7 +666,7 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
 
-            private async Task<IDictionary<Language, SonarQubeQualityProfile>> TryGetLatestProfilesAsync(BoundProject binding,
+            private async Task<IDictionary<Language, SonarQubeQualityProfile>> TryGetLatestProfilesAsync(BoundSonarQubeProject binding,
                 IEnumerable<Language> projectLanguages, CancellationToken token)
             {
                 var newProfiles = new Dictionary<Language, SonarQubeQualityProfile>();

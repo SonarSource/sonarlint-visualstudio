@@ -25,13 +25,13 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal class BoundProject
+    internal class BoundSonarQubeProject
     {
-        public BoundProject()
+        public BoundSonarQubeProject()
         {
         }
 
-        public BoundProject(Uri serverUri, string projectKey, ICredentials credentials = null,
+        public BoundSonarQubeProject(Uri serverUri, string projectKey, ICredentials credentials = null,
             SonarQubeOrganization organization = null)
             : this()
         {

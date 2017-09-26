@@ -22,7 +22,6 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
-    // Test only interface
     public interface IConnectionWorkflowExecutor
     {
         void EstablishConnection(ConnectionInformation information);
