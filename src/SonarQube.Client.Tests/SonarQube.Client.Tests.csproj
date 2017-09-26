@@ -71,7 +71,7 @@
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="**\obj\**\*" />
   </ItemGroup>
-   <ItemGroup>
+  <ItemGroup>
     <AdditionalFiles Include="..\SonarQube.Client\Properties\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
@@ -84,9 +84,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
+    <None Include="TestResources\IssuesProtobufResponse">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

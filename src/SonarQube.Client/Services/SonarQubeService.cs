@@ -226,5 +226,22 @@ namespace SonarQube.Client.Services
                 throw new InvalidOperationException("This operation expects the service to be connected.");
             }
         }
+
+        public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string key, CancellationToken token)
+        {
+            EnsureIsConnected();
+
+            var allIssuesResult = await this.sonarqubeClient.GetIssuesAsync(this.connection, key, token);
+            allIssuesResult.EnsureSuccess();
+
+            return allIssuesResult.Value
+                .Where(x =>
+                {
+                    var resolutionState = SonarQubeIssue.ParseResolutionState(x.Resolution);
+                    return resolutionState == SonarQubeIssueResolutionState.WontFix ||
+                        resolutionState == SonarQubeIssueResolutionState.FalsePositive;
+                })
+                .Select(SonarQubeIssue.FromDto).ToList();
+        }
     }
 }
