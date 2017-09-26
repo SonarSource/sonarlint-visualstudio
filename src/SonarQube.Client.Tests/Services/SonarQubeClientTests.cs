@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -78,6 +79,12 @@ namespace SonarQube.Client.Services.Tests
             await Method_CallsTheExpectedUri(
                 new Uri("api/components/search_projects?organization=org&p=42&ps=25&asc=true", UriKind.RelativeOrAbsolute),
                 @"{""components"":[]}", (c, co, t) => c.GetComponentsSearchProjectsAsync(co, request, t));
+        }
+        [TestMethod]
+        public async Task GetIssuesAsync_CallsTheExpectedUri()
+        {
+            await Method_CallsTheExpectedUri(
+                new Uri("batch/issues?key=key", UriKind.RelativeOrAbsolute), "", (c, co, t) => c.GetIssuesAsync(co, "key", t));
         }
         [TestMethod]
         public async Task GetOrganizationsAsync_CallsTheExpectedUri()
@@ -189,6 +196,14 @@ namespace SonarQube.Client.Services.Tests
                 (c, co, t) => c.GetComponentsSearchProjectsAsync(co, request, t),
                 @"{""components"":[{""organization"":""my - org - key - 1"",""id"":""AU - Tpxb--iU5OvuD2FLy"",""key"":""my_project"",""name"":""My Project 1"",""isFavorite"":true,""tags"":[""finance"",""java""],""visibility"":""public""},{""organization"":""my-org-key-1"",""id"":""AU-TpxcA-iU5OvuD2FLz"",""key"":""another_project"",""name"":""My Project 2"",""isFavorite"":false,""tags"":[],""visibility"":""public""}]}",
                 result => result.Length.Should().Be(2));
+        }
+        [TestMethod]
+        public async Task GetIssuesAsync_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData()
+        {
+            await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
+                (c, co, t) => c.GetIssuesAsync(co, "key", t),
+                new StreamReader(@"TestResources\IssuesProtobufResponse").ReadToEnd(),
+                result => result.Length.Should().Be(1));
         }
         [TestMethod]
         public async Task GetOrganizationsAsync_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData()
@@ -323,6 +338,11 @@ namespace SonarQube.Client.Services.Tests
             Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetComponentsSearchProjectsAsync(co, request, t));
         }
         [TestMethod]
+        public void GetIssuesAsync_WhenCancellationRequested_ThrowsException()
+        {
+            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetIssuesAsync(co, "key", t));
+        }
+        [TestMethod]
         public void GetOrganizationsAsync_WhenCancellationRequested_ThrowsException()
         {
             var request = new OrganizationRequest { Page = 42, PageSize = 25 };
@@ -404,6 +424,11 @@ namespace SonarQube.Client.Services.Tests
         {
             var request = new ComponentRequest { OrganizationKey = "org", Page = 42, PageSize = 25 };
             Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetComponentsSearchProjectsAsync(co, request, t));
+        }
+        [TestMethod]
+        public void GetIssuesAsync_WhenExceptionThrown_PropagateIt()
+        {
+            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetIssuesAsync(co, "key", t));
         }
         [TestMethod]
         public void GetOrganizationsAsync_WhenExceptionThrown_PropagateIt()
