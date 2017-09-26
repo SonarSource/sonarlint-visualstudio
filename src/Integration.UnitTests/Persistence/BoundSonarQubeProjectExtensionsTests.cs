@@ -28,19 +28,19 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class BoundSonarQubeProjectExtensionsTests
+    public class BoundProjectExtensionsTests
     {
         [TestMethod]
         public void CreateConnectionInformation_ArgCheck()
         {
-            Exceptions.Expect<ArgumentNullException>(() => BoundSonarQubeProjectExtensions.CreateConnectionInformation(null));
+            Exceptions.Expect<ArgumentNullException>(() => BoundProjectExtensions.CreateConnectionInformation(null));
         }
 
         [TestMethod]
         public void CreateConnectionInformation_NoCredentials()
         {
             // Arrange
-            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey");
+            var input = new BoundProject(new Uri("http://server"), "ProjectKey");
 
             // Act
             ConnectionInformation conn = input.CreateConnectionInformation();
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
-            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", creds);
+            var input = new BoundProject(new Uri("http://server"), "ProjectKey", creds);
 
             // Act
             ConnectionInformation conn = input.CreateConnectionInformation();

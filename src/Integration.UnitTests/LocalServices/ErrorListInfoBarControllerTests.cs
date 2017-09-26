@@ -313,7 +313,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Change binding
-            this.solutionBindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey");
+            this.solutionBindingSerializer.CurrentBinding = new Persistence.BoundProject(new Uri("http://server"), "SomeOtherProjectKey");
 
             // Act
             infoBar.SimulateButtonClickEvent();
@@ -833,7 +833,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set
             {
                 this.solutionBindingInformationProvider.SolutionBound = value;
-                this.solutionBindingSerializer.CurrentBinding = value ? new Persistence.BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey") : null;
+                this.solutionBindingSerializer.CurrentBinding = value ? new Persistence.BoundProject(new Uri("http://Server"), "boundProjectKey") : null;
             }
         }
 
