@@ -27,7 +27,7 @@ using SonarQube.Client.Helpers;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class BoundProjectTests
+    public class BoundSonarQubeProjectTests
     {
         [TestMethod]
         public void BoundProject_Serialization()
@@ -35,11 +35,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var serverUri = new Uri("https://finding-nemo.org");
             var projectKey = "MyProject Key";
-            var testSubject = new BoundProject(serverUri, projectKey, new BasicAuthCredentials("used", "pwd".ToSecureString()));
+            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, new BasicAuthCredentials("used", "pwd".ToSecureString()));
 
             // Act (serialize + de-serialize)
             string data = JsonHelper.Serialize(testSubject);
-            BoundProject deserialized = JsonHelper.Deserialize<BoundProject>(data);
+            BoundSonarQubeProject deserialized = JsonHelper.Deserialize<BoundSonarQubeProject>(data);
 
             // Assert
             deserialized.Should().NotBe(testSubject);

@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var solutionBinding = new ConfigurableSolutionBindingSerializer
             {
-                CurrentBinding = new BoundProject()
+                CurrentBinding = new BoundSonarQubeProject()
             };
             this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
             this.solutionBindingInformationProvider.SolutionBound = true;
@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reanalysisEventCalledCount.Should().Be(1, "Unbind should trigger reanalysis");
 
             // Case 2: Set bound project
-            solutionBinding.CurrentBinding = new BoundProject();
+            solutionBinding.CurrentBinding = new BoundSonarQubeProject();
             this.solutionBindingInformationProvider.SolutionBound = true;
             // Act
             host.VisualStateManager.SetBoundProject(new SonarQubeProject("", ""));
@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reanalysisEventCalledCount.Should().Be(3, "Solution change should trigger reanalysis");
 
             // Case 4: Solution loaded
-            solutionBinding.CurrentBinding = new BoundProject();
+            solutionBinding.CurrentBinding = new BoundSonarQubeProject();
             this.solutionBindingInformationProvider.SolutionBound = true;
             // Act
             activeSolutionTracker.SimulateActiveSolutionChanged();

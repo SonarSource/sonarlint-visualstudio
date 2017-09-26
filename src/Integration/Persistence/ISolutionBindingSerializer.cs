@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         /// Retrieves solution binding information
         /// </summary>
         /// <returns>Can be null if not bound</returns>
-        BoundProject ReadSolutionBinding();
+        BoundSonarQubeProject ReadSolutionBinding();
 
         /// <summary>
         /// Writes the binding information
@@ -35,6 +35,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         /// <param name="binding">Required</param>
         /// <param name="sccFileSystem">Required</param>
         /// <returns>The file path to the binding file</returns>
-        string WriteSolutionBinding(BoundProject binding);
+        string WriteSolutionBinding(BoundSonarQubeProject binding);
     }
 }

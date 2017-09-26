@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             get { return this.credentialStore; }
         }
 
-        public BoundProject ReadSolutionBinding()
+        public BoundSonarQubeProject ReadSolutionBinding()
         {
             string configFile = this.GetSonarQubeConfigurationFilePath();
             if (string.IsNullOrWhiteSpace(configFile) || !File.Exists(configFile))
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return this.ReadBindingInformation(configFile);
         }
 
-        public string WriteSolutionBinding(BoundProject binding)
+        public string WriteSolutionBinding(BoundSonarQubeProject binding)
         {
             if (binding == null)
             {
@@ -153,9 +153,9 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return Path.Combine(rootFolder, SonarQubeSolutionBindingConfigurationFileName);
         }
 
-        private BoundProject ReadBindingInformation(string configFile)
+        private BoundSonarQubeProject ReadBindingInformation(string configFile)
         {
-            BoundProject bound = this.SafeDeserializeConfigFile(configFile);
+            BoundSonarQubeProject bound = this.SafeDeserializeConfigFile(configFile);
             if (bound?.ServerUri != null)
             {
                 var credentials = this.credentialStore.ReadCredentials(bound.ServerUri);
@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             Justification = "Casting as BasicAuthCredentials is because it's the only credential type we support. Once we add more we need to think again on how to refactor the code to avoid this",
             Scope = "member",
             Target = "~M:SonarLint.VisualStudio.Integration.Persistence.SolutionBinding.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundProject)~System.Boolean")]
-        private bool WriteBindingInformation(string configFile, BoundProject binding)
+        private bool WriteBindingInformation(string configFile, BoundSonarQubeProject binding)
         {
             if (this.SafePerformFileSystemOperation(() => WriteConfig(configFile, binding)))
             {
@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return false;
         }
 
-        private static void WriteConfig(string configFile, BoundProject binding)
+        private static void WriteConfig(string configFile, BoundSonarQubeProject binding)
         {
             string directory = Path.GetDirectoryName(configFile);
             if (!Directory.Exists(directory))
@@ -209,14 +209,14 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             text = File.ReadAllText(configFile);
         }
 
-        private BoundProject SafeDeserializeConfigFile(string configFilePath)
+        private BoundSonarQubeProject SafeDeserializeConfigFile(string configFilePath)
         {
             string configJson = null;
             if (this.SafePerformFileSystemOperation(() => ReadConfig(configFilePath, out configJson)))
             {
                 try
                 {
-                    return JsonHelper.Deserialize<BoundProject>(configJson);
+                    return JsonHelper.Deserialize<BoundSonarQubeProject>(configJson);
                 }
                 catch (JsonException)
                 {

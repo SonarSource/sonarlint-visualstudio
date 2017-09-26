@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             var solutionBinding = this.serviceProvider.GetService<ISolutionBindingSerializer>();
             solutionBinding.AssertLocalServiceIsNotNull();
 
-            BoundProject bindingInfo = solutionBinding.ReadSolutionBinding();
+            BoundSonarQubeProject bindingInfo = solutionBinding.ReadSolutionBinding();
             if (bindingInfo == null)
             {
                 return new RuleSetInformation[0];
