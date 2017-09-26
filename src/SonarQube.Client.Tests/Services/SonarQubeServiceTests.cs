@@ -344,5 +344,35 @@ namespace SonarQube.Client.Services.Tests
             result[0].Key.Should().Be("key");
             result[0].Name.Should().Be("name");
         }
+
+        [TestMethod]
+        public async Task GetSuppressedIssuesAsync_ReturnsExpectedResults()
+        {
+            var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
+            var client = new Mock<ISonarQubeClient>();
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionDTO>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new Result<CredentialsDTO>(successResponse, new CredentialsDTO { AreValid = true }));
+            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionDTO>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new Result<VersionDTO>(successResponse, new VersionDTO { Version = "5.6" }));
+            client.Setup(x => x.GetIssuesAsync(It.IsAny<ConnectionDTO>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new Result<ServerIssue[]>(successResponse,
+                    new[]
+                    {
+                        new ServerIssue { Resolution = "WONTFIX" },
+                        new ServerIssue { Resolution = "FALSE-POSITIVE" },
+                        new ServerIssue { Resolution = "OPEN" }
+                    }));
+            var service = new SonarQubeService(client.Object);
+            await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
+
+            // Act
+            var result = await service.GetSuppressedIssuesAsync("key", CancellationToken.None);
+
+            // Assert
+            client.VerifyAll();
+            result.Should().HaveCount(2);
+            result[0].ResolutionState.Should().Be(SonarQubeIssueResolutionState.WontFix);
+            result[1].ResolutionState.Should().Be(SonarQubeIssueResolutionState.FalsePositive);
+        }
     }
 }

@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -27,6 +28,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
@@ -66,8 +68,29 @@ namespace SonarQube.Client.Services
                 stringResponse => JObject.Parse(stringResponse)["components"].ToObject<ComponentDTO[]>());
         }
 
+        public Task<Result<ServerIssue[]>> GetIssuesAsync(ConnectionDTO connection, string key, CancellationToken token)
+        {
+            const string BatchIssuesAPI = "batch/issues"; // Since 5.1; internal
+
+            var query = AppendQueryString(BatchIssuesAPI, "?key={0}", key);
+
+            return InvokeSonarQubeApi(connection, query, token,
+                async (HttpResponseMessage response) =>
+                {
+                    var byteArray = await response.Content.ReadAsByteArrayAsync();
+                    // Protobuf for C# throws when trying to read outside of the buffer and ReadAsStreamAsync returns a non
+                    // seekable stream so we can't determine when to stop. The hack is to use an intermediate MemoryStream
+                    // so we can control when to stop reading.
+                    // Note we might want to use FileStream instead to avoid intensive memory usage.
+                    using (var stream = new MemoryStream(byteArray))
+                    {
+                        return ReadFromProtobufStream(stream, ServerIssue.Parser).ToArray();
+                    }
+                });
+        }
+
         public Task<Result<OrganizationDTO[]>> GetOrganizationsAsync(ConnectionDTO connection,
-            OrganizationRequest request, CancellationToken token)
+                    OrganizationRequest request, CancellationToken token)
         {
             const string OrganizationsAPI = "api/organizations/search"; // Since 6.2; internal
 
@@ -212,6 +235,15 @@ namespace SonarQube.Client.Services
             return JsonHelper.Deserialize<T>(jsonResponse);
         }
 
+        private static IEnumerable<T> ReadFromProtobufStream<T>(Stream stream, MessageParser<T> parser)
+            where T : IMessage<T>
+        {
+            while (stream.Position < stream.Length)
+            {
+                yield return parser.ParseDelimitedFrom(stream);
+            }
+        }
+
         private HttpClient CreateHttpClient(ConnectionDTO connection)
         {
             var httpClient = new HttpClient(this.messageHandler)
@@ -233,6 +265,19 @@ namespace SonarQube.Client.Services
                 var stringResponse = await GetStringResultAsync(httpResponse, token);
 
                 return new Result<T>(httpResponse, parseStringResult(stringResponse));
+            }
+        }
+
+        private async Task<Result<T>> InvokeSonarQubeApi<T>(ConnectionDTO connection, string query, CancellationToken token,
+            Func<HttpResponseMessage, Task<T>> parseResponse)
+        {
+            using (var client = CreateHttpClient(connection))
+            {
+                var httpResponse = await InvokeGetRequest(client, query, token);
+                token.ThrowIfCancellationRequested();
+                var response = await parseResponse(httpResponse);
+
+                return new Result<T>(httpResponse, response);
             }
         }
     }
