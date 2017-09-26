@@ -68,15 +68,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         /// to a SonarQube server issue. Returns null if there is not enough information
         /// to produce the mapping.
         /// </summary>
-        public LiveIssue TryCreate(Diagnostic diagnostic)
+        public LiveIssue Create(Diagnostic diagnostic)
         {
             // Get the file and project containing the issue
             SyntaxTree tree = diagnostic.Location?.SourceTree;
-            if (tree == null) { return null; }
-            if (diagnostic.Location == Location.None) { return null; }
+            if (tree == null)
+            {
+                return null;
+            }
+
+            if (diagnostic.Location == Location.None)
+            {
+                return null;
+            }
 
             Project project = workspace?.CurrentSolution?.GetDocument(tree)?.Project;
-            if (project == null) { return null; }
+            if (project == null)
+            {
+                return null;
+            }
 
             string projectId;
             if (!projectPathToProjectIdMap.TryGetValue(project.FilePath, out projectId))
@@ -90,8 +100,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             FileLinePositionSpan lineSpan = diagnostic.Location.GetLineSpan();
 
             int startLine = lineSpan.StartLinePosition.Line;
-            int endLine = lineSpan.EndLinePosition.Line;
-            string lineText = tree.GetText().Lines[startLine + endLine - startLine].ToString();
+            int additionalLineCount = lineSpan.EndLinePosition.Line - startLine;
+            string lineText = tree.GetText().Lines[startLine + additionalLineCount].ToString();
 
             LiveIssue liveIssue = new LiveIssue()
             {
@@ -99,7 +109,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                 IssueFilePath = lineSpan.Path,
                 ProjectId = projectId,
                 ProjectFilePath = project.FilePath,
-                WholeLineText = lineText
+                WholeLineText = lineText,
+                StartLine = startLine + 1 // Roslyn lines are 0-based, SonarQube lines are 1-based
             };
             return liveIssue;
         }
@@ -112,11 +123,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
             // TODO: handle return codes
-            uint projectCount;
-            solution.GetProjectFilesInSolution((uint)__VSGETPROJFILESFLAGS.GPFF_SKIPUNLOADEDPROJECTS, 0, null, out projectCount);
+            // 1. Call with nulls to get the number of files
+            uint fileCount;
+            solution.GetProjectFilesInSolution((uint)__VSGETPROJFILESFLAGS.GPFF_SKIPUNLOADEDPROJECTS, 0, null, out fileCount);
 
-            string[] fileNames = new string[projectCount];
-            solution.GetProjectFilesInSolution((uint)__VSGETPROJFILESFLAGS.GPFF_SKIPUNLOADEDPROJECTS, projectCount, fileNames, out projectCount);
+            // 2. Size array and call again to get the data
+            string[] fileNames = new string[fileCount];
+            solution.GetProjectFilesInSolution((uint)__VSGETPROJFILESFLAGS.GPFF_SKIPUNLOADEDPROJECTS, fileCount, fileNames, out fileCount);
 
             IVsSolution5 soln5 = (IVsSolution5)solution;
 

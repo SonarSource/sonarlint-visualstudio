@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             if (!diagnostic.Location.IsInSource) { return false; }
             if (activeSolutionBoundTracker == null || !activeSolutionBoundTracker.IsActiveSolutionBound) { return false; }
 
-            LiveIssue liveIssue = liveIssueFactory.TryCreate(diagnostic);
+            LiveIssue liveIssue = liveIssueFactory.Create(diagnostic);
             if (liveIssue == null)
             {
                 return false; // Unable to get the data required to map a Roslyn issue to a SonarQube issue
@@ -95,10 +95,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             // TODO: ?need to make file path relative to the project file path
             // As a minimum, the project, file and rule id must match
-            IEnumerable<ServerIssue> issuesInFile = serverIssueProvider.GetServerIssues(liveIssue.ProjectId, liveIssue.IssueFilePath)
+            var issuesInFile = serverIssueProvider.GetServerIssues(liveIssue.ProjectId, liveIssue.IssueFilePath)
                     .Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleKey)); // TODO: rule repository?
 
-            return issuesInFile.Any(i => liveIssue.StartLine == i.Line || StringComparer.Ordinal.Equals(liveIssue.LineChecksum, i.Checksum));
+            return issuesInFile.Any(i =>
+                    liveIssue.StartLine == i.Line ||
+                    StringComparer.Ordinal.Equals(liveIssue.LineChecksum, i.Checksum));
         }
 
         #region IDisposable Support

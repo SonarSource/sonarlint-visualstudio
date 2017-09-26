@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
- using System;
+using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
@@ -28,7 +28,7 @@ using Microsoft.CodeAnalysis;
  * assemblies will be loaded in memory, each with its own static class + property).
  * We need to set the static property for each Sonar analyzer assembly that is loaded.
  * 
- * Version-compatibility: the NuGet package and VSIX might reference different versions of Roslyn etc,
+ * Version-compatibility: the NuGet package and VSIX might reference different versions of Roslyn etc,git branch
  * but we need to be able to assign a delegate from the VSIX to the NuGet static property.
  * If the NuGet package is using a higher version of Roslyn then the analyzer won't work anyway.
  * If is is using a lower version of Roslyn then the binding redirect in VS should make the assignment works.
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// Injects the suppression calculator function into any versions of the Sonar
     /// analyzers that are already loaded, or in to any new versions as they are loaded
     /// </summary>
-    internal class DelegateInjector : IDisposable
+    internal sealed class DelegateInjector : IDisposable
     {
         public DelegateInjector(Func<Diagnostic, bool> function)
         {
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
+        void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
