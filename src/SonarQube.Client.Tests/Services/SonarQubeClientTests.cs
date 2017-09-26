@@ -352,6 +352,11 @@ namespace SonarQube.Client.Services.Tests
             Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetIssuesAsync("key", t));
         }
         [TestMethod]
+        public void GetIssuesAsync_WhenCancellationRequested_ThrowsException()
+        {
+            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetIssuesAsync(co, "key", t));
+        }
+        [TestMethod]
         public void GetOrganizationsAsync_WhenCancellationRequested_ThrowsException()
         {
             var request = new OrganizationRequest { Page = 42, PageSize = 25 };
@@ -438,6 +443,11 @@ namespace SonarQube.Client.Services.Tests
         public void GetIssuesAsync_WhenExceptionThrown_PropagateIt()
         {
             Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetIssuesAsync("key", t));
+        }
+        [TestMethod]
+        public void GetIssuesAsync_WhenExceptionThrown_PropagateIt()
+        {
+            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetIssuesAsync(co, "key", t));
         }
         [TestMethod]
         public void GetOrganizationsAsync_WhenExceptionThrown_PropagateIt()
