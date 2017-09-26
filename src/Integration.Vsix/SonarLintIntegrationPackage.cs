@@ -21,6 +21,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -52,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private BoundSolutionAnalyzer usageAnalyzer;
         private PackageCommandManager commandManager;
         private SonarAnalyzerManager sonarAnalyzerManager;
+        private SuppressionManager suppressionManager;
 
         protected override void Initialize()
         {
@@ -61,6 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IServiceProvider serviceProvider = this;
 
             this.sonarAnalyzerManager = new SonarAnalyzerManager(serviceProvider);
+            this.suppressionManager = new SuppressionManager(serviceProvider);
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
             this.commandManager = new PackageCommandManager(serviceProvider);
 

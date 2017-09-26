@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     /// <remarks>
     /// For the corresponding code in SL IntelliJ see src\main\java\org\sonarlint\intellij\issue\LiveIssue.java::checksum
     /// </remarks>
-    internal static class ChecksumCalculator
+    public static class ChecksumCalculator
     {
         public static string Calculate(string text)
         {
