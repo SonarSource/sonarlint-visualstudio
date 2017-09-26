@@ -24,19 +24,10 @@ using SonarQube.Client.Helpers;
 
 namespace SonarQube.Client.Models
 {
-    // TODO: I want to use this class but there are a lot changes to do so keep using the other now on.
-    //public class Connection
-    //{
-    //    public Uri ServerUri { get; set; }
-    //    public string Login { get; set; }
-    //    public SecureString Password { get; set; }
-    //    public AuthenticationType Authentication { get; set; }
-    //}
-
     /// <summary>
     /// Represents the connection information needed to connect to SonarQube service
     /// </summary>
-    public class ConnectionInformation : ICloneable, IDisposable
+    public sealed class ConnectionInformation : ICloneable, IDisposable
     {
         private bool isDisposed;
 
@@ -94,23 +85,13 @@ namespace SonarQube.Client.Models
 
         #region IDisposable Support
 
-        protected virtual void Dispose(bool disposing)
+        public void Dispose()
         {
             if (!this.isDisposed)
             {
-                if (disposing)
-                {
-                    this.Password?.Dispose();
-                }
-
+                this.Password?.Dispose();
                 this.isDisposed = true;
             }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            this.Dispose(true);
         }
         #endregion
     }

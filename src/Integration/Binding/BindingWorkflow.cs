@@ -230,8 +230,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 var serverLanguage = language.ToServerLanguage();
 
                 var qualityProfileInfo = await SafeServiceCall(
-                    () => this.host.SonarQubeService.GetQualityProfileAsync(this.project.Key, serverLanguage, cancellationToken),
-                    controller, cancellationToken);
+                    () => this.host.SonarQubeService.GetQualityProfileAsync(this.project.Key, serverLanguage, cancellationToken));
                 if (qualityProfileInfo == null)
                 {
                     VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
@@ -243,7 +242,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 var roslynProfileExporter = await SafeServiceCall(
                     () => this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name, serverLanguage,
-                        cancellationToken), controller, cancellationToken);
+                        cancellationToken));
                 if (roslynProfileExporter == null)
                 {
                     VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
@@ -412,7 +411,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region Helpers
 
-        private async Task<T> SafeServiceCall<T>(Func<Task<T>> call, IProgressController controller, CancellationToken token)
+        private async Task<T> SafeServiceCall<T>(Func<Task<T>> call)
         {
             try
             {
