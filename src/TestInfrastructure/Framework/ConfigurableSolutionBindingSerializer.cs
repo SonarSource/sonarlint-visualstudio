@@ -30,13 +30,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region ISolutionBindingSerializer
 
-        BoundProject ISolutionBindingSerializer.ReadSolutionBinding()
+        BoundSonarQubeProject ISolutionBindingSerializer.ReadSolutionBinding()
         {
             this.ReadSolutionBindingAction?.Invoke();
             return this.CurrentBinding;
         }
 
-        string ISolutionBindingSerializer.WriteSolutionBinding(BoundProject binding)
+        string ISolutionBindingSerializer.WriteSolutionBinding(BoundSonarQubeProject binding)
         {
             binding.Should().NotBeNull("Required argument");
 
@@ -50,9 +50,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        public BoundProject CurrentBinding { get; set; }
+        public BoundSonarQubeProject CurrentBinding { get; set; }
 
-        public Func<BoundProject, string> WriteSolutionBindingAction { get; set; }
+        public Func<BoundSonarQubeProject, string> WriteSolutionBindingAction { get; set; }
 
         public Action ReadSolutionBindingAction { get; set; }
 

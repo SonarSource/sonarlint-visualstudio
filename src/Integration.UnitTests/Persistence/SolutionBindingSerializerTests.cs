@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
-            var written = new BoundProject(serverUri, projectKey, creds);
+            var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
 
             // Act (write)
             string output = testSubject.WriteSolutionBinding(written);
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.store.data.Should().ContainKey(serverUri);
 
             // Act (read)
-            BoundProject read = testSubject.ReadSolutionBinding();
+            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
             // Assert
             var newCreds = read.Credentials as BasicAuthCredentials;
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
-            var written = new BoundProject(serverUri, projectKey, creds);
+            var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             written.Profiles = new Dictionary<Language, ApplicableQualityProfile>();
             written.Profiles[Language.VBNET] = new ApplicableQualityProfile { ProfileKey = "VB" };
             written.Profiles[Language.CSharp] = new ApplicableQualityProfile { ProfileKey = "CS", ProfileTimestamp = DateTime.Now };
@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.store.data.Should().ContainKey(serverUri);
 
             // Act (read)
-            BoundProject read = testSubject.ReadSolutionBinding();
+            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
             // Assert
             var newCreds = read.Credentials as BasicAuthCredentials;
@@ -169,10 +169,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 1: has credentials
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
-            var written = new BoundProject(serverUri, projectKey, creds);
+            var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
 
             // Act (write + read)
-            BoundProject read = null;
+            BoundSonarQubeProject read = null;
             try
             {
                 testSubject.WriteSolutionBinding(written);
@@ -194,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 2: has not credentials (anonymous)
             creds = null;
-            written = new BoundProject(serverUri, projectKey, creds);
+            written = new BoundSonarQubeProject(serverUri, projectKey, creds);
 
             // Act (write + read)
             read = null;
@@ -222,14 +222,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
-            var written = new BoundProject(serverUri, projectKey, creds);
+            var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             string output = testSubject.WriteSolutionBinding(written);
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
             output.Should().NotBeNull("Expected a real file");
             File.WriteAllText(output, "bla bla bla: bla");
 
             // Act (read)
-            BoundProject read = testSubject.ReadSolutionBinding();
+            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
             // Assert
             read.Should().BeNull("Not expecting any binding information in case of error");
@@ -243,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SolutionBindingSerializer testSubject = this.CreateTestSubject();
 
             // Act (read)
-            BoundProject read = testSubject.ReadSolutionBinding();
+            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
             // Assert
             read.Should().BeNull("Not expecting any binding information when there is no file");
@@ -258,13 +258,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
-            var written = new BoundProject(serverUri, projectKey, creds);
+            var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             string output = testSubject.WriteSolutionBinding(written);
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
             using (new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 // Act (read)
-                BoundProject read = testSubject.ReadSolutionBinding();
+                BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
                 // Assert
                 read.Should().BeNull("Not expecting any binding information in case of error");
@@ -280,7 +280,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.dte.Solution = new SolutionMock(dte, "" /*When the solution is closed the file is empty*/);
 
             // Act (read)
-            BoundProject read = testSubject.ReadSolutionBinding();
+            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
 
             // Assert
             read.Should().BeNull();
@@ -294,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
-            var written = new BoundProject(serverUri, projectKey, creds);
+            var written = new BoundSonarQubeProject(serverUri, projectKey, creds);
             string output = testSubject.WriteSolutionBinding(written);
             this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
 
@@ -318,7 +318,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
-            var toWrite = new BoundProject(serverUri, projectKey, creds);
+            var toWrite = new BoundSonarQubeProject(serverUri, projectKey, creds);
             ProjectMock solutionProject = (ProjectMock)this.projectSystemHelper.SolutionItemsProject;
 
             // Act

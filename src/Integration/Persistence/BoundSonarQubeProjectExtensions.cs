@@ -23,9 +23,9 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal static class BoundProjectExtensions
+    internal static class BoundSonarQubeProjectExtensions
     {
-        public static ConnectionInformation CreateConnectionInformation(this BoundProject binding)
+        public static ConnectionInformation CreateConnectionInformation(this BoundSonarQubeProject binding)
         {
             if (binding == null)
             {
