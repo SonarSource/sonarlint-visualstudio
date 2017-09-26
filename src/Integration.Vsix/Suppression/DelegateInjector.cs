@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
@@ -42,8 +43,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// </summary>
     internal sealed class DelegateInjector : IDisposable
     {
-        public DelegateInjector(Func<Diagnostic, bool> function)
+        private readonly Func<Diagnostic, bool> suppressionFunction;
+
+        public DelegateInjector(Func<Diagnostic, bool> suppressionFunction)
         {
+            if (suppressionFunction == null)
+            {
+                throw new ArgumentNullException(nameof(suppressionFunction));
+            }
+
+            this.suppressionFunction = suppressionFunction;
+
             // Inject the delegate into any Sonar analyzer assemblies that are already loaded
             foreach(Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -61,8 +71,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
         private void InjectSuppressionDelegate(Assembly asm)
         {
-            // TODO: if this is a Sonar analyzer assembly, try to set the suppression delegate
+            // If this is a Sonar analyzer assembly, try to set the suppression delegate
             // Note: the property might not exist for down-level versions of the analyzer
+            const string AssemblyName = "SonarAnalyzer";
+            const string NamespaceName = "SonarAnalyzer.Helpers";
+            const string ClassName = "SonarAnalysisContext";
+            const string PropertyName = "ShouldDiagnosticBeReported";
+
+            if (asm.FullName.StartsWith(AssemblyName, StringComparison.OrdinalIgnoreCase))
+            {
+                Type baseType = asm.GetTypes().SingleOrDefault<Type>(t =>
+                    t.Namespace.Equals(NamespaceName, StringComparison.Ordinal) &&
+                    t.Name.Equals(ClassName, StringComparison.Ordinal));
+
+                PropertyInfo pi = baseType?.GetProperty(PropertyName, BindingFlags.Public | BindingFlags.Static);
+                if (pi != null)
+                {
+                    SafeSetProperty(pi);
+                }
+            }
+        }
+
+        private void SafeSetProperty(PropertyInfo propertyInfo)
+        {
+            try
+            {
+                propertyInfo.SetValue(null, this.suppressionFunction);
+            }
+            catch (Exception)
+            {
+                // Suppress failures - we don't want the analyzers to fail
+            }
         }
 
         #region IDisposable Support
