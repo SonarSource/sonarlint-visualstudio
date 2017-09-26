@@ -83,7 +83,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 2: re-initialization with connection but no projects
             this.host.TestStateManager.IsConnected = true;
-            //this.sonarQubeService.ReturnSonarQubeProject = new SonarQubeProject[0];
             ReInitialize(testSubject, this.host);
 
             // Assert
@@ -93,7 +92,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 3: re-initialization with connection and projects
             var projects = new[] { new SonarQubeProject("", "") };
-            //this.sonarQubeService.ReturnSonarQubeProject = projects;
             ReInitialize(testSubject, this.host);
 
             // Assert

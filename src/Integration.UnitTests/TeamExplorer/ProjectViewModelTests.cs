@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             viewModel.IsBound.Should().BeFalse();
             viewModel.Key.Should().Be(projectInfo.Key);
             viewModel.ProjectName.Should().Be(projectInfo.Name);
-            viewModel.SonarQubeProject.Should().Be(projectInfo);
+            viewModel.Project.Should().Be(projectInfo);
             viewModel.Owner.Should().Be(serverVM);
         }
 

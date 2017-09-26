@@ -20,26 +20,9 @@
 
 using Newtonsoft.Json;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Messages
 {
-    public class SonarQubeProperty
-    {
-        public string Key { get; }
-        public string Value { get; }
-
-        public SonarQubeProperty(string key, string value)
-        {
-            Key = key;
-            Value = value;
-        }
-
-        public static SonarQubeProperty FromDto(PropertyDTO dto)
-        {
-            return new SonarQubeProperty(dto.Key, dto.Value);
-        }
-    }
-
-    public class PropertyDTO
+    public class PropertyResponse
     {
         [JsonProperty("key")]
         public string Key { get; set; }

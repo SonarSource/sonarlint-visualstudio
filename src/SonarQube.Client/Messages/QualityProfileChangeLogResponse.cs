@@ -18,30 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net;
-using System.Net.Http;
+using Newtonsoft.Json;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Messages
 {
-    public struct Result<TValue>
+    public class QualityProfileChangeLogResponse
     {
-        private readonly HttpResponseMessage response;
+        [JsonProperty("total")]
+        public int Total { get; set; }
 
-        public TValue Value { get; }
-        public HttpStatusCode StatusCode { get; }
-        public bool IsSuccess { get; }
+        [JsonProperty("ps")]
+        public int PageSize { get; set; }
 
-        public Result(HttpResponseMessage response, TValue value)
-        {
-            this.response = response;
-            IsSuccess = response.IsSuccessStatusCode;
-            StatusCode = response.StatusCode;
-            Value = value;
-        }
+        [JsonProperty("p")]
+        public int Page { get; set; }
 
-        public void EnsureSuccess()
-        {
-            response.EnsureSuccessStatusCode();
-        }
+        [JsonProperty("events")]
+        public QualityProfileChangeLogEventResponse[] Events { get; set; }
     }
 }

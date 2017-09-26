@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             try
             {
                 notifications.ProgressChanged(Strings.ConnectionStepValidatinCredentials);
-                await this.host.SonarQubeService.ConnectAsync(connection, cancellationToken); // TODO: Handle errors
+                await this.host.SonarQubeService.ConnectAsync(connection, cancellationToken);
 
                 if (connection.Organization == null &&
                     this.host.SonarQubeService.HasOrganizationsFeature)
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 this.ConnectedServer = connection;
 
                 notifications.ProgressChanged(Strings.ConnectionStepRetrievingProjects);
-                var projects = await this.host.SonarQubeService.GetAllProjectsAsync(connection.Organization.Key,
+                var projects = await this.host.SonarQubeService.GetAllProjectsAsync(connection.Organization?.Key,
                     cancellationToken);
 
                 this.OnProjectsChanged(connection, projects);
@@ -204,7 +204,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             AbortWorkflow(controller, cancellationToken);
         }
 
-        private Organization AskUserToSelectOrganizationOnUIThread(IEnumerable<Organization> organizations)
+        private SonarQubeOrganization AskUserToSelectOrganizationOnUIThread(IEnumerable<SonarQubeOrganization> organizations)
         {
             return Application.Current.Dispatcher.Invoke(() =>
             {
@@ -223,8 +223,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
             const string TestProjectRegexKey = "sonar.cs.msbuild.testProjectPattern";
             const string TestProjectRegexDefaultValue = @"[^\\]*test[^\\]*$";
 
-        // Should never realistically take more than 1 second to match against a project name
-        var timeout = TimeSpan.FromSeconds(1);
+            // Should never realistically take more than 1 second to match against a project name
+            var timeout = TimeSpan.FromSeconds(1);
             var defaultRegex = new Regex(TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
 
             notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage);

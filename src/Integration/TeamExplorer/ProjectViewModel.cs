@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             }
 
             this.Owner = owner;
-            this.SonarQubeProject = projectInformation;
+            this.Project = projectInformation;
         }
 
         #region Properties
@@ -56,19 +56,19 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get;
         }
 
-        public SonarQubeProject SonarQubeProject
+        public SonarQubeProject Project
         {
             get;
         }
 
         public string Key
         {
-            get { return this.SonarQubeProject.Key; }
+            get { return this.Project.Key; }
         }
 
         public string ProjectName
         {
-            get { return this.SonarQubeProject.Name; }
+            get { return this.Project.Name; }
         }
 
         public bool IsBound

@@ -18,7 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Models
+using System.Net;
+using System.Net.Http;
+
+namespace SonarQube.Client.Services
 {
-    public enum AuthenticationType { Basic }
+    public struct Result<TValue>
+    {
+        private readonly HttpResponseMessage response;
+
+        public TValue Value { get; }
+        public HttpStatusCode StatusCode { get; }
+        public bool IsSuccess { get; }
+
+        public Result(HttpResponseMessage response, TValue value)
+        {
+            this.response = response;
+            IsSuccess = response.IsSuccessStatusCode;
+            StatusCode = response.StatusCode;
+            Value = value;
+        }
+
+        public void EnsureSuccess()
+        {
+            response.EnsureSuccessStatusCode();
+        }
+    }
 }

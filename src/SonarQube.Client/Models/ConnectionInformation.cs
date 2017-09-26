@@ -21,6 +21,7 @@
 using System;
 using System.Security;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Models
 {
@@ -71,7 +72,7 @@ namespace SonarQube.Client.Models
 
         public bool IsDisposed => this.isDisposed;
 
-        public Organization Organization { get; set; }
+        public SonarQubeOrganization Organization { get; set; }
 
         public ConnectionInformation Clone()
         {
@@ -93,14 +94,7 @@ namespace SonarQube.Client.Models
                 this.isDisposed = true;
             }
         }
-        #endregion
-    }
 
-    public class ConnectionDTO
-    {
-        public Uri ServerUri { get; set; }
-        public string Login { get; set; }
-        public SecureString Password { get; set; }
-        public AuthenticationType Authentication { get; set; }
+        #endregion IDisposable Support
     }
 }

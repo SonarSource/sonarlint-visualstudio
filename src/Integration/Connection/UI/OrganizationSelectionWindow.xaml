@@ -63,7 +63,7 @@
                     </Style>
                 </ComboBox.ItemContainerStyle>
                 <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:Organization}">
+                    <DataTemplate DataType="{x:Type models:SonarQubeOrganization}">
                         <TextBlock TextTrimming="CharacterEllipsis">
                             <Run Text="{Binding Name, Mode=OneWay}" />
                             <Run Text="(" /><Run Text="{Binding Key, Mode=OneWay}" /><Run Text=")" />

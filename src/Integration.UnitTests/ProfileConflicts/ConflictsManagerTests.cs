@@ -263,7 +263,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetValidSolutionBinding()
         {
-            this.solutionBinding.CurrentBinding = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
+            this.solutionBinding.CurrentBinding = new BoundProject { ProjectKey = "ProjectKey" };
         }
 
         private void SetValidProjects(int numberOfProjects = 1)

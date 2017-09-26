@@ -50,7 +50,6 @@ namespace SonarQube.Client.Helpers
             return secureString == null || secureString.IsEmpty();
         }
 
-
         // Copied from http://blogs.msdn.com/b/fpintos/archive/2009/06/12/how-to-properly-convert-securestring-to-string.aspx
 
         /// <summary>

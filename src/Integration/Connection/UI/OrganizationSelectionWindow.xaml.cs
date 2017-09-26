@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
     /// </summary>
     public partial class OrganizationSelectionWindow
     {
-        internal OrganizationSelectionWindow(IEnumerable<Organization> organizations)
+        internal OrganizationSelectionWindow(IEnumerable<SonarQubeOrganization> organizations)
         {
             InitializeComponent();
 
@@ -44,9 +44,9 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
             this.DialogResult = true;
         }
 
-        internal Organization GetSelectedOrganization()
+        internal SonarQubeOrganization GetSelectedOrganization()
         {
-            return OrganizationComboBox?.SelectedItem as Organization;
+            return OrganizationComboBox?.SelectedItem as SonarQubeOrganization;
         }
     }
 }

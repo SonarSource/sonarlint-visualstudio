@@ -93,12 +93,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool OnBindStatus(ProjectViewModel projectVM)
         {
-            return this.OnBindStatus(projectVM?.SonarQubeProject);
+            return this.OnBindStatus(projectVM?.Project);
         }
 
         private void OnBind(ProjectViewModel projectVM)
         {
-            this.OnBind(projectVM?.SonarQubeProject);
+            this.OnBind(projectVM?.Project);
         }
 
         private bool OnBindStatus(SonarQubeProject projectInformation)

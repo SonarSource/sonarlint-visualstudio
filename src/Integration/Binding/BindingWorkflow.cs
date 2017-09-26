@@ -35,6 +35,7 @@ using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -91,20 +92,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new Dictionary<Language, RuleSet>();
 
-        public Dictionary<Language, List<NuGetPackageInfo>> NuGetPackages
+        public Dictionary<Language, List<NuGetPackageInfoResponse>> NuGetPackages
         {
             get;
-        } = new Dictionary<Language, List<NuGetPackageInfo>>();
+        } = new Dictionary<Language, List<NuGetPackageInfoResponse>>();
 
         public Dictionary<Language, string> SolutionRulesetPaths
         {
             get;
         } = new Dictionary<Language, string>();
 
-        public Dictionary<Language, QualityProfile> QualityProfiles
+        public Dictionary<Language, SonarQubeQualityProfile> QualityProfiles
         {
             get;
-        } = new Dictionary<Language, QualityProfile>();
+        } = new Dictionary<Language, SonarQubeQualityProfile>();
 
         internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
         {
@@ -293,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        private void UpdateDownloadedSonarQubeQualityProfile(RuleSet ruleSet, QualityProfile qualityProfile)
+        private void UpdateDownloadedSonarQubeQualityProfile(RuleSet ruleSet, SonarQubeQualityProfile qualityProfile)
         {
             ruleSet.NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, this.project.Name, qualityProfile.Name);
 
@@ -355,12 +356,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     var projectLanguage = Language.ForProject(bindingProject);
 
-                    List<NuGetPackageInfo> nugetPackages;
+                    List<NuGetPackageInfoResponse> nugetPackages;
                     if (!this.NuGetPackages.TryGetValue(projectLanguage, out nugetPackages))
                     {
                         var message = string.Format(Strings.BindingProjectLanguageNotMatchingAnyQualityProfileLanguage, bindingProject.Name);
                         VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
-                        nugetPackages = new List<NuGetPackageInfo>();
+                        nugetPackages = new List<NuGetPackageInfoResponse>();
                     }
 
                     return nugetPackages.Select(nugetPackage => new { Project = bindingProject, NugetPackage = nugetPackage });

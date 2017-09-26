@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ISolutionBindingInformationProvider bindingInformationProvider;
         private IInfoBar currentErrorWindowInfoBar;
         private bool currentErrorWindowInfoBarHandlingClick;
-        private BoundSonarQubeProject infoBarBinding;
+        private BoundProject infoBarBinding;
         private bool isDisposed;
 
         public ErrorListInfoBarController(IHost host)
@@ -261,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration
             var bindingSerialzer = this.host.GetService<ISolutionBindingSerializer>();
             bindingSerialzer.AssertLocalServiceIsNotNull();
 
-            BoundSonarQubeProject binding = bindingSerialzer.ReadSolutionBinding();
+            BoundProject binding = bindingSerialzer.ReadSolutionBinding();
             if (binding == null
                 || this.infoBarBinding == null
                 || binding.ServerUri != this.infoBarBinding.ServerUri
@@ -279,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private void ExecuteUpdate(BoundSonarQubeProject binding)
+        private void ExecuteUpdate(BoundProject binding)
         {
             Debug.Assert(binding != null);
 
@@ -329,9 +329,9 @@ namespace SonarLint.VisualStudio.Integration
         private class EventDrivenBindingUpdate
         {
             private readonly IHost host;
-            private readonly BoundSonarQubeProject binding;
+            private readonly BoundProject binding;
 
-            public EventDrivenBindingUpdate(IHost host, BoundSonarQubeProject binding)
+            public EventDrivenBindingUpdate(IHost host, BoundProject binding)
             {
                 Debug.Assert(host != null);
                 Debug.Assert(binding != null);
@@ -605,12 +605,12 @@ namespace SonarLint.VisualStudio.Integration
                 }, token);
             }
 
-            private bool IsUpdateRequired(BoundSonarQubeProject binding, IEnumerable<Language> projectLanguages,
+            private bool IsUpdateRequired(BoundProject binding, IEnumerable<Language> projectLanguages,
                 CancellationToken token)
             {
                 Debug.Assert(binding != null);
 
-                IDictionary<Language, QualityProfile> newProfiles = null;
+                IDictionary<Language, SonarQubeQualityProfile> newProfiles = null;
                 try
                 {
                     newProfiles = TryGetLatestProfilesAsync(binding, projectLanguages, token).GetAwaiter().GetResult();
@@ -638,7 +638,7 @@ namespace SonarLint.VisualStudio.Integration
                         continue;
                     }
 
-                    QualityProfile newProfileInfo = newProfiles[language];
+                    SonarQubeQualityProfile newProfileInfo = newProfiles[language];
                     if (this.HasProfileChanged(newProfileInfo, oldProfileInfo))
                     {
                         return true;
@@ -649,9 +649,9 @@ namespace SonarLint.VisualStudio.Integration
                 return false; // Up-to-date
             }
 
-            private bool HasProfileChanged(QualityProfile newProfileInfo, ApplicableQualityProfile oldProfileInfo)
+            private bool HasProfileChanged(SonarQubeQualityProfile newProfileInfo, ApplicableQualityProfile oldProfileInfo)
             {
-                if (!QualityProfile.KeyComparer.Equals(oldProfileInfo.ProfileKey, newProfileInfo.Key))
+                if (!SonarQubeQualityProfile.KeyComparer.Equals(oldProfileInfo.ProfileKey, newProfileInfo.Key))
                 {
                     VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckDifferentProfile);
                     return true; // The profile change to a different one
@@ -666,10 +666,10 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
 
-            private async Task<IDictionary<Language, QualityProfile>> TryGetLatestProfilesAsync(BoundSonarQubeProject binding,
+            private async Task<IDictionary<Language, SonarQubeQualityProfile>> TryGetLatestProfilesAsync(BoundProject binding,
                 IEnumerable<Language> projectLanguages, CancellationToken token)
             {
-                var newProfiles = new Dictionary<Language, QualityProfile>();
+                var newProfiles = new Dictionary<Language, SonarQubeQualityProfile>();
                 foreach (Language language in projectLanguages)
                 {
                     var serverLanguage = language.ToServerLanguage();

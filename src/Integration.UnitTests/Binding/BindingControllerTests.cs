@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 testSubject.BindCommand.CanExecute(projectVM).Should().BeTrue();
 
                 // Act - disable
-                testSubject.SetBindingInProgress(progressEvents, projectVM.SonarQubeProject);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
 
                 // Assert
                 testSubject.BindCommand.CanExecute(projectVM).Should().BeFalse("Binding is in progress so should not be enabled");
@@ -232,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Arrange
-                testSubject.SetBindingInProgress(progressEvents, projectVM.SonarQubeProject);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
                 testSubject.IsBindingInProgress.Should().BeTrue();
 
                 // Act
@@ -243,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 if (result == ProgressControllerResult.Succeeded)
                 {
-                    this.host.TestStateManager.BoundProject.Should().Be(projectVM.SonarQubeProject);
+                    this.host.TestStateManager.BoundProject.Should().Be(projectVM.Project);
                 }
                 else
                 {
@@ -272,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult nonSuccuess in new[] { ProgressControllerResult.Cancelled, ProgressControllerResult.Failed })
             {
                 // Act
-                testSubject.SetBindingInProgress(progressEvents, projectVM.SonarQubeProject);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
                 progressEvents.SimulateFinished(nonSuccuess);
 
                 // Assert
@@ -284,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.conflictsController.HasConflicts = true;
 
             // Act
-            testSubject.SetBindingInProgress(progressEvents, projectVM.SonarQubeProject);
+            testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
             progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
             // Assert
@@ -295,7 +295,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.conflictsController.HasConflicts = false;
 
             // Act
-            testSubject.SetBindingInProgress(progressEvents, projectVM.SonarQubeProject);
+            testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
             progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
             // Assert
@@ -320,7 +320,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Act - start
-                testSubject.SetBindingInProgress(progressEvents, projectVM.SonarQubeProject);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
 
                 // Assert
                 userNotifications.AssertNoNotification(NotificationIds.FailedToBindId);

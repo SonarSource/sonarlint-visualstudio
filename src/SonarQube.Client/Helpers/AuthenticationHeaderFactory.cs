@@ -23,7 +23,7 @@ using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Security;
 using System.Text;
-using SonarQube.Client.Models;
+using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Helpers
 {
@@ -36,7 +36,7 @@ namespace SonarQube.Client.Helpers
         /// </summary>
         internal static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
 
-        public static AuthenticationHeaderValue Create(ConnectionDTO connectionInfo)
+        public static AuthenticationHeaderValue Create(ConnectionRequest connectionInfo)
         {
             if (connectionInfo.Authentication == AuthenticationType.Basic)
             {
