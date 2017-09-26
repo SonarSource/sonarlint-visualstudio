@@ -271,7 +271,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new SonarQubeProject("bla", "");
-            this.solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
+            this.solutionBinding.CurrentBinding = new Persistence.BoundProject(new Uri("http://bound"), boundProject.Key);
             this.stateManager.SetBoundProject(boundProject);
 
             // Sanity
@@ -307,7 +307,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new SonarQubeProject("bla", "");
             this.stateManager.SetBoundProject(boundProject);
-            this.solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
+            this.solutionBinding.CurrentBinding = new Persistence.BoundProject(new Uri("http://bound"), boundProject.Key);
             var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
             section.RefreshCommand = new RelayCommand(() => refreshCalled = true);
@@ -335,7 +335,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new SonarQubeProject("bla", "");
             this.stateManager.SetBoundProject(boundProject);
-            this.solutionBinding.CurrentBinding = new BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
+            this.solutionBinding.CurrentBinding = new BoundProject(new Uri("http://bound"), boundProject.Key);
             var section = ConfigurableSectionController.CreateDefault();
             testSubject.SetActiveSection(section);
 

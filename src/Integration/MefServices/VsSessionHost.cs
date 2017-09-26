@@ -212,7 +212,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             // Get the binding info (null if there's none i.e. when solution is closed or not bound)
-            BoundSonarQubeProject bound = this.SafeReadBindingInformation();
+            BoundProject bound = this.SafeReadBindingInformation();
             if (bound == null)
             {
                 this.ClearCurrentBinding();
@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.Integration
             this.VisualStateManager.ClearBoundProject();
         }
 
-        private void ApplyBindingInformation(BoundSonarQubeProject bound)
+        private void ApplyBindingInformation(BoundProject bound)
         {
             // Set the project key that should become bound once the connection workflow has completed
             this.VisualStateManager.BoundProjectKey = bound.ProjectKey;
@@ -257,12 +257,12 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private BoundSonarQubeProject SafeReadBindingInformation()
+        private BoundProject SafeReadBindingInformation()
         {
             ISolutionBindingSerializer solutionBinding = this.GetService<ISolutionBindingSerializer>();
             solutionBinding.AssertLocalServiceIsNotNull();
 
-            BoundSonarQubeProject bound = null;
+            BoundProject bound = null;
             try
             {
                 bound = solutionBinding.ReadSolutionBinding();
