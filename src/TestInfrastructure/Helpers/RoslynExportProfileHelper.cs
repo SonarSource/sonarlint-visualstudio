@@ -25,52 +25,52 @@ using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGet;
-using SonarQube.Client.Models;
+using SonarQube.Client.Messages;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal static class RoslynExportProfileHelper
     {
-        public static RoslynExportProfile CreateExport(RuleSet ruleSet)
+        public static RoslynExportProfileResponse CreateExport(RuleSet ruleSet)
         {
             return CreateExport(ruleSet, Enumerable.Empty<PackageName>());
         }
 
-        public static RoslynExportProfile CreateExport(RuleSet ruleSet, IEnumerable<PackageName> packages)
+        public static RoslynExportProfileResponse CreateExport(RuleSet ruleSet, IEnumerable<PackageName> packages)
         {
-            return CreateExport(ruleSet, Enumerable.Empty<PackageName>(), Enumerable.Empty<AdditionalFile>());
+            return CreateExport(ruleSet, Enumerable.Empty<PackageName>(), Enumerable.Empty<AdditionalFileResponse>());
         }
 
-        public static RoslynExportProfile CreateExport(RuleSet ruleSet, IEnumerable<PackageName> packages, IEnumerable<AdditionalFile> additionalFiles)
+        public static RoslynExportProfileResponse CreateExport(RuleSet ruleSet, IEnumerable<PackageName> packages, IEnumerable<AdditionalFileResponse> additionalFiles)
         {
             string xml = TestRuleSetHelper.RuleSetToXml(ruleSet);
             var ruleSetXmlDoc = new XmlDocument();
             ruleSetXmlDoc.LoadXml(xml);
 
-            var export = new RoslynExportProfile
+            var export = new RoslynExportProfileResponse
             {
-                Configuration = new Configuration
+                Configuration = new ConfigurationResponse
                 {
                     RuleSet = ruleSetXmlDoc.DocumentElement,
                     AdditionalFiles = additionalFiles.ToList()
                 },
-                Deployment = new Deployment
+                Deployment = new DeploymentResponse
                 {
-                    NuGetPackages = packages.Select(x => new NuGetPackageInfo { Id = x.Id, Version = x.Version.ToNormalizedString() }).ToList()
+                    NuGetPackages = packages.Select(x => new NuGetPackageInfoResponse { Id = x.Id, Version = x.Version.ToNormalizedString() }).ToList()
                 }
             };
 
             return export;
         }
 
-        public static void AssertAreEqual(RoslynExportProfile expected, RoslynExportProfile actual)
+        public static void AssertAreEqual(RoslynExportProfileResponse expected, RoslynExportProfileResponse actual)
         {
             actual.Version.Should().Be(expected.Version, "Unexpected export version");
             AssertConfigSectionEqual(expected.Configuration, actual.Configuration);
             AssertDeploymentSectionEqual(expected.Deployment, actual.Deployment);
         }
 
-        private static void AssertConfigSectionEqual(Configuration expected, Configuration actual)
+        private static void AssertConfigSectionEqual(ConfigurationResponse expected, ConfigurationResponse actual)
         {
             CollectionAssert.AreEqual(expected.AdditionalFiles, actual.AdditionalFiles, "Additional files differ");
 
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSetAssert.AreEqual(expectedRuleSet, actualRuleSet, "Rule sets differ");
         }
 
-        private static void AssertDeploymentSectionEqual(Deployment expected, Deployment actual)
+        private static void AssertDeploymentSectionEqual(DeploymentResponse expected, DeploymentResponse actual)
         {
             CollectionAssert.AreEqual(expected.NuGetPackages, actual.NuGetPackages, "NuGet package information differs");
         }

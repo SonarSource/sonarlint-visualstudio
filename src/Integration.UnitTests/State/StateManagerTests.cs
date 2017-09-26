@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             VerifySectionCommands(section, serverVM);
             VerifyConnectSectionViewModelIsNotConnected(section.ViewModel, connection2);
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
-            serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects to be true when adding new projects");
+            serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects to be true when adding new SonarQubeProjects");
 
             // Case 4 - connection2, change projects
             testSubject.SetProjects(connection1, projects);
@@ -230,7 +230,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.ManagedState.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz2"))));
             testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new SonarQubeProject("", ""))));
             var allProjects = testSubject.ManagedState.ConnectedServers.SelectMany(s => s.Projects).ToList();
-            testSubject.SetBoundProject(allProjects.First().SonarQubeProject);
+            testSubject.SetBoundProject(allProjects.First().Project);
 
             // Sanity
             testSubject.ManagedState.HasBoundProject.Should().BeTrue();
@@ -271,8 +271,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             // Assert
             notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             var serverVM = state.ConnectedServers.Single();
-            var project0VM = serverVM.Projects.Single(p => p.SonarQubeProject == projects[0]);
-            var project1VM = serverVM.Projects.Single(p => p.SonarQubeProject == projects[1]);
+            var project0VM = serverVM.Projects.Single(p => p.Project == projects[0]);
+            var project1VM = serverVM.Projects.Single(p => p.Project == projects[1]);
             project1VM.IsBound.Should().BeTrue();
             project0VM.IsBound.Should().BeFalse();
             testSubject.ManagedState.HasBoundProject.Should().BeTrue("Expected a bound project");
@@ -340,7 +340,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             countOnBindingStateChangeFired.Should().Be(0);
 
             // Act
-            testSubject.SetBoundProject(allProjects.First().SonarQubeProject);
+            testSubject.SetBoundProject(allProjects.First().Project);
 
             // Assert
             countOnBindingStateChangeFired.Should().Be(1);
@@ -535,7 +535,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasProjects(ConnectSectionViewModel vm, ConnectionInformation connection, SonarQubeProject[] projects)
         {
             ServerViewModel serverVM = VerifyConnectSectionViewModelIsConnected(vm, connection);
-            CollectionAssert.AreEquivalent(projects, serverVM.Projects.Select(p => p.SonarQubeProject).ToArray(), "Unexpected projects for server {0}", connection.ServerUri);
+            CollectionAssert.AreEquivalent(projects, serverVM.Projects.Select(p => p.Project).ToArray(), "Unexpected projects for server {0}", connection.ServerUri);
 
             return serverVM;
         }

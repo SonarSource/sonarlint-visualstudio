@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region Non-public API
-        private BoundSonarQubeProject GetSolutionBinding()
+        private BoundProject GetSolutionBinding()
         {
             var bindingSerializer = this.serviceProvider.GetService<ISolutionBindingSerializer>();
             bindingSerializer.AssertLocalServiceIsNotNull();
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration
             return bindingSerializer.ReadSolutionBinding();
         }
 
-        private IEnumerable<Project> GetUnboundProjects(BoundSonarQubeProject binding)
+        private IEnumerable<Project> GetUnboundProjects(BoundProject binding)
         {
             if (binding == null)
             {
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration
             return projectSystem.GetFilteredSolutionProjects().Except(this.GetBoundProjects(binding));
         }
 
-        private IEnumerable<Project> GetBoundProjects(BoundSonarQubeProject binding)
+        private IEnumerable<Project> GetBoundProjects(BoundProject binding)
         {
             if (binding == null)
             {
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration
                 .Where(p => this.IsFullyBoundProject(cache, binding, p));
         }
 
-        private bool IsFullyBoundProject(Dictionary<string, RuleSet> cache, BoundSonarQubeProject binding, Project project)
+        private bool IsFullyBoundProject(Dictionary<string, RuleSet> cache, BoundProject binding, Project project)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration
             return (projectRuleSet != null && RuleSetHelper.FindInclude(projectRuleSet, sonarQubeRuleSet) != null);
         }
 
-        private RuleSet FindSonarQubeSolutionRuleSet(Dictionary<string, RuleSet> cache, BoundSonarQubeProject binding, Project project)
+        private RuleSet FindSonarQubeSolutionRuleSet(Dictionary<string, RuleSet> cache, BoundProject binding, Project project)
         {
             var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();

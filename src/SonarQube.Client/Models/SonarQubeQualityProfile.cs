@@ -19,41 +19,33 @@
  */
 
 using System;
-using Newtonsoft.Json;
+using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Models
 {
-    public class SonarQubeProject
+    public class SonarQubeQualityProfile
     {
-        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
+        // Ordinal comparer, similar to project key comparer
         public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
 
         public string Key { get; }
         public string Name { get; }
+        public string Language { get; }
+        public bool IsDefault { get; }
+        public DateTime TimeStamp { get; }
 
-        public SonarQubeProject(string key, string name)
+        public SonarQubeQualityProfile(string key, string name, string language, bool isDefault, DateTime timeStamp)
         {
             Key = key;
             Name = name;
+            Language = language;
+            IsDefault = isDefault;
+            TimeStamp = timeStamp;
         }
 
-        public static SonarQubeProject FromDto(ProjectDTO dto)
+        public static SonarQubeQualityProfile FromResponse(QualityProfileResponse response, DateTime timeStamp)
         {
-            return new SonarQubeProject(dto.Key, dto.Name);
+            return new SonarQubeQualityProfile(response.Key, response.Name, response.Language, response.IsDefault, timeStamp);
         }
-
-        public static SonarQubeProject FromDto(ComponentDTO dto)
-        {
-            return new SonarQubeProject(dto.Key, dto.Name);
-        }
-    }
-
-    public class ProjectDTO
-    {
-        [JsonProperty("k")]
-        public string Key { get; set; }
-
-        [JsonProperty("nm")]
-        public string Name { get; set; }
     }
 }

@@ -322,7 +322,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[Language.CSharp] = new RuleSet("cs");
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             var profiles = GetQualityProfiles();
-            profiles[Language.CSharp] = new QualityProfile("C# Profile", "", "", false, DateTime.Now);
+            profiles[Language.CSharp] = new SonarQubeQualityProfile("C# Profile", "", "", false, DateTime.Now);
             testSubject.Initialize(projects, profiles);
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool commitCalledForBinder = false;
@@ -333,7 +333,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 bindingInfo.ServerUri.Should().Be(connectionInformation.ServerUri);
                 bindingInfo.Profiles.Should().HaveCount(1);
 
-                QualityProfile csProfile = profiles[Language.CSharp];
+                SonarQubeQualityProfile csProfile = profiles[Language.CSharp];
                 bindingInfo.Profiles[Language.CSharp].ProfileKey.Should().Be(csProfile.Key);
                 bindingInfo.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(csProfile.TimeStamp);
 
@@ -370,9 +370,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey);
         }
 
-        private static Dictionary<Language, QualityProfile> GetQualityProfiles()
+        private static Dictionary<Language, SonarQubeQualityProfile> GetQualityProfiles()
         {
-            return new Dictionary<Language, QualityProfile>();
+            return new Dictionary<Language, SonarQubeQualityProfile>();
         }
 
         #endregion Helpers

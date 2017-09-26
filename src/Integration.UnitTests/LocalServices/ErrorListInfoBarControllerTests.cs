@@ -29,13 +29,11 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
-using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -215,9 +213,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProfileKey = "Profile",
                 ProfileTimestamp = DateTime.Now
             };
-            var sqService = new Mock<ISonarQubeService>();
-            //this.host.SonarQubeService = sqService;
-            //sqService.ReturnProfile[Language.CSharp] = new QualityProfile();
 
             // Act
             testSubject.ProcessSolutionBinding();
@@ -318,7 +313,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Change binding
-            this.solutionBindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey");
+            this.solutionBindingSerializer.CurrentBinding = new Persistence.BoundProject(new Uri("http://server"), "SomeOtherProjectKey");
 
             // Act
             infoBar.SimulateButtonClickEvent();
@@ -838,7 +833,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set
             {
                 this.solutionBindingInformationProvider.SolutionBound = value;
-                this.solutionBindingSerializer.CurrentBinding = value ? new Persistence.BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey") : null;
+                this.solutionBindingSerializer.CurrentBinding = value ? new Persistence.BoundProject(new Uri("http://Server"), "boundProjectKey") : null;
             }
         }
 

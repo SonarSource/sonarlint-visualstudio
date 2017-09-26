@@ -18,10 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Models
+using Newtonsoft.Json;
+
+namespace SonarQube.Client.Messages
 {
-    public class VersionDTO
+    public class ComponentResponse
     {
-        public string Version { get; set; }
+        [JsonProperty("organization")]
+        public string Organization { get; set; }
+
+        [JsonProperty("key")]
+        public string Key { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
     }
 }

@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             viewModel.SetProjects(projects);
 
             // Assert
-            string[] actualProjectNames = viewModel.Projects.Select(p => p.SonarQubeProject.Name).OrderBy(n => n, StringComparer.CurrentCulture).ToArray();
+            string[] actualProjectNames = viewModel.Projects.Select(p => p.Project.Name).OrderBy(n => n, StringComparer.CurrentCulture).ToArray();
             CollectionAssert.AreEqual(
                expectedOrderedProjectNames,
                actualProjectNames,
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             viewModel.SetProjects(new[] { newProject });
 
             // Assert that the collection was replaced with the new one
-            viewModel.Projects.SingleOrDefault()?.SonarQubeProject.Should().Be(newProject, "Expected a single project to be present");
+            viewModel.Projects.SingleOrDefault()?.Project.Should().Be(newProject, "Expected a single project to be present");
         }
 
         [TestMethod]

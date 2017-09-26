@@ -201,7 +201,7 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Colon (":") is not a permitted character.</value>
     <comment>Error message indicating that the string must not contain an a colon (":") as is it an invalid character</comment>
   </data>
-  <data name="SelectSonarQubeProjectInstruction" xml:space="preserve">
+  <data name="SelectProjectInstruction" xml:space="preserve">
     <value>Select a SonarQube project and bind it to the current solution.</value>
     <comment>Message instructing the user to select from the presented list of SonarQube projects with which to bind the current solution to.</comment>
   </data>

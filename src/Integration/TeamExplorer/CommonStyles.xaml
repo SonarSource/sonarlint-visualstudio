@@ -203,7 +203,7 @@
          EndLineCap="Round"/>
 
     <!-- Icon drawing images -->
-    <DrawingImage x:Key="SonarQubeProjectIcon" po:Freeze="True">
+    <DrawingImage x:Key="ProjectIcon" po:Freeze="True">
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Geometry="{StaticResource SQProjectIconGeometry}"

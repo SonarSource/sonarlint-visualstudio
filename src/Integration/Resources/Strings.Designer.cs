@@ -867,9 +867,9 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Select a SonarQube project and bind it to the current solution..
         /// </summary>
-        public static string SelectSonarQubeProjectInstruction {
+        public static string SelectProjectInstruction {
             get {
-                return ResourceManager.GetString("SelectSonarQubeProjectInstruction", resourceCulture);
+                return ResourceManager.GetString("SelectProjectInstruction", resourceCulture);
             }
         }
         

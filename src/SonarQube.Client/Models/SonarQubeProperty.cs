@@ -18,10 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarQube.Client.Messages;
+
 namespace SonarQube.Client.Models
 {
-    public class CredentialsDTO
+    public class SonarQubeProperty
     {
-        public bool AreValid { get; set; }
+        public const string TestProjectRegexKey = "sonar.cs.msbuild.testProjectPattern";
+        public const string TestProjectRegexDefaultValue = @"[^\\]*test[^\\]*$";
+
+        public string Key { get; }
+        public string Value { get; }
+
+        public SonarQubeProperty(string key, string value)
+        {
+            Key = key;
+            Value = value;
+        }
+
+        public static SonarQubeProperty FromResponse(PropertyResponse response)
+        {
+            return new SonarQubeProperty(response.Key, response.Value);
+        }
     }
 }

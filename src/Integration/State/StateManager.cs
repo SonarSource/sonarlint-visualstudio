@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.State
         public ConnectionInformation GetConnectedServer(SonarQubeProject project)
         {
             return this.ManagedState.ConnectedServers
-                .SingleOrDefault(s => s.Projects.Any(p => p.SonarQubeProject == project))?.ConnectionInformation;
+                .SingleOrDefault(s => s.Projects.Any(p => p.Project == project))?.ConnectionInformation;
         }
 
         public string BoundProjectKey { get; set; }
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.State
         public void SetBoundProject(SonarQubeProject project)
         {
             this.ClearBindingErrorNotifications();
-            ProjectViewModel projectViewModel = this.ManagedState.ConnectedServers.SelectMany(s => s.Projects).SingleOrDefault(p => p.SonarQubeProject == project);
+            ProjectViewModel projectViewModel = this.ManagedState.ConnectedServers.SelectMany(s => s.Projects).SingleOrDefault(p => p.Project == project);
             Debug.Assert(projectViewModel != null, "Expecting a single project mapped to project information");
             this.ManagedState.SetBoundProject(projectViewModel);
             Debug.Assert(this.HasBoundProject, "Expected to have a bound project");
@@ -230,7 +230,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 return;
             }
 
-            SonarQubeProject boundProject = serverViewModel.Projects.FirstOrDefault(pvm => SonarQubeProject.KeyComparer.Equals(pvm.Key, this.BoundProjectKey))?.SonarQubeProject;
+            var boundProject = serverViewModel.Projects.FirstOrDefault(pvm => SonarQubeProject.KeyComparer.Equals(pvm.Key, this.BoundProjectKey))?.Project;
             if (boundProject == null)
             {
                 // Defensive coding: invoked asynchronous and it's safer to assume that value could be null

@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.IsSolutionBound().Should().BeFalse();
 
             // Case 2: Bound
-            this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject();
+            this.bindingSerializer.CurrentBinding = new Persistence.BoundProject();
 
             // Act + Assert
             testSubject.IsSolutionBound().Should().BeTrue();
@@ -260,7 +260,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetValidSolutionBinding()
         {
-            this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject { ProjectKey = "projectKey" };
+            this.bindingSerializer.CurrentBinding = new Persistence.BoundProject { ProjectKey = "projectKey" };
         }
 
         private void SetValidFilteredProjects()
