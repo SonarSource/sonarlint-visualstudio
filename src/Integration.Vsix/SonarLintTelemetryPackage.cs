@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            this.telemetryManager?.Dispose();
+            (this.telemetryManager as IDisposable)?.Dispose();
             this.telemetryManager = null;
         }
     }

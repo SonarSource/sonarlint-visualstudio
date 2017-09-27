@@ -18,19 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Timers;
+using System;
+using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITimer
+    public interface IKnownUIContexts
     {
-        event ElapsedEventHandler Elapsed;
-
-        bool AutoReset { get; set; }
-        double Interval { get; set; }
-
-        void Start();
-        void Stop();
-        void Close();
+        event EventHandler<UIContextChangedEventArgs> SolutionBuildingContextChanged;
+        event EventHandler<UIContextChangedEventArgs> SolutionExistsAndFullyLoadedContextChanged;
     }
 }
