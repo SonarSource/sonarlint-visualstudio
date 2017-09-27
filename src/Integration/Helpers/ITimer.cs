@@ -18,12 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Timers;
+
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITelemetryManager
+    public interface ITimer
     {
-        bool IsAnonymousDataShared { get; }
-        void OptOut();
-        void OptIn();
+        event ElapsedEventHandler Elapsed;
+
+        bool AutoReset { get; set; }
+        double Interval { get; set; }
+
+        void Start();
+        void Stop();
+        void Close();
     }
 }
