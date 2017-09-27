@@ -20,10 +20,8 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITelemetryManager
+    public interface ITimerFactory
     {
-        bool IsAnonymousDataShared { get; }
-        void OptOut();
-        void OptIn();
+        ITimer Create();
     }
 }
