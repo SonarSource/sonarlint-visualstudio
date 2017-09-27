@@ -24,33 +24,29 @@ using SonarLint.VisualStudio.Integration.Suppression;
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {
     /// <summary>
-    /// Information about a single Roslyn issue, decorated with the 
-    /// extra information required to map it to a SonarQube issue
+    ///     Information about a single Roslyn issue, decorated with the extra information required to map it to a
+    ///     SonarQube issue.
     /// </summary>
     internal class LiveIssue
     {
-        // TODO: make properties read-only
-
-        public Diagnostic Diagnostic { get; set; }
-        public string IssueFilePath { get; set; }
-        public string ProjectId { get; set; }
-        public string ProjectFilePath { get; set; }
-        public int StartLine { get; set; }
-        public string WholeLineText { get; set; }
-
-        private string checksum;
-        public string LineChecksum
+        public LiveIssue(Diagnostic diagnostic, string issueFilePath, string projectFilePath, string projectGuid, int startLine,
+            string wholeLineText)
         {
-            get
-            {
-                if (checksum == null)
-                {
-                    // TODO: checksum for file-level issues?
-                    checksum = ChecksumCalculator.Calculate(this.WholeLineText);
-                }
-                return checksum;
-            }
+            Diagnostic = diagnostic;
+            IssueFilePath = issueFilePath;
+            ProjectGuid = projectGuid;
+            ProjectFilePath = projectFilePath;
+            StartLine = startLine;
+            WholeLineText = wholeLineText;
+            LineHash = ChecksumCalculator.Calculate(WholeLineText);
         }
 
+        public Diagnostic Diagnostic { get; }
+        public string IssueFilePath { get; }
+        public string LineHash { get; }
+        public string ProjectFilePath { get; }
+        public string ProjectGuid { get; }
+        public int StartLine { get; }
+        public string WholeLineText { get; }
     }
 }

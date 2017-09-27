@@ -28,11 +28,11 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 /* To map from a diagnostic to a SonarQube issue we need to work out the SQ moduleId
  * corresponding to the MSBuild project.
- * 
+ *
  * To speed things up, we cache the mapping from project file path to project id
  * for the loaded projects (which means we need to rebuild the mapping when the
  * solution changes).
- * 
+ *
  * Note: this class does not monitor changes to the solution. If the solution/binding
  * changes then create a new instance.
  */
@@ -103,15 +103,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             int additionalLineCount = lineSpan.EndLinePosition.Line - startLine;
             string lineText = tree.GetText().Lines[startLine + additionalLineCount].ToString();
 
-            LiveIssue liveIssue = new LiveIssue()
-            {
-                Diagnostic = diagnostic,
-                IssueFilePath = lineSpan.Path,
-                ProjectId = projectId,
-                ProjectFilePath = project.FilePath,
-                WholeLineText = lineText,
-                StartLine = startLine + 1 // Roslyn lines are 0-based, SonarQube lines are 1-based
-            };
+            LiveIssue liveIssue = new LiveIssue(diagnostic, lineSpan.Path, project.FilePath, projectId,
+                startLine + 1, lineText); // Roslyn lines are 0-based, SonarQube lines are 1-based
             return liveIssue;
         }
 

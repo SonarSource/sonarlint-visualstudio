@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
         private DelegateInjector delegateInjector;
         private LiveIssueFactory liveIssueFactory;
-        private ServerIssuesProvider serverIssueProvider;
+        private ISonarQubeIssuesProvider sonarqubeIssueProvider;
 
         public SuppressionManager(IServiceProvider serviceProvider)
         {
@@ -58,8 +58,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         private void SetupSuppressionHandling()
         {
             liveIssueFactory = new LiveIssueFactory(serviceProvider);
-            delegateInjector = new DelegateInjector(ShouldIssueBeSuppressed, serviceProvider);
-            serverIssueProvider = new ServerIssuesProvider(serviceProvider);
+            delegateInjector = new DelegateInjector(ShouldIssueBeSuppressed);
+            sonarqubeIssueProvider = this.serviceProvider.GetMefService<ISonarQubeIssuesProvider>();
         }
 
         private void CleanupSuppressionHandling()
@@ -67,8 +67,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             delegateInjector?.Dispose();
             delegateInjector = null;
             liveIssueFactory = null;
-            serverIssueProvider?.Dispose();
-            serverIssueProvider = null;
+            (sonarqubeIssueProvider as IDisposable)?.Dispose();
+            sonarqubeIssueProvider = null;
         }
 
         private void OnSolutionBindingChanged(object sender, bool e)
@@ -94,12 +94,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             // TODO: ?need to make file path relative to the project file path
             // As a minimum, the project, file and rule id must match
-            var issuesInFile = serverIssueProvider.GetServerIssues(liveIssue.ProjectId, liveIssue.IssueFilePath)
-                    .Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleKey)); // TODO: rule repository?
+            var issuesInFile = sonarqubeIssueProvider.GetSuppressedIssues(liveIssue.ProjectGuid, liveIssue.IssueFilePath)
+                    .Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleId)); // TODO: rule repository?
 
             return issuesInFile.Any(i =>
                     liveIssue.StartLine == i.Line ||
-                    StringComparer.Ordinal.Equals(liveIssue.LineChecksum, i.Checksum));
+                    StringComparer.Ordinal.Equals(liveIssue.LineHash, i.Hash));
         }
 
         #region IDisposable Support

@@ -25,22 +25,30 @@ namespace SonarQube.Client.Models
 {
     public class SonarQubeIssue
     {
-        public string Key { get; }
-        public int Line { get; }
-        public SonarQubeIssueResolutionState ResolutionState { get; }
-        public string Hash { get; }
-
-        public SonarQubeIssue(string key, int line, SonarQubeIssueResolutionState resolution, string hash)
+        public SonarQubeIssue(string filePath, string hash, int line, string message, string moduleKey,
+            SonarQubeIssueResolutionState resolutionState, string ruleId)
         {
-            Key = key;
-            Line = line;
-            ResolutionState = resolution;
+            FilePath = filePath;
             Hash = hash;
+            Line = line;
+            Message = message;
+            ModuleKey = moduleKey;
+            ResolutionState = resolutionState;
+            RuleId = ruleId;
         }
+
+        public string FilePath { get; }
+        public string Hash { get; }
+        public int Line { get; }
+        public string Message { get; }
+        public string ModuleKey { get; }
+        public SonarQubeIssueResolutionState ResolutionState { get; }
+        public string RuleId { get; }
 
         public static SonarQubeIssue FromResponse(ServerIssue issue)
         {
-            return new SonarQubeIssue(issue.Key, issue.Line, ParseResolutionState(issue.Resolution), issue.Checksum);
+            return new SonarQubeIssue(issue.Path, issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey,
+                ParseResolutionState(issue.Resolution), issue.RuleKey);
         }
 
         public static SonarQubeIssueResolutionState ParseResolutionState(string resolution)
