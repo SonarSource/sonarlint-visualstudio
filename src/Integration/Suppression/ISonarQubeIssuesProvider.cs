@@ -18,29 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Collections.Generic;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
-    /// <summary>
-    /// TODO: placeholder class: data contract for server-side issues
-    /// </summary>
-    /// <remarks>Maps to the fields returned by SonarQube web service GET /batch/issues</remarks>
-    public class ServerIssue
+    public interface ISonarQubeIssuesProvider
     {
-//        String Key { get; set; }
-        public string ModuleKey { get; set; }
-        public string Path { get; set; }
-        public string RuleRespository { get; set; }
-        public string RuleKey { get; set; }
-        public int Line { get; set; }
-        public string Message { get; set; }
-        //        String Severity { get; set; }
-        //        bool ManualSeverity { get; set; }
-        public string Resolution { get; set; }
-        public string Status { get; set; }
-        public string Checksum { get; set; }
-        //        String AssigneeLogin { get; set; }
-        //        long CreationDate { get; set; }
+        /// <summary>
+        ///     Returns SonarQube suppressed issues for the specified project and file
+        /// </summary>
+        IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath);
     }
 }
