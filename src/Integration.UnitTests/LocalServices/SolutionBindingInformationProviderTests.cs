@@ -73,13 +73,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.bindingSerializer.CurrentBinding = null;
 
             // Act + Assert
-            testSubject.IsSolutionBound().Should().BeFalse();
+            testSubject.GetActiveSolutionBinding().IsBound.Should().BeFalse();
 
             // Case 2: Bound
             this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject();
 
             // Act + Assert
-            testSubject.IsSolutionBound().Should().BeTrue();
+            testSubject.GetActiveSolutionBinding().IsBound.Should().BeTrue();
         }
 
         [TestMethod]

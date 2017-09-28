@@ -34,8 +34,6 @@ namespace SonarLint.VisualStudio.Integration
 
         public event EventHandler<ActiveSolutionBinding> SolutionBindingChanged;
 
-        public bool IsActiveSolutionBound => ActiveSolutionBinding.IsBound;
-
         public ActiveSolutionBinding ActiveSolutionBinding { get; private set; } = new ActiveSolutionBinding();
 
         [ImportingConstructor]
