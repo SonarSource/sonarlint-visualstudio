@@ -52,9 +52,9 @@ namespace SonarLint.VisualStudio.Integration
         bool IsSolutionBound();
 
         /// <summary>
-        /// Returns current solution binding details
+        /// Returns current solution project key (can be null)
         /// </summary>
         /// <returns></returns>
-        ActiveSolutionBinding GetActiveSolutionBinding();
+        string GetProjectKey();
     }
 }

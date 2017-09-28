@@ -24,14 +24,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
     {
-        public ActiveSolutionBinding ActiveSolutionBinding =>
-           new ActiveSolutionBinding(IsActiveSolutionBound, null);
+        public ActiveSolutionBindingEventArgs ActiveSolutionBinding =>
+           new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, null);
 
         public bool IsActiveSolutionBound { get; set; }
 
-        public event EventHandler<ActiveSolutionBinding> SolutionBindingChanged;
+        public string ProjectKey { get; set; }
 
-        public void SimulateSolutionBindingChanged(ActiveSolutionBinding binding)
+        public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
+
+        public void SimulateSolutionBindingChanged(ActiveSolutionBindingEventArgs binding)
         {
             SolutionBindingChanged(this, binding);
         }

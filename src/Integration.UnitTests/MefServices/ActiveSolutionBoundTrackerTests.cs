@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ActiveSolutionBoundTracker_Bound()
         {
             // Arrange
-            this.solutionBindingInformationProvider.ActiveSolutionBinding = new ActiveSolutionBinding(true, "");
+            this.solutionBindingInformationProvider.SolutionBound = true;
             this.host.VisualStateManager.SetBoundProject(new SonarQubeProject("", ""));
 
             // Act
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 CurrentBinding = new BoundSonarQubeProject()
             };
             this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
-            this.solutionBindingInformationProvider.ActiveSolutionBinding = new ActiveSolutionBinding(true, "");
+            this.solutionBindingInformationProvider.SolutionBound = true;
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
             var reanalysisEventCalledCount = 0;
             testSubject.SolutionBindingChanged += (obj, args) => { reanalysisEventCalledCount++; };
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 1: Clear bound project
             solutionBinding.CurrentBinding = null;
-            this.solutionBindingInformationProvider.ActiveSolutionBinding = new ActiveSolutionBinding(false, null);
+            this.solutionBindingInformationProvider.SolutionBound = false;
             // Act
             host.VisualStateManager.ClearBoundProject();
 
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 2: Set bound project
             solutionBinding.CurrentBinding = new BoundSonarQubeProject();
-            this.solutionBindingInformationProvider.ActiveSolutionBinding = new ActiveSolutionBinding(true, "");
+            this.solutionBindingInformationProvider.SolutionBound = true;
             // Act
             host.VisualStateManager.SetBoundProject(new SonarQubeProject("", ""));
 
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 3: Solution unloaded
             solutionBinding.CurrentBinding = null;
-            this.solutionBindingInformationProvider.ActiveSolutionBinding = new ActiveSolutionBinding(false, null);
+            this.solutionBindingInformationProvider.SolutionBound = false;
             // Act
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 4: Solution loaded
             solutionBinding.CurrentBinding = new BoundSonarQubeProject();
-            this.solutionBindingInformationProvider.ActiveSolutionBinding = new ActiveSolutionBinding(true, "");
+            this.solutionBindingInformationProvider.SolutionBound = true;
             // Act
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.Dispose();
             solutionBinding.CurrentBinding = null;
-            this.solutionBindingInformationProvider.ActiveSolutionBinding = new ActiveSolutionBinding(true, "");
+            this.solutionBindingInformationProvider.SolutionBound = true;
             host.VisualStateManager.ClearBoundProject();
 
             // Assert
