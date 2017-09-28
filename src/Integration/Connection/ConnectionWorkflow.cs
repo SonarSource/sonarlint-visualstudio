@@ -130,9 +130,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             try
             {
-                AbortWithMessage(notifications, controller, cancellationToken);
-                return;
-            }
+                notifications.ProgressChanged(Strings.ConnectionStepValidatinCredentials);
+                await this.host.SonarQubeService.ConnectAsync(connection, cancellationToken);
 
                 if (connection.Organization == null &&
                     this.host.SonarQubeService.HasOrganizationsFeature)
