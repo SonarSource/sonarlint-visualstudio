@@ -19,40 +19,19 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using EnvDTE;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration
 {
-    internal class ConfigurableSolutionBindingInformationProvider : ISolutionBindingInformationProvider
+    public class ActiveSolutionBindingEventArgs : EventArgs
     {
-        public IEnumerable<Project> BoundProjects { get; set; } = Enumerable.Empty<Project>();
-
-        public IEnumerable<Project> UnboundProjects { get; set; } = Enumerable.Empty<Project>();
-
-        public bool SolutionBound { get; set; }
-
-        public string ProjectKey { get; set; }
-
-        public IEnumerable<Project> GetBoundProjects()
+        public ActiveSolutionBindingEventArgs(bool isBound, string projectKey)
         {
-            return this.BoundProjects;
+            IsBound = isBound;
+            ProjectKey = projectKey;
         }
 
-        public IEnumerable<Project> GetUnboundProjects()
-        {
-            return this.UnboundProjects;
-        }
+        public bool IsBound { get; private set; }
 
-        public bool IsSolutionBound()
-        {
-            return SolutionBound;
-        }
-
-        public string GetProjectKey()
-        {
-            return ProjectKey;
-        }
+        public string ProjectKey { get; private set; }
     }
 }
