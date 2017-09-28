@@ -37,7 +37,6 @@ namespace SonarQube.Client.Services
         private readonly ISonarQubeClient sonarqubeClient;
 
         private ConnectionRequest connection;
-        private bool isConnected;
         private Version serverVersion;
 
         public SonarQubeService(ISonarQubeClient sonarqubeClient)
@@ -60,9 +59,11 @@ namespace SonarQube.Client.Services
             }
         }
 
+        public bool IsConnected => this.connection != null;
+
         public async Task ConnectAsync(ConnectionInformation connection, CancellationToken token)
         {
-            if (this.isConnected)
+            if (this.connection != null)
             {
                 throw new InvalidOperationException("This operation expects the service not to be connected.");
             }
@@ -88,7 +89,12 @@ namespace SonarQube.Client.Services
 
             this.serverVersion = Version.Parse(versionResult.Value.Version);
             this.connection = ConnectionRequest;
-            this.isConnected = true;
+        }
+
+        public void Disconnect()
+        {
+            this.connection = null;
+            this.serverVersion = null;
         }
 
         public async Task<IList<SonarQubeOrganization>> GetAllOrganizationsAsync(CancellationToken token)
@@ -222,7 +228,7 @@ namespace SonarQube.Client.Services
 
         internal void EnsureIsConnected()
         {
-            if (!this.isConnected)
+            if (this.connection == null)
             {
                 throw new InvalidOperationException("This operation expects the service to be connected.");
             }
