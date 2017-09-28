@@ -22,20 +22,16 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public class ActiveSolutionBinding
+    public class ActiveSolutionBindingEventArgs : EventArgs
     {
-        public ActiveSolutionBinding()
-        {
-        }
-
-        public ActiveSolutionBinding(bool isBound, string projectKey)
+        public ActiveSolutionBindingEventArgs(bool isBound, string projectKey)
         {
             IsBound = isBound;
             ProjectKey = projectKey;
         }
 
-        public bool IsBound { get; set; }
+        public bool IsBound { get; private set; }
 
-        public string ProjectKey { get; set; }
+        public string ProjectKey { get; private set; }
     }
 }

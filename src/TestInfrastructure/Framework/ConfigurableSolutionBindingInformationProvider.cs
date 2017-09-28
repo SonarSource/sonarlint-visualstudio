@@ -31,7 +31,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public IEnumerable<Project> UnboundProjects { get; set; } = Enumerable.Empty<Project>();
 
-        public ActiveSolutionBinding ActiveSolutionBinding { get; set; } = new ActiveSolutionBinding();
+        public bool SolutionBound { get; set; }
+
+        public string ProjectKey { get; set; }
 
         public IEnumerable<Project> GetBoundProjects()
         {
@@ -45,12 +47,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool IsSolutionBound()
         {
-            return this.ActiveSolutionBinding.IsBound;
+            return SolutionBound;
         }
 
-        public ActiveSolutionBinding GetActiveSolutionBinding()
+        public string GetProjectKey()
         {
-            return ActiveSolutionBinding;
+            return ProjectKey;
         }
     }
 }
