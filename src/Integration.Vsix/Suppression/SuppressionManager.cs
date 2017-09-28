@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             sonarqubeIssueProvider = null;
         }
 
-        private void OnSolutionBindingChanged(object sender, bool e)
+        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
             RefreshSuppresionHandling();
         }
