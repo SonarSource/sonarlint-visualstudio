@@ -28,6 +28,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
+    [Export(typeof(ISonarQubeIssuesProvider))]
     public sealed class SonarQubeIssuesProvider : ISonarQubeIssuesProvider, IDisposable
     {
         private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 60 * 1; // 1 hour
@@ -52,6 +53,12 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             // TODO: Use mockable timer
             refreshTimer = new System.Timers.Timer { AutoReset = true, Interval = MillisecondsToWaitBetweenRefresh };
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
+
+            if (this.solutionBoundTacker.IsActiveSolutionBound)
+            {
+                SynchronizeSuppressedIssues();
+                refreshTimer.Start();
+            }
         }
 
         public void Dispose()
@@ -62,12 +69,13 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             }
 
             refreshTimer.Dispose();
+            this.solutionBoundTacker.SolutionBindingChanged -= OnSolutionBoundChanged;
             this.isDisposed = true;
         }
 
         public IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath)
         {
-            // TODO: Block the call while the cache is being built
+            // TODO: Block the call while the cache is being built + handle multi-threading
             return this.cachedSuppressedIssues.Where(x => x.FilePath == filePath && x.ModuleKey == BuildModuleKey(projectGuid));
         }
 
@@ -99,6 +107,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         {
             cancellationTokenSource?.Cancel();
             cancellationTokenSource = new CancellationTokenSource();
+
+            // TODO: Handle race conditions
             this.cachedSuppressedIssues = await this.host.SonarQubeService.GetSuppressedIssuesAsync(
                 this.host.VisualStateManager.BoundProjectKey, cancellationTokenSource.Token);
         }
