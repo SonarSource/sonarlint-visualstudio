@@ -28,6 +28,11 @@ namespace SonarLint.VisualStudio.Integration
     public interface IActiveSolutionBoundTracker
     {
         /// <summary>
+        /// Returns whether the active solution is bound to a SonarQube project
+        /// </summary>
+        bool IsActiveSolutionBound { get; }
+
+        /// <summary>
         /// Returns current solution binding data
         /// </summary>
         ActiveSolutionBinding ActiveSolutionBinding { get; }
