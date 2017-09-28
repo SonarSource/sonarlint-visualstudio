@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             get
             {
-                return this.bindingInformationProvider.IsSolutionBound();
+                return this.bindingInformationProvider.GetActiveSolutionBinding().IsBound;
             }
         }
 

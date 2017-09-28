@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Unbound_Empty()
         {
-            this.activeSolutionBoundTracker.IsActiveSolutionBound = false;
+            this.activeSolutionBoundTracker.ActiveSolutionBinding.IsBound = false;
 
             this.testSubject.GetIsBoundWithoutAnalyzer(
                 SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(null))
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Unbound_Conflicting()
         {
-            this.activeSolutionBoundTracker.IsActiveSolutionBound = false;
+            this.activeSolutionBoundTracker.ActiveSolutionBinding.IsBound = false;
 
             var version = new Version("0.1.2.3");
             version.Should().NotBe(SonarAnalyzerManager.AnalyzerVersion,
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Unbound_NonConflicting()
         {
-            this.activeSolutionBoundTracker.IsActiveSolutionBound = false;
+            this.activeSolutionBoundTracker.ActiveSolutionBinding.IsBound = false;
 
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
             {
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Bound_Empty()
         {
-            this.activeSolutionBoundTracker.IsActiveSolutionBound = true;
+            this.activeSolutionBoundTracker.ActiveSolutionBinding.IsBound = true;
 
             this.testSubject.GetIsBoundWithoutAnalyzer(
                 SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(null))
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Bound_Conflicting()
         {
-            this.activeSolutionBoundTracker.IsActiveSolutionBound = true;
+            this.activeSolutionBoundTracker.ActiveSolutionBinding.IsBound = true;
 
             var version = new Version("0.1.2.3");
             version.Should().NotBe(SonarAnalyzerManager.AnalyzerVersion,
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void SonarAnalyzerManager_GetIsBoundWithoutAnalyzer_Bound_NonConflicting()
         {
-            this.activeSolutionBoundTracker.IsActiveSolutionBound = true;
+            this.activeSolutionBoundTracker.ActiveSolutionBinding.IsBound = true;
 
             IEnumerable<AnalyzerReference> references = new AnalyzerReference[]
             {

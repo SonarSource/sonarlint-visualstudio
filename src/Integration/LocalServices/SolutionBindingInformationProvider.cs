@@ -43,11 +43,6 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         #region ISolutionBindingInformationProvider
-        public bool IsSolutionBound()
-        {
-            return this.GetSolutionBinding() != null;
-        }
-
         public ActiveSolutionBinding GetActiveSolutionBinding()
         {
             var solutionBinding = GetSolutionBinding();
@@ -58,7 +53,6 @@ namespace SonarLint.VisualStudio.Integration
                 ProjectKey = solutionBinding?.ProjectKey
             };
         }
-
 
         public IEnumerable<Project> GetBoundProjects()
         {
