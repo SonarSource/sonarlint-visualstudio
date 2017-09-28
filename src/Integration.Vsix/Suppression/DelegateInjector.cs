@@ -42,8 +42,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// </summary>
     internal sealed class DelegateInjector : IDisposable
     {
-        public DelegateInjector(Func<Diagnostic, bool> function)
+        private readonly Func<Diagnostic, bool> suppressionFunction;
+        private readonly IServiceProvider serviceProvider;
+
+        public DelegateInjector(Func<Diagnostic, bool> suppressionFunction, IServiceProvider serviceProvider)
         {
+            if (suppressionFunction == null)
+            {
+                throw new ArgumentNullException(nameof(suppressionFunction));
+            }
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            this.suppressionFunction = suppressionFunction;
+            this.serviceProvider = serviceProvider;
             // Inject the delegate into any Sonar analyzer assemblies that are already loaded
             foreach(Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -61,8 +75,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
         private void InjectSuppressionDelegate(Assembly asm)
         {
-            // TODO: if this is a Sonar analyzer assembly, try to set the suppression delegate
+            // If this is a Sonar analyzer assembly, try to set the suppression delegate
             // Note: the property might not exist for down-level versions of the analyzer
+            const string AssemblyName = "SonarAnalyzer";
+
+            if (asm.FullName.StartsWith(AssemblyName, StringComparison.OrdinalIgnoreCase))
+            {
+                SafeSetProperty(asm);
+            }
+        }
+
+        private void SafeSetProperty(Assembly asm)
+        {
+            const string FullTypeName = "SonarAnalyzer.Helpers.SonarAnalysisContext";
+            const string PropertyName = "ShouldDiagnosticBeReported";
+
+            try
+            {
+                Type baseType = asm.GetType(FullTypeName, throwOnError: false);
+
+                PropertyInfo pi = baseType?.GetProperty(PropertyName, BindingFlags.Public | BindingFlags.Static);
+
+                pi?.SetValue(null, this.suppressionFunction);
+            }
+            catch (Exception e)
+            {
+                // Suppress failures - we don't want the analyzers to fail
+                VsShellUtils.WriteToSonarLintOutputPane(serviceProvider,
+                    $@"Unable to set the analyzer suppression handler for {asm.FullName}.
+SonarQube issues that have been suppressed in SonarQube may still be reported in the IDE.
+    Assembly location: {asm.Location}
+    Error: {e.Message}");
+            }
         }
 
         #region IDisposable Support
