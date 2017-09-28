@@ -25,6 +25,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarQube.Client.Models;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
@@ -33,20 +34,18 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     {
         private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 60 * 1; // 1 hour
 
-        private readonly IHost host;
         private readonly System.Timers.Timer refreshTimer;
         private readonly IActiveSolutionBoundTracker solutionBoundTacker;
+        private readonly ISonarQubeService sonarQubeService;
 
         private IList<SonarQubeIssue> cachedSuppressedIssues;
         private bool isDisposed;
         private CancellationTokenSource cancellationTokenSource;
 
         [ImportingConstructor]
-        internal SonarQubeIssuesProvider(IHost host, IActiveSolutionBoundTracker solutionBoundTacker)
+        internal SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, IActiveSolutionBoundTracker solutionBoundTacker)
         {
-            // Ideally we would have the bound project as part of IActiveSolutionBoundTracker.SolutionBindingChanged event
-            // args and we could get rid of the dependency to IHost here.
-            this.host = host;
+            this.sonarQubeService = sonarQubeService;
             this.solutionBoundTacker = solutionBoundTacker;
             this.solutionBoundTacker.SolutionBindingChanged += OnSolutionBoundChanged;
 
@@ -81,8 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private string BuildModuleKey(string projectGuid)
         {
-            var sonarQubeProjectKey = this.host.VisualStateManager.BoundProjectKey;
-            return $"{sonarQubeProjectKey}:{sonarQubeProjectKey}:{projectGuid}";
+            return $"{solutionBoundTacker.ProjectKey}:{solutionBoundTacker.ProjectKey}:{projectGuid}";
         }
 
         private async void OnRefreshTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -90,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             await SynchronizeSuppressedIssues();
         }
 
-        private async void OnSolutionBoundChanged(object sender, bool e)
+        private async void OnSolutionBoundChanged(object sender, ActiveSolutionBindingEventArgs eventArgs)
         {
             if (solutionBoundTacker.IsActiveSolutionBound)
             {
@@ -109,8 +107,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             cancellationTokenSource = new CancellationTokenSource();
 
             // TODO: Handle race conditions
-            this.cachedSuppressedIssues = await this.host.SonarQubeService.GetSuppressedIssuesAsync(
-                this.host.VisualStateManager.BoundProjectKey, cancellationTokenSource.Token);
+            this.cachedSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(
+                this.solutionBoundTacker.ProjectKey, cancellationTokenSource.Token);
         }
     }
 }
