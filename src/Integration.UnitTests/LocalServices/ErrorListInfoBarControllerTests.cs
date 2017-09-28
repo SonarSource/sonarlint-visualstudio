@@ -828,12 +828,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get
             {
-                return this.solutionBindingInformationProvider.SolutionBound;
+                return this.solutionBindingInformationProvider.ActiveSolutionBinding.IsBound;
             }
             set
             {
-                this.solutionBindingInformationProvider.SolutionBound = value;
-                this.solutionBindingSerializer.CurrentBinding = value ? new Persistence.BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey") : null;
+                if (value)
+                {
+                    this.solutionBindingInformationProvider.ActiveSolutionBinding =
+                        new ActiveSolutionBinding(value, value ? "boundProjectKey" : null);
+
+                    this.solutionBindingSerializer.CurrentBinding =
+                        new Persistence.BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey");
+                }
+                else
+                {
+                    this.solutionBindingInformationProvider.ActiveSolutionBinding =
+                        new ActiveSolutionBinding(false, null);
+
+                    this.solutionBindingSerializer.CurrentBinding = null;
+                }
             }
         }
 

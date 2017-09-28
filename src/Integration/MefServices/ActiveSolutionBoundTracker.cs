@@ -32,9 +32,11 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IErrorListInfoBarController errorListInfoBarController;
         private readonly ISolutionBindingInformationProvider solutionBindingInformationProvider;
 
-        public event EventHandler<bool> SolutionBindingChanged;
+        public event EventHandler<ActiveSolutionBinding> SolutionBindingChanged;
 
-        public bool IsActiveSolutionBound { get; private set; }
+        public bool IsActiveSolutionBound => ActiveSolutionBinding.IsBound;
+
+        public ActiveSolutionBinding ActiveSolutionBinding { get; private set; } = new ActiveSolutionBinding();
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker)
@@ -64,8 +66,7 @@ namespace SonarLint.VisualStudio.Integration
 
             // The solution changed inside the IDE
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
-
-            this.IsActiveSolutionBound = this.solutionBindingInformationProvider.IsSolutionBound();
+            this.ActiveSolutionBinding = this.solutionBindingInformationProvider.GetActiveSolutionBinding();
         }
 
         private void OnActiveSolutionChanged(object sender, EventArgs e)
@@ -81,19 +82,12 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RaiseAnalyzersChangedIfBindingChanged()
         {
-            bool isSolutionCurrentlyBound = this.solutionBindingInformationProvider.IsSolutionBound();
-            if (this.IsActiveSolutionBound == isSolutionCurrentlyBound)
+            var newBinding = this.solutionBindingInformationProvider.GetActiveSolutionBinding();
+            if (this.ActiveSolutionBinding.IsBound != newBinding.IsBound)
             {
-                return;
+                this.ActiveSolutionBinding = newBinding;
+                this.SolutionBindingChanged?.Invoke(this, ActiveSolutionBinding);
             }
-
-            this.IsActiveSolutionBound = isSolutionCurrentlyBound;
-            this.OnAnalyzersChanged(isBound: this.IsActiveSolutionBound);
-        }
-
-        private void OnAnalyzersChanged(bool isBound)
-        {
-            this.SolutionBindingChanged?.Invoke(this, isBound);
         }
 
         #region IDisposable
