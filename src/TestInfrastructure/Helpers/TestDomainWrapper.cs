@@ -21,7 +21,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 /* Assembly resolution:
  * We want assembly resolution in the test app domain to work the same way it
@@ -79,7 +78,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CheckIsInTestDomain();
 
             TestDomainWrapper<T> resolver = AppDomain.CurrentDomain.GetData(AppDomainDataKey) as TestDomainWrapper<T>;
-            Assert.IsNotNull(resolver, "Test setup error: failed to obtain the remote domain wrapper");
+            if (resolver == null)
+            {
+                throw new Exception("Test setup error: failed to obtain the remote domain wrapper");
+            }
 
             string asmLocation = resolver.GetAssemblyLocation(args.Name);
             if (asmLocation != null)
@@ -121,12 +123,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void CheckIsInTestDomain()
         {
-            Assert.IsTrue(IsInTestDomain(), "Test setup error: should be executing in the remote test app domain");
+            if (!IsInTestDomain())
+            {
+                throw new Exception("Test setup error: should be executing in the remote test app domain");
+            }
         }
 
         private static void CheckIsNotInTestDomain()
         {
-            Assert.IsFalse(IsInTestDomain(), "Test setup error: should be executing in the main app domain");
+            if (IsInTestDomain())
+            {
+                throw new Exception("Test setup error: should be executing in the main app domain");
+            }
         }
 
         private static bool IsInTestDomain()
@@ -135,24 +143,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region IDisposable Support
-        private bool disposedValue = false;
-
-        void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    AppDomain.Unload(TestAppDomain);
-                }
-                disposedValue = true;
-            }
-        }
+        private bool isDisposed;
 
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
+            if (isDisposed)
+            {
+                return;
+            }
+
+            TestAppDomain.AssemblyResolve -= OnAssemblyResolve;
+            AppDomain.Unload(TestAppDomain);
+            isDisposed = true;
         }
         #endregion
     }

@@ -55,6 +55,19 @@ namespace SonarAnalyzer.Helpers
         private static Func<Diagnostic, bool> dummyFunction = diag => true;
 
         [TestMethod]
+        public void Injector_InvalidArguments()
+        {
+            Action op = () => new DelegateInjector(null, dummyServiceProvider);
+            op.ShouldThrow<ArgumentNullException>();
+
+            op = () => new DelegateInjector(dummyFunction, null);
+            op.ShouldThrow<ArgumentNullException>();
+
+            op = () => new DelegateInjector(null, null);
+            op.ShouldThrow<ArgumentNullException>();
+        }
+
+        [TestMethod]
         public void Injector_ValidPreLoadedAssemblies_SetsPropertyOk()
         {
             using (var wrapper = new TestDomainWrapper<DelegateInjectorTests>())
@@ -258,8 +271,9 @@ namespace SonarAnalyzer.Helpers
                     {
                         this.TestContext.WriteLine(diag.ToString());
                     }
+
+                    throw new Exception("Test setup error: failed to compile the assembly. See the output window for details");
                 }
-                result.Success.Should().BeTrue();
 
                 Assembly asm = Assembly.Load(stream.ToArray());
                 return asm;
