@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration
                 VisualStudioVersion = visualStudioVersion,
                 NumberOfDaysSinceInstallation = numberOfDaysSinceInstallation,
                 NumberOfDaysOfUse = this.telemetryRepository.Data.NumberOfDaysOfUse,
-                IsUsingConnectedMode = this.solutionBindingTracker.IsActiveSolutionBound
+                IsUsingConnectedMode = this.solutionBindingTracker.ActiveSolutionBinding.IsBound
             };
         }
 
