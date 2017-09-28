@@ -58,8 +58,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         private void SetupSuppressionHandling()
         {
             liveIssueFactory = new LiveIssueFactory(serviceProvider);
-            delegateInjector = new DelegateInjector(ShouldIssueBeSuppressed);
-            sonarqubeIssueProvider = this.serviceProvider.GetMefService<ISonarQubeIssuesProvider>();
+            delegateInjector = new DelegateInjector(ShouldIssueBeSuppressed, serviceProvider);
+            sonarqubeIssueProvider = this.serviceProvider.GetMefService<ISonarQubeIssuesProvider>(); // Cannot do new because of IHost
         }
 
         private void CleanupSuppressionHandling()
