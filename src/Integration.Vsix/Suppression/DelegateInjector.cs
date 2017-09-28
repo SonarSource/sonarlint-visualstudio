@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
@@ -44,16 +43,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     internal sealed class DelegateInjector : IDisposable
     {
         private readonly Func<Diagnostic, bool> suppressionFunction;
+        private readonly IServiceProvider serviceProvider;
 
-        public DelegateInjector(Func<Diagnostic, bool> suppressionFunction)
+        public DelegateInjector(Func<Diagnostic, bool> suppressionFunction, IServiceProvider serviceProvider)
         {
             if (suppressionFunction == null)
             {
                 throw new ArgumentNullException(nameof(suppressionFunction));
             }
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
 
             this.suppressionFunction = suppressionFunction;
-
+            this.serviceProvider = serviceProvider;
             // Inject the delegate into any Sonar analyzer assemblies that are already loaded
             foreach(Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -74,33 +78,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             // If this is a Sonar analyzer assembly, try to set the suppression delegate
             // Note: the property might not exist for down-level versions of the analyzer
             const string AssemblyName = "SonarAnalyzer";
-            const string NamespaceName = "SonarAnalyzer.Helpers";
-            const string ClassName = "SonarAnalysisContext";
-            const string PropertyName = "ShouldDiagnosticBeReported";
 
             if (asm.FullName.StartsWith(AssemblyName, StringComparison.OrdinalIgnoreCase))
             {
-                Type baseType = asm.GetTypes().SingleOrDefault<Type>(t =>
-                    t.Namespace.Equals(NamespaceName, StringComparison.Ordinal) &&
-                    t.Name.Equals(ClassName, StringComparison.Ordinal));
-
-                PropertyInfo pi = baseType?.GetProperty(PropertyName, BindingFlags.Public | BindingFlags.Static);
-                if (pi != null)
-                {
-                    SafeSetProperty(pi);
-                }
+                SafeSetProperty(asm);
             }
         }
 
-        private void SafeSetProperty(PropertyInfo propertyInfo)
+        private void SafeSetProperty(Assembly asm)
         {
+            const string FullTypeName = "SonarAnalyzer.Helpers.SonarAnalysisContext";
+            const string PropertyName = "ShouldDiagnosticBeReported";
+
             try
             {
-                propertyInfo.SetValue(null, this.suppressionFunction);
+                Type baseType = asm.GetType(FullTypeName, throwOnError: false);
+
+                PropertyInfo pi = baseType?.GetProperty(PropertyName, BindingFlags.Public | BindingFlags.Static);
+
+                pi?.SetValue(null, this.suppressionFunction);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 // Suppress failures - we don't want the analyzers to fail
+                VsShellUtils.WriteToSonarLintOutputPane(serviceProvider,
+                    $@"Unable to set the analyzer suppression handler for {asm.FullName}.
+SonarQube issues that have been suppressed in SonarQube may still be reported in the IDE.
+    Assembly location: {asm.Location}
+    Error: {e.Message}");
             }
         }
 

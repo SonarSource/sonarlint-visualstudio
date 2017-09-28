@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Integration.Suppression;
@@ -59,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         private void SetupSuppressionHandling()
         {
             liveIssueFactory = new LiveIssueFactory(serviceProvider);
-            delegateInjector = new DelegateInjector(ShouldIssueBeSuppressed);
+            delegateInjector = new DelegateInjector(ShouldIssueBeSuppressed, serviceProvider);
             serverIssueProvider = new ServerIssuesProvider(serviceProvider);
         }
 
