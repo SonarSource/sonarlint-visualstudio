@@ -86,19 +86,15 @@ namespace SonarLint.VisualStudio.Integration
         {
             bool isSolutionCurrentlyBound = this.solutionBindingInformationProvider.IsSolutionBound();
             string projectKey = this.solutionBindingInformationProvider.GetProjectKey();
+
             if (this.IsActiveSolutionBound != isSolutionCurrentlyBound ||
                 this.ProjectKey != projectKey)
             {
                 this.IsActiveSolutionBound = isSolutionCurrentlyBound;
                 this.ProjectKey = projectKey;
-                this.OnAnalyzersChanged();
-            }
-        }
 
-        private void OnAnalyzersChanged()
-        {
-            this.SolutionBindingChanged?.Invoke(this,
-                new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, ProjectKey));
+                this.SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, ProjectKey));
+            }
         }
 
         #region IDisposable
