@@ -30,10 +30,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
-/* Note: these tests load dummy assemblies into the current AppDomain.
- * This *shouldn't* cause any side-effects that impact other tests; if
- * it does, then these tests will need to be modified execute in a separate
- * AppDomain.
+/* Note: these tests load dummy assemblies so each test is run in a
+ * separate AppDomain to ensure there are no side-effects on other tests.
  */
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
