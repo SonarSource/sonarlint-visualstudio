@@ -20,20 +20,22 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration
 {
-    public class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
+    public class ActiveSolutionBinding
     {
-        public ActiveSolutionBinding ActiveSolutionBinding =>
-           new ActiveSolutionBinding(IsActiveSolutionBound, null);
-
-        public bool IsActiveSolutionBound { get; set; }
-
-        public event EventHandler<ActiveSolutionBinding> SolutionBindingChanged;
-
-        public void SimulateSolutionBindingChanged(ActiveSolutionBinding binding)
+        public ActiveSolutionBinding()
         {
-            SolutionBindingChanged(this, binding);
         }
+
+        public ActiveSolutionBinding(bool isBound, string projectKey)
+        {
+            IsBound = isBound;
+            ProjectKey = projectKey;
+        }
+
+        public bool IsBound { get; set; }
+
+        public string ProjectKey { get; set; }
     }
 }

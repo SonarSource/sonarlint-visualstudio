@@ -48,6 +48,18 @@ namespace SonarLint.VisualStudio.Integration
             return this.GetSolutionBinding() != null;
         }
 
+        public ActiveSolutionBinding GetActiveSolutionBinding()
+        {
+            var solutionBinding = GetSolutionBinding();
+
+            return new ActiveSolutionBinding
+            {
+                IsBound = solutionBinding != null,
+                ProjectKey = solutionBinding?.ProjectKey
+            };
+        }
+
+
         public IEnumerable<Project> GetBoundProjects()
         {
             return this.GetBoundProjects(this.GetSolutionBinding());
