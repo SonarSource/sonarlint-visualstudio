@@ -20,7 +20,11 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Net.Http;
+using System.Threading;
+using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
@@ -36,6 +40,23 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         public MefSonarQubeService()
             : base(new SonarQubeClient(new HttpClientHandler(), TimeSpan.FromSeconds(100)))
         {
+            // TODO: Remove the following code which only purpose is to enable a quick testing while deciding of the direction
+            // to take regarding ensuring the connection is restored on load.
+            var sqConnection = Environment.GetEnvironmentVariable("SQ_CONNECTION");
+            Debug.Assert(sqConnection != null,  "Please set up the 'SQ_CONNECTION' environment variable.");
+            if (sqConnection == null)
+            {
+                return;
+            }
+
+            var split = sqConnection.Split(';');
+            Debug.Assert(split.Length == 2 || split.Length == 3, $"Invalid connection information: {sqConnection}.");
+
+            var connection = new ConnectionInformation(
+                serverUri: new Uri(split[0]),
+                userName: split[1],
+                password: split.Length == 3 ? split[2].ToSecureString() : null);
+            ConnectAsync(connection, CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }
