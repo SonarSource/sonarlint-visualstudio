@@ -97,12 +97,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
             return new[]
             {
                 new ProgressStepDefinition(connectStepDisplayText, StepAttributes.Indeterminate | StepAttributes.BackgroundThread,
-                    async (cancellationToken, notifications) =>
-                        await this.ConnectionStepAsync(connection, controller, notifications, cancellationToken)),
+                    (cancellationToken, notifications) =>
+                    this.ConnectionStepAsync(connection, controller, notifications, cancellationToken).GetAwaiter().GetResult()),
 
                 new ProgressStepDefinition(connectStepDisplayText, StepAttributes.BackgroundThread,
-                    async (token, notifications) =>
-                        await this.DownloadServiceParametersAsync(controller, notifications, token)),
+                    (token, notifications) =>
+                    this.DownloadServiceParametersAsync(controller, notifications, token).GetAwaiter().GetResult()),
 
                 };
         }
