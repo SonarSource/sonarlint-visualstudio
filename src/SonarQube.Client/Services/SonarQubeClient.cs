@@ -42,11 +42,14 @@ namespace SonarQube.Client.Services
 
         public SonarQubeClient(ConnectionRequest connection, HttpMessageHandler messageHandler, TimeSpan requestTimeout)
         {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
             if (messageHandler == null)
             {
                 throw new ArgumentNullException(nameof(messageHandler));
             }
-
             if (requestTimeout <= TimeSpan.Zero)
             {
                 throw new ArgumentException("Doesn't expect a zero or negative timeout.", nameof(requestTimeout));
@@ -72,12 +75,12 @@ namespace SonarQube.Client.Services
         }
 
         public Task<Result<ComponentResponse[]>> GetComponentsSearchProjectsAsync(ComponentRequest request,
-                    CancellationToken token)
+            CancellationToken token)
         {
             const string SearchProjectsAPI = "api/components/search_projects"; // Since 6.2; internal
 
             var query = AppendQueryString(SearchProjectsAPI, "?organization={0}&p={1}&ps={2}&asc=true",
-                        request.OrganizationKey, request.Page, request.PageSize); // TODO: should handle optional params
+                request.OrganizationKey, request.Page, request.PageSize); // TODO: should handle optional params
 
             return InvokeSonarQubeApi(query, token,
                 stringResponse => JObject.Parse(stringResponse)["components"].ToObject<ComponentResponse[]>());

@@ -32,11 +32,14 @@ namespace SonarQube.Client.Services
     public class SonarQubeService : ISonarQubeService
     {
         internal const int MaximumPageSize = 500;
-        internal readonly Version OrganizationsFeatureMinimalVersion = new Version(6, 2);
+        internal static readonly Version OrganizationsFeatureMinimalVersion = new Version(6, 2);
+
         private readonly ISonarQubeClientFactory sonarqubeClientFactory;
+
         private ConnectionInformation connection;
         private Version serverVersion;
         private ISonarQubeClient sonarqubeClient;
+
         public SonarQubeService(ISonarQubeClientFactory sonarqubeClientFactory)
         {
             if (sonarqubeClientFactory == null)
@@ -84,17 +87,18 @@ namespace SonarQube.Client.Services
                 throw new Exception("Invalid credentials."); // TODO: Provide better exception
             }
 
-            this.sonarqubeClient = client;
-            this.connection = connection;
-
             var versionResult = await client.GetVersionAsync(token);
             versionResult.EnsureSuccess();
 
             this.serverVersion = Version.Parse(versionResult.Value.Version);
+
+            this.sonarqubeClient = client;
+            this.connection = connection;
         }
 
         public void Disconnect()
         {
+            (this.sonarqubeClient as IDisposable)?.Dispose();
             this.sonarqubeClient = null;
             this.serverVersion = null;
         }

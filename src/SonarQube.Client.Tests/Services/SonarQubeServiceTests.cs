@@ -40,11 +40,13 @@ namespace SonarQube.Client.Services.Tests
         {
             // Arrange
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(new HttpResponseMessage(), new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(new HttpResponseMessage(), new VersionResponse { Version = "5.6" }));
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -59,14 +61,8 @@ namespace SonarQube.Client.Services.Tests
         [TestMethod]
         public void Ctor_DefaultValues()
         {
-            // Arrange
-            var client = new Mock<ISonarQubeClient>();
-
-            // Act
-            var service = new SonarQubeService(client.Object);
-
-            // Assert
-            service.OrganizationsFeatureMinimalVersion.Should().Be(new Version(6, 2));
+            // Act &  Assert
+            SonarQubeService.OrganizationsFeatureMinimalVersion.Should().Be(new Version(6, 2));
         }
 
         [TestMethod]
@@ -78,17 +74,20 @@ namespace SonarQube.Client.Services.Tests
             // Assert
             action.ShouldThrow<ArgumentNullException>();
         }
+
         [TestMethod]
         public async Task EnsureIsConnected_WhenConnected_ShouldDoNothing()
         {
             // Arrange
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = "1.0.0.0" }));
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -104,7 +103,9 @@ namespace SonarQube.Client.Services.Tests
         {
             // Arrange
             var client = new Mock<ISonarQubeClient>();
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
 
             // Act
             Action action = () => service.EnsureIsConnected();
@@ -119,14 +120,16 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = "5.6" }));
-            client.Setup(x => x.GetPluginsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetPluginsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<PluginResponse[]>(successResponse,
                     new[] { new PluginResponse { Key = "key", Version = "version" } }));
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -146,14 +149,16 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = "5.6" }));
-            client.Setup(x => x.GetPropertiesAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetPropertiesAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<PropertyResponse[]>(successResponse,
                     new[] { new PropertyResponse { Key = "key", Value = "value" } }));
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -173,11 +178,13 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = "5.6" }));
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -196,14 +203,16 @@ namespace SonarQube.Client.Services.Tests
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var roslynExport = new RoslynExportProfileResponse();
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = "5.6" }));
-            client.Setup(x => x.GetRoslynExportProfileAsync(It.IsAny<ConnectionRequest>(), It.IsAny<RoslynExportProfileRequest>(),
+            client.Setup(x => x.GetRoslynExportProfileAsync(It.IsAny<RoslynExportProfileRequest>(),
                 It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<RoslynExportProfileResponse>(successResponse, roslynExport));
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -235,11 +244,13 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = version }));
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -256,11 +267,11 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = "5.6" }));
-            client.Setup(x => x.GetOrganizationsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<OrganizationRequest>(),
+            client.Setup(x => x.GetOrganizationsAsync(It.IsAny<OrganizationRequest>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(
                     new Queue<Result<OrganizationResponse[]>>(
@@ -271,7 +282,9 @@ namespace SonarQube.Client.Services.Tests
                             new Result<OrganizationResponse[]>(successResponse, new OrganizationResponse[0])
                         }
                     ).Dequeue);
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -291,14 +304,16 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = "5.6" }));
-            client.Setup(x => x.GetProjectsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetProjectsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<ProjectResponse[]>(successResponse,
                     new[] { new ProjectResponse { Key = "key", Name = "name" } }));
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -318,11 +333,11 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<ConnectionRequest>(), It.IsAny<CancellationToken>()))
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = "5.6" }));
-            client.Setup(x => x.GetComponentsSearchProjectsAsync(It.IsAny<ConnectionRequest>(), It.IsAny<ComponentRequest>(),
+            client.Setup(x => x.GetComponentsSearchProjectsAsync(It.IsAny<ComponentRequest>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(
                     new Queue<Result<ComponentResponse[]>>(
@@ -332,7 +347,9 @@ namespace SonarQube.Client.Services.Tests
                             new Result<ComponentResponse[]>(successResponse, new ComponentResponse[0])
                         }
                     ).Dequeue);
-            var service = new SonarQubeService(client.Object);
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
@@ -344,6 +361,38 @@ namespace SonarQube.Client.Services.Tests
             result.Should().HaveCount(1);
             result[0].Key.Should().Be("key");
             result[0].Name.Should().Be("name");
+        }
+
+        [TestMethod]
+        public async Task GetSuppressedIssuesAsync_ReturnsExpectedResults()
+        {
+            var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
+            var client = new Mock<ISonarQubeClient>();
+            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new Result<CredentialResponse>(successResponse, new CredentialResponse { IsValid = true }));
+            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new Result<VersionResponse>(successResponse, new VersionResponse { Version = "5.6" }));
+            client.Setup(x => x.GetIssuesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new Result<ServerIssue[]>(successResponse,
+                    new[]
+                    {
+                        new ServerIssue { Resolution = "WONTFIX" },
+                        new ServerIssue { Resolution = "FALSE-POSITIVE" },
+                        new ServerIssue { Resolution = "OPEN" }
+                    }));
+            var clientFactory = new Mock<ISonarQubeClientFactory>();
+            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
+            var service = new SonarQubeService(clientFactory.Object);
+            await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
+
+            // Act
+            var result = await service.GetSuppressedIssuesAsync("key", CancellationToken.None);
+
+            // Assert
+            client.VerifyAll();
+            result.Should().HaveCount(2);
+            result[0].ResolutionState.Should().Be(SonarQubeIssueResolutionState.WontFix);
+            result[1].ResolutionState.Should().Be(SonarQubeIssueResolutionState.FalsePositive);
         }
     }
 }
