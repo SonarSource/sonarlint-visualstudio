@@ -29,47 +29,44 @@ namespace SonarQube.Client.Services
         /// <summary>
         ///     Retrieves all components from the given SonarQube server.
         /// </summary>
-        Task<Result<ComponentResponse[]>> GetComponentsSearchProjectsAsync(ConnectionRequest connection,
-            ComponentRequest request, CancellationToken token);
+        Task<Result<ComponentResponse[]>> GetComponentsSearchProjectsAsync(ComponentRequest request, CancellationToken token);
 
         /// <summary>
         ///     Retrieves all issues for the given project, module or file key.
         /// </summary>
-        Task<Result<ServerIssue[]>> GetIssuesAsync(ConnectionRequest connection, string key, CancellationToken token);
+        Task<Result<ServerIssue[]>> GetIssuesAsync(string key, CancellationToken token);
 
         /// <summary>
         ///     Retrieves all organizations from the given SonarQube server.
         /// </summary>
-        Task<Result<OrganizationResponse[]>> GetOrganizationsAsync(ConnectionRequest connection,
-            OrganizationRequest request, CancellationToken token);
+        Task<Result<OrganizationResponse[]>> GetOrganizationsAsync(OrganizationRequest request, CancellationToken token);
 
         /// <summary>
         ///     Retrieves all plugins installed on the given SonarQube server.
         /// </summary>
         /// <returns></returns>
-        Task<Result<PluginResponse[]>> GetPluginsAsync(ConnectionRequest connection, CancellationToken token);
+        Task<Result<PluginResponse[]>> GetPluginsAsync(CancellationToken token);
 
         /// <summary>
         ///     Retrieves all the projects from the given SonarQube server.
         /// </summary>
-        Task<Result<ProjectResponse[]>> GetProjectsAsync(ConnectionRequest connection, CancellationToken token);
+        Task<Result<ProjectResponse[]>> GetProjectsAsync(CancellationToken token);
 
         /// <summary>
         ///     Retrieves all the properties for the given SonarQube server.
         /// </summary>
-        Task<Result<PropertyResponse[]>> GetPropertiesAsync(ConnectionRequest connection, CancellationToken token);
+        Task<Result<PropertyResponse[]>> GetPropertiesAsync(CancellationToken token);
 
         /// <summary>
         ///     Retrieves the change log for the given quality profile.
         /// </summary>
-        Task<Result<QualityProfileChangeLogResponse>> GetQualityProfileChangeLogAsync(ConnectionRequest connection,
-            QualityProfileChangeLogRequest request, CancellationToken token);
+        Task<Result<QualityProfileChangeLogResponse>> GetQualityProfileChangeLogAsync(QualityProfileChangeLogRequest request,
+            CancellationToken token);
 
         /// <summary>
         ///     Retrieves the quality profile for the specified project and language.
         /// </summary>
-        Task<Result<QualityProfileResponse[]>> GetQualityProfilesAsync(ConnectionRequest connection,
-           QualityProfileRequest request, CancellationToken token);
+        Task<Result<QualityProfileResponse[]>> GetQualityProfilesAsync(QualityProfileRequest request, CancellationToken token);
 
         /// <summary>
         ///     Retrieves the server's Roslyn Quality Profile export for the specified profile and language
@@ -79,17 +76,17 @@ namespace SonarQube.Client.Services
         ///     analysis, including: the Code Analysis rule set, analyzer NuGet packages, and any other additional
         ///     files for the analyzers.
         /// </remarks>
-        Task<Result<RoslynExportProfileResponse>> GetRoslynExportProfileAsync(ConnectionRequest connection,
-            RoslynExportProfileRequest request, CancellationToken token);
+        Task<Result<RoslynExportProfileResponse>> GetRoslynExportProfileAsync(RoslynExportProfileRequest request,
+            CancellationToken token);
 
         /// <summary>
         ///     Retrieves the version of the given SonarQube server.
         /// </summary>
-        Task<Result<VersionResponse>> GetVersionAsync(ConnectionRequest connection, CancellationToken token);
+        Task<Result<VersionResponse>> GetVersionAsync(CancellationToken token);
 
         /// <summary>
         ///     Validates the given credentials on the given SonarQube server.
         /// </summary>
-        Task<Result<CredentialResponse>> ValidateCredentialsAsync(ConnectionRequest connection, CancellationToken token);
+        Task<Result<CredentialResponse>> ValidateCredentialsAsync(CancellationToken token);
     }
 }

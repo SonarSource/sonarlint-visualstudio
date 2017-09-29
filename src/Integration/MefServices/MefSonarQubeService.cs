@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Net.Http;
@@ -38,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     public class MefSonarQubeService : SonarQubeService
     {
         public MefSonarQubeService()
-            : base(new SonarQubeClient(new HttpClientHandler(), TimeSpan.FromSeconds(100)))
+            : base(new SonarQubeClientFactory())
         {
             // TODO: Remove the following code which only purpose is to enable a quick testing while deciding of the direction
             // to take regarding ensuring the connection is restored on load.
