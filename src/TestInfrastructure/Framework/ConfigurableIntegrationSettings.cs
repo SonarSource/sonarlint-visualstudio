@@ -20,12 +20,14 @@
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableIntegrationSettings : IIntegrationSettings
+    public class ConfigurableSonarLintSettings : ISonarLintSettings
     {
-        #region IIntegrationSettings
+        public DaemonLogLevel DaemonLogLevel { get; set; }
+
+        public bool IsActivateMoreEnabled { get; set; }
 
         public bool ShowServerNuGetTrustWarning { get; set; }
 
-        #endregion IIntegrationSettings
+        public bool SkipActivateMoreDialog { get; set; }
     }
 }

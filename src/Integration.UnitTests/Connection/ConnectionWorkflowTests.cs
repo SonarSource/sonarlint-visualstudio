@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableServiceProvider serviceProvider;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private ConfigurableHost host;
-        private ConfigurableIntegrationSettings settings;
+        private ConfigurableSonarLintSettings settings;
         private ConfigurableProjectSystemFilter filter;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
@@ -68,9 +68,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                     new SonarQubePlugin(MinimumSupportedSonarQubePlugin.CSharp.Key, MinimumSupportedSonarQubePlugin.CSharp.MinimumVersion),
                     new SonarQubePlugin(MinimumSupportedSonarQubePlugin.VbNet.Key, MinimumSupportedSonarQubePlugin.VbNet.MinimumVersion)
                 });
-            this.settings = new ConfigurableIntegrationSettings();
+            this.settings = new ConfigurableSonarLintSettings();
 
-            var mefExports = MefTestHelpers.CreateExport<IIntegrationSettings>(settings);
+            var mefExports = MefTestHelpers.CreateExport<ISonarLintSettings>(settings);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 

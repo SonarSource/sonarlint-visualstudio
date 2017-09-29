@@ -37,10 +37,20 @@ namespace SonarQube.Client.Services.Tests
     {
         #region Ctor checks
         [TestMethod]
+        public void Ctor_WithNullConnection_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action action = () => new SonarQubeClient(null, new HttpClientHandler(), TimeSpan.MaxValue);
+
+            // Assert
+            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("connection");
+        }
+
+        [TestMethod]
         public void Ctor_WithNullMessageHandler_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action action = () => new SonarQubeClient(null, TimeSpan.MaxValue);
+            Action action = () => new SonarQubeClient(new ConnectionRequest(), null, TimeSpan.MaxValue);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageHandler");
@@ -50,7 +60,7 @@ namespace SonarQube.Client.Services.Tests
         public void Ctor_WithZeroTimeout_ThrowsArgumentException()
         {
             // Arrange & Act
-            Action action = () => new SonarQubeClient(new HttpClientHandler(), TimeSpan.Zero);
+            Action action = () => new SonarQubeClient(new ConnectionRequest(), new HttpClientHandler(), TimeSpan.Zero);
 
             // Assert
             action.ShouldThrow<ArgumentException>()
@@ -62,7 +72,7 @@ namespace SonarQube.Client.Services.Tests
         public void Ctor_WithNegativeTimeout_ThrowsArgumentException()
         {
             // Arrange & Act
-            Action action = () => new SonarQubeClient(new HttpClientHandler(), TimeSpan.MinValue);
+            Action action = () => new SonarQubeClient(new ConnectionRequest(), new HttpClientHandler(), TimeSpan.MinValue);
 
             // Assert
             action.ShouldThrow<ArgumentException>()
@@ -78,56 +88,56 @@ namespace SonarQube.Client.Services.Tests
             var request = new ComponentRequest { OrganizationKey = "org", Page = 42, PageSize = 25 };
             await Method_CallsTheExpectedUri(
                 new Uri("api/components/search_projects?organization=org&p=42&ps=25&asc=true", UriKind.RelativeOrAbsolute),
-                @"{""components"":[]}", (c, co, t) => c.GetComponentsSearchProjectsAsync(co, request, t));
+                @"{""components"":[]}", (c, t) => c.GetComponentsSearchProjectsAsync(request, t));
         }
         [TestMethod]
         public async Task GetIssuesAsync_CallsTheExpectedUri()
         {
             await Method_CallsTheExpectedUri(
-                new Uri("batch/issues?key=key", UriKind.RelativeOrAbsolute), "", (c, co, t) => c.GetIssuesAsync(co, "key", t));
+                new Uri("batch/issues?key=key", UriKind.RelativeOrAbsolute), "", (c, t) => c.GetIssuesAsync("key", t));
         }
         [TestMethod]
         public async Task GetOrganizationsAsync_CallsTheExpectedUri()
         {
             var request = new OrganizationRequest { Page = 42, PageSize = 25 };
             await Method_CallsTheExpectedUri(new Uri("api/organizations/search?p=42&ps=25", UriKind.RelativeOrAbsolute),
-                @"{""organizations"":[]}", (c, co, t) => c.GetOrganizationsAsync(co, request, t));
+                @"{""organizations"":[]}", (c, t) => c.GetOrganizationsAsync(request, t));
         }
         [TestMethod]
         public async Task GetPluginsAsync_CallsTheExpectedUri()
         {
             await Method_CallsTheExpectedUri(new Uri("api/updatecenter/installed_plugins", UriKind.RelativeOrAbsolute),
-                "", (c, co, t) => c.GetPluginsAsync(co, t));
+                "", (c, t) => c.GetPluginsAsync(t));
         }
         [TestMethod]
         public async Task GetProjectsAsync_CallsTheExpectedUri()
         {
             await Method_CallsTheExpectedUri(new Uri("api/projects/index", UriKind.RelativeOrAbsolute),
-                "", (c, co, t) => c.GetProjectsAsync(co, t));
+                "", (c, t) => c.GetProjectsAsync(t));
         }
         [TestMethod]
         public async Task GetPropertiesAsync_CallsTheExpectedUri()
         {
             await Method_CallsTheExpectedUri(new Uri("api/properties/", UriKind.RelativeOrAbsolute),
-                "", (c, co, t) => c.GetPropertiesAsync(co, t));
+                "", (c, t) => c.GetPropertiesAsync(t));
         }
         [TestMethod]
         public async Task GetQualityProfileChangeLogAsync_CallsTheExpectedUri()
         {
             var request = new QualityProfileChangeLogRequest { QualityProfileKey = "qp", PageSize = 25 };
             await Method_CallsTheExpectedUri(new Uri("api/qualityprofiles/changelog?profileKey=qp&ps=25", UriKind.RelativeOrAbsolute),
-                "", (c, co, t) => c.GetQualityProfileChangeLogAsync(co, request, t));
+                "", (c, t) => c.GetQualityProfileChangeLogAsync(request, t));
         }
         [TestMethod]
         public async Task GetQualityProfilesAsync_CallsTheExpectedUri()
         {
             var request = new QualityProfileRequest { ProjectKey = "project" };
             await Method_CallsTheExpectedUri(new Uri("api/qualityprofiles/search?projectKey=project", UriKind.RelativeOrAbsolute),
-                @"{""profiles"":[]}", (c, co, t) => c.GetQualityProfilesAsync(co, request, t));
+                @"{""profiles"":[]}", (c, t) => c.GetQualityProfilesAsync(request, t));
 
             request = new QualityProfileRequest { ProjectKey = null };
             await Method_CallsTheExpectedUri(new Uri("api/qualityprofiles/search?defaults=true", UriKind.RelativeOrAbsolute),
-                @"{""profiles"":[]}", (c, co, t) => c.GetQualityProfilesAsync(co, request, t));
+                @"{""profiles"":[]}", (c, t) => c.GetQualityProfilesAsync(request, t));
         }
         [TestMethod]
         public async Task GetRoslynExportProfileAsync_CallsTheExpectedUri()
@@ -137,36 +147,36 @@ namespace SonarQube.Client.Services.Tests
                 new Uri("api/qualityprofiles/export?name=qp&language=cs&exporterKey=roslyn-cs", UriKind.RelativeOrAbsolute),
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
-</RoslynExportProfile>", (c, co, t) => c.GetRoslynExportProfileAsync(co, request, t));
+</RoslynExportProfile>", (c, t) => c.GetRoslynExportProfileAsync(request, t));
 
             request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "vbnet" };
             await Method_CallsTheExpectedUri(
                 new Uri("api/qualityprofiles/export?name=qp&language=vbnet&exporterKey=roslyn-vbnet", UriKind.RelativeOrAbsolute),
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
-</RoslynExportProfile>", (c, co, t) => c.GetRoslynExportProfileAsync(co, request, t));
+</RoslynExportProfile>", (c, t) => c.GetRoslynExportProfileAsync(request, t));
         }
         [TestMethod]
         public async Task GetVersionAsync_CallsTheExpectedUri()
         {
             await Method_CallsTheExpectedUri(new Uri("api/server/version", UriKind.RelativeOrAbsolute),
-                "", (c, co, t) => c.GetVersionAsync(co, t));
+                "", (c, t) => c.GetVersionAsync(t));
         }
         [TestMethod]
         public async Task ValidateCredentialsAsync_CallsTheExpectedUri()
         {
             await Method_CallsTheExpectedUri(new Uri("api/authentication/validate", UriKind.RelativeOrAbsolute),
-                @"{""valid"": true}", (c, co, t) => c.ValidateCredentialsAsync(co, t));
+                @"{""valid"": true}", (c, t) => c.ValidateCredentialsAsync(t));
         }
 
         private async Task Method_CallsTheExpectedUri<T>(Uri expectedRelativeUri, string resultContent,
-            Func<SonarQubeClient, ConnectionRequest, CancellationToken, Task<Result<T>>> call)
+            Func<SonarQubeClient, CancellationToken, Task<Result<T>>> call)
         {
             // Arrange
             var httpHandler = new Mock<HttpMessageHandler>();
-            var client = new SonarQubeClient(httpHandler.Object, TimeSpan.FromSeconds(10));
             var serverUri = new Uri("http://mysq.com/");
             var connection = new ConnectionRequest { ServerUri = serverUri };
+            var client = new SonarQubeClient(connection, httpHandler.Object, TimeSpan.FromSeconds(10));
 
             httpHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
@@ -183,7 +193,7 @@ namespace SonarQube.Client.Services.Tests
                 });
 
             // Act
-            await call(client, connection, CancellationToken.None);
+            await call(client, CancellationToken.None);
         }
         #endregion
 
@@ -193,7 +203,7 @@ namespace SonarQube.Client.Services.Tests
         {
             var request = new ComponentRequest { OrganizationKey = "org", Page = 42, PageSize = 25 };
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetComponentsSearchProjectsAsync(co, request, t),
+                (c, t) => c.GetComponentsSearchProjectsAsync(request, t),
                 @"{""components"":[{""organization"":""my - org - key - 1"",""id"":""AU - Tpxb--iU5OvuD2FLy"",""key"":""my_project"",""name"":""My Project 1"",""isFavorite"":true,""tags"":[""finance"",""java""],""visibility"":""public""},{""organization"":""my-org-key-1"",""id"":""AU-TpxcA-iU5OvuD2FLz"",""key"":""another_project"",""name"":""My Project 2"",""isFavorite"":false,""tags"":[],""visibility"":""public""}]}",
                 result => result.Length.Should().Be(2));
         }
@@ -201,7 +211,7 @@ namespace SonarQube.Client.Services.Tests
         public async Task GetIssuesAsync_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData()
         {
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetIssuesAsync(co, "key", t),
+                (c, t) => c.GetIssuesAsync("key", t),
                 new StreamReader(@"TestResources\IssuesProtobufResponse").ReadToEnd(),
                 result => result.Length.Should().Be(1));
         }
@@ -210,7 +220,7 @@ namespace SonarQube.Client.Services.Tests
         {
             var request = new OrganizationRequest { Page = 42, PageSize = 25 };
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetOrganizationsAsync(co, request, t),
+                (c, t) => c.GetOrganizationsAsync(request, t),
                 @"{""organizations"":[{""key"":""foo - company"",""name"":""Foo Company""},{""key"":""bar - company"",""name"":""Bar Company""}]}",
                 result => result.Length.Should().Be(2));
         }
@@ -218,7 +228,7 @@ namespace SonarQube.Client.Services.Tests
         public async Task GetPluginsAsync_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData()
         {
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetPluginsAsync(co, t),
+                (c, t) => c.GetPluginsAsync(t),
                 @"[{""key"":""findbugs"",""name"":""Findbugs"",""version"":""2.1""},{""key"":""l10nfr"",""name"":""French Pack"",""version"":""1.10""},{""key"":""jira"",""name"":""JIRA"",""version"":""1.2""}]",
                 result => result.Length.Should().Be(3));
         }
@@ -226,7 +236,7 @@ namespace SonarQube.Client.Services.Tests
         public async Task GetProjectsAsync_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData()
         {
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetProjectsAsync(co, t),
+                (c, t) => c.GetProjectsAsync(t),
                 @"[{""id"":""5035"",""k"":""org.jenkins-ci.plugins:sonar"",""nm"":""Jenkins Sonar Plugin"",""sc"":""PRJ"",""qu"":""TRK""},{""id"":""5146"",""k"":""org.codehaus.sonar-plugins:sonar-ant-task"",""nm"":""Sonar Ant Task"",""sc"":""PRJ"",""qu"":""TRK""},{""id"":""15964"",""k"":""org.codehaus.sonar-plugins:sonar-build-breaker-plugin"",""nm"":""Sonar Build Breaker Plugin"",""sc"":""PRJ"",""qu"":""TRK""}]",
                 result => result.Length.Should().Be(3));
         }
@@ -234,7 +244,7 @@ namespace SonarQube.Client.Services.Tests
         public async Task GetPropertiesAsync_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData()
         {
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetPropertiesAsync(co, t),
+                (c, t) => c.GetPropertiesAsync(t),
                 @"[{""key"":""sonar.demo.1.text"",""value"":""foo""},{""key"":""sonar.demo.1.boolean"",""value"":""true""},{""key"":""sonar.demo.2.text"",""value"":""bar""}]",
                 result => result.Length.Should().Be(3));
         }
@@ -243,7 +253,7 @@ namespace SonarQube.Client.Services.Tests
         {
             var request = new QualityProfileChangeLogRequest { QualityProfileKey = "qp", PageSize = 25 };
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetQualityProfileChangeLogAsync(co, request, t),
+                (c, t) => c.GetQualityProfileChangeLogAsync(request, t),
                 @"{""events"":[{""date"":""2015-02-23T17:58:39+0100"",""action"":""ACTIVATED"",""authorLogin"":""anakin.skywalker"",""authorName"":""Anakin Skywalker"",""ruleKey"":""squid:S2438"",""ruleName"":""\""Threads\"" should not be used where \""Runnables\"" are expected"",""params"":{""severity"":""CRITICAL""}}]}",
                 result => result.Events.Length.Should().Be(1));
         }
@@ -252,7 +262,7 @@ namespace SonarQube.Client.Services.Tests
         {
             var request = new QualityProfileRequest { ProjectKey = "project" };
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetQualityProfilesAsync(co, request, t),
+                (c, t) => c.GetQualityProfilesAsync(request, t),
                 @"{""profiles"":[{""key"":""AU-TpxcA-iU5OvuD2FL3"",""name"":""Sonar way"",""language"":""cs"",""languageName"":""C#"",""isInherited"":false,""activeRuleCount"":37,""activeDeprecatedRuleCount"":0,""isDefault"":true,""ruleUpdatedAt"":""2016-12-22T19:10:03+0100"",""lastUsed"":""2016-12-01T19:10:03+0100""}]}",
                 result => result.Length.Should().Be(1));
         }
@@ -261,7 +271,7 @@ namespace SonarQube.Client.Services.Tests
         {
             var request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "cs" };
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetRoslynExportProfileAsync(co, request, t),
+                (c, t) => c.GetRoslynExportProfileAsync(request, t),
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
   <Configuration>
@@ -289,7 +299,7 @@ namespace SonarQube.Client.Services.Tests
         public async Task GetVersionAsync_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData()
         {
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.GetVersionAsync(co, t),
+                (c, t) => c.GetVersionAsync(t),
                 "6.3.0.1234",
                 result => result.Version.Should().Be("6.3.0.1234"));
         }
@@ -297,14 +307,13 @@ namespace SonarQube.Client.Services.Tests
         public async Task ValidateCredentialsAsync_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData()
         {
             await Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData(
-                (c, co, t) => c.ValidateCredentialsAsync(co, t),
+                (c, t) => c.ValidateCredentialsAsync(t),
                 "{\"valid\": true}",
                 value => value.IsValid.Should().BeTrue());
         }
 
         private async Task Method_WhenRequestIsSuccesful_ReturnsIsSuccessAndNotNullData<T>(
-            Func<SonarQubeClient, ConnectionRequest, CancellationToken, Task<Result<T>>> call, string resultContent,
-            Action<T> extraAssertions)
+            Func<SonarQubeClient, CancellationToken, Task<Result<T>>> call, string resultContent, Action<T> extraAssertions)
         {
             // Arrange
             var httpHandler = new Mock<HttpMessageHandler>();
@@ -316,11 +325,11 @@ namespace SonarQube.Client.Services.Tests
                     StatusCode = HttpStatusCode.OK,
                     Content = new StringContent(resultContent)
                 }));
-            var client = new SonarQubeClient(httpHandler.Object, TimeSpan.FromSeconds(10));
             var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
+            var client = new SonarQubeClient(connection, httpHandler.Object, TimeSpan.FromSeconds(10));
 
             // Act & Assert
-            var result = await call(client, connection, CancellationToken.None);
+            var result = await call(client, CancellationToken.None);
 
             // Assert
             result.IsSuccess.Should().BeTrue();
@@ -335,65 +344,65 @@ namespace SonarQube.Client.Services.Tests
         public void GetComponentsSearchProjectsAsync_WhenCancellationRequested_ThrowsException()
         {
             var request = new ComponentRequest { OrganizationKey = "org", Page = 42, PageSize = 25 };
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetComponentsSearchProjectsAsync(co, request, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetComponentsSearchProjectsAsync(request, t));
         }
         [TestMethod]
         public void GetIssuesAsync_WhenCancellationRequested_ThrowsException()
         {
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetIssuesAsync(co, "key", t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetIssuesAsync("key", t));
         }
         [TestMethod]
         public void GetOrganizationsAsync_WhenCancellationRequested_ThrowsException()
         {
             var request = new OrganizationRequest { Page = 42, PageSize = 25 };
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetOrganizationsAsync(co, request, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetOrganizationsAsync(request, t));
         }
         [TestMethod]
         public void GetPluginsAsync_WhenCancellationRequested_ThrowsException()
         {
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetPluginsAsync(co, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetPluginsAsync(t));
         }
         [TestMethod]
         public void GetProjectsAsync_WhenCancellationRequested_ThrowsException()
         {
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetProjectsAsync(co, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetProjectsAsync(t));
         }
         [TestMethod]
         public void GetPropertiesAsync_WhenCancellationRequested_ThrowsException()
         {
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetPropertiesAsync(co, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetPropertiesAsync(t));
         }
         [TestMethod]
         public void GetQualityProfileChangeLogAsync_WhenCancellationRequested_ThrowsException()
         {
             var request = new QualityProfileChangeLogRequest { QualityProfileKey = "qp", PageSize = 25 };
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetQualityProfileChangeLogAsync(co, request, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetQualityProfileChangeLogAsync(request, t));
         }
         [TestMethod]
         public void GetQualityProfilesAsync_WhenCancellationRequested_ThrowsException()
         {
             var request = new QualityProfileRequest { ProjectKey = "project" };
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetQualityProfilesAsync(co, request, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetQualityProfilesAsync(request, t));
         }
         [TestMethod]
         public void GetRoslynExportProfileAsync_WhenCancellationRequested_ThrowsException()
         {
             var request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "cs" };
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetRoslynExportProfileAsync(co, request, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetRoslynExportProfileAsync(request, t));
         }
         [TestMethod]
         public void GetVersionAsync_WhenCancellationRequested_ThrowsException()
         {
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.GetVersionAsync(co, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.GetVersionAsync(t));
         }
         [TestMethod]
         public void ValidateCredentialsAsync_WhenCancellationRequested_ThrowsException()
         {
-            Method_WhenCancellationRequested_ThrowsException((c, co, t) => c.ValidateCredentialsAsync(co, t));
+            Method_WhenCancellationRequested_ThrowsException((c, t) => c.ValidateCredentialsAsync(t));
         }
 
         private void Method_WhenCancellationRequested_ThrowsException<T>(
-            Func<SonarQubeClient, ConnectionRequest, CancellationToken, Task<Result<T>>> call)
+            Func<SonarQubeClient, CancellationToken, Task<Result<T>>> call)
         {
             // Arrange
             var httpHandler = new Mock<HttpMessageHandler>();
@@ -405,13 +414,13 @@ namespace SonarQube.Client.Services.Tests
                     StatusCode = HttpStatusCode.OK,
                     Content = new StringContent("")
                 }));
-            var client = new SonarQubeClient(httpHandler.Object, TimeSpan.FromSeconds(10));
             var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
+            var client = new SonarQubeClient(connection, httpHandler.Object, TimeSpan.FromSeconds(10));
             var cancellationToken = new CancellationTokenSource();
             cancellationToken.Cancel();
 
             // Act & Assert
-            Func<Task<Result<T>>> funct = async () => await call(client, connection, cancellationToken.Token);
+            Func<Task<Result<T>>> funct = async () => await call(client, cancellationToken.Token);
 
             // Assert
             funct.ShouldThrow<OperationCanceledException>();
@@ -423,65 +432,64 @@ namespace SonarQube.Client.Services.Tests
         public void GetComponentsSearchProjectsAsync_WhenExceptionThrown_PropagateIt()
         {
             var request = new ComponentRequest { OrganizationKey = "org", Page = 42, PageSize = 25 };
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetComponentsSearchProjectsAsync(co, request, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetComponentsSearchProjectsAsync(request, t));
         }
         [TestMethod]
         public void GetIssuesAsync_WhenExceptionThrown_PropagateIt()
         {
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetIssuesAsync(co, "key", t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetIssuesAsync("key", t));
         }
         [TestMethod]
         public void GetOrganizationsAsync_WhenExceptionThrown_PropagateIt()
         {
             var request = new OrganizationRequest { Page = 42, PageSize = 25 };
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetOrganizationsAsync(co, request, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetOrganizationsAsync(request, t));
         }
         [TestMethod]
         public void GetPluginsAsync_WhenExceptionThrown_PropagateIt()
         {
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetPluginsAsync(co, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetPluginsAsync(t));
         }
         [TestMethod]
         public void GetProjectsAsync_WhenExceptionThrown_PropagateIt()
         {
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetProjectsAsync(co, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetProjectsAsync(t));
         }
         [TestMethod]
         public void GetPropertiesAsync_WhenExceptionThrown_PropagateIt()
         {
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetPropertiesAsync(co, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetPropertiesAsync(t));
         }
         [TestMethod]
         public void GetQualityProfileChangeLogAsync_WhenExceptionThrown_PropagateIt()
         {
             var request = new QualityProfileChangeLogRequest { QualityProfileKey = "qp", PageSize = 25 };
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetQualityProfileChangeLogAsync(co, request, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetQualityProfileChangeLogAsync(request, t));
         }
         [TestMethod]
         public void GetQualityProfilesAsync_WhenExceptionThrown_PropagateIt()
         {
             var request = new QualityProfileRequest { ProjectKey = "project" };
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetQualityProfilesAsync(co, request, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetQualityProfilesAsync(request, t));
         }
         [TestMethod]
         public void GetRoslynExportProfileAsync_WhenExceptionThrown_PropagateIt()
         {
             var request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "cs" };
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetRoslynExportProfileAsync(co, request, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetRoslynExportProfileAsync(request, t));
         }
         [TestMethod]
         public void GetVersionAsync_WhenExceptionThrown_PropagateIt()
         {
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.GetVersionAsync(co, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.GetVersionAsync(t));
         }
         [TestMethod]
         public void ValidateCredentialsAsync_WhenExceptionThrown_PropagateIt()
         {
-            Method_WhenExceptionThrown_PropagateIt((c, co, t) => c.ValidateCredentialsAsync(co, t));
+            Method_WhenExceptionThrown_PropagateIt((c, t) => c.ValidateCredentialsAsync(t));
         }
 
-        private void Method_WhenExceptionThrown_PropagateIt<T>(
-            Func<SonarQubeClient, ConnectionRequest, CancellationToken, Task<Result<T>>> call)
+        private void Method_WhenExceptionThrown_PropagateIt<T>(Func<SonarQubeClient, CancellationToken, Task<Result<T>>> call)
         {
             // Arrange
             var expectedException = new Exception("foo text.");
@@ -491,11 +499,11 @@ namespace SonarQube.Client.Services.Tests
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(() => { throw expectedException; });
-            var client = new SonarQubeClient(httpHandler.Object, TimeSpan.FromSeconds(10));
             var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
+            var client = new SonarQubeClient(connection, httpHandler.Object, TimeSpan.FromSeconds(10));
 
             // Act & Assert
-            Func<Task<Result<T>>> funct = async () => await call(client, connection, CancellationToken.None);
+            Func<Task<Result<T>>> funct = async () => await call(client, CancellationToken.None);
 
             // Assert
             funct.ShouldThrow<Exception>().And.Message.Should().Be(expectedException.Message);

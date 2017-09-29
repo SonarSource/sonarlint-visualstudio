@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableConnectionInformationProvider connectionProvider;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsOutputWindowPane outputWindowPane;
-        private ConfigurableIntegrationSettings settings;
+        private ConfigurableSonarLintSettings settings;
 
         [TestInitialize]
         public void TestInit()
@@ -57,11 +57,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var outputWindow = new ConfigurableVsOutputWindow();
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
-            this.settings = new ConfigurableIntegrationSettings();
+            this.settings = new ConfigurableSonarLintSettings();
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
 
-            var mefExports = MefTestHelpers.CreateExport<IIntegrationSettings>(settings);
+            var mefExports = MefTestHelpers.CreateExport<ISonarLintSettings>(settings);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
