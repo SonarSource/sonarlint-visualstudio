@@ -1,5 +1,5 @@
 ﻿/*
- * SonarLint for Visual Studio
+ * SonarQube Client
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -18,23 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
+using System;
 using System.Net.Http;
-using SonarQube.Client.Services;
+using SonarQube.Client.Messages;
 
-namespace SonarLint.VisualStudio.Integration.MefServices
+namespace SonarQube.Client.Services
 {
-    /// <summary>
-    ///     This class only purposes is to avoid bringing MEF composition to the SonarQube.Client assembly which
-    ///     can be used in contexts where it is not required.
-    /// </summary>
-    [Export(typeof(ISonarQubeService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class MefSonarQubeService : SonarQubeService
+    public class SonarQubeClientFactory : ISonarQubeClientFactory
     {
-        public MefSonarQubeService()
-            : base(new SonarQubeClientFactory())
+        public ISonarQubeClient Create(ConnectionRequest connection)
         {
+            return new SonarQubeClient(connection, new HttpClientHandler(), TimeSpan.FromSeconds(100));
         }
     }
 }

@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -27,18 +28,19 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Services
 {
-    public class SonarQubeClient : ISonarQubeClient
+    public sealed class SonarQubeClient : ISonarQubeClient, IDisposable
     {
-        private readonly HttpMessageHandler messageHandler;
-        private readonly TimeSpan requestTimeout;
+        private readonly HttpClient httpClient;
+        private bool isDisposed;
 
-        public SonarQubeClient(HttpMessageHandler messageHandler, TimeSpan requestTimeout)
+        public SonarQubeClient(ConnectionRequest connection, HttpMessageHandler messageHandler, TimeSpan requestTimeout)
         {
             if (messageHandler == null)
             {
@@ -50,58 +52,93 @@ namespace SonarQube.Client.Services
                 throw new ArgumentException("Doesn't expect a zero or negative timeout.", nameof(requestTimeout));
             }
 
-            this.messageHandler = messageHandler;
-            this.requestTimeout = requestTimeout;
+            this.httpClient = new HttpClient(messageHandler)
+            {
+                BaseAddress = connection.ServerUri,
+                Timeout = requestTimeout
+            };
+            this.httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderFactory.Create(connection);
         }
 
-        public Task<Result<ComponentResponse[]>> GetComponentsSearchProjectsAsync(ConnectionRequest connection,
-                                            ComponentRequest request, CancellationToken token)
+        public void Dispose()
+        {
+            if (isDisposed)
+            {
+                return;
+            }
+
+            this.httpClient.Dispose();
+            this.isDisposed = true;
+        }
+
+        public Task<Result<ComponentResponse[]>> GetComponentsSearchProjectsAsync(ComponentRequest request,
+                    CancellationToken token)
         {
             const string SearchProjectsAPI = "api/components/search_projects"; // Since 6.2; internal
 
             var query = AppendQueryString(SearchProjectsAPI, "?organization={0}&p={1}&ps={2}&asc=true",
                         request.OrganizationKey, request.Page, request.PageSize); // TODO: should handle optional params
 
-            return InvokeSonarQubeApi(connection, query, token,
+            return InvokeSonarQubeApi(query, token,
                 stringResponse => JObject.Parse(stringResponse)["components"].ToObject<ComponentResponse[]>());
         }
 
-        public Task<Result<OrganizationResponse[]>> GetOrganizationsAsync(ConnectionRequest connection,
-            OrganizationRequest request, CancellationToken token)
+        public Task<Result<ServerIssue[]>> GetIssuesAsync(string key, CancellationToken token)
+        {
+            const string BatchIssuesAPI = "batch/issues"; // Since 5.1; internal
+
+            var query = AppendQueryString(BatchIssuesAPI, "?key={0}", key);
+
+            return InvokeSonarQubeApi(query, token,
+                async (HttpResponseMessage response) =>
+                {
+                    var byteArray = await response.Content.ReadAsByteArrayAsync();
+                    // Protobuf for C# throws when trying to read outside of the buffer and ReadAsStreamAsync returns a non
+                    // seekable stream so we can't determine when to stop. The hack is to use an intermediate MemoryStream
+                    // so we can control when to stop reading.
+                    // Note we might want to use FileStream instead to avoid intensive memory usage.
+                    using (var stream = new MemoryStream(byteArray))
+                    {
+                        return ReadFromProtobufStream(stream, ServerIssue.Parser).ToArray();
+                    }
+                });
+        }
+
+        public Task<Result<OrganizationResponse[]>> GetOrganizationsAsync(OrganizationRequest request, CancellationToken token)
         {
             const string OrganizationsAPI = "api/organizations/search"; // Since 6.2; internal
 
             var query = AppendQueryString(OrganizationsAPI, "?p={0}&ps={1}", request.Page, request.PageSize); // TODO: should handle optional params
 
-            return InvokeSonarQubeApi(connection, query, token,
+            return InvokeSonarQubeApi(query, token,
                 stringResponse => JObject.Parse(stringResponse)["organizations"].ToObject<OrganizationResponse[]>());
         }
 
-        public Task<Result<PluginResponse[]>> GetPluginsAsync(ConnectionRequest connection, CancellationToken token)
+        public Task<Result<PluginResponse[]>> GetPluginsAsync(CancellationToken token)
         {
             const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins"; // Since 2.10; internal
 
-            return InvokeSonarQubeApi(connection, ServerPluginsInstalledAPI, token,
+            return InvokeSonarQubeApi(ServerPluginsInstalledAPI, token,
                 stringResponse => ProcessJsonResponse<PluginResponse[]>(stringResponse, token));
         }
 
-        public Task<Result<ProjectResponse[]>> GetProjectsAsync(ConnectionRequest connection, CancellationToken token)
+        public Task<Result<ProjectResponse[]>> GetProjectsAsync(CancellationToken token)
         {
             const string ProjectsAPI = "api/projects/index"; // Since 2.10
 
-            return InvokeSonarQubeApi(connection, ProjectsAPI, token,
+            return InvokeSonarQubeApi(ProjectsAPI, token,
                 stringResponse => ProcessJsonResponse<ProjectResponse[]>(stringResponse, token));
         }
 
-        public Task<Result<PropertyResponse[]>> GetPropertiesAsync(ConnectionRequest connection, CancellationToken token)
+        public Task<Result<PropertyResponse[]>> GetPropertiesAsync(CancellationToken token)
         {
             const string PropertiesAPI = "api/properties/"; // Since 2.6
 
-            return InvokeSonarQubeApi(connection, PropertiesAPI, token,
+            return InvokeSonarQubeApi(PropertiesAPI, token,
                 stringResponse => ProcessJsonResponse<PropertyResponse[]>(stringResponse, token));
         }
 
-        public Task<Result<QualityProfileChangeLogResponse>> GetQualityProfileChangeLogAsync(ConnectionRequest connection,
+        public Task<Result<QualityProfileChangeLogResponse>> GetQualityProfileChangeLogAsync(
             QualityProfileChangeLogRequest request, CancellationToken token)
         {
             const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog"; // Since 5.2
@@ -109,12 +146,12 @@ namespace SonarQube.Client.Services
             var query = AppendQueryString(QualityProfileChangeLogAPI, "?profileKey={0}&ps={1}",
                         request.QualityProfileKey, request.PageSize); // TODO: should handle optional params
 
-            return InvokeSonarQubeApi(connection, query, token,
+            return InvokeSonarQubeApi(query, token,
                 stringResponse => ProcessJsonResponse<QualityProfileChangeLogResponse>(stringResponse, token));
         }
 
-        public Task<Result<QualityProfileResponse[]>> GetQualityProfilesAsync(ConnectionRequest connection,
-           QualityProfileRequest request, CancellationToken token)
+        public Task<Result<QualityProfileResponse[]>> GetQualityProfilesAsync(QualityProfileRequest request,
+            CancellationToken token)
         {
             const string QualityProfileListAPI = "api/qualityprofiles/search"; // Since 5.2
 
@@ -122,12 +159,12 @@ namespace SonarQube.Client.Services
                 ? AppendQueryString(QualityProfileListAPI, "?defaults=true")
                 : AppendQueryString(QualityProfileListAPI, "?projectKey={0}", request.ProjectKey);
 
-            return InvokeSonarQubeApi(connection, query, token,
+            return InvokeSonarQubeApi(query, token,
                 stringResponse => JObject.Parse(stringResponse)["profiles"].ToObject<QualityProfileResponse[]>());
         }
 
-        public Task<Result<RoslynExportProfileResponse>> GetRoslynExportProfileAsync(ConnectionRequest connection,
-            RoslynExportProfileRequest request, CancellationToken token)
+        public Task<Result<RoslynExportProfileResponse>> GetRoslynExportProfileAsync(RoslynExportProfileRequest request,
+            CancellationToken token)
         {
             const string QualityProfileExportAPI = "api/qualityprofiles/export"; // Since 5.2
 
@@ -136,7 +173,7 @@ namespace SonarQube.Client.Services
             var query = AppendQueryString(QualityProfileExportAPI, "?name={0}&language={1}&exporterKey={2}",
                 request.QualityProfileName, request.LanguageKey, roslynExporterName); // TODO: should handle optional params
 
-            return InvokeSonarQubeApi(connection, query, token,
+            return InvokeSonarQubeApi(query, token,
                 stringResponse =>
                 {
                     using (var reader = new StringReader(stringResponse))
@@ -146,20 +183,19 @@ namespace SonarQube.Client.Services
                 });
         }
 
-        public Task<Result<VersionResponse>> GetVersionAsync(ConnectionRequest connection, CancellationToken token)
+        public Task<Result<VersionResponse>> GetVersionAsync(CancellationToken token)
         {
             const string ServerVersionAPI = "api/server/version"; // Since 2.10; internal
 
-            return InvokeSonarQubeApi(connection, ServerVersionAPI, token,
+            return InvokeSonarQubeApi(ServerVersionAPI, token,
                 stringResponse => new VersionResponse { Version = stringResponse });
         }
 
-        public Task<Result<CredentialResponse>> ValidateCredentialsAsync(ConnectionRequest connection,
-            CancellationToken token)
+        public Task<Result<CredentialResponse>> ValidateCredentialsAsync(CancellationToken token)
         {
             const string ValidateCredentialsAPI = "api/authentication/validate"; // Since 3.3
 
-            return InvokeSonarQubeApi(connection, ValidateCredentialsAPI, token,
+            return InvokeSonarQubeApi(ValidateCredentialsAPI, token,
                 stringResponse => new CredentialResponse { IsValid = (bool)JObject.Parse(stringResponse).SelectToken("valid") });
         }
 
@@ -212,28 +248,32 @@ namespace SonarQube.Client.Services
             return JsonHelper.Deserialize<T>(jsonResponse);
         }
 
-        private HttpClient CreateHttpClient(ConnectionRequest connection)
+        private static IEnumerable<T> ReadFromProtobufStream<T>(Stream stream, MessageParser<T> parser)
+            where T : IMessage<T>
         {
-            var httpClient = new HttpClient(this.messageHandler)
+            while (stream.Position < stream.Length)
             {
-                BaseAddress = connection.ServerUri,
-                Timeout = this.requestTimeout
-            };
-            httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderFactory.Create(connection);
-
-            return httpClient;
+                yield return parser.ParseDelimitedFrom(stream);
+            }
         }
 
-        private async Task<Result<T>> InvokeSonarQubeApi<T>(ConnectionRequest connection, string query, CancellationToken token,
-            Func<string, T> parseStringResult)
+        private async Task<Result<T>> InvokeSonarQubeApi<T>(string query, CancellationToken token,
+                    Func<string, T> parseStringResult)
         {
-            using (var client = CreateHttpClient(connection))
-            {
-                var httpResponse = await InvokeGetRequest(client, query, token);
-                var stringResponse = await GetStringResultAsync(httpResponse, token);
+            var httpResponse = await InvokeGetRequest(this.httpClient, query, token);
+            var stringResponse = await GetStringResultAsync(httpResponse, token);
 
-                return new Result<T>(httpResponse, parseStringResult(stringResponse));
-            }
+            return new Result<T>(httpResponse, parseStringResult(stringResponse));
+        }
+
+        private async Task<Result<T>> InvokeSonarQubeApi<T>(string query, CancellationToken token,
+            Func<HttpResponseMessage, Task<T>> parseResponse)
+        {
+            var httpResponse = await InvokeGetRequest(this.httpClient, query, token);
+            token.ThrowIfCancellationRequested();
+            var response = await parseResponse(httpResponse);
+
+            return new Result<T>(httpResponse, response);
         }
     }
 }
