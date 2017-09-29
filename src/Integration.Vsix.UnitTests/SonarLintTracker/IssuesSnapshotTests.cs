@@ -139,13 +139,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void HelpLink()
         {
             issue.RuleKey = "javascript:123";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Match(s => new Regex("http://vs.sonarlint.org/rules/index.html#sonarLintVersion=(.*)&ruleId=123&language=JavaScript").IsMatch((string)s));
+            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
             issue.RuleKey = "c:456";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Match(s => new Regex("http://vs.sonarlint.org/rules/index.html#sonarLintVersion=(.*)&ruleId=456&language=C").IsMatch((string)s));
+            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/c/RSPEC-456");
             issue.RuleKey = "cpp:789";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Match(s => new Regex("http://vs.sonarlint.org/rules/index.html#sonarLintVersion=(.*)&ruleId=789&language=C%2B%2B").IsMatch((string)s));
+            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/cpp/RSPEC-789");
             issue.RuleKey = "php:101112";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Match(s => new Regex("http://vs.sonarlint.org/rules/index.html#sonarLintVersion=(.*)&ruleId=101112").IsMatch((string)s));
+            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/php/RSPEC-101112");
         }
 
         [TestMethod]
