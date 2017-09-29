@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using Microsoft.VisualStudio.Shell;
+
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITelemetryManager
+    public interface IKnownUIContexts
     {
-        bool IsAnonymousDataShared { get; }
-        void OptOut();
-        void OptIn();
+        event EventHandler<UIContextChangedEventArgs> SolutionBuildingContextChanged;
+        event EventHandler<UIContextChangedEventArgs> SolutionExistsAndFullyLoadedContextChanged;
     }
 }
