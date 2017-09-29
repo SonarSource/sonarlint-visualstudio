@@ -20,8 +20,13 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface IIntegrationSettings
+    public enum DaemonLogLevel { Verbose, Info, Minimal };
+
+    public interface ISonarLintSettings
     {
         bool ShowServerNuGetTrustWarning { get; set; }
+        bool IsActivateMoreEnabled { get; set; }
+        bool SkipActivateMoreDialog { get; set; }
+        DaemonLogLevel DaemonLogLevel { get; set; }
     }
 }

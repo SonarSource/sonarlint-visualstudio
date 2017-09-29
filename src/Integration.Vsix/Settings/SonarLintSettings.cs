@@ -27,17 +27,6 @@ using Microsoft.VisualStudio.Shell.Settings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-
-    public enum DaemonLogLevel { Verbose, Info, Minimal };
-
-    public interface ISonarLintSettings
-    {
-        bool ShowServerNuGetTrustWarning { get; set; }
-        bool IsActivateMoreEnabled { get; set; }
-        bool SkipActivateMoreDialog { get; set; }
-        DaemonLogLevel DaemonLogLevel { get; set; }
-    }
-
     [Export(typeof(ISonarLintSettings))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class SonarLintSettings : ISonarLintSettings, IProfileManager
