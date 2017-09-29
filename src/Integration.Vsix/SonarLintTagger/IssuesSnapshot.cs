@@ -34,7 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string projectName;
         private readonly string filePath;
         private readonly int versionNumber;
-        private readonly string sonarLintVersion;
 
         private readonly IList<IssueMarker> issueMarkers;
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
@@ -47,9 +46,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.versionNumber = versionNumber;
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
             this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
-            sonarLintVersion = FileVersionInfo.GetVersionInfo(typeof(IssuesSnapshot).Assembly.Location).FileVersion;
-            // Remove last version digit since rule website URL is only based on the 3 first digits
-            sonarLintVersion = sonarLintVersion.Substring(0, sonarLintVersion.LastIndexOf('.'));
         }
 
         public override int Count => this.issueMarkers.Count;
@@ -111,15 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 case StandardTableKeyNames.HelpLink:
                     string ruleKey = this.issueMarkers[index].Issue.RuleKey;
-                    string ruleId = ruleKey.Substring(ruleKey.IndexOf(':') + 1);
-                    string repo = ruleKey.Substring(0, ruleKey.IndexOf(':'));
-                    string language = GetLanguage(repo);
-                    string url = $"http://vs.sonarlint.org/rules/index.html#sonarLintVersion={sonarLintVersion}&ruleId={ruleId}";
-                    if (language != null)
-                    {
-                        url += $"&language={Uri.EscapeDataString(language)}";
-                    }
-                    content = url;
+                    content = GetHelpLink(ruleKey);
                     return true;
 
                 case StandardTableKeyNames.ProjectName:
@@ -131,15 +119,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private string GetLanguage(string repo)
+        private string GetHelpLink(string ruleKey)
         {
-            switch (repo)
-            {
-                case "javascript": return "JavaScript";
-                case "c": return "C";
-                case "cpp": return "C++";
-                default: return null;
-            }
+            // ruleKey is in format "javascript:1234"
+            // ruleId is "1234"
+            string ruleId = ruleKey.Substring(ruleKey.IndexOf(':') + 1);
+            // language is "javascript"
+            string language = ruleKey.Substring(0, ruleKey.IndexOf(':'));
+            return $"https://rules.sonarsource.com/{language}/RSPEC-{ruleId}";
         }
 
         private object ToString(Issue.Types.Type type)
