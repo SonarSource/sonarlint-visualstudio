@@ -55,6 +55,7 @@ namespace SonarQube.Client.Models
         {
             switch (resolution)
             {
+                case "": // TODO - check whether an empty string is a valid response
                 case "OPEN":
                     return SonarQubeIssueResolutionState.Open;
                 case "WONTFIX":
