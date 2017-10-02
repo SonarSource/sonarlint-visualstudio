@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -33,14 +34,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string PackageGuidString = "4E057B4B-E2B8-490D-95D8-2A1A4E7ACAED";
 
-        private ITelemetryManager telemetryManager;
+        private TelemetryManager telemetryManager;
 
         protected override void Initialize()
         {
             base.Initialize();
 
-            this.telemetryManager = this.GetMefService<ITelemetryManager>();
-            Debug.Assert(this.telemetryManager != null, "Cannot find the telemetry manager.");
+            var activeSolutionTracker = this.GetMefService<IActiveSolutionBoundTracker>();
+            Debug.Assert(activeSolutionTracker != null, "Failed to resolve 'IActiveSolutionBoundTracker'.");
+
+            this.telemetryManager = new TelemetryManager(activeSolutionTracker, new TelemetryDataRepository(),
+                new TelemetryClient(new HttpClientHandler()), new TimerFactory(), new KnownUIContextsWrapper());
         }
 
         protected override void Dispose(bool disposing)
@@ -52,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            (this.telemetryManager as IDisposable)?.Dispose();
+            this.telemetryManager?.Dispose();
             this.telemetryManager = null;
         }
     }
