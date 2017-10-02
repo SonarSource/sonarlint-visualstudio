@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -229,6 +230,43 @@ namespace SonarQube.Client.Services
 
             return InvokeSonarQubeApi(validateCredentialsApiUrl, token,
                 stringResponse => new CredentialResponse { IsValid = (bool)JObject.Parse(stringResponse).SelectToken("valid") });
+        }
+
+        public Task<Result<NotificationsResponse[]>> GetNotificationEventsAsync(NotificationsRequest request,
+            CancellationToken token)
+        {
+            // Since 6.6; internal
+            var apiPath = BuildRelativeUrl("api/developers/search_events",
+                new Dictionary<string, string>
+                {
+                    ["projects"] = request.ProjectKey,
+                    ["from"] = ToJavaTimeFormat(request.EventsSince)
+                });
+
+            return InvokeSonarQubeApi(apiPath, token,
+                    async (HttpResponseMessage httpResponse) =>
+                    {
+                        if (httpResponse.StatusCode != HttpStatusCode.OK)
+                        {
+                            return new NotificationsResponse[0];
+                        }
+
+                        var stringResponse = await GetStringResultAsync(httpResponse, token);
+                        return JObject.Parse(stringResponse)["events"].ToObject<NotificationsResponse[]>()
+                            ?? new NotificationsResponse[0];
+                    }
+                );
+        }
+
+        private static string ToJavaTimeFormat(DateTimeOffset date)
+        {
+            // This is the only format the notifications API accepts. ISO 8601 formats don't work.
+            var dateTime = date.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+            var timezone = date.ToString("zzz", CultureInfo.InvariantCulture).Replace(":", "");
+
+            // The Java format is "yyyy-MM-dd'T'HH:mm:ssZ"
+            // For example 2013-05-01T13:00:00+0100
+            return dateTime + timezone;
         }
 
         private Uri BuildRelativeUrl(string relativePath, Dictionary<string, string> queryParameters = null)
