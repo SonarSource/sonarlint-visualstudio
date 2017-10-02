@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -28,8 +27,6 @@ using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    [Export(typeof(ITelemetryManager))]
-    [PartCreationPolicy(CreationPolicy.Shared)] // MEF Singleton
     public sealed class TelemetryManager : ITelemetryManager, IDisposable
     {
         private const double DelayBeforeFirstUpload = 1000 * 60 * 5;// 5 minutes
@@ -46,7 +43,6 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ITimer tryUploadDataTimer;
         private readonly IKnownUIContexts knownUIContexts;
 
-        [ImportingConstructor]
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
             ITelemetryClient telemetryClient, ITimerFactory timerFactory, IKnownUIContexts knownUIContexts)
         {
