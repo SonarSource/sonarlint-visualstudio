@@ -378,7 +378,8 @@ namespace SonarQube.Client.Services.Tests
                     {
                         new ServerIssue { Resolution = "WONTFIX" },
                         new ServerIssue { Resolution = "FALSE-POSITIVE" },
-                        new ServerIssue { Resolution = "OPEN" }
+                        new ServerIssue { Resolution = "FIXED" },
+                        new ServerIssue { Resolution = "" },
                     }));
             var clientFactory = new Mock<ISonarQubeClientFactory>();
             clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(client.Object);
@@ -390,9 +391,10 @@ namespace SonarQube.Client.Services.Tests
 
             // Assert
             client.VerifyAll();
-            result.Should().HaveCount(2);
+            result.Should().HaveCount(3);
             result[0].ResolutionState.Should().Be(SonarQubeIssueResolutionState.WontFix);
             result[1].ResolutionState.Should().Be(SonarQubeIssueResolutionState.FalsePositive);
+            result[2].ResolutionState.Should().Be(SonarQubeIssueResolutionState.Fixed);
         }
     }
 }
