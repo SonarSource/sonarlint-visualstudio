@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarQube.Client.Models
 {
     public enum SonarQubeIssueResolutionState
     {
-        Open,
+        Unresolved,
         Fixed,
         FalsePositive,
         WontFix

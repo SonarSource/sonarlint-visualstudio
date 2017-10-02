@@ -236,12 +236,7 @@ namespace SonarQube.Client.Services
             allIssuesResult.EnsureSuccess();
 
             return allIssuesResult.Value
-                .Where(x =>
-                {
-                    var resolutionState = SonarQubeIssue.ParseResolutionState(x.Resolution);
-                    return resolutionState == SonarQubeIssueResolutionState.WontFix ||
-                        resolutionState == SonarQubeIssueResolutionState.FalsePositive;
-                })
+                .Where(x => SonarQubeIssue.ParseResolutionState(x.Resolution) != SonarQubeIssueResolutionState.Unresolved)
                 .Select(SonarQubeIssue.FromResponse)
                 .ToList();
         }
