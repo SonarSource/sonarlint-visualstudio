@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
         /// </summary>
         public static string GetRelativePath(string fromFilePath, string toFilePath)
         {
-            StringBuilder sb = new StringBuilder(260);
+            var sb = new StringBuilder(260);
             bool success = PathRelativePathTo(sb, fromFilePath, FileAttributes.Normal, toFilePath, FileAttributes.Normal);
 
             if (success)

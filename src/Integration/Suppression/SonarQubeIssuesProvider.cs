@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         {
             // TODO: Block the call while the cache is being built + handle multi-threading
 
-            // HACK: ensure we've got data to enable end to end testing
+            // TODO: ensure we've got data to enable end to end testing
             if (solutionBoundTacker.IsActiveSolutionBound &&
                 this.cachedSuppressedIssues == null)
             {
