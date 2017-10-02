@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.DiscoverProjects(controller, notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, this.GetBindingLanguages(), token)),
+                        (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, this.GetBindingLanguages(), token).GetAwaiter().GetResult()),
 
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => { NuGetHelper.LoadService(this.host); /*The service needs to be loaded on UI thread*/ }),
