@@ -243,6 +243,23 @@ namespace SonarQube.Client.Services
                 .ToList();
         }
 
+        public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
+        DateTimeOffset eventsSince, CancellationToken token)
+        {
+            EnsureIsConnected();
+
+            var request = new NotificationsRequest { ProjectKey = projectKey, EventsSince = eventsSince };
+            var eventsResult = await this.sonarqubeClient.GetNotificationEventsAsync(request, token);
+
+            if (!eventsResult.IsSuccess)
+            {
+                return eventsResult.StatusCode == HttpStatusCode.NotFound
+                    ? null : new List<SonarQubeNotification>();
+            }
+
+            return eventsResult.Value.Select(SonarQubeNotification.FromResponse).ToList();
+        }
+
         internal void EnsureIsConnected()
         {
             if (this.sonarqubeClient == null)
