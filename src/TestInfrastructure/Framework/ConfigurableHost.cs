@@ -23,9 +23,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Threading;
 using FluentAssertions;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             private set;
         }
 
-        public ISonarQubeServiceWrapper SonarQubeService
+        public ISonarQubeService SonarQubeService
         {
             get;
             set;

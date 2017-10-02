@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

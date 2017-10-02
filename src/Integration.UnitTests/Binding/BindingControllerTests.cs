@@ -27,13 +27,15 @@ using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarQube.Client.Models;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -41,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
     public class BindingControllerTests
     {
         private ConfigurableHost host;
-        private ConfigurableSonarQubeServiceWrapper sonarQubeService;
+        private Mock<ISonarQubeService> sonarQubeService;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private TestBindingWorkflow workflow;
         private ConfigurableServiceProvider serviceProvider;
@@ -54,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void TestInitialize()
         {
             KnownUIContextsAccessor.Reset();
-            this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
+            this.sonarQubeService = new Mock<ISonarQubeService>();
             this.workflow = new TestBindingWorkflow();
             this.serviceProvider = new ConfigurableServiceProvider();
             this.dteMock = new DTEMock();
@@ -67,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-            this.host.SonarQubeService = sonarQubeService;
+            this.host.SonarQubeService = sonarQubeService.Object;
 
             // Instead of ignored unexpected service, register one (for telemetry)
             this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel());
@@ -163,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             BindingController testSubject = this.PrepareCommandForExecution();
 
             // Act
-            var projectToBind1 = new ProjectInformation { Key = "1" };
+            var projectToBind1 = new SonarQubeProject("1", "");
             ProjectViewModel projectVM1 = CreateProjectViewModel(projectToBind1);
             testSubject.BindCommand.Execute(projectVM1);
 
@@ -171,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.workflow.BoundProject.Should().Be(projectToBind1);
 
             // Act, bind a different project
-            var projectToBind2 = new ProjectInformation { Key = "2" };
+            var projectToBind2 = new SonarQubeProject("2", "");
             ProjectViewModel projectVM2 = CreateProjectViewModel(projectToBind2);
             testSubject.BindCommand.Execute(projectVM2);
 
@@ -195,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 testSubject.BindCommand.CanExecute(projectVM).Should().BeTrue();
 
                 // Act - disable
-                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
 
                 // Assert
                 testSubject.BindCommand.CanExecute(projectVM).Should().BeFalse("Binding is in progress so should not be enabled");
@@ -221,10 +223,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             ServerViewModel serverVM = CreateServerViewModel();
-            serverVM.SetProjects(new[]
-            {
-                new ProjectInformation { Key = "key1" }
-            });
+            serverVM.SetProjects(new[] { new SonarQubeProject("key1", "") });
             ProjectViewModel projectVM = serverVM.Projects.First();
             BindingController testSubject = this.PrepareCommandForExecution();
             this.host.VisualStateManager.ManagedState.ConnectedServers.Add(serverVM);
@@ -233,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Arrange
-                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
                 testSubject.IsBindingInProgress.Should().BeTrue();
 
                 // Act
@@ -244,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 if (result == ProgressControllerResult.Succeeded)
                 {
-                    this.host.TestStateManager.BoundProject.Should().Be(projectVM.ProjectInformation);
+                    this.host.TestStateManager.BoundProject.Should().Be(projectVM.Project);
                 }
                 else
                 {
@@ -258,10 +257,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             ServerViewModel serverVM = CreateServerViewModel();
-            serverVM.SetProjects(new[]
-            {
-                new ProjectInformation { Key = "key1" }
-            });
+            serverVM.SetProjects(new[] { new SonarQubeProject("key1", "") });
             ProjectViewModel projectVM = serverVM.Projects.First();
             BindingController testSubject = this.PrepareCommandForExecution();
             this.host.VisualStateManager.ManagedState.ConnectedServers.Add(serverVM);
@@ -276,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult nonSuccuess in new[] { ProgressControllerResult.Cancelled, ProgressControllerResult.Failed })
             {
                 // Act
-                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
                 progressEvents.SimulateFinished(nonSuccuess);
 
                 // Assert
@@ -288,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.conflictsController.HasConflicts = true;
 
             // Act
-            testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+            testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
             progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
             // Assert
@@ -299,7 +295,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.conflictsController.HasConflicts = false;
 
             // Act
-            testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+            testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
             progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
             // Assert
@@ -312,10 +308,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             ServerViewModel serverVM = CreateServerViewModel();
-            serverVM.SetProjects(new[]
-            {
-                new ProjectInformation { Key = "key1" }
-            });
+            serverVM.SetProjects(new[] { new SonarQubeProject("key1", "") });
             ProjectViewModel projectVM = serverVM.Projects.ToArray()[0];
             BindingController testSubject = this.PrepareCommandForExecution();
             var section = ConfigurableSectionController.CreateDefault();
@@ -327,7 +320,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Act - start
-                testSubject.SetBindingInProgress(progressEvents, projectVM.ProjectInformation);
+                testSubject.SetBindingInProgress(progressEvents, projectVM.Project);
 
                 // Assert
                 userNotifications.AssertNoNotification(NotificationIds.FailedToBindId);
@@ -367,9 +360,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         #region Helpers
 
-        private static ProjectViewModel CreateProjectViewModel(ProjectInformation projectInfo = null)
+        private static ProjectViewModel CreateProjectViewModel(SonarQubeProject projectInfo = null)
         {
-            return new ProjectViewModel(CreateServerViewModel(), projectInfo ?? new ProjectInformation());
+            return new ProjectViewModel(CreateServerViewModel(), projectInfo ?? new SonarQubeProject("", ""));
         }
 
         private static ServerViewModel CreateServerViewModel()
@@ -395,11 +388,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private class TestBindingWorkflow : IBindingWorkflowExecutor
         {
-            public ProjectInformation BoundProject { get; private set; }
+            public SonarQubeProject BoundProject { get; private set; }
 
             #region IBindingWorkflowExecutor.
 
-            void IBindingWorkflowExecutor.BindProject(ProjectInformation project)
+            void IBindingWorkflowExecutor.BindProject(SonarQubeProject project)
             {
                 this.BoundProject = project;
             }

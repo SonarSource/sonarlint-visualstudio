@@ -33,9 +33,14 @@ namespace SonarLint.VisualStudio.Integration
         bool IsActiveSolutionBound { get; }
 
         /// <summary>
+        /// Returns project key of current project. Could be null if not bound.
+        /// </summary>
+        string ProjectKey { get; }
+
+        /// <summary>
         /// Event to notify subscribers when the binding status of a solution have changed.
         /// This occurs when a new solution is opened, or the SonarQube binding status of the solution changes.
         /// </summary>
-        event EventHandler<bool> SolutionBindingChanged;
+        event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
     }
 }

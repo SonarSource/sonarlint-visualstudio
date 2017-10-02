@@ -369,6 +369,10 @@
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
       <Name>Progress</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
+      <Project>{5e513fc3-bda7-40f2-8b6a-1bb9372acb99}</Project>
+      <Name>SonarQube.Client</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />

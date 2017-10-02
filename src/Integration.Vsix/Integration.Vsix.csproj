@@ -326,6 +326,7 @@
       <HintPath>..\..\packages\System.IO.FileSystem.Primitives.4.3.0\lib\net46\System.IO.FileSystem.Primitives.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Reflection.Metadata, Version=1.4.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Reflection.Metadata.1.4.1\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
@@ -407,6 +408,10 @@
       <Project>{112698a2-85c3-4357-aaa5-7658d29d27a1}</Project>
       <Name>SonarAnalyzerEmbedder.VisualBasic</Name>
       <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
+      <Project>{5e513fc3-bda7-40f2-8b6a-1bb9372acb99}</Project>
+      <Name>SonarQube.Client</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

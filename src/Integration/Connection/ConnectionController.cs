@@ -23,10 +23,10 @@ using System.Diagnostics;
 using System.Linq;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
     {
         private readonly IHost host;
         private readonly IConnectionInformationProvider connectionProvider;
-        private readonly IIntegrationSettings settings;
+        private readonly ISonarLintSettings settings;
 
         public ConnectionController(IHost host)
             : this(host, null, null)
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.host = host;
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
-            this.settings = this.host.GetMefService<IIntegrationSettings>();
+            this.settings = this.host.GetMefService<ISonarLintSettings>();
 
             this.ConnectCommand = new RelayCommand(this.OnConnect, this.OnConnectStatus);
             this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.OnRefreshStatus);

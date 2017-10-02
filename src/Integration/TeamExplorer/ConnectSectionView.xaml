@@ -79,7 +79,7 @@
             <TextBlock Margin="6,0"
                        KeyboardNavigation.IsTabStop="False"
                        Style="{StaticResource SQStaticTextStyle}"
-                       Text="{x:Static resx:Strings.SelectSonarQubeProjectInstruction}"
+                       Text="{x:Static resx:Strings.SelectProjectInstruction}"
                        TextWrapping="Wrap"
                        Visibility="{Binding State.HasBoundProject,
                                             Converter={StaticResource TrueToVisibleConverter},
@@ -150,7 +150,7 @@
 
                             <Image Grid.Column="0"
                                    RenderOptions.EdgeMode="Aliased"
-                                   Source="{StaticResource SonarQubeProjectIcon}"
+                                   Source="{StaticResource ProjectIcon}"
                                    Style="{StaticResource SQTreeViewIconStyle}" />
                             <TextBlock Grid.Column="1"
                                        AutomationProperties.Name="{Binding AutomationName}"
