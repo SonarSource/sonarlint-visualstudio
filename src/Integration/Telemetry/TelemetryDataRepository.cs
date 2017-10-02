@@ -25,8 +25,6 @@ using System.Xml.Serialization;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    [Export(typeof(ITelemetryDataRepository))]
-    [PartCreationPolicy(CreationPolicy.Shared)] // MEF singleton
     public sealed class TelemetryDataRepository : ITelemetryDataRepository
     {
         private static readonly string StorageFilePath = GetStorageFilePath();
