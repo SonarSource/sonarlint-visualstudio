@@ -29,13 +29,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// </summary>
     internal class LiveIssue
     {
-        public LiveIssue(Diagnostic diagnostic, string issueFilePath, string projectFilePath, string projectGuid, int startLine,
+        public LiveIssue(Diagnostic diagnostic, string issueFilePath, string projectGuid, int startLine,
             string wholeLineText)
         {
             Diagnostic = diagnostic;
             IssueFilePath = issueFilePath;
             ProjectGuid = projectGuid;
-            ProjectFilePath = projectFilePath;
             StartLine = startLine;
             WholeLineText = wholeLineText;
             LineHash = ChecksumCalculator.Calculate(WholeLineText);
@@ -44,7 +43,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         public Diagnostic Diagnostic { get; }
         public string IssueFilePath { get; }
         public string LineHash { get; }
-        public string ProjectFilePath { get; }
         public string ProjectGuid { get; }
         public int StartLine { get; }
         public string WholeLineText { get; }

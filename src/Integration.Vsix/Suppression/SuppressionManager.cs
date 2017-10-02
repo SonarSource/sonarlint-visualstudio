@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         private void SetupSuppressionHandling()
         {
             liveIssueFactory = new LiveIssueFactory(serviceProvider);
-            delegateInjector = new DelegateInjector(ShouldIssueBeSuppressed, serviceProvider);
+            delegateInjector = new DelegateInjector(ShouldIssueBeReported, serviceProvider);
             sonarqubeIssueProvider = this.serviceProvider.GetMefService<ISonarQubeIssuesProvider>(); // Cannot do new because of IHost
         }
 
@@ -76,16 +76,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             RefreshSuppresionHandling();
         }
 
-        private bool ShouldIssueBeSuppressed(Diagnostic diagnostic)
+        private bool ShouldIssueBeReported(Diagnostic diagnostic)
         {
             // This method is called for every analyzer issue that is raised so it should be fast.
-            if (!diagnostic.Location.IsInSource) { return false; }
-            if (activeSolutionBoundTracker == null || !activeSolutionBoundTracker.IsActiveSolutionBound) { return false; }
+            if (!diagnostic.Location.IsInSource) { return true; }
+            if (activeSolutionBoundTracker == null || !activeSolutionBoundTracker.IsActiveSolutionBound) { return true; }
 
             LiveIssue liveIssue = liveIssueFactory.Create(diagnostic);
             if (liveIssue == null)
             {
-                return false; // Unable to get the data required to map a Roslyn issue to a SonarQube issue
+                return true; // Unable to get the data required to map a Roslyn issue to a SonarQube issue
             }
 
             // Issues match if:
@@ -94,12 +94,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             // TODO: ?need to make file path relative to the project file path
             // As a minimum, the project, file and rule id must match
-            var issuesInFile = sonarqubeIssueProvider.GetSuppressedIssues(liveIssue.ProjectGuid, liveIssue.IssueFilePath)
-                    .Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleId)); // TODO: rule repository?
+            var issuesInFile = sonarqubeIssueProvider.GetSuppressedIssues(liveIssue.ProjectGuid, liveIssue.IssueFilePath);
 
-            return issuesInFile.Any(i =>
+            if (issuesInFile == null)
+            {
+                return true;
+            }
+
+            // TODO: rule repository?
+            issuesInFile = issuesInFile.Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleId));
+            
+            bool matchFound = issuesInFile.Any(i =>
                     liveIssue.StartLine == i.Line ||
                     StringComparer.Ordinal.Equals(liveIssue.LineHash, i.Hash));
+            return matchFound;
         }
 
         #region IDisposable Support

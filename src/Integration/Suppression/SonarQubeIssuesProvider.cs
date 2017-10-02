@@ -75,7 +75,22 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         public IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath)
         {
             // TODO: Block the call while the cache is being built + handle multi-threading
-            return this.cachedSuppressedIssues.Where(x => x.FilePath == filePath && x.ModuleKey == BuildModuleKey(projectGuid));
+
+            // TODO: ensure we've got data to enable end to end testing
+            if (solutionBoundTacker.IsActiveSolutionBound &&
+                this.cachedSuppressedIssues == null)
+            {
+                SynchronizeSuppressedIssues().Wait(30000);
+            }
+
+            if (this.cachedSuppressedIssues == null)
+            {
+                return Enumerable.Empty<SonarQubeIssue>();
+            }
+
+            return this.cachedSuppressedIssues.Where(x =>
+                x.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase) &&
+                x.ModuleKey.Equals(BuildModuleKey(projectGuid), StringComparison.OrdinalIgnoreCase));
         }
 
         private string BuildModuleKey(string projectGuid)
@@ -103,6 +118,12 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private async Task SynchronizeSuppressedIssues()
         {
+            // TODO: may not be connected
+            if (!this.sonarQubeService.IsConnected)
+            {
+                return;
+            }
+
             cancellationTokenSource?.Cancel();
             cancellationTokenSource = new CancellationTokenSource();
 
