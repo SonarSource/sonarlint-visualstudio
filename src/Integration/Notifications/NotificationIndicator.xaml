@@ -11,13 +11,11 @@
             <Grid x:Name="Root" Width="30" Height="16" Background="Transparent">
                 <Grid Margin="3,1,1,1" HorizontalAlignment="Left">
                     <Path Data="M13.9,16h-1.8v-0.5c0-6.2-5.1-11.3-11.5-11.3H0.1V2.3h0.5c7.3,0,13.3,5.9,13.3,13.1V16z"
-                            Fill="#D5D5D5" />
-                    <Path
-                            Data="M13.6,11.3l-0.1-0.5c-0.9-3.9-4.1-7.2-8.1-8.3L4.9,2.3l0.5-1.6l0.5,0.1c4.6,1.3,8.2,5.1,9.2,9.5l0.1,0.5L13.6,11.3z"
-                            Fill="#D5D5D5" />
-                    <Path
-                            Data="M14.5,7.3l-0.2-0.5c-1-2.1-2.6-3.9-4.6-5.1L9.3,1.4l0.8-1.3l0.4,0.3c2.3,1.4,4.1,3.4,5.2,5.8l0.2,0.5L14.5,7.3z"
-                            Fill="#D5D5D5" />
+                          Fill="#D5D5D5" />
+                    <Path Data="M13.6,11.3l-0.1-0.5c-0.9-3.9-4.1-7.2-8.1-8.3L4.9,2.3l0.5-1.6l0.5,0.1c4.6,1.3,8.2,5.1,9.2,9.5l0.1,0.5L13.6,11.3z"
+                          Fill="#D5D5D5" />
+                    <Path Data="M14.5,7.3l-0.2-0.5c-1-2.1-2.6-3.9-4.6-5.1L9.3,1.4l0.8-1.3l0.4,0.3c2.3,1.4,4.1,3.4,5.2,5.8l0.2,0.5L14.5,7.3z"
+                          Fill="#D5D5D5" />
                 </Grid>
                 <ContentPresenter Content="{TemplateBinding Content}" />
             </Grid>
@@ -32,8 +30,8 @@
         <Binding Path="IsIconVisible" Converter="{StaticResource BoolToVisibilityConverter}" />
     </UserControl.Visibility>
     <Grid>
-        <ToggleButton x:Name="PART_Button" Template="{StaticResource ImageButtonTemplate}" ToolTip="{Binding TooltipText}"
-                IsChecked="{Binding IsBalloonTooltipVisible, Mode=TwoWay}" Command="{Binding ClearUnreadEventsCommand}">
+        <ToggleButton x:Name="PART_Button" Template="{StaticResource ImageButtonTemplate}" ToolTip="{Binding ToolTipText}"
+                IsChecked="{Binding IsToolTipVisible, Mode=TwoWay}" Command="{Binding ClearUnreadEventsCommand}">
             <Ellipse x:Name="PART_Ellipse" Width="5" Height="5" Margin="0,0,5,0" HorizontalAlignment="Right"
                     VerticalAlignment="Center" Fill="LightYellow"
                     Visibility="{Binding HasUnreadEvents, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -57,7 +55,7 @@
             </ToggleButton.ContextMenu>
         </ToggleButton>
         <Popup x:Name="PART_Popup" DataContext="{Binding DataContext, ElementName=PART_Button}"
-                IsOpen="{Binding IsBalloonTooltipVisible}"
+                IsOpen="{Binding IsToolTipVisible}"
                 PlacementTarget="{Binding ElementName=PART_Button}" VerticalOffset="-3" Placement="Top" HorizontalOffset="-160"
                 PopupAnimation="Fade" AllowsTransparency="True">
             <Border Background="#EEEEF2" Width="350" MinHeight="80" BorderBrush="#7DA9C9" BorderThickness="2">

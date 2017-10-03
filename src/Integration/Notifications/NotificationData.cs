@@ -26,8 +26,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     [Serializable]
     public sealed class NotificationData : ISerializable
     {
-        private const string Enabled_Key = "Enabled";
-        private const string LastNotificationDate_Key = "LastNotificationDate";
+        private const string EnabledKey = "Enabled";
+        private const string LastNotificationDateKey = "LastNotificationDate";
 
         public bool IsEnabled { get; set; }
 
@@ -40,15 +40,15 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         private NotificationData(SerializationInfo info, StreamingContext context)
         {
-            IsEnabled = (bool)info.GetValue(Enabled_Key, typeof(bool));
-            LastNotificationDate = (DateTimeOffset)info.GetValue(LastNotificationDate_Key,
+            IsEnabled = (bool)info.GetValue(EnabledKey, typeof(bool));
+            LastNotificationDate = (DateTimeOffset)info.GetValue(LastNotificationDateKey,
                 typeof(DateTimeOffset));
         }
 
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue(Enabled_Key, IsEnabled, typeof(bool));
-            info.AddValue(LastNotificationDate_Key, LastNotificationDate, typeof(DateTimeOffset));
+            info.AddValue(EnabledKey, IsEnabled, typeof(bool));
+            info.AddValue(LastNotificationDateKey, LastNotificationDate, typeof(DateTimeOffset));
         }
     }
 }

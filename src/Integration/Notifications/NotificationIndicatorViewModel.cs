@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -30,38 +31,39 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 {
     public class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel
     {
-        private string text;
-        private bool hasUnreadEvents;
-        private bool isVisible;
-        private bool isBalloonTooltipVisible;
-        private bool areNotificationsEnabled;
         private readonly ITimer autocloseTimer;
         private readonly Action<Action> uiThreadInvoker;
 
+        private string text;
+        private bool hasUnreadEvents;
+        private bool isVisible;
+        private bool isToolTipVisible;
+        private bool areNotificationsEnabled;
+
         public ObservableCollection<SonarQubeNotification> NotificationEvents { get; }
 
-        // For testing
         public NotificationIndicatorViewModel()
-            : this (ThreadHelper.Generic.Invoke)
+            : this(ThreadHelper.Generic.Invoke,
+                  new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */})
         {
         }
 
-        public NotificationIndicatorViewModel(Action<Action> uiThreadInvoker)
+        // For testing
+        public NotificationIndicatorViewModel(Action<Action> uiThreadInvoker, ITimer autocloseTimer)
         {
             this.uiThreadInvoker = uiThreadInvoker;
+            this.autocloseTimer = autocloseTimer;
 
             NotificationEvents = new ObservableCollection<SonarQubeNotification>();
-            text = GetTooltipText();
+            text = GetToolTipText();
 
-            autocloseTimer = new TimerWrapper { Interval = 3000, AutoReset = false };
             autocloseTimer.Elapsed += OnAutocloseTimerElapsed;
-
             ClearUnreadEventsCommand = new RelayCommand(() => HasUnreadEvents = false);
         }
 
         public ICommand ClearUnreadEventsCommand { get; }
 
-        public string TooltipText
+        public string ToolTipText
         {
             get
             {
@@ -83,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             set
             {
                 SetAndRaisePropertyChanged(ref hasUnreadEvents, value);
-                TooltipText = GetTooltipText();
+                ToolTipText = GetToolTipText();
             }
         }
 
@@ -111,28 +113,28 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
         }
 
-        public bool IsBalloonTooltipVisible
+        public bool IsToolTipVisible
         {
             get
             {
-                return isBalloonTooltipVisible;
+                return isToolTipVisible;
             }
             set
             {
-                SetAndRaisePropertyChanged(ref isBalloonTooltipVisible, value);
+                SetAndRaisePropertyChanged(ref isToolTipVisible, value);
 
                 // If the tooltip was closed manually, stop the timer
-                if (!isBalloonTooltipVisible)
+                if (!isToolTipVisible)
                 {
                     autocloseTimer.Stop();
                 }
             }
         }
 
-        public void SetNotificationEvents(IList<SonarQubeNotification> events)
+        public void SetNotificationEvents(IEnumerable<SonarQubeNotification> events)
         {
             if (events == null ||
-                events.Count == 0 ||
+                !events.Any() ||
                 !AreNotificationsEnabled ||
                 !isVisible)
             {
@@ -149,17 +151,17 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                     }
 
                     HasUnreadEvents = true;
-                    IsBalloonTooltipVisible = true;
+                    IsToolTipVisible = true;
                     autocloseTimer.Start();
                 });
         }
 
         private void OnAutocloseTimerElapsed(object sender, EventArgs e)
         {
-            IsBalloonTooltipVisible = false;
+            IsToolTipVisible = false;
         }
 
-        private string GetTooltipText()
+        private string GetToolTipText()
         {
             const string noUnreadEvents = "You have no unread events.";
             if (!HasUnreadEvents ||

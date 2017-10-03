@@ -18,14 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
-    public interface ISonarQubeNotifications : IDisposable
+    public interface ISonarQubeNotificationService
     {
-        Task StartAsync(string projectKey, NotificationData lastEventDate);
+        Task StartAsync(string projectKey, NotificationData notificationData);
 
         void Stop();
 

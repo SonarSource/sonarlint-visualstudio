@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 {
     public interface INotificationIndicatorViewModel
     {
-        string TooltipText { get; set; }
+        string ToolTipText { get; set; }
 
         bool HasUnreadEvents { get; set; }
 
@@ -33,8 +33,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         bool AreNotificationsEnabled { get; set; }
 
-        bool IsBalloonTooltipVisible { get; set; }
+        bool IsToolTipVisible { get; set; }
 
-        void SetNotificationEvents(IList<SonarQubeNotification> events);
+        void SetNotificationEvents(IEnumerable<SonarQubeNotification> events);
     }
 }

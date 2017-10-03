@@ -20,8 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using SonarQube.Client.Models;
@@ -30,8 +28,7 @@ using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
-    [Export(typeof(ISonarQubeNotifications))]
-    internal class SonarQubeNotifications : ISonarQubeNotifications
+    public sealed class SonarQubeNotificationService : ISonarQubeNotificationService, IDisposable
     {
         private readonly ITimer timer;
         private readonly ISonarQubeService sonarQubeService;
@@ -49,15 +46,13 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                     LastNotificationDate = lastCheckDate
                 };
 
-        [ImportingConstructor]
-        [ExcludeFromCodeCoverage] // Do not unit test MEF constructor
-        internal SonarQubeNotifications(IHost host)
-            : this(host.SonarQubeService, new NotificationIndicatorViewModel(),
+        public SonarQubeNotificationService(ISonarQubeService sonarQubeService)
+            : this(sonarQubeService, new NotificationIndicatorViewModel(),
                   new TimerWrapper { Interval = 60000 })
         {
         }
 
-        internal SonarQubeNotifications(ISonarQubeService sonarQubeService,
+        internal SonarQubeNotificationService(ISonarQubeService sonarQubeService,
             INotificationIndicatorViewModel model, ITimer timer)
         {
             this.timer = timer;
@@ -75,7 +70,14 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
 
             this.projectKey = projectKey;
+            InitializeModel(notificationData);
 
+            await UpdateEvents();
+            timer.Start();
+        }
+
+        private void InitializeModel(NotificationData notificationData)
+        {
             Model.AreNotificationsEnabled = notificationData?.IsEnabled ?? true;
 
             var oneDayAgo = DateTimeOffset.Now.AddDays(-1);
@@ -88,9 +90,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             {
                 lastCheckDate = notificationData.LastNotificationDate;
             }
-
-            await UpdateEvents();
-            timer.Start();
         }
 
         public void Stop()
@@ -125,8 +124,19 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         private async Task<IList<SonarQubeNotification>> GetNotificationEvents()
         {
-            var events = await sonarQubeService.GetNotificationEventsAsync(projectKey,
-                lastCheckDate, cancellation.Token);
+            IList<SonarQubeNotification> events = null;
+
+            try
+            {
+                events = await sonarQubeService.GetNotificationEventsAsync(projectKey,
+                    lastCheckDate, cancellation.Token);
+            }
+            catch (Exception ex)
+            {
+                VsShellUtils.WriteToSonarLintOutputPane(
+                    Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider,
+                    $"Failed to fetch notifications : {ex.Message}");
+            }
 
             if (events != null && events.Count > 0)
             {

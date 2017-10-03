@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
@@ -28,15 +29,12 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
     [TestClass]
     public class NotificationIndicatorViewModelTests
     {
-        private static SonarQubeNotification testEvent = new SonarQubeNotification
-        {
-                Category = "foo",
-                Message = "foo",
-                Link = new Uri("http://foo.com"),
-                Date = new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.FromHours(2))
+        private static SonarQubeNotification[] testEvents =
+            new []
+            {
+                new SonarQubeNotification("foo", "foo", new Uri("http://foo.com"),
+                    new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.FromHours(2)))
             };
-
-        private static SonarQubeNotification[] testEvents = new SonarQubeNotification[] { testEvent };
 
         [TestMethod]
         public void Text_Raises_PropertyChanged()
@@ -44,9 +42,9 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             var model = new NotificationIndicatorViewModel();
             model.MonitorEvents();
 
-            model.TooltipText = "test";
+            model.ToolTipText = "test";
 
-            model.ShouldRaisePropertyChangeFor(x => x.TooltipText);
+            model.ShouldRaisePropertyChangeFor(x => x.ToolTipText);
         }
 
         [TestMethod]
@@ -83,14 +81,14 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         }
 
         [TestMethod]
-        public void IsBalloonTooltipVisible_Raises_PropertyChanged()
+        public void IsToolTipVisible_Raises_PropertyChanged()
         {
             var model = new NotificationIndicatorViewModel();
             model.MonitorEvents();
 
-            model.IsBalloonTooltipVisible = true;
+            model.IsToolTipVisible = true;
 
-            model.ShouldRaisePropertyChangeFor(x => x.IsBalloonTooltipVisible);
+            model.ShouldRaisePropertyChangeFor(x => x.IsToolTipVisible);
         }
 
         [TestMethod]
@@ -101,26 +99,27 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
             model.IsIconVisible = true;
             model.AreNotificationsEnabled = true;
-            model.IsBalloonTooltipVisible = true;
-            model.ShouldRaisePropertyChangeFor(x => x.IsBalloonTooltipVisible);
+            model.IsToolTipVisible = true;
+            model.ShouldRaisePropertyChangeFor(x => x.IsToolTipVisible);
 
-            model.TooltipText.Should().Be("You have no unread events.");
+            model.ToolTipText.Should().Be("You have no unread events.");
         }
 
         [TestMethod]
         public void HasUnreadEvents_WithEvents_UpdatesTooltipText()
         {
-            var model = new NotificationIndicatorViewModel(a => a());
+            var timerMock = new Mock<ITimer>();
+            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object);
             model.MonitorEvents();
 
             model.IsIconVisible = true;
             model.AreNotificationsEnabled = true;
-            model.IsBalloonTooltipVisible = true;
-            model.SetNotificationEvents(new[] { testEvent} );
+            model.IsToolTipVisible = true;
+            model.SetNotificationEvents(testEvents);
 
-            model.ShouldRaisePropertyChangeFor(x => x.IsBalloonTooltipVisible);
+            model.ShouldRaisePropertyChangeFor(x => x.IsToolTipVisible);
 
-            model.TooltipText.Should().Be("You have 1 unread event.");
+            model.ToolTipText.Should().Be("You have 1 unread event.");
         }
 
         [TestMethod]
@@ -149,7 +148,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         private NotificationIndicatorViewModel SetupModelWithNotifications(bool areEnabled,
             bool areVisible, SonarQubeNotification[] events)
         {
-            var model = new NotificationIndicatorViewModel(a => a());
+            var timerMock = new Mock<ITimer>();
+            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object);
             model.AreNotificationsEnabled = areEnabled;
             model.IsIconVisible = areVisible;
             model.SetNotificationEvents(events);

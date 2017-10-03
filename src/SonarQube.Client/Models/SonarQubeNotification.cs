@@ -25,23 +25,26 @@ namespace SonarQube.Client.Models
 {
     public class SonarQubeNotification
     {
-        public string Category { get; set; }
+        public string Category { get; }
 
-        public string Message { get; set; }
+        public string Message { get; }
 
-        public Uri Link { get; set; }
+        public Uri Link { get; }
 
-        public DateTimeOffset Date { get; set; }
+        public DateTimeOffset Date { get; }
+
+        public SonarQubeNotification(string category, string message, Uri link, DateTimeOffset date)
+        {
+            Category = category;
+            Message = message;
+            Link = link;
+            Date = date;
+        }
 
         public static SonarQubeNotification FromResponse(NotificationsResponse response)
         {
-            return new SonarQubeNotification
-            {
-                Category = response.Category,
-                Message = response.Message,
-                Link = response.Link,
-                Date = response.Date
-            };
+            return new SonarQubeNotification(response.Category, response.Message,
+                response.Link, response.Date);
         }
     }
 }

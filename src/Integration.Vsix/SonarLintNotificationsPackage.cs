@@ -27,11 +27,11 @@ using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Notifications;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [Guid(PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideAutoLoad(UIContextGuids.NoSolution)]
@@ -42,21 +42,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// SonarLintNotifications GUID string.
         /// </summary>
         public const string PackageGuidString = "c26b6802-dd9c-4a49-b8a5-0ad8ef04c579";
-
         private const string NotificationDataKey = "NotificationEventData";
-        private IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private ISonarQubeNotifications notifications;
-        private readonly IFormatter formatter = new BinaryFormatter();
-        private NotificationData notificationData;
 
+        private readonly IFormatter formatter = new BinaryFormatter();
+
+        private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private ISonarQubeNotificationService notifications;
+        private NotificationData notificationData;
         private NotificationIndicator notificationIcon;
+        private bool disposed;
 
         protected override void Initialize()
         {
             AddOptionKey(NotificationDataKey);
             base.Initialize();
 
-            notifications = this.GetMefService<ISonarQubeNotifications>();
+            var sonarqubeService = this.GetMefService<ISonarQubeService>();
+
+            notifications = new SonarQubeNotificationService(sonarqubeService);
 
             activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
@@ -83,6 +86,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         protected override void Dispose(bool disposing)
         {
+            if (disposed)
+            {
+                return;
+            }
+
             base.Dispose(disposing);
 
             if (notificationIcon != null)
@@ -92,7 +100,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
 
-            notifications.Dispose();
+            (notifications as IDisposable)?.Dispose();
+            disposed = true;
         }
 
         protected override void OnSaveOptions(string key, Stream stream)
@@ -111,9 +120,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     notificationData = formatter.Deserialize(stream) as NotificationData;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    notificationData = null;
+                    VsShellUtils.WriteToSonarLintOutputPane(this,
+                        $"Failed to read notification data: {ex.Message}");
                 }
             }
         }

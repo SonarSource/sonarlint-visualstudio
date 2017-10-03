@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             var sqService = await GetConnectedService();
 
             var model = modelMock.Object;
-            var notifications = new SonarQubeNotifications(sqService, model, timerMock.Object);
+            var notifications = new SonarQubeNotificationService(sqService, model, timerMock.Object);
 
             // Act
             await notifications.StartAsync("test", null);
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         {
             // Arrange
             var sqService = await GetConnectedService();
-            using (var notifications = new SonarQubeNotifications(sqService, modelMock.Object, timerMock.Object))
+            using (var notifications = new SonarQubeNotificationService(sqService, modelMock.Object, timerMock.Object))
             {
                 await notifications.StartAsync("test", null);
 
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         {
             // Arrange
             var sqService = await GetConnectedService();
-            using (var notifications = new SonarQubeNotifications(sqService, modelMock.Object, timerMock.Object))
+            using (var notifications = new SonarQubeNotificationService(sqService, modelMock.Object, timerMock.Object))
             {
                 var date = new NotificationData
                 {
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             };
 
             var sqService = await GetConnectedService(event1, event2);
-            using (var notifications = new SonarQubeNotifications(sqService, modelMock.Object, timerMock.Object))
+            using (var notifications = new SonarQubeNotificationService(sqService, modelMock.Object, timerMock.Object))
             {
                 var date = new NotificationData
                 {
