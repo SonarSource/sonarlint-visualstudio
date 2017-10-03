@@ -132,7 +132,7 @@ namespace SonarQube.Client.Services
         public Task<Result<PluginResponse[]>> GetPluginsAsync(CancellationToken token)
         {
             // Since 2.10; internal
-            var serverPluginsInstalledApiUrl = new Uri("api/updatecenter/installed_plugins", UriKind.Relative);
+            var serverPluginsInstalledApiUrl = BuildRelativeUrl("api/updatecenter/installed_plugins");
 
             return InvokeSonarQubeApi(serverPluginsInstalledApiUrl, token,
                 stringResponse => ProcessJsonResponse<PluginResponse[]>(stringResponse, token));
@@ -141,7 +141,7 @@ namespace SonarQube.Client.Services
         public Task<Result<ProjectResponse[]>> GetProjectsAsync(CancellationToken token)
         {
             // Since 2.10
-            var projectsApiUrl = new Uri("api/projects/index", UriKind.Relative);
+            var projectsApiUrl = BuildRelativeUrl("api/projects/index");
 
             return InvokeSonarQubeApi(projectsApiUrl, token,
                 stringResponse => ProcessJsonResponse<ProjectResponse[]>(stringResponse, token));
@@ -150,7 +150,7 @@ namespace SonarQube.Client.Services
         public Task<Result<PropertyResponse[]>> GetPropertiesAsync(CancellationToken token)
         {
             // Since 2.6
-            var propertiesApiUrl = new Uri("api/properties/", UriKind.Relative);
+            var propertiesApiUrl = BuildRelativeUrl("api/properties/");
 
             return InvokeSonarQubeApi(propertiesApiUrl, token,
                 stringResponse => ProcessJsonResponse<PropertyResponse[]>(stringResponse, token));
@@ -216,7 +216,7 @@ namespace SonarQube.Client.Services
         public Task<Result<VersionResponse>> GetVersionAsync(CancellationToken token)
         {
             // Since 2.10; internal
-            var serverVersionAPI = new Uri("api/server/version", UriKind.Relative);
+            var serverVersionAPI = BuildRelativeUrl("api/server/version");
 
             return InvokeSonarQubeApi(serverVersionAPI, token,
                 stringResponse => new VersionResponse { Version = stringResponse });
@@ -225,22 +225,28 @@ namespace SonarQube.Client.Services
         public Task<Result<CredentialResponse>> ValidateCredentialsAsync(CancellationToken token)
         {
             // Since 3.3
-            var validateCredentialsApiUrl = new Uri("api/authentication/validate", UriKind.Relative);
+            var validateCredentialsApiUrl = BuildRelativeUrl("api/authentication/validate");
 
             return InvokeSonarQubeApi(validateCredentialsApiUrl, token,
                 stringResponse => new CredentialResponse { IsValid = (bool)JObject.Parse(stringResponse).SelectToken("valid") });
         }
 
-        private Uri BuildRelativeUrl(string relativePath, Dictionary<string, string> queryParameters)
+        private Uri BuildRelativeUrl(string relativePath, Dictionary<string, string> queryParameters = null)
         {
             var query = HttpUtility.ParseQueryString(string.Empty);
-            foreach (var kvp in queryParameters)
+
+            foreach (var kvp in queryParameters ?? new Dictionary<string, string>()
+                .Where(p => p.Value != null))
             {
                 query[kvp.Key] = kvp.Value;
             }
 
-            return new Uri(string.Format("{0}?{1}", relativePath, query.ToString()),
-                UriKind.Relative);
+            var queryString = query.ToString();
+            var url = string.IsNullOrEmpty(queryString)
+                ? relativePath
+                : $"{relativePath}?{queryString}";
+
+            return new Uri(url, UriKind.Relative);
         }
 
         private static Uri CreateRequestUrl(HttpClient client, Uri apiUrl)
