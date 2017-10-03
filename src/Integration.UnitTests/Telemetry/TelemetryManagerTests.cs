@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private Mock<IActiveSolutionBoundTracker> activeSolutionTrackerMock;
         private Mock<ITelemetryDataRepository> telemetryRepositoryMock;
         private Mock<ITelemetryClient> telemetryClientMock;
-        private Mock<ITimerFactory> timerFactoryMock;
+        private Mock<ITelemetryTimer> telemetryTimerMock;
         private Mock<IKnownUIContexts> knownUIContexts;
 
         [TestInitialize]
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             activeSolutionTrackerMock = new Mock<IActiveSolutionBoundTracker>();
             telemetryRepositoryMock = new Mock<ITelemetryDataRepository>();
             telemetryClientMock = new Mock<ITelemetryClient>();
-            timerFactoryMock = new Mock<ITimerFactory>();
+            telemetryTimerMock = new Mock<ITelemetryTimer>();
             knownUIContexts = new Mock<IKnownUIContexts>();
         }
 
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(null, telemetryRepositoryMock.Object, telemetryClientMock.Object,
-                timerFactoryMock.Object, new Clock(), knownUIContexts.Object);
+                telemetryTimerMock.Object, knownUIContexts.Object);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingTracker");
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, null, telemetryClientMock.Object,
-                timerFactoryMock.Object, new Clock(), knownUIContexts.Object);
+                telemetryTimerMock.Object, knownUIContexts.Object);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryRepository");
@@ -75,53 +75,21 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, null,
-                timerFactoryMock.Object, new Clock(), knownUIContexts.Object);
+                telemetryTimerMock.Object, knownUIContexts.Object);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryClient");
         }
 
         [TestMethod]
-        public void Ctor_WhenGivenANullClock_ThrowsArgumentNullException()
+        public void Ctor_WhenGivenANullTelemetryTimer_ThrowsArgumentNullException()
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
-                telemetryClientMock.Object, timerFactoryMock.Object, null, knownUIContexts.Object);
+                telemetryClientMock.Object, null, knownUIContexts.Object);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("clock");
-        }
-
-        [TestMethod]
-        public void Ctor_WhenGivenANullTimerFactory_ThrowsArgumentNullException()
-        {
-            // Act
-            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
-                telemetryClientMock.Object, null, new Clock(), knownUIContexts.Object);
-
-            // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("timerFactory");
-        }
-
-        [TestMethod]
-        public void Ctor_InitialState_IsExpected()
-        {
-            // Arrange
-            var timer1 = new Mock<ITimer>();
-            var timer2 = new Mock<ITimer>();
-            this.timerFactoryMock.Setup(x => x.Create())
-                .Returns(new Queue<ITimer>(new[] { timer1.Object, timer2.Object }).Dequeue);
-            this.telemetryRepositoryMock.Setup(x => x.Data).Returns(new TelemetryData());
-
-            // Act
-            var manager = CreateManager();
-
-            // Assert
-            this.timerFactoryMock.Verify(x => x.Create(), Times.Exactly(2));
-            timer1.VerifySet(x => x.AutoReset = false, Times.Once);
-            timer1.VerifySet(x => x.Interval = 1000 * 60 * 1, Times.Once);
-            timer2.VerifySet(x => x.AutoReset = true, Times.Once);
-            timer2.VerifySet(x => x.Interval = 1000 * 60 * 60 * 6, Times.Once);
+            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryTimer");
         }
 
         [TestMethod]
@@ -129,7 +97,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             var telemetryData = new TelemetryData { InstallationDate = DateTime.MinValue };
-            this.timerFactoryMock.Setup(x => x.Create()).Returns(new TimerWrapper());
             this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
             // Act
@@ -145,7 +112,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void IsAnonymousDataShared_ReturnsValueFromRepository()
         {
             // Arrange
-            this.timerFactoryMock.Setup(x => x.Create()).Returns(new TimerWrapper());
             this.telemetryRepositoryMock.Setup(x => x.Data)
                 .Returns(new TelemetryData { InstallationDate = DateTime.Now, IsAnonymousDataShared = true });
             var manager = CreateManager();
@@ -162,11 +128,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             var telemetryData = new TelemetryData { InstallationDate = DateTime.Now };
-            var timer1 = new Mock<ITimer>();
-            var timer2 = new Mock<ITimer>();
-            this.timerFactoryMock.Setup(x => x.Create())
-                .Returns(new Queue<ITimer>(new[] { timer1.Object, timer2.Object }).Dequeue);
-            this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
             var manager = CreateManager();
 
             // Act
@@ -174,10 +137,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // Assert
             telemetryData.IsAnonymousDataShared.Should().BeTrue();
-            this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
 
-            timer1.Verify(x => x.Start(), Times.Once);
-            timer2.Verify(x => x.Start(), Times.Once);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+
+            telemetryTimerMock.Verify(x => x.Start(), Times.Once);
         }
 
         [TestMethod]
@@ -185,11 +148,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             var telemetryData = new TelemetryData { InstallationDate = DateTime.Now };
-            var timer1 = new Mock<ITimer>();
-            var timer2 = new Mock<ITimer>();
-            this.timerFactoryMock.Setup(x => x.Create())
-                .Returns(new Queue<ITimer>(new[] { timer1.Object, timer2.Object }).Dequeue);
-            this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
             var manager = CreateManager();
 
             // Act
@@ -197,12 +157,12 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // Assert
             telemetryData.IsAnonymousDataShared.Should().BeFalse();
-            this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
 
-            timer1.Verify(x => x.Stop(), Times.Once);
-            timer2.Verify(x => x.Stop(), Times.Once);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
 
-            this.telemetryClientMock.Verify(x => x.OptOut(It.IsAny<TelemetryPayload>()), Times.Once);
+            telemetryTimerMock.Verify(x => x.Stop(), Times.Once);
+
+            telemetryClientMock.Verify(x => x.OptOut(It.IsAny<TelemetryPayload>()), Times.Once);
         }
 
         [TestMethod]
@@ -215,20 +175,18 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 InstallationDate = DateTime.Now,
                 LastUploadDate = DateTime.Now.AddDays(-1)
             };
-            var firstCallDelayer = new Mock<ITimer>();
-            var timer = new Mock<ITimer>();
-            this.timerFactoryMock.Setup(x => x.Create())
-                .Returns(new Queue<ITimer>(new[] { firstCallDelayer.Object, timer.Object }).Dequeue);
-            this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
             var manager = CreateManager();
+            var now = DateTime.Now;
 
             // Act
-            firstCallDelayer.Raise(x => x.Elapsed += null, (EventArgs)null);
+            telemetryTimerMock.Raise(x => x.Elapsed += null, new TelemetryTimerEventArgs(now));
 
             // Assert
-            telemetryData.LastUploadDate.Should().BeCloseTo(DateTime.Now, 200);
-            this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
-            this.telemetryClientMock.Verify(x => x.SendPayload(It.IsAny<TelemetryPayload>()), Times.Once);
+            telemetryData.LastUploadDate.Should().Be(now);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+            telemetryClientMock.Verify(x => x.SendPayload(It.IsAny<TelemetryPayload>()), Times.Once);
         }
 
         [TestMethod]
@@ -241,20 +199,18 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 InstallationDate = DateTime.Now,
                 LastUploadDate = DateTime.Now.AddDays(-1)
             };
-            var timer = new Mock<ITimer>();
-            var tryUploadDataTimer = new Mock<ITimer>();
-            this.timerFactoryMock.Setup(x => x.Create())
-                .Returns(new Queue<ITimer>(new[] { timer.Object, tryUploadDataTimer.Object }).Dequeue);
-            this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
             var manager = CreateManager();
+            var now = DateTime.Now;
 
             // Act
-            tryUploadDataTimer.Raise(x => x.Elapsed += null, (EventArgs)null);
+            telemetryTimerMock.Raise(x => x.Elapsed += null, new TelemetryTimerEventArgs(now));
 
             // Assert
-            telemetryData.LastUploadDate.Should().BeCloseTo(DateTime.Now, CloseTimeThresholdInMilliseconds);
-            this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
-            this.telemetryClientMock.Verify(x => x.SendPayload(It.IsAny<TelemetryPayload>()), Times.Once);
+            telemetryData.LastUploadDate.Should().Be(now);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+            telemetryClientMock.Verify(x => x.SendPayload(It.IsAny<TelemetryPayload>()), Times.Once);
         }
 
         [TestMethod]
@@ -292,17 +248,18 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 InstallationDate = DateTime.Now,
                 LastSavedAnalysisDate = lastSavedAnalysisDate
             };
-            this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
-            this.timerFactoryMock.Setup(x => x.Create()).Returns(new Mock<ITimer>().Object);
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
             var manager = CreateManager();
 
             // Act
-            this.knownUIContexts.Raise(eventExpression, new UIContextChangedEventArgs(true));
+            knownUIContexts.Raise(eventExpression, new UIContextChangedEventArgs(true));
 
             // Assert
-            telemetryData.LastSavedAnalysisDate.Should().BeCloseTo(DateTime.Now, CloseTimeThresholdInMilliseconds);
+            telemetryData.LastSavedAnalysisDate.Should().BeCloseTo(DateTime.Today, CloseTimeThresholdInMilliseconds);
             telemetryData.NumberOfDaysOfUse.Should().Be(1);
-            this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
         }
 
         [TestMethod]
@@ -320,27 +277,26 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private void WhenEventAndNotActivate_DoNothing(Action<IKnownUIContexts> eventExpression)
         {
             // Arrange
-            var date = DateTime.Now;
+            var now = DateTime.Now;
             var telemetryData = new TelemetryData
             {
                 IsAnonymousDataShared = true,
                 InstallationDate = DateTime.Now,
-                LastSavedAnalysisDate = date
+                LastSavedAnalysisDate = now
             };
-            this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
-            this.timerFactoryMock.Setup(x => x.Create()).Returns(new Mock<ITimer>().Object);
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
             var manager = CreateManager();
 
             // Act
-            this.knownUIContexts.Raise(eventExpression, new UIContextChangedEventArgs(false));
+            knownUIContexts.Raise(eventExpression, new UIContextChangedEventArgs(false));
 
             // Assert
-            telemetryData.LastSavedAnalysisDate.Should().Be(date);
+            telemetryData.LastSavedAnalysisDate.Should().Be(now);
             telemetryData.NumberOfDaysOfUse.Should().Be(0);
-            this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Never);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Never);
         }
 
         private TelemetryManager CreateManager() => new TelemetryManager(activeSolutionTrackerMock.Object,
-            telemetryRepositoryMock.Object, telemetryClientMock.Object, timerFactoryMock.Object, new Clock(), knownUIContexts.Object);
+            telemetryRepositoryMock.Object, telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object);
     }
 }

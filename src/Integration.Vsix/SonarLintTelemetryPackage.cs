@@ -42,8 +42,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var activeSolutionTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             Debug.Assert(activeSolutionTracker != null, "Failed to resolve 'IActiveSolutionBoundTracker'.");
 
-            this.telemetryManager = new TelemetryManager(activeSolutionTracker, new TelemetryDataRepository(),
-                new TelemetryClient(), new TimerFactory(), new Clock(), new KnownUIContextsWrapper());
+            var telemetryRepository = new TelemetryDataRepository();
+            this.telemetryManager = new TelemetryManager(activeSolutionTracker, telemetryRepository, new TelemetryClient(),
+                new TelemetryTimer(telemetryRepository, new Clock(), new TimerWrapper()), new KnownUIContextsWrapper());
         }
 
         protected override void Dispose(bool disposing)
