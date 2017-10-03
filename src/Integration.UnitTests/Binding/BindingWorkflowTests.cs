@@ -24,6 +24,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using EnvDTE;
 using FluentAssertions;
@@ -32,12 +33,16 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NuGet;
 using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Messages;
+using SonarQube.Client.Models;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -45,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class BindingWorkflowTests
     {
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableSonarQubeServiceWrapper sonarQubeService;
+        private Mock<ISonarQubeService> sonarQubeServiceMock;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableHost host;
@@ -61,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
-            this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
+            this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
 
             var sccFileSystem = new ConfigurableSourceControlledFileSystem();
@@ -82,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void BindingWorkflow_ArgChecks()
         {
             var validConnection = new ConnectionInformation(new Uri("http://server"));
-            var validProjectInfo = new ProjectInformation();
+            var validProjectInfo = new SonarQubeProject("", "");
             var validHost = new ConfigurableHost();
 
             Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(null, validConnection, validProjectInfo));
@@ -91,12 +96,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_DownloadQualityProfile_Success()
+        public async Task BindingWorkflow_DownloadQualityProfile_Success()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
-            const string SonarQubeProjectName = "SQProjectName";
-            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            const string ProjectName = "SQProjectName";
+            var projectInfo = new SonarQubeProject("key", ProjectName);
             BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
@@ -104,19 +109,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
             var expectedRuleSet = new RuleSet(ruleSet)
             {
-                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, SonarQubeProjectName, QualityProfileName),
+                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, ProjectName, QualityProfileName),
                 NonLocalizedDescription = "\r\nhttp://connected/profiles/show?key="
             };
             var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
-            var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
-            RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
+            var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
+            RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
-            QualityProfile profile = this.ConfigureProfileExport(export, language);
-            profile.Name = QualityProfileName;
+            SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             RuleSetAssert.AreEqual(expectedRuleSet, testSubject.Rulesets[language], "Unexpected rule set");
@@ -133,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_DownloadQualityProfile_WhenQualityProfileIsNotAvailable_Fails()
+        public async Task BindingWorkflow_DownloadQualityProfile_WhenQualityProfileIsNotAvailable_Fails()
         {
             // Arrange
             BindingWorkflow testSubject = this.CreateTestSubject();
@@ -141,10 +145,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
             var language = Language.CSharp;
-            this.ConfigureProfileExport(null, Language.VBNET);
+            this.ConfigureProfileExport(null, Language.VBNET, "");
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
@@ -160,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_DownloadQualityProfile_WhenProfileExportIsNotAvailable_Fails()
+        public async Task BindingWorkflow_DownloadQualityProfile_WhenProfileExportIsNotAvailable_Fails()
         {
             // Arrange
             BindingWorkflow testSubject = this.CreateTestSubject();
@@ -168,10 +172,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
             var language = Language.CSharp;
-            this.ConfigureProfileExport(null, language);
+            this.ConfigureProfileExport(null, language, "");
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
@@ -187,27 +191,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_DownloadQualityProfile_WithNoRules_Fails()
+        public async Task BindingWorkflow_DownloadQualityProfile_WithNoRules_Fails()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
-            const string SonarQubeProjectName = "SQProjectName";
-            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            const string ProjectName = "SQProjectName";
+            var projectInfo = new SonarQubeProject("key", ProjectName);
             BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(Enumerable.Empty<string>());
             var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
-            var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
-            RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
+            var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
+            RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
-            QualityProfile profile = this.ConfigureProfileExport(export, language);
-            profile.Name = QualityProfileName;
+            SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
@@ -223,12 +226,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_DownloadQualityProfile_WithNoActiveRules_Fails()
+        public async Task BindingWorkflow_DownloadQualityProfile_WithNoActiveRules_Fails()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
-            const string SonarQubeProjectName = "SQProjectName";
-            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            const string ProjectName = "SQProjectName";
+            var projectInfo = new SonarQubeProject("key", ProjectName);
             BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
@@ -240,19 +243,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             var expectedRuleSet = new RuleSet(ruleSet)
             {
-                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, SonarQubeProjectName, QualityProfileName),
+                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, ProjectName, QualityProfileName),
                 NonLocalizedDescription = "\r\nhttp://connected/profiles/show?key="
             };
             var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
-            var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
-            RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
+            var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
+            RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
-            QualityProfile profile = this.ConfigureProfileExport(export, language);
-            profile.Name = QualityProfileName;
+            SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
@@ -268,12 +270,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_DownloadQualityProfile_WithNoNugetPackage_Fails()
+        public async Task BindingWorkflow_DownloadQualityProfile_WithNoNugetPackage_Fails()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
-            const string SonarQubeProjectName = "SQProjectName";
-            var projectInfo = new ProjectInformation { Key = "key", Name = SonarQubeProjectName };
+            const string ProjectName = "SQProjectName";
+            var projectInfo = new SonarQubeProject("key", ProjectName);
             BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
@@ -281,18 +283,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
             var expectedRuleSet = new RuleSet(ruleSet)
             {
-                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, SonarQubeProjectName, QualityProfileName),
+                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, ProjectName, QualityProfileName),
                 NonLocalizedDescription = "\r\nhttp://connected/profiles/show?key="
             };
-            var additionalFiles = new[] { new AdditionalFile { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
-            RoslynExportProfile export = RoslynExportProfileHelper.CreateExport(ruleSet, Enumerable.Empty<PackageName>(), additionalFiles);
+            var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
+            RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, Enumerable.Empty<PackageName>(), additionalFiles);
 
             var language = Language.VBNET;
-            QualityProfile profile = this.ConfigureProfileExport(export, language);
-            profile.Name = QualityProfileName;
+            SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            testSubject.DownloadQualityProfile(controller, CancellationToken.None, notifications, new[] { language });
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
@@ -770,11 +771,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private BindingWorkflow CreateTestSubject(ProjectInformation projectInfo = null)
+        private BindingWorkflow CreateTestSubject(SonarQubeProject projectInfo = null)
         {
             ConnectionInformation connected = new ConnectionInformation(new Uri("http://connected"));
-            this.host.SonarQubeService = this.sonarQubeService;
-            var useProjectInfo = projectInfo ?? new ProjectInformation { Key = "key" };
+            this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
+            var useProjectInfo = projectInfo ?? new SonarQubeProject("key", "");
             return new BindingWorkflow(this.host, connected, useProjectInfo);
         }
 
@@ -786,7 +787,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             foreach (var nugetPackagesForLanguage in nugetPackagesByLanguage)
             {
                 testSubject.NuGetPackages.Add(nugetPackagesForLanguage.Key,
-                    nugetPackagesForLanguage.Value.Select(x => new NuGetPackageInfo { Id = x.Id, Version = x.Version.ToNormalizedString() }).ToList());
+                    nugetPackagesForLanguage.Value.Select(x => new NuGetPackageInfoResponse { Id = x.Id, Version = x.Version.ToNormalizedString() }).ToList());
             }
 
             ConfigurablePackageInstaller packageInstaller = new ConfigurablePackageInstaller(nugetPackagesByLanguage.Values.SelectMany(x => x));
@@ -796,11 +797,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return packageInstaller;
         }
 
-        private QualityProfile ConfigureProfileExport(RoslynExportProfile export, Language language)
+        private SonarQubeQualityProfile ConfigureProfileExport(RoslynExportProfileResponse export, Language language, string profileName)
         {
-            var profile = new QualityProfile { Language = SonarQubeServiceWrapper.GetServerLanguageKey(language) };
-            this.sonarQubeService.ReturnProfile[language] = profile;
-            this.sonarQubeService.ReturnExport[profile] = export;
+            var profile = new SonarQubeQualityProfile("", profileName, "", false, DateTime.Now);
+            this.sonarQubeServiceMock
+                .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), language.ToServerLanguage(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(profile);
+            this.sonarQubeServiceMock
+                .Setup(x => x.GetRoslynExportProfileAsync(profileName, It.IsAny<SonarQubeLanguage>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(export);
 
             return profile;
         }

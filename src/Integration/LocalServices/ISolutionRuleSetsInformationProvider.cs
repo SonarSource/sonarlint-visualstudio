@@ -34,12 +34,12 @@ namespace SonarLint.VisualStudio.Integration
 
         /// <summary>
         /// Will return a calculate file path to the shared SonarQube RuleSet
-        /// that corresponds to the <paramref name="sonarQubeProjectKey"/> (with  <paramref name="fileNameSuffix"/>).
+        /// that corresponds to the <paramref name="ProjectKey"/> (with  <paramref name="fileNameSuffix"/>).
         /// </summary>
-        /// <param name="sonarQubeProjectKey">Required</param>
+        /// <param name="ProjectKey">Required</param>
         /// <param name="language">The language this rule set corresponds to</param>
         /// <returns>Full file path. The file may not actually exist on disk</returns>
-        string CalculateSolutionSonarQubeRuleSetFilePath(string sonarQubeProjectKey, Language language);
+        string CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language);
 
         /// <summary>
         /// Will return a calculated file path to the expected project RuleSet

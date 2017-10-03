@@ -48,6 +48,11 @@ namespace SonarLint.VisualStudio.Integration
             return this.GetSolutionBinding() != null;
         }
 
+        public string GetProjectKey()
+        {
+            return this.GetSolutionBinding()?.ProjectKey;
+        }
+
         public IEnumerable<Project> GetBoundProjects()
         {
             return this.GetBoundProjects(this.GetSolutionBinding());
@@ -181,6 +186,7 @@ namespace SonarLint.VisualStudio.Integration
 
             return projectRuleSet;
         }
+
         #endregion
     }
 }

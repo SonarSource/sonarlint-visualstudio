@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
@@ -32,6 +33,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool SolutionBound { get; set; }
 
+        public string ProjectKey { get; set; }
+
         public IEnumerable<Project> GetBoundProjects()
         {
             return this.BoundProjects;
@@ -44,7 +47,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool IsSolutionBound()
         {
-            return this.SolutionBound;
+            return SolutionBound;
+        }
+
+        public string GetProjectKey()
+        {
+            return ProjectKey;
         }
     }
 }

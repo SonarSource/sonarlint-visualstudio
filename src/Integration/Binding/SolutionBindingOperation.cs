@@ -26,7 +26,7 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Service;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -40,11 +40,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
         private readonly Dictionary<Language, RuleSetInformation> ruleSetsInformationMap = new Dictionary<Language, RuleSetInformation>();
-        private Dictionary<Language, QualityProfile> qualityProfileMap;
+        private Dictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
-        private readonly string sonarQubeProjectKey;
+        private readonly string ProjectKey;
 
-        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string sonarQubeProjectKey)
+        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string ProjectKey)
         {
             if (serviceProvider == null)
             {
@@ -56,14 +56,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(connection));
             }
 
-            if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
+            if (string.IsNullOrWhiteSpace(ProjectKey))
             {
-                throw new ArgumentNullException(nameof(sonarQubeProjectKey));
+                throw new ArgumentNullException(nameof(ProjectKey));
             }
 
             this.serviceProvider = serviceProvider;
             this.connection = connection;
-            this.sonarQubeProjectKey = sonarQubeProjectKey;
+            this.ProjectKey = ProjectKey;
 
             this.projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 Debug.Assert(!this.ruleSetsInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
 
-                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.sonarQubeProjectKey, keyValue.Key);
+                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.ProjectKey, keyValue.Key);
                 this.ruleSetsInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
             }
         }
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Public API
-        public void Initialize(IEnumerable<Project> projects, IDictionary<Language, QualityProfile> profilesMap)
+        public void Initialize(IEnumerable<Project> projects, IDictionary<Language, SonarQubeQualityProfile> profilesMap)
         {
             if (projects == null)
             {
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
 
-            this.qualityProfileMap = new Dictionary<Language, QualityProfile>(profilesMap);
+            this.qualityProfileMap = new Dictionary<Language, SonarQubeQualityProfile>(profilesMap);
 
             foreach (Project project in projects)
             {
@@ -242,11 +242,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 map[keyValue.Key] = new ApplicableQualityProfile
                 {
                     ProfileKey = keyValue.Value.Key,
-                    ProfileTimestamp = keyValue.Value.QualityProfileTimestamp
+                    ProfileTimestamp = keyValue.Value.TimeStamp
                 };
             }
 
-            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.sonarQubeProjectKey, credentials,
+            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.ProjectKey, credentials,
                 connInfo.Organization);
             bound.Profiles = map;
 
