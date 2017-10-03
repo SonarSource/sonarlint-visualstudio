@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 if (this.extensionHost.ActiveSection?.DisconnectCommand.CanExecute(null) == true)
                 {
-                    this.extensionHost.ActiveSection?.DisconnectCommand.Execute(null);
+                    this.extensionHost.ActiveSection.DisconnectCommand.Execute(null);
                 }
             }
 
