@@ -278,27 +278,5 @@ namespace SonarQube.Client.Services
 
             return new Result<T>(httpResponse, response);
         }
-
-        private async Task<Result<T>> InvokeSonarQubeApi<T>(ConnectionRequest connection, string query, CancellationToken token,
-            Func<HttpResponseMessage, Task<T>> parseResponse)
-        {
-            using (var client = CreateHttpClient(connection))
-            {
-                var httpResponse = await InvokeGetRequest(client, query, token);
-                token.ThrowIfCancellationRequested();
-                var response = await parseResponse(httpResponse);
-
-                return new Result<T>(httpResponse, response);
-            }
-        }
-
-        private static IEnumerable<T> ReadFromProtobufStream<T>(Stream stream, MessageParser<T> parser)
-            where T : IMessage<T>
-        {
-            while (stream.Position < stream.Length)
-            {
-                yield return parser.ParseDelimitedFrom(stream);
-            }
-        }
     }
 }

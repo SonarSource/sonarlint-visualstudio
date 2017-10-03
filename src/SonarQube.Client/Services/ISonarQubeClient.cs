@@ -37,11 +37,6 @@ namespace SonarQube.Client.Services
         Task<Result<ServerIssue[]>> GetIssuesAsync(string key, CancellationToken token);
 
         /// <summary>
-        ///     Retrieves all issues for the given project, module or file key.
-        /// </summary>
-        Task<Result<ServerIssue[]>> GetIssuesAsync(ConnectionRequest connection, string key, CancellationToken token);
-
-        /// <summary>
         ///     Retrieves all organizations from the given SonarQube server.
         /// </summary>
         Task<Result<OrganizationResponse[]>> GetOrganizationsAsync(OrganizationRequest request, CancellationToken token);
