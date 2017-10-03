@@ -20,12 +20,15 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using SonarLint.VisualStudio.Integration.Persistence;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionBoundTracker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IDisposable
+    internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IDisposable, IPartImportsSatisfiedNotification
     {
         private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
@@ -59,7 +62,8 @@ namespace SonarLint.VisualStudio.Integration
 
             this.errorListInfoBarController = this.extensionHost.GetService<IErrorListInfoBarController>();
             this.errorListInfoBarController.AssertLocalServiceIsNotNull();
-            this.errorListInfoBarController.Refresh();
+            
+            //TODO: check whether the errorListInfobarController needs to be refreshed
 
             // The user changed the binding through the Team Explorer
             this.extensionHost.VisualStateManager.BindingStateChanged += this.OnBindingStateChanged;
@@ -71,10 +75,41 @@ namespace SonarLint.VisualStudio.Integration
             this.ProjectKey = this.solutionBindingInformationProvider.GetProjectKey();
         }
 
+
         private void OnActiveSolutionChanged(object sender, EventArgs e)
         {
+            UpdateConnection();
+
             this.RaiseAnalyzersChangedIfBindingChanged();
             this.errorListInfoBarController.Refresh();
+        }
+
+        private void UpdateConnection()
+        {
+            ISonarQubeService sqService = this.extensionHost.SonarQubeService;
+            if (sqService.IsConnected)
+            {
+                sqService.Disconnect();
+
+                if (this.extensionHost.ActiveSection?.DisconnectCommand.CanExecute(null) == true)
+                {
+                    this.extensionHost.ActiveSection.DisconnectCommand.Execute(null);
+                }
+            }
+
+            bool isSolutionCurrentlyBound = this.solutionBindingInformationProvider.IsSolutionBound();
+
+            if (isSolutionCurrentlyBound)
+            {
+                var solutionBinding = this.extensionHost.GetService<ISolutionBindingSerializer>();
+                solutionBinding.AssertLocalServiceIsNotNull();
+                BoundSonarQubeProject boundProject = solutionBinding.ReadSolutionBinding();
+                var connectionInformation = boundProject.CreateConnectionInformation();
+
+                // TODO: handle connection failure
+                // TODO: block until the connection is complete
+                this.extensionHost.SonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None);
+            }
         }
 
         private void OnBindingStateChanged(object sender, EventArgs e)
@@ -86,20 +121,25 @@ namespace SonarLint.VisualStudio.Integration
         {
             bool isSolutionCurrentlyBound = this.solutionBindingInformationProvider.IsSolutionBound();
             string projectKey = this.solutionBindingInformationProvider.GetProjectKey();
+
             if (this.IsActiveSolutionBound != isSolutionCurrentlyBound ||
                 this.ProjectKey != projectKey)
             {
                 this.IsActiveSolutionBound = isSolutionCurrentlyBound;
                 this.ProjectKey = projectKey;
-                this.OnAnalyzersChanged();
+
+                this.SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, ProjectKey));
             }
         }
 
-        private void OnAnalyzersChanged()
+        #region IPartImportsSatisfiedNotification
+
+        public void OnImportsSatisfied()
         {
-            this.SolutionBindingChanged?.Invoke(this,
-                new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, ProjectKey));
+            UpdateConnection();
         }
+
+        #endregion
 
         #region IDisposable
 
@@ -118,6 +158,7 @@ namespace SonarLint.VisualStudio.Integration
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             this.Dispose(true);
         }
+
         #endregion
     }
 }
