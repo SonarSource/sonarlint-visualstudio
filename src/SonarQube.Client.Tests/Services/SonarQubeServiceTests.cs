@@ -337,51 +337,42 @@ namespace SonarQube.Client.Services.Tests
         }
 
         [TestMethod]
-        public async Task ThrowWhenNotConnected()
+        public void ThrowWhenNotConnected()
         {
             // Arrange
             var client = new Mock<ISonarQubeClient>();
             var sqService = new SonarQubeService(WrapInMockFactory(client));
 
             // Act & Assert
-            await AssertExceptionThrownWhenNotConnected(() =>
+            AssertExceptionThrownWhenNotConnected(() =>
                 sqService.GetAllOrganizationsAsync(CancellationToken.None));
 
-            await AssertExceptionThrownWhenNotConnected(() =>
+            AssertExceptionThrownWhenNotConnected(() =>
                 sqService.GetAllPluginsAsync(CancellationToken.None));
 
-            await AssertExceptionThrownWhenNotConnected(() =>
+            AssertExceptionThrownWhenNotConnected(() =>
                 sqService.GetAllProjectsAsync("organizationKey", CancellationToken.None));
 
-            await AssertExceptionThrownWhenNotConnected(() =>
+            AssertExceptionThrownWhenNotConnected(() =>
                 sqService.GetAllPropertiesAsync(CancellationToken.None));
 
-            await AssertExceptionThrownWhenNotConnected(() =>
+            AssertExceptionThrownWhenNotConnected(() =>
             {
                 sqService.GetProjectDashboardUrl("projectKey");
                 return Task.Delay(0);
             });
 
-            await AssertExceptionThrownWhenNotConnected(() =>
+            AssertExceptionThrownWhenNotConnected(() =>
                 sqService.GetQualityProfileAsync("projectKey", SonarQubeLanguage.CSharp, CancellationToken.None));
 
-            await AssertExceptionThrownWhenNotConnected(() =>
+            AssertExceptionThrownWhenNotConnected(() =>
                 sqService.GetRoslynExportProfileAsync("qualityProfileName", SonarQubeLanguage.CSharp, CancellationToken.None));
         }
 
-        private async Task AssertExceptionThrownWhenNotConnected(Func<Task> action)
+        private void AssertExceptionThrownWhenNotConnected(Func<Task> action)
         {
-            bool wasThrown = false;
-            try
-            {
-                await action();
-            }
-            catch (Exception ex)
-            {
-                wasThrown = true;
-                ex.Message.Should().Be("This operation expects the service to be connected.");
-            }
-            wasThrown.Should().BeTrue("Expected InvalidOperationException");
+            action.ShouldThrow<InvalidOperationException>()
+                .And.Message.Should().Be("This operation expects the service to be connected.");
         }
 
         private static Mock<ISonarQubeClient> GetMockSqClientWithCredentialAndVersion(string version)
