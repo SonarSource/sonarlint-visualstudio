@@ -369,9 +369,9 @@ namespace SonarQube.Client.Services.Tests
                 sqService.GetRoslynExportProfileAsync("qualityProfileName", SonarQubeLanguage.CSharp, CancellationToken.None));
         }
 
-        private void AssertExceptionThrownWhenNotConnected(Func<Task> action)
+        private void AssertExceptionThrownWhenNotConnected(Func<Task> asyncCall)
         {
-            action.ShouldThrow<InvalidOperationException>()
+            asyncCall.ShouldThrow<InvalidOperationException>()
                 .And.Message.Should().Be("This operation expects the service to be connected.");
         }
 
