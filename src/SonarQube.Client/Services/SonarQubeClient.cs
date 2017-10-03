@@ -235,10 +235,12 @@ namespace SonarQube.Client.Services
         {
             var query = HttpUtility.ParseQueryString(string.Empty);
 
-            foreach (var kvp in queryParameters ?? new Dictionary<string, string>()
-                .Where(p => p.Value != null))
+            if (queryParameters != null)
             {
-                query[kvp.Key] = kvp.Value;
+                foreach (var kvp in queryParameters.Where(p => p.Value != null))
+                {
+                    query[kvp.Key] = kvp.Value;
+                }
             }
 
             var queryString = query.ToString();
