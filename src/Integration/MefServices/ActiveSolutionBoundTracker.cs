@@ -63,6 +63,8 @@ namespace SonarLint.VisualStudio.Integration
             this.errorListInfoBarController = this.extensionHost.GetService<IErrorListInfoBarController>();
             this.errorListInfoBarController.AssertLocalServiceIsNotNull();
             
+            //TODO: check whether the errorListInfobarController needs to be refreshed
+
             // The user changed the binding through the Team Explorer
             this.extensionHost.VisualStateManager.BindingStateChanged += this.OnBindingStateChanged;
 
