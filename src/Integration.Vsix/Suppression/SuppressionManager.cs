@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             bool matchFound = issuesInFile.Any(i =>
                     liveIssue.StartLine == i.Line ||
                     StringComparer.Ordinal.Equals(liveIssue.LineHash, i.Hash));
-            return matchFound;
+            return !matchFound;
         }
 
         #region IDisposable Support
