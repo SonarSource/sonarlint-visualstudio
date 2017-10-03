@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(null, telemetryRepositoryMock.Object, telemetryClientMock.Object,
-                timerFactoryMock.Object, knownUIContexts.Object);
+                timerFactoryMock.Object, new Clock(), knownUIContexts.Object);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingTracker");
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, null, telemetryClientMock.Object,
-                timerFactoryMock.Object, knownUIContexts.Object);
+                timerFactoryMock.Object, new Clock(), knownUIContexts.Object);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryRepository");
@@ -75,10 +75,21 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, null,
-                timerFactoryMock.Object, knownUIContexts.Object);
+                timerFactoryMock.Object, new Clock(), knownUIContexts.Object);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryClient");
+        }
+
+        [TestMethod]
+        public void Ctor_WhenGivenANullClock_ThrowsArgumentNullException()
+        {
+            // Act
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
+                telemetryClientMock.Object, timerFactoryMock.Object, null, knownUIContexts.Object);
+
+            // Assert
+            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("clock");
         }
 
         [TestMethod]
@@ -86,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
-                telemetryClientMock.Object, null, knownUIContexts.Object);
+                telemetryClientMock.Object, null, new Clock(), knownUIContexts.Object);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("timerFactory");
@@ -108,9 +119,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             this.timerFactoryMock.Verify(x => x.Create(), Times.Exactly(2));
             timer1.VerifySet(x => x.AutoReset = false, Times.Once);
-            timer1.VerifySet(x => x.Interval = 1000 * 60 * 5, Times.Once);
+            timer1.VerifySet(x => x.Interval = 1000 * 60 * 1, Times.Once);
             timer2.VerifySet(x => x.AutoReset = true, Times.Once);
-            timer2.VerifySet(x => x.Interval = 1000 * 60 * 60 * 5, Times.Once);
+            timer2.VerifySet(x => x.Interval = 1000 * 60 * 60 * 6, Times.Once);
         }
 
         [TestMethod]
@@ -252,22 +263,26 @@ namespace SonarLint.VisualStudio.Integration.Tests
             WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime.Now.AddDays(-1),
                 x => x.SolutionBuildingContextChanged += null);
         }
+
         [TestMethod]
         public void WhenSolutionExistsAndFullyLoadedContextChangedAndNewDay_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave()
         {
             WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime.Now.AddDays(-1),
                 x => x.SolutionExistsAndFullyLoadedContextChanged += null);
         }
+
         [TestMethod]
         public void WhenSolutionBuildingContextChangedAndDateTimeMinValue_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave()
         {
             WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime.MinValue, x => x.SolutionBuildingContextChanged += null);
         }
+
         [TestMethod]
         public void WhenSolutionExistsAndFullyLoadedContextChangedAndDateTimeMinValue_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave()
         {
             WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime.MinValue, x => x.SolutionExistsAndFullyLoadedContextChanged += null);
         }
+
         private void WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime lastSavedAnalysisDate, Action<IKnownUIContexts> eventExpression)
         {
             // Arrange
@@ -295,11 +310,13 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             WhenEventAndNotActivate_DoNothing(x => x.SolutionBuildingContextChanged += null);
         }
+
         [TestMethod]
         public void WhenSolutionExistsAndFullyLoadedContextChangedAndNotActivate_DoNothing()
         {
             WhenEventAndNotActivate_DoNothing(x => x.SolutionExistsAndFullyLoadedContextChanged += null);
         }
+
         private void WhenEventAndNotActivate_DoNothing(Action<IKnownUIContexts> eventExpression)
         {
             // Arrange
@@ -324,6 +341,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         private TelemetryManager CreateManager() => new TelemetryManager(activeSolutionTrackerMock.Object,
-            telemetryRepositoryMock.Object, telemetryClientMock.Object, timerFactoryMock.Object, knownUIContexts.Object);
+            telemetryRepositoryMock.Object, telemetryClientMock.Object, timerFactoryMock.Object, new Clock(), knownUIContexts.Object);
     }
 }

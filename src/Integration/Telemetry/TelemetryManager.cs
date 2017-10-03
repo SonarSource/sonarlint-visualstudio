@@ -29,8 +29,8 @@ namespace SonarLint.VisualStudio.Integration
 {
     public sealed class TelemetryManager : ITelemetryManager, IDisposable
     {
-        private const double DelayBeforeFirstUpload = 1000 * 60 * 5;// 5 minutes
-        private const double MillisecondsToWaitBetweenUpload = 1000 * 60 * 60 * 5; // 5 hours
+        private const double DelayBeforeFirstUpload = 1000 * 60 * 1; // 1 minutes
+        private const double MillisecondsToWaitBetweenUpload = 1000 * 60 * 60 * 6; // 6 hours
         private const int MinHoursBetweenUpload = 5;
 
         internal static readonly string SonarLintVersion = GetSonarLintVersion();
@@ -42,9 +42,10 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ITelemetryDataRepository telemetryRepository;
         private readonly ITimer tryUploadDataTimer;
         private readonly IKnownUIContexts knownUIContexts;
+        private readonly IClock clock;
 
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
-            ITelemetryClient telemetryClient, ITimerFactory timerFactory, IKnownUIContexts knownUIContexts)
+            ITelemetryClient telemetryClient, ITimerFactory timerFactory, IClock clock, IKnownUIContexts knownUIContexts)
         {
             if (solutionBindingTracker == null)
             {
@@ -62,6 +63,10 @@ namespace SonarLint.VisualStudio.Integration
             {
                 throw new ArgumentNullException(nameof(timerFactory));
             }
+            if (clock == null)
+            {
+                throw new ArgumentNullException(nameof(clock));
+            }
             if (knownUIContexts == null)
             {
                 throw new ArgumentNullException(nameof(knownUIContexts));
@@ -71,6 +76,7 @@ namespace SonarLint.VisualStudio.Integration
             this.telemetryClient = telemetryClient;
             this.telemetryRepository = telemetryRepository;
             this.knownUIContexts = knownUIContexts;
+            this.clock = clock;
 
             if (this.telemetryRepository.Data.InstallationDate == DateTime.MinValue)
             {
@@ -121,6 +127,21 @@ namespace SonarLint.VisualStudio.Integration
             await this.telemetryClient.OptOut(GetPayload());
         }
 
+        internal /*for testing*/ bool ShouldSendData(DateTime lastSentDate)
+        {
+            return DayChanged(lastSentDate) && MinHoursBetweenUploadPassed(lastSentDate);
+        }
+
+        private bool MinHoursBetweenUploadPassed(DateTime lastSentDate)
+        {
+            return this.clock.Now.Subtract(lastSentDate).TotalHours >= MinHoursBetweenUpload;
+        }
+
+        private bool DayChanged(DateTime lastSentDate)
+        {
+            return this.clock.Now.Date.Subtract(lastSentDate.Date).TotalDays >= 1;
+        }
+
         private static string GetSonarLintVersion()
         {
             return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
@@ -132,12 +153,6 @@ namespace SonarLint.VisualStudio.Integration
             return File.Exists(path)
                 ? FileVersionInfo.GetVersionInfo(path).ProductVersion
                 : string.Empty;
-        }
-
-        private static bool IsNextDay(DateTime lastUploadDate)
-        {
-            return (DateTime.Now - lastUploadDate).TotalDays >= 1 &&
-                (DateTime.Now - lastUploadDate).TotalHours >= MinHoursBetweenUpload;
         }
 
         private void DisableAllEvents()
@@ -186,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             var lastAnalysisDate = this.telemetryRepository.Data.LastSavedAnalysisDate;
-            if (lastAnalysisDate != DateTime.MinValue && (DateTime.Now - lastAnalysisDate).TotalDays < 1)
+            if (!DayChanged(lastAnalysisDate))
             {
                 return;
             }
@@ -199,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration
         private async void OnTryUploadDataTimerElapsed(object sender, ElapsedEventArgs e)
         {
             var lastUploadDate = this.telemetryRepository.Data.LastUploadDate;
-            if (lastUploadDate != DateTime.MinValue && !IsNextDay(lastUploadDate))
+            if (!ShouldSendData(lastUploadDate))
             {
                 return;
             }

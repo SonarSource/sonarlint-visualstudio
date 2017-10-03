@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(activeSolutionTracker != null, "Failed to resolve 'IActiveSolutionBoundTracker'.");
 
             this.telemetryManager = new TelemetryManager(activeSolutionTracker, new TelemetryDataRepository(),
-                new TelemetryClient(), new TimerFactory(), new KnownUIContextsWrapper());
+                new TelemetryClient(), new TimerFactory(), new Clock(), new KnownUIContextsWrapper());
         }
 
         protected override void Dispose(bool disposing)
