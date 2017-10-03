@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -117,14 +118,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
-            // TODO: handle return codes
             // 1. Call with nulls to get the number of files
+            const uint grfGetOpsIncludeUnloadedFiles = 0; // required since the projects might not have finished loading
             uint fileCount;
-            solution.GetProjectFilesInSolution((uint)__VSGETPROJFILESFLAGS.GPFF_SKIPUNLOADEDPROJECTS, 0, null, out fileCount);
+            var result = solution.GetProjectFilesInSolution(grfGetOpsIncludeUnloadedFiles, 0, null, out fileCount);
+            if (ErrorHandler.Failed(result))
+            {
+                return;
+            }
 
             // 2. Size array and call again to get the data
             string[] fileNames = new string[fileCount];
-            solution.GetProjectFilesInSolution((uint)__VSGETPROJFILESFLAGS.GPFF_SKIPUNLOADEDPROJECTS, fileCount, fileNames, out fileCount);
+            result = solution.GetProjectFilesInSolution(grfGetOpsIncludeUnloadedFiles, fileCount, fileNames, out fileCount);
+            if (ErrorHandler.Failed(result))
+            {
+                return;
+            }
 
             IVsSolution5 soln5 = (IVsSolution5)solution;
 
