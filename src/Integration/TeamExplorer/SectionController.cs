@@ -322,7 +322,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private bool CanExecBrowseToProjectDashboard(ProjectViewModel project)
         {
-            if (project != null)
+            if (project != null && this.Host.SonarQubeService.IsConnected)
             {
                 var url = this.Host.SonarQubeService.GetProjectDashboardUrl(project.Project.Key);
                 return this.CanExecBrowseToUrl(url.ToString());
