@@ -19,19 +19,12 @@
  */
 
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Timers;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
 {
     public sealed class TelemetryManager : ITelemetryManager, IDisposable
     {
-        internal static readonly string SonarLintVersion = GetSonarLintVersion();
-        internal static readonly string VisualStudioVersion = GetVisualStudioVersion();
-
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
         private readonly ITelemetryClient telemetryClient;
         private readonly ITelemetryTimer telemetryTimer;
@@ -80,76 +73,63 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public bool IsAnonymousDataShared => this.telemetryRepository.Data.IsAnonymousDataShared;
+        public bool IsAnonymousDataShared => telemetryRepository.Data.IsAnonymousDataShared;
 
         public void Dispose()
         {
             DisableAllEvents();
 
-            this.telemetryTimer.Dispose();
-            this.telemetryClient.Dispose();
-            this.telemetryRepository.Dispose();
+            (telemetryTimer as IDisposable)?.Dispose();
+            (telemetryClient as IDisposable)?.Dispose();
+            (telemetryRepository as IDisposable)?.Dispose();
         }
 
         public void OptIn()
         {
-            this.telemetryRepository.Data.IsAnonymousDataShared = true;
-            this.telemetryRepository.Save();
+            telemetryRepository.Data.IsAnonymousDataShared = true;
+            telemetryRepository.Save();
 
             EnableAllEvents();
         }
 
         public async void OptOut()
         {
-            this.telemetryRepository.Data.IsAnonymousDataShared = false;
-            this.telemetryRepository.Save();
+            telemetryRepository.Data.IsAnonymousDataShared = false;
+            telemetryRepository.Save();
 
             DisableAllEvents();
 
-            await this.telemetryClient.OptOut(GetPayload());
-        }
-
-        private static string GetSonarLintVersion()
-        {
-            return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
-        }
-
-        private static string GetVisualStudioVersion()
-        {
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "msenv.dll");
-            return File.Exists(path)
-                ? FileVersionInfo.GetVersionInfo(path).ProductVersion
-                : string.Empty;
+            await telemetryClient.OptOut(GetPayload(telemetryRepository.Data));
         }
 
         private void DisableAllEvents()
         {
-            this.telemetryTimer.Elapsed -= OnTryUploadDataTimerElapsed;
-            this.telemetryTimer.Stop();
+            telemetryTimer.Elapsed -= OnTelemetryTimerElapsed;
+            telemetryTimer.Stop();
 
-            this.knownUIContexts.SolutionBuildingContextChanged -= this.OnAnalysisRun;
-            this.knownUIContexts.SolutionExistsAndFullyLoadedContextChanged -= this.OnAnalysisRun;
+            knownUIContexts.SolutionBuildingContextChanged -= this.OnAnalysisRun;
+            knownUIContexts.SolutionExistsAndFullyLoadedContextChanged -= this.OnAnalysisRun;
         }
 
         private void EnableAllEvents()
         {
-            this.telemetryTimer.Elapsed += OnTryUploadDataTimerElapsed;
-            this.telemetryTimer.Start();
+            telemetryTimer.Elapsed += OnTelemetryTimerElapsed;
+            telemetryTimer.Start();
 
-            this.knownUIContexts.SolutionBuildingContextChanged += this.OnAnalysisRun;
-            this.knownUIContexts.SolutionExistsAndFullyLoadedContextChanged += this.OnAnalysisRun;
+            knownUIContexts.SolutionBuildingContextChanged += this.OnAnalysisRun;
+            knownUIContexts.SolutionExistsAndFullyLoadedContextChanged += this.OnAnalysisRun;
         }
 
-        private TelemetryPayload GetPayload()
+        private TelemetryPayload GetPayload(TelemetryData telemetryData)
         {
-            var numberOfDaysSinceInstallation = (long)(DateTime.Now - this.telemetryRepository.Data.InstallationDate).TotalDays;
+            var numberOfDaysSinceInstallation = (long)DateTime.Now.DaysPassedSince(telemetryData.InstallationDate);
             return new TelemetryPayload
             {
                 SonarLintProduct = "SonarLint Visual Studio",
-                SonarLintVersion = SonarLintVersion,
-                VisualStudioVersion = VisualStudioVersion,
+                SonarLintVersion = TelemetryHelper.SonarLintVersion,
+                VisualStudioVersion = TelemetryHelper.VisualStudioVersion,
                 NumberOfDaysSinceInstallation = numberOfDaysSinceInstallation,
-                NumberOfDaysOfUse = this.telemetryRepository.Data.NumberOfDaysOfUse,
+                NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
                 IsUsingConnectedMode = this.solutionBindingTracker.IsActiveSolutionBound
             };
         }
@@ -161,21 +141,21 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            var lastAnalysisDate = this.telemetryRepository.Data.LastSavedAnalysisDate.Date;
-            if (DateTime.Today.Subtract(lastAnalysisDate).TotalDays >= 1)
+            var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate.Date;
+            if (!DateTime.Today.IsSameDay(lastAnalysisDate))
             {
-                this.telemetryRepository.Data.LastSavedAnalysisDate = DateTime.Today;
-                this.telemetryRepository.Data.NumberOfDaysOfUse++;
-                this.telemetryRepository.Save();
+                telemetryRepository.Data.LastSavedAnalysisDate = DateTime.Today;
+                telemetryRepository.Data.NumberOfDaysOfUse++;
+                telemetryRepository.Save();
             }
         }
 
-        private async void OnTryUploadDataTimerElapsed(object sender, TelemetryTimerEventArgs e)
+        private async void OnTelemetryTimerElapsed(object sender, TelemetryTimerEventArgs e)
         {
-            this.telemetryRepository.Data.LastUploadDate = e.SignalTime;
-            this.telemetryRepository.Save();
+            telemetryRepository.Data.LastUploadDate = e.SignalTime;
+            telemetryRepository.Save();
 
-            await this.telemetryClient.SendPayload(GetPayload());
+            await telemetryClient.SendPayload(GetPayload(telemetryRepository.Data));
         }
     }
 }

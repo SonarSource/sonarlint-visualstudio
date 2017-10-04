@@ -18,19 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Timers;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITimer
+    public static class TelemetryHelper
     {
-        event ElapsedEventHandler Elapsed;
+        public static readonly string SonarLintVersion = GetSonarLintVersion();
+        public static readonly string VisualStudioVersion = GetVisualStudioVersion();
 
-        bool AutoReset { get; set; }
-        double Interval { get; set; }
+        private static string GetSonarLintVersion()
+        {
+            return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
+        }
 
-        void Start();
-        void Stop();
-        void Close();
+        private static string GetVisualStudioVersion()
+        {
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "msenv.dll");
+            return File.Exists(path)
+                ? FileVersionInfo.GetVersionInfo(path).ProductVersion
+                : string.Empty;
+        }
     }
 }

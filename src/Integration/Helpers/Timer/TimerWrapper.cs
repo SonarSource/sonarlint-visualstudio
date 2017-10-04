@@ -31,20 +31,11 @@ namespace SonarLint.VisualStudio.Integration
         public TimerWrapper()
         {
             this.timerInstance = new Timer();
+            this.timerInstance.Elapsed += (s, e) =>
+                this.Elapsed?.Invoke(this, new TimerEventArgs(e.SignalTime));
         }
 
-        public event ElapsedEventHandler Elapsed
-        {
-            add
-            {
-                this.timerInstance.Elapsed += value;
-            }
-
-            remove
-            {
-                this.timerInstance.Elapsed -= value;
-            }
-        }
+        public event EventHandler<TimerEventArgs> Elapsed;
 
         public bool AutoReset
         {
@@ -72,20 +63,14 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public void Start()
-        {
+        public void Start() =>
             this.timerInstance.Start();
-        }
 
-        public void Stop()
-        {
+        public void Stop() =>
             this.timerInstance.Stop();
-        }
 
-        public void Close()
-        {
+        public void Close() =>
             this.timerInstance.Close();
-        }
 
         public void Dispose()
         {

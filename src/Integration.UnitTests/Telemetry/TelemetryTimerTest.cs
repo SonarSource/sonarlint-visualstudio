@@ -1,5 +1,24 @@
-﻿using System;
-using System.Timers;
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2017 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -15,7 +34,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private Mock<ITelemetryDataRepository> telemetryRepositoryMock;
         private Mock<ITimer> timerMock;
-        private Mock<IClock> clockMock;
 
         private TelemetryTimer telemetryTimer;
 
@@ -24,65 +42,63 @@ namespace SonarLint.VisualStudio.Integration
         {
             telemetryRepositoryMock = new Mock<ITelemetryDataRepository>();
             timerMock = new Mock<ITimer>();
-            clockMock = new Mock<IClock>();
 
-            telemetryTimer = new TelemetryTimer(telemetryRepositoryMock.Object, clockMock.Object, timerMock.Object);
+            var timerFactoryMock = new Mock<ITimerFactory>();
+            timerFactoryMock.Setup(x => x.Create()).Returns(timerMock.Object);
+
+            telemetryTimer = new TelemetryTimer(telemetryRepositoryMock.Object, timerFactoryMock.Object);
         }
 
         [TestMethod]
         public void Ctor_Throws_ArgumentNullException_For_TelemetryRepository()
         {
-            Action action = () => new TelemetryTimer(null, new Mock<IClock>().Object, new Mock<ITimer>().Object);
+            Action action = () => new TelemetryTimer(null, new Mock<ITimerFactory>().Object);
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryRepository");
-        }
-
-        [TestMethod]
-        public void Ctor_Throws_ArgumentNullException_For_Clock()
-        {
-            Action action = () => new TelemetryTimer(new Mock<ITelemetryDataRepository>().Object, null, new Mock<ITimer>().Object);
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("clock");
         }
 
         [TestMethod]
         public void Ctor_Throws_ArgumentNullException_For_MainTimer()
         {
-            Action action = () => new TelemetryTimer(new Mock<ITelemetryDataRepository>().Object, new Mock<IClock>().Object, null);
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("timer");
+            Action action = () => new TelemetryTimer(new Mock<ITelemetryDataRepository>().Object, null);
+            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("timerFactory");
         }
 
         [TestMethod]
         public void Ctor_Initializes_MainTimer()
         {
             // Arrange
-            var timerMock = new Mock<ITimer>();
-            timerMock.SetupSet(timer => timer.Interval = 60000);
-            timerMock.SetupSet(timer => timer.AutoReset = true);
+            var timer = new Mock<ITimer>();
+            timer.SetupSet(x => x.Interval = 300000);
+            timer.SetupSet(x => x.AutoReset = true);
+
+            var timerFactoryMock = new Mock<ITimerFactory>();
+            timerFactoryMock.Setup(x => x.Create()).Returns(timer.Object);
 
             // Act
-            new TelemetryTimer(new Mock<ITelemetryDataRepository>().Object, new Mock<IClock>().Object, timerMock.Object);
+            new TelemetryTimer(new Mock<ITelemetryDataRepository>().Object, timerFactoryMock.Object);
 
             // Assert
-            timerMock.VerifyAll();
+            timer.VerifyAll();
         }
 
         [TestMethod]
         public void Start_Starts_Timer()
         {
             // Arrange
-            timerMock.Setup(timer => timer.Start());
+            timerMock.Setup(x => x.Start());
 
             // Act
             telemetryTimer.Start();
 
             // Assert
-            timerMock.Verify(timer => timer.Start(), Times.Once);
+            timerMock.Verify(x => x.Start(), Times.Once);
         }
 
         [TestMethod]
         public void Subsequent_Start_Does_Not_Start_Timers()
         {
             // Arrange
-            timerMock.Setup(timer => timer.Start());
+            timerMock.Setup(x => x.Start());
 
             // Act
             telemetryTimer.Start();
@@ -90,80 +106,79 @@ namespace SonarLint.VisualStudio.Integration
             telemetryTimer.Start();
 
             // Assert
-            timerMock.Verify(timer => timer.Start(), Times.Once);
+            timerMock.Verify(x => x.Start(), Times.Once);
         }
 
         [TestMethod]
         public void Stop_Stops_Timer_If_Started()
         {
             // Arrange
-            timerMock.Setup(timer => timer.Stop());
+            //timerMock.Setup(x => x.Stop());
 
             // Act
             telemetryTimer.Start();
             telemetryTimer.Stop();
 
             // Assert
-            timerMock.Verify(timer => timer.Stop(), Times.Once);
+            timerMock.Verify(x => x.Stop(), Times.Once);
         }
 
         [TestMethod]
         public void Stop_Does_Not_Stop_Timers_If_Not_Started()
         {
             // Arrange
-            timerMock.Setup(timer => timer.Stop());
+            timerMock.Setup(x => x.Stop());
 
             // Act
             telemetryTimer.Stop();
 
             // Assert
-            timerMock.Verify(timer => timer.Stop(), Times.Never);
+            timerMock.Verify(x => x.Stop(), Times.Never);
         }
 
         [TestMethod]
         public void Dispose_Stops_Timer_If_Started()
         {
             // Arrange
-            timerMock.Setup(timer => timer.Stop());
+            timerMock.Setup(x => x.Stop());
 
             // Act
             telemetryTimer.Start();
             telemetryTimer.Dispose();
 
             // Assert
-            timerMock.Verify(timer => timer.Stop(), Times.Once);
+            timerMock.Verify(x => x.Stop(), Times.Once);
         }
 
         [TestMethod]
         public void Dispose_Does_Not_Stop_Timers_If_Not_Started()
         {
             // Arrange
-            timerMock.Setup(timer => timer.Stop());
+            timerMock.Setup(x => x.Stop());
 
             // Act
             telemetryTimer.Dispose();
 
             // Assert
-            timerMock.Verify(timer => timer.Stop(), Times.Never);
+            timerMock.Verify(x => x.Stop(), Times.Never);
         }
 
         [TestMethod]
         public void MainTimer_Changes_Period_After_First_Elapsed_Event()
         {
             // Arrange to prevent NullReferenceExceptions
-            clockMock.Setup(clock => clock.Now).Returns(Beginning_Of_Day);
-            telemetryRepositoryMock.Setup(repository => repository.Data)
+            telemetryRepositoryMock.Setup(x => x.Data)
                 .Returns(new TelemetryData { LastUploadDate = Beginning_Of_Day });
 
             // Arrange
-            timerMock.SetupSet(timer => timer.Interval = 21600000);
+            timerMock.SetupSet(x => x.Interval = 21600000);
             telemetryTimer.Start();
 
             // Act
-            timerMock.Raise(timer => timer.Elapsed += null, (ElapsedEventArgs)null);
+            timerMock.Raise(x => x.Elapsed += null, new TimerEventArgs(Beginning_Of_Day));
 
             // Assert
-            timerMock.VerifySet(timer => timer.Interval = 21600000);
+            timerMock.VerifySet(x => x.Interval = 21600000);
         }
 
         [TestMethod]
@@ -172,16 +187,14 @@ namespace SonarLint.VisualStudio.Integration
             // Arrange
             var now = Beginning_Of_Day;
 
-            clockMock.Setup(clock => clock.Now).Returns(now);
-
-            telemetryRepositoryMock.Setup(repository => repository.Data)
+            telemetryRepositoryMock.Setup(x => x.Data)
                 .Returns(new TelemetryData { LastUploadDate = now.Subtract(_05h_59m_59s) });
 
             telemetryTimer.Start();
             telemetryTimer.MonitorEvents();
 
             // Act
-            timerMock.Raise(timer => timer.Elapsed += null, (ElapsedEventArgs)null);
+            timerMock.Raise(x => x.Elapsed += null, new TimerEventArgs(now));
 
             // Assert
             telemetryTimer.ShouldNotRaise(nameof(TelemetryTimer.Elapsed));
@@ -193,16 +206,14 @@ namespace SonarLint.VisualStudio.Integration
             // Arrange
             var now = Beginning_Of_Day;
 
-            clockMock.Setup(clock => clock.Now).Returns(now);
-
-            telemetryRepositoryMock.Setup(repository => repository.Data)
+            telemetryRepositoryMock.Setup(x => x.Data)
                 .Returns(new TelemetryData { LastUploadDate = now.Subtract(_06h_00m_00s) });
 
             telemetryTimer.Start();
             telemetryTimer.MonitorEvents();
 
             // Act
-            timerMock.Raise(timer => timer.Elapsed += null, (ElapsedEventArgs)null);
+            timerMock.Raise(x => x.Elapsed += null, new TimerEventArgs(now));
 
             // Assert
             telemetryTimer.ShouldRaise(nameof(TelemetryTimer.Elapsed));
@@ -214,16 +225,14 @@ namespace SonarLint.VisualStudio.Integration
             // Arrange
             var now = Beginning_Of_Day.AddHours(12);
 
-            clockMock.Setup(clock => clock.Now).Returns(now);
-
-            telemetryRepositoryMock.Setup(repository => repository.Data)
+            telemetryRepositoryMock.Setup(x => x.Data)
                 .Returns(new TelemetryData { LastUploadDate = now.Subtract(_05h_59m_59s) });
 
             telemetryTimer.Start();
             telemetryTimer.MonitorEvents();
 
             // Act
-            timerMock.Raise(timer => timer.Elapsed += null, (ElapsedEventArgs)null);
+            timerMock.Raise(x => x.Elapsed += null, new TimerEventArgs(now));
 
             // Assert
             telemetryTimer.ShouldNotRaise(nameof(TelemetryTimer.Elapsed));
@@ -235,16 +244,14 @@ namespace SonarLint.VisualStudio.Integration
             // Arrange
             var now = Beginning_Of_Day.AddHours(12);
 
-            clockMock.Setup(clock => clock.Now).Returns(now);
-
-            telemetryRepositoryMock.Setup(repository => repository.Data)
+            telemetryRepositoryMock.Setup(x => x.Data)
                 .Returns(new TelemetryData { LastUploadDate = now.Subtract(_06h_00m_00s) });
 
             telemetryTimer.Start();
             telemetryTimer.MonitorEvents();
 
             // Act
-            timerMock.Raise(timer => timer.Elapsed += null, (ElapsedEventArgs)null);
+            timerMock.Raise(x => x.Elapsed += null, new TimerEventArgs(now));
 
             // Assert
             telemetryTimer.ShouldNotRaise(nameof(TelemetryTimer.Elapsed));

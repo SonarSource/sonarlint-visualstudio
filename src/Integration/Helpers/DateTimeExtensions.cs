@@ -18,12 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITelemetryDataRepository
+    public static class DateTimeExtensions
     {
-        TelemetryData Data { get; }
+        public static bool IsSameDay(this DateTime date, DateTime other) =>
+            Math.Abs(date.DaysPassedSince(other)) < 1;
 
-        void Save();
+        public static long HoursPassedSince(this DateTime date, DateTime other) =>
+            (long)date.Subtract(other).TotalHours;
+
+        public static long DaysPassedSince(this DateTime date, DateTime other) =>
+            (long)date.Date.Subtract(other.Date).TotalDays;
     }
 }
