@@ -23,7 +23,7 @@ using System.Security;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
-using SonarLint.VisualStudio.Integration.Persistence;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {

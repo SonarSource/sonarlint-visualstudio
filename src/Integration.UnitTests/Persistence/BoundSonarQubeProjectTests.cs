@@ -22,6 +22,7 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -29,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class BoundSonarQubeProjectTests
     {
         [TestMethod]
-        public void BoundSonarQubeProject_Serialization()
+        public void BoundProject_Serialization()
         {
             // Arrange
             var serverUri = new Uri("https://finding-nemo.org");

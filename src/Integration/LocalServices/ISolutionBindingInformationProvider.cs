@@ -50,5 +50,11 @@ namespace SonarLint.VisualStudio.Integration
         /// Returns whether the solution is bound to SonarQube
         /// </summary>
         bool IsSolutionBound();
+
+        /// <summary>
+        /// Returns current solution project key (can be null)
+        /// </summary>
+        /// <returns></returns>
+        string GetProjectKey();
     }
 }

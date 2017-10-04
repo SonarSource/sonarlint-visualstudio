@@ -23,8 +23,8 @@ using System.Globalization;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             Exceptions.Expect<ArgumentNullException>(() =>
             {
-                new ProjectViewModel(null, new ProjectInformation());
+                new ProjectViewModel(null, new SonarQubeProject("", ""));
             });
 
             Exceptions.Expect<ArgumentNullException>(() =>
@@ -49,11 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void ProjectViewModel_Ctor()
         {
             // Arrange
-            var projectInfo = new ProjectInformation
-            {
-                Key = "P1",
-                Name = "Project1"
-            };
+            var projectInfo = new SonarQubeProject("P1", "Project1");
             var serverVM = CreateServerViewModel();
 
             // Act
@@ -63,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             viewModel.IsBound.Should().BeFalse();
             viewModel.Key.Should().Be(projectInfo.Key);
             viewModel.ProjectName.Should().Be(projectInfo.Name);
-            viewModel.ProjectInformation.Should().Be(projectInfo);
+            viewModel.Project.Should().Be(projectInfo);
             viewModel.Owner.Should().Be(serverVM);
         }
 
@@ -71,11 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void ProjectViewModel_ToolTipProjectName_RespectsIsBound()
         {
             // Arrange
-            var projectInfo = new ProjectInformation
-            {
-                Key = "P1",
-                Name = "Project1"
-            };
+            var projectInfo = new SonarQubeProject("P1", "Project1");
             var viewModel = new ProjectViewModel(CreateServerViewModel(), projectInfo);
 
             // Test Case 1: When project is bound, should show message with 'bound' marker
@@ -98,11 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void ProjectViewModel_AutomationName()
         {
             // Arrange
-            var projectInfo = new ProjectInformation
-            {
-                Key = "P1",
-                Name = "Project1"
-            };
+            var projectInfo = new SonarQubeProject("P1", "Project1");
             var testSubject = new ProjectViewModel(CreateServerViewModel(), projectInfo);
 
             var expectedNotBound = projectInfo.Name;

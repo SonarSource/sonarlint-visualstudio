@@ -25,12 +25,14 @@ using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarQube.Client.Models;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
@@ -38,28 +40,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
     public class ConnectControllerTests
     {
         private ConfigurableHost host;
-        private ConfigurableSonarQubeServiceWrapper sonarQubeService;
-        private ConfigurableConnectionWorkflow connectionWorkflow;
+        private Mock<ISonarQubeService> sonarQubeServiceMock;
+        private Mock<IConnectionWorkflowExecutor> connectionWorkflowMock;
         private ConfigurableConnectionInformationProvider connectionProvider;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsOutputWindowPane outputWindowPane;
-        private ConfigurableIntegrationSettings settings;
+        private ConfigurableSonarLintSettings settings;
 
         [TestInitialize]
         public void TestInit()
         {
-            this.sonarQubeService = new ConfigurableSonarQubeServiceWrapper();
-            this.connectionWorkflow = new ConfigurableConnectionWorkflow(this.sonarQubeService);
+            this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
+            this.connectionWorkflowMock = new Mock<IConnectionWorkflowExecutor>();
             this.connectionProvider = new ConfigurableConnectionInformationProvider();
             this.serviceProvider = new ConfigurableServiceProvider();
             var outputWindow = new ConfigurableVsOutputWindow();
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
-            this.settings = new ConfigurableIntegrationSettings();
+            this.settings = new ConfigurableSonarLintSettings();
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-            this.host.SonarQubeService = this.sonarQubeService;
+            this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
 
-            var mefExports = MefTestHelpers.CreateExport<IIntegrationSettings>(settings);
+            var mefExports = MefTestHelpers.CreateExport<ISonarLintSettings>(settings);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
@@ -123,7 +125,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_ConnectCommand_Execution()
         {
             // Arrange
-            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
+            this.connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()));
+            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
+                this.connectionWorkflowMock.Object);
 
             // Case 1: connection provider return null connection
             this.connectionProvider.ConnectionInformationToReturn = null;
@@ -138,13 +142,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.Execute();
 
             // Assert
-            this.connectionWorkflow.NumberOfCalls.Should().Be(0);
-            this.sonarQubeService.ConnectionRequestsCount.Should().Be(0);
+            this.connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Never);
 
             // Case 2: connection provider returns a valid connection
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
             this.connectionProvider.ConnectionInformationToReturn = expectedConnection;
-            this.sonarQubeService.ExpectedConnection = expectedConnection;
             // Sanity
             testSubject.LastAttemptedConnection.Should().BeNull("Previous attempt returned null");
 
@@ -152,12 +154,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.Execute();
 
             // Assert
-            this.connectionWorkflow.NumberOfCalls.Should().Be(1);
-            this.sonarQubeService.ConnectionRequestsCount.Should().Be(1);
+            this.connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Once);
 
             // Case 3: existing connection, change to a different one
             var existingConnection = expectedConnection;
-            this.sonarQubeService.ExpectedConnection = expectedConnection;
             this.host.TestStateManager.IsConnected = true;
 
             // Sanity
@@ -214,10 +214,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_RefreshCommand_Execution()
         {
             // Arrange
-            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
+            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
+                this.connectionWorkflowMock.Object);
             this.connectionProvider.ConnectionInformationToReturn = new ConnectionInformation(new Uri("http://notExpected"));
             var connection = new ConnectionInformation(new Uri("http://Expected"));
-            this.sonarQubeService.ExpectedConnection = connection;
             // Sanity
             testSubject.RefreshCommand.CanExecute(connection).Should().BeTrue("Should be possible to execute");
 
@@ -228,8 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.RefreshCommand.Execute(connection);
 
             // Assert
-            this.connectionWorkflow.NumberOfCalls.Should().Be(1);
-            this.sonarQubeService.ConnectionRequestsCount.Should().Be(1);
+            this.connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Once);
             testSubject.LastAttemptedConnection.ServerUri.Should().Be(connection.ServerUri, "Unexpected last attempted connection");
             testSubject.LastAttemptedConnection.Should().NotBe(connection, "LastAttemptedConnection should be a clone");
         }
@@ -238,7 +237,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_SetConnectionInProgress()
         {
             // Arrange
-            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
+            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
+                this.connectionWorkflowMock.Object);
             this.connectionProvider.ConnectionInformationToReturn = null;
             var progressEvents = new ConfigurableProgressEvents();
             var connectionInfo = new ConnectionInformation(new Uri("http://refreshConnection"));
@@ -279,7 +279,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_ShowNuGetWarning()
         {
             // Arrange
-            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider, this.connectionWorkflow);
+            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
+                this.connectionWorkflowMock.Object);
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
             this.connectionProvider.ConnectionInformationToReturn = null;
