@@ -306,9 +306,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act + Assert CanExecute
             testSubject.BrowseToProjectDashboardCommand.CanExecute(null).Should().BeFalse();
 
-            // Case 2: Project VM
+            // Case 2: Project VM is set but SQ server is not connected
             var serverViewModel = new ServerViewModel(connectionInfo);
             var projectViewModel = new ProjectViewModel(serverViewModel, projectInfo);
+
+            this.sonarQubeServiceMock.Setup(x => x.IsConnected).Returns(false);
+
+            // Act + Assert CanExecute
+            testSubject.BrowseToProjectDashboardCommand.CanExecute(projectViewModel).Should().BeFalse();
+
+            // Case 3: Project VM is set and SQ server is connected
+            this.sonarQubeServiceMock.Setup(x => x.IsConnected).Returns(true);
 
             // Act + Assert CanExecute
             testSubject.BrowseToProjectDashboardCommand.CanExecute(projectViewModel).Should().BeTrue();
