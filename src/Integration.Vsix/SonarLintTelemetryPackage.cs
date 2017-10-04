@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var telemetryRepository = new TelemetryDataRepository();
             this.telemetryManager = new TelemetryManager(activeSolutionTracker, telemetryRepository, new TelemetryClient(),
-                new TelemetryTimer(telemetryRepository, new Clock(), new TimerWrapper()), new KnownUIContextsWrapper());
+                new TelemetryTimer(telemetryRepository, new TimerFactory()), new KnownUIContextsWrapper());
         }
 
         protected override void Dispose(bool disposing)

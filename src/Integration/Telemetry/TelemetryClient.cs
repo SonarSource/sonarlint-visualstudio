@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.ComponentModel.Composition;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,7 +26,7 @@ using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public sealed class TelemetryClient : ITelemetryClient
+    public sealed class TelemetryClient : ITelemetryClient, IDisposable
     {
         private readonly HttpClient client;
 
