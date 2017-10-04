@@ -25,12 +25,12 @@ namespace SonarLint.VisualStudio.Integration
     public static class DateTimeExtensions
     {
         public static bool IsSameDay(this DateTime date, DateTime other) =>
-            Math.Abs(date.DaysPassedSince(other)) < 1;
+            Math.Abs(date.Date.Subtract(other.Date).TotalDays) < 1;
 
         public static long HoursPassedSince(this DateTime date, DateTime other) =>
             (long)date.Subtract(other).TotalHours;
 
         public static long DaysPassedSince(this DateTime date, DateTime other) =>
-            (long)date.Date.Subtract(other.Date).TotalDays;
+            (long)date.Subtract(other).TotalDays;
     }
 }

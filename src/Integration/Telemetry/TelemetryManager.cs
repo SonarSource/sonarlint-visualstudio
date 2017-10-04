@@ -122,7 +122,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private TelemetryPayload GetPayload(TelemetryData telemetryData)
         {
-            var numberOfDaysSinceInstallation = (long)DateTime.Now.DaysPassedSince(telemetryData.InstallationDate);
+            // DaysPassedSince is returning 0 when InstallationDate==Now, but we need to report 1
+            var numberOfDaysSinceInstallation = DateTime.Now.DaysPassedSince(telemetryData.InstallationDate) + 1;
             return new TelemetryPayload
             {
                 SonarLintProduct = "SonarLint Visual Studio",
@@ -141,10 +142,10 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate.Date;
-            if (!DateTime.Today.IsSameDay(lastAnalysisDate))
+            var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate;
+            if (!DateTime.Now.IsSameDay(lastAnalysisDate))
             {
-                telemetryRepository.Data.LastSavedAnalysisDate = DateTime.Today;
+                telemetryRepository.Data.LastSavedAnalysisDate = DateTime.Now;
                 telemetryRepository.Data.NumberOfDaysOfUse++;
                 telemetryRepository.Save();
             }
