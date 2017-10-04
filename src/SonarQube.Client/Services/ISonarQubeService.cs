@@ -52,5 +52,8 @@ namespace SonarQube.Client.Services
             CancellationToken token);
 
         Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string key, CancellationToken token);
+
+        Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
+            DateTimeOffset eventsSince, CancellationToken token);
     }
 }

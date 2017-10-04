@@ -221,6 +221,8 @@ namespace SonarQube.Client.Services
         public async Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName,
             SonarQubeLanguage language, CancellationToken token)
         {
+            EnsureIsConnected();
+
             var request = new RoslynExportProfileRequest { QualityProfileName = qualityProfileName, LanguageKey = language.Key };
             var roslynExportResult = await this.sonarqubeClient.GetRoslynExportProfileAsync(request, token);
             roslynExportResult.EnsureSuccess();
@@ -239,6 +241,23 @@ namespace SonarQube.Client.Services
                 .Where(x => SonarQubeIssue.ParseResolutionState(x.Resolution) != SonarQubeIssueResolutionState.Unresolved)
                 .Select(SonarQubeIssue.FromResponse)
                 .ToList();
+        }
+
+        public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
+        DateTimeOffset eventsSince, CancellationToken token)
+        {
+            EnsureIsConnected();
+
+            var request = new NotificationsRequest { ProjectKey = projectKey, EventsSince = eventsSince };
+            var eventsResult = await this.sonarqubeClient.GetNotificationEventsAsync(request, token);
+
+            if (!eventsResult.IsSuccess)
+            {
+                return eventsResult.StatusCode == HttpStatusCode.NotFound
+                    ? null : new List<SonarQubeNotification>();
+            }
+
+            return eventsResult.Value.Select(SonarQubeNotification.FromResponse).ToList();
         }
 
         internal void EnsureIsConnected()

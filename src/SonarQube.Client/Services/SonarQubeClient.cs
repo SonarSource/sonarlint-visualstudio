@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,22 +78,30 @@ namespace SonarQube.Client.Services
         public Task<Result<ComponentResponse[]>> GetComponentsSearchProjectsAsync(ComponentRequest request,
             CancellationToken token)
         {
-            const string SearchProjectsAPI = "api/components/search_projects"; // Since 6.2; internal
+            // Since 6.2; internal
+            var apiPath = BuildRelativeUrl("api/components/search_projects",
+                new Dictionary<string, string>
+                {
+                    ["organization"] = request.OrganizationKey,
+                    ["p"] = request.Page.ToString(),
+                    ["ps"] = request.PageSize.ToString(),
+                    ["asc"] = "true",
+                });
 
-            var query = AppendQueryString(SearchProjectsAPI, "?organization={0}&p={1}&ps={2}&asc=true",
-                request.OrganizationKey, request.Page, request.PageSize); // TODO: should handle optional params
-
-            return InvokeSonarQubeApi(query, token,
+            return InvokeSonarQubeApi(apiPath, token,
                 stringResponse => JObject.Parse(stringResponse)["components"].ToObject<ComponentResponse[]>());
         }
 
         public Task<Result<ServerIssue[]>> GetIssuesAsync(string key, CancellationToken token)
         {
-            const string BatchIssuesAPI = "batch/issues"; // Since 5.1; internal
+            // Since 5.1; internal
+            var apiPath = BuildRelativeUrl("batch/issues",
+                new Dictionary<string, string>
+                {
+                    ["key"] = key
+                });
 
-            var query = AppendQueryString(BatchIssuesAPI, "?key={0}", key);
-
-            return InvokeSonarQubeApi(query, token,
+            return InvokeSonarQubeApi(apiPath, token,
                 async (HttpResponseMessage response) =>
                 {
                     var byteArray = await response.Content.ReadAsByteArrayAsync();
@@ -109,74 +118,93 @@ namespace SonarQube.Client.Services
 
         public Task<Result<OrganizationResponse[]>> GetOrganizationsAsync(OrganizationRequest request, CancellationToken token)
         {
-            const string OrganizationsAPI = "api/organizations/search"; // Since 6.2; internal
+            // Since 6.2; internal
+            var apiPath = BuildRelativeUrl("api/organizations/search",
+                new Dictionary<string, string>
+                {
+                    ["p"] = request.Page.ToString(),
+                    ["ps"] = request.PageSize.ToString()
+                });
 
-            var query = AppendQueryString(OrganizationsAPI, "?p={0}&ps={1}", request.Page, request.PageSize); // TODO: should handle optional params
-
-            return InvokeSonarQubeApi(query, token,
+            return InvokeSonarQubeApi(apiPath, token,
                 stringResponse => JObject.Parse(stringResponse)["organizations"].ToObject<OrganizationResponse[]>());
         }
 
         public Task<Result<PluginResponse[]>> GetPluginsAsync(CancellationToken token)
         {
-            const string ServerPluginsInstalledAPI = "api/updatecenter/installed_plugins"; // Since 2.10; internal
+            // Since 2.10; internal
+            var serverPluginsInstalledApiUrl = new Uri("api/updatecenter/installed_plugins", UriKind.Relative);
 
-            return InvokeSonarQubeApi(ServerPluginsInstalledAPI, token,
+            return InvokeSonarQubeApi(serverPluginsInstalledApiUrl, token,
                 stringResponse => ProcessJsonResponse<PluginResponse[]>(stringResponse, token));
         }
 
         public Task<Result<ProjectResponse[]>> GetProjectsAsync(CancellationToken token)
         {
-            const string ProjectsAPI = "api/projects/index"; // Since 2.10
+            // Since 2.10
+            var projectsApiUrl = new Uri("api/projects/index", UriKind.Relative);
 
-            return InvokeSonarQubeApi(ProjectsAPI, token,
+            return InvokeSonarQubeApi(projectsApiUrl, token,
                 stringResponse => ProcessJsonResponse<ProjectResponse[]>(stringResponse, token));
         }
 
         public Task<Result<PropertyResponse[]>> GetPropertiesAsync(CancellationToken token)
         {
-            const string PropertiesAPI = "api/properties/"; // Since 2.6
+            // Since 2.6
+            var propertiesApiUrl = new Uri("api/properties/", UriKind.Relative);
 
-            return InvokeSonarQubeApi(PropertiesAPI, token,
+            return InvokeSonarQubeApi(propertiesApiUrl, token,
                 stringResponse => ProcessJsonResponse<PropertyResponse[]>(stringResponse, token));
         }
 
         public Task<Result<QualityProfileChangeLogResponse>> GetQualityProfileChangeLogAsync(
             QualityProfileChangeLogRequest request, CancellationToken token)
         {
-            const string QualityProfileChangeLogAPI = "api/qualityprofiles/changelog"; // Since 5.2
+            // Since 5.2
+            var apiPath = BuildRelativeUrl("api/qualityprofiles/changelog",
+                new Dictionary<string, string>
+                {
+                    ["profileKey"] = request.QualityProfileKey,
+                    ["ps"] = request.PageSize.ToString()
+                });
 
-            var query = AppendQueryString(QualityProfileChangeLogAPI, "?profileKey={0}&ps={1}",
-                        request.QualityProfileKey, request.PageSize); // TODO: should handle optional params
-
-            return InvokeSonarQubeApi(query, token,
+            return InvokeSonarQubeApi(apiPath, token,
                 stringResponse => ProcessJsonResponse<QualityProfileChangeLogResponse>(stringResponse, token));
         }
 
         public Task<Result<QualityProfileResponse[]>> GetQualityProfilesAsync(QualityProfileRequest request,
             CancellationToken token)
         {
-            const string QualityProfileListAPI = "api/qualityprofiles/search"; // Since 5.2
+            var queryParams = new Dictionary<string, string>();
+            if (request.ProjectKey == null)
+            {
+                queryParams["defaults"] = "true";
+            }
+            else
+            {
+                queryParams["projectKey"] = request.ProjectKey;
+            }
 
-            var query = request.ProjectKey == null
-                ? AppendQueryString(QualityProfileListAPI, "?defaults=true")
-                : AppendQueryString(QualityProfileListAPI, "?projectKey={0}", request.ProjectKey);
+            // Since 5.2
+            var apiPath = BuildRelativeUrl("api/qualityprofiles/search", queryParams);
 
-            return InvokeSonarQubeApi(query, token,
+            return InvokeSonarQubeApi(apiPath, token,
                 stringResponse => JObject.Parse(stringResponse)["profiles"].ToObject<QualityProfileResponse[]>());
         }
 
         public Task<Result<RoslynExportProfileResponse>> GetRoslynExportProfileAsync(RoslynExportProfileRequest request,
             CancellationToken token)
         {
-            const string QualityProfileExportAPI = "api/qualityprofiles/export"; // Since 5.2
+            // Since 5.2
+            var apiPath = BuildRelativeUrl("api/qualityprofiles/export",
+                new Dictionary<string, string>
+                {
+                    ["name"] = request.QualityProfileName,
+                    ["language"] = request.LanguageKey,
+                    ["exporterKey"] = string.Format(CultureInfo.InvariantCulture, "roslyn-{0}", request.LanguageKey)
+                });
 
-            var roslynExporterName = string.Format(CultureInfo.InvariantCulture, "roslyn-{0}",
-                        request.LanguageKey);
-            var query = AppendQueryString(QualityProfileExportAPI, "?name={0}&language={1}&exporterKey={2}",
-                request.QualityProfileName, request.LanguageKey, roslynExporterName); // TODO: should handle optional params
-
-            return InvokeSonarQubeApi(query, token,
+            return InvokeSonarQubeApi(apiPath, token,
                 stringResponse =>
                 {
                     using (var reader = new StringReader(stringResponse))
@@ -188,28 +216,72 @@ namespace SonarQube.Client.Services
 
         public Task<Result<VersionResponse>> GetVersionAsync(CancellationToken token)
         {
-            const string ServerVersionAPI = "api/server/version"; // Since 2.10; internal
+            // Since 2.10; internal
+            var serverVersionAPI = new Uri("api/server/version", UriKind.Relative);
 
-            return InvokeSonarQubeApi(ServerVersionAPI, token,
+            return InvokeSonarQubeApi(serverVersionAPI, token,
                 stringResponse => new VersionResponse { Version = stringResponse });
         }
 
         public Task<Result<CredentialResponse>> ValidateCredentialsAsync(CancellationToken token)
         {
-            const string ValidateCredentialsAPI = "api/authentication/validate"; // Since 3.3
+            // Since 3.3
+            var validateCredentialsApiUrl = new Uri("api/authentication/validate", UriKind.Relative);
 
-            return InvokeSonarQubeApi(ValidateCredentialsAPI, token,
+            return InvokeSonarQubeApi(validateCredentialsApiUrl, token,
                 stringResponse => new CredentialResponse { IsValid = (bool)JObject.Parse(stringResponse).SelectToken("valid") });
         }
 
-        private static string AppendQueryString(string urlBase, string queryFormat, params object[] args)
+        public Task<Result<NotificationsResponse[]>> GetNotificationEventsAsync(NotificationsRequest request,
+            CancellationToken token)
         {
-            return urlBase +
-                string.Format(CultureInfo.InvariantCulture, queryFormat,
-                    args.Select(x => HttpUtility.UrlEncode(x.ToString())).ToArray());
+            // Since 6.6; internal
+            var apiPath = BuildRelativeUrl("api/developers/search_events",
+                new Dictionary<string, string>
+                {
+                    ["projects"] = request.ProjectKey,
+                    ["from"] = ToJavaTimeFormat(request.EventsSince)
+                });
+
+            return InvokeSonarQubeApi(apiPath, token,
+                    async (HttpResponseMessage httpResponse) =>
+                    {
+                        if (httpResponse.StatusCode != HttpStatusCode.OK)
+                        {
+                            return new NotificationsResponse[0];
+                        }
+
+                        var stringResponse = await GetStringResultAsync(httpResponse, token);
+                        return JObject.Parse(stringResponse)["events"].ToObject<NotificationsResponse[]>()
+                            ?? new NotificationsResponse[0];
+                    }
+                );
         }
 
-        private static Uri CreateRequestUrl(HttpClient client, string apiUrl)
+        private static string ToJavaTimeFormat(DateTimeOffset date)
+        {
+            // This is the only format the notifications API accepts. ISO 8601 formats don't work.
+            var dateTime = date.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+            var timezone = date.ToString("zzz", CultureInfo.InvariantCulture).Replace(":", "");
+
+            // The Java format is "yyyy-MM-dd'T'HH:mm:ssZ"
+            // For example 2013-05-01T13:00:00+0100
+            return dateTime + timezone;
+        }
+
+        private Uri BuildRelativeUrl(string relativePath, Dictionary<string, string> queryParameters)
+        {
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            foreach (var kvp in queryParameters)
+            {
+                query[kvp.Key] = kvp.Value;
+            }
+
+            return new Uri(string.Format("{0}?{1}", relativePath, query.ToString()),
+                UriKind.Relative);
+        }
+
+        private static Uri CreateRequestUrl(HttpClient client, Uri apiUrl)
         {
             // We normalize these inputs to that the client base address always has a trailing slash,
             // and the API URL has no leading slash.
@@ -217,11 +289,11 @@ namespace SonarQube.Client.Services
             // to the base address's hostname only.
             Debug.Assert(client.BaseAddress.ToString().EndsWith("/"),
                 "HttpClient.BaseAddress should have a trailing slash");
-            Debug.Assert(!apiUrl.StartsWith("/"),
+            Debug.Assert(!apiUrl.IsAbsoluteUri,
                 "API URLs should not begin with a slash as this forces the API to be relative to the base URI's host.");
 
             Uri normalBaseUri = client.BaseAddress.EnsureTrailingSlash();
-            string normalApiUrl = apiUrl.TrimStart('/');
+            string normalApiUrl = apiUrl.ToString().TrimStart('/');
 
             return new Uri(normalBaseUri, normalApiUrl);
         }
@@ -234,7 +306,7 @@ namespace SonarQube.Client.Services
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
 
-        private static async Task<HttpResponseMessage> InvokeGetRequest(HttpClient client, string apiUrl,
+        private static async Task<HttpResponseMessage> InvokeGetRequest(HttpClient client, Uri apiUrl,
             CancellationToken token)
         {
             var uri = CreateRequestUrl(client, apiUrl);
@@ -260,19 +332,19 @@ namespace SonarQube.Client.Services
             }
         }
 
-        private async Task<Result<T>> InvokeSonarQubeApi<T>(string query, CancellationToken token,
+        private async Task<Result<T>> InvokeSonarQubeApi<T>(Uri apiUrl, CancellationToken token,
                     Func<string, T> parseStringResult)
         {
-            var httpResponse = await InvokeGetRequest(this.httpClient, query, token);
+            var httpResponse = await InvokeGetRequest(this.httpClient, apiUrl, token);
             var stringResponse = await GetStringResultAsync(httpResponse, token);
 
             return new Result<T>(httpResponse, parseStringResult(stringResponse));
         }
 
-        private async Task<Result<T>> InvokeSonarQubeApi<T>(string query, CancellationToken token,
+        private async Task<Result<T>> InvokeSonarQubeApi<T>(Uri apiUrl, CancellationToken token,
             Func<HttpResponseMessage, Task<T>> parseResponse)
         {
-            var httpResponse = await InvokeGetRequest(this.httpClient, query, token);
+            var httpResponse = await InvokeGetRequest(this.httpClient, apiUrl, token);
             token.ThrowIfCancellationRequested();
             var response = await parseResponse(httpResponse);
 

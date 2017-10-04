@@ -19,7 +19,9 @@
  */
 
 using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -508,6 +510,120 @@ namespace SonarQube.Client.Services.Tests
             // Assert
             funct.ShouldThrow<Exception>().And.Message.Should().Be(expectedException.Message);
         }
+        #endregion
+
+        #region Notifications
+
+        [TestMethod]
+        public async Task GetNotificationEventsAsync_CallsExpectedUrl()
+        {
+            var testDate = new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.FromHours(1));
+            var request = new NotificationsRequest { ProjectKey = "project", EventsSince = testDate };
+            var expectedUri = new Uri("api/developers/search_events?projects=project&from=2000-01-01T00:00:00%2b0100", UriKind.RelativeOrAbsolute);
+            await Method_CallsTheExpectedUri(expectedUri, @"{""events"": [] }",
+                (c, t) => c.GetNotificationEventsAsync(request, t));
+        }
+
+        [TestMethod]
+        public async Task GetNotificationEventsAsync_GetEventsFromTheServer()
+        {
+            // Arrange
+            var client = SetupClientWithHttpResponse(HttpStatusCode.OK,
+                @"{""events"":
+[{""category"":""QUALITY_GATE"",
+""message"":""Quality Gate of project 'test' is now Red (was Green)"",
+""link"":""http://localhost:9000/dashboard?id=test"",
+""project"":""test"",
+""date"":""2017-09-14T10:55:19+0200""}]}");
+
+            var request = new NotificationsRequest
+            {
+                ProjectKey = "test",
+                EventsSince = DateTimeOffset.Parse("2017-09-14T10:00:00+0200", CultureInfo.InvariantCulture)
+            };
+
+            var expected = new NotificationsResponse[]
+            {
+                new NotificationsResponse
+                {
+                    Category = "QUALITY_GATE",
+                    Message =  "Quality Gate of project 'test' is now Red (was Green)",
+                    Link = new Uri("http://localhost:9000/dashboard?id=test"),
+                    Date = new DateTimeOffset(2017, 9, 14, 10, 55, 19, 0, TimeSpan.FromHours(2)),
+                    Project = "test"
+                }
+            };
+
+            // Act
+            var result = await client
+                .GetNotificationEventsAsync(request, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            AssertEqual(expected, result.Value);
+        }
+
+        [TestMethod]
+        public async Task GetNotificationEventsAsync_NeverReturnsNull()
+        {
+            foreach (var statusCode in Enum.GetValues(typeof(HttpStatusCode)).Cast<HttpStatusCode>())
+            {
+                var result = await GetNotificationEventsAsync_WithHttpStatusCode(statusCode);
+                result.Value.Should().BeEmpty($"failed for {statusCode}");
+            }
+        }
+
+        private static async Task<Result<NotificationsResponse[]>> GetNotificationEventsAsync_WithHttpStatusCode(
+            HttpStatusCode returnedStatusCode)
+        {
+            // Arrange
+            var responseContent =
+                returnedStatusCode == HttpStatusCode.OK ? "{\"events\":[]}" : null;
+
+            var client = SetupClientWithHttpResponse(returnedStatusCode, responseContent);
+            var request = new NotificationsRequest { ProjectKey = "project", EventsSince = DateTimeOffset.Now };
+
+            // Act
+            return await client.GetNotificationEventsAsync(request, CancellationToken.None);
+        }
+
+        private static SonarQubeClient SetupClientWithHttpResponse(HttpStatusCode code, string responseText)
+        {
+            var response = new HttpResponseMessage(code);
+            if (responseText != null)
+            {
+                response.Content = new StringContent(responseText);
+            }
+
+            var httpHandler = new Mock<HttpMessageHandler>();
+            httpHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Returns(Task<HttpResponseMessage>.Factory.StartNew(() => response));
+
+            var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
+            return new SonarQubeClient(connection, httpHandler.Object, TimeSpan.FromSeconds(10));
+        }
+
+        private void AssertEqual(NotificationsResponse x, NotificationsResponse y, int itemIndex)
+        {
+            Assert.AreEqual(x.Category, y.Category, string.Format("Category, item {0}", itemIndex));
+            Assert.AreEqual(x.Date, y.Date, string.Format("Date, item {0}", itemIndex));
+            Assert.AreEqual(x.Link, y.Link, string.Format("Link, item {0}", itemIndex));
+            Assert.AreEqual(x.Message, y.Message, string.Format("Message, item {0}", itemIndex));
+            Assert.AreEqual(x.Project, y.Project, string.Format("Project, item {0}", itemIndex));
+        }
+
+        private void AssertEqual(NotificationsResponse[] expected, NotificationsResponse[] actual)
+        {
+            Assert.AreEqual(expected.Length, actual.Length);
+
+            for (int i = 0; i < expected.Length; i++)
+            {
+                AssertEqual(expected[i], actual[i], i);
+            }
+        }
+
         #endregion
     }
 }
