@@ -37,24 +37,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
         /// <summary>
         /// Returns the relative path to the second file from the first, or 
         /// <paramref name="toFilePath"/> if the paths are not relative.
+        /// Note: the return value will have '/' as the path separator character.
         /// </summary>
         public static string GetRelativePath(string fromFilePath, string toFilePath)
         {
             var sb = new StringBuilder(260);
             bool success = PathRelativePathTo(sb, fromFilePath, FileAttributes.Normal, toFilePath, FileAttributes.Normal);
 
+            string resultPath;
+
             if (success)
             {
-                // Strip of the the leading ".\" (i.e. if the files are in the same directory)
+                // Strip off the the leading ".\" (i.e. if the files are in the same directory)
                 int offset = 0;
                 if (sb[0] == '.' && sb[1] == '\\')
                 {
                     offset = 2;
                 }
-                return sb.ToString(offset, sb.Length - offset);
+                resultPath = sb.ToString(offset, sb.Length - offset);
             }
-
-            return toFilePath;
+            else
+            {
+                resultPath = toFilePath;
+            }
+            
+            return resultPath.Replace('\\', '/');
         }
 
     }
