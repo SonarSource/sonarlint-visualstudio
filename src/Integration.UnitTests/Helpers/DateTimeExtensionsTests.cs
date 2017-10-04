@@ -40,13 +40,14 @@ namespace SonarLint.VisualStudio.Integration
         [TestMethod]
         public void DaysPassedSince()
         {
-            today_00h_00m.DaysPassedSince(yesterday_23h_59m).Should().Be(1);
+            today_00h_00m.DaysPassedSince(yesterday_23h_59m).Should().Be(0);
             today_00h_00m.DaysPassedSince(yesterday_00h_00m).Should().Be(1);
             today_00h_00m.DaysPassedSince(today_00h_00m).Should().Be(0);
             today_00h_00m.DaysPassedSince(today_00h_01m).Should().Be(0);
             today_00h_00m.DaysPassedSince(today_23h_59m).Should().Be(0);
             today_00h_00m.DaysPassedSince(tomorrow_00h_00m).Should().Be(-1);
             today_00h_00m.DaysPassedSince(tomorrow_23h_59m).Should().Be(-1);
+            tomorrow_23h_59m.DaysPassedSince(yesterday_00h_00m).Should().Be(2);
         }
 
         [TestMethod]

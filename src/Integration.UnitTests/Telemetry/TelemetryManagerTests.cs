@@ -256,7 +256,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             knownUIContexts.Raise(eventExpression, new UIContextChangedEventArgs(true));
 
             // Assert
-            telemetryData.LastSavedAnalysisDate.Should().BeCloseTo(DateTime.Today, CloseTimeThresholdInMilliseconds);
+            telemetryData.LastSavedAnalysisDate.Should().BeCloseTo(DateTime.Now, CloseTimeThresholdInMilliseconds);
             telemetryData.NumberOfDaysOfUse.Should().Be(1);
 
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);

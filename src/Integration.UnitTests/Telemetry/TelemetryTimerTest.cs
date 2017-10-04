@@ -112,9 +112,6 @@ namespace SonarLint.VisualStudio.Integration
         [TestMethod]
         public void Stop_Stops_Timer_If_Started()
         {
-            // Arrange
-            //timerMock.Setup(x => x.Stop());
-
             // Act
             telemetryTimer.Start();
             telemetryTimer.Stop();
@@ -126,9 +123,6 @@ namespace SonarLint.VisualStudio.Integration
         [TestMethod]
         public void Stop_Does_Not_Stop_Timers_If_Not_Started()
         {
-            // Arrange
-            timerMock.Setup(x => x.Stop());
-
             // Act
             telemetryTimer.Stop();
 
@@ -139,9 +133,6 @@ namespace SonarLint.VisualStudio.Integration
         [TestMethod]
         public void Dispose_Stops_Timer_If_Started()
         {
-            // Arrange
-            timerMock.Setup(x => x.Stop());
-
             // Act
             telemetryTimer.Start();
             telemetryTimer.Dispose();
@@ -153,9 +144,6 @@ namespace SonarLint.VisualStudio.Integration
         [TestMethod]
         public void Dispose_Does_Not_Stop_Timers_If_Not_Started()
         {
-            // Arrange
-            timerMock.Setup(x => x.Stop());
-
             // Act
             telemetryTimer.Dispose();
 
