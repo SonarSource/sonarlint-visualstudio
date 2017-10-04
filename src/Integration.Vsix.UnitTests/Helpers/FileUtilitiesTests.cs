@@ -41,24 +41,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Path_Relative_InChildFolders()
         {
             string path = FileUtilities.GetRelativePath("c:\\sub1\\proj1.proj", "c:\\sub1\\sub2\\sub3\\myfile.cs");
-            path.Should().Be("sub2\\sub3\\myfile.cs");
+            path.Should().Be("sub2/sub3/myfile.cs");
 
             path = FileUtilities.GetRelativePath("c:\\proj1.proj", "c:\\sub1\\sub2\\sub3\\myfile.cs");
-            path.Should().Be("sub1\\sub2\\sub3\\myfile.cs");
+            path.Should().Be("sub1/sub2/sub3/myfile.cs");
         }
 
         [TestMethod]
         public void Path_NotRelative_InNonChildFolders()
         {
             string path = FileUtilities.GetRelativePath("c:\\aaaa\\myproject.csproj", "c:\\bbbb\\file1.cs");
-            path.Should().Be("..\\bbbb\\file1.cs");
+            path.Should().Be("../bbbb/file1.cs");
         }
 
         [TestMethod]
         public void Path_NotRelative_OnDifferentDrives()
         {
             string path = FileUtilities.GetRelativePath("c:\\folder1\\project1.vbproj", "d:\\folder1\\file2.vb");
-            path.Should().Be("d:\\folder1\\file2.vb");
+            path.Should().Be("d:/folder1/file2.vb");
         }
 
         [TestMethod]
