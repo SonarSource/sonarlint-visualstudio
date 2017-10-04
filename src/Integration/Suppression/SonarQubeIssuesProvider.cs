@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,10 +28,9 @@ using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
-    [Export(typeof(ISonarQubeIssuesProvider))]
     public sealed class SonarQubeIssuesProvider : ISonarQubeIssuesProvider, IDisposable
     {
-        private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 60 * 1; // 1 hour
+        private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 1; // 1 minute
 
         private readonly System.Timers.Timer refreshTimer;
         private readonly IActiveSolutionBoundTracker solutionBoundTacker;
@@ -42,8 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private bool isDisposed;
         private CancellationTokenSource cancellationTokenSource;
 
-        [ImportingConstructor]
-        internal SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, IActiveSolutionBoundTracker solutionBoundTacker)
+        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, IActiveSolutionBoundTracker solutionBoundTacker)
         {
             this.sonarQubeService = sonarQubeService;
             this.solutionBoundTacker = solutionBoundTacker;

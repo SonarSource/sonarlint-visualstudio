@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Integration.Suppression;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {
@@ -29,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly ISonarQubeService sonarQubeService;
 
         private DelegateInjector delegateInjector;
         private LiveIssueFactory liveIssueFactory;
@@ -37,8 +39,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         public SuppressionManager(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
-            activeSolutionBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
-            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+
+            this.activeSolutionBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
+            this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+
+            this.sonarQubeService = serviceProvider.GetMefService<ISonarQubeService>();
 
             RefreshSuppresionHandling();
         }
@@ -59,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         {
             liveIssueFactory = new LiveIssueFactory(serviceProvider);
             delegateInjector = new DelegateInjector(ShouldIssueBeReported, serviceProvider);
-            sonarqubeIssueProvider = this.serviceProvider.GetMefService<ISonarQubeIssuesProvider>(); // Cannot do new because of IHost
+            sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, activeSolutionBoundTracker);
         }
 
         private void CleanupSuppressionHandling()
@@ -90,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             // Issues match if:
             // 1. Same component, same file, same error code, same line hash        // tolerant to line number changing
-            // 2. Same component, same file, same error code, same line             // tolarant to code on the line changing e.g. var rename
+            // 2. Same component, same file, same error code, same line             // tolerant to code on the line changing e.g. var rename
 
             // TODO: ?need to make file path relative to the project file path
             // As a minimum, the project, file and rule id must match
@@ -103,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             // TODO: rule repository?
             issuesInFile = issuesInFile.Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleId));
-            
+
             bool matchFound = issuesInFile.Any(i =>
                     liveIssue.StartLine == i.Line ||
                     StringComparer.Ordinal.Equals(liveIssue.LineHash, i.Hash));
