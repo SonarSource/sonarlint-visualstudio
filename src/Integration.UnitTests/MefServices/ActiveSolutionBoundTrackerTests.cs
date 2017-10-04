@@ -21,6 +21,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -118,12 +119,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             bool serviceIsConnected = false;
             var mockSqService = new Mock<ISonarQubeService>();
 
-            Expression<Action<ISonarQubeService>> connectMethod = x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>());
+            Expression<Func<ISonarQubeService, Task>> connectMethod = x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>());
             Expression<Action<ISonarQubeService>> disconnectMethod = x => x.Disconnect();
 
             mockSqService.SetupGet(x => x.IsConnected).Returns(() => serviceIsConnected);
             mockSqService.Setup(disconnectMethod).Callback(() => serviceIsConnected = false).Verifiable();
-            mockSqService.Setup(connectMethod).Callback(() => serviceIsConnected = true).Verifiable();
+            mockSqService.Setup(connectMethod)
+                .Returns(Task.Delay(0))
+                .Callback(() => serviceIsConnected = true).Verifiable();
             this.host.SonarQubeService = mockSqService.Object;
 
             this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
