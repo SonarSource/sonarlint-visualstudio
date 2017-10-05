@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
             model.ToolTipText = "test";
 
+            model.ToolTipText.Should().Be("test");
             model.ShouldRaisePropertyChangeFor(x => x.ToolTipText);
         }
 
@@ -55,6 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
             model.HasUnreadEvents = true;
 
+            model.HasUnreadEvents.Should().BeTrue();
             model.ShouldRaisePropertyChangeFor(x => x.HasUnreadEvents);
         }
 
@@ -66,6 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
             model.IsIconVisible = true;
 
+            model.IsIconVisible.Should().BeTrue();
             model.ShouldRaisePropertyChangeFor(x => x.IsIconVisible);
         }
 
@@ -77,6 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
             model.AreNotificationsEnabled = true;
 
+            model.AreNotificationsEnabled.Should().BeTrue();
             model.ShouldRaisePropertyChangeFor(x => x.AreNotificationsEnabled);
         }
 
@@ -88,7 +92,23 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
             model.IsToolTipVisible = true;
 
+            model.IsToolTipVisible.Should().BeTrue();
             model.ShouldRaisePropertyChangeFor(x => x.IsToolTipVisible);
+        }
+
+        [TestMethod]
+        public void IsToolTipVisible_False_Stops_Timer()
+        {
+            // Arrange
+            var timerMock = new Mock<ITimer>();
+
+            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object);
+            model.IsToolTipVisible = true;
+
+            // Act
+            model.IsToolTipVisible = false;
+
+            timerMock.Verify(x => x.Stop(), Times.Once);
         }
 
         [TestMethod]
@@ -140,9 +160,22 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             model = SetupModelWithNotifications(true, true, null);
             model.HasUnreadEvents.Should().BeFalse();
 
-
             model = SetupModelWithNotifications(true, true, testEvents);
             model.HasUnreadEvents.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ClearUnreadEventsCommand_Sets_HasUnreadEvents_False()
+        {
+            // Arrange
+           var model = SetupModelWithNotifications(true, true, testEvents);
+            model.HasUnreadEvents.Should().BeTrue();
+
+            // Act
+            model.ClearUnreadEventsCommand.Execute(null);
+
+            // Assert
+            model.HasUnreadEvents.Should().BeFalse();
         }
 
         private NotificationIndicatorViewModel SetupModelWithNotifications(bool areEnabled,
