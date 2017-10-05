@@ -241,7 +241,7 @@ function Run-Tests([bool]$runCoverage=$false) {
     Write-Host "Is running code coverage: ${runCoverage}"
 
     $testFiles = @()
-    Get-ChildItem (Resolve-RepoPath "src") -Recurse -Include "*.UnitTests.dll" `
+    Get-ChildItem (Resolve-RepoPath "src") -Recurse -Include @("*.UnitTests.dll", "*.Tests.dll") `
         | Where-Object { $_.DirectoryName -Match "bin" } `
         | ForEach-Object { $testFiles += $_ }
 
