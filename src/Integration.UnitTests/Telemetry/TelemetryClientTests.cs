@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             var httpHandler = new FakeHttpMessageHandler(x => { throw new Exception(); });
-            var client = new TelemetryClient(httpHandler);
+            var client = new TelemetryClient(httpHandler, 3, TimeSpan.FromMilliseconds(1));
 
             // Act
             var result = await client.OptOut(new TelemetryPayload());
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             var httpHandler = new FakeHttpMessageHandler(x => { throw new Exception(); });
-            var client = new TelemetryClient(httpHandler);
+            var client = new TelemetryClient(httpHandler, 3, TimeSpan.FromMilliseconds(1));
 
             // Act
             var result = await client.SendPayload(new TelemetryPayload());
