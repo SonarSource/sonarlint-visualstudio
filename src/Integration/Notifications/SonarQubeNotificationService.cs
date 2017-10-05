@@ -32,28 +32,32 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     {
         private readonly ITimer timer;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
+        private readonly ISonarLintOutput sonarLintOutput;
 
+        private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
         private DateTimeOffset lastCheckDate;
         private string projectKey;
 
-        public INotificationIndicatorViewModel Model { get; private set; }
+        public INotificationIndicatorViewModel Model { get; }
 
         public NotificationData GetNotificationData() =>
             new NotificationData
-                {
-                    IsEnabled = Model.AreNotificationsEnabled,
-                    LastNotificationDate = lastCheckDate
-                };
+            {
+                IsEnabled = Model.AreNotificationsEnabled,
+                LastNotificationDate = lastCheckDate
+            };
 
-        public SonarQubeNotificationService(ISonarQubeService sonarQubeService,
-            INotificationIndicatorViewModel model, ITimer timer)
+        public SonarQubeNotificationService(ISonarQubeService sonarQubeService, INotificationIndicatorViewModel model,
+            ITimer timer, ISonarLintOutput sonarLintOutput)
         {
-            this.timer = timer;
             this.sonarQubeService = sonarQubeService;
+
             Model = model;
 
-            timer.Elapsed += OnTimerElapsed;
+            this.timer = timer;
+            this.timer.Elapsed += OnTimerElapsed;
+
+            this.sonarLintOutput = sonarLintOutput;
         }
 
         public async Task StartAsync(string projectKey, NotificationData notificationData)
@@ -64,26 +68,14 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
 
             this.projectKey = projectKey;
-            InitializeModel(notificationData);
 
-            await UpdateEvents();
-            timer.Start();
-        }
-
-        private void InitializeModel(NotificationData notificationData)
-        {
             Model.AreNotificationsEnabled = notificationData?.IsEnabled ?? true;
 
-            var oneDayAgo = DateTimeOffset.Now.AddDays(-1);
-            if (notificationData == null ||
-                notificationData.LastNotificationDate < oneDayAgo)
-            {
-                lastCheckDate = oneDayAgo;
-            }
-            else
-            {
-                lastCheckDate = notificationData.LastNotificationDate;
-            }
+            lastCheckDate = GetLastCheckedDate(notificationData);
+
+            timer.Start();
+
+            await UpdateEvents();
         }
 
         public void Stop()
@@ -91,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             cancellation.Cancel();
 
             timer.Stop();
+
             Model.IsIconVisible = false;
         }
 
@@ -104,9 +97,16 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             var events = await GetNotificationEvents();
             if (events == null)
             {
+                // Notifications are not supported on SonarQube or an exception was thrown
                 Stop();
                 return;
             }
+
+            if (events.Count > 0)
+            {
+                lastCheckDate = events.Max(ev => ev.Date);
+            }
+
             Model.IsIconVisible = true;
             Model.SetNotificationEvents(events);
         }
@@ -118,32 +118,38 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         private async Task<IList<SonarQubeNotification>> GetNotificationEvents()
         {
-            IList<SonarQubeNotification> events = null;
-
             try
             {
-                events = await sonarQubeService.GetNotificationEventsAsync(projectKey,
+                return await sonarQubeService.GetNotificationEventsAsync(projectKey,
                     lastCheckDate, cancellation.Token);
             }
             catch (Exception ex)
             {
-                VsShellUtils.WriteToSonarLintOutputPane(
-                    Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider,
-                    $"Failed to fetch notifications : {ex.Message}");
-            }
+                sonarLintOutput.Write($"Failed to fetch notifications : {ex.Message}");
 
-            if (events != null && events.Count > 0)
-            {
-                lastCheckDate = events.Max(ev => ev.Date);
+                return null;
             }
-
-            return events;
         }
 
         public void Dispose()
         {
             timer.Elapsed -= OnTimerElapsed;
             Stop();
+        }
+
+        private static DateTimeOffset GetLastCheckedDate(NotificationData notificationData)
+        {
+            var oneDayAgo = DateTimeOffset.Now.AddDays(-1);
+
+            if (notificationData == null ||
+                notificationData.LastNotificationDate < oneDayAgo)
+            {
+                return oneDayAgo;
+            }
+            else
+            {
+                return notificationData.LastNotificationDate;
+            }
         }
     }
 }
