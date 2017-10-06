@@ -19,13 +19,16 @@
  */
 
 using System;
+using Newtonsoft.Json;
+using SonarQube.Client.Helpers;
 
 namespace SonarQube.Client.Messages
 {
     public class NotificationsRequest
     {
+        [JsonProperty("projects")]
         public string ProjectKey { get; set; }
-
+        [JsonProperty("from"), JsonConverter(typeof(JavaDateConverter))]
         public DateTimeOffset EventsSince { get; set; }
     }
 }

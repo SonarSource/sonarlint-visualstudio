@@ -89,7 +89,7 @@ namespace SonarQube.Client.Services.Tests
         {
             var request = new ComponentRequest { OrganizationKey = "org", Page = 42, PageSize = 25 };
             await Method_CallsTheExpectedUri(
-                new Uri("api/components/search_projects?organization=org&p=42&ps=25&asc=true", UriKind.RelativeOrAbsolute),
+                new Uri("api/components/search_projects?p=42&ps=25&organization=org&asc=true", UriKind.RelativeOrAbsolute),
                 @"{""components"":[]}", (c, t) => c.GetComponentsSearchProjectsAsync(request, t));
         }
         [TestMethod]
@@ -146,14 +146,14 @@ namespace SonarQube.Client.Services.Tests
         {
             var request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "cs" };
             await Method_CallsTheExpectedUri(
-                new Uri("api/qualityprofiles/export?name=qp&language=cs&exporterKey=roslyn-cs", UriKind.RelativeOrAbsolute),
+                new Uri("api/qualityprofiles/export?language=cs&name=qp&exporterKey=roslyn-cs", UriKind.RelativeOrAbsolute),
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
 </RoslynExportProfile>", (c, t) => c.GetRoslynExportProfileAsync(request, t));
 
             request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "vbnet" };
             await Method_CallsTheExpectedUri(
-                new Uri("api/qualityprofiles/export?name=qp&language=vbnet&exporterKey=roslyn-vbnet", UriKind.RelativeOrAbsolute),
+                new Uri("api/qualityprofiles/export?language=vbnet&name=qp&exporterKey=roslyn-vbnet", UriKind.RelativeOrAbsolute),
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
 </RoslynExportProfile>", (c, t) => c.GetRoslynExportProfileAsync(request, t));
