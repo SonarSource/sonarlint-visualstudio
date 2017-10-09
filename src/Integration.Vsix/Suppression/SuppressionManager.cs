@@ -31,12 +31,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ISonarQubeService sonarQubeService;
+        private readonly ITimerFactory timerFactory;
 
         private DelegateInjector delegateInjector;
         private LiveIssueFactory liveIssueFactory;
         private ISonarQubeIssuesProvider sonarqubeIssueProvider;
 
-        public SuppressionManager(IServiceProvider serviceProvider)
+        public SuppressionManager(IServiceProvider serviceProvider, ITimerFactory timerFactory)
         {
             this.serviceProvider = serviceProvider;
 
@@ -44,6 +45,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
 
             this.sonarQubeService = serviceProvider.GetMefService<ISonarQubeService>();
+
+            this.timerFactory = timerFactory;
 
             RefreshSuppresionHandling();
         }
@@ -64,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         {
             liveIssueFactory = new LiveIssueFactory(serviceProvider);
             delegateInjector = new DelegateInjector(ShouldIssueBeReported, serviceProvider);
-            sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, activeSolutionBoundTracker);
+            sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, activeSolutionBoundTracker, timerFactory);
         }
 
         private void CleanupSuppressionHandling()
