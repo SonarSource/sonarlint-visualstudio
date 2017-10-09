@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.Integration
     public sealed class TelemetryClient : ITelemetryClient, IDisposable
     {
         private readonly HttpClient client;
+        private readonly int maxRetries;
+        private readonly TimeSpan retryTimeout;
 
         public TelemetryClient()
             : this(new HttpClientHandler())
@@ -36,11 +38,18 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         public TelemetryClient(HttpMessageHandler httpHandler)
+            : this(httpHandler, 3, TimeSpan.FromSeconds(2))
         {
+        }
+
+        public TelemetryClient(HttpMessageHandler httpHandler, int maxRetries, TimeSpan retryTimeout)
+        {
+            this.maxRetries = maxRetries;
+            this.retryTimeout = retryTimeout;
             this.client = new HttpClient(httpHandler)
-            {
-                BaseAddress = new Uri("https://chestnutsl.sonarsource.com", UriKind.RelativeOrAbsolute)
-            };
+                {
+                    BaseAddress = new Uri("https://chestnutsl.sonarsource.com", UriKind.RelativeOrAbsolute)
+                };
             this.client.DefaultRequestHeaders.Add("User-Agent", "SonarLint");
         }
 
@@ -51,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public async Task<bool> OptOut(TelemetryPayload payload)
         {
-            return await RetryHelper.RetryOnExceptionAsync(3, TimeSpan.FromSeconds(2),
+            return await RetryHelper.RetryOnExceptionAsync(maxRetries, retryTimeout,
                 async () =>
                 {
                     var response = await SendAsync(HttpMethod.Delete, payload);
@@ -61,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public async Task<bool> SendPayload(TelemetryPayload payload)
         {
-            return await RetryHelper.RetryOnExceptionAsync(3, TimeSpan.FromSeconds(2),
+            return await RetryHelper.RetryOnExceptionAsync(maxRetries, retryTimeout,
                 async () =>
                 {
                     var response = await SendAsync(HttpMethod.Post, payload);

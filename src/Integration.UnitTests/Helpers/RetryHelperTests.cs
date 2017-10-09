@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -60,11 +60,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
-        public void RetryOnException_WhenFailsTwiceWithAFiveSecondDelay_ReturnsFalseAndCompletesInTenSeconds()
+        public void RetryOnException_WhenFailsTwiceWithAFiveMilliSecondDelay_ReturnsFalseAndCompletesInTenSeconds()
         {
             // Arrange
-            var fiveSecondsInMilliseconds = 5000;
-            var delay = TimeSpan.FromMilliseconds(fiveSecondsInMilliseconds);
+            var delayMilliseconds = 5;
+            var delay = TimeSpan.FromMilliseconds(delayMilliseconds);
             var timeWatch = new System.Diagnostics.Stopwatch();
 
             // Act
@@ -75,8 +75,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             result.Should().BeFalse();
             timeWatch.ElapsedMilliseconds.Should().BeInRange(
-                (fiveSecondsInMilliseconds * 2) - 500,
-                (fiveSecondsInMilliseconds * 2) + 500);
+                (delayMilliseconds * 2) - 200,
+                (delayMilliseconds * 2) + 200);
         }
 
         [TestMethod]
@@ -100,11 +100,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
-        public async Task RetryOnExceptionAsync_WhenFailsTwiceWithAFiveSecondDelay_ReturnsFalseAndCompletesInTenSeconds()
+        public async Task RetryOnExceptionAsync_WhenFailsTwiceWithAFiveMilliSecondDelay_ReturnsFalseAndCompletesInTenSeconds()
         {
             // Arrange
-            var fiveSecondsInMilliseconds = 5000;
-            var delay = TimeSpan.FromMilliseconds(fiveSecondsInMilliseconds);
+            var delayMilliseconds = 5;
+            var delay = TimeSpan.FromMilliseconds(delayMilliseconds);
             var timeWatch = new System.Diagnostics.Stopwatch();
 
             // Act
@@ -115,8 +115,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             result.Should().BeFalse();
             timeWatch.ElapsedMilliseconds.Should().BeInRange(
-                (fiveSecondsInMilliseconds * 2) - 500,
-                (fiveSecondsInMilliseconds * 2) + 500);
+                (delayMilliseconds * 2) - 200,
+                (delayMilliseconds * 2) + 200);
         }
     }
 }

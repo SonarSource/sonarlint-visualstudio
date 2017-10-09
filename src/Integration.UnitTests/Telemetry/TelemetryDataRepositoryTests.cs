@@ -20,7 +20,6 @@
 
 using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using FluentAssertions;
@@ -39,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var directoryPath = Path.GetDirectoryName(filePath);
 
             RetryHelper.RetryOnException(5, TimeSpan.FromSeconds(1), () => Directory.Delete(directoryPath, true));
-            Thread.Sleep(500);
             Directory.Exists(directoryPath).Should().BeFalse(); // Sanity test
 
             // Act
@@ -56,7 +54,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var filePath = TelemetryDataRepository.GetStorageFilePath();
 
             RetryHelper.RetryOnException(5, TimeSpan.FromSeconds(1), () => File.Delete(filePath));
-            Thread.Sleep(500);
             File.Exists(filePath).Should().BeFalse(); // Sanity test
 
             // Act
@@ -124,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Instance_AutomaticallyReadFileOnChange()
         {
             // Arrange
-            RetryHelper.RetryOnException(5, TimeSpan.FromSeconds(1),
+            RetryHelper.RetryOnException(10, TimeSpan.FromMilliseconds(500),
                 () => File.Delete(TelemetryDataRepository.GetStorageFilePath()));
 
             var repository = new TelemetryDataRepository();

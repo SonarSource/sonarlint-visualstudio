@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration
         private static readonly string StorageFilePath = GetStorageFilePath();
 
         private readonly FileSystemWatcher fileWatcher;
+        private readonly XmlSerializer telemetrySerializer = new XmlSerializer(typeof(TelemetryData));
 
         private bool ignoreFileChange;
 
@@ -87,10 +88,9 @@ namespace SonarLint.VisualStudio.Integration
             var success = RetryHelper.RetryOnException(3, TimeSpan.FromSeconds(2),
                 () =>
                 {
-                    var serializer = new XmlSerializer(typeof(TelemetryData));
                     writer = new StreamWriter(StorageFilePath, false);
                     this.ignoreFileChange = true;
-                    serializer.Serialize(writer, Data);
+                    telemetrySerializer.Serialize(writer, Data);
                     writer.Flush();
                 });
             writer?.Close();
@@ -108,10 +108,9 @@ namespace SonarLint.VisualStudio.Integration
                 () =>
                 {
                     stream = File.OpenRead(StorageFilePath);
-                    var serializer = new XmlSerializer(typeof(TelemetryData));
                     try
                     {
-                        this.Data = serializer.Deserialize(stream) as TelemetryData;
+                        this.Data = telemetrySerializer.Deserialize(stream) as TelemetryData;
                     }
                     catch (InvalidOperationException)
                     {
