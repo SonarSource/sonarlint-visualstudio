@@ -224,8 +224,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         {
             var olderEventDate = new DateTimeOffset(2010, 1, 1, 0, 0, 0, TimeSpan.Zero);
             var newerEventDate = new DateTimeOffset(2010, 1, 1, 0, 0, 1, TimeSpan.Zero);
+            var newestEventDate = new DateTimeOffset(2010, 1, 1, 0, 0, 2, TimeSpan.Zero);
 
-            // Arrange
             var event1 = new SonarQubeNotification(
                     category: "QUALITY_GATE",
                     link: new Uri("http://foo.com"),
@@ -238,41 +238,62 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
                     date: newerEventDate,
                     message: "foo");
 
+            var event3 = new SonarQubeNotification(
+                    category: "QUALITY_GATE",
+                    link: new Uri("http://foo.com"),
+                    date: newestEventDate,
+                    message: "foo");
+            
             serverNotifications.Add(event1);
-            serverNotifications.Add(event2);
 
-            // Act
+            // 1. Start monitoring
+            // Must call StartAsync so the cancellation token is initialized. This will fetch the event data.
+            await notifications.StartAsync("anykey", null);
+
+            sonarQubeServiceMock.Verify(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
+            notifications.GetNotificationData().LastNotificationDate.Should().Be(olderEventDate);
+
+            // 2. Add newer events and simulate the timer firing
+            serverNotifications.Add(event2);
+            serverNotifications.Add(event3);
+
+            // Simulate the timer triggering
             timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
 
-            // Wait some time because the timer event is not awaitable
-            await Task.Delay(100);
-
-            // Assert
-            sonarQubeServiceMock
-                // projectKey is null because StartAsync was never called
-                .Verify(x => x.GetNotificationEventsAsync(null, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()));
-            notifications.GetNotificationData().LastNotificationDate.Should().Be(newerEventDate);
+            sonarQubeServiceMock.Verify(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            notifications.GetNotificationData().LastNotificationDate.Should().Be(newestEventDate);
         }
 
         [TestMethod]
         public async Task Timer_Elapsed_Stops_Timer_Hides_Icon_If_SonarQubeService_Returns_Null()
         {
-            // Arrange
+            var event1 = new SonarQubeNotification(
+                    category: "QUALITY_GATE",
+                    link: new Uri("http://foo.com"),
+                    date: new DateTimeOffset(2010, 1, 1, 0, 0, 2, TimeSpan.Zero),
+                    message: "foo");
+
+            serverNotifications.Add(event1);
+
+            // 1. Start monitoring - server returns one event
+            // Must call StartAsync so the cancellation token is initialized
+            await notifications.StartAsync("anykey", null);
+
             sonarQubeServiceMock
-                // projectKey is null because StartAsync will not be called
-                .Setup(x => x.GetNotificationEventsAsync(null, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+                .Verify(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+            timerMock.Verify(x => x.Stop(), Times.Never);
+
+            // 2. Simulate timer elapsing - server returns null
+            sonarQubeServiceMock
+                .Setup(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<IList<SonarQubeNotification>>(null));
 
-            // Act
             timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
 
-            // Wait some time because the timer event is not awaitable
-            await Task.Delay(100);
-
-            // Assert
             sonarQubeServiceMock
-                // projectKey is null because StartAsync was never called
-                .Verify(x => x.GetNotificationEventsAsync(null, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()));
+                .Verify(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+                Times.Exactly(2));
 
             timerMock.Verify(x => x.Stop(), Times.Once);
             modelMock.VerifySet(x => x.IsIconVisible = false, Times.Once);
