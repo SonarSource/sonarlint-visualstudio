@@ -31,6 +31,7 @@ using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    [ExcludeFromCodeCoverage] // Not easily testable, this class should be kept as simple as possible
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Guid(PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
