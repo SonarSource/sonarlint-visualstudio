@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         private readonly ISonarQubeService sonarQubeService;
         private readonly ISonarLintOutput sonarLintOutput;
 
-        private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
+        private CancellationTokenSource cancellation;
         private DateTimeOffset lastCheckDate;
         private string projectKey;
 
@@ -68,22 +68,18 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
 
             this.projectKey = projectKey;
-
+            cancellation = new CancellationTokenSource();
             Model.AreNotificationsEnabled = notificationData?.IsEnabled ?? true;
-
             lastCheckDate = GetLastCheckedDate(notificationData);
 
             timer.Start();
-
             await UpdateEvents();
         }
 
         public void Stop()
         {
-            cancellation.Cancel();
-
+            cancellation?.Cancel();
             timer.Stop();
-
             Model.IsIconVisible = false;
         }
 
