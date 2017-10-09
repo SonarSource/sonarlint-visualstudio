@@ -277,5 +277,32 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             timerMock.Verify(x => x.Stop(), Times.Once);
             modelMock.VerifySet(x => x.IsIconVisible = false, Times.Once);
         }
+
+        [TestMethod]
+        public async Task Start_Stop_Start_Stop_Sequence()
+        {
+            sonarQubeServiceMock
+                .Setup(x => x.GetNotificationEventsAsync(It.IsAny<string>(), It.IsAny<DateTimeOffset>(),
+                                It.IsAny<CancellationToken>()))
+                .Callback<string, DateTimeOffset, CancellationToken>((_, __, token) =>
+                    token.IsCancellationRequested.Should().BeFalse())
+                .Returns(Task.FromResult(serverNotifications));
+
+            await notifications.StartAsync("test", null);
+            timerMock.Verify(x => x.Start(), Times.Once);
+            notifications.Model.IsIconVisible.Should().BeTrue();
+
+            notifications.Stop();
+            timerMock.Verify(x => x.Stop(), Times.Once);
+            notifications.Model.IsIconVisible.Should().BeFalse();
+
+            await notifications.StartAsync("test", null);
+            timerMock.Verify(x => x.Start(), Times.Exactly(2));
+            notifications.Model.IsIconVisible.Should().BeTrue();
+
+            notifications.Stop();
+            timerMock.Verify(x => x.Stop(), Times.Exactly(2));
+            notifications.Model.IsIconVisible.Should().BeFalse();
+        }
     }
 }
