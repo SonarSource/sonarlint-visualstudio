@@ -83,6 +83,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void SolutionBindingInformationProvider_GetProjectKey()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+
+            // Case 1: Not bound
+            this.bindingSerializer.CurrentBinding = null;
+
+            // Act + Assert
+            testSubject.GetProjectKey().Should().BeNull();
+
+            // Case 2: Bound
+            this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject { ProjectKey = "PROJECT_KEY" };
+
+            // Act + Assert
+            testSubject.GetProjectKey().Should().Be("PROJECT_KEY");
+        }
+
+        [TestMethod]
         public void SolutionBindingInformationProvider_GetBoundProjects_SolutionNotBound()
         {
             // Arrange
