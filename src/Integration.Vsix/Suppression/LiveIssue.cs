@@ -37,7 +37,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             ProjectGuid = projectGuid;
             StartLine = startLine;
             WholeLineText = wholeLineText;
-            LineHash = ChecksumCalculator.Calculate(WholeLineText);
+
+            // SonarQube doesn't calculate hash for file-level issues
+            LineHash = startLine != 0 ? ChecksumCalculator.Calculate(WholeLineText) : "";
         }
 
         public Diagnostic Diagnostic { get; }

@@ -97,18 +97,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                 return null;
             }
 
-            // Get the whole of the line of text containing the issue (needed to compute the checksum)
-            // TODO: checksum for file level issues?
             FileLinePositionSpan lineSpan = diagnostic.Location.GetLineSpan();
 
             int startLine = lineSpan.StartLinePosition.Line;
             int additionalLineCount = lineSpan.EndLinePosition.Line - startLine;
             string lineText = tree.GetText().Lines[startLine + additionalLineCount].ToString();
             string relativeFilePath = FileUtilities.GetRelativePath(project.FilePath, lineSpan.Path);
+            int sonarQubeLineNumber = ToSonarQubeLineNumber(lineSpan);
 
-            LiveIssue liveIssue = new LiveIssue(diagnostic, relativeFilePath, projectId,
-                startLine + 1, lineText); // Roslyn lines are 0-based, SonarQube lines are 1-based
-            return liveIssue;
+            return new LiveIssue(diagnostic, relativeFilePath, projectId, sonarQubeLineNumber, lineText);
         }
 
         private void BuildProjectPathToIdMap()
@@ -149,6 +146,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
                 projectPathToProjectIdMap.Add(projectFile, projectId.ToString().Replace("{", "").Replace("}", ""));
             }
+        }
+
+        private int ToSonarQubeLineNumber(FileLinePositionSpan lineSpan)
+        {
+            var isFileLevel = lineSpan.StartLinePosition.Line == 0 &&
+                lineSpan.StartLinePosition.Character == 0 &&
+                lineSpan.EndLinePosition.Line == 0 &&
+                lineSpan.EndLinePosition.Character == 0;
+
+            if (isFileLevel)
+            {
+                return 0; // This is a file-level issue
+            }
+
+            // Roslyn lines are 0-based, SonarQube lines are 1-based
+            return lineSpan.StartLinePosition.Line + 1;
         }
     }
 }
