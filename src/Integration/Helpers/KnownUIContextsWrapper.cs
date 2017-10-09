@@ -19,10 +19,12 @@
  */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    [ExcludeFromCodeCoverage] // Wrapper around Visual Studio
     public class KnownUIContextsWrapper : IKnownUIContexts
     {
         public event EventHandler<UIContextChangedEventArgs> SolutionBuildingContextChanged

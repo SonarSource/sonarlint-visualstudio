@@ -19,10 +19,12 @@
  */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Timers;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    [ExcludeFromCodeCoverage] // Wrapper around System
     public sealed class TimerWrapper : ITimer, IDisposable
     {
         private readonly Timer timerInstance;

@@ -19,7 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Net.Http;
+using System.Diagnostics.CodeAnalysis;
 using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     /// </summary>
     [Export(typeof(ISonarQubeService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
+    [ExcludeFromCodeCoverage] // Simply provides MEF export
     public class MefSonarQubeService : SonarQubeService
     {
         public MefSonarQubeService()
