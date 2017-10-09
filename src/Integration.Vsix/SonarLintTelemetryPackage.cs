@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -29,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Guid(PackageGuidString)]
     [ProvideAutoLoad(UIContextGuids.NoSolution)]
+    [ExcludeFromCodeCoverage] // Simple bootstrapper class relying on Visual Studio
     public sealed class SonarLintTelemetryPackage : Package
     {
         public const string PackageGuidString = "4E057B4B-E2B8-490D-95D8-2A1A4E7ACAED";

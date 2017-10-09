@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
 using SonarQube.Client.Models;
@@ -28,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
     /// <summary>
     /// Interaction logic for OrganizationSelectionWindow.xaml
     /// </summary>
+    [ExcludeFromCodeCoverage] // Rely on Visual Studio elements that cannot be rendered under test
     public partial class OrganizationSelectionWindow
     {
         internal OrganizationSelectionWindow(IEnumerable<SonarQubeOrganization> organizations)
