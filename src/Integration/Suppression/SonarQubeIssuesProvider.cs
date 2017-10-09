@@ -62,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             this.solutionBoundTacker.SolutionBindingChanged += OnSolutionBoundChanged;
 
             refreshTimer = timerFactory.Create();
+            refreshTimer.AutoReset = true;
             refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 

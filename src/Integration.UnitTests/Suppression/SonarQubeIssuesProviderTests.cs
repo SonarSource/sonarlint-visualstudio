@@ -79,13 +79,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Constructor_TimerIsInitialized()
         {
             // Arrange
-            SetupSolutionBinding(true /* is bound */, false /* is connected */, null, null);
+            SetupSolutionBinding(isBound: true, isConnected: false, projectKey: null, issues: null);
+            mockTimer.SetupSet(t => t.AutoReset = true).Verifiable();
 
             // 1. Construction -> timer initialised
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, mockTracker.Object, mockTimerFactory.Object);
 
             // Assert
             mockTimerFactory.VerifyAll();
+            mockTimer.VerifySet(t => t.AutoReset = true, Times.Once);
             VerifyTimerStart(Times.Once());
             timerRunning.Should().Be(true);
             VerifyServiceIsConnected(Times.Once()); // bound -> check connection status...
@@ -103,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Constructor_UnboundSolution_DoesNotSyncOrStartMonitoring()
         {
             // Arrange
-            SetupSolutionBinding(false /* is bound */, false /* is connected */, null, null);
+            SetupSolutionBinding(isBound: false, isConnected: false, projectKey: null, issues: null);
 
             // Act
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, mockTracker.Object, mockTimerFactory.Object);
@@ -118,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Constructor_BoundSolution_SyncsAndStartsMonitoring()
         {
             // Arrange
-            SetupSolutionBinding(true /* is bound */, true /* is connected */, "keyXXX", new List<SonarQubeIssue>());
+            SetupSolutionBinding(isBound: true, isConnected: true, projectKey: "keyXXX", issues: new List<SonarQubeIssue>());
 
             // Act
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, mockTracker.Object, mockTimerFactory.Object);
@@ -133,7 +135,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Dispose_UnboundSolution_NoError()
         {
             // Arrange
-            SetupSolutionBinding(false /* is bound */, false /* is connected */, null, null);
+            SetupSolutionBinding(isBound: false, isConnected: false, projectKey: null, issues: null);
+
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, mockTracker.Object, mockTimerFactory.Object);
 
             // 1. Dispose
@@ -154,7 +157,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Dispose_BoundSolution_StopsMonitoring()
         {
             // Arrange
-            SetupSolutionBinding(true /* is bound */, true /* is connected */, "keyXXX", new List<SonarQubeIssue>());
+            SetupSolutionBinding(isBound: true, isConnected: true, projectKey: "keyXXX", issues: new List<SonarQubeIssue>());
+
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, mockTracker.Object, mockTimerFactory.Object);
 
             // 1. Dispose
@@ -175,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Event_OnSolutionBecomingUnbound_StopsTimer()
         {
             // 1. Bound and connected initially
-            SetupSolutionBinding(true /* is bound */, true /* is connected */, "keyXXX", new List<SonarQubeIssue>());
+            SetupSolutionBinding(isBound: true, isConnected: true, projectKey: "keyXXX", issues: new List<SonarQubeIssue>());
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, mockTracker.Object, mockTimerFactory.Object);
 
@@ -184,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             timerRunning.Should().Be(true);
 
             // 2. Event -> unbound solution
-            SetupSolutionBinding(false /* is bound */, false /* is connected */, null, null);
+            SetupSolutionBinding(isBound: false, isConnected: false, projectKey: null, issues: null);
 
             mockTracker.Raise(e => e.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(false, null));
 
@@ -197,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Event_OnSolutionBecomingBound_SynchronizesAndStartsTimer()
         {
             // 1. Initially not bound
-            SetupSolutionBinding(false /* is bound */, false/* is connected */, null, null);
+            SetupSolutionBinding(isBound: false, isConnected: false, projectKey: null, issues: null);
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, mockTracker.Object, mockTimerFactory.Object);
 
@@ -206,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             timerRunning.Should().Be(false);
 
             // 2. Event -> unbound solution
-            SetupSolutionBinding(true /* is bound */, true /* is connected */, "keyYYY", new List<SonarQubeIssue>());
+            SetupSolutionBinding(isBound: true, isConnected: true, projectKey: "keyXXX", issues: new List<SonarQubeIssue>());
 
             RaiseSolutionBoundEvent(true, "keyYYY");
 
@@ -224,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         /// <summary>
         /// Configures the mock tracker and service to return the specified values
         /// </summary>
-        private void SetupSolutionBinding(bool isBound, bool isConnected, string projectKey, IList<SonarQubeIssue> issuesToReturn)
+        private void SetupSolutionBinding(bool isBound, bool isConnected, string projectKey, IList<SonarQubeIssue> issues)
         {
             mockTracker.Setup(t => t.IsActiveSolutionBound).Returns(isBound).Verifiable();
             mockTracker.SetupGet(t => t.ProjectKey).Returns(projectKey).Verifiable();
@@ -232,7 +236,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             mockSqService.Setup(x => x.IsConnected).Returns(isConnected).Verifiable();
             
             mockSqService.Setup(x => x.GetSuppressedIssuesAsync(projectKey, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(issuesToReturn)
+                .ReturnsAsync(issues)
                 .Verifiable();
         }
 
