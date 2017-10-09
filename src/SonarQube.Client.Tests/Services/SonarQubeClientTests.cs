@@ -625,5 +625,44 @@ namespace SonarQube.Client.Services.Tests
         }
 
         #endregion
+
+        #region Dispose
+
+        [TestMethod]
+        public void Dispose_ShouldDisposeTheRightObject()
+        {
+            // Arrange
+            var httpHandler = new Mock<HttpMessageHandler>();
+            httpHandler.Protected().Setup("Dispose", true).Verifiable();
+            var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
+            var client = new SonarQubeClient(connection, httpHandler.Object, TimeSpan.FromSeconds(2));
+
+            // Act
+            client.Dispose();
+
+            // Assert
+            httpHandler.VerifyAll();
+        }
+
+        [TestMethod]
+        public void Dispose_WhenCalledMultipleTimes_DoesNotThrow()
+        {
+            // Arrange
+            var httpHandler = new Mock<HttpMessageHandler>();
+            int callCount = 0;
+            httpHandler.Protected().Setup("Dispose", true).Callback(() => callCount++);
+            var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
+            var client = new SonarQubeClient(connection, httpHandler.Object, TimeSpan.FromSeconds(2));
+            client.Dispose();
+
+            // Act
+            client.Dispose();
+
+            // Assert
+            httpHandler.VerifyAll();
+            callCount.Should().Be(1);
+        }
+
+        #endregion // Dispose
     }
 }
