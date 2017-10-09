@@ -408,12 +408,6 @@ namespace SonarQube.Client.Services.Tests
 
             AssertExceptionThrownWhenNotConnected(() =>
                 sqService.GetNotificationEventsAsync("projectKey", DateTimeOffset.Now, CancellationToken.None));
-
-            AssertExceptionThrownWhenNotConnected(() =>
-            {
-                sqService.Disconnect();
-                return Task.Delay(0);
-            });
         }
 
         [TestMethod]
@@ -424,7 +418,7 @@ namespace SonarQube.Client.Services.Tests
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
             client.As<IDisposable>().Setup(x => x.Dispose()).Verifiable();
             var service = new SonarQubeService(WrapInMockFactory(client));
-            await service.ConnectAsync(new ConnectionInformation(new Uri("http;//mysq.com")), CancellationToken.None);
+            await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
             service.Disconnect();

@@ -98,8 +98,6 @@ namespace SonarQube.Client.Services
 
         public void Disconnect()
         {
-            EnsureIsConnected();
-
             (this.sonarqubeClient as IDisposable)?.Dispose();
             this.sonarqubeClient = null;
             this.serverVersion = null;
