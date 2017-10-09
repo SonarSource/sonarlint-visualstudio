@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     {
         private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 1; // 1 minute
 
-        private readonly System.Timers.Timer refreshTimer;
+        private readonly ITimer refreshTimer;
         private readonly IActiveSolutionBoundTracker solutionBoundTacker;
         private readonly ISonarQubeService sonarQubeService;
 
@@ -40,14 +40,29 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private bool isDisposed;
         private CancellationTokenSource cancellationTokenSource;
 
-        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, IActiveSolutionBoundTracker solutionBoundTacker)
+        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, 
+            IActiveSolutionBoundTracker solutionBoundTracker,
+            ITimerFactory timerFactory)
         {
+            if (sonarQubeService == null)
+            {
+                throw new ArgumentNullException(nameof(sonarQubeService));
+            }
+            if (solutionBoundTracker == null)
+            {
+                throw new ArgumentNullException(nameof(solutionBoundTracker));
+            }
+            if (timerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(timerFactory));
+            }
+
             this.sonarQubeService = sonarQubeService;
-            this.solutionBoundTacker = solutionBoundTacker;
+            this.solutionBoundTacker = solutionBoundTracker;
             this.solutionBoundTacker.SolutionBindingChanged += OnSolutionBoundChanged;
 
-            // TODO: Use mockable timer
-            refreshTimer = new System.Timers.Timer { AutoReset = true, Interval = MillisecondsToWaitBetweenRefresh };
+            refreshTimer = timerFactory.Create();
+            refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
             if (this.solutionBoundTacker.IsActiveSolutionBound)
@@ -95,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             return $"{solutionBoundTacker.ProjectKey}:{solutionBoundTacker.ProjectKey}:{projectGuid}";
         }
 
-        private async void OnRefreshTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private async void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
         {
             await SynchronizeSuppressedIssues();
         }
@@ -109,6 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             }
             else
             {
+                cachedSuppressedIssues = null;
                 refreshTimer.Stop();
             }
         }

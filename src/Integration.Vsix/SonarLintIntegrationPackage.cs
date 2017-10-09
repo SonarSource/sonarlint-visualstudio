@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IServiceProvider serviceProvider = this;
 
             this.sonarAnalyzerManager = new SonarAnalyzerManager(serviceProvider);
-            this.suppressionManager = new SuppressionManager(serviceProvider);
+            this.suppressionManager = new SuppressionManager(serviceProvider, new TimerFactory());
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
             this.commandManager = new PackageCommandManager(serviceProvider);
 

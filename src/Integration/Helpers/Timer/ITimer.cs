@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITimer
+    public interface ITimer : IDisposable
     {
         event EventHandler<TimerEventArgs> Elapsed;
 
