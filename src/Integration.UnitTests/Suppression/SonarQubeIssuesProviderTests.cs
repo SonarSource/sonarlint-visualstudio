@@ -123,16 +123,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange
             SetupSolutionBinding(isBound: true, isConnected: true, projectKey: "keyXXX", issues: new List<SonarQubeIssue>());
+            EventWaitHandle waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+
+            Func<IList<SonarQubeIssue>> serviceFetchIssuesTask = () =>
+            {
+                waitHandle.Set(); // signal so the test can continue
+                return null;
+            };
+
+            mockSqService.Setup(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(serviceFetchIssuesTask)
+                .Verifiable();
 
             // Act
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, mockTracker.Object, mockTimerFactory.Object);
+            var waitSignaled = waitHandle.WaitOne(Debugger.IsAttached ? 20000 : 5000); // wait for fetch to start...
+            waitSignaled.Should().BeTrue(); // error - fetch has not started running
 
             // Assert - issues are fetched and timer is started
             VerifyTimerStart(Times.Once());
             timerRunning.Should().Be(true);
-
-            // The issues are fetched on a background thread - short pause to allow it complete
-            Thread.Sleep(200);
             VerifyServiceGetIssues(Times.Once());
         }
 

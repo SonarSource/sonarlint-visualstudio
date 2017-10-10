@@ -95,6 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             // (e.g. on subsequent calls)
             // If we time out waiting for the initial fetch then we won't suppress any issues.
             // We'll try to fetch the issues again when the timer elapses.
+            // TODO: error on background thread?
             this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
 
             if (this.cachedSuppressedIssues == null)
