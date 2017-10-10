@@ -20,9 +20,12 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarQube.Client.Models;
 using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration
@@ -35,6 +38,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IErrorListInfoBarController errorListInfoBarController;
         private readonly ISolutionBindingInformationProvider solutionBindingInformationProvider;
+        private readonly ISonarLintOutput sonarLintOutput;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
 
@@ -43,20 +47,25 @@ namespace SonarLint.VisualStudio.Integration
         public string ProjectKey { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker)
+        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker,
+            ISonarLintOutput sonarLintOutput)
         {
             if (host == null)
             {
                 throw new ArgumentNullException(nameof(host));
             }
-
             if (activeSolutionTracker == null)
             {
                 throw new ArgumentNullException(nameof(activeSolutionTracker));
             }
+            if (sonarLintOutput == null)
+            {
+                throw new ArgumentNullException(nameof(sonarLintOutput));
+            }
 
             this.extensionHost = host;
             this.solutionTracker = activeSolutionTracker;
+            this.sonarLintOutput = sonarLintOutput;
 
             this.solutionBindingInformationProvider = this.extensionHost.GetService<ISolutionBindingInformationProvider>();
             this.solutionBindingInformationProvider.AssertLocalServiceIsNotNull();
@@ -76,7 +85,6 @@ namespace SonarLint.VisualStudio.Integration
             this.ProjectKey = this.solutionBindingInformationProvider.GetProjectKey();
         }
 
-
         private async void OnActiveSolutionChanged(object sender, EventArgs e)
         {
             await UpdateConnection();
@@ -87,10 +95,10 @@ namespace SonarLint.VisualStudio.Integration
 
         private async Task UpdateConnection()
         {
-            ISonarQubeService sqService = this.extensionHost.SonarQubeService;
-            if (sqService.IsConnected)
+            ISonarQubeService sonarQubeService = this.extensionHost.SonarQubeService;
+            if (sonarQubeService.IsConnected)
             {
-                sqService.Disconnect();
+                sonarQubeService.Disconnect();
 
                 if (this.extensionHost.ActiveSection?.DisconnectCommand.CanExecute(null) == true)
                 {
@@ -102,15 +110,44 @@ namespace SonarLint.VisualStudio.Integration
 
             if (isSolutionCurrentlyBound)
             {
-                var solutionBinding = this.extensionHost.GetService<ISolutionBindingSerializer>();
-                solutionBinding.AssertLocalServiceIsNotNull();
-                BoundSonarQubeProject boundProject = solutionBinding.ReadSolutionBinding();
-                var connectionInformation = boundProject.CreateConnectionInformation();
-
-                // TODO: handle connection failure
-                // TODO: block until the connection is complete
-                await this.extensionHost.SonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None);
+                var connectionInformation = GetConnectionInformation();
+                await SafeServiceCall(async () =>
+                    await sonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None));
             }
+        }
+
+        private async Task SafeServiceCall(Func<Task> call)
+        {
+            try
+            {
+                await call();
+            }
+            catch (HttpRequestException e)
+            {
+                // For some errors we will get an inner exception which will have a more specific information
+                // that we would like to show i.e.when the host could not be resolved
+                var innerException = e.InnerException as System.Net.WebException;
+                sonarLintOutput.Write(string.Format(Strings.SonarQubeRequestFailed, e.Message, innerException?.Message));
+            }
+            catch (TaskCanceledException)
+            {
+                // Canceled or timeout
+                sonarLintOutput.Write(Strings.SonarQubeRequestTimeoutOrCancelled);
+            }
+            catch (Exception e)
+            {
+                sonarLintOutput.Write(string.Format(Strings.SonarQubeRequestFailed, e.Message, null));
+            }
+        }
+
+        private ConnectionInformation GetConnectionInformation()
+        {
+            var solutionBindingStorage = this.extensionHost.GetService<ISolutionBindingSerializer>();
+            solutionBindingStorage.AssertLocalServiceIsNotNull();
+
+            return solutionBindingStorage
+                .ReadSolutionBinding()
+                ?.CreateConnectionInformation();
         }
 
         private void OnBindingStateChanged(object sender, EventArgs e)

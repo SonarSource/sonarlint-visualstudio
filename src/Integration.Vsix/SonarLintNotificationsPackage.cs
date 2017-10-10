@@ -46,10 +46,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private const string NotificationDataKey = "NotificationEventData";
 
         private readonly IFormatter formatter = new BinaryFormatter();
-        private readonly ISonarLintOutput output = new SonarLintOutput();
 
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private ISonarQubeNotificationService notifications;
+        private ISonarLintOutput sonarLintOutput;
         private NotificationData notificationData;
         private NotificationIndicator notificationIcon;
         private bool disposed;
@@ -60,9 +60,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             base.Initialize();
 
             var sonarqubeService = this.GetMefService<ISonarQubeService>();
+            sonarLintOutput = this.GetMefService<ISonarLintOutput>();
 
             notifications = new SonarQubeNotificationService(sonarqubeService,
-                new NotificationIndicatorViewModel(), new TimerWrapper { Interval = 60000 }, output);
+                new NotificationIndicatorViewModel(), new TimerWrapper { Interval = 60000 }, sonarLintOutput);
 
             activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
@@ -125,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 }
                 catch (Exception ex)
                 {
-                    output.Write($"Failed to read notification data: {ex.Message}");
+                    sonarLintOutput.Write($"Failed to read notification data: {ex.Message}");
                 }
             }
         }
