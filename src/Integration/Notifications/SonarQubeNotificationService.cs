@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using SonarQube.Client.Models;
@@ -109,6 +110,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         private async void OnTimerElapsed(object sender, EventArgs e)
         {
+            Debug.Assert(this.cancellation != null, "Cancellation token should not be null if the timer is active - check StartAsync has been called");
+
             await UpdateEvents();
         }
 
