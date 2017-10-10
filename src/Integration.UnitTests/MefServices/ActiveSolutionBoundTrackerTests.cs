@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableHost host;
         private ConfigurableErrorListInfoBarController errorListController;
         private ConfigurableSolutionBindingInformationProvider solutionBindingInformationProvider;
+        private Mock<ISonarLintOutput> sonarLintOutputMock;
 
         [TestInitialize]
         public void TestInitialize()
@@ -66,6 +67,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.solutionBindingInformationProvider = new ConfigurableSolutionBindingInformationProvider();
             this.serviceProvider.RegisterService(typeof(ISolutionBindingInformationProvider), this.solutionBindingInformationProvider);
+
+            this.sonarLintOutputMock = new Mock<ISonarLintOutput>();
         }
 
         [TestMethod]
@@ -73,9 +76,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             Exceptions.Expect<ArgumentNullException>(() =>
-                new ActiveSolutionBoundTracker(null, new ConfigurableActiveSolutionTracker()));
+                new ActiveSolutionBoundTracker(null, new ConfigurableActiveSolutionTracker(), sonarLintOutputMock.Object));
             Exceptions.Expect<ArgumentNullException>(() =>
-                new ActiveSolutionBoundTracker(this.host, null));
+                new ActiveSolutionBoundTracker(this.host, null, sonarLintOutputMock.Object));
+            Exceptions.Expect<ArgumentNullException>(() =>
+                new ActiveSolutionBoundTracker(this.host, new ConfigurableActiveSolutionTracker(), null));
         }
 
         [TestMethod]
@@ -85,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.VisualStateManager.ClearBoundProject();
 
             // Act
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
+            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
 
             // Assert
             testSubject.IsActiveSolutionBound.Should().BeFalse("Unbound solution should report false activation");
@@ -101,12 +106,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.VisualStateManager.SetBoundProject(new SonarQubeProject("", ""));
 
             // Act
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
+            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
 
             // Assert
             testSubject.IsActiveSolutionBound.Should().BeTrue("Bound solution should report true activation");
             // TODO: this.errorListController.RefreshCalledCount.Should().Be(1);
             this.errorListController.ResetCalledCount.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void ActiveSolutionBoundTracker_When_ConnectAsync_Throws_Write_To_Output()
+        {
+            // Arrange
+            var sonarLintOutputMock = new Mock<ISonarLintOutput>();
+
+            var sonarQubeServiceMock = new Mock<ISonarQubeService>();
+            this.host.SonarQubeService = sonarQubeServiceMock.Object;
+
+            var solutionBinding = new ConfigurableSolutionBindingSerializer();
+            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
+
+            var activeSolutionBoundTracker = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker,
+                sonarLintOutputMock.Object);
+
+            // We want to directly jump to Connect
+            sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(false);
+            solutionBindingInformationProvider.SolutionBound = true;
+
+            // ConnectAsync should throw
+            sonarQubeServiceMock
+                .Setup(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>()))
+                .Throws<Exception>();
+
+            // Act
+            activeSolutionTracker.SimulateActiveSolutionChanged();
+
+            // Assert
+            sonarLintOutputMock
+                .Verify(x => x.Write(It.Is<string>(s => s.StartsWith("Cannot connect to SonarQube: '"))), Times.Once);
         }
 
         [TestMethod]
@@ -133,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             solutionBinding.CurrentBinding = boundProject;
             this.solutionBindingInformationProvider.SolutionBound = true;
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker);
+            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
             var solutionBindingChangedEventCount = 0;
             testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
 
