@@ -32,8 +32,11 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     {
         private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 1; // 1 minute
 
+        private readonly TimeSpan MillisecondsToWaitForInitialFetch = TimeSpan.FromMinutes(1);
+        private readonly Task initialFetch;
+
         private readonly ITimer refreshTimer;
-        private readonly IActiveSolutionBoundTracker solutionBoundTacker;
+        private readonly IActiveSolutionBoundTracker solutionBoundTracker;
         private readonly ISonarQubeService sonarQubeService;
 
         private IList<SonarQubeIssue> cachedSuppressedIssues;
@@ -58,17 +61,17 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             }
 
             this.sonarQubeService = sonarQubeService;
-            this.solutionBoundTacker = solutionBoundTracker;
-            this.solutionBoundTacker.SolutionBindingChanged += OnSolutionBoundChanged;
+            this.solutionBoundTracker = solutionBoundTracker;
+            this.solutionBoundTracker.SolutionBindingChanged += OnSolutionBoundChanged;
 
             refreshTimer = timerFactory.Create();
             refreshTimer.AutoReset = true;
             refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
-            if (this.solutionBoundTacker.IsActiveSolutionBound)
+            if (this.solutionBoundTracker.IsActiveSolutionBound)
             {
-                SynchronizeSuppressedIssues();
+                this.initialFetch = Task.Factory.StartNew(SynchronizeSuppressedIssues);
                 refreshTimer.Start();
             }
         }
@@ -81,34 +84,34 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             }
 
             refreshTimer.Dispose();
-            this.solutionBoundTacker.SolutionBindingChanged -= OnSolutionBoundChanged;
+            this.solutionBoundTracker.SolutionBindingChanged -= OnSolutionBoundChanged;
             this.isDisposed = true;
         }
 
         public IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath)
         {
-            // TODO: Block the call while the cache is being built + handle multi-threading
-
-            // TODO: ensure we've got data to enable end to end testing
-            if (solutionBoundTacker.IsActiveSolutionBound &&
-                this.cachedSuppressedIssues == null)
-            {
-                SynchronizeSuppressedIssues().Wait(30000);
-            }
+            // Block the call while the cache is being built.
+            // If the task has already completed then this will return immediately
+            // (e.g. on subsequent calls)
+            // If we time out waiting for the initial fetch then we won't suppress any issues.
+            // We'll try to fetch the issues again when the timer elapses.
+            // TODO: error on background thread?
+            this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
 
             if (this.cachedSuppressedIssues == null)
             {
                 return Enumerable.Empty<SonarQubeIssue>();
             }
 
+            string moduleKey = BuildModuleKey(projectGuid);
             return this.cachedSuppressedIssues.Where(x =>
                 x.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase) &&
-                x.ModuleKey.Equals(BuildModuleKey(projectGuid), StringComparison.OrdinalIgnoreCase));
+                x.ModuleKey.Equals(moduleKey, StringComparison.OrdinalIgnoreCase));
         }
 
         private string BuildModuleKey(string projectGuid)
         {
-            return $"{solutionBoundTacker.ProjectKey}:{solutionBoundTacker.ProjectKey}:{projectGuid}";
+            return $"{solutionBoundTracker.ProjectKey}:{solutionBoundTracker.ProjectKey}:{projectGuid}";
         }
 
         private async void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
@@ -118,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private async void OnSolutionBoundChanged(object sender, ActiveSolutionBindingEventArgs eventArgs)
         {
-            if (solutionBoundTacker.IsActiveSolutionBound)
+            if (solutionBoundTracker.IsActiveSolutionBound)
             {
                 await SynchronizeSuppressedIssues();
                 refreshTimer.Start();
@@ -143,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             // TODO: Handle race conditions
             this.cachedSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(
-                this.solutionBoundTacker.ProjectKey, cancellationTokenSource.Token);
+                this.solutionBoundTracker.ProjectKey, cancellationTokenSource.Token);
         }
     }
 }
