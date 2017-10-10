@@ -20,6 +20,7 @@
 
 using System;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -118,8 +119,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ActiveSolutionBoundTracker_When_ConnectAsync_Throws_Write_To_Output()
         {
             // Arrange
-            var sonarLintOutputMock = new Mock<ISonarLintOutput>();
-
             var sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.host.SonarQubeService = sonarQubeServiceMock.Object;
 
@@ -127,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
 
             var activeSolutionBoundTracker = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker,
-                sonarLintOutputMock.Object);
+                this.sonarLintOutputMock.Object);
 
             // We want to directly jump to Connect
             sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(false);
@@ -135,15 +134,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // ConnectAsync should throw
             sonarQubeServiceMock
-                .Setup(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>()))
-                .Throws<Exception>();
+                .SetupSequence(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>()))
+                .Throws<Exception>()
+                .Throws<TaskCanceledException>()
+                .Throws(new HttpRequestException("http requst", new Exception("something happened")));
 
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            this.activeSolutionTracker.SimulateActiveSolutionChanged();
+            this.activeSolutionTracker.SimulateActiveSolutionChanged();
+            this.activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Assert
-            sonarLintOutputMock
-                .Verify(x => x.Write(It.Is<string>(s => s.StartsWith("Cannot connect to SonarQube: '"))), Times.Once);
+            this.sonarLintOutputMock
+                .Verify(x => x.Write(It.Is<string>(s => s.StartsWith("SonarQube request failed"))), Times.Exactly(2));
+            this.sonarLintOutputMock
+                .Verify(x => x.Write(It.Is<string>(s => s.StartsWith("SonarQube request timed out or was canceled"))), Times.Once);
         }
 
         [TestMethod]
