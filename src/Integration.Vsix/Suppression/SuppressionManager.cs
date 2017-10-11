@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         {
             liveIssueFactory = new LiveIssueFactory(serviceProvider);
             delegateInjector = new DelegateInjector(ShouldIssueBeReported, serviceProvider);
-            sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, activeSolutionBoundTracker, timerFactory);
+            sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, this.activeSolutionBoundTracker.ProjectKey, timerFactory);
         }
 
         private void CleanupSuppressionHandling()
