@@ -89,10 +89,17 @@ try {
     elseif ($analyze -And $isMaster) {
         Write-Host "Is master '${isMaster}'"
 
+        $buildNumber = Get-BuildNumber
+        $sha1 = Get-Sha1
+
         $testResultsPath = Resolve-RepoPath ""
         Write-Host "Looking for reports in: ${testResultsPath}"
 
         Begin-Analysis $sonarQubeUrl $sonarQubeToken $sonarQubeProjectKey $sonarQubeProjectName `
+            /d:sonar.analysis.buildNumber=$buildNumber `
+            /d:sonar.analysis.pipeline=$buildNumber `
+            /d:sonar.analysis.sha1=$sha1 `
+            /d:sonar.analysis.repository=$githubRepo `
             /v:"master" `
             /d:sonar.cs.vstest.reportsPaths="${testResultsPath}\**\*.trx" `
             /d:sonar.cs.vscoveragexml.reportsPaths="${testResultsPath}\**\*.coveragexml"
