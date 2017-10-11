@@ -95,7 +95,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             // (e.g. on subsequent calls)
             // If we time out waiting for the initial fetch then we won't suppress any issues.
             // We'll try to fetch the issues again when the timer elapses.
-            // TODO: error on background thread?
             this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
 
             if (this.cachedSuppressedIssues == null)
@@ -135,18 +134,24 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private async Task SynchronizeSuppressedIssues()
         {
-            // TODO: may not be connected
-            if (!this.sonarQubeService.IsConnected)
+            try
             {
-                return;
+                if (!this.sonarQubeService.IsConnected)
+                {
+                    return;
+                }
+
+                cancellationTokenSource?.Cancel();
+                cancellationTokenSource = new CancellationTokenSource();
+
+                // TODO: Handle race conditions
+                this.cachedSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(
+                    this.solutionBoundTracker.ProjectKey, cancellationTokenSource.Token);
             }
-
-            cancellationTokenSource?.Cancel();
-            cancellationTokenSource = new CancellationTokenSource();
-
-            // TODO: Handle race conditions
-            this.cachedSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(
-                this.solutionBoundTracker.ProjectKey, cancellationTokenSource.Token);
+            catch(Exception)
+            {
+                // Suppress the error - on a background thread so there isn't much else we can do
+            }
         }
     }
 }
