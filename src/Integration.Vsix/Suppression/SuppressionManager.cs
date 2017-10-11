@@ -21,6 +21,9 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Suppression;
 using SonarQube.Client.Services;
 
@@ -29,9 +32,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     internal sealed class SuppressionManager : IDisposable
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly ITimerFactory timerFactory;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly ITimerFactory timerFactory;
+        private readonly ISonarLintOutput sonarLintOutput;
 
         private DelegateInjector delegateInjector;
         private LiveIssueFactory liveIssueFactory;
@@ -40,13 +44,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         public SuppressionManager(IServiceProvider serviceProvider, ITimerFactory timerFactory)
         {
             this.serviceProvider = serviceProvider;
+            this.timerFactory = timerFactory;
 
             this.activeSolutionBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
 
             this.sonarQubeService = serviceProvider.GetMefService<ISonarQubeService>();
-
-            this.timerFactory = timerFactory;
+            this.sonarLintOutput = serviceProvider.GetMefService<ISonarLintOutput>();
 
             RefreshSuppresionHandling();
         }
@@ -65,9 +69,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
         private void SetupSuppressionHandling()
         {
-            liveIssueFactory = new LiveIssueFactory(serviceProvider);
-            delegateInjector = new DelegateInjector(ShouldIssueBeReported, serviceProvider);
-            sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, this.activeSolutionBoundTracker.ProjectKey, timerFactory);
+            var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            var solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
+
+            liveIssueFactory = new LiveIssueFactory(workspace, solution);
+            delegateInjector = new DelegateInjector(ShouldIssueBeReported, sonarLintOutput);
+            sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, this.activeSolutionBoundTracker.ProjectKey,
+                timerFactory);
         }
 
         private void CleanupSuppressionHandling()
@@ -84,13 +93,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             RefreshSuppresionHandling();
         }
 
-        private bool ShouldIssueBeReported(Diagnostic diagnostic)
+        private bool ShouldIssueBeReported(SyntaxTree syntaxTree, Diagnostic diagnostic)
         {
             // This method is called for every analyzer issue that is raised so it should be fast.
-            if (!diagnostic.Location.IsInSource) { return true; }
-            if (activeSolutionBoundTracker == null || !activeSolutionBoundTracker.IsActiveSolutionBound) { return true; }
+            if (!diagnostic.Location.IsInSource &&
+                diagnostic.Location != Location.None)
+            {
+                return true;
+            }
 
-            LiveIssue liveIssue = liveIssueFactory.Create(diagnostic);
+            if (activeSolutionBoundTracker == null ||
+                !activeSolutionBoundTracker.IsActiveSolutionBound)
+            {
+                return true;
+            }
+
+            LiveIssue liveIssue = liveIssueFactory.Create(syntaxTree, diagnostic);
             if (liveIssue == null)
             {
                 return true; // Unable to get the data required to map a Roslyn issue to a SonarQube issue
@@ -103,7 +121,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             // TODO: ?need to make file path relative to the project file path
             // As a minimum, the project, file and rule id must match
             var issuesInFile = sonarqubeIssueProvider.GetSuppressedIssues(liveIssue.ProjectGuid, liveIssue.IssueFilePath);
-
             if (issuesInFile == null)
             {
                 return true;
