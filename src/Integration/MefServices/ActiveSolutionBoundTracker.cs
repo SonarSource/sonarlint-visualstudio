@@ -96,14 +96,10 @@ namespace SonarLint.VisualStudio.Integration
         private async Task UpdateConnection()
         {
             ISonarQubeService sonarQubeService = this.extensionHost.SonarQubeService;
-            if (sonarQubeService.IsConnected)
+            if (sonarQubeService.IsConnected &&
+                this.extensionHost.ActiveSection?.DisconnectCommand.CanExecute(null) == true)
             {
-                sonarQubeService.Disconnect();
-
-                if (this.extensionHost.ActiveSection?.DisconnectCommand.CanExecute(null) == true)
-                {
-                    this.extensionHost.ActiveSection.DisconnectCommand.Execute(null);
-                }
+                this.extensionHost.ActiveSection.DisconnectCommand.Execute(null);
             }
 
             bool isSolutionCurrentlyBound = this.solutionBindingInformationProvider.IsSolutionBound();

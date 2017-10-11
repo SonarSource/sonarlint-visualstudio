@@ -261,8 +261,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.errorListController.ResetCalledCount.Should().Be(0);
             solutionBindingChangedEventCount.Should().Be(5, "Solution change should trigger reanalysis");
 
-            // Closing a bound solution should call disconnect
-            mockSqService.Verify(disconnectMethod, Times.Exactly(1));
+            // We don't call SonarQubeService.Disconnect directly anymore, we execute the DisconnectCommand, which calls it
+            mockSqService.Verify(disconnectMethod, Times.Never);
             mockSqService.Verify(connectMethod, Times.Exactly(1));
 
             // Case 6: Dispose and change
@@ -276,7 +276,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             solutionBindingChangedEventCount.Should().Be(5, "Once disposed should stop raising the event");
             // TODO: this.errorListController.RefreshCalledCount.Should().Be(3);
             this.errorListController.ResetCalledCount.Should().Be(1);
-            mockSqService.Verify(disconnectMethod, Times.Exactly(1));
+            // We don't call SonarQubeService.Disconnect directly anymore, we execute the DisconnectCommand, which calls it
+            mockSqService.Verify(disconnectMethod, Times.Never);
             mockSqService.Verify(connectMethod, Times.Exactly(1));
         }
     }

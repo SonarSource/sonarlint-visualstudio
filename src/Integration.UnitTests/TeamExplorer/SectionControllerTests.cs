@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void SectionController_DisconnectCommand()
         {
             // Arrange
-            var testSubject = this.CreateTestSubject();
+            var sectionController = this.CreateTestSubject();
             var connection = new ConnectionInformation(new Uri("http://connected"));
             int setProjectsCalled = 0;
             this.host.TestStateManager.SetProjectsAction = (conn, projects) =>
@@ -208,19 +208,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Case 1: No connection
             // Act + Assert CanExecute
-            testSubject.DisconnectCommand.CanExecute(null).Should().BeFalse();
+            sectionController.DisconnectCommand.CanExecute(null).Should().BeFalse();
             setProjectsCalled.Should().Be(0);
 
             // Case 2: Connected
             this.host.TestStateManager.ConnectedServers.Add(connection);
 
             // Act + Assert CanExecute
-            testSubject.DisconnectCommand.CanExecute(null).Should().BeTrue();
+            sectionController.DisconnectCommand.CanExecute(null).Should().BeTrue();
             setProjectsCalled.Should().Be(0);
 
             // Act + Assert Execute
-            testSubject.DisconnectCommand.Execute(null);
+            sectionController.DisconnectCommand.Execute(null);
             setProjectsCalled.Should().Be(1);
+            sonarQubeServiceMock.Verify(x => x.Disconnect(), Times.Once);
         }
 
         [TestMethod]
