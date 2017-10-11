@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // Assert
             telemetryData.InstallationDate.Should().BeAfter(DateTime.Now.AddMinutes(-5));
-            telemetryData.InstallationDate.Should().BeBefore(DateTime.Now);
+            telemetryData.InstallationDate.Should().BeOnOrBefore(DateTime.Now);
             this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
         }
 
