@@ -46,13 +46,13 @@ namespace SonarAnalyzer.Helpers
 {
   class SonarAnalysisContext
   {
-    public static System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> ShouldDiagnosticBeReported { get; set; }
+    public static System.Func<Microsoft.CodeAnalysis.SyntaxTree, Microsoft.CodeAnalysis.Diagnostic, bool> ShouldDiagnosticBeReported { get; set; }
   }
 }";
         private const string SonarAnalyzerAssemblyName = "SonarAnalyzer";
 
-        private static IServiceProvider dummyServiceProvider = new Mock<IServiceProvider>().Object;
-        private static Func<Diagnostic, bool> dummyFunction = diag => true;
+        private static ISonarLintOutput dummyServiceProvider = new Mock<ISonarLintOutput>().Object;
+        private static Func<SyntaxTree, Diagnostic, bool> dummyFunction = (s, d) => true;
 
         [TestMethod]
         public void Injector_InvalidArguments()
@@ -164,7 +164,7 @@ namespace SonarAnalyzer.Helpers
         {
             // Test that error setting the property are not propagated.
 
-            // To do this, use an assembly where the namespace etc match, but the 
+            // To do this, use an assembly where the namespace etc match, but the
             // property has an incompatible type -> setting the property will fail
             const string SourceCodeWithBadStaticProperty = @"
 namespace SonarAnalyzer.Helpers

@@ -29,8 +29,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// </summary>
     internal class LiveIssue
     {
-        public LiveIssue(Diagnostic diagnostic, string issueFilePath, string projectGuid, int startLine,
-            string wholeLineText)
+        public LiveIssue(Diagnostic diagnostic, string projectGuid, string issueFilePath = "", int startLine = 0,
+            string wholeLineText = "")
         {
             Diagnostic = diagnostic;
             IssueFilePath = issueFilePath;
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             WholeLineText = wholeLineText;
 
             // SonarQube doesn't calculate hash for file-level issues
-            LineHash = startLine != 0 ? ChecksumCalculator.Calculate(WholeLineText) : "";
+            LineHash = wholeLineText != "" ? ChecksumCalculator.Calculate(WholeLineText) : "";
         }
 
         public Diagnostic Diagnostic { get; }

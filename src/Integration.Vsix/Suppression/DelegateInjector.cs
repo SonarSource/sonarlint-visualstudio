@@ -27,7 +27,7 @@ using Microsoft.CodeAnalysis;
  * setting the static property on the version referenced by the VSIX won't work (both analyzer
  * assemblies will be loaded in memory, each with its own static class + property).
  * We need to set the static property for each Sonar analyzer assembly that is loaded.
- * 
+ *
  * Version-compatibility: the NuGet package and VSIX might reference different versions of Roslyn etc,git branch
  * but we need to be able to assign a delegate from the VSIX to the NuGet static property.
  * If the NuGet package is using a higher version of Roslyn then the analyzer won't work anyway.
@@ -42,22 +42,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// </summary>
     internal sealed class DelegateInjector : IDisposable
     {
-        private readonly Func<Diagnostic, bool> suppressionFunction;
-        private readonly IServiceProvider serviceProvider;
+        private readonly Func<SyntaxTree, Diagnostic, bool> suppressionFunction;
+        private readonly ISonarLintOutput sonarLintOutput;
 
-        public DelegateInjector(Func<Diagnostic, bool> suppressionFunction, IServiceProvider serviceProvider)
+        public DelegateInjector(Func<SyntaxTree, Diagnostic, bool> suppressionFunction, ISonarLintOutput sonarLintOutput)
         {
             if (suppressionFunction == null)
             {
                 throw new ArgumentNullException(nameof(suppressionFunction));
             }
-            if (serviceProvider == null)
+            if (sonarLintOutput == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(sonarLintOutput));
             }
 
             this.suppressionFunction = suppressionFunction;
-            this.serviceProvider = serviceProvider;
+            this.sonarLintOutput = sonarLintOutput;
             // Inject the delegate into any Sonar analyzer assemblies that are already loaded
             foreach(Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -101,8 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             catch (Exception e)
             {
                 // Suppress failures - we don't want the analyzers to fail
-                VsShellUtils.WriteToSonarLintOutputPane(serviceProvider,
-                    $@"Unable to set the analyzer suppression handler for {asm.FullName}.
+                this.sonarLintOutput.Write($@"Unable to set the analyzer suppression handler for {asm.FullName}.
 SonarQube issues that have been suppressed in SonarQube may still be reported in the IDE.
     Assembly location: {asm.Location}
     Error: {e.Message}");

@@ -23,8 +23,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
@@ -48,21 +46,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     internal sealed class LiveIssueFactory
     {
         private readonly Workspace workspace;
-        private readonly IServiceProvider serviceProvider;
 
         /// <summary>
         /// Mapping from full project file path to the unique project id
         /// </summary>
         private Dictionary<string, string> projectPathToProjectIdMap;
 
-        public LiveIssueFactory(IServiceProvider serviceProvider)
+        public LiveIssueFactory(Workspace workspace, IVsSolution vsSolution)
         {
-            this.serviceProvider = serviceProvider;
+            if (workspace == null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+            if (vsSolution == null)
+            {
+                throw new ArgumentNullException(nameof(vsSolution));
+            }
 
-            var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-            workspace = componentModel.GetService<VisualStudioWorkspace>();
-
-            BuildProjectPathToIdMap();
+            this.workspace = workspace;
+            BuildProjectPathToIdMap(vsSolution);
         }
 
         /// <summary>
@@ -70,50 +72,58 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         /// to a SonarQube server issue. Returns null if there is not enough information
         /// to produce the mapping.
         /// </summary>
-        public LiveIssue Create(Diagnostic diagnostic)
+        public LiveIssue Create(SyntaxTree syntaxTree, Diagnostic diagnostic)
         {
-            // Get the file and project containing the issue
-            SyntaxTree tree = diagnostic.Location?.SourceTree;
-            if (tree == null)
+            if (syntaxTree == null)
             {
                 return null;
             }
 
-            if (diagnostic.Location == Location.None)
+            var projectFilePath = workspace?.CurrentSolution?.GetDocument(syntaxTree)?.Project?.FilePath;
+            if (projectFilePath == null)
             {
                 return null;
             }
 
-            Project project = workspace?.CurrentSolution?.GetDocument(tree)?.Project;
-            if (project == null)
+            string projectGuid;
+            if (!projectPathToProjectIdMap.TryGetValue(projectFilePath, out projectGuid))
             {
+                Debug.Fail($"Expecting to have a project id for the Roslyn project: {projectFilePath}");
                 return null;
             }
 
-            string projectId;
-            if (!projectPathToProjectIdMap.TryGetValue(project.FilePath, out projectId))
+            if (diagnostic.Location == Location.None) // Project-level issue
             {
-                Debug.Fail($"Expecting to have a project id for the Roslyn project: {project.FilePath}");
-                return null;
+                return new LiveIssue(diagnostic, projectGuid);
             }
 
-            FileLinePositionSpan lineSpan = diagnostic.Location.GetLineSpan();
+            var lineSpan = diagnostic.Location.GetLineSpan();
+            var relativeFilePath = FileUtilities.GetRelativePath(projectFilePath, lineSpan.Path);
 
-            int startLine = lineSpan.StartLinePosition.Line;
-            int additionalLineCount = lineSpan.EndLinePosition.Line - startLine;
-            string lineText = tree.GetText().Lines[startLine + additionalLineCount].ToString();
-            string relativeFilePath = FileUtilities.GetRelativePath(project.FilePath, lineSpan.Path);
-            int sonarQubeLineNumber = ToSonarQubeLineNumber(lineSpan);
+            var isFileLevelIssue = lineSpan.StartLinePosition.Line == 0 &&
+                lineSpan.StartLinePosition.Character == 0 &&
+                lineSpan.EndLinePosition.Line == 0 &&
+                lineSpan.EndLinePosition.Character == 0;
 
-            return new LiveIssue(diagnostic, relativeFilePath, projectId, sonarQubeLineNumber, lineText);
+            if (isFileLevelIssue) // File-level issue
+            {
+                return new LiveIssue(diagnostic, projectGuid, issueFilePath: relativeFilePath);
+            }
+
+            var startLine = lineSpan.StartLinePosition.Line;
+            var additionalLineCount = lineSpan.EndLinePosition.Line - startLine;
+            var lineText = syntaxTree.GetText().Lines[startLine + additionalLineCount].ToString();
+            var sonarQubeLineNumber = lineSpan.StartLinePosition.Line + 1; // Roslyn lines are 0-based, SonarQube lines are 1-based
+
+            return new LiveIssue(diagnostic, projectGuid,
+                issueFilePath: relativeFilePath,
+                startLine: sonarQubeLineNumber,
+                wholeLineText: lineText); // Line-level issue
         }
 
-        private void BuildProjectPathToIdMap()
+        private void BuildProjectPathToIdMap(IVsSolution solution)
         {
             projectPathToProjectIdMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
-
-            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
-            Debug.Assert(solution != null, "Cannot find SVsSolution");
 
             // 1. Call with nulls to get the number of files
             const uint grfGetOpsIncludeUnloadedFiles = 0; // required since the projects might not have finished loading
@@ -146,22 +156,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
                 projectPathToProjectIdMap.Add(projectFile, projectId.ToString().Replace("{", "").Replace("}", ""));
             }
-        }
-
-        private int ToSonarQubeLineNumber(FileLinePositionSpan lineSpan)
-        {
-            var isFileLevel = lineSpan.StartLinePosition.Line == 0 &&
-                lineSpan.StartLinePosition.Character == 0 &&
-                lineSpan.EndLinePosition.Line == 0 &&
-                lineSpan.EndLinePosition.Character == 0;
-
-            if (isFileLevel)
-            {
-                return 0; // This is a file-level issue
-            }
-
-            // Roslyn lines are 0-based, SonarQube lines are 1-based
-            return lineSpan.StartLinePosition.Line + 1;
         }
     }
 }
