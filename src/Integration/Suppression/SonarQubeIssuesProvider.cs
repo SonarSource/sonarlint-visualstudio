@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 {
     public sealed class SonarQubeIssuesProvider : ISonarQubeIssuesProvider, IDisposable
     {
-        private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 1; // 1 minute
+        private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 10; // 10 minutes
 
         private readonly TimeSpan MillisecondsToWaitForInitialFetch = TimeSpan.FromMinutes(1);
         private readonly Task initialFetch;
