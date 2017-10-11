@@ -35,25 +35,25 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly TimeSpan MillisecondsToWaitForInitialFetch = TimeSpan.FromMinutes(1);
         private readonly Task initialFetch;
 
-        private readonly ITimer refreshTimer;
-        private readonly IActiveSolutionBoundTracker solutionBoundTracker;
         private readonly ISonarQubeService sonarQubeService;
+        private readonly string sonarQubeProjectKey;
+        private readonly ITimer refreshTimer;
 
         private IList<SonarQubeIssue> cachedSuppressedIssues;
         private bool isDisposed;
         private CancellationTokenSource cancellationTokenSource;
 
-        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, 
-            IActiveSolutionBoundTracker solutionBoundTracker,
+        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService,
+            string sonarQubeProjectKey,
             ITimerFactory timerFactory)
         {
             if (sonarQubeService == null)
             {
                 throw new ArgumentNullException(nameof(sonarQubeService));
             }
-            if (solutionBoundTracker == null)
+            if(string.IsNullOrWhiteSpace(sonarQubeProjectKey))
             {
-                throw new ArgumentNullException(nameof(solutionBoundTracker));
+                throw new ArgumentNullException(nameof(sonarQubeProjectKey));
             }
             if (timerFactory == null)
             {
@@ -61,19 +61,15 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             }
 
             this.sonarQubeService = sonarQubeService;
-            this.solutionBoundTracker = solutionBoundTracker;
-            this.solutionBoundTracker.SolutionBindingChanged += OnSolutionBoundChanged;
+            this.sonarQubeProjectKey = sonarQubeProjectKey;
 
             refreshTimer = timerFactory.Create();
             refreshTimer.AutoReset = true;
             refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
-            if (this.solutionBoundTracker.IsActiveSolutionBound)
-            {
-                this.initialFetch = Task.Factory.StartNew(SynchronizeSuppressedIssues);
-                refreshTimer.Start();
-            }
+            this.initialFetch = Task.Factory.StartNew(SynchronizeSuppressedIssues);
+            refreshTimer.Start();
         }
 
         public void Dispose()
@@ -84,7 +80,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             }
 
             refreshTimer.Dispose();
-            this.solutionBoundTracker.SolutionBindingChanged -= OnSolutionBoundChanged;
             this.isDisposed = true;
         }
 
@@ -110,26 +105,12 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private string BuildModuleKey(string projectGuid)
         {
-            return $"{solutionBoundTracker.ProjectKey}:{solutionBoundTracker.ProjectKey}:{projectGuid}";
+            return $"{sonarQubeProjectKey}:{sonarQubeProjectKey}:{projectGuid}";
         }
 
         private async void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
         {
             await SynchronizeSuppressedIssues();
-        }
-
-        private async void OnSolutionBoundChanged(object sender, ActiveSolutionBindingEventArgs eventArgs)
-        {
-            if (solutionBoundTracker.IsActiveSolutionBound)
-            {
-                await SynchronizeSuppressedIssues();
-                refreshTimer.Start();
-            }
-            else
-            {
-                cachedSuppressedIssues = null;
-                refreshTimer.Stop();
-            }
         }
 
         private async Task SynchronizeSuppressedIssues()
@@ -146,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
                 // TODO: Handle race conditions
                 this.cachedSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(
-                    this.solutionBoundTracker.ProjectKey, cancellationTokenSource.Token);
+                    sonarQubeProjectKey, cancellationTokenSource.Token);
             }
             catch(Exception)
             {
