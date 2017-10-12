@@ -46,12 +46,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private const string NotificationDataKey = "NotificationEventData";
 
         private readonly IFormatter formatter = new BinaryFormatter();
+        private readonly NotificationIndicator notificationIcon = new NotificationIndicator();
 
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private ISonarQubeNotificationService notifications;
         private ISonarLintOutput sonarLintOutput;
         private NotificationData notificationData;
-        private NotificationIndicator notificationIcon = new NotificationIndicator();
         private bool disposed;
 
         protected override void Initialize()
