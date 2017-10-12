@@ -46,12 +46,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private const string NotificationDataKey = "NotificationEventData";
 
         private readonly IFormatter formatter = new BinaryFormatter();
+        private readonly NotificationIndicator notificationIcon = new NotificationIndicator();
 
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private ISonarQubeNotificationService notifications;
         private ISonarLintOutput sonarLintOutput;
         private NotificationData notificationData;
-        private NotificationIndicator notificationIcon;
         private bool disposed;
 
         protected override void Initialize()
@@ -65,26 +65,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             notifications = new SonarQubeNotificationService(sonarqubeService,
                 new NotificationIndicatorViewModel(), new TimerWrapper { Interval = 60000 }, sonarLintOutput);
 
+            notificationIcon.DataContext = notifications.Model;
+
             activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
         }
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs binding)
         {
-            if (notificationIcon == null)
-            {
-                notificationIcon = new NotificationIndicator();
-                notificationIcon.DataContext = notifications.Model;
-                VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIcon);
-            }
-
             if (binding.IsBound)
             {
+                VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIcon);
                 notifications.StartAsync(binding.ProjectKey, notificationData);
             }
             else
             {
                 notifications.Stop();
+                VisualStudioStatusBarHelper.RemoveStatusBarIcon(notificationIcon);
             }
         }
 
@@ -96,11 +93,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             base.Dispose(disposing);
-
-            if (notificationIcon != null)
-            {
-                VisualStudioStatusBarHelper.RemoveStatusBarIcon(notificationIcon);
-            }
 
             activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
 
