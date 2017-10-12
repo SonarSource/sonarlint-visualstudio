@@ -35,10 +35,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     [TestClass]
     public class LiveIssueFactoryTests
     {
-        private static readonly MetadataReference CorLibRef = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        private static readonly MetadataReference SystemRef = MetadataReference.CreateFromFile(typeof(System.ComponentModel.AddingNewEventArgs).Assembly.Location);
-        private static readonly MetadataReference SystemCoreRef = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
-
         [TestMethod]
         public void Ctor_WithNullWorkspace_ThrowsArgumentNullException()
         {
