@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // We want to directly jump to Connect
             sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(false);
-            SetSolutionBinding(new BoundSonarQubeProject(new Uri("http://test"), "projectkey"));
+            ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://test"), "projectkey"));
 
             // ConnectAsync should throw
             sonarQubeServiceMock
@@ -170,8 +170,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var boundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "key");
 
-            SetupService(isConnected: false);
-            SetSolutionBinding(boundProject);
+            ConfigureService(isConnected: false);
+            ConfigureSolutionBinding(boundProject);
 
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
             var solutionBindingChangedEventCount = 0;
@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             solutionBindingChangedEventCount.Should().Be(0, "no events raised during construction");
 
             // Case 1: Clear bound project
-            SetSolutionBinding(null);
+            ConfigureSolutionBinding(null);
             // Act
             host.VisualStateManager.ClearBoundProject();
 
@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyServiceConnect(Times.Never());
 
             // Case 2: Set bound project
-            SetSolutionBinding(boundProject);
+            ConfigureSolutionBinding(boundProject);
             // Act
             host.VisualStateManager.SetBoundProject(new SonarQubeProject("", ""));
 
@@ -213,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyServiceConnect(Times.Never());
 
             // Case 3: Bound solution unloaded -> disconnect
-            SetSolutionBinding(null);
+            ConfigureSolutionBinding(null);
             // Act
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyServiceConnect(Times.Never());
 
             // Case 4: Load a bound solution
-            SetSolutionBinding(boundProject);
+            ConfigureSolutionBinding(boundProject);
             // Act
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
@@ -243,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyServiceConnect(Times.Once());
 
             // Case 5: Close a bound solution
-            SetSolutionBinding(null);
+            ConfigureSolutionBinding(null);
             // Act
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Case 6: Dispose and change
             // Act
             testSubject.Dispose();
-            SetSolutionBinding(boundProject);
+            ConfigureSolutionBinding(boundProject);
             host.VisualStateManager.ClearBoundProject();
 
             // Assert
@@ -276,10 +276,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
+            ConfigureService(isConnected: false);
+            ConfigureSolutionBinding(null);
 
             // Act
-            SetupService(isConnected: false);
-            SetSolutionBinding(null);
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Assert
@@ -293,10 +293,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
+            ConfigureService(isConnected: false);
+            ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey"));
 
             // Act
-            SetupService(isConnected: false);
-            SetSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey"));
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Assert
@@ -310,10 +310,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
-            
+            ConfigureService(isConnected: true);
+            ConfigureSolutionBinding(null);
+
             // Act
-            SetupService(isConnected: true);
-            SetSolutionBinding(null);
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Assert
@@ -332,10 +332,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 
             // Arrange
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
+            ConfigureService(isConnected: true);
+            ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey"));
 
             // Act
-            SetupService(isConnected: true);
-            SetSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey"));
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Assert
@@ -361,10 +361,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 () => commandCallCount++,
                 () => { commandCanExecuteCallCount++; return false; });
             host.SetActiveSection(teSection);
-                
+
+            ConfigureService(isConnected: true);
+            ConfigureSolutionBinding(null);
+
             // Act
-            SetupService(isConnected: true);
-            SetSolutionBinding(null);
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Assert
@@ -390,9 +391,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 () => { commandCanExecuteCallCount++; return true; });
             host.SetActiveSection(teSection);
 
+            ConfigureService(isConnected: true);
+            ConfigureSolutionBinding(null);
+
             // Act
-            SetupService(isConnected: true);
-            SetSolutionBinding(null);
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Assert
@@ -402,7 +404,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             commandCallCount.Should().Be(1);
         }
 
-        private void SetupService(bool isConnected)
+        private void ConfigureService(bool isConnected)
         {
             sonarQubeServiceMock = new Mock<ISonarQubeService>();
             isMockServiceConnected = isConnected;
@@ -419,7 +421,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SonarQubeService = sonarQubeServiceMock.Object;
         }
 
-        private void SetSolutionBinding(BoundSonarQubeProject boundProject)
+        private void ConfigureSolutionBinding(BoundSonarQubeProject boundProject)
         {
             this.solutionBindingSerializer.CurrentBinding = boundProject;
             this.solutionBindingInformationProvider.SolutionBound = boundProject != null;
