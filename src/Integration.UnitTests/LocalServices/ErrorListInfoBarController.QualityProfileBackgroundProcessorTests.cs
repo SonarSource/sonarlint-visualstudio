@@ -312,7 +312,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProfileTimestamp = DateTime.Now
             };
             var service = new Mock<ISonarQubeService>();
-            service.Setup(x => x.GetQualityProfileAsync(this.bindingSerializer.CurrentBinding.ProjectKey, SonarQubeLanguage.VbNet, It.IsAny<CancellationToken>()))
+            service.Setup(x => x.GetQualityProfileAsync(this.bindingSerializer.CurrentBinding.ProjectKey, null, SonarQubeLanguage.VbNet, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => { throw new Exception(); });
             this.host.SonarQubeService = service.Object;
 
@@ -374,7 +374,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             foreach (Language language in expectedLanguageProfiles)
             {
                 sqService
-                    .Setup(x => x.GetQualityProfileAsync(binding.ProjectKey, language.ToServerLanguage(), It.IsAny<CancellationToken>()))
+                    .Setup(x => x.GetQualityProfileAsync(binding.ProjectKey, null, language.ToServerLanguage(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(new SonarQubeQualityProfile(qualityProfileKey, "", language.ToServerLanguage().Key, false, timestamp));
             }
         }

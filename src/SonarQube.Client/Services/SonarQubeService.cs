@@ -184,18 +184,18 @@ namespace SonarQube.Client.Services
             return new Uri(this.connection.ServerUri, string.Format(ProjectDashboardRelativeUrl, projectKey));
         }
 
-        public async Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, SonarQubeLanguage language,
-                    CancellationToken token)
+        public async Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey,
+            SonarQubeLanguage language, CancellationToken token)
         {
             EnsureIsConnected();
 
-            var qualityProfileRequest = new QualityProfileRequest { ProjectKey = projectKey };
+            var qualityProfileRequest = new QualityProfileRequest { ProjectKey = projectKey, OrganizationKey = organizationKey };
             var qualityProfilesResult = await this.sonarqubeClient.GetQualityProfilesAsync(qualityProfileRequest, token);
 
             // Special handling for the case when a project was not analyzed yet, in which case a 404 is returned
             if (qualityProfilesResult.StatusCode == HttpStatusCode.NotFound)
             {
-                qualityProfileRequest = new QualityProfileRequest { ProjectKey = null };
+                qualityProfileRequest = new QualityProfileRequest { ProjectKey = null, OrganizationKey = organizationKey };
                 qualityProfilesResult = await this.sonarqubeClient.GetQualityProfilesAsync(qualityProfileRequest, token);
             }
 
