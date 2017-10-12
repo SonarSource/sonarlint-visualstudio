@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,11 +97,21 @@ namespace SonarLint.VisualStudio.Integration
         private async Task UpdateConnection()
         {
             ISonarQubeService sonarQubeService = this.extensionHost.SonarQubeService;
-            if (sonarQubeService.IsConnected &&
-                this.extensionHost.ActiveSection?.DisconnectCommand.CanExecute(null) == true)
+
+            if (sonarQubeService.IsConnected)
             {
-                this.extensionHost.ActiveSection.DisconnectCommand.Execute(null);
+                if (this.extensionHost.ActiveSection?.DisconnectCommand.CanExecute(null) == true)
+                {
+                    this.extensionHost.ActiveSection.DisconnectCommand.Execute(null);
+                }
+                else
+                {
+                    sonarQubeService.Disconnect();
+                }
             }
+
+            Debug.Assert(!sonarQubeService.IsConnected,
+                "SonarQube service should always be disconnected at this point");
 
             bool isSolutionCurrentlyBound = this.solutionBindingInformationProvider.IsSolutionBound();
 
@@ -110,6 +121,9 @@ namespace SonarLint.VisualStudio.Integration
                 await SafeServiceCall(async () =>
                     await sonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None));
             }
+
+            Debug.Assert(isSolutionCurrentlyBound == sonarQubeService.IsConnected,
+                $"Inconsistent connection state: Solution bound={isSolutionCurrentlyBound}, service connected={sonarQubeService.IsConnected}");
         }
 
         private async Task SafeServiceCall(Func<Task> call)
