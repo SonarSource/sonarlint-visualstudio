@@ -674,7 +674,7 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     var serverLanguage = language.ToServerLanguage();
                     newProfiles[language] = await this.host.SonarQubeService.GetQualityProfileAsync(binding.ProjectKey,
-                        serverLanguage, token);
+                        binding.Organization?.Key, serverLanguage, token);
                 }
 
                 return newProfiles;

@@ -24,8 +24,11 @@ namespace SonarQube.Client.Messages
 {
     public class QualityProfileRequest
     {
+        // TODO: since 6.5 this parameter is named "project"; we should change a couple of months after release of LTS.
         [JsonProperty("projectKey")]
         public string ProjectKey { get; set; }
+        [JsonProperty("organization")]
+        public string OrganizationKey { get; set; }
         [JsonProperty("defaults")]
         public bool? Defaults { get; set; }
     }
