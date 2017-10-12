@@ -46,7 +46,8 @@ namespace SonarQube.Client.Services
 
         Uri GetProjectDashboardUrl(string projectKey);
 
-        Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, SonarQubeLanguage language, CancellationToken token);
+        Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey,
+            SonarQubeLanguage language, CancellationToken token);
 
         Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName, SonarQubeLanguage language,
             CancellationToken token);
