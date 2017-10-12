@@ -64,7 +64,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Text="Latest SonarQube Events" FontWeight="Bold" Margin="4,8,0,0" />
+                    <TextBlock Text="SonarQube Events" FontWeight="Bold" Margin="4,8,0,0" />
                     <ItemsControl x:Name="PART_Events" Grid.Row="1" Margin="5,5,0,5"
                             Visibility="{Binding HasItems, Converter={StaticResource BoolToVisibilityConverter}, RelativeSource={RelativeSource Self}}"
                             ItemsSource="{Binding NotificationEvents}">
@@ -73,14 +73,13 @@
                                 <TextBlock Margin="0,3,0,3" TextWrapping="Wrap">
                                     <Run Text="{Binding Date, StringFormat=G, Mode=OneWay}" FontWeight="DemiBold" FontSize="10" Foreground="Gray" />
                                     <LineBreak FontSize="16" />
-                                    <Run Text=" " />
+
                                     <Run Text="{Binding Message, Mode=OneWay}" />
-                                    <Run Text=" " />
                                     <Hyperlink NavigateUri="{Binding Link, Mode=OneWay}" RequestNavigate="Hyperlink_RequestNavigate">more...</Hyperlink></TextBlock>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Grid.Row="1" Text="Congratulations, you have no new events!" Margin="4,0,0,3"
+                    <TextBlock Grid.Row="1" Text="{Binding ToolTipText}" Margin="4,0,0,3"
                             Visibility="{Binding HasItems, Converter={StaticResource InvertedBoolToVisibilityConverter}, ElementName=PART_Events}" />
                     <Button Width="14" Height="14" Padding="0,-8,0,0" Margin="4" HorizontalAlignment="Right"
                             VerticalAlignment="Top" Background="Transparent" Foreground="#1E1E1E" FontWeight="Bold"
