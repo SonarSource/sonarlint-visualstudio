@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         private CancellationTokenSource cancellation;
         private DateTimeOffset lastCheckDate;
         private string projectKey;
+        private bool isFirstServerQuery;
 
         public INotificationIndicatorViewModel Model { get; }
 
@@ -73,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             Model.AreNotificationsEnabled = notificationData?.IsEnabled ?? true;
             lastCheckDate = GetLastCheckedDate(notificationData);
 
+            isFirstServerQuery = true;
             timer.Start();
             await UpdateEvents();
         }
@@ -86,48 +88,53 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         private async Task UpdateEvents()
         {
-            if (!sonarQubeService.IsConnected)
+            if (!sonarQubeService.IsConnected ||
+                !Model.AreNotificationsEnabled)
             {
                 return;
             }
 
-            var events = await GetNotificationEvents();
-            if (events == null)
+            try
             {
-                // Notifications are not supported on SonarQube or an exception was thrown
-                Stop();
-                return;
+                var events = await GetNotificationEvents();
+                if (events == null)
+                {
+                    // Notifications are not supported on SonarQube
+                    Stop();
+                    return;
+                }
+
+                if (!isFirstServerQuery)
+                {
+                    if (events.Count > 0)
+                    {
+                        lastCheckDate = events.Max(ev => ev.Date);
+                    }
+                    Model.SetNotificationEvents(events);
+                }
+
+                Model.IsIconVisible = true;
+            }
+            catch (Exception ex)
+            {
+                sonarLintOutput.Write($"Failed to fetch notifications : {ex.Message}");
             }
 
-            if (events.Count > 0)
-            {
-                lastCheckDate = events.Max(ev => ev.Date);
-            }
-
-            Model.IsIconVisible = true;
-            Model.SetNotificationEvents(events);
+            isFirstServerQuery = false;
         }
 
         private async void OnTimerElapsed(object sender, EventArgs e)
         {
-            Debug.Assert(this.cancellation != null, "Cancellation token should not be null if the timer is active - check StartAsync has been called");
+            Debug.Assert(cancellation != null,
+                "Cancellation token should not be null if the timer is active - check StartAsync has been called");
 
             await UpdateEvents();
         }
 
         private async Task<IList<SonarQubeNotification>> GetNotificationEvents()
         {
-            try
-            {
-                return await sonarQubeService.GetNotificationEventsAsync(projectKey,
-                    lastCheckDate, cancellation.Token);
-            }
-            catch (Exception ex)
-            {
-                sonarLintOutput.Write($"Failed to fetch notifications : {ex.Message}");
-
-                return null;
-            }
+            return await sonarQubeService.GetNotificationEventsAsync(projectKey,
+                lastCheckDate, cancellation.Token);
         }
 
         public void Dispose()
