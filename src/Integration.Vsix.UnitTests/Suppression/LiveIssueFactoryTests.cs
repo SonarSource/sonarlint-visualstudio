@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Assert
             result.Should().NotBeNull();
             result.Diagnostic.Should().Be(diagnostic);
-            result.ProjectGuid.Should().Be("00000000-0000-0000-0000-000000000000");
+            result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
             result.IssueFilePath.Should().Be("");
             result.StartLine.Should().Be(0);
             result.WholeLineText.Should().Be("");
@@ -208,7 +208,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Assert
             result.Should().NotBeNull();
             result.Diagnostic.Should().Be(diagnostic);
-            result.ProjectGuid.Should().Be("00000000-0000-0000-0000-000000000000");
+            result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
             result.IssueFilePath.Should().Be("MySource.cs");
             result.StartLine.Should().Be(0);
             result.WholeLineText.Should().Be("");
@@ -229,7 +229,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Assert
             result.Should().NotBeNull();
             result.Diagnostic.Should().Be(diagnostic);
-            result.ProjectGuid.Should().Be("00000000-0000-0000-0000-000000000000");
+            result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
             result.IssueFilePath.Should().Be("MySource.cs");
             result.StartLine.Should().Be(2);
             result.WholeLineText.Should().Be("    class Foo");
@@ -250,8 +250,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                     z = 0;
                     paths[0] = "Project1";
                 });
+
             vsSolutionMock.As<IVsSolution5>().Setup(x => x.GetGuidOfProjectFile(It.IsAny<string>()))
-                .Returns(Guid.Empty);
+                .Returns(Guid.Parse("{31D0DAAC-8606-40FE-8DF0-01784706EA3E}"));
 
             var projectId = ProjectId.CreateNewId();
             var workspace = new AdhocWorkspace();
