@@ -151,10 +151,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                 // .Net Core projects don't have a <ProjectGuid> property so the scanner uses the GUID allocated
                 // to the project in the solution file.
                 // Fortunately, this is the logic used by soln5.GetGuidOfProjectFile... so we can just use that.
-                Guid projectId = soln5.GetGuidOfProjectFile(projectFile);
-                Debug.Assert(projectId != null, "Not expecting VS to return a null project guid");
+                Guid projectGuid = soln5.GetGuidOfProjectFile(projectFile);
+                Debug.Assert(projectGuid != null, "Not expecting VS to return a null project guid");
 
-                projectPathToProjectIdMap.Add(projectFile, projectId.ToString().Replace("{", "").Replace("}", ""));
+                projectPathToProjectIdMap.Add(projectFile, projectGuid.ToString().Replace("{", "").Replace("}", ""));
             }
         }
     }
