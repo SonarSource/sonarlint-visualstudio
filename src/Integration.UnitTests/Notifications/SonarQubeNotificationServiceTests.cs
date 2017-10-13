@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Web;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -170,34 +171,16 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         }
 
         [TestMethod]
-        public async Task StartAsync_Gets_Events_For_Project_Sets_LastNotificationDate_To_Most_Recent_Event_Date()
+        public async Task StartAsync_Gets_Events_For_Project_Sets_LastNotificationDate_Day_Minus_1()
         {
-            var olderEventDate = new DateTimeOffset(2010, 1, 1, 0, 0, 0, TimeSpan.Zero);
-            var newerEventDate = new DateTimeOffset(2010, 1, 1, 0, 0, 1, TimeSpan.Zero);
-
-            // Arrange
-            var event1 = new SonarQubeNotification(
-                    category: "QUALITY_GATE",
-                    link: new Uri("http://foo.com"),
-                    date: olderEventDate,
-                    message: "foo");
-
-            var event2 = new SonarQubeNotification(
-                    category: "QUALITY_GATE",
-                    link: new Uri("http://foo.com"),
-                    date: newerEventDate,
-                    message: "foo");
-
-            serverNotifications.Add(event1);
-            serverNotifications.Add(event2);
-
             // Act
             await notifications.StartAsync("test", null);
 
             // Assert
             sonarQubeServiceMock
                 .Verify(x => x.GetNotificationEventsAsync("test", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()));
-            notifications.GetNotificationData().LastNotificationDate.Should().Be(newerEventDate);
+            notifications.GetNotificationData().LastNotificationDate.Should().BeCloseTo(
+                DateTimeOffset.Now.AddDays(-1), 1000);
         }
 
         [TestMethod]
@@ -243,7 +226,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
                     link: new Uri("http://foo.com"),
                     date: newestEventDate,
                     message: "foo");
-            
+
             serverNotifications.Add(event1);
 
             // 1. Start monitoring
@@ -251,16 +234,22 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             await notifications.StartAsync("anykey", null);
 
             sonarQubeServiceMock.Verify(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
-            notifications.GetNotificationData().LastNotificationDate.Should().Be(olderEventDate);
+            notifications.GetNotificationData().LastNotificationDate.Should().BeCloseTo(
+                DateTimeOffset.Now.AddDays(-1), 1000);
 
-            // 2. Add newer events and simulate the timer firing
+            // 2. Simulate the timer triggering
+            timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
+            notifications.GetNotificationData().LastNotificationDate.Should().Be(olderEventDate);
+            sonarQubeServiceMock.Verify(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+
+            // 3. Add newer events and simulate the timer firing
             serverNotifications.Add(event2);
             serverNotifications.Add(event3);
 
             // Simulate the timer triggering
             timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
 
-            sonarQubeServiceMock.Verify(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            sonarQubeServiceMock.Verify(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
             notifications.GetNotificationData().LastNotificationDate.Should().Be(newestEventDate);
         }
 
@@ -324,6 +313,70 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             notifications.Stop();
             timerMock.Verify(x => x.Stop(), Times.Exactly(2));
             notifications.Model.IsIconVisible.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task Icon_Shown_When_Notifications_Disabled()
+        {
+            sonarQubeServiceMock
+                .Setup(x => x.GetNotificationEventsAsync(It.IsAny<string>(), It.IsAny<DateTimeOffset>(),
+                                It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(serverNotifications));
+
+            var event1 = new SonarQubeNotification(
+                category: "QUALITY_GATE",
+                link: new Uri("http://foo.com"),
+                date: DateTimeOffset.Now,
+                message: "foo");
+
+            serverNotifications.Add(event1);
+
+            await notifications.StartAsync("test", new NotificationData
+                {
+                    IsEnabled = false,
+                    LastNotificationDate = DateTimeOffset.MinValue
+                });
+
+            timerMock.Verify(x => x.Start(), Times.Once);
+            notifications.Model.IsIconVisible.Should().BeTrue();
+
+            // simulate timer tick
+            timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
+
+            notifications.Model.IsIconVisible.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task Notifications_Icon_Shown_If_First_Call_Fails_But_Later_Succeed()
+        {
+            sonarQubeServiceMock
+                .SetupSequence(x => x.GetNotificationEventsAsync(It.IsAny<string>(), It.IsAny<DateTimeOffset>(),
+                                It.IsAny<CancellationToken>()))
+                .Throws(new HttpException())
+                .Throws(new Exception())
+                .Returns(Task.FromResult(serverNotifications));
+
+            var event1 = new SonarQubeNotification(
+                category: "QUALITY_GATE",
+                link: new Uri("http://foo.com"),
+                date: DateTimeOffset.Now,
+                message: "foo");
+
+            serverNotifications.Add(event1);
+
+            await notifications.StartAsync("test", null);
+
+            timerMock.Verify(x => x.Start(), Times.Once);
+            notifications.Model.IsIconVisible.Should().BeFalse();
+
+            // simulate timer tick
+            timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
+            notifications.Model.IsIconVisible.Should().BeFalse();
+
+            // simulate timer tick
+            timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
+
+            notifications.Model.IsIconVisible.Should().BeTrue();
         }
     }
 }

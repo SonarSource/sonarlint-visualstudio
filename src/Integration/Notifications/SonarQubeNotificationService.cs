@@ -19,11 +19,9 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using SonarQube.Client.Models;
 using SonarQube.Client.Services;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
@@ -52,13 +50,11 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             ITimer timer, ISonarLintOutput sonarLintOutput)
         {
             this.sonarQubeService = sonarQubeService;
-
-            Model = model;
-
             this.timer = timer;
             this.timer.Elapsed += OnTimerElapsed;
-
             this.sonarLintOutput = sonarLintOutput;
+
+            Model = model;
         }
 
         public async Task StartAsync(string projectKey, NotificationData notificationData)
@@ -74,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             lastCheckDate = GetLastCheckedDate(notificationData);
 
             timer.Start();
-            await UpdateEvents();
+            await UpdateEvents(true);
         }
 
         public void Stop()
@@ -84,50 +80,53 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             Model.IsIconVisible = false;
         }
 
-        private async Task UpdateEvents()
+        private async Task UpdateEvents(bool isFirstRequest = false)
         {
-            if (!sonarQubeService.IsConnected)
+            // Query server even if notifications are disabled, query the server to know
+            // if the icon should be shown (so the notifications can be re-enabled).
+            if (!sonarQubeService.IsConnected ||
+                (!Model.AreNotificationsEnabled && Model.IsIconVisible))
             {
                 return;
             }
 
-            var events = await GetNotificationEvents();
-            if (events == null)
+            try
             {
-                // Notifications are not supported on SonarQube or an exception was thrown
-                Stop();
-                return;
-            }
+                var events = await sonarQubeService.GetNotificationEventsAsync(projectKey,
+                    lastCheckDate, cancellation.Token);
+                if (events == null)
+                {
+                    // Notifications are not supported on SonarQube
+                    Stop();
+                    return;
+                }
 
-            if (events.Count > 0)
+                // First request is only to detect if notifications are enabled on the server.
+                // Even if there are notifications, do not show them as it could be easy to miss
+                // (this code is executed on solution load, when a lot of things happen in the UI).
+                if (!isFirstRequest)
+                {
+                    if (events.Count > 0)
+                    {
+                        lastCheckDate = events.Max(ev => ev.Date);
+                    }
+                    Model.SetNotificationEvents(events);
+                }
+
+                Model.IsIconVisible = true;
+            }
+            catch (Exception ex)
             {
-                lastCheckDate = events.Max(ev => ev.Date);
+                sonarLintOutput.Write($"Failed to fetch notifications: {ex.Message}");
             }
-
-            Model.IsIconVisible = true;
-            Model.SetNotificationEvents(events);
         }
 
         private async void OnTimerElapsed(object sender, EventArgs e)
         {
-            Debug.Assert(this.cancellation != null, "Cancellation token should not be null if the timer is active - check StartAsync has been called");
+            Debug.Assert(cancellation != null,
+                "Cancellation token should not be null if the timer is active - check StartAsync has been called");
 
             await UpdateEvents();
-        }
-
-        private async Task<IList<SonarQubeNotification>> GetNotificationEvents()
-        {
-            try
-            {
-                return await sonarQubeService.GetNotificationEventsAsync(projectKey,
-                    lastCheckDate, cancellation.Token);
-            }
-            catch (Exception ex)
-            {
-                sonarLintOutput.Write($"Failed to fetch notifications : {ex.Message}");
-
-                return null;
-            }
         }
 
         public void Dispose()
