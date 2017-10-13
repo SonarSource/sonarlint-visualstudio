@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         private CancellationTokenSource cancellation;
         private DateTimeOffset lastCheckDate;
         private string projectKey;
-        private bool isFirstServerQuery;
 
         public INotificationIndicatorViewModel Model { get; }
 
@@ -53,13 +52,11 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             ITimer timer, ISonarLintOutput sonarLintOutput)
         {
             this.sonarQubeService = sonarQubeService;
-
-            Model = model;
-
             this.timer = timer;
             this.timer.Elapsed += OnTimerElapsed;
-
             this.sonarLintOutput = sonarLintOutput;
+
+            Model = model;
         }
 
         public async Task StartAsync(string projectKey, NotificationData notificationData)
@@ -74,9 +71,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             Model.AreNotificationsEnabled = notificationData?.IsEnabled ?? true;
             lastCheckDate = GetLastCheckedDate(notificationData);
 
-            isFirstServerQuery = true;
             timer.Start();
-            await UpdateEvents();
+            await UpdateEvents(true);
         }
 
         public void Stop()
@@ -86,10 +82,12 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             Model.IsIconVisible = false;
         }
 
-        private async Task UpdateEvents()
+        private async Task UpdateEvents(bool isFirstRequest = false)
         {
+            // Query server even if notifications are disabled, query the server to know
+            // if the icon should be shown (so the notifications can be re-enabled).
             if (!sonarQubeService.IsConnected ||
-                !Model.AreNotificationsEnabled)
+                (!Model.AreNotificationsEnabled && Model.IsIconVisible))
             {
                 return;
             }
@@ -104,7 +102,10 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                     return;
                 }
 
-                if (!isFirstServerQuery)
+                // First request is only to detect if notifications are enabled on the server.
+                // Even if there are notifications, do not show them as it could be easy to miss
+                // (this code is executed on solution load, when a lot of things happen in the UI).
+                if (!isFirstRequest)
                 {
                     if (events.Count > 0)
                     {
@@ -119,8 +120,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             {
                 sonarLintOutput.Write($"Failed to fetch notifications : {ex.Message}");
             }
-
-            isFirstServerQuery = false;
         }
 
         private async void OnTimerElapsed(object sender, EventArgs e)

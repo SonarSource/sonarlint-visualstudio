@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Web;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -50,8 +51,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            serverNotifications.Clear();
-
             timerMock = new Mock<ITimer>();
             outputMock = new Mock<ISonarLintOutput>();
 
@@ -314,6 +313,70 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             notifications.Stop();
             timerMock.Verify(x => x.Stop(), Times.Exactly(2));
             notifications.Model.IsIconVisible.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task Icon_Shown_When_Notifications_Disabled()
+        {
+            sonarQubeServiceMock
+                .Setup(x => x.GetNotificationEventsAsync(It.IsAny<string>(), It.IsAny<DateTimeOffset>(),
+                                It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(serverNotifications));
+
+            var event1 = new SonarQubeNotification(
+                category: "QUALITY_GATE",
+                link: new Uri("http://foo.com"),
+                date: DateTimeOffset.Now,
+                message: "foo");
+
+            serverNotifications.Add(event1);
+
+            await notifications.StartAsync("test", new NotificationData
+                {
+                    IsEnabled = false,
+                    LastNotificationDate = DateTimeOffset.MinValue
+                });
+
+            timerMock.Verify(x => x.Start(), Times.Once);
+            notifications.Model.IsIconVisible.Should().BeTrue();
+
+            // simulate timer tick
+            timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
+
+            notifications.Model.IsIconVisible.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task Notifications_Icon_Shown_If_First_Call_Fails_But_Later_Succeed()
+        {
+            sonarQubeServiceMock
+                .SetupSequence(x => x.GetNotificationEventsAsync(It.IsAny<string>(), It.IsAny<DateTimeOffset>(),
+                                It.IsAny<CancellationToken>()))
+                .Throws(new HttpException())
+                .Throws(new Exception())
+                .Returns(Task.FromResult(serverNotifications));
+
+            var event1 = new SonarQubeNotification(
+                category: "QUALITY_GATE",
+                link: new Uri("http://foo.com"),
+                date: DateTimeOffset.Now,
+                message: "foo");
+
+            serverNotifications.Add(event1);
+
+            await notifications.StartAsync("test", null);
+
+            timerMock.Verify(x => x.Start(), Times.Once);
+            notifications.Model.IsIconVisible.Should().BeFalse();
+
+            // simulate timer tick
+            timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
+            notifications.Model.IsIconVisible.Should().BeFalse();
+
+            // simulate timer tick
+            timerMock.Raise(x => x.Elapsed += null, (ElapsedEventArgs)null);
+
+            notifications.Model.IsIconVisible.Should().BeTrue();
         }
     }
 }
