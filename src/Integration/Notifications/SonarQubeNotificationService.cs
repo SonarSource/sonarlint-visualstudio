@@ -19,11 +19,9 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using SonarQube.Client.Models;
 using SonarQube.Client.Services;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
@@ -94,7 +92,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
             try
             {
-                var events = await GetNotificationEvents();
+                var events = await sonarQubeService.GetNotificationEventsAsync(projectKey,
+                    lastCheckDate, cancellation.Token);
                 if (events == null)
                 {
                     // Notifications are not supported on SonarQube
@@ -118,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
             catch (Exception ex)
             {
-                sonarLintOutput.Write($"Failed to fetch notifications : {ex.Message}");
+                sonarLintOutput.Write($"Failed to fetch notifications: {ex.Message}");
             }
         }
 
@@ -128,12 +127,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                 "Cancellation token should not be null if the timer is active - check StartAsync has been called");
 
             await UpdateEvents();
-        }
-
-        private async Task<IList<SonarQubeNotification>> GetNotificationEvents()
-        {
-            return await sonarQubeService.GetNotificationEventsAsync(projectKey,
-                lastCheckDate, cancellation.Token);
         }
 
         public void Dispose()
