@@ -24,10 +24,10 @@ using SonarLint.VisualStudio.Integration.Suppression;
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {
     /// <summary>
-    ///     Information about a single Roslyn issue, decorated with the extra information required to map it to a
-    ///     SonarQube issue.
+    /// Information about a single Roslyn issue, decorated with the extra information required to map it to a
+    /// SonarQube issue.
     /// </summary>
-    internal class LiveIssue
+    public class LiveIssue
     {
         public LiveIssue(Diagnostic diagnostic, string projectGuid, string issueFilePath = "", int startLine = 0,
             string wholeLineText = "")
