@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -29,6 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
+using SonarQube.Client.Tests;
 
 namespace SonarQube.Client.Services.Tests
 {
@@ -75,8 +75,10 @@ namespace SonarQube.Client.Services.Tests
         {
             // Act
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(() =>
-                new Result<CredentialResponse>(new HttpResponseMessage(), new CredentialResponse { IsValid = false }));
+            client
+                .Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new CredentialResponse { IsValid = false }));
+
             var service = new SonarQubeService(WrapInMockFactory(client));
             Func<Task> func = async () =>
                 await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
@@ -121,9 +123,9 @@ namespace SonarQube.Client.Services.Tests
         {
             // Arrange
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
-            client.Setup(x => x.GetPluginsAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Result<PluginResponse[]>(new HttpResponseMessage(),
-                    new[] { new PluginResponse { Key = "key", Version = "version" } }));
+            client
+                .Setup(x => x.GetPluginsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new[] { new PluginResponse { Key = "key", Version = "version" } }));
 
             var service = new SonarQubeService(WrapInMockFactory(client));
 
@@ -145,9 +147,9 @@ namespace SonarQube.Client.Services.Tests
         {
             // Arrange
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
-            client.Setup(x => x.GetPropertiesAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Result<PropertyResponse[]>(new HttpResponseMessage(),
-                    new[] { new PropertyResponse { Key = "key", Value = "value" } }));
+            client
+                .Setup(x => x.GetPropertiesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new[] { new PropertyResponse { Key = "key", Value = "value" } }));
             var service = new SonarQubeService(WrapInMockFactory(client));
 
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
@@ -188,9 +190,9 @@ namespace SonarQube.Client.Services.Tests
             var roslynExport = new RoslynExportProfileResponse();
 
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
-            client.Setup(x => x.GetRoslynExportProfileAsync(It.IsAny<RoslynExportProfileRequest>(),
-                It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Result<RoslynExportProfileResponse>(new HttpResponseMessage(), roslynExport));
+            client
+                .Setup(x => x.GetRoslynExportProfileAsync(It.IsAny<RoslynExportProfileRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(roslynExport));
 
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
@@ -241,17 +243,10 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
 
-            client.Setup(x => x.GetOrganizationsAsync(It.IsAny<OrganizationRequest>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(
-                    new Queue<Result<OrganizationResponse[]>>(
-                        new Result<OrganizationResponse[]>[]
-                        {
-                            new Result<OrganizationResponse[]>(new HttpResponseMessage(),
-                                new[] { new OrganizationResponse { Key = "key", Name = "name" } }),
-                            new Result<OrganizationResponse[]>(new HttpResponseMessage(), new OrganizationResponse[0])
-                        }
-                    ).Dequeue);
+            client
+                .SetupSequence(x => x.GetOrganizationsAsync(It.IsAny<OrganizationRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new[] { new OrganizationResponse { Key = "key", Name = "name" } }))
+                .ReturnsAsync(Result.Ok(new OrganizationResponse[0]));
 
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
@@ -273,9 +268,9 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
 
-            client.Setup(x => x.GetProjectsAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Result<ProjectResponse[]>(new HttpResponseMessage(),
-                    new[] { new ProjectResponse { Key = "key", Name = "name" } }));
+            client
+                .Setup(x => x.GetProjectsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new[] { new ProjectResponse { Key = "key", Name = "name" } }));
 
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
@@ -298,16 +293,10 @@ namespace SonarQube.Client.Services.Tests
             var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
 
-            client.Setup(x => x.GetComponentsSearchProjectsAsync(It.IsAny<ComponentRequest>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(
-                    new Queue<Result<ComponentResponse[]>>(
-                        new Result<ComponentResponse[]>[]
-                        {
-                            new Result<ComponentResponse[]>(successResponse, new[] { new ComponentResponse { Key = "key", Name = "name" } }),
-                            new Result<ComponentResponse[]>(successResponse, new ComponentResponse[0])
-                        }
-                    ).Dequeue);
+            client
+                .SetupSequence(x => x.GetComponentsSearchProjectsAsync(It.IsAny<ComponentRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new[] { new ComponentResponse { Key = "key", Name = "name" } }))
+                .ReturnsAsync(Result.Ok(new ComponentResponse[0]));
 
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
@@ -327,9 +316,9 @@ namespace SonarQube.Client.Services.Tests
         public async Task GetSuppressedIssuesAsync_ReturnsExpectedResults()
         {
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
-            client.Setup(x => x.GetIssuesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Result<ServerIssue[]>(new HttpResponseMessage(),
-                    new[]
+            client
+                .Setup(x => x.GetIssuesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new[]
                     {
                         new ServerIssue { Resolution = "WONTFIX" },
                         new ServerIssue { Resolution = "FALSE-POSITIVE" },
@@ -351,7 +340,6 @@ namespace SonarQube.Client.Services.Tests
             result[2].ResolutionState.Should().Be(SonarQubeIssueResolutionState.Fixed);
         }
 
-
         [TestMethod]
         public async Task GetNotificationEventsAsync_ReturnsExpectedResult()
         {
@@ -367,10 +355,9 @@ namespace SonarQube.Client.Services.Tests
                 Project = "test"
             };
 
-            client.Setup(x => x.GetNotificationEventsAsync(It.IsAny<NotificationsRequest>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Result<NotificationsResponse[]>(new HttpResponseMessage(),
-                    new[] { expectedEvent }));
+            client
+                .Setup(x => x.GetNotificationEventsAsync(It.IsAny<NotificationsRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new[] { expectedEvent }));
 
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
@@ -416,7 +403,7 @@ namespace SonarQube.Client.Services.Tests
             });
 
             AssertExceptionThrownWhenNotConnected(() =>
-                sqService.GetQualityProfileAsync("projectKey", SonarQubeLanguage.CSharp, CancellationToken.None));
+                sqService.GetQualityProfileAsync("projectKey", "some org", SonarQubeLanguage.CSharp, CancellationToken.None));
 
             AssertExceptionThrownWhenNotConnected(() =>
                 sqService.GetRoslynExportProfileAsync("qualityProfileName", SonarQubeLanguage.CSharp, CancellationToken.None));
@@ -481,21 +468,30 @@ namespace SonarQube.Client.Services.Tests
         {
             // Arrange
             var client = GetMockSqClientWithCredentialAndVersion("0.0");
-            client.Setup(x => x.GetQualityProfilesAsync(It.IsAny<QualityProfileRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Result<QualityProfileResponse[]>(new HttpResponseMessage(),
-                    new[] { new QualityProfileResponse { Key = "QP_KEY", Language = "cs" } }));
-            client.Setup(x => x.GetQualityProfileChangeLogAsync(It.IsAny<QualityProfileChangeLogRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Result<QualityProfileChangeLogResponse>(new HttpResponseMessage(),
-                    new QualityProfileChangeLogResponse { Events =
-                        new[] { new QualityProfileChangeLogEventResponse { Date = DateTime.MaxValue } } }));
+            client
+                .Setup(x => x.GetQualityProfilesAsync(It.IsAny<QualityProfileRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new[]
+                    {
+                        new QualityProfileResponse { Key = "QP_KEY", Language = "cs" }
+                    }));
+
+            client
+                .Setup(x => x.GetQualityProfileChangeLogAsync(It.IsAny<QualityProfileChangeLogRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new QualityProfileChangeLogResponse
+                    {
+                        Events = new[] { new QualityProfileChangeLogEventResponse { Date = DateTime.MaxValue } }
+                    }));
+
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
-            var result = await service.GetQualityProfileAsync("PROJECT_KEY", SonarQubeLanguage.CSharp, CancellationToken.None);
+            var result = await service.GetQualityProfileAsync("PROJECT_KEY", "ORG_KEY", SonarQubeLanguage.CSharp, CancellationToken.None);
 
             // Assert
-            client.Verify(x => x.GetQualityProfilesAsync(It.IsAny<QualityProfileRequest>(), It.IsAny<CancellationToken>()),
+            client.Verify(x => x.GetQualityProfilesAsync(
+                    It.Is<QualityProfileRequest>(r => r.Defaults == null && r.ProjectKey == "PROJECT_KEY" && r.OrganizationKey == "ORG_KEY"),
+                    It.IsAny<CancellationToken>()),
                 Times.Once);
             client.Verify(x => x.GetQualityProfileChangeLogAsync(It.IsAny<QualityProfileChangeLogRequest>(),
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -510,27 +506,26 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var client = GetMockSqClientWithCredentialAndVersion("0.0");
             client.Setup(x => x.GetQualityProfilesAsync(It.IsAny<QualityProfileRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Result<QualityProfileResponse[]>(new HttpResponseMessage(),
-                    new[]
+                .ReturnsAsync(Result.Ok(new[]
                     {
                         new QualityProfileResponse { Key = "QP_KEY", Language = "cs" },
                         new QualityProfileResponse { Key = "QP_KEY_2", Language = "cs", IsDefault = true },
                     }));
             client.Setup(x => x.GetQualityProfileChangeLogAsync(It.IsAny<QualityProfileChangeLogRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Result<QualityProfileChangeLogResponse>(new HttpResponseMessage(),
-                    new QualityProfileChangeLogResponse
+                .ReturnsAsync(Result.Ok(new QualityProfileChangeLogResponse
                     {
-                        Events =
-                        new[] { new QualityProfileChangeLogEventResponse { Date = DateTime.MaxValue } }
+                        Events = new[] { new QualityProfileChangeLogEventResponse { Date = DateTime.MaxValue } }
                     }));
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
-            var result = await service.GetQualityProfileAsync("PROJECT_KEY", SonarQubeLanguage.CSharp, CancellationToken.None);
+            var result = await service.GetQualityProfileAsync("PROJECT_KEY", "ORG_KEY", SonarQubeLanguage.CSharp, CancellationToken.None);
 
             // Assert
-            client.Verify(x => x.GetQualityProfilesAsync(It.IsAny<QualityProfileRequest>(), It.IsAny<CancellationToken>()),
+            client.Verify(x => x.GetQualityProfilesAsync(
+                    It.Is<QualityProfileRequest>(r => r.Defaults == null && r.ProjectKey == "PROJECT_KEY" && r.OrganizationKey == "ORG_KEY"),
+                    It.IsAny<CancellationToken>()),
                 Times.Once);
             client.Verify(x => x.GetQualityProfileChangeLogAsync(It.IsAny<QualityProfileChangeLogRequest>(),
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -544,32 +539,34 @@ namespace SonarQube.Client.Services.Tests
         {
             // Arrange
             var client = GetMockSqClientWithCredentialAndVersion("0.0");
-            client.Setup(x => x.GetQualityProfilesAsync(It.IsAny<QualityProfileRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Queue<Result<QualityProfileResponse[]>>(
-                    new Result<QualityProfileResponse[]>[]
+            client
+                .SetupSequence(x => x.GetQualityProfilesAsync(It.IsAny<QualityProfileRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.NotFound(new QualityProfileResponse[0]))
+                .ReturnsAsync(Result.Ok(new[] { new QualityProfileResponse { Key = "QP_KEY", Language = "cs" } }));
+
+            client
+                .Setup(x => x.GetQualityProfileChangeLogAsync(It.IsAny<QualityProfileChangeLogRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new QualityProfileChangeLogResponse
                     {
-                        new Result<QualityProfileResponse[]>(new HttpResponseMessage(HttpStatusCode.NotFound),
-                            new QualityProfileResponse[0]),
-                        new Result<QualityProfileResponse[]>(new HttpResponseMessage(),
-                            new[] { new QualityProfileResponse { Key = "QP_KEY", Language = "cs" } })
-                    }
-                ).Dequeue);
-            client.Setup(x => x.GetQualityProfileChangeLogAsync(It.IsAny<QualityProfileChangeLogRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Result<QualityProfileChangeLogResponse>(new HttpResponseMessage(),
-                    new QualityProfileChangeLogResponse
-                    {
-                        Events =
-                        new[] { new QualityProfileChangeLogEventResponse { Date = DateTime.MaxValue } }
+                        Events = new[] { new QualityProfileChangeLogEventResponse { Date = DateTime.MaxValue } }
                     }));
+
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
-            var result = await service.GetQualityProfileAsync("PROJECT_KEY", SonarQubeLanguage.CSharp, CancellationToken.None);
+            var result = await service.GetQualityProfileAsync("PROJECT_KEY", "ORG_KEY", SonarQubeLanguage.CSharp, CancellationToken.None);
 
             // Assert
-            client.Verify(x => x.GetQualityProfilesAsync(It.IsAny<QualityProfileRequest>(), It.IsAny<CancellationToken>()),
-                Times.Exactly(2));
+            client.Verify(x => x.GetQualityProfilesAsync(
+                    // Defaults is set to true in the client
+                    It.Is<QualityProfileRequest>(r => r.Defaults == null && r.ProjectKey == null && r.OrganizationKey == "ORG_KEY"),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+            client.Verify(x => x.GetQualityProfilesAsync(
+                    It.Is<QualityProfileRequest>(r => r.Defaults == null && r.ProjectKey == "PROJECT_KEY" && r.OrganizationKey == "ORG_KEY"),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
             client.Verify(x => x.GetQualityProfileChangeLogAsync(It.IsAny<QualityProfileChangeLogRequest>(),
                 It.IsAny<CancellationToken>()), Times.Once);
             result.Key.Should().Be("QP_KEY");
@@ -580,10 +577,12 @@ namespace SonarQube.Client.Services.Tests
         private static Mock<ISonarQubeClient> GetMockSqClientWithCredentialAndVersion(string version)
         {
             var client = new Mock<ISonarQubeClient>();
-            client.Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Result<CredentialResponse>(new HttpResponseMessage(), new CredentialResponse { IsValid = true }));
-            client.Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Result<VersionResponse>(new HttpResponseMessage(), new VersionResponse { Version = version }));
+            client
+                .Setup(x => x.ValidateCredentialsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new CredentialResponse { IsValid = true }));
+            client
+                .Setup(x => x.GetVersionAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Ok(new VersionResponse { Version = version }));
 
             return client;
         }
@@ -591,7 +590,9 @@ namespace SonarQube.Client.Services.Tests
         private ISonarQubeClientFactory WrapInMockFactory(Mock<ISonarQubeClient> mockClient)
         {
             var clientFactory = new Mock<ISonarQubeClientFactory>();
-            clientFactory.Setup(x => x.Create(It.IsAny<ConnectionRequest>())).Returns(mockClient.Object);
+            clientFactory
+                .Setup(x => x.Create(It.IsAny<ConnectionRequest>()))
+                .Returns(mockClient.Object);
             return clientFactory.Object;
         }
     }

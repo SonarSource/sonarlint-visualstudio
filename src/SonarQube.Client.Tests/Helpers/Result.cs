@@ -18,18 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
+using System.Net;
+using System.Net.Http;
+using SonarQube.Client.Services;
 
-namespace SonarQube.Client.Messages
+namespace SonarQube.Client.Tests
 {
-    public class QualityProfileRequest
+    // Factory method to simplify result creation in tests
+    public static class Result
     {
-        // TODO: since 6.5 this parameter is named "project"; we should change a couple of months after release of LTS.
-        [JsonProperty("projectKey")]
-        public string ProjectKey { get; set; }
-        [JsonProperty("organization")]
-        public string OrganizationKey { get; set; }
-        [JsonProperty("defaults")]
-        public bool? Defaults { get; set; }
+        public static Result<TValue> Ok<TValue>(TValue value) =>
+            new Result<TValue>(new HttpResponseMessage(), value);
+
+        public static Result<TValue> NotFound<TValue>(TValue value) =>
+            new Result<TValue>(new HttpResponseMessage(HttpStatusCode.NotFound), value);
     }
 }

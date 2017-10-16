@@ -230,8 +230,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 var serverLanguage = language.ToServerLanguage();
 
-                var qualityProfileInfo = await SafeServiceCall(
-                    () => this.host.SonarQubeService.GetQualityProfileAsync(this.project.Key, serverLanguage, cancellationToken));
+                var qualityProfileInfo = await SafeServiceCall(() =>
+                    this.host.SonarQubeService.GetQualityProfileAsync(
+                        this.project.Key, connectionInformation.Organization?.Key, serverLanguage, cancellationToken));
                 if (qualityProfileInfo == null)
                 {
                     VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
