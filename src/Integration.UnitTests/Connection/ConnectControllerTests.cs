@@ -378,19 +378,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.DontWarnAgainCommand.CanExecute().Should().BeTrue();
         }
 
-        [TestMethod]
-        public void ConnectionController_OrganizationsAreNotForget()
-        {
-            // Arrange
-            var testSubject = new ConnectionController(this.host);
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.settings.ShowServerNuGetTrustWarning = true;
-            this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
-
-            // Act + Assert
-            testSubject.DontWarnAgainCommand.CanExecute().Should().BeTrue();
-        }
-
         #endregion Tests
     }
 }
