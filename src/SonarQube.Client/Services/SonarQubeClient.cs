@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,6 +92,11 @@ namespace SonarQube.Client.Services
             return InvokeSonarQubeApi("batch/issues", new { key = key }, token,
                 async (HttpResponseMessage response) =>
                 {
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return null;
+                    }
+
                     var byteArray = await response.Content.ReadAsByteArrayAsync();
                     // Protobuf for C# throws when trying to read outside of the buffer and ReadAsStreamAsync returns a non
                     // seekable stream so we can't determine when to stop. The hack is to use an intermediate MemoryStream
@@ -202,21 +206,12 @@ namespace SonarQube.Client.Services
         {
             // Since 6.6; internal
             return InvokeSonarQubeApi("api/developers/search_events", request, token,
-                    async (HttpResponseMessage httpResponse) =>
-                    {
-                        if (httpResponse.StatusCode != HttpStatusCode.OK)
-                        {
-                            return new NotificationsResponse[0];
-                        }
-
-                        var stringResponse = await GetStringResultAsync(httpResponse, token);
-                        var parsedJson = JObject.Parse(stringResponse);
-                        ThrowsIfError(parsedJson);
-
-                        return parsedJson["events"]?.ToObject<NotificationsResponse[]>()
-                            ?? new NotificationsResponse[0];
-                    }
-                );
+                stringResponse =>
+                {
+                    var parsedJson = JObject.Parse(stringResponse);
+                    ThrowsIfError(parsedJson);
+                    return parsedJson["events"]?.ToObject<NotificationsResponse[]>();
+                });
         }
 
         private Uri BuildRelativeUrl(string relativePath, object request = null)
@@ -285,6 +280,11 @@ namespace SonarQube.Client.Services
             Func<string, T> parseStringResult)
         {
             var httpResponse = await InvokeGetRequest(this.httpClient, apiPath, request, token);
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                return new Result<T>(httpResponse, default(T));
+            }
+
             var stringResponse = await GetStringResultAsync(httpResponse, token);
 
             return new Result<T>(httpResponse, parseStringResult(stringResponse));
