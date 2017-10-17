@@ -79,7 +79,12 @@ namespace SonarQube.Client.Services
         {
             // Since 6.2; internal
             return InvokeSonarQubeApi("api/components/search_projects", request, token,
-                stringResponse => JObject.Parse(stringResponse)["components"].ToObject<ComponentResponse[]>());
+                stringResponse =>
+                {
+                    var parsedJson = JObject.Parse(stringResponse);
+                    ThrowsIfError(parsedJson);
+                    return parsedJson["components"]?.ToObject<ComponentResponse[]>();
+                });
         }
 
         public Task<Result<ServerIssue[]>> GetIssuesAsync(string key, CancellationToken token)
@@ -104,7 +109,12 @@ namespace SonarQube.Client.Services
         {
             // Since 6.2; internal
             return InvokeSonarQubeApi("api/organizations/search", request, token,
-                stringResponse => JObject.Parse(stringResponse)["organizations"].ToObject<OrganizationResponse[]>());
+                stringResponse =>
+                {
+                    var parsedJson = JObject.Parse(stringResponse);
+                    ThrowsIfError(parsedJson);
+                    return parsedJson["organizations"]?.ToObject<OrganizationResponse[]>();
+                });
         }
 
         public Task<Result<PluginResponse[]>> GetPluginsAsync(CancellationToken token)
@@ -146,7 +156,12 @@ namespace SonarQube.Client.Services
 
             // Since 5.2
             return InvokeSonarQubeApi("api/qualityprofiles/search", request, token,
-                stringResponse => JObject.Parse(stringResponse)["profiles"].ToObject<QualityProfileResponse[]>());
+                stringResponse =>
+                {
+                    var parsedJson = JObject.Parse(stringResponse);
+                    ThrowsIfError(parsedJson);
+                    return parsedJson["profiles"]?.ToObject<QualityProfileResponse[]>();
+                });
         }
 
         public Task<Result<RoslynExportProfileResponse>> GetRoslynExportProfileAsync(RoslynExportProfileRequest request,
@@ -174,7 +189,12 @@ namespace SonarQube.Client.Services
         {
             // Since 3.3
             return InvokeSonarQubeApi("api/authentication/validate", null, token,
-                stringResponse => new CredentialResponse { IsValid = (bool)JObject.Parse(stringResponse).SelectToken("valid") });
+                stringResponse =>
+                {
+                    var parsedJson = JObject.Parse(stringResponse);
+                    ThrowsIfError(parsedJson);
+                    return new CredentialResponse { IsValid = (bool)parsedJson.SelectToken("valid") };
+                });
         }
 
         public Task<Result<NotificationsResponse[]>> GetNotificationEventsAsync(NotificationsRequest request,
@@ -190,7 +210,10 @@ namespace SonarQube.Client.Services
                         }
 
                         var stringResponse = await GetStringResultAsync(httpResponse, token);
-                        return JObject.Parse(stringResponse)["events"].ToObject<NotificationsResponse[]>()
+                        var parsedJson = JObject.Parse(stringResponse);
+                        ThrowsIfError(parsedJson);
+
+                        return parsedJson["events"]?.ToObject<NotificationsResponse[]>()
                             ?? new NotificationsResponse[0];
                     }
                 );
@@ -265,6 +288,16 @@ namespace SonarQube.Client.Services
             var stringResponse = await GetStringResultAsync(httpResponse, token);
 
             return new Result<T>(httpResponse, parseStringResult(stringResponse));
+        }
+
+        private void ThrowsIfError(JObject parsedJson)
+        {
+            var firstErrorMessage = parsedJson["errors"]?.Select(x => x["msg"]?.ToObject<string>())
+                .FirstOrDefault();
+            if (firstErrorMessage != null)
+            {
+                throw new Exception(firstErrorMessage);
+            }
         }
 
         private async Task<Result<T>> InvokeSonarQubeApi<T>(string apiPath, object request, CancellationToken token,
