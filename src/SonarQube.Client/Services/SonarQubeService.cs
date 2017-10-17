@@ -153,7 +153,12 @@ namespace SonarQube.Client.Services
             Result<ComponentResponse[]> componentsResult;
             do
             {
-                var request = new ComponentRequest { Page = currentPage, PageSize = MaximumPageSize };
+                var request = new ComponentRequest
+                {
+                    Page = currentPage,
+                    PageSize = MaximumPageSize,
+                    OrganizationKey = organizationKey,
+                };
                 componentsResult = await this.sonarqubeClient.GetComponentsSearchProjectsAsync(request, token);
                 componentsResult.EnsureSuccess();
 
