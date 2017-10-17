@@ -294,7 +294,9 @@ namespace SonarQube.Client.Services.Tests
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
 
             client
-                .SetupSequence(x => x.GetComponentsSearchProjectsAsync(It.IsAny<ComponentRequest>(), It.IsAny<CancellationToken>()))
+                .SetupSequence(x => x.GetComponentsSearchProjectsAsync(
+                    It.Is<ComponentRequest>(c => c.OrganizationKey == "org"),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Ok(new[] { new ComponentResponse { Key = "key", Name = "name" } }))
                 .ReturnsAsync(Result.Ok(new ComponentResponse[0]));
 
