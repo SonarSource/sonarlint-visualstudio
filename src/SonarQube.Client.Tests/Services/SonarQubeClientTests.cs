@@ -21,7 +21,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -561,16 +560,6 @@ namespace SonarQube.Client.Services.Tests
             // Assert
             result.IsSuccess.Should().BeTrue();
             AssertEqual(expected, result.Value);
-        }
-
-        [TestMethod]
-        public async Task GetNotificationEventsAsync_NeverReturnsNull()
-        {
-            foreach (var statusCode in Enum.GetValues(typeof(HttpStatusCode)).Cast<HttpStatusCode>())
-            {
-                var result = await GetNotificationEventsAsync_WithHttpStatusCode(statusCode);
-                result.Value.Should().BeEmpty($"failed for {statusCode}");
-            }
         }
 
         private static async Task<Result<NotificationsResponse[]>> GetNotificationEventsAsync_WithHttpStatusCode(
