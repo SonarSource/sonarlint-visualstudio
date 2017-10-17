@@ -21,7 +21,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -330,7 +329,7 @@ namespace SonarQube.Client.Services.Tests
             var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
             var client = new SonarQubeClient(connection, httpHandler.Object, TimeSpan.FromSeconds(10));
 
-            // Act & Assert
+            // Act
             var result = await call(client, CancellationToken.None);
 
             // Assert
@@ -563,16 +562,6 @@ namespace SonarQube.Client.Services.Tests
             AssertEqual(expected, result.Value);
         }
 
-        [TestMethod]
-        public async Task GetNotificationEventsAsync_NeverReturnsNull()
-        {
-            foreach (var statusCode in Enum.GetValues(typeof(HttpStatusCode)).Cast<HttpStatusCode>())
-            {
-                var result = await GetNotificationEventsAsync_WithHttpStatusCode(statusCode);
-                result.Value.Should().BeEmpty($"failed for {statusCode}");
-            }
-        }
-
         private static async Task<Result<NotificationsResponse[]>> GetNotificationEventsAsync_WithHttpStatusCode(
             HttpStatusCode returnedStatusCode)
         {
@@ -664,5 +653,104 @@ namespace SonarQube.Client.Services.Tests
         }
 
         #endregion // Dispose
+
+        #region Check returns default if not success code
+        [TestMethod]
+        public async Task GetComponentsSearchProjectsAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            var request = new ComponentRequest { OrganizationKey = "org", Page = 42, PageSize = 25 };
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetComponentsSearchProjectsAsync(request, t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task GetIssuesAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetIssuesAsync("key", t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task GetOrganizationsAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            var request = new OrganizationRequest { Page = 42, PageSize = 25 };
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetOrganizationsAsync(request, t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task GetPluginsAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetPluginsAsync(t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task GetProjectsAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetProjectsAsync(t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task GetPropertiesAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetPropertiesAsync(t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task GetQualityProfileChangeLogAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            var request = new QualityProfileChangeLogRequest { QualityProfileKey = "qp", PageSize = 25 };
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetQualityProfileChangeLogAsync(request, t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task GetQualityProfilesAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            var request = new QualityProfileRequest { ProjectKey = "project" };
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetQualityProfilesAsync(request, t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task GetRoslynExportProfileAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            var request = new RoslynExportProfileRequest { QualityProfileName = "qp", LanguageKey = "cs" };
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetRoslynExportProfileAsync(request, t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task GetVersionAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.GetVersionAsync(t), HttpStatusCode.InternalServerError);
+        }
+        [TestMethod]
+        public async Task ValidateCredentialsAsync_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode()
+        {
+            await Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode(
+                (c, t) => c.ValidateCredentialsAsync(t), HttpStatusCode.InternalServerError);
+        }
+
+        private async Task Method_WhenRequestIsNotSuccess_ReturnsDefaultAndErrorCode<T>(
+            Func<SonarQubeClient, CancellationToken, Task<Result<T>>> call, HttpStatusCode errorStatusCode)
+        {
+            var httpHandler = new Mock<HttpMessageHandler>();
+            httpHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = errorStatusCode,
+                    Content = null
+                }));
+
+            var connection = new ConnectionRequest { ServerUri = new Uri("http://mysq.com/") };
+            var client = new SonarQubeClient(connection, httpHandler.Object, TimeSpan.FromSeconds(10));
+
+            // Act
+            var result = await call(client, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeFalse();
+            result.Value.Should().Be(default(T));
+            result.StatusCode.Should().Be(errorStatusCode);
+        }
+        #endregion
     }
 }
