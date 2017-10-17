@@ -183,7 +183,15 @@ namespace SonarLint.VisualStudio.Integration.Connection
         ConnectionInformation IConnectionInformationProvider.GetConnectionInformation(ConnectionInformation currentConnection)
         {
             var dialog = new ConnectionInformationDialog();
-            return dialog.ShowDialog(currentConnection);
+            var connectionInfo = dialog.ShowDialog(currentConnection);
+
+            if (connectionInfo != null)
+            {
+                // User has not specified the organization yet. Read it from existing connection, not
+                // to prompt again (if the organization is set already, it means the binding exists).
+                connectionInfo.Organization = currentConnection?.Organization;
+            }
+            return connectionInfo;
         }
 
         #endregion

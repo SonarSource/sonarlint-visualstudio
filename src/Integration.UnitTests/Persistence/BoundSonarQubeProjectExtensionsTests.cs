@@ -40,6 +40,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CreateConnectionInformation_NoCredentials()
         {
             // Arrange
+            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey",
+                organization: new SonarQubeOrganization("org_key", "org_name"));
+
+            // Act
+            ConnectionInformation conn = input.CreateConnectionInformation();
+
+            // Assert
+            conn.ServerUri.Should().Be(input.ServerUri);
+            conn.UserName.Should().BeNull();
+            conn.Password.Should().BeNull();
+            conn.Organization.Key.Should().Be("org_key");
+            conn.Organization.Name.Should().Be("org_name");
+        }
+
+        [TestMethod]
+        public void CreateConnectionInformation_BasicAuthCredentials()
+        {
+            // Arrange
+            var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
+            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", creds,
+                new SonarQubeOrganization("org_key", "org_name"));
+
+            // Act
+            ConnectionInformation conn = input.CreateConnectionInformation();
+
+            // Assert
+            conn.ServerUri.Should().Be(input.ServerUri);
+            conn.UserName.Should().Be(creds.UserName);
+            conn.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
+            conn.Organization.Key.Should().Be("org_key");
+            conn.Organization.Name.Should().Be("org_name");
+        }
+
+        [TestMethod]
+        public void CreateConnectionInformation_NoOrganizationNoAuth()
+        {
+            // Arrange
             var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey");
 
             // Act
@@ -49,22 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             conn.ServerUri.Should().Be(input.ServerUri);
             conn.UserName.Should().BeNull();
             conn.Password.Should().BeNull();
-        }
-
-        [TestMethod]
-        public void CreateConnectionInformation_BasicAuthCredentials()
-        {
-            // Arrange
-            var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
-            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", creds);
-
-            // Act
-            ConnectionInformation conn = input.CreateConnectionInformation();
-
-            // Assert
-            conn.ServerUri.Should().Be(input.ServerUri);
-            conn.UserName.Should().Be(creds.UserName);
-            conn.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
+            conn.Organization.Should().BeNull();
         }
     }
 }

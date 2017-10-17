@@ -32,9 +32,12 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 throw new ArgumentNullException(nameof(binding));
             }
 
-            return binding.Credentials == null ?
+            var connection = binding.Credentials == null ?
                new ConnectionInformation(binding.ServerUri)
                : binding.Credentials.CreateConnectionInformation(binding.ServerUri);
+
+            connection.Organization = binding.Organization;
+            return connection;
         }
     }
 }
