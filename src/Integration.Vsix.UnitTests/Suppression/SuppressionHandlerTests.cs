@@ -35,9 +35,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     [TestClass]
     public class SuppressionHandlerTests
     {
-        private static readonly DiagnosticDescriptor DummyDescriptor = new DiagnosticDescriptor("dummyId",
-            "dummy title", "dummy Message", "dummy category", DiagnosticSeverity.Error, false);
-
         private readonly Expression<Func<ILiveIssueFactory, LiveIssue>> createMethod =
             x => x.Create(It.IsAny<SyntaxTree>(), It.IsAny<Diagnostic>());
 
@@ -69,22 +66,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void ShouldReport_LocationNotInSource_ReturnsTrue()
         {
-            Diagnostic diag = CreateDiagnostic(CreateNonSourceLocation());
+            // Arrange
+            Diagnostic diag = CreateDiagnostic("dummy rule ID", CreateNonSourceLocation());
 
             SuppressionHandler handler = new SuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
 
+            // Act
             bool result = handler.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diag);
+
+            // Assert
             result.Should().BeTrue();
+
+            // Should early-out
+            VerifyLiveIssueCreated(Times.Never());
+            VerifyServerIssuesRequested(Times.Never());
         }
 
         [TestMethod]
         public void ShouldReport_CannotCreateLiveIssue_ReturnsTrue()
         {
             // Arrange
-            Diagnostic diag = CreateDiagnostic(CreateSourceLocation());
-            issueFactoryMock.Setup(createMethod)
-                .Returns((LiveIssue)null)
-                .Verifiable();
+            Diagnostic diag = CreateDiagnostic("dummy rule id", CreateSourceLocation());
+            SetLiveIssue(null);
 
             SuppressionHandler handler = new SuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
 
@@ -101,14 +104,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void ShouldReport_NoServerIssues_ReturnsTrue()
         {
             // Arrange
-            Diagnostic diag = CreateDiagnostic(CreateSourceLocation());
-            issueFactoryMock.Setup(createMethod)
-                .Returns(new LiveIssue(diag, Guid.NewGuid().ToString()))
-                .Verifiable();
-
-            issueProviderMock.Setup(getSuppressedIssuesMethod)
-                .Returns((IEnumerable<SonarQubeIssue>)null)
-                .Verifiable();
+            Diagnostic diag = CreateDiagnostic("dummy rule id", CreateSourceLocation());
+            SetLiveIssue(diag, startLine: 1, wholeLineText: "text");
+            SetServerIssues(null);
 
             SuppressionHandler handler = new SuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
 
@@ -122,34 +120,115 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void ShouldReport_ProjectIssue_NoMatch_ReturnsTrue()
+        public void ShouldReport_NoMatchingServerIssues_ReturnsTrue()
         {
-            Diagnostic diag = CreateDiagnostic(Location.None);
+            // Arrange
+            string wholeLineText = "whole line text";
+            string lineHash = ChecksumCalculator.Calculate(wholeLineText);
+
+            Diagnostic diag = CreateDiagnostic("RuleId 1", CreateSourceLocation());
+            SetLiveIssue(diag, startLine: 10, wholeLineText: wholeLineText);
+
+            var serverIssue1 = CreateServerIssue("Wrong rule id", 10, lineHash); // wrong rule id
+            var serverIssue2 = CreateServerIssue("RuleId 1", 999, "wrong hash"); // wrong line and hash
+            var serverIssue3 = CreateServerIssue("RuleId 1", 999, lineHash.ToUpperInvariant()); // wrong line and wrong-case hash
+
+            SetServerIssues(serverIssue1, serverIssue2, serverIssue3);
 
             SuppressionHandler handler = new SuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
 
-            bool result = handler.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diag);
+            // Act
+            bool result = handler.ShouldIssueBeReported(syntaxTreeMock.Object, diag);
+
+            // Assert
             result.Should().BeTrue();
         }
 
         [TestMethod]
-        public void ShouldReport_ProjectIssue_MatchExists_ReturnsFalse()
+        public void ShouldReport_ServerIssueMatchesOnLine_ReturnsFalse()
         {
-            Diagnostic diag = CreateDiagnostic(Location.None);
+            // Arrange
+            string wholeLineText = "whole line text";
+            string lineHash = ChecksumCalculator.Calculate(wholeLineText);
+
+            Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
+            SetLiveIssue(diag, startLine: 101, wholeLineText: wholeLineText);
+
+            var serverIssue = CreateServerIssue("RightRuleId", 101, "wrong hash");
+            SetServerIssues(serverIssue);
 
             SuppressionHandler handler = new SuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
 
+            // Act
+            bool result = handler.ShouldIssueBeReported(syntaxTreeMock.Object, diag);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldReport_ServerIssueMatchesOnLineHash_ReturnsFalse()
+        {
+            // Arrange
+            string wholeLineText = "whole line text";
+            string lineHash = ChecksumCalculator.Calculate(wholeLineText);
+
+            Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
+            SetLiveIssue(diag, startLine: 101, wholeLineText: wholeLineText);
+
+            var serverIssue = CreateServerIssue("RIGHTRULEID", 999, lineHash); // rule id comparison is case-insensitive
+            SetServerIssues(serverIssue);
+
+            SuppressionHandler handler = new SuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
+
+            // Act
+            bool result = handler.ShouldIssueBeReported(syntaxTreeMock.Object, diag);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldReport_FileOrProjectIssue_NoMatch_ReturnsTrue()
+        {
+            // Arrange
+            Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
+            SetLiveIssue(diag, startLine: 0, wholeLineText: "");
+
+            var serverIssue1 = CreateServerIssue("WrongRuleId", 0, "");
+            var serverIssue2 = CreateServerIssue("RightRuleId", 1, "wrong hash"); // wrong line and hash
+            var serverIssue3 = CreateServerIssue("RightRuleId", 999, "wrong hash"); // not a file/project issue -> no match
+            SetServerIssues(serverIssue1, serverIssue2, serverIssue3);
+
+            SuppressionHandler handler = new SuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
+
+            // Act
             bool result = handler.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diag);
+
+            // Assert
             result.Should().BeTrue();
         }
 
         [TestMethod]
-        public void ShouldReport_NoMatches_ReturnsTrue()
+        public void ShouldReport_FileOrProjectIssue_MatchExists_ReturnsFalse()
         {
+            // Arrange
+            Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
+            SetLiveIssue(diag, startLine: 0, wholeLineText: "");
+
+            var serverIssue1 = CreateServerIssue("WrongRuleId", 0, "");
+            var serverIssue2 = CreateServerIssue("RightRuleId", 0, "wrong hash"); // wrong hash
+            var serverIssue3 = CreateServerIssue("RightRuleId", 0, "");
+
+            SetServerIssues(serverIssue1, serverIssue2, serverIssue3);
+
             SuppressionHandler handler = new SuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
 
-         //   bool result = handler.ShouldIssueBeReported()
+            // Act
+            bool result = handler.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diag);
 
+            // Assert
+            result.Should().BeFalse();
         }
 
         private static Location CreateNonSourceLocation()
@@ -166,14 +245,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             return sourceLocation;
         }
 
-        private static Diagnostic CreateDiagnostic(Location loc)
+        private static Diagnostic CreateDiagnostic(string ruleId, Location loc)
         {
-            return Diagnostic.Create(DummyDescriptor, loc);
+            DiagnosticDescriptor descriptor = new DiagnosticDescriptor(ruleId,
+                "dummy title", "dummy Message", "dummy category", DiagnosticSeverity.Error, false);
+
+            return Diagnostic.Create(descriptor, loc);
         }
 
-        private void SetServerIssues(IEnumerable<SonarQubeIssue> issues)
+        private static LiveIssue CreateLiveIssue()
         {
-            issueProviderMock.Setup(getSuppressedIssuesMethod).Returns(issues);
+            return null;
+        }
+
+        private static SonarQubeIssue CreateServerIssue(string ruleId, int line, string lineHash)
+        {
+            // The IServerIssuesProvider is responsible for matching on the file path and module key,
+            // so it doesn't matter what values we set here
+            return new SonarQubeIssue(
+                filePath: "irrelevant path.cs",
+                hash: lineHash,
+                line: line,
+                message: "irrelevant message",
+                moduleKey: "irrelevant module key",
+                resolutionState: SonarQubeIssueResolutionState.FalsePositive,
+                ruleId: ruleId
+                );
+        }
+
+        private void SetLiveIssue(Diagnostic diagnostic, int startLine, string wholeLineText)
+        {
+            LiveIssue liveIssue = new LiveIssue(diagnostic, Guid.NewGuid().ToString(),
+                issueFilePath: "dummy file path",
+                startLine: startLine,
+                wholeLineText: wholeLineText);
+
+            SetLiveIssue(liveIssue);
+        }
+
+        private void SetLiveIssue(LiveIssue liveIssue)
+        {
+            issueFactoryMock.Setup(createMethod)
+                .Returns(liveIssue)
+                .Verifiable();
+        }
+
+        private void SetServerIssues(params SonarQubeIssue[] issues)
+        {
+            issueProviderMock.Setup(getSuppressedIssuesMethod)
+                .Returns(issues)
+                .Verifiable();
         }
 
         private void VerifyLiveIssueCreated(Times expected)
