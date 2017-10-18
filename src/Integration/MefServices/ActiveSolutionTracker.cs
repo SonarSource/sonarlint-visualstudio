@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionTracker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable
+    internal class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IVsSolutionLoadEvents, IDisposable
     {
         private bool isDisposed = false;
         private readonly IVsSolution solution;
@@ -40,6 +40,8 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public event EventHandler ActiveSolutionChanged;
 
+        public bool IsSolutionOpened { get; private set; }
+
         [ImportingConstructor]
         public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
@@ -48,8 +50,9 @@ namespace SonarLint.VisualStudio.Integration
             ErrorHandler.ThrowOnFailure(this.solution.AdviseSolutionEvents(this, out this.cookie));
         }
 
-        protected virtual void OnActiveSolutionChanged()
+        protected virtual void OnActiveSolutionChanged(bool isOpened)
         {
+            IsSolutionOpened = isOpened;
             this.ActiveSolutionChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -86,8 +89,7 @@ namespace SonarLint.VisualStudio.Integration
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            this.OnActiveSolutionChanged();
-            return VSConstants.S_OK;
+            return VSConstants.S_OK; // Do not raise here as the solution is not fully loaded
         }
 
         int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
@@ -102,8 +104,39 @@ namespace SonarLint.VisualStudio.Integration
 
         int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
         {
-            this.OnActiveSolutionChanged();
+            this.OnActiveSolutionChanged(isOpened: false);
+            return VSConstants.S_OK;
+        }
 
+        int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsSolutionLoadEvents.OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
+        {
+            pfShouldDelayLoadToNextIdle = false;
+            return VSConstants.S_OK;
+        }
+
+        int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
+        {
+            this.OnActiveSolutionChanged(isOpened: true);
             return VSConstants.S_OK;
         }
         #endregion

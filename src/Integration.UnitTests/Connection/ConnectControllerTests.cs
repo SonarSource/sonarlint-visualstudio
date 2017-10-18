@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableSonarLintSettings settings;
+        private ConfigurableActiveSolutionTracker activeSolutionTracker;
 
         [TestInitialize]
         public void TestInit()
@@ -58,11 +59,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.settings = new ConfigurableSonarLintSettings();
+            this.activeSolutionTracker = new ConfigurableActiveSolutionTracker();
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
 
-            var mefExports = MefTestHelpers.CreateExport<ISonarLintSettings>(settings);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            var sonarLintSettingsMefExport = MefTestHelpers.CreateExport<ISonarLintSettings>(settings);
+            var activeSolutionTrackerMefExport = MefTestHelpers.CreateExport<IActiveSolutionTracker>(activeSolutionTracker);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(sonarLintSettingsMefExport, activeSolutionTrackerMefExport);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
@@ -93,6 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Arrange
             var testSubject = new ConnectionController(this.host);
+            this.activeSolutionTracker.SimulateActiveSolutionChanged(true);
 
             // Case 1: has connection, is busy
             this.host.TestStateManager.IsConnected = true;
@@ -128,6 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()));
             ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
                 this.connectionWorkflowMock.Object);
+            this.activeSolutionTracker.SimulateActiveSolutionChanged(true);
 
             // Case 1: connection provider return null connection
             this.connectionProvider.ConnectionInformationToReturn = null;
@@ -239,6 +244,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Arrange
             ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
                 this.connectionWorkflowMock.Object);
+            this.activeSolutionTracker.SimulateActiveSolutionChanged(true);
             this.connectionProvider.ConnectionInformationToReturn = null;
             var progressEvents = new ConfigurableProgressEvents();
             var connectionInfo = new ConnectionInformation(new Uri("http://refreshConnection"));
@@ -355,8 +361,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_DontWarnAgainCommand_Status_NoIIntegrationSettings()
         {
             // Arrange
-            this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel(), replaceExisting: true);
+            var mefExport = MefTestHelpers.CreateExport<IActiveSolutionTracker>(this.activeSolutionTracker);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport);
+            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
             var testSubject = new ConnectionController(this.host);
+            this.activeSolutionTracker.SimulateActiveSolutionChanged(true);
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             this.settings.ShowServerNuGetTrustWarning = true;
             this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
