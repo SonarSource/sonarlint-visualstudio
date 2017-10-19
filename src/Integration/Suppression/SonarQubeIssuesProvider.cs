@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
-            this.initialFetch = Task.Factory.StartNew(SynchronizeSuppressedIssues);
+            this.initialFetch = Task.Factory.StartNew(DoInitialFetch);
             refreshTimer.Start();
         }
 
@@ -113,12 +114,27 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             await SynchronizeSuppressedIssues();
         }
 
+        private Task DoInitialFetch()
+        {
+            // We might not have connected to the server at this point so if necessary
+            // wait before trying to fetch the issues
+            int retryCount = 0;
+            while (!this.sonarQubeService.IsConnected && retryCount < 30)
+            {
+                Thread.Sleep(1000);
+                retryCount++;
+            }
+            return SynchronizeSuppressedIssues();
+        }
+
         private async Task SynchronizeSuppressedIssues()
         {
             try
             {
                 if (!this.sonarQubeService.IsConnected)
                 {
+                    // TODO: log to output window
+                    Debug.Fail("Cannot synchronize suppressions - not connected to a SonarQube server");
                     return;
                 }
 
