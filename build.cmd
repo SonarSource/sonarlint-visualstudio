@@ -1,7 +1,7 @@
 @echo off
 setlocal ENABLEDELAYEDEXPANSION
 
-ECHO ======= Starting to wait
+ECHO ======= Starting to wait ok
 SLEEP 30
 
 IF NOT "%NODE_LABELS%"=="%NODE_LABELS:vs2015=%" (
