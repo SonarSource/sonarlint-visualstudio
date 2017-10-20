@@ -92,7 +92,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Constructor_TimerIsInitialized()
         {
             // Arrange
-            SetupSolutionBinding(isConnected: false, issues: null);
+            // The provider will attempt to fetch issues at start up and will loop if it
+            // is not connected to the server, so we'll initialise it as connected.
+            SetupSolutionBinding(isConnected: true, issues: null);
             mockTimer.SetupSet(t => t.AutoReset = true).Verifiable();
 
             // 1. Construction -> timer initialised
@@ -104,33 +106,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             VerifyTimerStart(Times.Once());
             timerRunning.Should().Be(true);
 
-            // The call to service.IsConnected is on a background thread so we can't
-            // reliably check whether it has occurred yet. However, we know that 
-            // service.GetIssues(...) should never have been called since the service
-            // is not connected.
-            VerifyServiceGetIssues(Times.Never());
+            WaitForInitialFetchTaskToStart();
+            VerifyServiceIsConnected(Times.Exactly(2));
+            VerifyServiceGetIssues(Times.Once());
 
             // 2. Timer event raised -> check attempt is made to synchronize data
             RaiseTimerElapsed(DateTime.UtcNow);
 
-            VerifyServiceIsConnected(Times.Exactly(2));
-            VerifyServiceGetIssues(Times.Never()); // still not connected so can't get data
+            VerifyServiceIsConnected(Times.Exactly(3));
+            VerifyServiceGetIssues(Times.Exactly(2));
             timerRunning.Should().Be(true);
-        }
 
-        [TestMethod]
-        public void Constructor_Disconnected_StartsMonitoring_SkipsSyncing()
-        {
-            // Arrange
-            SetupSolutionBinding(isConnected: false, issues: null);
-
-            // Act
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object);
-
-            // Assert - issues are not fetched but timer is started
-            VerifyServiceGetIssues(Times.Never());
-            VerifyTimerStart(Times.Once());
-            timerRunning.Should().Be(true);
         }
 
         [TestMethod]
@@ -153,9 +139,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Dispose_Disconnected_TimerDisposed()
         {
             // Arrange
-            SetupSolutionBinding(isConnected: false, issues: null);
+            SetupSolutionBinding(isConnected: true, issues: null);
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object);
+            WaitForInitialFetchTaskToStart();
 
             // Act
             issuesProvider.Dispose();
@@ -338,13 +325,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange
             SetupSolutionBinding(isConnected: false, issues: null);
 
-            // Act
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object);
-            var matches = issuesProvider.GetSuppressedIssues("any id", "any file");
+            int callCount = 0;
 
-            // Assert - issues are not fetched
+            // This time we want the test to pause until IsConnected is called by the inital fetch task
+            mockSqService.Setup(x => x.IsConnected)
+                .Returns(false)
+                .Callback(() => {  InitialFetchWaitHandle.Set(); callCount++; }) // signal so the test can continue
+                .Verifiable();
+
+            // 1. Initialise the class
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object);
+
+            WaitForInitialFetchTaskToStart();
+
+            // 2. Now dispose. Should stop the background fetching
+            int callsBeforeDispose = callCount;
+            issuesProvider.Dispose();
+
+            // 3. Now try to fetch - should block until the background task has completed
+            var issues = issuesProvider.GetSuppressedIssues("dummy guid", "dummy file path");
+
+            issues.Should().BeEmpty();
             VerifyServiceGetIssues(Times.Never());
-            matches.Should().BeEmpty();
+
+            // Timing: increment could have afer dispose called but before the cancellation token was set
+            callCount.Should().BeLessOrEqualTo(callsBeforeDispose + 1);
         }
 
         [TestMethod]
@@ -436,12 +441,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         /// </summary>
         private void SetupSolutionBinding(bool isConnected, Func<IList<SonarQubeIssue>> serviceFetchIssuesTask)
         {
+            // Note: if the solution is set up disconnected then the initial fetch background
+            // task will run in a loop - make sure the calling test takes account of this
+
             mockSqService.Setup(x => x.IsConnected).Returns(isConnected).Verifiable();
 
-            if (isConnected)
-            {
-                InitialFetchWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
-            }
+            InitialFetchWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
 
             mockSqService.Setup(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(serviceFetchIssuesTask)

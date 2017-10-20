@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly ISonarQubeService sonarQubeService;
         private readonly string sonarQubeProjectKey;
         private readonly ITimer refreshTimer;
+        private readonly CancellationTokenSource initialFetchCancellationTokenSource;
 
         private IList<SonarQubeIssue> cachedSuppressedIssues;
         private bool isDisposed;
@@ -69,7 +70,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
-            this.initialFetch = Task.Factory.StartNew(DoInitialFetch);
+            initialFetchCancellationTokenSource = new CancellationTokenSource();
+            this.initialFetch = Task.Factory.StartNew(DoInitialFetch, initialFetchCancellationTokenSource.Token);
             refreshTimer.Start();
         }
 
@@ -81,6 +83,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             }
 
             refreshTimer.Dispose();
+            initialFetchCancellationTokenSource.Cancel();
+            cachedSuppressedIssues = null;
             this.isDisposed = true;
         }
 
@@ -93,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             // We'll try to fetch the issues again when the timer elapses.
             this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
 
-            if (this.cachedSuppressedIssues == null)
+            if (this.cachedSuppressedIssues == null || this.isDisposed)
             {
                 return Enumerable.Empty<SonarQubeIssue>();
             }
@@ -121,9 +125,14 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             int retryCount = 0;
             while (!this.sonarQubeService.IsConnected && retryCount < 30)
             {
+                if (this.initialFetchCancellationTokenSource.IsCancellationRequested)
+                {
+                    return Task.CompletedTask;
+                }
                 Thread.Sleep(1000);
                 retryCount++;
             }
+
             return SynchronizeSuppressedIssues();
         }
 
