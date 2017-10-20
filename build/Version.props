@@ -2,8 +2,8 @@
   <PropertyGroup>
     <MainVersion>3.6.0</MainVersion>
     <BuildNumber>0</BuildNumber>
-    <Sha1>not-set</Sha1>
-    <BranchName>not-set</BranchName>
+    <Sha1>568a6dd14a8a45022ecc2342225ad15f629c63aa</Sha1>
+    <BranchName>ammo/test</BranchName>
     <FullVersion>$(MainVersion).$(BuildNumber)</FullVersion>
     <AssemblyVersion>$(MainVersion)</AssemblyVersion>
     <AssemblyFileVersion>$(FullVersion)</AssemblyFileVersion>
