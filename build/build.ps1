@@ -51,9 +51,7 @@ function ConvertTo-SignedExtension() {
     $anyVsixFileFound = $false
     Get-ChildItem $binariesFolder -Recurse -Include "*.vsix" | ForEach-Object {
         $anyVsixFileFound = $true
-        Write-Host $pfxCertificatePath
-        Write-Host $pfxPassword        
-        & $vsixSignTool sign /f $pfxCertificatePath /p $pfxPassword /v $_
+        & $vsixSignTool sign /f $pfxCertificatePath /p $pfxPassword /sha1 658bcf5f55f33bfe4699fffca667468c15e42c40 $_
         Test-ExitCode "ERROR: VSIX Extension signing FAILED."
     }
 
