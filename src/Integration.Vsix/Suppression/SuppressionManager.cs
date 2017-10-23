@@ -38,8 +38,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         private readonly ISonarLintOutput sonarLintOutput;
 
         private DelegateInjector delegateInjector;
-        private LiveIssueFactory liveIssueFactory;
         private ISonarQubeIssuesProvider sonarqubeIssueProvider;
+        private SuppressionHandler suppressionHandler;
 
         public SuppressionManager(IServiceProvider serviceProvider, ITimerFactory timerFactory)
         {
@@ -73,17 +73,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             var solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
 
-            liveIssueFactory = new LiveIssueFactory(workspace, solution);
+            LiveIssueFactory liveIssueFactory = new LiveIssueFactory(workspace, solution);
             delegateInjector = new DelegateInjector(ShouldIssueBeReported, sonarLintOutput);
             sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, this.activeSolutionBoundTracker.ProjectKey,
                 timerFactory);
+            suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarqubeIssueProvider);
         }
 
         private void CleanupSuppressionHandling()
         {
             delegateInjector?.Dispose();
             delegateInjector = null;
-            liveIssueFactory = null;
             (sonarqubeIssueProvider as IDisposable)?.Dispose();
             sonarqubeIssueProvider = null;
         }
@@ -96,11 +96,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         private bool ShouldIssueBeReported(SyntaxTree syntaxTree, Diagnostic diagnostic)
         {
             // This method is called for every analyzer issue that is raised so it should be fast.
-            if (!diagnostic.Location.IsInSource &&
-                diagnostic.Location != Location.None)
-            {
-                return true;
-            }
 
             if (activeSolutionBoundTracker == null ||
                 !activeSolutionBoundTracker.IsActiveSolutionBound)
@@ -108,31 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                 return true;
             }
 
-            LiveIssue liveIssue = liveIssueFactory.Create(syntaxTree, diagnostic);
-            if (liveIssue == null)
-            {
-                return true; // Unable to get the data required to map a Roslyn issue to a SonarQube issue
-            }
-
-            // Issues match if:
-            // 1. Same component, same file, same error code, same line hash        // tolerant to line number changing
-            // 2. Same component, same file, same error code, same line             // tolerant to code on the line changing e.g. var rename
-
-            // TODO: ?need to make file path relative to the project file path
-            // As a minimum, the project, file and rule id must match
-            var issuesInFile = sonarqubeIssueProvider.GetSuppressedIssues(liveIssue.ProjectGuid, liveIssue.IssueFilePath);
-            if (issuesInFile == null)
-            {
-                return true;
-            }
-
-            // TODO: rule repository?
-            issuesInFile = issuesInFile.Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleId));
-
-            bool matchFound = issuesInFile.Any(i =>
-                    liveIssue.StartLine == i.Line ||
-                    StringComparer.Ordinal.Equals(liveIssue.LineHash, i.Hash));
-            return !matchFound;
+            return suppressionHandler.ShouldIssueBeReported(syntaxTree, diagnostic);
         }
 
         #region IDisposable Support

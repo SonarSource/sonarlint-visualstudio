@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// Factory for <see cref="LiveIssue"/>s i.e. diagnostics that are decorated with
     /// additional information required to map to issues in the SonarQube server format
     /// </summary>
-    internal sealed class LiveIssueFactory
+    internal sealed class LiveIssueFactory : ILiveIssueFactory
     {
         private readonly Workspace workspace;
 
