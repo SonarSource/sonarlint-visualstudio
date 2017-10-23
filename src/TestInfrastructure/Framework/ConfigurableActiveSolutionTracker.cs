@@ -25,13 +25,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     internal class ConfigurableActiveSolutionTracker : IActiveSolutionTracker
     {
         public event EventHandler ActiveSolutionChanged;
-        public bool IsSolutionOpened { get; private set; }
+        public bool IsSolutionFullyOpened { get; private set; }
 
         #region Test helpers
 
-        public void SimulateActiveSolutionChanged(bool isSolutionOpened = false)
+        public void SimulateActiveSolutionChanged(bool isSolutionFullyOpened = false)
         {
-            IsSolutionOpened = isSolutionOpened;
+            IsSolutionFullyOpened = isSolutionFullyOpened;
             this.ActiveSolutionChanged?.Invoke(this, EventArgs.Empty);
         }
 

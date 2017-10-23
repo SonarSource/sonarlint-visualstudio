@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void ConnectionController_ConnectCommand_Status()
+        public void ConnectionController_ConnectCommand_SolutionFully_Open_Status()
         {
             // Arrange
             var testSubject = new ConnectionController(this.host);
@@ -106,6 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.CanExecute().Should().BeFalse("Connected already and busy");
 
             // Case 2: has connection, not busy
+            this.host.TestStateManager.IsConnected = true;
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Assert
@@ -119,10 +120,47 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.CanExecute().Should().BeFalse("Busy");
 
             // Case 4: no connection, not busy
+            this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Assert
             testSubject.ConnectCommand.CanExecute().Should().BeTrue("No connection and not busy");
+        }
+
+        [TestMethod]
+        public void ConnectionController_ConnectCommand_SolutionNotFully_Open_Status_AlwaysFalse()
+        {
+            // Arrange
+            var testSubject = new ConnectionController(this.host);
+            this.activeSolutionTracker.SimulateActiveSolutionChanged(false);
+
+            // Case 1: has connection, is busy
+            this.host.TestStateManager.IsConnected = true;
+            this.host.VisualStateManager.IsBusy = true;
+
+            // Act + Assert
+            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Solution not fully open");
+
+            // Case 2: has connection, not busy
+            this.host.TestStateManager.IsConnected = true;
+            this.host.VisualStateManager.IsBusy = false;
+
+            // Act + Assert
+            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Solution not fully open");
+
+            // Case 3: no connection, is busy
+            this.host.TestStateManager.IsConnected = false;
+            this.host.VisualStateManager.IsBusy = true;
+
+            // Act + Assert
+            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Busy");
+
+            // Case 4: no connection, not busy
+            this.host.TestStateManager.IsConnected = false;
+            this.host.VisualStateManager.IsBusy = false;
+
+            // Act + Assert
+            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Solution not fully open");
         }
 
         [TestMethod]

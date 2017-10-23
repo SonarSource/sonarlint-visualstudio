@@ -27,8 +27,12 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// The active solution has changed (either opened or closed).
         /// </summary>
+        /// <remarks>The solution might not be fully loaded when this event is raised.</remarks>
         event EventHandler ActiveSolutionChanged;
 
-        bool IsSolutionOpened { get; }
+        /// <summary>
+        /// Flag indicating whether there is fully-opened solution or not.
+        /// </summary>
+        bool IsSolutionFullyOpened { get; }
     }
 }

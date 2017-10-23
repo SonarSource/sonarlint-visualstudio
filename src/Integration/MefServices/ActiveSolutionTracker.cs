@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionTracker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IVsSolutionLoadEvents, IDisposable
+    internal class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable
     {
         private bool isDisposed = false;
         private readonly IVsSolution solution;
@@ -40,8 +40,6 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public event EventHandler ActiveSolutionChanged;
 
-        public bool IsSolutionOpened { get; private set; }
-
         [ImportingConstructor]
         public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
@@ -50,9 +48,23 @@ namespace SonarLint.VisualStudio.Integration
             ErrorHandler.ThrowOnFailure(this.solution.AdviseSolutionEvents(this, out this.cookie));
         }
 
-        protected virtual void OnActiveSolutionChanged(bool isOpened)
+        public bool IsSolutionFullyOpened
         {
-            IsSolutionOpened = isOpened;
+            get
+            {
+                object isLoaded;
+                int hresult = this.solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
+
+                if (ErrorHandler.Succeeded(hresult) && isLoaded is Boolean)
+                {
+                    return (bool)isLoaded;
+                }
+                return false;
+            }
+        }
+
+        protected virtual void OnActiveSolutionChanged()
+        {
             this.ActiveSolutionChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -89,7 +101,10 @@ namespace SonarLint.VisualStudio.Integration
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            return VSConstants.S_OK; // Do not raise here as the solution is not fully loaded
+            // Note: if lightweight solution load is enabled then the solution might not
+            // be fully opened at this point
+            this.OnActiveSolutionChanged();
+            return VSConstants.S_OK;
         }
 
         int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
@@ -104,39 +119,8 @@ namespace SonarLint.VisualStudio.Integration
 
         int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
         {
-            this.OnActiveSolutionChanged(isOpened: false);
-            return VSConstants.S_OK;
-        }
+            this.OnActiveSolutionChanged();
 
-        int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
-        {
-            return VSConstants.S_OK;
-        }
-
-        int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
-        {
-            return VSConstants.S_OK;
-        }
-
-        int IVsSolutionLoadEvents.OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
-        {
-            pfShouldDelayLoadToNextIdle = false;
-            return VSConstants.S_OK;
-        }
-
-        int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
-        {
-            return VSConstants.S_OK;
-        }
-
-        int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
-        {
-            return VSConstants.S_OK;
-        }
-
-        int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
-        {
-            this.OnActiveSolutionChanged(isOpened: true);
             return VSConstants.S_OK;
         }
         #endregion

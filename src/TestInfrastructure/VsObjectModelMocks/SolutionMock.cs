@@ -542,7 +542,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void SimulateSolutionOpen()
         {
-            this.sinks.OfType<IVsSolutionLoadEvents>().ToList().ForEach(s => s.OnAfterBackgroundSolutionLoadComplete());
+            this.sinks.ForEach(s => s.OnAfterOpenSolution(this, 0));
             this.projects.Values.ToList().ForEach(p => this.SimulateProjectOpen(p));
         }
 

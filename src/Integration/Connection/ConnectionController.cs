@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private bool OnConnectStatus()
         {
-            return this.activeSolutionTracker.IsSolutionOpened
+            return this.activeSolutionTracker.IsSolutionFullyOpened
                 && !this.host.VisualStateManager.IsConnected
                 && !this.host.VisualStateManager.IsBusy;
         }
