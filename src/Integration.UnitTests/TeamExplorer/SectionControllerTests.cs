@@ -24,7 +24,6 @@ using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -47,14 +46,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ThreadHelper.SetCurrentThreadAsUIThread();
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
-            this.serviceProvider.RegisterService(typeof(IActiveSolutionTracker), new ConfigurableActiveSolutionTracker());
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), new ConfigurableVsProjectSystemHelper(this.serviceProvider));
-
-            var mefExport = MefTestHelpers.CreateExport<IActiveSolutionTracker>(new ConfigurableActiveSolutionTracker());
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport);
-            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
         }
 
         #region Tests
