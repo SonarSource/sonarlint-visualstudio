@@ -19,26 +19,26 @@ For reference, the possible headings are:
 ## [3.6]
 
 ### New Feature
-* [#267](https://github.com/SonarSource/sonarlint-visualstudio/issues/267) SonarLint should not show issues marked as FP or Won't Fix
+* [#267](https://github.com/SonarSource/sonarlint-visualstudio/issues/267) - SonarLint should not show issues marked as FP or Won't Fix
 
 ### Improvement
-* [#257](https://github.com/SonarSource/sonarlint-visualstudio/issues/257) Update the Marketplace Icon
-* [#378](https://github.com/SonarSource/sonarlint-visualstudio/issues/378) Embed SonarC# 6.5 and SonarVB 3.1
-* [#278](https://github.com/SonarSource/sonarlint-visualstudio/issues/278) Unify the telemetry behavior with other SonarLint IDEs
+* [#257](https://github.com/SonarSource/sonarlint-visualstudio/issues/257) - Update the Marketplace Icon
+* [#378](https://github.com/SonarSource/sonarlint-visualstudio/issues/378) - Embed SonarC# 6.5 and SonarVB 3.1
+* [#278](https://github.com/SonarSource/sonarlint-visualstudio/issues/278) - Unify the telemetry behavior with other SonarLint IDEs
 
 ### Bug
-* [#380](https://github.com/SonarSource/sonarlint-visualstudio/issues/380) Typo on SonarLint for VS 2017 marketplace page
-* [#383](https://github.com/SonarSource/sonarlint-visualstudio/issues/383) Binding to a project on SonarCloud always prompt for organization
+* [#380](https://github.com/SonarSource/sonarlint-visualstudio/issues/380) - Typo on SonarLint for VS 2017 marketplace page
+* [#383](https://github.com/SonarSource/sonarlint-visualstudio/issues/383) - Binding to a project on SonarCloud always prompt for organization
 
 
 ## [3.5]
 
 ### Improvement
-* [#252](https://github.com/SonarSource/sonarlint-visualstudio/issues/252) Embed SonarC# 6.4
+* [#252](https://github.com/SonarSource/sonarlint-visualstudio/issues/252) - Embed SonarC# 6.4
 
 ### Bug
-* [#244](https://github.com/SonarSource/sonarlint-visualstudio/issues/244) Spelling error in additional languages download dialog
-* [#243](https://github.com/SonarSource/sonarlint-visualstudio/issues/243) The 'SonalLintDaemonPackage' package did not load correctly.
+* [#244](https://github.com/SonarSource/sonarlint-visualstudio/issues/244) - Spelling error in additional languages download dialog
+* [#243](https://github.com/SonarSource/sonarlint-visualstudio/issues/243) - The 'SonalLintDaemonPackage' package did not load correctly.
 
 
 ## [3.4]
@@ -47,70 +47,70 @@ For reference, the possible headings are:
 * Provide support for C/C++ in standalone
 
 ### Improvement
-* [#239](https://github.com/SonarSource/sonarlint-visualstudio/issues/239) Embed SonarC# 6.3
-* [#235](https://github.com/SonarSource/sonarlint-visualstudio/issues/235) Update SonarJS to version 3.1
-* [#234](https://github.com/SonarSource/sonarlint-visualstudio/issues/234) Include Visual Studio version in telemetry data
+* [#239](https://github.com/SonarSource/sonarlint-visualstudio/issues/239) - Embed SonarC# 6.3
+* [#235](https://github.com/SonarSource/sonarlint-visualstudio/issues/235) - Update SonarJS to version 3.1
+* [#234](https://github.com/SonarSource/sonarlint-visualstudio/issues/234) - Include Visual Studio version in telemetry data
 
 ### Bug
-* [#228](https://github.com/SonarSource/sonarlint-visualstudio/issues/228) VisualStudio Enterprise considers the extension is slowing down the startup
+* [#228](https://github.com/SonarSource/sonarlint-visualstudio/issues/228) - VisualStudio Enterprise considers the extension is slowing down the startup
 
 
 ## [3.3]
 
 ### Improvement
-* [#223](https://github.com/SonarSource/sonarlint-visualstudio/issues/223) Embed SonarC# 6.2
-* [#202](https://github.com/SonarSource/sonarlint-visualstudio/issues/202) Update SonarLint extension description
+* [#223](https://github.com/SonarSource/sonarlint-visualstudio/issues/223) - Embed SonarC# 6.2
+* [#202](https://github.com/SonarSource/sonarlint-visualstudio/issues/202) - Update SonarLint extension description
 
 ## [3.2.1]
 
 ### Bug
-* [#216](https://github.com/SonarSource/sonarlint-visualstudio/issues/216) Fix broken analyzer reference
+* [#216](https://github.com/SonarSource/sonarlint-visualstudio/issues/216) - Fix broken analyzer reference
 
 
 ## [3.2]
 
 ### Improvement
-* [#211](https://github.com/SonarSource/sonarlint-visualstudio/issues/211) Embed SonarC# 6.1
+* [#211](https://github.com/SonarSource/sonarlint-visualstudio/issues/211) - Embed SonarC# 6.1
 
 
 ## [3.1.1]
 
 ### Bug
-* [#207](https://github.com/SonarSource/sonarlint-visualstudio/issues/207) Fix a connectivity problem with SonarCloud
+* [#207](https://github.com/SonarSource/sonarlint-visualstudio/issues/207) - Fix a connectivity problem with SonarCloud
 
 
 ## [3.1]
 
 ### Improvement
-* [#204](https://github.com/SonarSource/sonarlint-visualstudio/issues/204) Embed SonarC# 6.0
+* [#204](https://github.com/SonarSource/sonarlint-visualstudio/issues/204) - Embed SonarC# 6.0
 
 
 ## [3.0]
 
 ### New Feature
-* [#164](https://github.com/SonarSource/sonarlint-visualstudio/issues/164) Provide support for Javascript in standalone
-* [#173](https://github.com/SonarSource/sonarlint-visualstudio/issues/173) Add support for SonarQube organizations in connected mode
-* [#142](https://github.com/SonarSource/sonarlint-visualstudio/issues/142) Add telemetry
+* [#164](https://github.com/SonarSource/sonarlint-visualstudio/issues/164) - Provide support for Javascript in standalone
+* [#173](https://github.com/SonarSource/sonarlint-visualstudio/issues/173) - Add support for SonarQube organizations in connected mode
+* [#142](https://github.com/SonarSource/sonarlint-visualstudio/issues/142) - Add telemetry
 
 ### Improvement
-* [#199](https://github.com/SonarSource/sonarlint-visualstudio/issues/199) Embed SonarC# 5.11
-* [#156](https://github.com/SonarSource/sonarlint-visualstudio/issues/156) SonarLint is not listed in the Help/About of Visual Studio
-* [#136](https://github.com/SonarSource/sonarlint-visualstudio/issues/136) Provide a digital signature to the extension
+* [#199](https://github.com/SonarSource/sonarlint-visualstudio/issues/199) - Embed SonarC# 5.11
+* [#156](https://github.com/SonarSource/sonarlint-visualstudio/issues/156) - SonarLint is not listed in the Help/About of Visual Studio
+* [#136](https://github.com/SonarSource/sonarlint-visualstudio/issues/136) - Provide a digital signature to the extension
 
 
 ## [2.13]
 
 ### Improvement
-* [#154](https://github.com/SonarSource/sonarlint-visualstudio/issues/154) Embed SonarC# 5.10
+* [#154](https://github.com/SonarSource/sonarlint-visualstudio/issues/154) - Embed SonarC# 5.10
 
 
 ## [2.12]
 
 ### Improvement
-* [#135](https://github.com/SonarSource/sonarlint-visualstudio/issues/135) Embed SonarC# 5.9
+* [#135](https://github.com/SonarSource/sonarlint-visualstudio/issues/135) - Embed SonarC# 5.9
 
 ### Bug
-* [#132](https://github.com/SonarSource/sonarlint-visualstudio/issues/132) SonarLint for VS2017 crashes when VS2015 is not installed
+* [#132](https://github.com/SonarSource/sonarlint-visualstudio/issues/132) - SonarLint for VS2017 crashes when VS2015 is not installed
 
 
 ## [2.11]
