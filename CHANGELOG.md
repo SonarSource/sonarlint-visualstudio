@@ -115,72 +115,72 @@ For reference, the possible headings are:
 
 ## [2.11]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13700
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13700)
 
 
 ## [2.10]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13664
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13664)
 
 
 ## [2.9]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13464
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13464)
 
 
 ## [2.8.1]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13509
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13509)
 
 
 ## [2.8]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13408
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13408)
 
 
 ## [2.7]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13388
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13388)
 
 
 ## [2.6]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13240
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13240)
 
 
 ## [2.5]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13345
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13345)
 
 
 ## [2.4]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13312
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13312)
 
 
 ## [2.3]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13278
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13278)
 
 
 ## [2.2.1]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13234
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13234)
 
 
 ## [2.2]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13034
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13034)
 
 
 ## [2.1]
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=12988
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=12988)
 
 
 ## 2.0
 
-https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=12987
+[JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=12987)
 
 
 [Unreleased]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.6.0.2584...HEAD
