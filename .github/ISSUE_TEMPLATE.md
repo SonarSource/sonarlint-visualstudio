@@ -28,5 +28,5 @@ Please provide a description of any known workarounds.
 
 * SonarLint for VS Version
 * Visual Studio Version (e.g. Professional v15.4.1)
-* SonarQube version
+* SonarQube server version
 * Languages in your solution (C#, VB.Net, Javascript, C, C++)
