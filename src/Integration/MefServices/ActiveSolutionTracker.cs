@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.ComponentModel.Composition;
-using System.Diagnostics;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using System;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -46,21 +46,6 @@ namespace SonarLint.VisualStudio.Integration
             this.solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
             Debug.Assert(this.solution != null, "Cannot find IVsSolution");
             ErrorHandler.ThrowOnFailure(this.solution.AdviseSolutionEvents(this, out this.cookie));
-        }
-
-        public bool IsSolutionFullyOpened
-        {
-            get
-            {
-                object isLoaded;
-                int hresult = this.solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
-
-                if (ErrorHandler.Succeeded(hresult) && isLoaded is Boolean)
-                {
-                    return (bool)isLoaded;
-                }
-                return false;
-            }
         }
 
         protected virtual void OnActiveSolutionChanged()

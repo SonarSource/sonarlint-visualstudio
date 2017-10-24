@@ -497,7 +497,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        public bool IsFullyLoaded
+        public object IsFullyLoaded
         {
             get; set;
         }

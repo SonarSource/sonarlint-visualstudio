@@ -511,6 +511,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CollectionAssert.AreEquivalent(expectedGuids, actualGuids, "Unexpected project kind GUIDs returned");
         }
 
+        [TestMethod]
+        public void ProjectSystemHelper_IsSolutionFullyLoaded_PropertyIsTrue_ReturnsTrue()
+        {
+            // Arrange
+            this.solutionMock.IsFullyLoaded = true;
+
+            // Act
+            bool result = this.testSubject.IsSolutionFullyOpened();
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_IsSolutionFullyLoaded_PropertyIsFalse_ReturnsFalse()
+        {
+            // Arrange
+            this.solutionMock.IsFullyLoaded = false;
+
+            // Act
+            bool result = this.testSubject.IsSolutionFullyOpened();
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_IsSolutionFullyLoaded_PropertyIsNotBoolean_ReturnsFalse()
+        {
+            // Arrange
+            this.solutionMock.IsFullyLoaded = "not a boolean";
+
+            // Act
+            bool result = this.testSubject.IsSolutionFullyOpened();
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
         #endregion Tests
 
         #region Helpers

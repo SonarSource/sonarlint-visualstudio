@@ -38,12 +38,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
     /// <see cref="DontWarnAgainCommand"/>
     /// </summary>
     internal sealed class ConnectionController : HostedCommandControllerBase, IConnectionInformationProvider,
-        IConnectionWorkflowExecutor, IDisposable
+        IConnectionWorkflowExecutor
     {
         private readonly IHost host;
         private readonly IConnectionInformationProvider connectionProvider;
         private readonly ISonarLintSettings settings;
-        private readonly IActiveSolutionTracker activeSolutionTracker;
+        private readonly IProjectSystemHelper projectSystemHelper;
 
         public ConnectionController(IHost host)
             : this(host, null, null)
@@ -64,17 +64,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.connectionProvider = connectionProvider ?? this;
             this.settings = this.host.GetMefService<ISonarLintSettings>();
 
-            this.activeSolutionTracker = this.host.GetMefService<IActiveSolutionTracker>();
-            this.activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
+            this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
+            this.projectSystemHelper.AssertLocalServiceIsNotNull();
 
             this.ConnectCommand = new RelayCommand(this.OnConnect, this.OnConnectStatus);
             this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.OnRefreshStatus);
             this.DontWarnAgainCommand = new RelayCommand(this.OnDontWarnAgain, this.OnDontWarnAgainStatus);
-        }
-
-        private void OnActiveSolutionChanged(object sender, EventArgs e)
-        {
-            this.ConnectCommand.RequeryCanExecute();
         }
 
         #region Properties
@@ -123,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private bool OnConnectStatus()
         {
-            return this.activeSolutionTracker.IsSolutionFullyOpened
+            return this.projectSystemHelper.IsSolutionFullyOpened()
                 && !this.host.VisualStateManager.IsConnected
                 && !this.host.VisualStateManager.IsBusy;
         }
@@ -232,10 +227,5 @@ namespace SonarLint.VisualStudio.Integration.Connection
             });
         }
         #endregion
-
-        public void Dispose()
-        {
-            this.activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
-        }
     }
 }
