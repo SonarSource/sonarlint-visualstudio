@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.ComponentModel.Composition;
-using System.Diagnostics;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using System;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -86,6 +86,8 @@ namespace SonarLint.VisualStudio.Integration
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
+            // Note: if lightweight solution load is enabled then the solution might not
+            // be fully opened at this point
             this.OnActiveSolutionChanged();
             return VSConstants.S_OK;
         }

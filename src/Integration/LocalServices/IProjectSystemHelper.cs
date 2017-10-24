@@ -115,5 +115,10 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         /// <returns>Project kinds GUIDs for the project</returns>
         IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy);
+
+        /// <summary>
+        /// Returns a flag indicating whether there is fully-opened solution or not.
+        /// </summary>
+        bool IsSolutionFullyOpened();
     }
 }

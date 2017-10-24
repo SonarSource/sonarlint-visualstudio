@@ -37,18 +37,21 @@ namespace SonarLint.VisualStudio.Integration.Connection
     /// <see cref="RefreshCommand"/>
     /// <see cref="DontWarnAgainCommand"/>
     /// </summary>
-    internal class ConnectionController : HostedCommandControllerBase, IConnectionInformationProvider, IConnectionWorkflowExecutor
+    internal sealed class ConnectionController : HostedCommandControllerBase, IConnectionInformationProvider,
+        IConnectionWorkflowExecutor
     {
         private readonly IHost host;
         private readonly IConnectionInformationProvider connectionProvider;
         private readonly ISonarLintSettings settings;
+        private readonly IProjectSystemHelper projectSystemHelper;
 
         public ConnectionController(IHost host)
             : this(host, null, null)
         {
         }
 
-        internal /*for testing purposes*/ ConnectionController(IHost host, IConnectionInformationProvider connectionProvider, IConnectionWorkflowExecutor workflowExecutor)
+        internal /*for testing purposes*/ ConnectionController(IHost host, IConnectionInformationProvider connectionProvider,
+            IConnectionWorkflowExecutor workflowExecutor)
             : base(host)
         {
             if (host == null)
@@ -60,6 +63,9 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
             this.settings = this.host.GetMefService<ISonarLintSettings>();
+
+            this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
+            this.projectSystemHelper.AssertLocalServiceIsNotNull();
 
             this.ConnectCommand = new RelayCommand(this.OnConnect, this.OnConnectStatus);
             this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.OnRefreshStatus);
@@ -112,7 +118,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private bool OnConnectStatus()
         {
-            return !this.host.VisualStateManager.IsConnected
+            return this.projectSystemHelper.IsSolutionFullyOpened()
+                && !this.host.VisualStateManager.IsConnected
                 && !this.host.VisualStateManager.IsBusy;
         }
 

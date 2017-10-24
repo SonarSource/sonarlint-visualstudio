@@ -497,7 +497,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        public bool IsFullyLoaded
+        /// <summary>
+        /// Value to return for the __VSPROPID4.VSPROPID_IsSolutionFullyLoaded property.
+        /// The property is typed as object to match the VS API and to allow tests to
+        /// check what happens if the returned value is not a boolean.
+        /// </summary>
+        public object IsFullyLoaded
         {
             get; set;
         }

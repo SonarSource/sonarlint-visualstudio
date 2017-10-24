@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     internal class ConfigurableVsProjectSystemHelper : IProjectSystemHelper
     {
         private readonly IServiceProvider serviceProvider;
+        private bool isSolutionFullyOpened;
 
         public ConfigurableVsProjectSystemHelper(IServiceProvider serviceProvider)
         {
@@ -159,6 +160,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return dteProject.GetAggregateProjectTypeGuids();
         }
 
+        public bool IsSolutionFullyOpened()
+        {
+            return this.isSolutionFullyOpened;
+        }
+
         #endregion IVsProjectSystemHelper
 
         #region Test helpers
@@ -176,6 +182,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public Solution2 CurrentActiveSolution { get; set; }
 
         public bool SimulateIVsHierarchyFailure { get; set; }
+
+        public void SetIsSolutionFullyOpened(bool isFullyOpened)
+        {
+            this.isSolutionFullyOpened = isFullyOpened;
+        }
 
         #endregion Test helpers
     }
