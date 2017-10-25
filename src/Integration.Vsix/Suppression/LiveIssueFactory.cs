@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         /// <summary>
         /// Mapping from full project file path to the unique project id
         /// </summary>
-        private Dictionary<string, string> projectPathToProjectIdMap;
+        private readonly IDictionary<string, string> projectPathToProjectIdMap;
 
         public LiveIssueFactory(Workspace workspace, IVsSolution vsSolution)
         {
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             }
 
             this.workspace = workspace;
-            BuildProjectPathToIdMap(vsSolution);
+            this.projectPathToProjectIdMap = BuildProjectPathToIdMap(vsSolution);
         }
 
         /// <summary>
@@ -121,9 +121,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                 wholeLineText: lineText); // Line-level issue
         }
 
-        private void BuildProjectPathToIdMap(IVsSolution solution)
+        internal /* for testing */ static IDictionary<string, string> BuildProjectPathToIdMap(IVsSolution solution)
         {
-            projectPathToProjectIdMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             // 1. Call with nulls to get the number of files
             const uint grfGetOpsIncludeUnloadedFiles = 0; // required since the projects might not have finished loading
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             var result = solution.GetProjectFilesInSolution(grfGetOpsIncludeUnloadedFiles, 0, null, out fileCount);
             if (ErrorHandler.Failed(result))
             {
-                return;
+                return map;
             }
 
             // 2. Size array and call again to get the data
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             result = solution.GetProjectFilesInSolution(grfGetOpsIncludeUnloadedFiles, fileCount, fileNames, out fileCount);
             if (ErrorHandler.Failed(result))
             {
-                return;
+                return map;
             }
 
             IVsSolution5 soln5 = (IVsSolution5)solution;
@@ -152,10 +152,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                 // to the project in the solution file.
                 // Fortunately, this is the logic used by soln5.GetGuidOfProjectFile... so we can just use that.
                 Guid projectGuid = soln5.GetGuidOfProjectFile(projectFile);
-                Debug.Assert(projectGuid != null, "Not expecting VS to return a null project guid");
 
-                projectPathToProjectIdMap.Add(projectFile, projectGuid.ToString().Replace("{", "").Replace("}", ""));
+                // Overwrite duplicate entries. This won't happen for real project files: it will only happen
+                // for solution folders with duplicate names, which we don't care about.
+                map[projectFile] = projectGuid.ToString().Replace("{", "").Replace("}", "");
             }
+            return map;
         }
     }
 }
