@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
@@ -57,13 +56,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
         private void RefreshSuppresionHandling()
         {
-            if (activeSolutionBoundTracker.IsActiveSolutionBound)
+            // This method can be called on the UI thread so unhandled exceptions will crash VS
+            try
             {
-                SetupSuppressionHandling();
+                if (activeSolutionBoundTracker.IsActiveSolutionBound)
+                {
+                    SetupSuppressionHandling();
+                }
+                else
+                {
+                    CleanupSuppressionHandling();
+                }
             }
-            else
+            catch(Exception)
             {
-                CleanupSuppressionHandling();
+                // TODO: log exceptions to the output window
             }
         }
 

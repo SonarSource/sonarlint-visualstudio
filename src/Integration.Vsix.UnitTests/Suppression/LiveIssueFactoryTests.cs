@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
@@ -59,28 +60,57 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Ctor_WithNonNullParameters_ReadProjectGuidOfAllProjectsInSolution()
         {
             // Arrange
-            var vsSolutionMock = new Mock<IVsSolution>();
-            uint fileCount = 2; // initialized with a value to actually assign a value to the out
-            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, 0, null, out fileCount))
-                .Returns(VSConstants.S_OK);
-            var fileNames = new string[fileCount];
-            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, fileCount, fileNames, out fileCount))
-                .OutCallback((uint x, uint y, string[] names, out uint z) =>
-                    {
-                        z = 0;
-                        names[0] = "Project1";
-                        names[1] = "Project2";
-                    });
-            vsSolutionMock.As<IVsSolution5>().Setup(x => x.GetGuidOfProjectFile(It.IsAny<string>()))
-                .Returns(Guid.Empty);
+            uint fileCountOut;
+            var vsSolutionMock = SetupSolutionMocks(
+                new KeyValuePair<string, string>("Project1", "11111111-1111-1111-1111-111111111111"),
+                new KeyValuePair<string, string>("Project2", "22222222-2222-2222-2222-222222222222"));
 
             // Act
             new LiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
 
             // Assert
-            vsSolutionMock.Verify(x => x.GetProjectFilesInSolution(0, It.IsAny<uint>(), It.IsAny<string[]>(), out fileCount),
+            vsSolutionMock.Verify(x => x.GetProjectFilesInSolution(0, It.IsAny<uint>(), It.IsAny<string[]>(), out fileCountOut),
                 Times.Exactly(2));
             vsSolutionMock.As<IVsSolution5>().Verify(x => x.GetGuidOfProjectFile(It.IsAny<string>()), Times.Exactly(2));
+        }
+
+        [TestMethod]
+        public void BuildMap_DuplicateSolutionFolderNamesAreIgnored()
+        {
+            // See #413: https://github.com/SonarSource/sonarlint-visualstudio/issues/413
+
+            // Arrange
+            var vsSolutionMock = SetupSolutionMocks(
+                new KeyValuePair<string, string>("SolutionFolder1", "11111111-1111-1111-1111-111111111111"),
+                new KeyValuePair<string, string>("Item1", "22222222-2222-2222-2222-222222222222"),
+                new KeyValuePair<string, string>("SolutionFolder2", "33333333-3333-3333-3333-333333333333"),
+                new KeyValuePair<string, string>("Item1", "44444444-4444-4444-4444-444444444444"),
+                new KeyValuePair<string, string>("realProject.csproj", "55555555-5555-5555-5555-555555555555"),
+                new KeyValuePair<string, string>("item1", "66666666-6666-6666-6666-666666666666"),
+                new KeyValuePair<string, string>("ITEM1", "77777777-7777-7777-7777-777777777777")
+                );
+
+            uint fileCountOut;
+
+            // Act
+            IDictionary<string, string> map = LiveIssueFactory.BuildProjectPathToIdMap(vsSolutionMock.Object);
+
+            // Assert
+            vsSolutionMock.Verify(x => x.GetProjectFilesInSolution(0, It.IsAny<uint>(), It.IsAny<string[]>(), out fileCountOut),
+                Times.Exactly(2));
+            vsSolutionMock.As<IVsSolution5>().Verify(x => x.GetGuidOfProjectFile(It.IsAny<string>()), Times.Exactly(7));
+
+            // Duplicate entries should have been ignored
+            map.ContainsKey("SolutionFolder1").Should().BeTrue();
+            map.ContainsKey("Item1").Should().BeTrue();
+            map.ContainsKey("SolutionFolder2").Should().BeTrue();
+            map.ContainsKey("realProject.csproj").Should().BeTrue();
+            map.Count.Should().Be(4);
+
+            map["SolutionFolder1"].Should().Be("11111111-1111-1111-1111-111111111111");
+            map["SolutionFolder2"].Should().Be("33333333-3333-3333-3333-333333333333");
+            map["realProject.csproj"].Should().Be("55555555-5555-5555-5555-555555555555");
+            map["item1"].Should().Be("77777777-7777-7777-7777-777777777777");
         }
 
         [TestMethod]
@@ -239,20 +269,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         private LiveIssue SetupAndCreate(Diagnostic diagnostic, string filePath)
         {
             // Arrange
-            var vsSolutionMock = new Mock<IVsSolution>();
-            uint fileCount = 1; // initialized with a value to actually assign a value to the out
-            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, 0, null, out fileCount))
-                .Returns(VSConstants.S_OK);
-            var fileNames = new string[fileCount];
-            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, fileCount, fileNames, out fileCount))
-                .OutCallback((uint x, uint y, string[] paths, out uint z) =>
-                {
-                    z = 0;
-                    paths[0] = "Project1";
-                });
-
-            vsSolutionMock.As<IVsSolution5>().Setup(x => x.GetGuidOfProjectFile(It.IsAny<string>()))
-                .Returns(Guid.Parse("{31D0DAAC-8606-40FE-8DF0-01784706EA3E}"));
+            var vsSolutionMock = SetupSolutionMocks(
+                new KeyValuePair<string, string>("Project1", "{31D0DAAC-8606-40FE-8DF0-01784706EA3E}"));
 
             var projectId = ProjectId.CreateNewId();
             var workspace = new AdhocWorkspace();
@@ -277,5 +295,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 return liveIssueFactory.Create(syntaxTree, diagnostic);
             }
         }
+
+        private Mock<IVsSolution> SetupSolutionMocks(params KeyValuePair<string, string>[] pathToGuidMapping)
+        {
+            var vsSolutionMock = new Mock<IVsSolution>();
+            uint fileCount = (uint)pathToGuidMapping.Length;
+
+            // Calls to GetProjectFilesInSolution with a zero-length array return the number of solution items
+            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, 0, null, out fileCount))
+                .Returns(VSConstants.S_OK);
+
+            // Calls with the number of items get the array containing those items
+            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, fileCount, It.IsAny<string[]>(), out fileCount))
+                .OutCallback((uint x, uint y, string[] names, out uint z) =>
+                {
+                    y.Should().Be(fileCount);
+
+                    z = fileCount;
+                    for (int i = 0; i < fileCount; i++)
+                    {
+                        names[i] = pathToGuidMapping[i].Key;
+                    }
+                });
+
+            // Return the guid matching the path
+            vsSolutionMock.As<IVsSolution5>().Setup(x => x.GetGuidOfProjectFile(It.IsAny<string>()))
+                .Returns((string path) =>
+                {
+                    var guidString = pathToGuidMapping.FirstOrDefault(item => item.Key == path).Value;
+                    return new Guid(guidString);
+                });
+
+            return vsSolutionMock;
+        }
+
     }
 }
