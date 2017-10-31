@@ -31,24 +31,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     internal sealed class SuppressionManager : IDisposable
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly ITimerFactory timerFactory;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISonarQubeService sonarQubeService;
         private readonly ISonarLintOutput sonarLintOutput;
 
         private DelegateInjector delegateInjector;
         private ISonarQubeIssuesProvider sonarqubeIssueProvider;
         private SuppressionHandler suppressionHandler;
 
-        public SuppressionManager(IServiceProvider serviceProvider, ITimerFactory timerFactory)
+        public SuppressionManager(IServiceProvider serviceProvider)
         {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             this.serviceProvider = serviceProvider;
-            this.timerFactory = timerFactory;
 
             this.activeSolutionBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
 
-            this.sonarQubeService = serviceProvider.GetMefService<ISonarQubeService>();
             this.sonarLintOutput = serviceProvider.GetMefService<ISonarLintOutput>();
 
             RefreshSuppresionHandling();
@@ -68,9 +69,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                     CleanupSuppressionHandling();
                 }
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                // TODO: log exceptions to the output window
+                this.sonarLintOutput.Write($"Failed to refresh suppression handling: {ex.Message}");
             }
         }
 
@@ -80,10 +81,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             var solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
 
+            var sonarQubeService = serviceProvider.GetMefService<ISonarQubeService>();
+
             LiveIssueFactory liveIssueFactory = new LiveIssueFactory(workspace, solution);
             delegateInjector = new DelegateInjector(ShouldIssueBeReported, sonarLintOutput);
             sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, this.activeSolutionBoundTracker.ProjectKey,
-                timerFactory);
+                new TimerFactory());
             suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarqubeIssueProvider);
         }
 
