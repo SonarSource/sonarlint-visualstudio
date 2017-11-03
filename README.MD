@@ -1,4 +1,7 @@
 # SonarLint for Visual Studio
+
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/SonarSource/sonar-csharp.svg?columns=all)](https://waffle.io/SonarSource/sonar-csharp)
+
 [![Quality Gate](https://next.sonarqube.com/sonarqube/api/badges/gate?key=sonarlint-visualstudio)](https://next.sonarqube.com/sonarqube/dashboard?id=sonarlint-visualstudio)
 [![Coverage](https://next.sonarqube.com/sonarqube/api/badges/measure?key=sonarlint-visualstudio&metric=coverage)](https://next.sonarqube.com/sonarqube/component_measures/domain/Coverage?id=sonarlint-visualstudio)
 
