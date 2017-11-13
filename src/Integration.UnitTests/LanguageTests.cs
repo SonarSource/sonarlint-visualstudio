@@ -33,12 +33,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var key = "k";
             var name = "MyName";
-            var guid = Guid.NewGuid();
 
             // Act + Assert
             // Nulls
-            Exceptions.Expect<ArgumentNullException>(() => new Language(name, null, guid));
-            Exceptions.Expect<ArgumentNullException>(() => new Language(null, key, guid));
+            Exceptions.Expect<ArgumentNullException>(() => new Language(name, null));
+            Exceptions.Expect<ArgumentNullException>(() => new Language(null, key));
         }
 
         [TestMethod]
@@ -47,77 +46,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var key = "k";
             var name = "MyName";
-            var guidString = Guid.NewGuid().ToString("N");
 
             // Act + Assert
             // Nulls
-            Exceptions.Expect<ArgumentNullException>(() => new Language(name, null, guidString));
-            Exceptions.Expect<ArgumentNullException>(() => new Language(null, key, guidString));
-            Exceptions.Expect<ArgumentNullException>(() => new Language(name, key, (string)null));
-
-            // Bad GUID
-            Exceptions.Expect<FormatException>(() => new Language(name, key, "thisisnotaguid"));
+            Exceptions.Expect<ArgumentNullException>(() => new Language(name, null));
+            Exceptions.Expect<ArgumentNullException>(() => new Language(null, key));
         }
 
         [TestMethod]
         public void Language_IsSupported_SupportedLanguage_IsTrue()
         {
             // Act + Assert
-            foreach(var supportedLang in Language.SupportedLanguages)
+            foreach (var supportedLang in Language.SupportedLanguages)
             {
                 supportedLang.IsSupported.Should().BeTrue("Supported language should be supported");
             }
         }
 
         [TestMethod]
-        public void Language_ForProject_KnownLanguage_ArgChecks()
-        {
-            Exceptions.Expect<ArgumentNullException>(() => Language.ForProject(null));
-        }
-
-        [TestMethod]
-        public void Language_ForProject_KnownLanguage_ReturnsCorrectLanguage()
-        {
-            // Test case 1: Unknown
-            // Arrange
-            var otherProject = new ProjectMock("other.proj");
-
-            // Act
-            var otherProjectLanguage = Language.ForProject(otherProject);
-
-            // Assert
-            otherProjectLanguage.Should().Be(Language.Unknown, "Unexpected Language for unknown project");
-
-            // Test case 2: C#
-            // Arrange
-            var csProject = new ProjectMock("cs1.csproj");
-            csProject.SetCSProjectKind();
-
-            // Act
-            var csProjectLanguage = Language.ForProject(csProject);
-
-            // Assert
-            csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# project");
-
-            // Test case 3: VB
-            // Arrange
-            var vbNetProject = new ProjectMock("vb1.vbproj");
-            vbNetProject.SetVBProjectKind();
-
-            // Act
-            var vbNetProjectLanguage = Language.ForProject(vbNetProject);
-
-            // Assert
-            vbNetProjectLanguage.Should().Be(Language.VBNET, "Unexpected Language for C# project");
-        }
-
-        [TestMethod]
         public void Language_Equality()
         {
             // Arrange
-            var lang1a = new Language("Language 1", "lang1", "{4FE75C7D-F43F-4A72-940C-47C97710BCCA}");
-            var lang1b = new Language("Language 1", "lang1", "{4FE75C7D-F43F-4A72-940C-47C97710BCCA}");
-            var lang2 = new Language("Language 2", "lang2", "{7A128822-05AA-49D0-A3C7-16F03F3A92E5}");
+            var lang1a = new Language("Language 1", "lang1");
+            var lang1b = new Language("Language 1", "lang1");
+            var lang2 = new Language("Language 2", "lang2");
 
             // Act + Assert
             lang1b.Should().Be(lang1a, "Languages with the same keys and GUIDs should be equal");

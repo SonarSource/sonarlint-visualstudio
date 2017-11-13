@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.Integration
     {
         internal const string VbProjectKind = "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}";
         internal const string CSharpProjectKind = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
+        internal const string VbCoreProjectKind = "{778DAE3C-4631-46EA-AA77-85C1314464D9}"; 
+        internal const string CSharpCoreProjectKind = "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}";
         internal const string TestProjectKind = "{3AC096D0-A1C2-E12C-1390-A8335801FDAB}";
         internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);
         internal const string VsProjectItemKindSolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
@@ -376,6 +378,8 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(hierarchy));
             }
 
+            // TODO: is this relevant for core projects?
+
             IVsAggregatableProjectCorrected aggregatableProject = hierarchy as IVsAggregatableProjectCorrected;
             if (aggregatableProject == null)
             {
@@ -420,21 +424,6 @@ namespace SonarLint.VisualStudio.Integration
             {
                 yield return output[0];
             }
-        }
-
-        public static bool IsVBProject(Project project)
-        {
-            return IsProjectKind(project, VbProjectKind);
-        }
-
-        public static bool IsCSharpProject(Project project)
-        {
-            return IsProjectKind(project, CSharpProjectKind);
-        }
-
-        private static bool IsProjectKind(Project project, string projectKindGuidString)
-        {
-            return StringComparer.OrdinalIgnoreCase.Equals(projectKindGuidString, project.Kind);
         }
 
         public bool IsSolutionFullyOpened()
