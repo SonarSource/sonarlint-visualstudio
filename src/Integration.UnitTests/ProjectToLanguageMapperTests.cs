@@ -47,6 +47,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity1()
+        {
+            // Arrange
+            var csProject = new ProjectMock("cs1.csproj");
+            csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind.ToUpper();
+
+            // Act
+            var csProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(csProject);
+
+            // Assert
+            csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# project");
+        }
+
+        [TestMethod]
+        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity2()
+        {
+            // Arrange
+            var csProject = new ProjectMock("cs1.csproj");
+            csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind.ToLower();
+
+            // Act
+            var csProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(csProject);
+
+            // Assert
+            csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# project");
+        }
+
+        [TestMethod]
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS()
         {
             // Arrange

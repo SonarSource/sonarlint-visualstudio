@@ -25,17 +25,14 @@ namespace SonarLint.VisualStudio.Integration
 {
     public static class ProjectToLanguageMapper
     {
-        internal static readonly IDictionary<Guid, Language> KnownProjectTypes;
-
-        static ProjectToLanguageMapper()
+        internal static readonly IDictionary<Guid, Language> KnownProjectTypes = new Dictionary<Guid, Language>()
         {
-            KnownProjectTypes = new Dictionary<Guid, Language>();
-            KnownProjectTypes[new Guid(ProjectSystemHelper.CSharpProjectKind)] = Language.CSharp;
-            KnownProjectTypes[new Guid(ProjectSystemHelper.VbProjectKind)] = Language.VBNET;
+            { new Guid(ProjectSystemHelper.CSharpProjectKind), Language.CSharp },
+            { new Guid(ProjectSystemHelper.VbProjectKind), Language.VBNET },
             // TODO: handle core project types
-//           KnownProjectTypes[new Guid(ProjectSystemHelper.CSharpCoreProjectKind)] = Language.CSharp;
-//           KnownProjectTypes[new Guid(ProjectSystemHelper.VbCoreProjectKind)] = Language.VBNET;
-        }
+            //{ new Guid(ProjectSystemHelper.CSharpCoreProjectKind),  Language.CSharp },
+            //{ new Guid(ProjectSystemHelper.VbCoreProjectKind), Language.VBNET }
+        };
 
         public static Language GetLanguageForProject(EnvDTE.Project dteProject)
         {
