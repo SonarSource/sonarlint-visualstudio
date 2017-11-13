@@ -38,13 +38,13 @@ namespace SonarLint.VisualStudio.Integration
     /// This class is safe for use as a key in collection classes. E.g., <seealso cref="IDictionary{TKey, TValue}"/>.
     /// </para>
     /// </remarks>
-    [DebuggerDisplay("{Name} (ID: {Id}, ProjectType: {ProjectType}, IsSupported: {IsSupported})")]
+    [DebuggerDisplay("{Name} (ID: {Id}, IsSupported: {IsSupported})")]
     [TypeConverter(typeof(LanguageConverter))]
     public sealed class Language : IEquatable<Language>
     {
         public readonly static Language Unknown = new Language();
-        public readonly static Language CSharp = new Language("CSharp", Strings.CSharpLanguageName, ProjectSystemHelper.CSharpProjectKind);
-        public readonly static Language VBNET = new Language("VB", Strings.VBNetLanguageName, ProjectSystemHelper.VbProjectKind);
+        public readonly static Language CSharp = new Language("CSharp", Strings.CSharpLanguageName);
+        public readonly static Language VBNET = new Language("VB", Strings.VBNetLanguageName);
 
         /// <summary>
         /// A stable identifier for this language.
@@ -55,11 +55,6 @@ namespace SonarLint.VisualStudio.Integration
         /// The language display name.
         /// </summary>
         public string Name { get; }
-
-        /// <summary>
-        /// The VS project GUID for this language.
-        /// </summary>
-        public Guid ProjectType { get; }
 
         /// <summary>
         /// Returns whether or not this language is a supported project language.
@@ -95,15 +90,9 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.Id = string.Empty;
             this.Name = Strings.UnknownLanguageName;
-            this.ProjectType = Guid.Empty;
         }
 
-        public Language(string id, string name, string projectTypeGuid)
-            : this(id, name, new Guid(projectTypeGuid))
-        {
-        }
-
-        public Language(string id, string name, Guid projectType)
+        public Language(string id, string name)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -117,7 +106,6 @@ namespace SonarLint.VisualStudio.Integration
 
             this.Id = id;
             this.Name = name;
-            this.ProjectType = projectType;
         }
 
         public static Language ForProject(EnvDTE.Project dteProject)
@@ -127,13 +115,8 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(dteProject));
             }
 
-            Guid projectKind;
-            if (!Guid.TryParse(dteProject.Kind, out projectKind))
-            {
-                return Unknown;
-            }
-
-            return KnownLanguages.FirstOrDefault(x => x.ProjectType == projectKind) ?? Unknown;
+            // TODO: remove this method - change the callers to call the following method directly
+            return ProjectToLanguageMapper.GetLanguageForProject(dteProject);
         }
 
         #region IEquatable<Language> and Equals
@@ -146,8 +129,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return other != null
-                && other.Id == this.Id
-                && other.ProjectType == this.ProjectType;
+                && other.Id == this.Id;
         }
 
         public override bool Equals(object obj)

@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public static bool IsKnownTestProject(this IProjectSystemHelper projectSystem, IVsHierarchy vsProject)
         {
+            //TODO: is this relevant for core projects?
             if (projectSystem == null)
             {
                 throw new ArgumentNullException(nameof(projectSystem));

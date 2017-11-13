@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = this.GetTestSubject();
-            this.SetFilteredProjects(Language.CSharp, Language.CSharp);
+            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject();
             int called = 0;
 
@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
-            this.SetFilteredProjects(Language.CSharp, Language.CSharp);
+            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
-            this.SetFilteredProjects(Language.CSharp, Language.CSharp);
+            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -213,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
-            this.SetFilteredProjects(Language.CSharp, Language.CSharp);
+            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -240,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
-            this.SetFilteredProjects(Language.CSharp, Language.VBNET);
+            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.VbProjectKind);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -267,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
-            this.SetFilteredProjects(Language.CSharp, Language.CSharp);
+            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -299,7 +299,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = this.GetTestSubject();
-            this.SetFilteredProjects(Language.VBNET, Language.VBNET);
+            this.SetFilteredProjects(ProjectSystemHelper.VbProjectKind, ProjectSystemHelper.VbProjectKind);
             this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
@@ -384,12 +384,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             FluentAssertions.Execution.Execute.Assertion.FailWith("Not expected to be called");
         }
 
-        private void SetFilteredProjects(params Language[] languages)
+        private void SetFilteredProjects(params string[] projectKinds)
         {
-           this.projectSystem.FilteredProjects = languages.Select((language, i) =>
+           this.projectSystem.FilteredProjects = projectKinds.Select((projectKind, i) =>
            {
                var project = new ProjectMock($"validProject{i}.csproj");
-               project.SetProjectKind(language.ProjectType);
+               project.SetProjectKind(new Guid(projectKind));
                return project;
            });
         }
