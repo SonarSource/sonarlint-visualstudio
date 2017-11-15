@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -118,16 +118,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public string GetProjectProperty(Project dteProject, string propertyName)
         {
-            var projMock = dteProject as ProjectMock;
-            if (projMock == null)
-            {
-                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
-            }
-
-            return projMock.GetBuildProperty(propertyName);
+            return GetProjectProperty(dteProject, propertyName, string.Empty);
         }
 
-        public void SetProjectProperty(Project dteProject, string propertyName, string value)
+        public string GetProjectProperty(Project dteProject, string propertyName, string configuration)
         {
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
@@ -135,7 +129,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
-            projMock.SetBuildProperty(propertyName, value);
+            return projMock.GetBuildProperty(propertyName, configuration);
+        }
+
+        public void SetProjectProperty(Project dteProject, string propertyName, string value)
+        {
+            SetProjectProperty(dteProject, propertyName, value, string.Empty);
+        }
+
+        public void SetProjectProperty(Project dteProject, string propertyName, string value, string configurationName)
+        {
+            var projMock = dteProject as ProjectMock;
+            if (projMock == null)
+            {
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
+            }
+
+            projMock.SetBuildProperty(propertyName, value, configurationName);
         }
 
         public void ClearProjectProperty(Project dteProject, string propertyName)

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -95,6 +95,13 @@ namespace SonarLint.VisualStudio.Integration
         /// <param name="propertyName">Name of the property to get</param>
         /// <returns>The value of the property or null if the property does not exist/has not been set.</returns>
         string GetProjectProperty(Project dteProject, string propertyName);
+
+        /// <summary>
+        /// Get the value of a given MSBuild project property for the specified build configuration (e.g. "Debug")
+        /// </summary>
+        /// <param name="propertyName">Name of the property to get</param>
+        /// <returns>The value of the property or null if the property does not exist/has not been set.</returns>
+        string GetProjectProperty(Project dteProject, string propertyName, string configuration);
 
         /// <summary>
         /// Set the value of the given MSBuild project property.
