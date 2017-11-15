@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -286,6 +286,11 @@ namespace SonarLint.VisualStudio.Integration
 
         public string GetProjectProperty(Project dteProject, string propertyName)
         {
+            return GetProjectProperty(dteProject, propertyName, string.Empty);
+        }
+
+        public string GetProjectProperty(Project dteProject, string propertyName, string configuration)
+        {
             if (dteProject == null)
             {
                 throw new ArgumentNullException(nameof(dteProject));
@@ -302,7 +307,7 @@ namespace SonarLint.VisualStudio.Integration
 
             if (propertyStorage != null)
             {
-                var hr = propertyStorage.GetPropertyValue(propertyName, string.Empty,
+                var hr = propertyStorage.GetPropertyValue(propertyName, configuration,
                     (uint)_PersistStorageType.PST_PROJECT_FILE, out value);
 
                 // E_XML_ATTRIBUTE_NOT_FOUND is returned when the property does not exist - this is OK.

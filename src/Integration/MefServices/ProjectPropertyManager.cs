@@ -57,6 +57,10 @@ namespace SonarLint.VisualStudio.Integration
             {
                 throw new ArgumentNullException(nameof(project));
             }
+            if (propertyName == null)
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
 
             string propertyString = this.projectSystem.GetProjectProperty(project, propertyName);
 
@@ -74,6 +78,10 @@ namespace SonarLint.VisualStudio.Integration
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
+            }
+            if (propertyName == null)
+            {
+                throw new ArgumentNullException(nameof(propertyName));
             }
 
             if (value.HasValue)

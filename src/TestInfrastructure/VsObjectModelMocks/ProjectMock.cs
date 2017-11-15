@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -310,10 +310,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsBuildPropertyStorage.GetPropertyValue(string pszPropName, string pszConfigName, uint storage, out string pbstrPropValue)
         {
+            string propertyKey = GetInternalBuildPropertyKey(pszPropName, pszConfigName);
+
             pbstrPropValue = null;
-            if (this.buildProperties.ContainsKey(pszPropName))
+            if (this.buildProperties.ContainsKey(propertyKey))
             {
-                pbstrPropValue = this.buildProperties[pszPropName];
+                pbstrPropValue = this.buildProperties[propertyKey];
                 return VSConstants.S_OK;
             }
 
@@ -322,15 +324,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsBuildPropertyStorage.SetPropertyValue(string pszPropName, string pszConfigName, uint storage, string pszPropValue)
         {
-            this.buildProperties[pszPropName] = pszPropValue;
+            string propertyKey = GetInternalBuildPropertyKey(pszPropName, pszConfigName);
+
+            this.buildProperties[propertyKey] = pszPropValue;
             return VSConstants.S_OK;
         }
 
         int IVsBuildPropertyStorage.RemoveProperty(string pszPropName, string pszConfigName, uint storage)
         {
-            if (this.buildProperties.ContainsKey(pszPropName))
+            string propertyKey = GetInternalBuildPropertyKey(pszPropName, pszConfigName);
+
+            if (this.buildProperties.ContainsKey(propertyKey))
             {
-                this.buildProperties.Remove(pszPropName);
+                this.buildProperties.Remove(propertyKey);
             }
 
             return VSConstants.S_OK;
@@ -344,6 +350,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         int IVsBuildPropertyStorage.SetItemAttribute(uint item, string pszAttributeName, string pszAttributeValue)
         {
             throw new NotImplementedException();
+        }
+
+        private static string GetInternalBuildPropertyKey(string propertyName, string configurationName)
+        {
+            return $"{propertyName}_{configurationName}";
         }
 
         #endregion IVsBuildPropertyStorage
@@ -410,21 +421,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ProjectKind = ProjectSystemHelper.VbProjectKind;
         }
 
-        public string GetBuildProperty(string propertyName)
+        public string GetBuildProperty(string propertyName, string configuration = "")
         {
             string value;
-            ((IVsBuildPropertyStorage)this).GetPropertyValue(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, out value);
+            ((IVsBuildPropertyStorage)this).GetPropertyValue(propertyName, configuration, (uint)_PersistStorageType.PST_PROJECT_FILE, out value);
             return value;
         }
 
-        public void SetBuildProperty(string propertyName, string value)
+        public void SetBuildProperty(string propertyName, string value, string configuration = "")
         {
-            ((IVsBuildPropertyStorage)this).SetPropertyValue(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
+            ((IVsBuildPropertyStorage)this).SetPropertyValue(propertyName, configuration, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
         }
 
-        public void ClearBuildProperty(string propertyName)
+        public void ClearBuildProperty(string propertyName, string configuration = "")
         {
-            ((IVsBuildPropertyStorage)this).RemoveProperty(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE);
+            ((IVsBuildPropertyStorage)this).RemoveProperty(propertyName, configuration, (uint)_PersistStorageType.PST_PROJECT_FILE);
         }
 
         public void SetAggregateProjectTypeString(string str)

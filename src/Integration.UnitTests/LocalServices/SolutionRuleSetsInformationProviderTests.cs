@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsOutputWindowPane outputPane;
         private SolutionMock solutionMock;
         private ProjectMock projectMock;
+        private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private const string SolutionRoot = @"c:\solution";
 
         [TestInitialize]
@@ -46,10 +47,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider = new ConfigurableServiceProvider();
             this.solutionMock = new SolutionMock(dte, Path.Combine(SolutionRoot, "xxx.sln"));
             this.projectMock = this.solutionMock.AddOrGetProject(Path.Combine(SolutionRoot, @"Project\project.proj"));
+            this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
 
             var outputWindow = new ConfigurableVsOutputWindow();
             this.outputPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
         }
 
         #region Tests
@@ -145,9 +148,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             PropertyMock ruleSet1 = CreateProperty(this.projectMock, "config1", "Custom1.ruleset");
-            CreateProperty(this.projectMock, "config1", @"x:\YYY\zzz", Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
+            SetBuildProperty(this.projectSystemHelper, this.projectMock, Constants.CodeAnalysisRuleSetDirectoriesPropertyKey, @"x:\YYY\zzz", "config1");
+
             PropertyMock ruleSet2 = CreateProperty(this.projectMock, "config2", "Custom1.ruleset");
-            CreateProperty(this.projectMock, "config2", @"x:\YYY\zzz;q:\;", Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
+            SetBuildProperty(this.projectSystemHelper, this.projectMock, Constants.CodeAnalysisRuleSetDirectoriesPropertyKey, @"x:\YYY\zzz;q:\;", "config2");
 
             // Act
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();
@@ -175,10 +179,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
-            var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            projectHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
+            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
 
             // Case 1: VB + invalid path characters
             // Act
@@ -200,9 +201,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
-            var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            projectHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
+            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
 
             // Act + Assert
             Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp));
@@ -213,10 +212,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
-            var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            projectHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
+            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
 
             //
             // Act
@@ -231,9 +227,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
-            var projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            projectHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectHelper);
+            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
 
             //
             // Act
@@ -295,6 +289,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return new RuleSetDeclaration(project, new PropertyMock("never mind", null), ruleSetValue, "Configuration");
         }
 
+        private static void SetBuildProperty(ConfigurableVsProjectSystemHelper projectSystemHelper, ProjectMock project, string propertyName, string propertyValue, string configurationName)
+        {
+            projectSystemHelper.SetProjectProperty(project, propertyName, propertyValue, configurationName);
+        }
+
         private static PropertyMock CreateProperty(ProjectMock project, string configurationName, object propertyValue, string propertyName = Constants.CodeAnalysisRuleSetPropertyKey)
         {
             ConfigurationMock config = GetOrCreateConfiguration(project, configurationName);
@@ -329,8 +328,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             info.ConfigurationContext.Should().Be(configuration.ConfigurationName);
 
-            Property ruleSetDirectory = configuration.Properties.OfType<Property>().SingleOrDefault(p => p.Name == Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
-            string ruleSetDirectoryValue = ruleSetDirectory?.Value as string;
+            string ruleSetDirectoryValue = null;
+            ((IVsBuildPropertyStorage)projectMock).GetPropertyValue(Constants.CodeAnalysisRuleSetDirectoriesPropertyKey, configuration.ConfigurationName, 0, out ruleSetDirectoryValue);
             if (string.IsNullOrWhiteSpace(ruleSetDirectoryValue))
             {
                 info.RuleSetDirectories.Should().BeEmpty();
