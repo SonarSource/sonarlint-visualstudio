@@ -103,7 +103,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             vbNetProjectLanguage.Should().Be(Language.VBNET, "Unexpected Language for VB project");
         }
 
-        [Ignore] // not yet implemented
         [TestMethod]
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CSCore()
         {
@@ -118,7 +117,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# Core project");
         }
 
-        [Ignore] // not yet implemented
         [TestMethod]
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_VBCore()
         {

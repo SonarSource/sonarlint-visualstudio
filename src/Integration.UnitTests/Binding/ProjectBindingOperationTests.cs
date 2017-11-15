@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -60,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleSetFS);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), new SolutionRuleSetsInformationProvider(this.serviceProvider));
+            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
         }
 
         #region Tests
@@ -292,7 +293,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Commit()
         {
             // Arrange
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
             this.ruleStore.RegisterRuleSetPath(Language.CSharp, @"c:\Solution\sln.ruleset");

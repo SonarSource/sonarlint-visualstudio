@@ -46,6 +46,20 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarations(Project project)
         {
+            /* This method walks through all of the available configurations (e.g. Debug, Release, Foo) and
+             * attempts to fetch the values of a couple of properties from the project (CodeAnalysisRuleSet
+             * and CodeAnalysisRuleSetDirectories). The collected data is put into a data object
+             * and returned to the caller. The collected data includes the DTE Property object itself, which
+             * is used later to update the ruleset value.
+             * 
+             * TODO: consider refactoring. The code seems over-complicated: it finds the "ruleset"
+             * property for all configurations, then backtracks to find the configuration, then looks
+             * for the corresponding "ruleset directories" property.
+             * Note: we are now fetching the "ruleset directories" property from the MSBuild project,
+             * rather than through the DTE (the previous version of this code that used the DTE fails
+             * for C# and VB projects that use the new project system).
+             */
+
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
@@ -53,15 +67,17 @@ namespace SonarLint.VisualStudio.Integration
 
             bool found = false;
 
+            var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
+
             foreach (Property ruleSetProperty in VsShellUtils.EnumerateProjectProperties(project, Constants.CodeAnalysisRuleSetPropertyKey).Where(p => p != null))
             {
                 found = true;
 
-                string ruleSetDirectoriesValue = VsShellUtils.FindProperty(ruleSetProperty.Collection, Constants.CodeAnalysisRuleSetDirectoriesPropertyKey)?.Value as string;
+                string activationContext = TryGetPropertyConfiguration(ruleSetProperty)?.ConfigurationName ?? string.Empty;
+                string ruleSetDirectoriesValue = projectSystem.GetProjectProperty(project, Constants.CodeAnalysisRuleSetDirectoriesPropertyKey, activationContext);
                 string[] ruleSetDirectories = ruleSetDirectoriesValue?.Split(new[] { RuleSetDirectoriesValueSpliter }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
                 string ruleSetValue = ruleSetProperty.Value as string;
-                string activationContext = TryGetPropertyConfiguration(ruleSetProperty)?.ConfigurationName ?? string.Empty;
-
+               
                 yield return new RuleSetDeclaration(project, ruleSetProperty, ruleSetValue, activationContext, ruleSetDirectories);
             }
 
