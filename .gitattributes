@@ -18,7 +18,7 @@
 *.ico       binary
 *.pfx       binary
 *.snk       binary
-.exe        binary
+*.exe        binary
 *.pdb       binary
 
 #
@@ -51,4 +51,3 @@
 # documentation
 *.md        text
 *.tt        text
-.markdown   text
