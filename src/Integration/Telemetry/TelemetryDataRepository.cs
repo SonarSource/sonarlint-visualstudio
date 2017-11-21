@@ -19,11 +19,13 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Xml.Serialization;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    [Export(typeof(ITelemetryDataRepository)), PartCreationPolicy(CreationPolicy.Shared)]
     public sealed class TelemetryDataRepository : ITelemetryDataRepository, IDisposable
     {
         private static readonly string StorageFilePath = GetStorageFilePath();
