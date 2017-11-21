@@ -19,10 +19,12 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    [Export(typeof(ITelemetryManager)), PartCreationPolicy(CreationPolicy.Shared)]
     public sealed class TelemetryManager : ITelemetryManager, IDisposable
     {
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
@@ -30,6 +32,13 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ITelemetryTimer telemetryTimer;
         private readonly ITelemetryDataRepository telemetryRepository;
         private readonly IKnownUIContexts knownUIContexts;
+
+        [ImportingConstructor]
+        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository)
+            : this(solutionBindingTracker, telemetryRepository, new TelemetryClient(),
+                  new TelemetryTimer(telemetryRepository, new TimerFactory()), new KnownUIContextsWrapper())
+        {
+        }
 
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
             ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts)
