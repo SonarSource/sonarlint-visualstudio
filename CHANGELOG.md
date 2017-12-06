@@ -6,7 +6,7 @@ Contributors to this file, please follow the guidelines on [keepachangelog.com](
 
 For reference, the possible headings are:
 
-* **New Features** for New Featuress.
+* **New Features* for new features.
 * **Improvement** for changes in existing functionality.
 * **Bug** for any bug fixes.
 * **External Contributors** to list contributors outside of SonarSource SA.
