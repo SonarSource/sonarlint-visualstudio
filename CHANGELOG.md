@@ -35,7 +35,7 @@ For reference, the possible headings are:
 * [#413](https://github.com/SonarSource/sonarlint-visualstudio/issues/413) - Opening a solution with duplicate solution folder names crashes VS
 
 ### Improvements
-* [#347](https://github.com/SonarSource/sonarlint-visualstudio/issues/347) - "Connect" option is not available unless a solution is open
+* [#347](https://github.com/SonarSource/sonarlint-visualstudio/issues/347) - "Connect" option should be available only after a solution is loaded
 * [#422](https://github.com/SonarSource/sonarlint-visualstudio/issues/422) - Embed SonarC# and SonarVB v6.6 RC1
 
 
