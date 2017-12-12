@@ -50,21 +50,7 @@ pipeline {
             stash includes: 'binaries/*.vsix', name: "vsix-vs2017"
           }
         }
-      }
-      post {
-        success {
-          burgrNotifyBuildPassed()
-        }
-        failure {
-          burgrNotifyBuildFailed()
-        }
-        unstable {
-          burgrNotifyBuildFailed()
-        }
-        aborted {
-          burgrNotifyBuildAborted()
-        }
-      } 
+      }      
     }     
       
     stage('Deploy') {   
@@ -104,6 +90,24 @@ pipeline {
       }   
     }          
   }
+  post {
+    success {
+      burgrNotifyBuildPassed()
+      githubNotifyBuildSuccess()
+    }
+    failure {
+      burgrNotifyBuildFailed()
+      githubNotifyBuildFailed()
+    }
+    unstable {
+      burgrNotifyBuildFailed()
+      githubNotifyBuildFailed()
+    }
+    aborted {
+      burgrNotifyBuildAborted()
+      githubNotifyBuildError()
+    }
+  } 
 }
 
 
