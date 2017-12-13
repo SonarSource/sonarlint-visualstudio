@@ -50,7 +50,25 @@ pipeline {
             stash includes: 'binaries/*.vsix', name: "vsix-vs2017"
           }
         }
-      }      
+      }
+      post {
+        success {
+          burgrNotifyBuildPassed()
+          githubNotifyBuildSuccess()
+        }
+        failure {
+          burgrNotifyBuildFailed()
+          githubNotifyBuildFailed()
+        }
+        unstable {
+          burgrNotifyBuildFailed()
+          githubNotifyBuildFailed()
+        }
+        aborted {
+          burgrNotifyBuildAborted()
+          githubNotifyBuildError()
+        }
+      }       
     }     
       
     stage('Deploy') {   
@@ -61,9 +79,6 @@ pipeline {
           environment name: 'IS_PULLREQUEST', value: 'true'
         }
       }     
-      agent { 
-        label 'linux' 
-      }
       environment {         
         ARTIFACTORY_DEPLOY_REPO="sonarsource-public-qa"
         REPOX_DEPLOYER=credentials('repox-deploy')
@@ -85,29 +100,64 @@ pipeline {
             sh "mvn -B versions:set -DgenerateBackupPoms=false -DnewVersion=${version}"
             sh "mvn deploy -Pdeploy-sonarsource -B -e -V"            
           }
-        }     
-        build job: 'sonarlint-visualstudio-qa', parameters: [string(name: 'GIT_SHA1', value: "$GIT_SHA1"), string(name: 'CI_BUILD_NAME', value: "$CI_BUILD_NAME"), string(name: 'CI_BUILD_NUMBER', value: "$BUILD_NUMBER"), string(name: 'GITHUB_BRANCH', value: "$GITHUB_BRANCH"), string(name: 'GIT_URL', value: "$GIT_URL"), string(name: 'IS_PULLREQUEST', value: "$IS_PULLREQUEST"), string(name: 'PULL_REQUEST', value: "$PULL_REQUEST"), string(name: 'GITHUB_REPO', value: "$GITHUB_REPO"), string(name: 'GITHUB_REPOSITORY_OWNER_NAME', value: "$GITHUB_REPOSITORY_OWNER_NAME")],  wait: false
-      }   
-    }          
-  }
-  post {
-    success {
-      burgrNotifyBuildPassed()
-      githubNotifyBuildSuccess()
+        }             
+      }       
+      post {
+        success {
+          burgrNotifyBuildPassed()
+          githubNotifyBuildSuccess()
+        }
+        failure {
+          burgrNotifyBuildFailed()
+          githubNotifyBuildFailed()
+        }
+        unstable {
+          burgrNotifyBuildFailed()
+          githubNotifyBuildFailed()
+        }
+        aborted {
+          burgrNotifyBuildAborted()
+          githubNotifyBuildError()
+        }
+      }
     }
-    failure {
-      burgrNotifyBuildFailed()
-      githubNotifyBuildFailed()
-    }
-    unstable {
-      burgrNotifyBuildFailed()
-      githubNotifyBuildFailed()
-    }
-    aborted {
-      burgrNotifyBuildAborted()
-      githubNotifyBuildError()
-    }
-  } 
+
+    stage('QA')  {
+      when{
+        anyOf {
+          environment name: 'GITHUB_BRANCH', value: 'master'
+          environment name: 'IS_PULLREQUEST', value: 'true'
+        }
+      } 
+      steps{
+        //at the moment no QA is executed for sonarlint-visualstudio
+        burgrNotifyQaPassed()
+        githubNotifyQaSuccess()
+      }
+    } 
+
+    stage('Promote') {
+      when{
+        anyOf {
+          environment name: 'GITHUB_BRANCH', value: 'master'
+          environment name: 'IS_PULLREQUEST', value: 'true'
+        }
+      } 
+      steps {
+        repoxPromoteBuild()
+      }
+      post {
+        success {
+          burgrNotifyPromotePassed()
+          githubNotifyPromoteSuccess()
+        }
+        failure {
+          burgrNotifyPromoteFailed()
+          githubNotifyPromoteFailed()
+        }
+      }
+    }     
+  }  
 }
 
 
