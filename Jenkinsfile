@@ -1,5 +1,5 @@
 #!/bin/groovy
-@Library('SonarSource@1.1') _
+@Library('SonarSource@fix-burgr-promote-notification') _
 
 pipeline {
   agent { 
