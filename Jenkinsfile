@@ -1,21 +1,14 @@
 #!/bin/groovy
-@Library('SonarSource@1.1') _
+@Library('SonarSource@master') _
 
 pipeline {
   agent { 
     label 'linux' 
   }
-  parameters {
-    string(name: 'GIT_SHA1', defaultValue: 'master', description: 'Git SHA1 (provided by travisci hook job)')
-    string(name: 'CI_BUILD_NAME', defaultValue: 'sonar-license', description: 'Build Name (provided by travisci hook job)')	
-    string(name: 'CI_BUILD_NUMBER', description: 'Build Number (provided by travisci hook job)')
-    string(name: 'GITHUB_BRANCH', defaultValue: 'master', description: 'Git branch (provided by travisci hook job)')
-    string(name: 'GITHUB_REPOSITORY_OWNER', defaultValue: 'SonarSource', description: 'Github repository owner(provided by travisci hook job)')
-  }
   environment {         
-        MAVEN_TOOL = 'Maven 3.3.x'
-        PFX_PASSWORD = credentials('pfx-passphrase')
-        GITHUB_TOKEN = credentials('sonartech-github-token')
+    MAVEN_TOOL = 'Maven 3.3.x'
+    PFX_PASSWORD = credentials('pfx-passphrase')
+    GITHUB_TOKEN = credentials('sonartech-github-token')
   }
   stages{
     stage('NotifyStart')  {
