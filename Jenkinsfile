@@ -1,5 +1,5 @@
 #!/bin/groovy
-@Library('SonarSource@master') _
+@Library('SonarSource@1.2') _
 
 pipeline {
   agent { 
@@ -13,8 +13,7 @@ pipeline {
   stages{
     stage('NotifyStart')  {
       steps{
-        burgrNotifyBuildStarted()
-        githubNotifyBuildPending()
+        sendAllNotificationBuildStarted()
       }
     }
     stage('Build') {
@@ -45,21 +44,8 @@ pipeline {
         }
       }
       post {
-        success {
-          burgrNotifyBuildPassed()
-          githubNotifyBuildSuccess()
-        }
-        failure {
-          burgrNotifyBuildFailed()
-          githubNotifyBuildFailed()
-        }
-        unstable {
-          burgrNotifyBuildFailed()
-          githubNotifyBuildFailed()
-        }
-        aborted {
-          burgrNotifyBuildAborted()
-          githubNotifyBuildError()
+        always {
+          sendAllNotificationBuildResult()
         }
       }       
     }     
@@ -96,21 +82,8 @@ pipeline {
         }             
       }       
       post {
-        success {
-          burgrNotifyBuildPassed()
-          githubNotifyBuildSuccess()
-        }
-        failure {
-          burgrNotifyBuildFailed()
-          githubNotifyBuildFailed()
-        }
-        unstable {
-          burgrNotifyBuildFailed()
-          githubNotifyBuildFailed()
-        }
-        aborted {
-          burgrNotifyBuildAborted()
-          githubNotifyBuildError()
+        always {
+          sendAllNotificationBuildResult()
         }
       }
     }
@@ -124,8 +97,12 @@ pipeline {
       } 
       steps{
         //at the moment no QA is executed for sonarlint-visualstudio
-        burgrNotifyQaPassed()
-        githubNotifyQaSuccess()
+        sendAllNotificationQaStarted()
+      }
+      post {
+        always {
+          sendAllNotificationQaResult()
+        }
       }
     } 
 
@@ -140,13 +117,8 @@ pipeline {
         repoxPromoteBuild()
       }
       post {
-        success {
-          burgrNotifyPromotePassed()
-          githubNotifyPromoteSuccess()
-        }
-        failure {
-          burgrNotifyPromoteFailed()
-          githubNotifyPromoteFailed()
+        always {
+          sendAllNotificationPromote()
         }
       }
     }     
