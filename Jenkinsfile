@@ -17,38 +17,22 @@ pipeline {
         sendAllNotificationBuildStarted()
       }
     }
-    stage('Build') {
-      parallel {
-        stage('vs2015'){
-          agent { 
-            label 'vs2015' 
-          }
-          tools {
-            jdk 'Java 8'
-          }
-          steps{
-            bat script: 'ci-build.cmd'
-            stash includes: 'binaries/*.vsix', name: "vsix-vs2015"
-          }
-        }
-        stage('vs2017') {
-          agent { 
-            label 'vs2017' 
-          }
-          tools {
-            jdk 'Java 8'
-          }
-          steps{
-            bat script: 'ci-build.cmd'
-            stash includes: 'binaries/*.vsix', name: "vsix-vs2017"
-          }
-        }
+    stage('Build on vs2017') {
+      agent { 
+        label 'vs2017' 
+      }
+      tools {
+        jdk 'Java 8'
+      }
+      steps{
+        bat script: 'ci-build.cmd'
+        stash includes: 'binaries/*.vsix', name: "vsix-vs2017"
       }
       post {
         always {
           sendAllNotificationBuildResult()
         }
-      }       
+      }
     }     
       
     stage('Deploy') {   
