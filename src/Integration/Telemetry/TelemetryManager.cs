@@ -131,17 +131,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private TelemetryPayload GetPayload(TelemetryData telemetryData)
         {
-            // DaysPassedSince is returning 0 when InstallationDate==Now, but we need to report 1
-            var numberOfDaysSinceInstallation = DateTime.Now.DaysPassedSince(telemetryData.InstallationDate) + 1;
-            return new TelemetryPayload
-            {
-                SonarLintProduct = "SonarLint Visual Studio",
-                SonarLintVersion = TelemetryHelper.SonarLintVersion,
-                VisualStudioVersion = TelemetryHelper.VisualStudioVersion,
-                NumberOfDaysSinceInstallation = numberOfDaysSinceInstallation,
-                NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
-                IsUsingConnectedMode = this.solutionBindingTracker.IsActiveSolutionBound
-            };
+            return TelemetryHelper.CreatePayload(telemetryData, DateTime.Now,
+                solutionBindingTracker.IsActiveSolutionBound);
         }
 
         private void OnAnalysisRun(object sender, UIContextChangedEventArgs e)
