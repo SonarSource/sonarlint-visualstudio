@@ -27,8 +27,14 @@ namespace SonarQube.Client.Messages
         [JsonProperty("language")]
         public string LanguageKey { get; set; }
         [JsonProperty("name")]
-        public string QualityProfileName { get; set; }
+        public virtual string QualityProfileName { get; set; }
         [JsonProperty("exporterKey", Required = Required.Always)]
         public string ExporterKey => $"roslyn-{LanguageKey}";
+    }
+
+    public class RoslynExportProfileRequestV66Plus : RoslynExportProfileRequest
+    {
+        [JsonProperty("qualityProfile")]
+        public override string QualityProfileName { get; set; }
     }
 }

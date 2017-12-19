@@ -228,7 +228,9 @@ namespace SonarQube.Client.Services
         {
             EnsureIsConnected();
 
-            var request = new RoslynExportProfileRequest { QualityProfileName = qualityProfileName, LanguageKey = language.Key };
+            var request = this.serverVersion >= new Version(6, 6)
+                ? new RoslynExportProfileRequestV66Plus { QualityProfileName = qualityProfileName, LanguageKey = language.Key }
+                : new RoslynExportProfileRequest { QualityProfileName = qualityProfileName, LanguageKey = language.Key };
             var roslynExportResult = await this.sonarqubeClient.GetRoslynExportProfileAsync(request, token);
             roslynExportResult.EnsureSuccess();
 
