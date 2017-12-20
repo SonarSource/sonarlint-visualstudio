@@ -184,14 +184,37 @@ namespace SonarQube.Client.Services.Tests
         }
 
         [TestMethod]
-        public async Task GetRoslynExportProfileAsync_ReturnsExpectedResult()
+        public async Task GetRoslynExportProfileAsync_WhenServerIsLessThan66_ReturnsExpectedResult()
         {
             // Arrange
             var roslynExport = new RoslynExportProfileResponse();
 
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
             client
-                .Setup(x => x.GetRoslynExportProfileAsync(It.IsAny<RoslynExportProfileRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.GetRoslynExportProfileAsync(It.Is<RoslynExportProfileRequest>(y =>
+                    y.GetType().Equals(typeof(RoslynExportProfileRequest))), CancellationToken.None))
+                .ReturnsAsync(Result.Ok(roslynExport));
+
+            var service = new SonarQubeService(WrapInMockFactory(client));
+            await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
+
+            // Act
+            var result = await service.GetRoslynExportProfileAsync("name", SonarQubeLanguage.CSharp, CancellationToken.None);
+
+            // Assert
+            client.VerifyAll();
+            result.Should().Be(roslynExport);
+        }
+
+        [TestMethod]
+        public async Task GetRoslynExportProfileAsync_WhenServerIsGreaterThanOrEqualTo66_ReturnsExpectedResult()
+        {
+            // Arrange
+            var roslynExport = new RoslynExportProfileResponse();
+
+            var client = GetMockSqClientWithCredentialAndVersion("6.6");
+            client
+                .Setup(x => x.GetRoslynExportProfileAsync(It.IsAny<RoslynExportProfileRequestV66Plus>(), CancellationToken.None))
                 .ReturnsAsync(Result.Ok(roslynExport));
 
             var service = new SonarQubeService(WrapInMockFactory(client));
