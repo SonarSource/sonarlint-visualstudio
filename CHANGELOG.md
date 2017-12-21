@@ -15,6 +15,17 @@ For reference, the possible headings are:
 
 ## [Unreleased]
 
+
+## [3.8.1]
+
+### Bug
+* [#458](https://github.com/SonarSource/sonarlint-visualstudio/issues/458) - Unify first day ping with other SonarLint variants
+* [#464](https://github.com/SonarSource/sonarlint-visualstudio/issues/464) - Connected mode always fetches the default quality profile for SQ6.6+
+
+### Improvement
+* [#467](https://github.com/SonarSource/sonarlint-visualstudio/issues/467) - Embed SonarC#/SonarVB 6.7.1
+
+
 ## [3.8]
 
 ### New Features
