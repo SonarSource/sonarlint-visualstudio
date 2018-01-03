@@ -17,8 +17,10 @@ namespace SonarQube.Client.Services
         internal const int MaximumPageSize = 500;
         internal static readonly Version OrganizationsFeatureMinimalVersion = new Version(6, 2);
 
-        private readonly HttpClient httpClient;
+        private readonly HttpMessageHandler messageHandler;
         private readonly RequestFactory requestFactory;
+
+        private HttpClient httpClient;
 
         private Version sonarQubeVersion = null;
 
@@ -38,7 +40,7 @@ namespace SonarQube.Client.Services
 
         public SonarQubeService2(HttpMessageHandler messageHandler, RequestFactory requestFactory)
         {
-            httpClient = new HttpClient(messageHandler);
+            this.messageHandler = messageHandler;
             this.requestFactory = requestFactory;
         }
 
@@ -70,9 +72,15 @@ namespace SonarQube.Client.Services
 
         public async Task ConnectAsync(ConnectionInformation connection, CancellationToken token)
         {
-            httpClient.BaseAddress = connection.ServerUri;
-            httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderFactory.Create(
-                connection.UserName, connection.Password, connection.Authentication);
+            httpClient = new HttpClient(messageHandler)
+            {
+                BaseAddress = connection.ServerUri,
+                DefaultRequestHeaders =
+                {
+                    Authorization = AuthenticationHeaderFactory.Create(
+                        connection.UserName, connection.Password, connection.Authentication),
+                },
+            };
 
             connected = true;
 
@@ -145,17 +153,20 @@ namespace SonarQube.Client.Services
                 },
                 token);
 
+            var updatedDate = changeLog.Any() ? changeLog.Single() : qualityProfile.TimeStamp;
+
             return new SonarQubeQualityProfile(qualityProfile.Key, qualityProfile.Name, qualityProfile.Language,
-                qualityProfile.IsDefault, changeLog.Single());
+                qualityProfile.IsDefault, updatedDate);
         }
 
         public async Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName,
-            SonarQubeLanguage language, CancellationToken token) =>
+            SonarQubeLanguage language, string organizationKey, CancellationToken token) =>
             await InvokeRequestAsync<IGetRoslynExportProfileRequest, RoslynExportProfileResponse>(
                 request =>
                 {
                     request.QualityProfileName = qualityProfileName;
                     request.LanguageKey = language.Key;
+                    request.OrganizationKey = organizationKey;
                 },
                 token);
 

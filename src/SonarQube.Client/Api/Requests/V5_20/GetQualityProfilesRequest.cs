@@ -46,7 +46,8 @@ namespace SonarQube.Client.Api.Requests.V5_20
                 .ToArray();
 
         private static SonarQubeQualityProfile FromResponse(QualityProfileResponse response) =>
-            new SonarQubeQualityProfile(response.Key, response.Name, response.Language, response.IsDefault, default(DateTime));
+            new SonarQubeQualityProfile(
+                response.Key, response.Name, response.Language, response.IsDefault, response.LastRuleChange);
 
         // This class MUST NOT change! If a breaking change in the API is introduced,
         // create a new versioned request and reimplement the serialization there
@@ -63,6 +64,9 @@ namespace SonarQube.Client.Api.Requests.V5_20
 
             [JsonProperty("isDefault")]
             public bool IsDefault { get; set; }
+
+            [JsonProperty("rulesUpdatedAt")]
+            public DateTime LastRuleChange { get; set; }
         }
     }
 }

@@ -19,7 +19,7 @@ namespace SonarQube.Client.Tests.Services
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/qualityprofiles/export?language=cs&profileName=quality_profile&exporterKey=roslyn-cs",
+            SetupRequest("api/qualityprofiles/export?language=cs&name=quality_profile&organization=my-org&exporterKey=roslyn-cs",
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
   <Configuration>
@@ -42,7 +42,7 @@ namespace SonarQube.Client.Tests.Services
   </Deployment>
 </RoslynExportProfile>");
 
-            var result = await service.GetRoslynExportProfileAsync("quality_profile", SonarQubeLanguage.CSharp,
+            var result = await service.GetRoslynExportProfileAsync("quality_profile", SonarQubeLanguage.CSharp, "my-org",
                 CancellationToken.None);
 
             messageHandler.VerifyAll();
@@ -55,7 +55,7 @@ namespace SonarQube.Client.Tests.Services
         {
             await ConnectToSonarQube("6.6.0.0");
 
-            SetupRequest("api/qualityprofiles/export?qualityProfile=quality_profile&language=cs&exporterKey=roslyn-cs",
+            SetupRequest("api/qualityprofiles/export?qualityProfile=quality_profile&language=cs&organization=my-org&exporterKey=roslyn-cs",
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
   <Configuration>
@@ -78,7 +78,7 @@ namespace SonarQube.Client.Tests.Services
   </Deployment>
 </RoslynExportProfile>");
 
-            var result = await service.GetRoslynExportProfileAsync("quality_profile", SonarQubeLanguage.CSharp,
+            var result = await service.GetRoslynExportProfileAsync("quality_profile", SonarQubeLanguage.CSharp, "my-org",
                 CancellationToken.None);
 
             messageHandler.VerifyAll();
@@ -91,11 +91,11 @@ namespace SonarQube.Client.Tests.Services
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/qualityprofiles/export?language=cs&profileName=quality_profile&exporterKey=roslyn-cs",
+            SetupRequest("api/qualityprofiles/export?language=cs&name=quality_profile&organization=my-org&exporterKey=roslyn-cs",
                 "", HttpStatusCode.NotFound);
 
             Func<Task<RoslynExportProfileResponse>> func = async () =>
-                await service.GetRoslynExportProfileAsync("quality_profile", SonarQubeLanguage.CSharp,
+                await service.GetRoslynExportProfileAsync("quality_profile", SonarQubeLanguage.CSharp, "my-org",
                     CancellationToken.None);
 
             func.ShouldThrow<HttpRequestException>().And

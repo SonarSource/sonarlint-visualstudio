@@ -9,8 +9,11 @@ namespace SonarQube.Client.Api.Requests.V5_20
         [JsonProperty("language")]
         public string LanguageKey { get; set; }
 
-        [JsonProperty("profileName")]
+        [JsonProperty("name")]
         public virtual string QualityProfileName { get; set; }
+
+        [JsonProperty("organization")]
+        public virtual string OrganizationKey { get; set; }
 
         [JsonProperty("exporterKey", Required = Required.Always)]
         public string ExporterKey => $"roslyn-{LanguageKey}";

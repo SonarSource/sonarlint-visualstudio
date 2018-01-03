@@ -26,6 +26,8 @@ namespace SonarQube.Client.Messages
     {
         [JsonProperty("language")]
         public string LanguageKey { get; set; }
+        [JsonProperty("organization")]
+        public string OrganizationKey { get; set; }
         [JsonProperty("name")]
         public virtual string QualityProfileName { get; set; }
         [JsonProperty("exporterKey", Required = Required.Always)]
