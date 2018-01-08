@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>37</version>
+    <version>43</version>
   </parent>
 
   <groupId>org.sonarsource.dotnet</groupId>
@@ -27,7 +27,7 @@
     </license>
   </licenses>
 
-  <scm> 
+  <scm>
     <connection>scm:git:git@github.com:SonarSource-VisualStudio/sonarlint-visualstudio.git</connection>
     <developerConnection>scm:git:git@github.com:SonarSource-VisualStudio/sonarlint-visualstudio.git</developerConnection>
     <url>https://github.com/SonarSource-VisualStudio/sonarlint-visualstudio</url>
@@ -45,6 +45,6 @@
   </properties>
 
   <modules>
-    <module>SonarLint.VSIX</module>    
+    <module>SonarLint.VSIX</module>
   </modules>
 </project>
