@@ -10,7 +10,7 @@
   <artifactId>SonarLint.VSIX</artifactId>
   <packaging>pom</packaging>
   <name>SonarLint.VSIX</name>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -30,7 +30,7 @@
                   <file>${env.WORKSPACE}/binaries/SonarLint.2015.vsix</file>
                   <type>vsix</type>
                   <classifier>2015</classifier>
-                </artifact>                
+                </artifact>
                 <artifact>
                   <file>${env.WORKSPACE}/binaries/SonarLint.2017.vsix</file>
                   <type>vsix</type>

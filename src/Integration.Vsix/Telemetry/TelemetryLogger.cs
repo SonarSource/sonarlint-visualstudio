@@ -1,6 +1,6 @@
 /*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2017 SonarSource SA
+ * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or

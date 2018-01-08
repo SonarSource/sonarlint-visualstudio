@@ -1,6 +1,6 @@
 /*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2017 SonarSource SA and Microsoft Corporation
+ * Copyright (C) 2016-2018 SonarSource SA and Microsoft Corporation
  * mailto: contact AT sonarsource DOT com
  *
  * Licensed under the MIT License.
