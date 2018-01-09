@@ -451,6 +451,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             controller.NumberOfAbortRequests.Should().Be(1);
         }
 
+        [TestMethod]
+        public async Task ConnectionWorkflow_DownloadServiceParameters_NoTestProjectRegexProperty()
+        {
+            // Arrange
+            var controller = new ConfigurableProgressController();
+            var progressEvents = new ConfigurableProgressStepExecutionEvents();
+
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<SonarQubeProperty> { });
+
+            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
+
+            // Act
+            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
+
+            // Assert
+            filter.AssertTestRegex(SonarQubeProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase);
+            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
+        }
+
         #endregion Tests
 
         #region Helpers
