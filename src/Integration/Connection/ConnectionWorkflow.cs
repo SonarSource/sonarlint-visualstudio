@@ -223,7 +223,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             Debug.Assert(this.ConnectedServer != null);
 
-            const string TestProjectRegexKey = "sonar.cs.msbuild.testProjectPattern";
             const string TestProjectRegexDefaultValue = @"[^\\]*test[^\\]*$";
 
             // Should never realistically take more than 1 second to match against a project name
@@ -239,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 return;
             }
 
-            var testProjRegexPattern = properties.First(x => StringComparer.Ordinal.Equals(x.Key, TestProjectRegexKey)).Value;
+            var testProjRegexPattern = properties.FirstOrDefault(IsTestProjectPatternProperty)?.Value;
 
             Regex regex = null;
             if (testProjRegexPattern != null)
@@ -261,6 +260,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var projectFilter = this.host.GetService<IProjectSystemFilter>();
             projectFilter.AssertLocalServiceIsNotNull();
             projectFilter.SetTestRegex(regex ?? defaultRegex);
+        }
+
+        private static bool IsTestProjectPatternProperty(SonarQubeProperty property)
+        {
+            const string TestProjectRegexKey = "sonar.cs.msbuild.testProjectPattern";
+            return StringComparer.Ordinal.Equals(property.Key, TestProjectRegexKey);
         }
 
         #endregion
