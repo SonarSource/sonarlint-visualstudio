@@ -801,10 +801,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var profile = new SonarQubeQualityProfile("", profileName, "", false, DateTime.Now);
             this.sonarQubeServiceMock
-                .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), null, language.ToServerLanguage(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), language.ToServerLanguage(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(profile);
             this.sonarQubeServiceMock
-                .Setup(x => x.GetRoslynExportProfileAsync(profileName, It.IsAny<SonarQubeLanguage>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.GetRoslynExportProfileAsync(profileName, It.IsAny<string>(), It.IsAny<SonarQubeLanguage>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(export);
 
             return profile;
