@@ -243,8 +243,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.QualityProfiles[language] = qualityProfileInfo;
 
                 var roslynProfileExporter = await SafeServiceCall(
-                    () => this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name, serverLanguage,
-                        cancellationToken));
+                    () => this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
+                        connectionInformation.Organization?.Key, serverLanguage, cancellationToken));
                 if (roslynProfileExporter == null)
                 {
                     VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,

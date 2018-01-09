@@ -224,13 +224,13 @@ namespace SonarQube.Client.Services
         }
 
         public async Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName,
-            SonarQubeLanguage language, CancellationToken token)
+            string organizationKey, SonarQubeLanguage language, CancellationToken token)
         {
             EnsureIsConnected();
 
             var request = this.serverVersion >= new Version(6, 6)
-                ? new RoslynExportProfileRequestV66Plus { QualityProfileName = qualityProfileName, LanguageKey = language.Key }
-                : new RoslynExportProfileRequest { QualityProfileName = qualityProfileName, LanguageKey = language.Key };
+                ? new RoslynExportProfileRequestV66Plus { QualityProfileName = qualityProfileName, OrganizationKey = organizationKey, LanguageKey = language.Key }
+                : new RoslynExportProfileRequest { QualityProfileName = qualityProfileName, OrganizationKey = organizationKey, LanguageKey = language.Key };
             var roslynExportResult = await this.sonarqubeClient.GetRoslynExportProfileAsync(request, token);
             roslynExportResult.EnsureSuccess();
 

@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -189,17 +190,19 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var roslynExport = new RoslynExportProfileResponse();
 
+            Expression<Func<RoslynExportProfileRequest, bool>> matchRequest = r =>
+                r.GetType().Equals(typeof(RoslynExportProfileRequest)) && r.OrganizationKey == "my-org";
+
             var client = GetMockSqClientWithCredentialAndVersion("5.6");
             client
-                .Setup(x => x.GetRoslynExportProfileAsync(It.Is<RoslynExportProfileRequest>(y =>
-                    y.GetType().Equals(typeof(RoslynExportProfileRequest))), CancellationToken.None))
+                .Setup(x => x.GetRoslynExportProfileAsync(It.Is(matchRequest), CancellationToken.None))
                 .ReturnsAsync(Result.Ok(roslynExport));
 
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
-            var result = await service.GetRoslynExportProfileAsync("name", SonarQubeLanguage.CSharp, CancellationToken.None);
+            var result = await service.GetRoslynExportProfileAsync("name", "my-org", SonarQubeLanguage.CSharp, CancellationToken.None);
 
             // Assert
             client.VerifyAll();
@@ -212,16 +215,19 @@ namespace SonarQube.Client.Services.Tests
             // Arrange
             var roslynExport = new RoslynExportProfileResponse();
 
+            Expression<Func<RoslynExportProfileRequestV66Plus, bool>> matchRequest = r =>
+                r.OrganizationKey == "my-org";
+
             var client = GetMockSqClientWithCredentialAndVersion("6.6");
             client
-                .Setup(x => x.GetRoslynExportProfileAsync(It.IsAny<RoslynExportProfileRequestV66Plus>(), CancellationToken.None))
+                .Setup(x => x.GetRoslynExportProfileAsync(It.Is(matchRequest), CancellationToken.None))
                 .ReturnsAsync(Result.Ok(roslynExport));
 
             var service = new SonarQubeService(WrapInMockFactory(client));
             await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Act
-            var result = await service.GetRoslynExportProfileAsync("name", SonarQubeLanguage.CSharp, CancellationToken.None);
+            var result = await service.GetRoslynExportProfileAsync("name", "my-org", SonarQubeLanguage.CSharp, CancellationToken.None);
 
             // Assert
             client.VerifyAll();
@@ -431,7 +437,7 @@ namespace SonarQube.Client.Services.Tests
                 sqService.GetQualityProfileAsync("projectKey", "some org", SonarQubeLanguage.CSharp, CancellationToken.None));
 
             AssertExceptionThrownWhenNotConnected(() =>
-                sqService.GetRoslynExportProfileAsync("qualityProfileName", SonarQubeLanguage.CSharp, CancellationToken.None));
+                sqService.GetRoslynExportProfileAsync("qualityProfileName", "some org", SonarQubeLanguage.CSharp, CancellationToken.None));
 
             AssertExceptionThrownWhenNotConnected(() =>
                 sqService.GetNotificationEventsAsync("projectKey", DateTimeOffset.Now, CancellationToken.None));
