@@ -47,42 +47,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region IUserNotification
 
-        void IUserNotification.ShowBusy()
-        {
-            throw new NotImplementedException();
-        }
-
-        void IUserNotification.HideBusy()
-        {
-            throw new NotImplementedException();
-        }
-
-        void IUserNotification.ShowError(string errorMessage)
-        {
-            this.showErrorRequests.Add(errorMessage);
-        }
-
-        void IUserNotification.ShowException(Exception ex, bool clearOtherNotifications)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IUserNotification.ShowMessage(string message)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IUserNotification.ShowWarning(string warningMessage)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IUserNotification.ClearNotifications()
-        {
-            this.showErrorRequests.Clear();
-            this.notifications.Clear();
-        }
-
         bool IUserNotification.HideNotification(Guid id)
         {
             return this.notifications.Remove(id);

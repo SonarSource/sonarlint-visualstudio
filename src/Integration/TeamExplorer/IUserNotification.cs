@@ -29,41 +29,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     internal interface IUserNotification
     {
         /// <summary>
-        /// <see cref="TeamFoundation.Controls.WPF.TeamExplorer.TeamExplorerSectionViewModelBase.ShowBusy"/>
-        /// </summary>
-        void ShowBusy();
-
-        /// <summary>
-        /// <see cref="TeamFoundation.Controls.WPF.TeamExplorer.TeamExplorerSectionViewModelBase.HideBusy"/>
-        /// </summary>
-        void HideBusy();
-
-        /// <summary>
-        /// <see cref="TeamFoundation.Controls.WPF.TeamExplorer.TeamExplorerSectionViewModelBase.ShowError(string)"/>
-        /// </summary>
-        void ShowError(string errorMessage);
-
-        /// <summary>
-        /// <see cref="TeamFoundation.Controls.WPF.TeamExplorer.TeamExplorerSectionViewModelBase.ShowException(Exception, bool)"/>
-        /// </summary>
-        void ShowException(Exception ex, bool clearOtherNotifications = true);
-
-        /// <summary>
-        /// <see cref="TeamFoundation.Controls.WPF.TeamExplorer.TeamExplorerSectionViewModelBase.ShowMessage(string)"/>
-        /// </summary>
-        void ShowMessage(string message);
-
-        /// <summary>
-        /// <see cref="TeamFoundation.Controls.WPF.TeamExplorer.TeamExplorerSectionViewModelBase.ShowWarning(string)"/>
-        /// </summary>
-        void ShowWarning(string warningMessage);
-
-        /// <summary>
-        /// <see cref="TeamFoundation.Controls.WPF.TeamExplorer.TeamExplorerSectionViewModelBase.ClearNotifications"/>
-        /// </summary>
-        void ClearNotifications();
-
-        /// <summary>
         /// <see cref="TeamFoundation.Controls.WPF.TeamExplorer.TeamExplorerSectionViewModelBase.HideNotification(Guid)"/>
         /// </summary>
         bool HideNotification(Guid id);
