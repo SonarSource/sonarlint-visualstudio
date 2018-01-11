@@ -40,6 +40,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.Image = imageMoniker;
         }
 
+        public ConfigurableInfoBar(string message, ImageMoniker imageMoniker)
+        {
+            message.Should().NotBeNull("Message is null");
+            imageMoniker.Should().NotBeNull("image moniker is null");
+
+            this.Message = message;
+            this.ButtonText = null;
+            this.Image = imageMoniker;
+        }
+
         #region IInfoBar
 
         public event EventHandler ButtonClick;

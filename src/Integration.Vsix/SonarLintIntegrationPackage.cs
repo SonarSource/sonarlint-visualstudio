@@ -21,6 +21,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -54,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private PackageCommandManager commandManager;
         private SonarAnalyzerManager sonarAnalyzerManager;
         private SuppressionManager suppressionManager;
+        private DeprecationManager deprecationManager;
 
         protected override void Initialize()
         {
@@ -65,9 +67,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.sonarAnalyzerManager = new SonarAnalyzerManager(serviceProvider);
             this.suppressionManager = new SuppressionManager(serviceProvider);
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
-            this.commandManager = new PackageCommandManager(serviceProvider);
 
+            this.commandManager = new PackageCommandManager(serviceProvider);
             this.commandManager.Initialize();
+
+            this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(),
+                this.GetMefService<ISonarLintOutput>());
+            this.deprecationManager.Initialize(VisualStudioHelpers.VisualStudioVersion);
         }
 
         protected override void Dispose(bool disposing)
@@ -77,6 +83,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 this.usageAnalyzer?.Dispose();
                 this.usageAnalyzer = null;
+
+                this.deprecationManager?.Dispose();
+                this.deprecationManager = null;
             }
         }
     }

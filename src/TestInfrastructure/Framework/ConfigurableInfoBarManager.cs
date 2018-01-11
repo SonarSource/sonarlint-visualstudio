@@ -42,6 +42,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return infoBar;
         }
 
+        IInfoBar IInfoBarManager.AttachInfoBar(Guid toolwindowGuid, string message, ImageMoniker imageMoniker)
+        {
+            this.attached.Should().NotContainKey(toolwindowGuid, "Info bar is already attached to tool window {0}", toolwindowGuid);
+
+            var infoBar = new ConfigurableInfoBar(message, imageMoniker);
+            this.attached[toolwindowGuid] = infoBar;
+            return infoBar;
+        }
+
         void IInfoBarManager.DetachInfoBar(IInfoBar currentInfoBar)
         {
             this.attached.Values.Should().Contain((ConfigurableInfoBar)currentInfoBar, "Info bar is not attached");

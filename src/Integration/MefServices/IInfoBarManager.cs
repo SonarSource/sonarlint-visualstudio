@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.Integration.InfoBar
         /// <param name="imageMoniker">Image</param>
         /// <returns><see cref="IInfoBar"/></returns>
         IInfoBar AttachInfoBar(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker);
+        IInfoBar AttachInfoBar(Guid toolwindowGuid, string message, ImageMoniker imageMoniker);
 
         /// <summary>
         /// Detaches an <see cref="IInfoBar"/> from its tool window
