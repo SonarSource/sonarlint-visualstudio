@@ -75,7 +75,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private void ShowDeprecationBar()
         {
-            const string message = "Newer versions of SonarLint will not work with this version of Visual Studio.";
+            const string message = "Newer versions of SonarLint will not work with this version of Visual Studio. Please " +
+                "update to Visual Studio 2015 Update 3 or Visual Studio 2017 to benefit from new features.";
             deprecationBar = infoBarManager.AttachInfoBar(DeprecationBarGuid, message, default(ImageMoniker));
         }
 
