@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             sonarLintOutputMock.Verify(x => x.Write(expectedOutputMessage), numberOfTimes);
-            inforBarManagerMock.Verify(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, expectedBarMessage, null,
+            inforBarManagerMock.Verify(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, expectedBarMessage,
                 It.IsAny<ImageMoniker>()), numberOfTimes);
         }
     }
