@@ -61,18 +61,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 throw new ArgumentNullException(nameof(buttonText));
             }
 
-            IVsWindowFrame frame = GetToolWindowFrame(this.serviceProvider, toolwindowGuid);
+            return AttachInfoBarImpl(toolwindowGuid, message, buttonText, imageMoniker);
+        }
 
-            InfoBarModel model = CreateModel(message, buttonText, imageMoniker);
-
-            IVsInfoBarUIElement uiElement;
-            if (TryCreateInfoBarUI(this.serviceProvider, model, out uiElement)
-                && TryAddInfoBarToFrame(frame, uiElement))
+        public IInfoBar AttachInfoBar(Guid toolwindowGuid, string message, ImageMoniker imageMoniker)
+        {
+            if (string.IsNullOrWhiteSpace(message))
             {
-                return new PrivateInfoBarWrapper(frame, uiElement);
+                throw new ArgumentNullException(nameof(message));
             }
 
-            return null;
+            return AttachInfoBarImpl(toolwindowGuid, message, null, imageMoniker);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
@@ -104,6 +103,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
         #endregion
 
         #region Static helpers
+
+        private IInfoBar AttachInfoBarImpl(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
+        {
+            IVsWindowFrame frame = GetToolWindowFrame(this.serviceProvider, toolwindowGuid);
+
+            InfoBarModel model = CreateModel(message, buttonText, imageMoniker);
+
+            IVsInfoBarUIElement uiElement;
+            if (TryCreateInfoBarUI(this.serviceProvider, model, out uiElement)
+                && TryAddInfoBarToFrame(frame, uiElement))
+            {
+                return new PrivateInfoBarWrapper(frame, uiElement);
+            }
+
+            return null;
+        }
+
         private static IVsWindowFrame GetToolWindowFrame(IServiceProvider serviceProvider, Guid toolwindowGuid)
         {
             Debug.Assert(serviceProvider != null);
@@ -140,10 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
         private static InfoBarModel CreateModel(string message, string buttonText, ImageMoniker imageMoniker)
         {
             return new InfoBarModel(message,
-                actionItems: new[]
-                {
-                    new InfoBarButton(buttonText)
-                },
+                actionItems: buttonText != null ? new[] { new InfoBarButton(buttonText) } : new IVsInfoBarActionItem[0],
                 image: imageMoniker,
                 isCloseButtonVisible: true);
         }
