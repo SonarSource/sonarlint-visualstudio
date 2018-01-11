@@ -20,29 +20,20 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class TelemetryHelper
+    public static class VisualStudioHelpers
     {
-        private static readonly string SonarLintVersion = GetSonarLintVersion();
+        public static readonly string VisualStudioVersion = GetVisualStudioVersion();
 
-        private static string GetSonarLintVersion()
+        private static string GetVisualStudioVersion()
         {
-            return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
-        }
-
-        public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTime now, bool isConnected)
-        {
-            return new TelemetryPayload
-            {
-                SonarLintProduct = "SonarLint Visual Studio",
-                SonarLintVersion = SonarLintVersion,
-                VisualStudioVersion = VisualStudioHelpers.VisualStudioVersion,
-                NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
-                NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
-                IsUsingConnectedMode = isConnected,
-            };
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "msenv.dll");
+            return File.Exists(path)
+                ? FileVersionInfo.GetVersionInfo(path).ProductVersion
+                : string.Empty;
         }
     }
 }
