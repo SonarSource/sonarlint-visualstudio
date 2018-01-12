@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -121,11 +119,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private string GetHelpLink(string ruleKey)
         {
-            // ruleKey is in format "javascript:1234"
-            // ruleId is "1234"
-            string ruleId = ruleKey.Substring(ruleKey.IndexOf(':') + 1);
+            var colonIndex = ruleKey.IndexOf(':');
+            // ruleKey is in format "javascript:S1234" (or javascript:SOMETHING for legacy keys)
+
             // language is "javascript"
-            string language = ruleKey.Substring(0, ruleKey.IndexOf(':'));
+            var language = ruleKey.Substring(0, colonIndex);
+
+            // ruleId should be "1234" (or SOMETHING for legacy keys)
+            var ruleId = ruleKey.Substring(colonIndex + 1);
+            if (ruleId.Length >= 2 &&
+                ruleId[0] == 'S' &&
+                char.IsDigit(ruleId[1]))
+            {
+                ruleId = ruleId.Substring(1);
+            }
+
             return $"https://rules.sonarsource.com/{language}/RSPEC-{ruleId}";
         }
 

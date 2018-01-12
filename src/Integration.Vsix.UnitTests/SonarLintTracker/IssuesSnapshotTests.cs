@@ -19,7 +19,6 @@
  */
 
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -140,6 +139,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             issue.RuleKey = "javascript:123";
             GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
+            issue.RuleKey = "javascript:S123";
+            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
+            issue.RuleKey = "javascript:SOMETHING";
+            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-SOMETHING");
             issue.RuleKey = "c:456";
             GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/c/RSPEC-456");
             issue.RuleKey = "cpp:789";
