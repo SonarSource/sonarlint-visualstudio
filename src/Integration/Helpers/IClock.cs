@@ -24,6 +24,6 @@ namespace SonarLint.VisualStudio.Integration
 {
     public interface IClock
     {
-        DateTime Now { get; }
+        DateTimeOffset Now { get; }
     }
 }

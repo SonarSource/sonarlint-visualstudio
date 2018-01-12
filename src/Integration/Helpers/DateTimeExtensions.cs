@@ -32,5 +32,14 @@ namespace SonarLint.VisualStudio.Integration
 
         public static long DaysPassedSince(this DateTime date, DateTime other) =>
             (long)date.Subtract(other).TotalDays;
+
+        public static bool IsSameDay(this DateTimeOffset date, DateTimeOffset other) =>
+            Math.Abs(date.Date.Subtract(other.Date).TotalDays) < 1;
+
+        public static long HoursPassedSince(this DateTimeOffset date, DateTimeOffset other) =>
+            (long)date.Subtract(other).TotalHours;
+
+        public static long DaysPassedSince(this DateTimeOffset date, DateTimeOffset other) =>
+            (long)date.Subtract(other).TotalDays;
     }
 }

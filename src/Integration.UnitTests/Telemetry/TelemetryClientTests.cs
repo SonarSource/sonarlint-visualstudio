@@ -19,11 +19,14 @@
  */
 
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Moq.Protected;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -102,6 +105,60 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // Assert
             result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task Dates_Are_Serialized_In_Roundtrip_Format()
+        {
+            string serializedRequestPayload = null;
+            // Arrange
+            var httpHandlerMock = new Mock<HttpMessageHandler>();
+            httpHandlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((r, t) =>
+                {
+                    serializedRequestPayload = r.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                })
+                .Returns(Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
+
+            var client = new TelemetryClient(httpHandlerMock.Object);
+
+            // Act
+            var result = await client.SendPayload(new TelemetryPayload
+            {
+                InstallDate = new DateTimeOffset(2017, 12, 23, 8, 25, 35, 456, TimeSpan.FromHours(1)),
+                SystemDate = new DateTimeOffset(2018, 3, 15, 18, 55, 10, 123, TimeSpan.FromHours(1)),
+                IsUsingConnectedMode = true,
+                NumberOfDaysOfUse = 200,
+                NumberOfDaysSinceInstallation = 230,
+                SonarLintProduct = "SonarLint for Visual Studio",
+                SonarLintVersion = "1.2.3.4",
+                VisualStudioVersion = "15.16",
+            });
+
+            // Assert
+            result.Should().BeTrue();
+
+            var expected = @"{
+  ""sonarlint_product"": ""SonarLint for Visual Studio"",
+  ""sonarlint_version"": ""1.2.3.4"",
+  ""ide_version"": ""15.16"",
+  ""days_since_installation"": 230,
+  ""days_of_use"": 200,
+  ""connected_mode_used"": true,
+  ""install_time"": ""2017-12-23T08:25:35.456+01:00"",
+  ""system_time"": ""2018-03-15T18:55:10.123+01:00""
+}";
+
+            httpHandlerMock.VerifyAll();
+            RemoveLineEndings(serializedRequestPayload).Should().Be(RemoveLineEndings(expected));
+        }
+
+        private string RemoveLineEndings(string text)
+        {
+            return text.Replace("\r\n", string.Empty).Replace("\n", string.Empty);
         }
     }
 }

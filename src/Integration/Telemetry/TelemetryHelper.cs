@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration
             return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
         }
 
-        public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTime now, bool isConnected)
+        public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now, bool isConnected)
         {
             return new TelemetryPayload
             {

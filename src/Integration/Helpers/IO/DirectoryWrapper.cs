@@ -18,17 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    public sealed class TelemetryTimerEventArgs : EventArgs
+    [ExcludeFromCodeCoverage] // Wrapper around System
+    public class DirectoryWrapper : IDirectory
     {
-        public TelemetryTimerEventArgs(DateTimeOffset signalTime)
-        {
-            SignalTime = signalTime;
-        }
+        public void Create(string path) => Directory.CreateDirectory(path);
 
-        public DateTimeOffset SignalTime { get; }
+        public void Delete(string path) => Directory.Delete(path);
+
+        public bool Exists(string path) => Directory.Exists(path);
     }
 }

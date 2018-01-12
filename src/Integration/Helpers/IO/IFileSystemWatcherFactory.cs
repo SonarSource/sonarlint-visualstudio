@@ -18,17 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    public sealed class TelemetryTimerEventArgs : EventArgs
+    public interface IFileSystemWatcherFactory
     {
-        public TelemetryTimerEventArgs(DateTimeOffset signalTime)
-        {
-            SignalTime = signalTime;
-        }
-
-        public DateTimeOffset SignalTime { get; }
+        IFileSystemWatcher Create();
     }
 }

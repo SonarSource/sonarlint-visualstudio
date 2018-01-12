@@ -70,9 +70,9 @@ namespace SonarLint.VisualStudio.Integration
             this.telemetryRepository = telemetryRepository;
             this.knownUIContexts = knownUIContexts;
 
-            if (this.telemetryRepository.Data.InstallationDate == DateTime.MinValue)
+            if (this.telemetryRepository.Data.InstallationDate == DateTimeOffset.MinValue)
             {
-                this.telemetryRepository.Data.InstallationDate = DateTime.Now; // TODO: Use some mockable clock
+                this.telemetryRepository.Data.InstallationDate = DateTimeOffset.Now; // TODO: Use some mockable clock
                 this.telemetryRepository.Save();
             }
 
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private TelemetryPayload GetPayload(TelemetryData telemetryData)
         {
-            return TelemetryHelper.CreatePayload(telemetryData, DateTime.Now,
+            return TelemetryHelper.CreatePayload(telemetryData, DateTimeOffset.Now,
                 solutionBindingTracker.IsActiveSolutionBound);
         }
 
@@ -143,9 +143,9 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate;
-            if (!DateTime.Now.IsSameDay(lastAnalysisDate))
+            if (!DateTimeOffset.Now.IsSameDay(lastAnalysisDate))
             {
-                telemetryRepository.Data.LastSavedAnalysisDate = DateTime.Now;
+                telemetryRepository.Data.LastSavedAnalysisDate = DateTimeOffset.Now;
                 telemetryRepository.Data.NumberOfDaysOfUse++;
                 telemetryRepository.Save();
             }

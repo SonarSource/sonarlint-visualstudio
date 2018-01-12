@@ -19,15 +19,47 @@
  */
 
 using System;
+using System.ComponentModel;
+using System.Xml.Serialization;
 
 namespace SonarLint.VisualStudio.Integration
 {
     public sealed class TelemetryData
     {
         public bool IsAnonymousDataShared { get; set; }
-        public DateTime InstallationDate { get; set; }
-        public DateTime LastSavedAnalysisDate { get; set; }
+
         public long NumberOfDaysOfUse { get; set; }
-        public DateTime LastUploadDate { get; set; }
+
+        [XmlIgnore]
+        public DateTimeOffset InstallationDate { get; set; }
+
+        [XmlIgnore]
+        public DateTimeOffset LastSavedAnalysisDate { get; set; }
+
+        [XmlIgnore]
+        public DateTimeOffset LastUploadDate { get; set; }
+
+        [XmlElement(nameof(InstallationDate)), EditorBrowsable(EditorBrowsableState.Never)]
+        public string InstallationDateString
+        {
+            get { return InstallationDate.ToString("o"); }
+            // ParseExact will throw an exception when value is invalid date, but
+            // XmlSerializer will swallow it and return default(TelemetryData)
+            set { InstallationDate = DateTimeOffset.ParseExact(value, "o", null); }
+        }
+
+        [XmlElement(nameof(LastSavedAnalysisDate)), EditorBrowsable(EditorBrowsableState.Never)]
+        public string LastSavedAnalysisDateString
+        {
+            get { return LastSavedAnalysisDate.ToString("o"); }
+            set { LastSavedAnalysisDate = DateTimeOffset.ParseExact(value, "o", null); }
+        }
+
+        [XmlElement(nameof(LastUploadDate)), EditorBrowsable(EditorBrowsableState.Never)]
+        public string LastUploadDateString
+        {
+            get { return LastUploadDate.ToString("o"); }
+            set { LastUploadDate = DateTimeOffset.ParseExact(value, "o", null); }
+        }
     }
 }
