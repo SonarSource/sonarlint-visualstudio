@@ -45,12 +45,6 @@ namespace SonarQube.Client.Models
         public SonarQubeIssueResolutionState ResolutionState { get; }
         public string RuleId { get; }
 
-        public static SonarQubeIssue FromResponse(ServerIssue issue)
-        {
-            return new SonarQubeIssue(issue.Path, issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey,
-                ParseResolutionState(issue.Resolution), issue.RuleKey);
-        }
-
         public static SonarQubeIssueResolutionState ParseResolutionState(string resolution)
         {
             switch (resolution)

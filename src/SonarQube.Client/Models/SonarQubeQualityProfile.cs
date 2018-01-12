@@ -19,7 +19,6 @@
  */
 
 using System;
-using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Models
 {
@@ -41,11 +40,6 @@ namespace SonarQube.Client.Models
             Language = language;
             IsDefault = isDefault;
             TimeStamp = timeStamp;
-        }
-
-        public static SonarQubeQualityProfile FromResponse(QualityProfileResponse response, DateTime timeStamp)
-        {
-            return new SonarQubeQualityProfile(response.Key, response.Name, response.Language, response.IsDefault, timeStamp);
         }
     }
 }

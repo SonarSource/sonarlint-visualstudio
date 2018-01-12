@@ -20,6 +20,9 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http;
+using SonarQube.Client;
+using SonarQube.Client.Api.Requests;
 using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
@@ -34,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     public class MefSonarQubeService : SonarQubeService
     {
         public MefSonarQubeService()
-            : base(new SonarQubeClientFactory())
+            : base(new HttpClientHandler(), DefaultConfiguration.Configure(new RequestFactory()))
         {
         }
     }

@@ -15,8 +15,7 @@ namespace SonarQube.Client.RequestGenerator
 
             var cts = new CancellationTokenSource();
 
-            var service = new SonarQubeService2(new HttpClientHandler(), requestFactory);
-            //var service = new SonarQubeService(new SonarQubeClientFactory());
+            var service = new SonarQubeService(new HttpClientHandler(), requestFactory);
 
             var parser = new ArgsParser(args);
 

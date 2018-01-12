@@ -2,7 +2,7 @@
 {
     public static class DefaultConfiguration
     {
-        public static void Configure(RequestFactory requestFactory)
+        public static RequestFactory Configure(RequestFactory requestFactory)
         {
             requestFactory
                 .RegisterRequest<IGetPluginsRequest, V2_10.GetPluginsRequest>("2.1")
@@ -20,6 +20,7 @@
                 .RegisterRequest<IGetQualityProfilesRequest, V6_50.GetQualityProfilesRequest>("6.5")
                 .RegisterRequest<IGetNotificationsRequest, V6_60.GetNotificationsRequest>("6.6")
                 .RegisterRequest<IGetRoslynExportProfileRequest, V6_60.GetRoslynExportProfileRequest>("6.6");
+            return requestFactory;
         }
     }
 }

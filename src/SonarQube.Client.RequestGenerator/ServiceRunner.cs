@@ -74,7 +74,7 @@ namespace SonarQube.Client.RequestGenerator
                 service.GetQualityProfileAsync(Guid.NewGuid().ToString(), Organization, SonarQubeLanguage.CSharp, token));
 
             await SerializeResult(nameof(service.GetRoslynExportProfileAsync), $"quality profile: {RoslynQualityProfile}",
-                service.GetRoslynExportProfileAsync(RoslynQualityProfile, SonarQubeLanguage.CSharp, Organization, token));
+                service.GetRoslynExportProfileAsync(RoslynQualityProfile, Organization, SonarQubeLanguage.CSharp, token));
         }
 
         private static SecureString ToSecureString(string str)
