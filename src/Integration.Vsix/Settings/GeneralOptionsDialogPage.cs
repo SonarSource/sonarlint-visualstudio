@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
@@ -33,7 +34,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private GeneralOptionsDialogControl dialogControl;
         private ISonarLintSettings settings;
 
-        protected override UIElement Child => dialogControl ?? (dialogControl = new GeneralOptionsDialogControl());
+        protected override UIElement Child
+        {
+            get
+            {
+                if (dialogControl == null)
+                {
+                    Debug.Assert(this.Site != null, "Expecting the page to be sited");
+                    var daemon = this.Site.GetMefService<ISonarLintDaemon>();
+                    dialogControl = new GeneralOptionsDialogControl(Settings, daemon);
+                }
+                return dialogControl;
+            }
+        }
 
         protected override void OnActivate(CancelEventArgs e)
         {
@@ -61,7 +74,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (this.settings == null)
                 {
-                    this.settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
+                    Debug.Assert(this.Site != null, "Expecting the page to be sited");
+                    this.settings = this.Site.GetMefService<ISonarLintSettings>();
                 }
 
                 return this.settings;

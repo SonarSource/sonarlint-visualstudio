@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -50,14 +49,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal readonly ITextDocumentFactoryService TextDocumentFactoryService;
         internal readonly IContentTypeRegistryService ContentTypeRegistryService;
         internal readonly IFileExtensionRegistryService FileExtensionRegistryService;
-        internal readonly _DTE dte;
+        internal readonly IServiceProvider serviceProvider;
 
         private readonly List<SinkManager> managers = new List<SinkManager>();
         private readonly TrackerManager taggers = new TrackerManager();
 
         private readonly ISonarLintDaemon daemon;
         private readonly ISonarLintSettings settings;
-
+        private readonly ISonarLintOutput logger;
 
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider provider,
@@ -65,8 +64,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IContentTypeRegistryService contentTypeRegistryService,
             IFileExtensionRegistryService fileExtensionRegistryService,
             ISonarLintDaemon daemon,
-            SVsServiceProvider serviceProvider,
-            ISonarLintSettings settings)
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            ISonarLintSettings settings,
+            ISonarLintOutput logger)
         {
             this.ErrorTableManager = provider.GetTableManager(StandardTables.ErrorsTable);
             this.TextDocumentFactoryService = textDocumentFactoryService;
@@ -82,8 +82,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                                    StandardTableColumnDefinitions.ProjectName);
 
             this.daemon = daemon;
-            this.dte = (_DTE)serviceProvider.GetService(typeof(_DTE));
+            this.serviceProvider = serviceProvider;
             this.settings = settings;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -131,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (!taggers.ExistsForFile(filePath))
                 {
-                    var tracker = new IssueTagger(dte, this, buffer, document, contentTypes);
+                    var tracker = new IssueTagger(serviceProvider, this, buffer, document, contentTypes);
                     return tracker as ITagger<T>;
                 }
             }
@@ -216,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     if (type.IsOfType("C/C++"))
                     {
                         string sqLanguage;
-                        string json = CFamily.TryGetConfig(tracker.ProjectItem, path, out sqLanguage);
+                        string json = CFamily.TryGetConfig(logger, tracker.ProjectItem, path, out sqLanguage);
                         if (json != null && sqLanguage != null)
                         {
                             daemon.RequestAnalysis(path, charset, sqLanguage, json, this);
@@ -224,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                         return;
                     }
                 }
-                VsShellUtils.WriteToSonarLintOutputPane(ServiceProvider.GlobalProvider, "Unsupported content type for " + path);
+                logger.Write("Unsupported content type for " + path);
             }
         }
 

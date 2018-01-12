@@ -28,19 +28,21 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using Grpc.Core;
-using Microsoft.VisualStudio.Shell;
 using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarLintDaemon))]
-    class SonarLintDaemon : ISonarLintDaemon
+    internal class SonarLintDaemon : ISonarLintDaemon
     {
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
 
         public const string daemonVersion = "3.0.0.1140";
         private const string uriFormat = "http://repo1.maven.org/maven2/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
+
+        private readonly ISonarLintSettings settings;
+        private readonly ISonarLintOutput logger;
         private readonly string version;
         private readonly string tmpPath;
         private readonly string storagePath;
@@ -57,12 +59,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private Channel channel;
         private StandaloneSonarLint.StandaloneSonarLintClient daemonClient;
 
-        public SonarLintDaemon() : this(daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath())
+        
+        [ImportingConstructor]
+        public SonarLintDaemon(ISonarLintSettings settings, ISonarLintOutput logger)
+            : this(settings, logger, daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath())
         {
         }
 
-        public SonarLintDaemon(string version, string storagePath, string tmpPath)
+        internal /* for testing */  SonarLintDaemon(ISonarLintSettings settings, ISonarLintOutput logger, string version, string storagePath, string tmpPath)
         {
+            this.settings = settings;
+            this.logger = logger;
             this.version = version;
             this.tmpPath = tmpPath;
             this.storagePath = storagePath;
@@ -165,7 +172,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async System.Threading.Tasks.Task ListenForLogs()
         {
-            ISonarLintSettings settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
             try
             {
                 using (var streamLogs = daemonClient.StreamLogs(new Sonarlint.Void(), new CallOptions(null, null, channel.ShutdownToken).WithWaitForReady(true)))
@@ -221,7 +227,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void WritelnToPane(string msg)
         {
-            VsShellUtils.WriteToSonarLintOutputPane(ServiceProvider.GlobalProvider, msg);
+            logger.Write(msg);
         }
 
         public void Stop()
@@ -378,7 +384,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private bool IsVerbose()
         {
-            ISonarLintSettings settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
             return settings.DaemonLogLevel == DaemonLogLevel.Verbose;
         }
 

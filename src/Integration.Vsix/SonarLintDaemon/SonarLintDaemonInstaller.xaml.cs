@@ -23,7 +23,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Windows;
-using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -32,15 +31,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     public partial class SonarLintDaemonInstaller : Window
     {
-        private ISonarLintSettings settings;
-        private ISonarLintDaemon daemon;
+        private readonly ISonarLintSettings settings;
+        private readonly ISonarLintDaemon daemon;
 
         private volatile bool canceled = false;
 
         private Action callback;
 
-        public SonarLintDaemonInstaller()
+        public SonarLintDaemonInstaller(ISonarLintSettings settings, ISonarLintDaemon daemon)
         {
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+            if (daemon == null)
+            {
+                throw new ArgumentNullException(nameof(daemon));
+            }
+
+            this.settings = settings;
+            this.daemon = daemon;
+
             InitializeComponent();
         }
 
@@ -49,9 +60,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ProgressBar.Visibility = Visibility.Visible;
             CompletedMessage.Visibility = Visibility.Collapsed;
 
-            Daemon.DownloadProgressChanged += DownloadProgressChanged;
-            Daemon.DownloadCompleted += DownloadCompleted;
-            Daemon.Install();
+            daemon.DownloadProgressChanged += DownloadProgressChanged;
+            daemon.DownloadCompleted += DownloadCompleted;
+            daemon.Install();
         }
 
         private void DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
@@ -65,8 +76,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void DownloadCompleted(object sender, AsyncCompletedEventArgs e)
         {
-            Daemon.DownloadProgressChanged -= DownloadProgressChanged;
-            Daemon.DownloadCompleted -= DownloadCompleted;
+            daemon.DownloadProgressChanged -= DownloadProgressChanged;
+            daemon.DownloadCompleted -= DownloadCompleted;
 
             if (e.Error != null)
             {
@@ -83,8 +94,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 ProgressBar.Visibility = Visibility.Collapsed;
                 CompletedMessage.Visibility = Visibility.Visible;
 
-                Daemon.Start();
-                Settings.IsActivateMoreEnabled = true;
+                daemon.Start();
+                settings.IsActivateMoreEnabled = true;
                 callback?.DynamicInvoke();
             }
 
@@ -108,32 +119,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
-        }
-
-        private ISonarLintSettings Settings
-        {
-            get
-            {
-                if (this.settings == null)
-                {
-                    this.settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
-                }
-
-                return this.settings;
-            }
-        }
-
-        private ISonarLintDaemon Daemon
-        {
-            get
-            {
-                if (this.daemon == null)
-                {
-                    this.daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
-                }
-
-                return this.daemon;
-            }
         }
     }
 }

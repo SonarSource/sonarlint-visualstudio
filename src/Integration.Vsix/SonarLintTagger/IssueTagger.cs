@@ -54,9 +54,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal IssuesSnapshot Snapshot { get; set; }
 
-        internal IssueTagger(_DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document, IList<IContentType> contentTypes)
+        internal IssueTagger(IServiceProvider serviceProvider, TaggerProvider provider, ITextBuffer buffer, ITextDocument document, IList<IContentType> contentTypes)
         {
-            this.dte = dte;
+            this.dte = (_DTE)serviceProvider.GetService(typeof(_DTE));
             this.provider = provider;
             this.textBuffer = buffer;
             this.contentTypes = contentTypes;

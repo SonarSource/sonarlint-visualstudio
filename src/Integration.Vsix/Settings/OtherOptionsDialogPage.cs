@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 
@@ -28,47 +29,50 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string PageName = "Other";
 
-        private readonly ITelemetryManager telemetryManager;
+        private ITelemetryManager telemetryManager;
 
         private OtherOptionsDialogControl optionsDialogControl;
         protected override UIElement Child => optionsDialogControl ?? (optionsDialogControl = new OtherOptionsDialogControl());
-
-        public OtherOptionsDialogPage()
-            : this(ServiceProvider.GlobalProvider.GetMefService<ITelemetryManager>())
-        {
-        }
-
-        public OtherOptionsDialogPage(ITelemetryManager telemetryManager)
-        {
-            this.telemetryManager = telemetryManager;
-        }
 
         protected override void OnActivate(CancelEventArgs e)
         {
             base.OnActivate(e);
 
-            this.optionsDialogControl.ShareAnonymousData.IsChecked = this.telemetryManager?.IsAnonymousDataShared ?? false;
+            this.optionsDialogControl.ShareAnonymousData.IsChecked = this.TelemetryManager?.IsAnonymousDataShared ?? false;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
         {
             if (e.ApplyBehavior == ApplyKind.Apply &&
-                this.telemetryManager != null)
+                this.TelemetryManager != null)
             {
-                var wasShared = this.telemetryManager.IsAnonymousDataShared;
+                var wasShared = this.TelemetryManager.IsAnonymousDataShared;
                 var isShared = this.optionsDialogControl.ShareAnonymousData.IsChecked ?? true;
 
                 if (wasShared && !isShared)
                 {
-                    this.telemetryManager.OptOut();
+                    this.TelemetryManager.OptOut();
                 }
                 else if (!wasShared && isShared)
                 {
-                    this.telemetryManager.OptIn();
+                    this.TelemetryManager.OptIn();
                 }
             }
 
             base.OnApply(e);
+        }
+
+        private ITelemetryManager TelemetryManager
+        {
+            get
+            {
+                if (this.telemetryManager == null)
+                {
+                    Debug.Assert(this.Site != null, "Expecting the page to be sited");
+                    this.telemetryManager = this.Site.GetMefService<ITelemetryManager>();
+                }
+                return this.telemetryManager;
+            }
         }
     }
 }
