@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration
             timer.Interval = MillisecondsBeforeFirstUpload;
         }
 
-        private DateTime LastUploadDate => telemetryRepository.Data.LastUploadDate;
+        private DateTimeOffset LastUploadDate => telemetryRepository.Data.LastUploadDate;
 
         public void Start()
         {

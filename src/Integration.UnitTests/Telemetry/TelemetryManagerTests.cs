@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -96,15 +95,15 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Ctor_WhenInstallationDateIsDateTimeMin_SetsCurrentDateAndSave()
         {
             // Arrange
-            var telemetryData = new TelemetryData { InstallationDate = DateTime.MinValue };
+            var telemetryData = new TelemetryData { InstallationDate = DateTimeOffset.MinValue };
             this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
             // Act
             CreateManager();
 
             // Assert
-            telemetryData.InstallationDate.Should().BeAfter(DateTime.Now.AddMinutes(-5));
-            telemetryData.InstallationDate.Should().BeOnOrBefore(DateTime.Now);
+            telemetryData.InstallationDate.Should().BeAfter(DateTimeOffset.Now.AddMinutes(-5));
+            telemetryData.InstallationDate.Should().BeOnOrBefore(DateTimeOffset.Now);
             this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
         }
 
@@ -113,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             this.telemetryRepositoryMock.Setup(x => x.Data)
-                .Returns(new TelemetryData { InstallationDate = DateTime.Now, IsAnonymousDataShared = true });
+                .Returns(new TelemetryData { InstallationDate = DateTimeOffset.Now, IsAnonymousDataShared = true });
             var manager = CreateManager();
 
             // Act
@@ -127,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void OptIn_SavesChoiceAndStartsTimers()
         {
             // Arrange
-            var telemetryData = new TelemetryData { InstallationDate = DateTime.Now };
+            var telemetryData = new TelemetryData { InstallationDate = DateTimeOffset.Now };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
             var manager = CreateManager();
@@ -147,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void OptOut_SavesChoiceAndStopsTimersAndSendOptOutTelemetry()
         {
             // Arrange
-            var telemetryData = new TelemetryData { InstallationDate = DateTime.Now };
+            var telemetryData = new TelemetryData { InstallationDate = DateTimeOffset.Now };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
             var manager = CreateManager();
@@ -172,13 +171,13 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var telemetryData = new TelemetryData
             {
                 IsAnonymousDataShared = true,
-                InstallationDate = DateTime.Now,
-                LastUploadDate = DateTime.Now.AddDays(-1)
+                InstallationDate = DateTimeOffset.Now,
+                LastUploadDate = DateTimeOffset.Now.AddDays(-1)
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
             var manager = CreateManager();
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
 
             // Act
             telemetryTimerMock.Raise(x => x.Elapsed += null, new TelemetryTimerEventArgs(now));
@@ -196,13 +195,13 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var telemetryData = new TelemetryData
             {
                 IsAnonymousDataShared = true,
-                InstallationDate = DateTime.Now,
-                LastUploadDate = DateTime.Now.AddDays(-1)
+                InstallationDate = DateTimeOffset.Now,
+                LastUploadDate = DateTimeOffset.Now.AddDays(-1)
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
             var manager = CreateManager();
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
 
             // Act
             telemetryTimerMock.Raise(x => x.Elapsed += null, new TelemetryTimerEventArgs(now));
@@ -216,36 +215,36 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [TestMethod]
         public void WhenSolutionBuildingContextChangedAndNewDay_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave()
         {
-            WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime.Now.AddDays(-1),
+            WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTimeOffset.Now.AddDays(-1),
                 x => x.SolutionBuildingContextChanged += null);
         }
 
         [TestMethod]
         public void WhenSolutionExistsAndFullyLoadedContextChangedAndNewDay_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave()
         {
-            WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime.Now.AddDays(-1),
+            WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTimeOffset.Now.AddDays(-1),
                 x => x.SolutionExistsAndFullyLoadedContextChanged += null);
         }
 
         [TestMethod]
         public void WhenSolutionBuildingContextChangedAndDateTimeMinValue_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave()
         {
-            WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime.MinValue, x => x.SolutionBuildingContextChanged += null);
+            WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTimeOffset.MinValue, x => x.SolutionBuildingContextChanged += null);
         }
 
         [TestMethod]
         public void WhenSolutionExistsAndFullyLoadedContextChangedAndDateTimeMinValue_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave()
         {
-            WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime.MinValue, x => x.SolutionExistsAndFullyLoadedContextChanged += null);
+            WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTimeOffset.MinValue, x => x.SolutionExistsAndFullyLoadedContextChanged += null);
         }
 
-        private void WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTime lastSavedAnalysisDate, Action<IKnownUIContexts> eventExpression)
+        private void WhenUIContextsEventAndGivenLastDate_ChangeLastAnalysisDateAndUpdateDaysOfUseAndSave(DateTimeOffset lastSavedAnalysisDate, Action<IKnownUIContexts> eventExpression)
         {
             // Arrange
             var telemetryData = new TelemetryData
             {
                 IsAnonymousDataShared = true,
-                InstallationDate = DateTime.Now,
+                InstallationDate = DateTimeOffset.Now,
                 LastSavedAnalysisDate = lastSavedAnalysisDate
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
@@ -256,7 +255,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             knownUIContexts.Raise(eventExpression, new UIContextChangedEventArgs(true));
 
             // Assert
-            telemetryData.LastSavedAnalysisDate.Should().BeCloseTo(DateTime.Now, CloseTimeThresholdInMilliseconds);
+            telemetryData.LastSavedAnalysisDate.Should().BeCloseTo(DateTimeOffset.Now, CloseTimeThresholdInMilliseconds);
             telemetryData.NumberOfDaysOfUse.Should().Be(1);
 
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
@@ -277,11 +276,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private void WhenEventAndNotActivate_DoNothing(Action<IKnownUIContexts> eventExpression)
         {
             // Arrange
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
             var telemetryData = new TelemetryData
             {
                 IsAnonymousDataShared = true,
-                InstallationDate = DateTime.Now,
+                InstallationDate = DateTimeOffset.Now,
                 LastSavedAnalysisDate = now
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);

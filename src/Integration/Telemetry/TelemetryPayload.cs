@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Diagnostics;
 using Newtonsoft.Json;
 
@@ -45,5 +46,11 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("connected_mode_used")]
         public bool IsUsingConnectedMode { get; set; }
+
+        [JsonProperty("install_time")]
+        public DateTimeOffset InstallDate { get; set; }
+
+        [JsonProperty("system_time")]
+        public DateTimeOffset SystemDate { get; set; }
     }
 }

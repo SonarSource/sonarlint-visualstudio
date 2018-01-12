@@ -20,129 +20,177 @@
 
 using System;
 using System.IO;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
+using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
     [TestClass]
     public class TelemetryDataRepositoryTests
     {
+        private Mock<IFile> fileMock;
+        private Mock<IFileSystemWatcherFactory> watcherFactoryMock;
+        private static Mock<IDirectory> directoryMock;
+
         [TestMethod]
-        public void Ctor_AlwaysCreateStorageFileFolders()
+        public void Ctor_Create_Storage_File()
         {
             // Arrange
-            var filePath = TelemetryDataRepository.GetStorageFilePath();
-            var directoryPath = Path.GetDirectoryName(filePath);
+            var fileContents = new StringBuilder();
 
-            RetryHelper.RetryOnException(5, TimeSpan.FromSeconds(1), () => Directory.Delete(directoryPath, true));
-            Directory.Exists(directoryPath).Should().BeFalse(); // Sanity test
+            InitializeMocks(fileContents, fileExists: false, dirExists: false);
+            directoryMock
+                .Setup(x => x.Create(Path.GetDirectoryName(TelemetryDataRepository.GetStorageFilePath())));
+            fileMock
+               .Setup(x => x.CreateText(TelemetryDataRepository.GetStorageFilePath()))
+               .Returns(() => new StringWriter(fileContents));
 
             // Act
-            var repository = new TelemetryDataRepository();
+            var repository = new TelemetryDataRepository(fileMock.Object, directoryMock.Object, watcherFactoryMock.Object);
 
             // Assert
-            Directory.Exists(directoryPath).Should().BeTrue();
+            RemoveLineEndings(fileContents.ToString()).Should().Be(RemoveLineEndings(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <IsAnonymousDataShared>true</IsAnonymousDataShared>
+  <NumberOfDaysOfUse>0</NumberOfDaysOfUse>
+  <InstallationDate>0001-01-01T00:00:00.0000000+00:00</InstallationDate>
+  <LastSavedAnalysisDate>0001-01-01T00:00:00.0000000+00:00</LastSavedAnalysisDate>
+  <LastUploadDate>0001-01-01T00:00:00.0000000+00:00</LastUploadDate>
+</TelemetryData>"));
+
+            Mock.VerifyAll(fileMock, directoryMock, watcherFactoryMock);
         }
 
         [TestMethod]
-        public void Ctor_AlwaysCreateStorageFile()
+        public void Ctor_Reads_Value_From_File()
         {
             // Arrange
-            var filePath = TelemetryDataRepository.GetStorageFilePath();
+            var fileContents = new StringBuilder(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <IsAnonymousDataShared>false</IsAnonymousDataShared>
+  <NumberOfDaysOfUse>10</NumberOfDaysOfUse>
+  <InstallationDate>2017-03-15T06:15:42.1234567+01:00</InstallationDate>
+  <LastSavedAnalysisDate>2018-03-15T06:15:42.1234567+01:00</LastSavedAnalysisDate>
+  <LastUploadDate>2019-03-15T06:15:42.1234567+01:00</LastUploadDate>
+</TelemetryData>");
 
-            RetryHelper.RetryOnException(5, TimeSpan.FromSeconds(1), () => File.Delete(filePath));
-            File.Exists(filePath).Should().BeFalse(); // Sanity test
-
-            // Act
-            var repository = new TelemetryDataRepository();
-
-            // Assert
-            File.Exists(filePath).Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void Ctor_AlwaysReadValueFromFile()
-        {
-            // Arrange
-            File.Delete(TelemetryDataRepository.GetStorageFilePath());
-
-            var repository = new TelemetryDataRepository();
-            repository.Data.IsAnonymousDataShared = false;
-            repository.Data.InstallationDate = DateTime.MaxValue;
-            repository.Data.LastSavedAnalysisDate = DateTime.MaxValue;
-            repository.Data.NumberOfDaysOfUse = long.MaxValue;
-            repository.Data.LastUploadDate = DateTime.MaxValue;
-            repository.Save();
-            repository.Dispose();
+            InitializeMocks(fileContents, fileExists: true, dirExists: true);
 
             // Act
-            repository = new TelemetryDataRepository();
+            var repository = new TelemetryDataRepository(fileMock.Object, directoryMock.Object, watcherFactoryMock.Object);
 
             // Assert
             repository.Data.IsAnonymousDataShared.Should().BeFalse();
-            repository.Data.InstallationDate.Should().Be(DateTime.MaxValue);
-            repository.Data.LastSavedAnalysisDate.Should().Be(DateTime.MaxValue);
-            repository.Data.NumberOfDaysOfUse.Should().Be(long.MaxValue);
-            repository.Data.LastUploadDate.Should().Be(DateTime.MaxValue);
+            repository.Data.NumberOfDaysOfUse.Should().Be(10);
+            repository.Data.InstallationDate.Should().Be(new DateTimeOffset(new DateTime(2017, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
+            repository.Data.LastSavedAnalysisDate.Should().Be(new DateTimeOffset(new DateTime(2018, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
+            repository.Data.LastUploadDate.Should().Be(new DateTimeOffset(new DateTime(2019, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
+
+            Mock.VerifyAll(fileMock, directoryMock, watcherFactoryMock);
         }
 
         [TestMethod]
-        public void Save_SavesIntoXmlAllValuesOfData()
+        public void Instance_Reads_File_On_Change()
         {
             // Arrange
-            File.Delete(TelemetryDataRepository.GetStorageFilePath());
+            var fileContents = new StringBuilder(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <IsAnonymousDataShared>false</IsAnonymousDataShared>
+  <NumberOfDaysOfUse>10</NumberOfDaysOfUse>
+  <InstallationDate>2010-03-15T06:15:42.1234567+01:00</InstallationDate>
+  <LastSavedAnalysisDate>2010-03-15T06:15:42.1234567+01:00</LastSavedAnalysisDate>
+  <LastUploadDate>2010-03-15T06:15:42.1234567+01:00</LastUploadDate>
+</TelemetryData>");
 
-            var repository = new TelemetryDataRepository();
-            repository.Data.IsAnonymousDataShared = false;
-            repository.Data.InstallationDate = DateTime.MaxValue;
-            repository.Data.LastSavedAnalysisDate = DateTime.MaxValue;
-            repository.Data.NumberOfDaysOfUse = long.MaxValue;
-            repository.Data.LastUploadDate = DateTime.MaxValue;
+            var fileSystemWatcherMock = new Mock<IFileSystemWatcher>();
+            InitializeMocks(fileContents, fileExists: true, dirExists: true, fileSystemWatcher: fileSystemWatcherMock.Object);
+
+            var repository = new TelemetryDataRepository(fileMock.Object, directoryMock.Object, watcherFactoryMock.Object);
 
             // Act
-            repository.Save();
+            var newIsAnonymousDataShared = true;
+            var newDaysOfUse = 15;
+            var newInstallationDate = new DateTimeOffset(new DateTime(2017, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1));
+            var newLastSavedAnalysisDate = new DateTimeOffset(new DateTime(2018, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1));
+            var newLastUploadDate = new DateTimeOffset(new DateTime(2019, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1));
+            fileContents.Clear();
+            fileContents.Append($@"<?xml version=""1.0"" encoding=""utf-16""?>
+<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <IsAnonymousDataShared>{newIsAnonymousDataShared.ToString().ToLower()}</IsAnonymousDataShared>
+  <NumberOfDaysOfUse>{newDaysOfUse}</NumberOfDaysOfUse>
+  <InstallationDate>{newInstallationDate.ToString("o")}</InstallationDate>
+  <LastSavedAnalysisDate>{newLastSavedAnalysisDate.ToString("o")}</LastSavedAnalysisDate>
+  <LastUploadDate>{newLastUploadDate.ToString("o")}</LastUploadDate>
+</TelemetryData>");
+
+            fileSystemWatcherMock
+                .Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
 
             // Assert
-            var stream = File.OpenRead(TelemetryDataRepository.GetStorageFilePath());
-            var serializer = new XmlSerializer(typeof(TelemetryData));
-            var data = serializer.Deserialize(stream) as TelemetryData;
+            repository.Data.IsAnonymousDataShared.Should().Be(newIsAnonymousDataShared);
+            repository.Data.NumberOfDaysOfUse.Should().Be(newDaysOfUse);
+            repository.Data.InstallationDate.Should().Be(newInstallationDate);
+            repository.Data.LastSavedAnalysisDate.Should().Be(newLastSavedAnalysisDate);
+            repository.Data.LastUploadDate.Should().Be(newLastUploadDate);
 
-            data.IsAnonymousDataShared.Should().BeFalse();
-            data.InstallationDate.Should().Be(DateTime.MaxValue);
-            data.LastSavedAnalysisDate.Should().Be(DateTime.MaxValue);
-            data.NumberOfDaysOfUse.Should().Be(long.MaxValue);
-            data.LastUploadDate.Should().Be(DateTime.MaxValue);
+            Mock.VerifyAll(fileMock, directoryMock, watcherFactoryMock, fileSystemWatcherMock);
         }
 
         [TestMethod]
-        public void Instance_AutomaticallyReadFileOnChange()
+        public void Can_Read_Old_TelemetryXml()
         {
-            // Arrange
-            RetryHelper.RetryOnException(10, TimeSpan.FromMilliseconds(500),
-                () => File.Delete(TelemetryDataRepository.GetStorageFilePath()));
+            var fileContents = new StringBuilder(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+ <IsAnonymousDataShared>false</IsAnonymousDataShared>
+ <InstallationDate>1999-12-31T23:59:59.9999999</InstallationDate>
+ <LastSavedAnalysisDate>1999-12-31T23:59:59.9999999</LastSavedAnalysisDate>
+ <NumberOfDaysOfUse>5807</NumberOfDaysOfUse>
+ <LastUploadDate>1999-12-31T23:59:59.9999999</LastUploadDate>
+</TelemetryData>");
 
-            var repository = new TelemetryDataRepository();
-            repository.Data.IsAnonymousDataShared = false;
-            repository.Data.InstallationDate = DateTime.MaxValue;
-            repository.Data.LastSavedAnalysisDate = DateTime.MaxValue;
-            repository.Data.NumberOfDaysOfUse = long.MaxValue;
-            repository.Data.LastUploadDate = DateTime.MaxValue;
-
-            var otherRepository = new TelemetryDataRepository();
+            InitializeMocks(fileContents, fileExists: true, dirExists: true);
 
             // Act
-            repository.Save();
-            Task.Delay(700).Wait();
+            var repository = new TelemetryDataRepository(fileMock.Object, directoryMock.Object, watcherFactoryMock.Object);
 
             // Assert
-            otherRepository.Data.InstallationDate.Should().Be(DateTime.MaxValue);
-            otherRepository.Data.LastSavedAnalysisDate.Should().Be(DateTime.MaxValue);
-            otherRepository.Data.NumberOfDaysOfUse.Should().Be(long.MaxValue);
-            otherRepository.Data.LastUploadDate.Should().Be(DateTime.MaxValue);
-            otherRepository.Data.IsAnonymousDataShared.Should().BeFalse();
+            repository.Data.InstallationDate.Should().Be(new DateTimeOffset(1999, 12, 31, 23, 59, 59, 999, DateTimeOffset.Now.Offset).AddTicks(9999));
+            repository.Data.LastSavedAnalysisDate.Should().Be(new DateTimeOffset(1999, 12, 31, 23, 59, 59, 999, DateTimeOffset.Now.Offset).AddTicks(9999));
+            repository.Data.NumberOfDaysOfUse.Should().Be(5807);
+            repository.Data.LastUploadDate.Should().Be(new DateTimeOffset(1999, 12, 31, 23, 59, 59, 999, DateTimeOffset.Now.Offset).AddTicks(9999));
+            repository.Data.IsAnonymousDataShared.Should().BeFalse();
+
+            Mock.VerifyAll(fileMock, directoryMock, watcherFactoryMock);
+        }
+
+        private void InitializeMocks(StringBuilder fileContents, bool fileExists, bool dirExists,
+            IFileSystemWatcher fileSystemWatcher = null)
+        {
+            fileMock = new Mock<IFile>(MockBehavior.Strict);
+            fileMock
+                .Setup(x => x.OpenText(TelemetryDataRepository.GetStorageFilePath()))
+                .Returns(() => new StringReader(fileContents.ToString()));
+            fileMock
+                .Setup(x => x.Exists(TelemetryDataRepository.GetStorageFilePath()))
+                .Returns(fileExists);
+
+            directoryMock = new Mock<IDirectory>(MockBehavior.Strict);
+            directoryMock
+                .Setup(x => x.Exists(Path.GetDirectoryName(TelemetryDataRepository.GetStorageFilePath())))
+                .Returns(dirExists);
+
+            watcherFactoryMock = new Mock<IFileSystemWatcherFactory>(MockBehavior.Strict);
+            watcherFactoryMock
+                .Setup(x => x.Create())
+                .Returns(fileSystemWatcher ?? new Mock<IFileSystemWatcher>().Object);
+        }
+
+        private string RemoveLineEndings(string text)
+        {
+            return text.Replace("\r\n", string.Empty).Replace("\n", string.Empty);
         }
     }
 }

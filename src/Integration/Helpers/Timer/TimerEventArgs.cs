@@ -26,9 +26,9 @@ namespace SonarLint.VisualStudio.Integration
     {
         public TimerEventArgs(DateTime signalTime)
         {
-            SignalTime = signalTime;
+            SignalTime = new DateTimeOffset(signalTime);
         }
 
-        public DateTime SignalTime { get; }
+        public DateTimeOffset SignalTime { get; }
     }
 }

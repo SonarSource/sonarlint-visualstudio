@@ -19,16 +19,16 @@
  */
 
 using System;
+using System.IO;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    public sealed class TelemetryTimerEventArgs : EventArgs
+    public interface IFileSystemWatcher : IDisposable
     {
-        public TelemetryTimerEventArgs(DateTimeOffset signalTime)
-        {
-            SignalTime = signalTime;
-        }
-
-        public DateTimeOffset SignalTime { get; }
+        string Path { get; set; }
+        string Filter { get; set; }
+        NotifyFilters NotifyFilter { get; set; }
+        bool EnableRaisingEvents { get; set; }
+        event FileSystemEventHandler Changed;
     }
 }

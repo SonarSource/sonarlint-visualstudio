@@ -26,6 +26,6 @@ namespace SonarLint.VisualStudio.Integration
     [ExcludeFromCodeCoverage] // Wrapper around System
     public class Clock : IClock
     {
-        public DateTime Now => DateTime.Now;
+        public DateTimeOffset Now => DateTimeOffset.Now;
     }
 }

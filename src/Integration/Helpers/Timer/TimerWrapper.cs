@@ -25,7 +25,7 @@ using System.Timers;
 namespace SonarLint.VisualStudio.Integration
 {
     [ExcludeFromCodeCoverage] // Wrapper around System
-    public sealed class TimerWrapper : ITimer, IDisposable
+    public sealed class TimerWrapper : ITimer
     {
         private readonly Timer timerInstance;
         private bool isDisposed;
