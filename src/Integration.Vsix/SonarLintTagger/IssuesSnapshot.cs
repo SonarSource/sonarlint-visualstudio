@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // ruleId should be "1234" (or SOMETHING for legacy keys)
             var ruleId = ruleKey.Substring(colonIndex + 1);
-            if (ruleId.Length >= 2 &&
+            if (ruleId.Length > 1 &&
                 ruleId[0] == 'S' &&
                 char.IsDigit(ruleId[1]))
             {
