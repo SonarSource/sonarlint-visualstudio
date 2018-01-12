@@ -24,7 +24,7 @@ using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
+using VSIX = SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private string tempPath;
         private string storagePath;
-        private SonarLintDaemon daemon;
+        private VSIX.SonarLintDaemon daemon;
 
         [TestInitialize]
         public void SetUp()
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             storagePath = Path.Combine(Path.GetRandomFileName());
             Directory.CreateDirectory(tempPath);
             Directory.CreateDirectory(storagePath);
-            daemon = new SonarLintDaemon(settings, output, SonarLintDaemon.daemonVersion, storagePath, tempPath);
+            daemon = new VSIX.SonarLintDaemon(settings, output, VSIX.SonarLintDaemon.daemonVersion, storagePath, tempPath);
         }
 
         [TestMethod]

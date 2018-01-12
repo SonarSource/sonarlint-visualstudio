@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Vsix;
-using System.Collections.Generic;
-using FluentAssertions;
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -254,6 +254,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             Action action = () => CFamily.FileConfig.ConvertBasicRuntimeChecks("foo");
             action.ShouldThrow<Exception>().WithMessage("Unsupported BasicRuntimeChecks: foo");
+        }
+
+        [TestMethod]
+        public void TryGetConfig_ErrorsAreLogged()
+        {
+            // Arrange
+            var loggerMock = new Mock<ISonarLintOutput>();
+            string sqLanguage;
+
+            // Act - passing a null project item so should error when it is used
+            string json = CFamily.TryGetConfig(loggerMock.Object, null, "c:\\dummy", out sqLanguage);
+
+            // Assert
+            loggerMock.Verify(x => x.Write(It.IsAny<string>()), Times.Once);
+            json.Should().BeNull();
+            sqLanguage.Should().BeNull();
         }
     }
 }
