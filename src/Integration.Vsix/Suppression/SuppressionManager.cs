@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISonarLintOutput sonarLintOutput;
+        private readonly ILogger sonarLintOutput;
 
         private DelegateInjector delegateInjector;
         private ISonarQubeIssuesProvider sonarqubeIssueProvider;
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             this.activeSolutionBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
 
-            this.sonarLintOutput = serviceProvider.GetMefService<ISonarLintOutput>();
+            this.sonarLintOutput = serviceProvider.GetMefService<ILogger>();
 
             RefreshSuppresionHandling();
         }
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             }
             catch(Exception ex)
             {
-                this.sonarLintOutput.Write($"Failed to refresh suppression handling: {ex.Message}");
+                this.sonarLintOutput.WriteLine($"Failed to refresh suppression handling: {ex.Message}");
             }
         }
 

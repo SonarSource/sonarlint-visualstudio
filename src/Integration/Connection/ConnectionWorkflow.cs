@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         [Conditional("DEBUG")]
         private void DebugOnly_MonitorProgress(IProgressEvents progress)
         {
-            progress.RunOnFinished(r => VsShellUtils.WriteToSonarLintOutputPane(this.host, "DEBUGONLY: Connect workflow finished, Execution result: {0}", r));
+            progress.RunOnFinished(r => this.host.Logger.WriteLine("DEBUGONLY: Connect workflow finished, Execution result: {0}", r));
         }
 
         private ProgressStepDefinition[] CreateConnectionSteps(IProgressController controller, ConnectionInformation connection)
@@ -179,18 +179,18 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 // For some errors we will get an inner exception which will have a more specific information
                 // that we would like to show i.e.when the host could not be resolved
                 var innerException = e.InnerException as System.Net.WebException;
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
+                this.host.Logger.WriteLine(Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
                 AbortWithMessage(notifications, controller, cancellationToken);
             }
             catch (TaskCanceledException)
             {
                 // Canceled or timeout
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestTimeoutOrCancelled);
+                this.host.Logger.WriteLine(Strings.SonarQubeRequestTimeoutOrCancelled);
                 AbortWithMessage(notifications, controller, cancellationToken);
             }
             catch (Exception ex)
             {
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestFailed, ex.Message, null);
+                this.host.Logger.WriteLine(Strings.SonarQubeRequestFailed, ex.Message, null);
                 AbortWithMessage(notifications, controller, cancellationToken);
             }
         }
@@ -252,7 +252,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 }
                 catch (ArgumentException)
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.InvalidTestProjectRegexPattern,
+                    this.host.Logger.WriteLine(Strings.InvalidTestProjectRegexPattern,
                         testProjRegexPattern);
                 }
             }
@@ -294,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             string errorMessage = GetPluginProjectMismatchErrorMessage(csharpOrVbNetProjects);
             this.host.ActiveSection?.UserNotifications?.ShowNotificationError(errorMessage, NotificationIds.BadSonarQubePluginId, null);
-            VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, errorMessage);
+            this.host.Logger.WriteLine(Strings.SubTextPaddingFormat, errorMessage);
             notifications.ProgressChanged(Strings.ConnectionResultFailure);
 
             AbortWorkflow(controller, cancellationToken);
@@ -322,7 +322,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var isPluginSupported = !string.IsNullOrWhiteSpace(plugin?.Version) && VersionHelper.Compare(plugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
 
             var pluginSupportMessageFormat = string.Format(Strings.SubTextPaddingFormat, isPluginSupported ? Strings.SupportedPluginFoundMessage : Strings.UnsupportedPluginFoundMessage);
-            VsShellUtils.WriteToSonarLintOutputPane(this.host, pluginSupportMessageFormat, minimumSupportedPlugin.ToString());
+            this.host.Logger.WriteLine(pluginSupportMessageFormat, minimumSupportedPlugin.ToString());
 
             return isPluginSupported;
         }

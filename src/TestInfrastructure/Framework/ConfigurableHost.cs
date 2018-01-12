@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider = sp;
             this.UIDispatcher = dispatcher;
             this.VisualStateManager = new ConfigurableStateManager { Host = this };
+            Logger = new SonarLintOutputLogger(serviceProvider);
         }
 
         #region IHost
@@ -72,6 +73,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
             set;
         }
+
+        public ILogger Logger { get; set; }
 
         public void ClearActiveSection()
         {

@@ -25,6 +25,7 @@ using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -32,13 +33,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class SolutionRuleSetsInformationProviderTests
     {
+        private const string SolutionRoot = @"c:\solution";
         private DTEMock dte;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsOutputWindowPane outputPane;
         private SolutionMock solutionMock;
         private ProjectMock projectMock;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
-        private const string SolutionRoot = @"c:\solution";
+        private SolutionRuleSetsInformationProvider testSubject;
 
         [TestInitialize]
         public void TestInitialize()
@@ -53,6 +55,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
+
+            this.testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider, new SonarLintOutputLogger(serviceProvider));
         }
 
         #region Tests
@@ -60,14 +64,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_Ctor_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null, new Mock<ILogger>().Object));
         }
 
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ArgChecks()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
+            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object);
 
             // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectRuleSetsDeclarations(null).ToArray());
@@ -77,7 +81,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationPropertyWithDefaultValue()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             PropertyMock prop1 = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
 
             // Act
@@ -93,7 +96,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationPropertyWithEmptyRuleSets()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             PropertyMock prop1 = CreateProperty(this.projectMock, "config1", null);
             PropertyMock prop2 = CreateProperty(this.projectMock, "config2", string.Empty);
 
@@ -111,7 +113,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationPropertyWithSameNonDefaultValues()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             PropertyMock prop1 = CreateProperty(this.projectMock, "config1", "Custom1.ruleset");
             PropertyMock prop2 = CreateProperty(this.projectMock, "config2", @"x:\Folder\Custom2.ruleset");
             PropertyMock prop3 = CreateProperty(this.projectMock, "config3", @"..\Custom3.ruleset");
@@ -131,7 +132,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationWithNoRuleSetProperty()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             CreateProperty(this.projectMock, "config1", "Custom1.ruleset", Constants.CodeAnalysisRuleSetDirectoriesPropertyKey);
 
             // Act
@@ -146,7 +146,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_RuleSetsWithDirectories()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             PropertyMock ruleSet1 = CreateProperty(this.projectMock, "config1", "Custom1.ruleset");
             SetBuildProperty(this.projectSystemHelper, this.projectMock, Constants.CodeAnalysisRuleSetDirectoriesPropertyKey, @"x:\YYY\zzz", "config1");
 
@@ -166,9 +165,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_ArgChecks()
         {
-            // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
-
             // Act Verify
             Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.CSharp));
             Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.VBNET));
@@ -178,7 +174,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_OnOpenSolution()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
 
             // Case 1: VB + invalid path characters
@@ -200,7 +195,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_OnClosedSolution()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
 
             // Act + Assert
@@ -211,7 +205,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_OnOpenSolution()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
 
             //
@@ -226,7 +219,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_OnClosedSolution()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
 
             //
@@ -241,7 +233,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_TryGetProjectRuleSetFilePath()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider);
             var fileSystem = new ConfigurableFileSystem();
             this.serviceProvider.RegisterService(typeof(IFileSystem), fileSystem);
             ProjectMock project = new ProjectMock(@"c:\Solution\Project\Project1.myProj");

@@ -18,31 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
-
 namespace SonarLint.VisualStudio.Integration
 {
-    [Export(typeof(ISonarLintOutput))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SonarLintOutput : ISonarLintOutput
+    public interface ILogger
     {
-        private readonly IServiceProvider serviceProvider;
-
-        [ImportingConstructor]
-        public SonarLintOutput([Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
-        {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-            this.serviceProvider = serviceProvider;
-        }
-
-        public void Write(string message)
-        {
-            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, message);
-        }
+        /// <summary>
+        /// Logs a message and appends a new line.
+        /// </summary>
+        void WriteLine(string message);
+        void WriteLine(string messageFormat, params object[] args);
     }
 }

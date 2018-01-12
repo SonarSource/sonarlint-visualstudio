@@ -31,13 +31,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class DeprecationManagerTests
     {
         private DeprecationManager deprecationManager;
-        private Mock<ISonarLintOutput> sonarLintOutputMock;
+        private Mock<ILogger> sonarLintOutputMock;
         private Mock<IInfoBarManager> inforBarManagerMock;
 
         [TestInitialize]
         public void TestsInitialize()
         {
-            sonarLintOutputMock = new Mock<ISonarLintOutput>();
+            sonarLintOutputMock = new Mock<ILogger>();
             inforBarManagerMock = new Mock<IInfoBarManager>();
             deprecationManager = new DeprecationManager(inforBarManagerMock.Object, sonarLintOutputMock.Object);
         }
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_WhenInfoBarManagerIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            Action act = () => new DeprecationManager(null, new Mock<ISonarLintOutput>().Object);
+            Action act = () => new DeprecationManager(null, new Mock<ILogger>().Object);
 
             // Act & Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("infoBarManager");
@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             deprecationManager.Initialize(version);
 
             // Assert
-            sonarLintOutputMock.Verify(x => x.Write(expectedOutputMessage), numberOfTimes);
+            sonarLintOutputMock.Verify(x => x.WriteLine(expectedOutputMessage), numberOfTimes);
             inforBarManagerMock.Verify(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, expectedBarMessage,
                 It.IsAny<ImageMoniker>()), numberOfTimes);
         }

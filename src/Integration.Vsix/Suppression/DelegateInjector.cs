@@ -43,9 +43,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     internal sealed class DelegateInjector : IDisposable
     {
         private readonly Func<SyntaxTree, Diagnostic, bool> suppressionFunction;
-        private readonly ISonarLintOutput sonarLintOutput;
+        private readonly ILogger sonarLintOutput;
 
-        public DelegateInjector(Func<SyntaxTree, Diagnostic, bool> suppressionFunction, ISonarLintOutput sonarLintOutput)
+        public DelegateInjector(Func<SyntaxTree, Diagnostic, bool> suppressionFunction, ILogger sonarLintOutput)
         {
             if (suppressionFunction == null)
             {
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             catch (Exception e)
             {
                 // Suppress failures - we don't want the analyzers to fail
-                this.sonarLintOutput.Write($@"Unable to set the analyzer suppression handler for {asm.FullName}.
+                this.sonarLintOutput.WriteLine($@"Unable to set the analyzer suppression handler for {asm.FullName}.
 SonarQube issues that have been suppressed in SonarQube may still be reported in the IDE.
     Assembly location: {asm.Location}
     Error: {e.Message}");

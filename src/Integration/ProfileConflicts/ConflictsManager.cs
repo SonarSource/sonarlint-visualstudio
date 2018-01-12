@@ -36,15 +36,22 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     internal class ConflictsManager : IConflictsManager
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly ILogger logger;
 
-        public ConflictsManager(IServiceProvider serviceProvider)
+        public ConflictsManager(IServiceProvider serviceProvider, ILogger logger)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             this.serviceProvider = serviceProvider;
+            this.logger = logger;
         }
 
         public IReadOnlyList<ProjectRuleSetConflict> GetCurrentConflicts()
@@ -169,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         private void WriteWarning(string format, params object[] args)
         {
             string message = string.Format(CultureInfo.CurrentCulture, format, args);
-            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.ConflictsManagerWarningMessage, message);
+            logger.WriteLine(Strings.ConflictsManagerWarningMessage, message);
         }
 
         private static string CalculateProjectRuleSetFullPath(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, Project project, RuleSetDeclaration declaration)

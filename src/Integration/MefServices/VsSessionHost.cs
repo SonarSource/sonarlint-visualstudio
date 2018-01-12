@@ -66,8 +66,8 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ISonarQubeService sonarQubeService, IActiveSolutionTracker solutionTacker)
-            : this(serviceProvider, null, null, sonarQubeService, solutionTacker, Dispatcher.CurrentDispatcher)
+            ISonarQubeService sonarQubeService, IActiveSolutionTracker solutionTacker, ILogger logger)
+            : this(serviceProvider, null, null, sonarQubeService, solutionTacker, logger, Dispatcher.CurrentDispatcher)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
         }
@@ -77,6 +77,7 @@ namespace SonarLint.VisualStudio.Integration
                                     IProgressStepRunnerWrapper progressStepRunner,
                                     ISonarQubeService sonarQubeService,
                                     IActiveSolutionTracker solutionTacker,
+                                    ILogger logger,
                                     Dispatcher uiDispatcher)
         {
             if (serviceProvider == null)
@@ -94,6 +95,11 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(solutionTacker));
             }
 
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             if (uiDispatcher == null)
             {
                 throw new ArgumentNullException(nameof(uiDispatcher));
@@ -106,6 +112,7 @@ namespace SonarLint.VisualStudio.Integration
             this.SonarQubeService = sonarQubeService;
             this.solutionTacker = solutionTacker;
             this.solutionTacker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
+            this.Logger = logger;
 
             this.RegisterLocalServices();
         }
@@ -134,6 +141,8 @@ namespace SonarLint.VisualStudio.Integration
         public ISectionController ActiveSection { get; private set; }
 
         public ISet<Language> SupportedPluginLanguages { get; } = new HashSet<Language>();
+
+        public ILogger Logger { get; }
 
         public void SetActiveSection(ISectionController section)
         {
@@ -284,12 +293,12 @@ namespace SonarLint.VisualStudio.Integration
         #region IServiceProvider
         private void RegisterLocalServices()
         {
-            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this)));
+            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(this)));
             this.localServices.Add(typeof(ISolutionBindingSerializer), new Lazy<ILocalService>(() => new SolutionBindingSerializer(this)));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
-            this.localServices.Add(typeof(IConflictsManager), new Lazy<ILocalService>(() => new ConflictsManager(this)));
-            this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this)));
+            this.localServices.Add(typeof(IConflictsManager), new Lazy<ILocalService>(() => new ConflictsManager(this, Logger)));
+            this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
             this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this)));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() => new ProjectSystemFilter(this)));
             this.localServices.Add(typeof(ISolutionBindingInformationProvider), new Lazy<ILocalService>(() => new SolutionBindingInformationProvider(this)));

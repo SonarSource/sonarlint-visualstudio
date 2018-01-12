@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             this.OnBindingStarted();
 
-            ProgressNotificationListener progressListener = new ProgressNotificationListener(this.ServiceProvider, progressEvents);
+            ProgressNotificationListener progressListener = new ProgressNotificationListener(progressEvents, this.host.Logger);
             progressListener.MessageFormat = Strings.BindingSolutionPrefixMessageFormat;
 
             progressEvents.RunOnFinished(result =>

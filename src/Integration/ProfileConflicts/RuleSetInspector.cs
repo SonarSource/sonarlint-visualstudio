@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     internal class RuleSetInspector : IRuleSetInspector
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly ILogger logger;
         private readonly HashSet<string> ruleSetSearchDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static readonly RuleAction[] ruleActionStrictnessOrder = new RuleAction[]
         {
@@ -49,14 +50,20 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         /// </summary>
         public const string DefaultVSRuleSetsFolder = @"Team Tools\Static Analysis Tools\Rule Sets";
 
-        public RuleSetInspector(IServiceProvider serviceProvider, params string[] knownRuleSetDirectories)
+        public RuleSetInspector(IServiceProvider serviceProvider, ILogger logger, params string[] knownRuleSetDirectories)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             this.serviceProvider = serviceProvider;
+            this.logger = logger;
             ruleSetSearchDirectories.UnionWith(knownRuleSetDirectories);
             ruleSetSearchDirectories.Add(GetStaticAnalysisToolsDirectory());
         }
@@ -255,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
         private void EffectiveRulesErrorHandler(string message, Exception error)
         {
-            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.UnexpectedErrorMessageFormat, typeof(RuleSetInspector).FullName, message, Constants.SonarLintIssuesWebUrl);
+            logger.WriteLine(Strings.UnexpectedErrorMessageFormat, typeof(RuleSetInspector).FullName, message, Constants.SonarLintIssuesWebUrl);
             Debug.Fail(message, error.ToString());
         }
 

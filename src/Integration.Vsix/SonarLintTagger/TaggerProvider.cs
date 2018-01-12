@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly ISonarLintDaemon daemon;
         private readonly ISonarLintSettings settings;
-        private readonly ISonarLintOutput logger;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider provider,
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ISonarLintDaemon daemon,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLintSettings settings,
-            ISonarLintOutput logger)
+            ILogger logger)
         {
             this.ErrorTableManager = provider.GetTableManager(StandardTables.ErrorsTable);
             this.TextDocumentFactoryService = textDocumentFactoryService;
@@ -226,7 +226,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                         return;
                     }
                 }
-                logger.Write("Unsupported content type for " + path);
+                logger.WriteLine("Unsupported content type for " + path);
             }
         }
 

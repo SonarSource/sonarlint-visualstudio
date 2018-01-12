@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal const string CPP_LANGUAGE_KEY = "cpp";
         internal const string C_LANGUAGE_KEY = "c";
 
-        public static string TryGetConfig(ISonarLintOutput logger, EnvDTE.ProjectItem projectItem, string absoluteFilePath, out string sqLanguage)
+        public static string TryGetConfig(ILogger logger, EnvDTE.ProjectItem projectItem, string absoluteFilePath, out string sqLanguage)
         {
             try
             {
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception e)
             {
-                logger.Write("Unable to collect C/C++ configuration: " + e.ToString());
+                logger.WriteLine("Unable to collect C/C++ configuration: " + e.ToString());
                 sqLanguage = null;
                 return null;
             }

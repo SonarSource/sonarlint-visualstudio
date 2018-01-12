@@ -32,10 +32,10 @@ namespace SonarLint.VisualStudio.Integration
         internal /* for testing purpose */ static readonly Guid DeprecationBarGuid = new Guid(ToolWindowGuids80.ErrorList);
 
         private readonly IInfoBarManager infoBarManager;
-        private readonly ISonarLintOutput sonarLintOutput;
+        private readonly ILogger sonarLintOutput;
         private IInfoBar deprecationBar;
 
-        public DeprecationManager(IInfoBarManager infoBarManager, ISonarLintOutput sonarLintOutput)
+        public DeprecationManager(IInfoBarManager infoBarManager, ILogger sonarLintOutput)
         {
             if (infoBarManager == null)
             {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration
                 "***   from new features.                                                              ***\r\n" +
                 "*****************************************************************************************";
 
-            sonarLintOutput.Write(message);
+            sonarLintOutput.WriteLine(message);
         }
 
         private void ShowDeprecationBar()

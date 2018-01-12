@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableSolutionBindingInformationProvider solutionBindingInformationProvider;
         private ConfigurableSolutionBindingSerializer solutionBindingSerializer;
 
-        private Mock<ISonarLintOutput> sonarLintOutputMock;
+        private Mock<ILogger> sonarLintOutputMock;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         
         private bool isMockServiceConnected;
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionBindingSerializer = new ConfigurableSolutionBindingSerializer();
             this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBindingSerializer);
 
-            this.sonarLintOutputMock = new Mock<ISonarLintOutput>();
+            this.sonarLintOutputMock = new Mock<ILogger>();
         }
 
         [TestMethod]
@@ -160,9 +160,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             this.sonarLintOutputMock
-                .Verify(x => x.Write(It.Is<string>(s => s.StartsWith("SonarQube request failed"))), Times.Exactly(2));
+                .Verify(x => x.WriteLine(It.Is<string>(s => s.StartsWith("SonarQube request failed"))), Times.Exactly(2));
             this.sonarLintOutputMock
-                .Verify(x => x.Write(It.Is<string>(s => s.StartsWith("SonarQube request timed out or was canceled"))), Times.Once);
+                .Verify(x => x.WriteLine(It.Is<string>(s => s.StartsWith("SonarQube request timed out or was canceled"))), Times.Once);
         }
 
         [TestMethod]

@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration
             Project[] unboundProjects = this.bindingInformationProvider.GetUnboundProjects().ToArray();
             if (unboundProjects.Length > 0)
             {
-                this.OutputMessage(Strings.SonarLintFoundUnboundProjects, unboundProjects.Length, String.Join(", ", unboundProjects.Select(p => p.UniqueName)));
+                this.OutputMessage(Strings.SonarLintFoundUnboundProjects, unboundProjects.Length, string.Join(", ", unboundProjects.Select(p => p.UniqueName)));
 
                 this.UpdateRequired();
             }
@@ -321,7 +321,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void OutputMessage(string messageFormat, params object[] args)
         {
-            VsShellUtils.WriteToSonarLintOutputPane(this.host, messageFormat, args);
+            this.host.Logger.WriteLine(messageFormat, args);
         }
 
         private enum BindingRequestResult { StartedUpdating, CommandIsBusy, RequestIsIrrelevant, NoActiveSection };
@@ -581,12 +581,12 @@ namespace SonarLint.VisualStudio.Integration
                 if (binding.Profiles == null || binding.Profiles.Count == 0)
                 {
                     // Old binding, force refresh immediately
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckNoProfiles);
+                    this.host.Logger.WriteLine(Strings.SonarLintProfileCheckNoProfiles);
                     updateAction(Strings.SonarLintInfoBarOldBindingFile);
                     return;
                 }
 
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheck);
+                this.host.Logger.WriteLine(Strings.SonarLintProfileCheck);
 
                 CancellationToken token = this.TokenSource.Token;
                 this.BackgroundTask = System.Threading.Tasks.Task.Run(() =>
@@ -617,13 +617,13 @@ namespace SonarLint.VisualStudio.Integration
                 }
                 catch (Exception)
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckFailed);
+                    this.host.Logger.WriteLine(Strings.SonarLintProfileCheckFailed);
                     return false; // Error, can't proceed
                 }
 
                 if (!newProfiles.Keys.All(binding.Profiles.ContainsKey))
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckSolutionRequiresMoreProfiles);
+                    this.host.Logger.WriteLine(Strings.SonarLintProfileCheckSolutionRequiresMoreProfiles);
                     return true; // Missing profile, refresh
                 }
 
@@ -645,7 +645,7 @@ namespace SonarLint.VisualStudio.Integration
                     }
                 }
 
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckQualityProfileIsUpToDate);
+                this.host.Logger.WriteLine(Strings.SonarLintProfileCheckQualityProfileIsUpToDate);
                 return false; // Up-to-date
             }
 
@@ -653,13 +653,13 @@ namespace SonarLint.VisualStudio.Integration
             {
                 if (!SonarQubeQualityProfile.KeyComparer.Equals(oldProfileInfo.ProfileKey, newProfileInfo.Key))
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckDifferentProfile);
+                    this.host.Logger.WriteLine(Strings.SonarLintProfileCheckDifferentProfile);
                     return true; // The profile change to a different one
                 }
 
                 if (oldProfileInfo.ProfileTimestamp != newProfileInfo.TimeStamp)
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarLintProfileCheckProfileUpdated);
+                    this.host.Logger.WriteLine(Strings.SonarLintProfileCheckProfileUpdated);
                     return true; // The profile was updated
                 }
 

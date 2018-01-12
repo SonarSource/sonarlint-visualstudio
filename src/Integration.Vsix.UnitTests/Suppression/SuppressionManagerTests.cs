@@ -32,16 +32,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     {
         private ConfigurableServiceProvider configurableServiceProvider;
         private Mock<IActiveSolutionBoundTracker> activeSolutionBoundTrackerMock;
-        private Mock<ISonarLintOutput> sonarLintOutputMock;
+        private Mock<ILogger> sonarLintOutputMock;
 
         [TestInitialize]
         public void TestsInitialize()
         {
             activeSolutionBoundTrackerMock = new Mock<IActiveSolutionBoundTracker>();
-            sonarLintOutputMock = new Mock<ISonarLintOutput>();
+            sonarLintOutputMock = new Mock<ILogger>();
 
             var mefExport1 = MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(activeSolutionBoundTrackerMock.Object);
-            var mefExport2 = MefTestHelpers.CreateExport<ISonarLintOutput>(sonarLintOutputMock.Object);
+            var mefExport2 = MefTestHelpers.CreateExport<ILogger>(sonarLintOutputMock.Object);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport1, mefExport2);
 
             configurableServiceProvider = new ConfigurableServiceProvider(false);
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // Assert
             activeSolutionBoundTrackerMock.Verify(x => x.IsActiveSolutionBound, Times.Once);
-            sonarLintOutputMock.Verify(x => x.Write(It.IsAny<string>()), Times.Never);
+            sonarLintOutputMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // Assert
             activeSolutionBoundTrackerMock.Verify(x => x.IsActiveSolutionBound, Times.Once);
-            sonarLintOutputMock.Verify(x => x.Write(It.IsAny<string>()), Times.Once);
+            sonarLintOutputMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
