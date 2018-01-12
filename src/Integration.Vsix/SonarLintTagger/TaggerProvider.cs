@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -49,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal readonly ITextDocumentFactoryService TextDocumentFactoryService;
         internal readonly IContentTypeRegistryService ContentTypeRegistryService;
         internal readonly IFileExtensionRegistryService FileExtensionRegistryService;
-        internal readonly IServiceProvider serviceProvider;
+        internal readonly DTE dte;
 
         private readonly List<SinkManager> managers = new List<SinkManager>();
         private readonly TrackerManager taggers = new TrackerManager();
@@ -82,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                                    StandardTableColumnDefinitions.ProjectName);
 
             this.daemon = daemon;
-            this.serviceProvider = serviceProvider;
+            this.dte = (DTE)serviceProvider.GetService(typeof(DTE));
             this.settings = settings;
             this.logger = logger;
         }
@@ -132,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (!taggers.ExistsForFile(filePath))
                 {
-                    var tracker = new IssueTagger(serviceProvider, this, buffer, document, contentTypes);
+                    var tracker = new IssueTagger(dte, this, buffer, document, contentTypes);
                     return tracker as ITagger<T>;
                 }
             }

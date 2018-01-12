@@ -84,12 +84,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>())).Returns(projectItem);
             var solution = mockSolution.Object;
 
-            var mockDTE = new Mock<_DTE>();
+            var mockDTE = new Mock<DTE>();
             mockDTE.Setup(d => d.Solution).Returns(solution);
             var dte = mockDTE.Object;
 
             var mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(s => s.GetService(typeof(_DTE))).Returns(dte);
+            mockServiceProvider.Setup(s => s.GetService(typeof(DTE))).Returns(dte);
             var serviceProvider = mockServiceProvider.Object;
 
             var mockFileExtensionRegistryService = new Mock<IFileExtensionRegistryService>();
