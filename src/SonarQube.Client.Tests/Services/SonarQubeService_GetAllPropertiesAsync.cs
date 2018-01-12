@@ -31,7 +31,7 @@ using SonarQube.Client.Models;
 namespace SonarQube.Client.Tests.Services
 {
     [TestClass]
-    public class SonarQubeService2_Properties : SonarQubeService2_TestBase
+    public class SonarQubeService_GetAllPropertiesAsync : SonarQubeService_TestBase
     {
         [TestMethod]
         public async Task GetProperties_Old_ExampleFromSonarQube()

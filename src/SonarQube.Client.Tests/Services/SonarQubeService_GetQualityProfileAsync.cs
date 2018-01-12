@@ -30,7 +30,7 @@ using SonarQube.Client.Models;
 namespace SonarQube.Client.Tests.Services
 {
     [TestClass]
-    public class SonarQubeService2_QualityProfile : SonarQubeService2_TestBase
+    public class SonarQubeService_GetQualityProfileAsync : SonarQubeService_TestBase
     {
         [TestMethod]
         public async Task GetQualityProfile_Old_ExampleFromSonarQube()

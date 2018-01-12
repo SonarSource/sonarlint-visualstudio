@@ -45,8 +45,6 @@ namespace SonarQube.Client.Api.Requests.V6_30
 
             [JsonProperty("value")]
             public string Value { get; set; }
-
-            // TODO: fieldValues
         }
     }
 }

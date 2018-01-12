@@ -33,7 +33,7 @@ using SonarQube.Client.Services;
 
 namespace SonarQube.Client.Tests.Services
 {
-    public class SonarQubeService2_TestBase
+    public class SonarQubeService_TestBase
     {
         protected Mock<HttpMessageHandler> messageHandler;
         protected SonarQubeService service;

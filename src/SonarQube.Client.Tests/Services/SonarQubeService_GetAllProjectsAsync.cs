@@ -32,7 +32,7 @@ using SonarQube.Client.Models;
 namespace SonarQube.Client.Tests.Services
 {
     [TestClass]
-    public class SonarQubeService2_Projects : SonarQubeService2_TestBase
+    public class SonarQubeService_GetAllProjectsAsync : SonarQubeService_TestBase
     {
         [TestMethod]
         public async Task GetProjects_Old_ExampleFromSonarQube()

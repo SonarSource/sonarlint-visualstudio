@@ -137,7 +137,7 @@ namespace SonarQube.Client.Services
                 },
                 token);
 
-            // TODO: add language to the request configuration above
+            // Consider adding the language filter to the request configuration above and removing this line
             var profilesWithGivenLanguage = qualityProfiles.Where(x => x.Language == language.Key).ToList();
 
             var qualityProfile = profilesWithGivenLanguage.Count > 1

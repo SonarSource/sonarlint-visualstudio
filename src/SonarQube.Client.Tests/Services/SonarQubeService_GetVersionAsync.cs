@@ -20,7 +20,7 @@
 
 namespace SonarQube.Client.Tests.Services
 {
-    public class SonarQubeService2_Version
+    public class SonarQubeService_GetVersionAsync
     {
         // This request is tested in all other tests because it is used in the setup phase
     }

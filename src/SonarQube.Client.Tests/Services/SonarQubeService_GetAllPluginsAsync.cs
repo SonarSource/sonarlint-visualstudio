@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -32,33 +31,48 @@ using SonarQube.Client.Models;
 namespace SonarQube.Client.Tests.Services
 {
     [TestClass]
-    public class SonarQubeService2_Issues : SonarQubeService2_TestBase
+    public class SonarQubeService_GetAllPluginsAsync : SonarQubeService_TestBase
     {
         [TestMethod]
-        public async Task GetSuppressedIssuesAsync_ExampleFromSonarQube()
+        public async Task GetPlugins_ExampleFromSonarQube()
         {
             await ConnectToSonarQube();
 
-            SetupRequest("batch/issues?key=project1",
-                new StreamReader(@"TestResources\IssuesProtobufResponse").ReadToEnd());
+            SetupRequest("api/updatecenter/installed_plugins",
+                @"[
+  {
+    ""key"": ""findbugs"",
+    ""name"": ""Findbugs"",
+    ""version"": ""2.1""
+  },
+  {
+    ""key"": ""l10nfr"",
+    ""name"": ""French Pack"",
+    ""version"": ""1.10""
+  },
+  {
+    ""key"": ""jira"",
+    ""name"": ""JIRA"",
+    ""version"": ""1.2""
+  }
+]");
 
-            var result = await service.GetSuppressedIssuesAsync("project1", CancellationToken.None);
-
-            // TODO: create a protobuf file with more than one issue with different states
-            result.Should().HaveCount(0);
+            var result = await service.GetAllPluginsAsync(CancellationToken.None);
 
             messageHandler.VerifyAll();
+
+            result.Should().HaveCount(3);
         }
 
         [TestMethod]
-        public async Task GetSuppressedIssuesAsync_NotFound()
+        public async Task GetPlugins_NotFound()
         {
             await ConnectToSonarQube();
 
-            SetupRequest("batch/issues?key=project1", "", HttpStatusCode.NotFound);
+            SetupRequest("api/updatecenter/installed_plugins", "", HttpStatusCode.NotFound);
 
-            Func<Task<IList<SonarQubeIssue>>> func = async () =>
-                await service.GetSuppressedIssuesAsync("project1", CancellationToken.None);
+            Func<Task<IList<SonarQubePlugin>>> func = async () =>
+                await service.GetAllPluginsAsync(CancellationToken.None);
 
             func.ShouldThrow<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");

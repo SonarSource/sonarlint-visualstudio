@@ -44,7 +44,7 @@ namespace SonarQube.Client.Api.Requests.V5_20
         {
             using (var reader = new StringReader(response))
             {
-                // TODO: consider not returning the xml directly
+                // Consider not returning the xml directly
                 return RoslynExportProfileResponse.Load(reader);
             }
         }

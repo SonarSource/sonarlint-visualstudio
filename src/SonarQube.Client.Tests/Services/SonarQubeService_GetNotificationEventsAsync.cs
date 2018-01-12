@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace SonarQube.Client.Tests.Services
 {
     [TestClass]
-    public class SonarQubeService2_Notifications : SonarQubeService2_TestBase
+    public class SonarQubeService_GetNotificationEventsAsync : SonarQubeService_TestBase
     {
         [TestMethod]
         public async Task GetNotifications_ExampleFromSonarQube()

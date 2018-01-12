@@ -32,7 +32,7 @@ using SonarQube.Client.Models;
 namespace SonarQube.Client.Tests.Services
 {
     [TestClass]
-    public class SonarQubeService2_Organizations : SonarQubeService2_TestBase
+    public class SonarQubeService_GetAllOrganizationsAsync : SonarQubeService_TestBase
     {
         [TestMethod]
         public async Task GetOrganizations_ExampleFromSonarQube()

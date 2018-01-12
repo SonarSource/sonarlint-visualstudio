@@ -31,7 +31,7 @@ using SonarQube.Client.Models;
 namespace SonarQube.Client.Tests.Services
 {
     [TestClass]
-    public class SonarQubeService2_RoslynQualityProfile : SonarQubeService2_TestBase
+    public class SonarQubeService_GetRoslynExportProfileAsync : SonarQubeService_TestBase
     {
         [TestMethod]
         public async Task GetRoslynQualityProfile_Old_ExampleFromSonarQube()
