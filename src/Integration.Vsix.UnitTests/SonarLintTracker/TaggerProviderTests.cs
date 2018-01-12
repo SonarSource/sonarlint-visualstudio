@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EnvDTE;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -42,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ISonarLintDaemon daemon;
         private Mock<ISonarLintDaemon> mockDaemon;
         private Mock<ISonarLintSettings> mockISonarLintSettings;
+        private Mock<ISonarLintOutput> mockLogger;
 
         private string filename = "foo.js";
         private Mock<ITextDocument> mockTextDocument;
@@ -83,13 +84,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>())).Returns(projectItem);
             var solution = mockSolution.Object;
 
-            var mockDTE = new Mock<_DTE>();
+            var mockDTE = new Mock<DTE>();
             mockDTE.Setup(d => d.Solution).Returns(solution);
             var dte = mockDTE.Object;
 
-            var mockSVsServiceProvider = new Mock<SVsServiceProvider>();
-            mockSVsServiceProvider.Setup(s => s.GetService(typeof(_DTE))).Returns(dte);
-            var SVsServiceProvider = mockSVsServiceProvider.Object;
+            var mockServiceProvider = new Mock<IServiceProvider>();
+            mockServiceProvider.Setup(s => s.GetService(typeof(DTE))).Returns(dte);
+            var serviceProvider = mockServiceProvider.Object;
 
             var mockFileExtensionRegistryService = new Mock<IFileExtensionRegistryService>();
             var fileExtensionRegistryService = mockFileExtensionRegistryService.Object;
@@ -113,7 +114,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Setup(t => t.TryGetTextDocument(It.IsAny<ITextBuffer>(), out textDocument))
                 .Returns(true);
 
-            this.provider = new TaggerProvider(tableManagerProvider, textDocumentFactoryService, contentTypeRegistryService, fileExtensionRegistryService, daemon, SVsServiceProvider, sonarLintSettings);
+            mockLogger = new Mock<ISonarLintOutput>();
+
+            this.provider = new TaggerProvider(tableManagerProvider, textDocumentFactoryService, contentTypeRegistryService, fileExtensionRegistryService, daemon, serviceProvider, sonarLintSettings, mockLogger.Object);
         }
 
         [TestMethod]

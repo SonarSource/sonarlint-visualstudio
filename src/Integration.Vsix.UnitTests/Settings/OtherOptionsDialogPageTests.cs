@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel;
 using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using static Microsoft.VisualStudio.Shell.DialogPage;
@@ -32,9 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         private class OtherOptionsDialogPageTestable : OtherOptionsDialogPage
         {
             public OtherOptionsDialogControl Control => Child as OtherOptionsDialogControl;
-
-            public OtherOptionsDialogPageTestable(ITelemetryManager telemetryManager)
-                : base(telemetryManager) { }
 
             public void Activate()
             {
@@ -55,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             var telemetryManager = new Mock<ITelemetryManager>();
             telemetryManager.Setup(x => x.IsAnonymousDataShared).Returns(true);
 
-            var optionsPage = new OtherOptionsDialogPageTestable(telemetryManager.Object);
+            var optionsPage = CreateTestSubject(telemetryManager.Object);
 
             // Act
             optionsPage.Activate();
@@ -71,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             // Arrange
             var telemetryManager = new Mock<ITelemetryManager>();
             telemetryManager.Setup(x => x.IsAnonymousDataShared).Returns(false);
-            var optionsPage = new OtherOptionsDialogPageTestable(telemetryManager.Object);
+            var optionsPage = CreateTestSubject(telemetryManager.Object);
 
             // Act
             optionsPage.Activate();
@@ -89,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             var telemetryManager = new Mock<ITelemetryManager>();
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInOrOptOutCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptInOrOptOutCalled = true);
-            var optionsPage = new OtherOptionsDialogPageTestable(telemetryManager.Object);
+            var optionsPage = CreateTestSubject(telemetryManager.Object);
 
             // Act
             optionsPage.Apply(ApplyKind.Cancel);
@@ -106,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             var telemetryManager = new Mock<ITelemetryManager>();
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInOrOptOutCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptInOrOptOutCalled = true);
-            var optionsPage = new OtherOptionsDialogPageTestable(telemetryManager.Object);
+            var optionsPage = CreateTestSubject(telemetryManager.Object);
 
             // Act
             optionsPage.Apply(ApplyKind.CancelNoNavigate);
@@ -125,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInOrOptOutCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptInOrOptOutCalled = true);
 
-            var optionsPage = new OtherOptionsDialogPageTestable(telemetryManager.Object);
+            var optionsPage = CreateTestSubject(telemetryManager.Object);
             optionsPage.Control.ShareAnonymousData.IsChecked = false;
 
             // Act
@@ -145,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInOrOptOutCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptInOrOptOutCalled = true);
 
-            var optionsPage = new OtherOptionsDialogPageTestable(telemetryManager.Object);
+            var optionsPage = CreateTestSubject(telemetryManager.Object);
             optionsPage.Control.ShareAnonymousData.IsChecked = true;
 
             // Act
@@ -166,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptOutCalled = true);
 
-            var optionsPage = new OtherOptionsDialogPageTestable(telemetryManager.Object);
+            var optionsPage = CreateTestSubject(telemetryManager.Object);
             optionsPage.Control.ShareAnonymousData.IsChecked = true;
 
             // Act
@@ -188,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptOutCalled = true);
 
-            var optionsPage = new OtherOptionsDialogPageTestable(telemetryManager.Object);
+            var optionsPage = CreateTestSubject(telemetryManager.Object);
             optionsPage.Control.ShareAnonymousData.IsChecked = false;
 
             // Act
@@ -197,6 +196,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             // Assert
             isOptInCalled.Should().BeFalse();
             isOptOutCalled.Should().BeTrue();
+        }
+
+        private OtherOptionsDialogPageTestable CreateTestSubject(ITelemetryManager telemetryManager)
+        {
+            var testSubject = new OtherOptionsDialogPageTestable();
+
+            // The telemetry manager is a MEF component, so the page obtains it by
+            // using the "Site" property as service provider to get the IComponentModel MEF service.
+            // The MEF service then returns the telemetry manager.
+            Mock<ISite> mockSite = new Mock<ISite>();
+
+            Mock<IComponentModel> mockMefHost = new Mock<IComponentModel>();
+            mockMefHost.Setup(m => m.GetExtensions<ITelemetryManager>()).Returns(new[] { telemetryManager });
+
+            mockSite.As<IServiceProvider>().Setup(m => m.GetService(It.Is<Type>(t => t == typeof(SComponentModel)))).Returns(mockMefHost.Object);
+
+            mockSite.Object.GetMefService<ITelemetryManager>().Should().NotBeNull(); // sanity check of the test setup
+
+            testSubject.Site = mockSite.Object;
+            return testSubject;
         }
     }
 }

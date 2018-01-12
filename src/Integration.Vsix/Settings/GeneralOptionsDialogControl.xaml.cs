@@ -21,7 +21,6 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -30,11 +29,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     public partial class GeneralOptionsDialogControl : UserControl
     {
-        private ISonarLintSettings settings;
-        private ISonarLintDaemon daemon;
+        private readonly ISonarLintSettings settings;
+        private readonly ISonarLintDaemon daemon;
 
-        public GeneralOptionsDialogControl()
+        public GeneralOptionsDialogControl(ISonarLintSettings settings, ISonarLintDaemon daemon)
         {
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+            if (daemon == null)
+            {
+                throw new ArgumentNullException(nameof(daemon));
+            }
+
+            this.settings = settings;
+            this.daemon = daemon;
+
             InitializeComponent();
         }
 
@@ -42,9 +53,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.OnInitialized(e);
 
-            if (!Daemon.IsInstalled)
+            if (!daemon.IsInstalled)
             {
-                Settings.IsActivateMoreEnabled = false;
+                settings.IsActivateMoreEnabled = false;
             }
 
             UpdateActiveMoreControls();
@@ -52,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void UpdateActiveMoreControls()
         {
-            if (Settings.IsActivateMoreEnabled)
+            if (settings.IsActivateMoreEnabled)
             {
                 ActivateButton.Visibility = Visibility.Collapsed;
                 ActivateText.Visibility = Visibility.Collapsed;
@@ -72,56 +83,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void OnActivateMoreClicked(object sender, RoutedEventArgs e)
         {
-            if (!Daemon.IsInstalled)
+            if (!daemon.IsInstalled)
             {
-                new SonarLintDaemonInstaller().Show(UpdateActiveMoreControls);
+                new SonarLintDaemonInstaller(settings, daemon).Show(UpdateActiveMoreControls);
                 return;
             }
 
-            if (!Daemon.IsRunning)
+            if (!daemon.IsRunning)
             {
-                Daemon.Start();
+                daemon.Start();
             }
-            Settings.IsActivateMoreEnabled = true;
+            settings.IsActivateMoreEnabled = true;
 
             UpdateActiveMoreControls();
         }
 
         private void OnDeactivateClicked(object sender, RoutedEventArgs e)
         {
-            if (Daemon.IsRunning)
+            if (daemon.IsRunning)
             {
-                Daemon.Stop();
+                daemon.Stop();
             }
-            Settings.IsActivateMoreEnabled = false;
+            settings.IsActivateMoreEnabled = false;
 
             UpdateActiveMoreControls();
         }
 
-        private ISonarLintSettings Settings
-        {
-            get
-            {
-                if (this.settings == null)
-                {
-                    this.settings = ServiceProvider.GlobalProvider.GetMefService<ISonarLintSettings>();
-                }
-
-                return this.settings;
-            }
-        }
-
-        private ISonarLintDaemon Daemon
-        {
-            get
-            {
-                if (this.daemon == null)
-                {
-                    this.daemon = ServiceProvider.GlobalProvider.GetMefService<ISonarLintDaemon>();
-                }
-
-                return this.daemon;
-            }
-        }
     }
 }

@@ -38,12 +38,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal class IssueTagger : ITagger<IErrorTag>, IDisposable
     {
-        private readonly _DTE dte;
+        private readonly DTE dte;
         private readonly TaggerProvider provider;
         private readonly ITextBuffer textBuffer;
         private readonly IList<IContentType> contentTypes;
 
-        internal EnvDTE.ProjectItem ProjectItem { get; private set; }
+        internal ProjectItem ProjectItem { get; private set; }
         private ITextSnapshot currentSnapshot;
         private NormalizedSnapshotSpanCollection dirtySpans;
 
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal IssuesSnapshot Snapshot { get; set; }
 
-        internal IssueTagger(_DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document, IList<IContentType> contentTypes)
+        internal IssueTagger(DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document, IList<IContentType> contentTypes)
         {
             this.dte = dte;
             this.provider = provider;
