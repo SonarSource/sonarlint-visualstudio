@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region IInfoBarManager
 
-        IInfoBar IInfoBarManager.AttachInfoBar(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
+        IInfoBar IInfoBarManager.AttachInfoBarWithButton(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
         {
             this.attached.Should().NotContainKey(toolwindowGuid, "Info bar is already attached to tool window {0}", toolwindowGuid);
 

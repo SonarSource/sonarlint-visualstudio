@@ -60,13 +60,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new InfoBarManager(this.serviceProvider);
 
             // Simple checks
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, null, "button text", KnownMonikers.EventError));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, "", "button text", KnownMonikers.EventError));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, "message", null, KnownMonikers.EventError));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, "message", " ", KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, null, KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, "", KnownMonikers.EventError));
 
             // Actually checking if the frame exists
-            Exceptions.Expect<ArgumentException>(() => testSubject.AttachInfoBar(Guid.Empty, "message", "button text", KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", "button text", KnownMonikers.EventError));
+        }
+
+        [TestMethod]
+        public void InfoBarManager_AttachInfoBarWithButton_ArgChecks()
+        {
+            // Arrange
+            var testSubject = new InfoBarManager(this.serviceProvider);
+
+            // Simple checks
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, null, "button text", KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "", "button text", KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", null, KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", " ", KnownMonikers.EventError));
+
+            // Actually checking if the frame exists
+            Exceptions.Expect<ArgumentException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", "button text", KnownMonikers.EventError));
         }
 
         [TestMethod]
@@ -83,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.AssertInfoBars(0);
 
             // Act
-            IInfoBar infoBarWrapper = testSubject.AttachInfoBar(windowGuid, "Hello", "world", KnownMonikers.UserWarning);
+            IInfoBar infoBarWrapper = testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", KnownMonikers.UserWarning);
             frame.ShowNoActivateCalledCount.Should().Be(1);
             bool actionClicked = false;
             bool closed = false;
@@ -141,14 +155,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.AssertOnUnexpectedServiceRequest = false;
 
             // Act + Assert
-            testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
+            testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
             frame.ShowNoActivateCalledCount.Should().Be(0);
 
             // Case 2: Service exists, no host for frame
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
 
             // Act + Assert
-            testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
+            testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
             frame.ShowNoActivateCalledCount.Should().Be(0);
         }
 
@@ -171,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
             var testSubject = new InfoBarManager(this.serviceProvider);
             ConfigurableVsInfoBarHost host = RegisterFrameInfoBarHost(frame);
-            IInfoBar infoBarWrapper = testSubject.AttachInfoBar(windowGuid, "Hello", "world", default(ImageMoniker));
+            IInfoBar infoBarWrapper = testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default(ImageMoniker));
             bool closed = false;
             infoBarWrapper.Closed += (s, e) => closed = true;
 

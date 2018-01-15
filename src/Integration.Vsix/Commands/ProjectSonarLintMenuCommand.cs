@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
@@ -51,12 +52,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         protected override void QueryStatusInternal(OleMenuCommand command)
         {
+            Debug.Assert(this.propertyManager != null, "Property manager should not be null");
             command.Enabled = false;
             command.Visible = false;
-            if (this.propertyManager == null)
-            {
-                return;
-            }
 
             IList<Project> projects = this.propertyManager
                                           .GetSelectedProjects()

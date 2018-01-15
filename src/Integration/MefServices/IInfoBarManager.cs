@@ -29,15 +29,23 @@ namespace SonarLint.VisualStudio.Integration.InfoBar
     public interface IInfoBarManager
     {
         /// <summary>
-        /// Attached to an existing tool window
+        /// Attach an info bar with just a message to an existing tool window
+        /// </summary>
+        /// <param name="toolwindowGuid">Tool window Guid</param>
+        /// <param name="message">Message to show on the info bar</param>
+        /// <param name="imageMoniker">Image</param>
+        /// <returns><see cref="IInfoBar"/></returns>
+        IInfoBar AttachInfoBar(Guid toolwindowGuid, string message, ImageMoniker imageMoniker);
+
+        /// <summary>
+        /// Attach an info bar with a message and a button to an existing tool window
         /// </summary>
         /// <param name="toolwindowGuid">Tool window Guid</param>
         /// <param name="message">Message to show on the info bar</param>
         /// <param name="buttonText">The button text</param>
         /// <param name="imageMoniker">Image</param>
         /// <returns><see cref="IInfoBar"/></returns>
-        IInfoBar AttachInfoBar(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker);
-        IInfoBar AttachInfoBar(Guid toolwindowGuid, string message, ImageMoniker imageMoniker);
+        IInfoBar AttachInfoBarWithButton(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker);
 
         /// <summary>
         /// Detaches an <see cref="IInfoBar"/> from its tool window

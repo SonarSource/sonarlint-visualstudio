@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
         }
 
         #region IInfoBarManager
-        public IInfoBar AttachInfoBar(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
+        public IInfoBar AttachInfoBarWithButton(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
