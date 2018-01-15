@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
-            this.testSubject = new SonarAnalyzerManager(this.serviceProvider, new AdhocWorkspace());
+            this.testSubject = new SonarAnalyzerManager(this.activeSolutionBoundTracker, new AdhocWorkspace());
         }
 
         [TestMethod]

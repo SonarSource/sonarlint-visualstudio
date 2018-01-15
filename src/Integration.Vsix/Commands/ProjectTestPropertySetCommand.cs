@@ -44,12 +44,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// project property to a specified value.
         /// </summary>
         /// <param name="setPropertyValue">Value this instance will set the project properties to.</param>
-        public ProjectTestPropertySetCommand(IServiceProvider serviceProvider, bool? setPropertyValue)
-            : base(serviceProvider)
+        public ProjectTestPropertySetCommand(IProjectPropertyManager propertyManager, bool? setPropertyValue)
         {
-            this.propertyManager = this.ServiceProvider.GetMefService<IProjectPropertyManager>();
-            Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
+            if (propertyManager == null)
+            {
+                throw new ArgumentNullException(nameof(propertyManager));
+            }
 
+            this.propertyManager = propertyManager;
             this.commandPropertyValue = setPropertyValue;
         }
 

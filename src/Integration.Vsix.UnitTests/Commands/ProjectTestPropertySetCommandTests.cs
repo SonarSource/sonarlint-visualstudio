@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
         private ConfigurableVsProjectSystemHelper projectSystem;
         private IServiceProvider serviceProvider;
+        private ProjectPropertyManager propertyManager;
 
         [TestInitialize]
         public void TestInitialize()
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             provider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
 
             var host = new ConfigurableHost(provider, Dispatcher.CurrentDispatcher);
-            var propertyManager = new ProjectPropertyManager(host);
+            propertyManager = new ProjectPropertyManager(host);
             var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             provider.RegisterService(typeof(SComponentModel), mefModel);
@@ -63,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         {
             Exceptions.Expect<ArgumentNullException>(() => new ProjectTestPropertySetCommand(null, true));
 
-            new ProjectTestPropertySetCommand(this.serviceProvider, null);
+            new ProjectTestPropertySetCommand(this.propertyManager, null);
         }
 
         [TestMethod]
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             // Test case 1: test (true)
             // Arrange
-            var testSubject1 = new ProjectTestPropertySetCommand(serviceProvider, true);
+            var testSubject1 = new ProjectTestPropertySetCommand(propertyManager, true);
 
             // Act
             testSubject1.Invoke(command, null);
@@ -88,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.VerifyTestProperty(project, true);
 
             // Test case 2: non-test (false)
-            var testSubject2 = new ProjectTestPropertySetCommand(serviceProvider, false);
+            var testSubject2 = new ProjectTestPropertySetCommand(propertyManager, false);
 
             // Act
             testSubject2.Invoke(command, null);
@@ -97,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.VerifyTestProperty(project, false);
 
             // Test case 3: auto detect (null)
-            var testSubject3 = new ProjectTestPropertySetCommand(serviceProvider, null);
+            var testSubject3 = new ProjectTestPropertySetCommand(propertyManager, null);
 
             // Act
             testSubject3.Invoke(command, null);
@@ -123,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             // Test case 1: test (true)
             // Arrange
-            var testSubject1 = new ProjectTestPropertySetCommand(serviceProvider, true);
+            var testSubject1 = new ProjectTestPropertySetCommand(propertyManager, true);
             this.SetTestProperty(p1, null);
             this.SetTestProperty(p2, true);
             this.SetTestProperty(p3, false);
@@ -137,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.VerifyTestProperty(p3, true);
 
             // Test case 2: non-test (false)
-            var testSubject2 = new ProjectTestPropertySetCommand(serviceProvider, false);
+            var testSubject2 = new ProjectTestPropertySetCommand(propertyManager, false);
             this.SetTestProperty(p1, null);
             this.SetTestProperty(p2, true);
             this.SetTestProperty(p3, false);
@@ -151,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.VerifyTestProperty(p3, false);
 
             // Test case 3: auto detect (null)
-            var testSubject3 = new ProjectTestPropertySetCommand(serviceProvider, null);
+            var testSubject3 = new ProjectTestPropertySetCommand(propertyManager, null);
             this.SetTestProperty(p1, null);
             this.SetTestProperty(p2, true);
             this.SetTestProperty(p3, false);
@@ -176,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             ProjectTestPropertySetCommand testSubject;
             using (new AssertIgnoreScope()) // we want to be missing the MEF service
             {
-                testSubject = new ProjectTestPropertySetCommand(localProvider, null);
+                testSubject = new ProjectTestPropertySetCommand(propertyManager, null);
             }
 
             // Act
@@ -193,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectTestPropertySetCommand(serviceProvider, null);
+            var testSubject = new ProjectTestPropertySetCommand(propertyManager, null);
 
             var project = new ProjectMock("mcproject.csproj");
             project.SetCSProjectKind();
@@ -214,7 +215,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectTestPropertySetCommand(serviceProvider, null);
+            var testSubject = new ProjectTestPropertySetCommand(propertyManager, null);
 
             var project = new ProjectMock("mcproject.csproj");
 
@@ -353,7 +354,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectTestPropertySetCommand(this.serviceProvider, null);
+            var testSubject = new ProjectTestPropertySetCommand(this.propertyManager, null);
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
@@ -376,7 +377,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectTestPropertySetCommand(this.serviceProvider, null);
+            var testSubject = new ProjectTestPropertySetCommand(this.propertyManager, null);
 
             var unsupportedProject = new ProjectMock("bad.proj");
             var supportedProject = new ProjectMock("good.proj");
@@ -443,7 +444,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
         private TestProjectTestPropSetCommandWrapper CreateCommands()
         {
-            return TestProjectTestPropSetCommandWrapper.Create(this.serviceProvider);
+            return TestProjectTestPropSetCommandWrapper.Create(this.propertyManager);
         }
 
         private class TestProjectTestPropSetCommandWrapper : IEnumerable<ProjectTestPropertySetCommand>
@@ -461,12 +462,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 this.FalseCommand = falseCmd;
             }
 
-            public static TestProjectTestPropSetCommandWrapper Create(IServiceProvider serviceProvider)
+            public static TestProjectTestPropSetCommandWrapper Create(IProjectPropertyManager propertyManager)
             {
                 return new TestProjectTestPropSetCommandWrapper(
-                    nullCmd: new ProjectTestPropertySetCommand(serviceProvider, null),
-                    trueCmd: new ProjectTestPropertySetCommand(serviceProvider, true),
-                    falseCmd: new ProjectTestPropertySetCommand(serviceProvider, false));
+                    nullCmd: new ProjectTestPropertySetCommand(propertyManager, null),
+                    trueCmd: new ProjectTestPropertySetCommand(propertyManager, true),
+                    falseCmd: new ProjectTestPropertySetCommand(propertyManager, false));
             }
 
             #region IEnumerable<ProjectTestPropertySetCommand>

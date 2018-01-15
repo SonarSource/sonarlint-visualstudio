@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
         private ConfigurableVsProjectSystemHelper projectSystem;
         private IServiceProvider serviceProvider;
+        private ProjectPropertyManager propertyManager;
 
         [TestInitialize]
         public void TestInitialize()
@@ -44,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             provider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
 
             var host = new ConfigurableHost(provider, Dispatcher.CurrentDispatcher);
-            var propertyManager = new ProjectPropertyManager(host);
+            propertyManager = new ProjectPropertyManager(host);
             var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             provider.RegisterService(typeof(SComponentModel), mefModel);
@@ -69,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(propertyManager);
             var project = new ProjectMock("projecty.csproj");
             project.SetCSProjectKind();
             this.projectSystem.SelectedProjects = new[] { project };
@@ -100,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
@@ -136,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
 
             var p1 = new ProjectMock("trueProj.proj");
             var p2 = new ProjectMock("nullProj.proj");
@@ -170,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             ProjectExcludePropertyToggleCommand testSubject;
             using (new AssertIgnoreScope()) // we want to be missing the MEF service
             {
-                testSubject = new ProjectExcludePropertyToggleCommand(localProvider);
+                testSubject = new ProjectExcludePropertyToggleCommand(propertyManager);
             }
 
             // Act
@@ -187,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(propertyManager);
 
             var project = new ProjectMock("mcproject.csproj");
             project.SetCSProjectKind();
@@ -208,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(propertyManager);
 
             var project = new ProjectMock("mcproject.csproj");
 
@@ -228,7 +229,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
 
             var project = new ProjectMock("face.proj");
             project.SetCSProjectKind();
@@ -258,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
@@ -291,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
@@ -318,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
@@ -341,7 +342,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.serviceProvider);
+            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
 
             var unsupportedProject = new ProjectMock("bad.proj");
             var supportedProject = new ProjectMock("good.proj");

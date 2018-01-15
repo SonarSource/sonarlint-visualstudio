@@ -19,7 +19,6 @@
  */
 
 using FluentAssertions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -31,14 +30,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TelemetryLoggerAccessor_GetLogger()
         {
             // Arrange
-            ConfigurableServiceProvider sp = new ConfigurableServiceProvider();
             var loggerInstance = new ConfigurableTelemetryLogger();
             var componentModel = ConfigurableComponentModel.CreateWithExports(
                 MefTestHelpers.CreateExport<ITelemetryLogger>(loggerInstance));
-            sp.RegisterService(typeof(SComponentModel), componentModel);
 
             // Act
-            ITelemetryLogger logger = TelemetryLoggerAccessor.GetLogger(sp);
+            ITelemetryLogger logger = TelemetryLoggerAccessor.GetLogger(componentModel);
 
             // Assert
             logger.Should().Be(loggerInstance, "Failed to find the MEF service: {0}", nameof(ITelemetryLogger));

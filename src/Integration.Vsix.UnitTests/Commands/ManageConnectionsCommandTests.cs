@@ -32,12 +32,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
     public class ManageConnectionsCommandTests
     {
         [TestMethod]
-        public void ManageConnectionsCommand_Ctor()
-        {
-            Exceptions.Expect<ArgumentNullException>(() => new ManageConnectionsCommand(null));
-        }
-
-        [TestMethod]
         public void ManageConnectionsCommand_Invoke()
         {
             // Arrange
@@ -45,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var teController = new ConfigurableTeamExplorerController();
             var serviceProvider = CreateServiceProviderWithMefExports<ITeamExplorerController>(teController);
 
-            var testSubject = new ManageConnectionsCommand(serviceProvider);
+            var testSubject = new ManageConnectionsCommand(teController);
 
             // Test case 1: was disabled
             command.Enabled = false;
@@ -83,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             ManageConnectionsCommand testSubject1;
             using (new AssertIgnoreScope()) // TE service is missing from MEF
             {
-                testSubject1 = new ManageConnectionsCommand(sp1);
+                testSubject1 = new ManageConnectionsCommand(null);
             }
 
             // Act
@@ -95,9 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Test case 2: has TE controller
             // Arrange
             var teController = new ConfigurableTeamExplorerController();
-            var sp2 = CreateServiceProviderWithMefExports<ITeamExplorerController>(teController);
-
-            var testSubject2 = new ManageConnectionsCommand(sp2);
+            var testSubject2 = new ManageConnectionsCommand(teController);
 
             // Act
             testSubject2.QueryStatus(command, null);

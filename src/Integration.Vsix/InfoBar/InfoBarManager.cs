@@ -106,12 +106,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
         private IInfoBar AttachInfoBarImpl(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
         {
-            IVsWindowFrame frame = GetToolWindowFrame(this.serviceProvider, toolwindowGuid);
+            IVsUIShell shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
+            IVsWindowFrame frame = GetToolWindowFrame(shell, toolwindowGuid);
 
             InfoBarModel model = CreateModel(message, buttonText, imageMoniker);
 
+            IVsInfoBarUIFactory infoBarUIFactory = serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
             IVsInfoBarUIElement uiElement;
-            if (TryCreateInfoBarUI(this.serviceProvider, model, out uiElement)
+            if (TryCreateInfoBarUI(infoBarUIFactory, model, out uiElement)
                 && TryAddInfoBarToFrame(frame, uiElement))
             {
                 return new PrivateInfoBarWrapper(frame, uiElement);
@@ -120,11 +122,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             return null;
         }
 
-        private static IVsWindowFrame GetToolWindowFrame(IServiceProvider serviceProvider, Guid toolwindowGuid)
+        private static IVsWindowFrame GetToolWindowFrame(IVsUIShell shell, Guid toolwindowGuid)
         {
-            Debug.Assert(serviceProvider != null);
+            Debug.Assert(shell != null);
 
-            IVsUIShell shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
             IVsWindowFrame frame;
             int hr = shell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fForceCreate, ref toolwindowGuid, out frame);
             if (ErrorHandler.Failed(hr) || frame == null)
@@ -135,12 +136,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             return frame;
         }
 
-        private static bool TryCreateInfoBarUI(IServiceProvider serviceProvider, IVsInfoBar infoBar, out IVsInfoBarUIElement uiElement)
+        private static bool TryCreateInfoBarUI(IVsInfoBarUIFactory infoBarUIFactory, IVsInfoBar infoBar, out IVsInfoBarUIElement uiElement)
         {
-            Debug.Assert(serviceProvider != null);
             Debug.Assert(infoBar != null);
-
-            IVsInfoBarUIFactory infoBarUIFactory = serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
 
             if (infoBarUIFactory == null)
             {

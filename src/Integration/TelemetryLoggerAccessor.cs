@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Linq;
 using Microsoft.VisualStudio.ComponentModelHost;
 
@@ -26,9 +25,8 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal static class TelemetryLoggerAccessor
     {
-        public static ITelemetryLogger GetLogger(IServiceProvider serviceProvider)
+        public static ITelemetryLogger GetLogger(IComponentModel componentModel)
         {
-            IComponentModel componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             if (componentModel != null)
             {
                 return componentModel.GetExtensions<ITelemetryLogger>().SingleOrDefault();

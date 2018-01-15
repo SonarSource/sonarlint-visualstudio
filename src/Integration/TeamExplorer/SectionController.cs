@@ -27,6 +27,7 @@ using System.Windows.Input;
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
+using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 
@@ -289,7 +290,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             Debug.Assert(this.CanDisconnect());
 
-            TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.DisconnectCommandCommandCalled);
+            var componentModel = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.DisconnectCommandCommandCalled);
             // Disconnect all (all being one)
             this.Host.VisualStateManager.GetConnectedServers().ToList().ForEach(c => this.Host.VisualStateManager.SetProjects(c, null));
             this.Host.SonarQubeService.Disconnect();
@@ -302,7 +304,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private void ToggleShowAllProjects(ServerViewModel server)
         {
-            TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.ToggleShowAllProjectsCommandCommandCalled);
+            var componentModel = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ToggleShowAllProjectsCommandCommandCalled);
 
             server.ShowAllProjects = !server.ShowAllProjects;
         }
@@ -316,7 +319,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             Debug.Assert(this.CanExecBrowseToUrl(url), "Should not be able to execute!");
 
-            TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.BrowseToUrlCommandCommandCalled);
+            var componentModel = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BrowseToUrlCommandCommandCalled);
 
             this.webBrowser.NavigateTo(url);
         }
@@ -336,7 +340,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             Debug.Assert(this.CanExecBrowseToProjectDashboard(project), $"Shouldn't be able to execute {nameof(this.BrowseToProjectDashboardCommand)}");
 
-            TelemetryLoggerAccessor.GetLogger(this.ServiceProvider)?.ReportEvent(TelemetryEvent.BrowseToProjectDashboardCommandCommandCalled);
+            var componentModel = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BrowseToProjectDashboardCommandCommandCalled);
 
             var url = this.Host.SonarQubeService.GetProjectDashboardUrl(project.Project.Key);
             this.webBrowser.NavigateTo(url.ToString());

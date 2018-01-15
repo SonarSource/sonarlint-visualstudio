@@ -30,13 +30,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public int InvokationCount { get; private set; } = 0;
 
-        public ConfigurableVsCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public ConfigurableVsCommand()
         {
         }
 
-        public ConfigurableVsCommand(IServiceProvider serviceProvider, Action<OleMenuCommand> queryStatusFunc)
-            : base(serviceProvider)
+        public ConfigurableVsCommand(Action<OleMenuCommand> queryStatusFunc)
         {
             this.queryStatusFunc = queryStatusFunc;
         }

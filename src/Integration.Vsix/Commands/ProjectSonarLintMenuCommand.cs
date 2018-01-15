@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
@@ -35,11 +34,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly IProjectPropertyManager propertyManager;
 
-        public ProjectSonarLintMenuCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public ProjectSonarLintMenuCommand(IProjectPropertyManager propertyManager)
         {
-            this.propertyManager = this.ServiceProvider.GetMefService<IProjectPropertyManager>();
-            Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
+            if (propertyManager == null)
+            {
+                throw new ArgumentNullException(nameof(propertyManager));
+            }
+
+            this.propertyManager = propertyManager;
         }
 
         protected override void InvokeInternal()

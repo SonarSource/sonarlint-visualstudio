@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -29,11 +28,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly ITeamExplorerController teamExplorer;
 
-        public ManageConnectionsCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public ManageConnectionsCommand(ITeamExplorerController teamExplorer)
         {
-            this.teamExplorer = this.ServiceProvider.GetMefService<ITeamExplorerController>();
-            Debug.Assert(this.teamExplorer != null, "Couldn't get Team Explorer controller from MEF");
+            this.teamExplorer = teamExplorer;
         }
 
         protected override void QueryStatusInternal(OleMenuCommand command)

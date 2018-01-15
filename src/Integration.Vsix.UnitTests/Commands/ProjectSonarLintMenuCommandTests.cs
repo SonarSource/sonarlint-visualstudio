@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
         private ConfigurableVsProjectSystemHelper projectSystem;
         private IServiceProvider serviceProvider;
+        private ProjectPropertyManager propertyManager;
 
         [TestInitialize]
         public void TestInitialize()
@@ -44,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             provider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
 
             var host = new ConfigurableHost(provider, Dispatcher.CurrentDispatcher);
-            var propertyManager = new ProjectPropertyManager(host);
+            propertyManager = new ProjectPropertyManager(host);
             var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             provider.RegisterService(typeof(SComponentModel), mefModel);
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectSonarLintMenuCommand(serviceProvider);
+            var testSubject = new ProjectSonarLintMenuCommand(propertyManager);
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -78,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectSonarLintMenuCommand(serviceProvider);
+            var testSubject = new ProjectSonarLintMenuCommand(propertyManager);
 
             var p1 = new ProjectMock("cs.proj");
             p1.SetCSProjectKind();
@@ -100,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectSonarLintMenuCommand(serviceProvider);
+            var testSubject = new ProjectSonarLintMenuCommand(propertyManager);
 
             var p1 = new ProjectMock("cs1.proj");
             p1.SetCSProjectKind();

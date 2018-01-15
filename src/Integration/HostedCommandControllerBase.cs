@@ -32,10 +32,10 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            this.ServiceProvider = serviceProvider;
+            this.host = serviceProvider;
         }
 
-        public IServiceProvider ServiceProvider
+        public IServiceProvider host
         {
             get;
         }

@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -128,7 +129,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
             Debug.Assert(this.OnConnectStatus());
             Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
 
-            TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.ConnectCommandCommandCalled);
+            var componentModel = host.GetService(typeof(SComponentModel)) as IComponentModel;
+            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ConnectCommandCommandCalled);
 
             var connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
             if (connectionInfo != null)
@@ -150,7 +152,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             Debug.Assert(this.OnRefreshStatus(useConnection));
 
-            TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.RefreshCommandCommandCalled);
+            var componentModel = this.host.GetService(typeof(SComponentModel)) as IComponentModel;
+            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.RefreshCommandCommandCalled);
 
             // We're currently only connected to one server. when this will change we will need to refresh all the connected servers
             ConnectionInformation currentlyConnectedServer = this.host.VisualStateManager.GetConnectedServers().SingleOrDefault();
@@ -173,7 +176,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private void OnDontWarnAgain()
         {
-            TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.DontWarnAgainCommandCalled);
+            var componentModel = base.host.GetService(typeof(SComponentModel)) as IComponentModel;
+            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.DontWarnAgainCommandCalled);
 
             this.settings.ShowServerNuGetTrustWarning = false;
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.WarnServerTrustId);
