@@ -30,23 +30,23 @@ namespace SonarLint.VisualStudio.Integration.Progress
     public class ProgressNotificationListener : IDisposable
     {
         private readonly IProgressEvents progressEvents;
-        private readonly IServiceProvider serviceProvider;
+        private readonly ILogger logger;
         private string previousProgressDetail;
 
-        public ProgressNotificationListener(IServiceProvider serviceProvider, IProgressEvents progressEvents)
+        public ProgressNotificationListener(IProgressEvents progressEvents, ILogger logger)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
             if (progressEvents == null)
             {
                 throw new ArgumentNullException(nameof(progressEvents));
             }
 
-            this.serviceProvider = serviceProvider;
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             this.progressEvents = progressEvents;
+            this.logger = logger;
 
             this.progressEvents.StepExecutionChanged += this.OnStepExecutionChanged;
         }
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Progress
             {
                 previousProgressDetail = e.ProgressDetailText;
                 string format = string.IsNullOrWhiteSpace(this.MessageFormat) ? "{0}" : this.MessageFormat;
-                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, format, e.ProgressDetailText);
+                this.logger.WriteLine(format, e.ProgressDetailText);
             }
         }
 

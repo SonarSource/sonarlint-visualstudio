@@ -25,6 +25,7 @@ using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Helpers;
 
@@ -67,13 +68,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionRuleSetsInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider();
             this.solutionRuleSetsInfoProvider.SolutionRootFolder = Path.GetDirectoryName(this.dte.Solution.FilePath);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.solutionRuleSetsInfoProvider);
+
+            this.serviceProvider.RegisterService(typeof(ILogger), new SonarLintOutputLogger(serviceProvider));
         }
 
         [TestMethod]
         public void SolutionBindingSerializer_ArgChecks()
         {
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(null));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(this.serviceProvider, null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(this.serviceProvider, null, new Mock<ILogger>().Object));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(this.serviceProvider, this.store, null));
         }
 
         [TestMethod]
@@ -349,7 +353,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private SolutionBindingSerializer CreateTestSubject()
         {
-            return new SolutionBindingSerializer(this.serviceProvider, this.store);
+            return new SolutionBindingSerializer(this.serviceProvider, this.store, new SonarLintOutputLogger(serviceProvider));
         }
 
         #endregion Helpers

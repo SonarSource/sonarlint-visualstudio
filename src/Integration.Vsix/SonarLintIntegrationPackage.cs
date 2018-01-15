@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.commandManager.Initialize();
 
             this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(),
-                this.GetMefService<ISonarLintOutput>());
+                this.GetMefService<ILogger>());
             this.deprecationManager.Initialize(VisualStudioHelpers.VisualStudioVersion);
         }
 

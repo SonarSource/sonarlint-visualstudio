@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     {
         private readonly ITimer timer;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly ISonarLintOutput sonarLintOutput;
+        private readonly ILogger sonarLintOutput;
 
         private CancellationTokenSource cancellation;
         private DateTimeOffset lastCheckDate;
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             };
 
         public SonarQubeNotificationService(ISonarQubeService sonarQubeService, INotificationIndicatorViewModel model,
-            ITimer timer, ISonarLintOutput sonarLintOutput)
+            ITimer timer, ILogger sonarLintOutput)
         {
             this.sonarQubeService = sonarQubeService;
             this.timer = timer;
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
             catch (Exception ex)
             {
-                sonarLintOutput.Write($"Failed to fetch notifications: {ex.Message}");
+                sonarLintOutput.WriteLine($"Failed to fetch notifications: {ex.Message}");
             }
         }
 

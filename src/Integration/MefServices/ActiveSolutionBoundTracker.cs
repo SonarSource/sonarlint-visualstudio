@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IErrorListInfoBarController errorListInfoBarController;
         private readonly ISolutionBindingInformationProvider solutionBindingInformationProvider;
-        private readonly ISonarLintOutput sonarLintOutput;
+        private readonly ILogger sonarLintOutput;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
 
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker,
-            ISonarLintOutput sonarLintOutput)
+            ILogger sonarLintOutput)
         {
             if (host == null)
             {
@@ -135,16 +135,16 @@ namespace SonarLint.VisualStudio.Integration
                 // For some errors we will get an inner exception which will have a more specific information
                 // that we would like to show i.e.when the host could not be resolved
                 var innerException = e.InnerException as System.Net.WebException;
-                sonarLintOutput.Write(string.Format(Strings.SonarQubeRequestFailed, e.Message, innerException?.Message));
+                sonarLintOutput.WriteLine(string.Format(Strings.SonarQubeRequestFailed, e.Message, innerException?.Message));
             }
             catch (TaskCanceledException)
             {
                 // Canceled or timeout
-                sonarLintOutput.Write(Strings.SonarQubeRequestTimeoutOrCancelled);
+                sonarLintOutput.WriteLine(Strings.SonarQubeRequestTimeoutOrCancelled);
             }
             catch (Exception e)
             {
-                sonarLintOutput.Write(string.Format(Strings.SonarQubeRequestFailed, e.Message, null));
+                sonarLintOutput.WriteLine(string.Format(Strings.SonarQubeRequestFailed, e.Message, null));
             }
         }
 

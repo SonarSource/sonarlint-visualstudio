@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -61,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.VsInstallRoot);
             this.serviceProvider.RegisterService(typeof(SVsShell), this.shell);
 
-            this.testSubject = new RuleSetInspector(this.serviceProvider);
+            this.testSubject = new RuleSetInspector(this.serviceProvider, new Mock<ILogger>().Object);
 
             Directory.CreateDirectory(this.VsRuleSetsDirectory);
             Directory.CreateDirectory(this.SonarQubeRuleSetFolder);
@@ -521,8 +522,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void RuleSetInspector_Ctor_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInspector(null));
-            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInspector(null, "dir"));
+            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInspector(null, new Mock<ILogger>().Object));
+            Exceptions.Expect<ArgumentNullException>(() => new RuleSetInspector(new ConfigurableServiceProvider(), null, "dir"));
         }
 
         [TestMethod]

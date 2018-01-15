@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableRuleSetInspector inspector;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private DTEMock dte;
+        private ConflictsManager testSubject;
 
         public TestContext TestContext { get; set; }
 
@@ -72,14 +74,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.dte = new DTEMock();
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
+
+            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider));
         }
 
         [TestMethod]
         public void ConflictsManager_Ctor()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object));
 
-            var testSubject = new ConflictsManager(this.serviceProvider);
             testSubject.Should().NotBeNull("Avoid code analysis warning when testSubject is unused");
         }
 
@@ -87,7 +90,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_NotBound()
         {
             // Arrange
-            var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidProjects();
             this.solutionBinding.CurrentBinding = null;
 
@@ -100,7 +102,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_NoValidProjects()
         {
             // Arrange
-            var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
 
             // Act + Assert
@@ -112,7 +113,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_MissingBaselineFile()
         {
             // Arrange
-            var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects();
 
@@ -128,7 +128,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_NoRuleSetDeclaration()
         {
             // Arrange
-            var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects();
             this.SetValidSolutionRuleSetPerProjectKind();
@@ -142,7 +141,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_NoConflicts()
         {
             // Arrange
-            var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects();
             this.SetValidSolutionRuleSetPerProjectKind();
@@ -165,7 +163,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_ExceptionDuringFindConflicts()
         {
             // Arrange
-            var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects(2);
             this.SetValidSolutionRuleSetPerProjectKind();
@@ -195,7 +192,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_HasConflicts()
         {
             // Arrange
-            var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects(4);
             this.SetValidSolutionRuleSetPerProjectKind();
@@ -217,7 +213,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_HasConflicts_WithoutAggregationApplied()
         {
             // Arrange
-            var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects(3);
             this.SetValidSolutionRuleSetPerProjectKind();
@@ -240,7 +235,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_HasConflicts_WithAggregationApplied()
         {
             // Arrange
-            var testSubject = new ConflictsManager(this.serviceProvider);
             this.SetValidSolutionBinding();
             this.SetValidProjects(3);
             this.SetValidSolutionRuleSetPerProjectKind();

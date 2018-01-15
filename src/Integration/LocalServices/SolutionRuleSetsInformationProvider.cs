@@ -33,15 +33,22 @@ namespace SonarLint.VisualStudio.Integration
         public const char RuleSetDirectoriesValueSpliter = ';';
 
         private readonly IServiceProvider serviceProvider;
+        private readonly ILogger logger;
 
-        public SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider)
+        public SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             this.serviceProvider = serviceProvider;
+            this.logger = logger;
         }
 
         public IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarations(Project project)
@@ -51,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration
              * and CodeAnalysisRuleSetDirectories). The collected data is put into a data object
              * and returned to the caller. The collected data includes the DTE Property object itself, which
              * is used later to update the ruleset value.
-             * 
+             *
              * TODO: consider refactoring. The code seems over-complicated: it finds the "ruleset"
              * property for all configurations, then backtracks to find the configuration, then looks
              * for the corresponding "ruleset directories" property.
@@ -77,13 +84,13 @@ namespace SonarLint.VisualStudio.Integration
                 string ruleSetDirectoriesValue = projectSystem.GetProjectProperty(project, Constants.CodeAnalysisRuleSetDirectoriesPropertyKey, activationContext);
                 string[] ruleSetDirectories = ruleSetDirectoriesValue?.Split(new[] { RuleSetDirectoriesValueSpliter }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
                 string ruleSetValue = ruleSetProperty.Value as string;
-               
+
                 yield return new RuleSetDeclaration(project, ruleSetProperty, ruleSetValue, activationContext, ruleSetDirectories);
             }
 
             if (!found)
             {
-                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.CouldNotFindCodeAnalysisRuleSetPropertyOnProject, project.UniqueName);
+                logger.WriteLine(Strings.CouldNotFindCodeAnalysisRuleSetPropertyOnProject, project.UniqueName);
             }
         }
 

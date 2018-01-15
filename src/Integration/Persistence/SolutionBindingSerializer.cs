@@ -33,16 +33,18 @@ namespace SonarLint.VisualStudio.Integration.Persistence
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ICredentialStore credentialStore;
+        private readonly ILogger logger;
 
         public const string SonarQubeSolutionBindingConfigurationFileName = "SolutionBinding.sqconfig";
         public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
 
         public SolutionBindingSerializer(IServiceProvider serviceProvider)
-            : this(serviceProvider, new SecretStore(StoreNamespace))
+            : this(serviceProvider, new SecretStore(StoreNamespace), serviceProvider?.GetService<ILogger>())
         {
         }
 
-        internal /*for testing purposes*/ SolutionBindingSerializer(IServiceProvider serviceProvider, ICredentialStore store)
+        internal /*for testing purposes*/ SolutionBindingSerializer(IServiceProvider serviceProvider, ICredentialStore store,
+            ILogger logger)
         {
             if (serviceProvider == null)
             {
@@ -54,8 +56,14 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 throw new ArgumentNullException(nameof(store));
             }
 
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             this.serviceProvider = serviceProvider;
             this.credentialStore = store;
+            this.logger = logger;
         }
 
         internal ICredentialStore Store
@@ -220,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 }
                 catch (JsonException)
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, Strings.FailedToDeserializeSQCOnfiguration, configFilePath);
+                    logger.WriteLine(Strings.FailedToDeserializeSQCOnfiguration, configFilePath);
                 }
             }
             return null;
@@ -242,7 +250,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                                     || e is IOException
                                     || e is System.Security.SecurityException)
             {
-                VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, e.Message);
+                logger.WriteLine(e.Message);
                 return false;
             }
         }

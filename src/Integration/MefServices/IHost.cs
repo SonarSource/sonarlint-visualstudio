@@ -66,5 +66,7 @@ namespace SonarLint.VisualStudio.Integration
         void ClearActiveSection();
 
         ISet<Language> SupportedPluginLanguages { get; }
+
+        ILogger Logger { get; }
     }
 }

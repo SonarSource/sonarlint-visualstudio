@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         private Mock<ISonarQubeService> sonarQubeServiceMock;
 
         private IList<SonarQubeNotification> serverNotifications = new List<SonarQubeNotification>();
-        private Mock<ISonarLintOutput> outputMock;
+        private Mock<ILogger> outputMock;
 
         private SonarQubeNotificationService notifications;
 
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         public void TestInitialize()
         {
             timerMock = new Mock<ITimer>();
-            outputMock = new Mock<ISonarLintOutput>();
+            outputMock = new Mock<ILogger>();
 
             modelMock = new Mock<INotificationIndicatorViewModel>();
             modelMock.SetupAllProperties();
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             await notifications.StartAsync("should-throw", null);
 
             // Assert
-            outputMock.Verify(x => x.Write($"Failed to fetch notifications: test exception"), Times.Once);
+            outputMock.Verify(x => x.WriteLine($"Failed to fetch notifications: test exception"), Times.Once);
         }
 
         [TestMethod]

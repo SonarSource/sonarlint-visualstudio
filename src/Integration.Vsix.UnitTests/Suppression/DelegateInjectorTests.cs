@@ -51,7 +51,7 @@ namespace SonarAnalyzer.Helpers
 }";
         private const string SonarAnalyzerAssemblyName = "SonarAnalyzer";
 
-        private static ISonarLintOutput dummyServiceProvider = new Mock<ISonarLintOutput>().Object;
+        private static ILogger dummyServiceProvider = new Mock<ILogger>().Object;
         private static Func<SyntaxTree, Diagnostic, bool> dummyFunction = (s, d) => true;
 
         [TestMethod]

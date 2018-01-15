@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         [Conditional("DEBUG")]
         private void DebugOnly_MonitorProgress(IProgressEvents progress)
         {
-            progress.RunOnFinished(r => VsShellUtils.WriteToSonarLintOutputPane(this.host, "DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
+            progress.RunOnFinished(r => this.host.Logger.WriteLine("DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
         }
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
@@ -188,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             if (!VsShellUtils.SaveSolution(this.host, silent: false))
             {
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SolutionSaveCancelledBindAborted);
+                this.host.Logger.WriteLine(Strings.SolutionSaveCancelledBindAborted);
 
                 this.AbortWorkflow(controller, token);
             }
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         this.project.Key, connectionInformation.Organization?.Key, serverLanguage, cancellationToken));
                 if (qualityProfileInfo == null)
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                        string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
                     this.AbortWorkflow(controller, cancellationToken);
                     return;
@@ -247,7 +247,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         connectionInformation.Organization?.Key, serverLanguage, cancellationToken));
                 if (roslynProfileExporter == null)
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                         string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfileInfo.Name,
                             qualityProfileInfo.Key, language.Name)));
                     this.AbortWorkflow(controller, cancellationToken);
@@ -262,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     ruleSet.Rules.Count == 0 ||
                     ruleSet.Rules.All(rule => rule.Action == RuleAction.None))
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                         string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfileInfo.Name, language.Name)));
                     this.AbortWorkflow(controller, cancellationToken);
                     return;
@@ -270,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 if (roslynProfileExporter.Deployment.NuGetPackages.Count == 0)
                 {
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                         string.Format(Strings.NoNuGetPackageForQualityProfile, language.Name)));
                     this.AbortWorkflow(controller, cancellationToken);
                     return;
@@ -284,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 rulesets[language] = ruleSet;
                 notifier.NotifyIncrementedProgress(string.Empty);
 
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, string.Format(Strings.SubTextPaddingFormat,
+                this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                     string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
             }
 
@@ -361,7 +361,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     if (!this.NuGetPackages.TryGetValue(projectLanguage, out nugetPackages))
                     {
                         var message = string.Format(Strings.BindingProjectLanguageNotMatchingAnyQualityProfileLanguage, bindingProject.Name);
-                        VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
+                        this.host.Logger.WriteLine(Strings.SubTextPaddingFormat, message);
                         nugetPackages = new List<NuGetPackageInfoResponse>();
                     }
 
@@ -378,14 +378,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
 
                 string message = string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, projectNuget.NugetPackage.Id, projectNuget.Project.Name);
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
+                this.host.Logger.WriteLine(Strings.SubTextPaddingFormat, message);
 
                 var isNugetInstallSuccessful = NuGetHelper.TryInstallPackage(this.host, projectNuget.Project, projectNuget.NugetPackage.Id, projectNuget.NugetPackage.Version);
 
                 if (isNugetInstallSuccessful) // NuGetHelper.TryInstallPackage already displayed the error message so only take care of the success message
                 {
                     message = string.Format(CultureInfo.CurrentCulture, Strings.SuccessfullyInstalledNugetPackageForProject, projectNuget.NugetPackage.Id, projectNuget.Project.Name);
-                    VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SubTextPaddingFormat, message);
+                    this.host.Logger.WriteLine(Strings.SubTextPaddingFormat, message);
                 }
 
                 // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
@@ -424,16 +424,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 // For some errors we will get an inner exception which will have a more specific information
                 // that we would like to show i.e.when the host could not be resolved
                 var innerException = e.InnerException as System.Net.WebException;
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
+                this.host.Logger.WriteLine(Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
             }
             catch (TaskCanceledException)
             {
                 // Canceled or timeout
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestTimeoutOrCancelled);
+                this.host.Logger.WriteLine(Strings.SonarQubeRequestTimeoutOrCancelled);
             }
             catch (Exception ex)
             {
-                VsShellUtils.WriteToSonarLintOutputPane(this.host, Strings.SonarQubeRequestFailed, ex.Message, null);
+                this.host.Logger.WriteLine(Strings.SonarQubeRequestFailed, ex.Message, null);
             }
 
             return default(T);
@@ -492,7 +492,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
             output.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
 
-            VsShellUtils.WriteToSonarLintOutputPane(this.host, output.ToString());
+            this.host.Logger.WriteLine(output.ToString());
         }
 
         #endregion

@@ -216,7 +216,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             this.IsConnectionInProgress = true;
 
-            ProgressNotificationListener progressListener = new ProgressNotificationListener(this.ServiceProvider, progressEvents);
+            ProgressNotificationListener progressListener = new ProgressNotificationListener(progressEvents, this.host.Logger);
             progressListener.MessageFormat = Strings.ConnectingToSonarQubePrefixMessageFormat;
 
             progressEvents.RunOnFinished(result =>

@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private const string uriFormat = "http://repo1.maven.org/maven2/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
 
         private readonly ISonarLintSettings settings;
-        private readonly ISonarLintOutput logger;
+        private readonly ILogger logger;
         private readonly string version;
         private readonly string tmpPath;
         private readonly string storagePath;
@@ -61,12 +61,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         
         [ImportingConstructor]
-        public SonarLintDaemon(ISonarLintSettings settings, ISonarLintOutput logger)
+        public SonarLintDaemon(ISonarLintSettings settings, ILogger logger)
             : this(settings, logger, daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath())
         {
         }
 
-        internal /* for testing */  SonarLintDaemon(ISonarLintSettings settings, ISonarLintOutput logger, string version, string storagePath, string tmpPath)
+        internal /* for testing */  SonarLintDaemon(ISonarLintSettings settings, ILogger logger, string version, string storagePath, string tmpPath)
         {
             this.settings = settings;
             this.logger = logger;
@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void WritelnToPane(string msg)
         {
-            logger.Write(msg);
+            logger.WriteLine(msg);
         }
 
         public void Stop()

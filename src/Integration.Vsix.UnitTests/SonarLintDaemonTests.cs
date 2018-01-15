@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SetUp()
         {
             ISonarLintSettings settings = new Mock<ISonarLintSettings>().Object;
-            ISonarLintOutput output = new Mock<ISonarLintOutput>().Object;
+            ILogger output = new Mock<ILogger>().Object;
 
             tempPath = Path.Combine(Path.GetRandomFileName());
             storagePath = Path.Combine(Path.GetRandomFileName());

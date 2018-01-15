@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ISonarLintDaemon daemon;
         private Mock<ISonarLintDaemon> mockDaemon;
         private Mock<ISonarLintSettings> mockISonarLintSettings;
-        private Mock<ISonarLintOutput> mockLogger;
+        private Mock<ILogger> mockLogger;
 
         private string filename = "foo.js";
         private Mock<ITextDocument> mockTextDocument;
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Setup(t => t.TryGetTextDocument(It.IsAny<ITextBuffer>(), out textDocument))
                 .Returns(true);
 
-            mockLogger = new Mock<ISonarLintOutput>();
+            mockLogger = new Mock<ILogger>();
 
             this.provider = new TaggerProvider(tableManagerProvider, textDocumentFactoryService, contentTypeRegistryService, fileExtensionRegistryService, daemon, serviceProvider, sonarLintSettings, mockLogger.Object);
         }

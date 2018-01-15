@@ -21,6 +21,7 @@
 using System;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Progress;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -31,8 +32,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ProgressNotificationListener_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ProgressNotificationListener(null, new ConfigurableProgressEvents()));
-            Exceptions.Expect<ArgumentNullException>(() => new ProgressNotificationListener(new ConfigurableServiceProvider(), null));
+            Exceptions.Expect<ArgumentNullException>(() => new ProgressNotificationListener(null, new Mock<ILogger>().Object));
+            Exceptions.Expect<ArgumentNullException>(() => new ProgressNotificationListener(new ConfigurableProgressEvents(), null));
         }
 
         [TestMethod]
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             var progressEvents = new ConfigurableProgressEvents();
-            var testSubject = new ProgressNotificationListener(serviceProvider, progressEvents);
+            var testSubject = new ProgressNotificationListener(progressEvents, new SonarLintOutputLogger(serviceProvider));
             string message1 = "Hello world";
             string formattedMessage2 = "Bye bye";
 
