@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         [TestMethod]
         public void OnActivate_ControlsAreConfiguredFromSettings1()
         {
-            var settings = new ConfigurableSonarLintSettings()
+            var settings = new ConfigurableSonarLintSettings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         [TestMethod]
         public void OnActivate_ControlsAreConfiguredFromSettings2()
         {
-            var settings = new ConfigurableSonarLintSettings()
+            var settings = new ConfigurableSonarLintSettings
             {
                 DaemonLogLevel = DaemonLogLevel.Info,
                 IsActivateMoreEnabled = true,
