@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -108,7 +108,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             for (int i = 0; i < requiredExports.Count(); i++)
             {
                 // Try importing when not all of the required exports are available -> exception
-                Exceptions.Expect<Exception>(() => TryCompose(importer, catalog, requiredExports.Take(i)));
+                Exceptions.Expect<Exception>(
+                    null,
+                    () => TryCompose(importer, catalog, requiredExports.Take(i)),
+                    checkDerived: true);
             }
             for (int i = 0; i < optionalExports.Count(); i++)
             {

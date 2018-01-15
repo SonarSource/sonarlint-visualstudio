@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableVsOutputWindow : IVsOutputWindow
     {
-        private readonly IDictionary<Guid, IVsOutputWindowPane> panes = new Dictionary<Guid, IVsOutputWindowPane>();
+        private readonly IDictionary<Guid, ConfigurableVsOutputWindowPane> panes = new Dictionary<Guid, ConfigurableVsOutputWindowPane>();
 
         #region IVsOutputWindow
 
@@ -71,9 +71,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #endregion IVsOutputWindow
 
-        public void AssertPaneExists(Guid paneId)
+        public ConfigurableVsOutputWindowPane AssertPaneExists(Guid paneId)
         {
             this.HasPane(paneId).Should().BeTrue($"Expected output window pane '{paneId}' to exist");
+
+            return this.panes[paneId];
         }
 
         public bool HasPane(Guid paneId)
@@ -81,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.panes.ContainsKey(paneId);
         }
 
-        public void RegisterPane(Guid paneId, IVsOutputWindowPane pane)
+        public void RegisterPane(Guid paneId, ConfigurableVsOutputWindowPane pane)
         {
             this.panes[paneId] = pane;
         }
