@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -34,7 +33,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal const string CPP_LANGUAGE_KEY = "cpp";
         internal const string C_LANGUAGE_KEY = "c";
 
-        public static string TryGetConfig(ILogger logger, EnvDTE.ProjectItem projectItem, string absoluteFilePath, out string sqLanguage)
+        public static string TryGetConfig(ILogger logger, EnvDTE.ProjectItem projectItem, string absoluteFilePath,
+            out string sqLanguage)
         {
             try
             {
@@ -237,7 +237,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (platformName)
                 {
                     default:
-                        throw new Exception("Unsupported PlatformName: " + platformName);
+                        throw new ArgumentException($"Unsupported PlatformName: {platformName}", nameof(platformName));
                     case "Win32":
                         return "x86";
                     case "x64":
@@ -250,7 +250,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (platformToolset)
                 {
                     default:
-                        throw new ArgumentException("Unsupported PlatformToolset: " + platformToolset);
+                        throw new ArgumentException($"Unsupported PlatformToolset: {platformToolset}", nameof(platformToolset));
                     case "v141":
                     case "v141_xp":
                         return "19.10.00";
@@ -275,7 +275,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new ArgumentException("Unsupported CompileAs: " + value);
+                        throw new ArgumentException($"Unsupported CompileAs: {value}", nameof(value));
                     case "Default":
                         // Compile files with extensions ".cpp", ".cxx" and ".cc" as Cpp and files with extension ".c" as C
                         if (path.ToLowerInvariant().EndsWith(".cpp") || path.ToLowerInvariant().EndsWith(".cxx") || path.ToLowerInvariant().EndsWith(".cc"))
@@ -305,7 +305,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new ArgumentException("Unsupported CompileAsManaged: " + value);
+                        throw new ArgumentException($"Unsupported CompileAsManaged: {value}", nameof(value));
                     case "":
                     case "false":
                         return "";
@@ -323,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new ArgumentException("Unsupported RuntimeLibrary: " + value);
+                        throw new ArgumentException($"Unsupported RuntimeLibrary: {value}", nameof(value));
                     case "MultiThreaded":
                         return "/MT"; // defines macro "_MT"
                     case "MultiThreadedDebug":
@@ -342,7 +342,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new ArgumentException("Unsupported EnableEnhancedInstructionSet: " + value);
+                        throw new ArgumentException($"Unsupported EnableEnhancedInstructionSet: {value}", nameof(value));
                     case "NotSet":
                         return "";
                     case "AdvancedVectorExtensions":
@@ -363,7 +363,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new ArgumentException("Unsupported ExceptionHandling: " + value);
+                        throw new ArgumentException($"Unsupported ExceptionHandling: {value}", nameof(value));
                     case "false":
                         return "";
                     // all options below define macro "_CPPUNWIND":
@@ -381,7 +381,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 switch (value)
                 {
                     default:
-                        throw new ArgumentException("Unsupported BasicRuntimeChecks: " + value);
+                        throw new ArgumentException($"Unsupported BasicRuntimeChecks: {value}", nameof(value));
                     case "Default":
                         return "";
                     // all options below define macro "__MSVC_RUNTIME_CHECKS":

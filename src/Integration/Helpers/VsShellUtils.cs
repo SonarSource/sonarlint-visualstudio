@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration
             __VSSLNSAVEOPTIONS saveOptions = __VSSLNSAVEOPTIONS.SLNSAVEOPT_SaveIfDirty;
             if (!silent)
             {
-                saveOptions |= __VSSLNSAVEOPTIONS.SLNSAVEOPT_PromptSave;
+                saveOptions = __VSSLNSAVEOPTIONS.SLNSAVEOPT_PromptSave;
             }
 
             int hr = solutionService.SaveSolutionElement((uint)saveOptions, null, 0);

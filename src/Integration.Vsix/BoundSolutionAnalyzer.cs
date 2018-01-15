@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// Analyzes the solution on build in order to determine if it has SonarQube rulesets
     /// and log that using <see cref="ITelemetryLogger"/>.
     /// </summary>
-    internal class BoundSolutionAnalyzer : IDisposable
+    internal sealed class BoundSolutionAnalyzer : IDisposable
     {
         private readonly IServiceProvider serviceProvider;
 
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         #region IDisposable Support
         private bool disposedValue = false;
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!this.disposedValue)
             {

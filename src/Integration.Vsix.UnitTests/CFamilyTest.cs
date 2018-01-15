@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CFamily.FileConfig.ConvertPlatformName("x64").Should().Be("x64");
 
             Action action = () => CFamily.FileConfig.ConvertPlatformName("foo");
-            action.ShouldThrow<Exception>().WithMessage("Unsupported PlatformName: foo");
+            action.ShouldThrow<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformName: foo");
         }
 
         [TestMethod]
@@ -164,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CFamily.FileConfig.ConvertPlatformToolset("v90").Should().Be("15.00.00");
 
             Action action = () => CFamily.FileConfig.ConvertPlatformToolset("v142");
-            action.ShouldThrow<Exception>().WithMessage("Unsupported PlatformToolset: v142");
+            action.ShouldThrow<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformToolset: v142");
         }
 
         [TestMethod]
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             sqLanguage.Should().Be("cpp");
 
             Action action = () => CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("foo", FileName, out sqLanguage);
-            action.ShouldThrow<Exception>().WithMessage("Unsupported CompileAs: foo");
+            action.ShouldThrow<ArgumentException>().And.Message.Should().StartWith("Unsupported CompileAs: foo");
         }
 
         [TestMethod]
@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CFamily.FileConfig.ConvertCompileAsManaged("Safe").Should().Be("/clr:safe");
 
             Action action = () => CFamily.FileConfig.ConvertCompileAsManaged("foo");
-            action.ShouldThrow<Exception>().WithMessage("Unsupported CompileAsManaged: foo");
+            action.ShouldThrow<ArgumentException>().And.Message.Should().StartWith("Unsupported CompileAsManaged: foo");
         }
 
         [TestMethod]
@@ -215,7 +215,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CFamily.FileConfig.ConvertRuntimeLibrary("MultiThreadedDebugDll").Should().Be("/MDd");
 
             Action action = () => CFamily.FileConfig.ConvertRuntimeLibrary("foo");
-            action.ShouldThrow<Exception>().WithMessage("Unsupported RuntimeLibrary: foo");
+            action.ShouldThrow<ArgumentException>().And.Message.Should().StartWith("Unsupported RuntimeLibrary: foo");
         }
 
         [TestMethod]
@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CFamily.FileConfig.ConvertExceptionHandling("SyncCThrow").Should().Be("/EHs");
 
             Action action = () => CFamily.FileConfig.ConvertExceptionHandling("foo");
-            action.ShouldThrow<Exception>().WithMessage("Unsupported ExceptionHandling: foo");
+            action.ShouldThrow<ArgumentException>().And.Message.Should().StartWith("Unsupported ExceptionHandling: foo");
         }
 
         [TestMethod]
@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("NoExtensions").Should().Be("/arch:IA32");
 
             Action action = () => CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("foo");
-            action.ShouldThrow<Exception>().WithMessage("Unsupported EnableEnhancedInstructionSet: foo");
+            action.ShouldThrow<ArgumentException>().And.Message.Should().StartWith("Unsupported EnableEnhancedInstructionSet: foo");
         }
 
         [TestMethod]
@@ -253,7 +253,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CFamily.FileConfig.ConvertBasicRuntimeChecks("EnableFastChecks").Should().Be("/RTC1");
 
             Action action = () => CFamily.FileConfig.ConvertBasicRuntimeChecks("foo");
-            action.ShouldThrow<Exception>().WithMessage("Unsupported BasicRuntimeChecks: foo");
+            action.ShouldThrow<ArgumentException>().And.Message.Should().StartWith("Unsupported BasicRuntimeChecks: foo");
         }
 
         [TestMethod]
