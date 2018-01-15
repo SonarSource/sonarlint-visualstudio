@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCategory:
-                    content = ToString(this.issueMarkers[index].Issue.Type);
+                    content = $"{issueMarkers[index].Issue.Severity} {ToString(issueMarkers[index].Issue.Type)}";
                     return true;
 
                 case StandardTableKeyNames.ErrorCodeToolTip:
