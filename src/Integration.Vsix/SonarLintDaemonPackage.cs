@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.Initialize();
 
-            var dte = (EnvDTE.DTE)GetService(typeof(EnvDTE.DTE));
+            var dte = this.GetService<EnvDTE.DTE>();
             this.dteEvents = dte.Events.DTEEvents;
             this.dteEvents.OnStartupComplete += OnIdeStartupComplete;
             this.daemon = this.GetMefService<ISonarLintDaemon>();

@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
         private void SetupSuppressionHandling()
         {
-            var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+            var componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             var solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
 

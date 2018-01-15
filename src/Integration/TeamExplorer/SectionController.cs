@@ -290,7 +290,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             Debug.Assert(this.CanDisconnect());
 
-            var componentModel = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.DisconnectCommandCommandCalled);
             // Disconnect all (all being one)
             this.Host.VisualStateManager.GetConnectedServers().ToList().ForEach(c => this.Host.VisualStateManager.SetProjects(c, null));
@@ -304,7 +304,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private void ToggleShowAllProjects(ServerViewModel server)
         {
-            var componentModel = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ToggleShowAllProjectsCommandCommandCalled);
 
             server.ShowAllProjects = !server.ShowAllProjects;
@@ -319,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             Debug.Assert(this.CanExecBrowseToUrl(url), "Should not be able to execute!");
 
-            var componentModel = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BrowseToUrlCommandCommandCalled);
 
             this.webBrowser.NavigateTo(url);
@@ -340,7 +340,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             Debug.Assert(this.CanExecBrowseToProjectDashboard(project), $"Shouldn't be able to execute {nameof(this.BrowseToProjectDashboardCommand)}");
 
-            var componentModel = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BrowseToProjectDashboardCommandCommandCalled);
 
             var url = this.Host.SonarQubeService.GetProjectDashboardUrl(project.Project.Key);

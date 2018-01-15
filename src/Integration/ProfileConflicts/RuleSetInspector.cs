@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         private string GetStaticAnalysisToolsDirectory()
         {
             // Get the VS install directory
-            IVsShell shell = (IVsShell)this.serviceProvider.GetService(typeof(SVsShell));
+            IVsShell shell = this.serviceProvider.GetService<SVsShell, IVsShell>();
             Debug.Assert(shell != null, "IVsShell is expected");
 
             object value;

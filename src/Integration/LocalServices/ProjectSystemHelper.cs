@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration
     {
         internal const string VbProjectKind = "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}";
         internal const string CSharpProjectKind = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
-        internal const string VbCoreProjectKind = "{778DAE3C-4631-46EA-AA77-85C1314464D9}"; 
+        internal const string VbCoreProjectKind = "{778DAE3C-4631-46EA-AA77-85C1314464D9}";
         internal const string CSharpCoreProjectKind = "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}";
         internal const string TestProjectKind = "{3AC096D0-A1C2-E12C-1390-A8335801FDAB}";
         internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(file));
             }
 
-            IVsSolution solution = this.serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
             IVsHierarchy projectHierarchy;
@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public Solution2 GetCurrentActiveSolution()
         {
-            DTE dte = this.serviceProvider.GetService(typeof(DTE)) as DTE;
+            DTE dte = this.serviceProvider.GetService<DTE>();
             Debug.Assert(dte != null, "Could not find the DTE service");
 
             Solution2 solution = (Solution2)dte?.Solution;
@@ -410,7 +410,7 @@ namespace SonarLint.VisualStudio.Integration
             string solutionItemsFolderName;
             Guid guid = VSConstants.CLSID.VsEnvironmentPackage_guid;
 
-            IVsShell shell = this.serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            IVsShell shell = this.serviceProvider.GetService<SVsShell, IVsShell>();
             Debug.Assert(shell != null, "Could not find the SVsShell service");
 
             ErrorHandler.ThrowOnFailure(shell.LoadPackageString(ref guid, SolutionItemResourceId, out solutionItemsFolderName));

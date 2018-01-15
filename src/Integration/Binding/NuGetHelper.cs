@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         public static IVsPackageInstaller LoadService(IServiceProvider serviceProvider)
         {
-            IComponentModel componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            IComponentModel componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
             var installer = componentModel.GetExtensions<IVsPackageInstaller>().SingleOrDefault();
             Debug.Assert(installer != null, "Cannot find IVsPackageInstaller");
             return installer;

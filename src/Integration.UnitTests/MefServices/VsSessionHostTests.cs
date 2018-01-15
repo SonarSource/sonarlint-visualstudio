@@ -386,13 +386,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // VS-services
             // Sanity
-            testSubject.GetService(typeof(VsSessionHostTests)).Should().BeNull("Not expecting any service at this point");
+            testSubject.GetService<VsSessionHostTests>().Should().BeNull("Not expecting any service at this point");
 
             // Arrange
             this.serviceProvider.RegisterService(typeof(VsSessionHostTests), this);
 
             // Act + Assert
-            testSubject.GetService(typeof(VsSessionHostTests)).Should().Be(this, "Unexpected service was returned, expected to use the service provider");
+            testSubject.GetService<VsSessionHostTests>().Should().Be(this, "Unexpected service was returned, expected to use the service provider");
         }
 
         #endregion Tests

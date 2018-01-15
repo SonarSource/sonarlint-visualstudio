@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public static void ActivateSolutionExplorer(IServiceProvider serviceProvider)
         {
-            var dte = serviceProvider.GetService(typeof(DTE)) as DTE2;
+            var dte = serviceProvider.GetService<DTE, DTE2>();
             dte.ToolWindows.SolutionExplorer.Parent.Activate();
         }
 
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            var solutionService = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
+            var solutionService = serviceProvider.GetService<SVsSolution, IVsSolution>();
             __VSSLNSAVEOPTIONS saveOptions = __VSSLNSAVEOPTIONS.SLNSAVEOPT_SaveIfDirty;
             if (!silent)
             {

@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             Debug.Assert(this.OnConnectStatus());
             Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
 
-            var componentModel = host.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ConnectCommandCommandCalled);
 
             var connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             Debug.Assert(this.OnRefreshStatus(useConnection));
 
-            var componentModel = this.host.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = this.host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.RefreshCommandCommandCalled);
 
             // We're currently only connected to one server. when this will change we will need to refresh all the connected servers
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private void OnDontWarnAgain()
         {
-            var componentModel = base.ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = base.ServiceProvider.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.DontWarnAgainCommandCalled);
 
             this.settings.ShowServerNuGetTrustWarning = false;

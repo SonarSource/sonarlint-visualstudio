@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             // Otherwise delegate to the package's default implementation.
-            IOleCommandTarget target = this.GetService(typeof(IOleCommandTarget)) as IOleCommandTarget;
+            IOleCommandTarget target = this.GetService<IOleCommandTarget>();
             if (target != null)
             {
                 return target.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (!ErrorHandler.Succeeded(result))
             {
                 // Otherwise delegate to the package's default implementation.
-                IOleCommandTarget target = this.GetService(typeof(IOleCommandTarget)) as IOleCommandTarget;
+                IOleCommandTarget target = this.GetService<IOleCommandTarget>();
                 if (target != null)
                 {
                     result = target.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
