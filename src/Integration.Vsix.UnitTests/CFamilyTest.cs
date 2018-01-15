@@ -260,14 +260,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TryGetConfig_ErrorsAreLogged()
         {
             // Arrange
-            var loggerMock = new Mock<ISonarLintOutput>();
+            var loggerMock = new Mock<ILogger>();
             string sqLanguage;
 
             // Act - passing a null project item so should error when it is used
             string json = CFamily.TryGetConfig(loggerMock.Object, null, "c:\\dummy", out sqLanguage);
 
             // Assert
-            loggerMock.Verify(x => x.Write(It.IsAny<string>()), Times.Once);
+            loggerMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Once);
             json.Should().BeNull();
             sqLanguage.Should().BeNull();
         }

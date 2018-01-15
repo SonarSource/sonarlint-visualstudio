@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         public void Ctor_WithNullSettings_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarLintOutput(null);
+            Action act = () => new SonarLintOutputLogger(null);
 
             // Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var serviceProviderExport = MefTestHelpers.CreateExport<SVsServiceProvider>(serviceProviderMock.Object);
 
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<SonarLintOutput, ISonarLintOutput>(null, new[] { serviceProviderExport });
+            MefTestHelpers.CheckTypeCanBeImported<SonarLintOutputLogger, ILogger>(null, new[] { serviceProviderExport });
         }
 
         [TestMethod]
@@ -60,11 +60,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var serviceProviderMock = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
             serviceProviderMock.RegisterService(typeof(SVsOutputWindow), windowMock);
 
-            SonarLintOutput logger = new SonarLintOutput(serviceProviderMock);
+            SonarLintOutputLogger logger = new SonarLintOutputLogger(serviceProviderMock);
 
             // Act
-            logger.Write("123");
-            logger.Write("abc");
+            logger.WriteLine("123");
+            logger.WriteLine("abc");
 
             // Assert
             var outputPane = windowMock.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
