@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private void OnDontWarnAgain()
         {
-            var componentModel = base.host.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = base.ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.DontWarnAgainCommandCalled);
 
             this.settings.ShowServerNuGetTrustWarning = false;

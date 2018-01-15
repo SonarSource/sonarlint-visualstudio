@@ -32,13 +32,10 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            this.host = serviceProvider;
+            this.ServiceProvider = serviceProvider;
         }
 
-        public IServiceProvider host
-        {
-            get;
-        }
+        public IServiceProvider ServiceProvider { get; }
 
         #region IOleCommandTarget
         int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
