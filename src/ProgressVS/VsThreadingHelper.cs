@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
             Debug.Assert(op != null, "op is required");
 
             IVsTaskSchedulerService taskService = serviceProvider.GetService(typeof(SVsTaskSchedulerService)) as IVsTaskSchedulerService;
-            IVsTaskBody body = VsTaskLibraryHelper.CreateTaskBody(() => (object)op());
+            IVsTaskBody body = VsTaskLibraryHelper.CreateTaskBody(() => op());
             IVsTask task = VsTaskLibraryHelper.CreateTask(taskService, context, body);
             if (token != CancellationToken.None)
             {

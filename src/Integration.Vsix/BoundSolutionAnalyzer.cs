@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void OnSolutionBuilding()
         {
-            var dte = this.serviceProvider.GetService(typeof(DTE)) as DTE;
+            var dte = this.serviceProvider.GetService<DTE>();
             string fullSolutionPath = dte.Solution?.FullName;
             if (string.IsNullOrWhiteSpace(fullSolutionPath))
             {
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             string[] existingFiles = Directory.GetFiles(expectedSonarQubeDirectory, SonarQubeSolutionBindingConfigurationSearchPattern, SearchOption.TopDirectoryOnly);
             if (existingFiles.Length > 0)
             {
-                var componentModel = this.serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+                var componentModel = this.serviceProvider.GetService<SComponentModel, IComponentModel>();
                 var telemetryLogger = componentModel?.GetExtensions<ITelemetryLogger>().SingleOrDefault();
                 if (telemetryLogger == null)
                 {

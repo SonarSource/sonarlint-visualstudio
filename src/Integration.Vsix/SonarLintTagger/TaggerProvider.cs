@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                                    StandardTableColumnDefinitions.ProjectName);
 
             this.daemon = daemon;
-            this.dte = (DTE)serviceProvider.GetService(typeof(DTE));
+            this.dte = serviceProvider.GetService<DTE>();
             this.settings = settings;
             this.logger = logger;
         }

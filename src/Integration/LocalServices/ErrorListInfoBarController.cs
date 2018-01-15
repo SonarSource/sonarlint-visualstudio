@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.Integration
             }
             else
             {
-                var componentModel = host.GetService(typeof(SComponentModel)) as IComponentModel;
+                var componentModel = host.GetService<SComponentModel, IComponentModel>();
                 TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarShow);
 
                 this.currentErrorWindowInfoBar.Closed += this.CurrentErrorWindowInfoBar_Closed;
@@ -258,7 +258,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             // Don't log unprocessed events
-            var componentModel = host.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
 
             var bindingSerialzer = this.host.GetService<ISolutionBindingSerializer>();

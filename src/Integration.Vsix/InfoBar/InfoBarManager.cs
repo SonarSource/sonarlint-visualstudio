@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
             InfoBarModel model = CreateModel(message, buttonText, imageMoniker);
 
-            IVsInfoBarUIFactory infoBarUIFactory = serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+            IVsInfoBarUIFactory infoBarUIFactory = serviceProvider.GetService<SVsInfoBarUIFactory, IVsInfoBarUIFactory>();
             IVsInfoBarUIElement uiElement;
             if (TryCreateInfoBarUI(infoBarUIFactory, model, out uiElement)
                 && TryAddInfoBarToFrame(frame, uiElement))

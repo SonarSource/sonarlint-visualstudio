@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.OnBindStatus(projectInformation));
 
-            var componentModel = host.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
 
             this.workflow.BindProject(projectInformation);
