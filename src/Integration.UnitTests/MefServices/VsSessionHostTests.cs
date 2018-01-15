@@ -59,11 +59,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
 
             var propertyManager = new ProjectPropertyManager(host);
-            var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            var mefExport1 = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
+            var mefExport2 = MefTestHelpers.CreateExport<ILogger>(new SonarLintOutputLogger(serviceProvider));
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport1, mefExport2);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
-
-            this.serviceProvider.RegisterService(typeof(ILogger), new SonarLintOutputLogger(serviceProvider));
         }
 
         #region Tests
