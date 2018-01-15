@@ -20,44 +20,36 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Globalization;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class PackageCommandManager
     {
-        private readonly IServiceProvider serviceProvider;
         private readonly IMenuCommandService menuService;
 
-        public PackageCommandManager(IServiceProvider serviceProvider)
+        public PackageCommandManager(IMenuCommandService menuService)
         {
-            if (serviceProvider == null)
+            if (menuService == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(menuService));
             }
 
-            this.serviceProvider = serviceProvider;
-
-            this.menuService = this.serviceProvider.GetService<IMenuCommandService>();
-            if (this.menuService == null)
-            {
-                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.MissingService, nameof(IMenuCommandService)), nameof(serviceProvider));
-            }
+            this.menuService = menuService;
         }
 
-        public void Initialize()
+        public void Initialize(ITeamExplorerController teamExplorerController, IProjectPropertyManager projectPropertyManager)
         {
             // Buttons
-            this.RegisterCommand((int)PackageCommandId.ManageConnections, new ManageConnectionsCommand(this.serviceProvider));
-            this.RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(this.serviceProvider));
-            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(this.serviceProvider, null));
-            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(this.serviceProvider, true));
-            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyFalse, new ProjectTestPropertySetCommand(this.serviceProvider, false));
+            this.RegisterCommand((int)PackageCommandId.ManageConnections, new ManageConnectionsCommand(teamExplorerController));
+            this.RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager));
+            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, null));
+            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(projectPropertyManager, true));
+            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyFalse, new ProjectTestPropertySetCommand(projectPropertyManager, false));
 
             // Menus
-            this.RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(this.serviceProvider));
+            this.RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
@@ -68,7 +60,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private OleMenuCommand AddCommand(Guid commandGroupGuid, int commandId, EventHandler invokeHandler, EventHandler beforeQueryStatus)
         {
             CommandID idObject = new CommandID(commandGroupGuid, commandId);
-            OleMenuCommand command = new OleMenuCommand(invokeHandler, delegate { }, beforeQueryStatus, idObject);
+            OleMenuCommand command = new OleMenuCommand(invokeHandler, delegate
+            { }, beforeQueryStatus, idObject);
             this.menuService.AddCommand(command);
             return command;
         }

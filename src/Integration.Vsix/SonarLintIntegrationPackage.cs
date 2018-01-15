@@ -19,9 +19,13 @@
  */
 
 using System;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -64,12 +68,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             IServiceProvider serviceProvider = this;
 
-            this.sonarAnalyzerManager = new SonarAnalyzerManager(serviceProvider);
+            var componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
+            var activeSolutioNBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutioNBoundTracker, workspace);
             this.suppressionManager = new SuppressionManager(serviceProvider);
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 
-            this.commandManager = new PackageCommandManager(serviceProvider);
-            this.commandManager.Initialize();
+            this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
+            this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
+                serviceProvider.GetMefService<IProjectPropertyManager>());
 
             this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(),
                 this.GetMefService<ILogger>());

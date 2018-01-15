@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 using Microsoft.TeamFoundation.Client.CommandTarget;
+using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -59,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.BindCommand = new RelayCommand<ProjectViewModel>(this.OnBind, this.OnBindStatus);
             this.workflow = workflow ?? this;
-            this.projectSystemHelper = this.ServiceProvider.GetService<IProjectSystemHelper>();
+            this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
         }
 
@@ -115,7 +116,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.OnBindStatus(projectInformation));
 
-            TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
+            var componentModel = host.GetService(typeof(SComponentModel)) as IComponentModel;
+            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
 
             this.workflow.BindProject(projectInformation);
         }
@@ -172,11 +174,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     // In some cases we will end up navigating to the solution explorer, this will make sure that
                     // we're back in team explorer to view the conflicts
-                    this.ServiceProvider.GetMefService<ITeamExplorerController>()?.ShowSonarQubePage();
+                    this.host.GetMefService<ITeamExplorerController>()?.ShowSonarQubePage();
                 }
                 else
                 {
-                    VsShellUtils.ActivateSolutionExplorer(this.ServiceProvider);
+                    VsShellUtils.ActivateSolutionExplorer(this.host);
                 }
             }
             else

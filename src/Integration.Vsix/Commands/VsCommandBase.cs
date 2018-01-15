@@ -26,20 +26,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     public abstract class VsCommandBase
     {
-        private readonly IServiceProvider serviceProvider;
-
-        protected IServiceProvider ServiceProvider => this.serviceProvider;
-
-        protected VsCommandBase(IServiceProvider serviceProvider)
-        {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            this.serviceProvider = serviceProvider;
-        }
-
         protected virtual void QueryStatusInternal(OleMenuCommand command)
         {
         }

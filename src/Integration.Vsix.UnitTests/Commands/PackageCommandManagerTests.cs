@@ -69,16 +69,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void PackageCommandManager_Ctor_MissingMenuService_ThrowsException()
-        {
-            Exceptions.Expect<ArgumentException>(() => new PackageCommandManager(new ConfigurableServiceProvider(false)));
-        }
-
-        [TestMethod]
         public void PackageCommandManager_Initialize()
         {
             // Arrange
-            var testSubject = new PackageCommandManager(serviceProvider);
+            var testSubject = new PackageCommandManager(this.menuService);
 
             var cmdSet = new Guid(CommonGuids.CommandSet);
             IList<CommandID> allCommands = Enum.GetValues(typeof(PackageCommandId))
@@ -87,7 +81,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                                                .ToList();
 
             // Act
-            testSubject.Initialize();
+            testSubject.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
+                serviceProvider.GetMefService<IProjectPropertyManager>());
 
             // Assert
             menuService.Commands.Should().HaveCount(allCommands.Count, "Unexpected number of commands");
@@ -104,9 +99,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             int cmdId = 42;
             Guid cmdSetGuid = new Guid(CommonGuids.CommandSet);
             CommandID commandIdObject = new CommandID(cmdSetGuid, cmdId);
-            var command = new ConfigurableVsCommand(serviceProvider);
+            var command = new ConfigurableVsCommand();
 
-            var testSubject = new PackageCommandManager(serviceProvider);
+            var testSubject = new PackageCommandManager(this.menuService);
 
             // Act
             testSubject.RegisterCommand(cmdId, command);

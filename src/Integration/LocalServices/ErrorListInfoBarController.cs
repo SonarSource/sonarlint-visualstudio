@@ -26,6 +26,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using EnvDTE;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -226,7 +227,8 @@ namespace SonarLint.VisualStudio.Integration
             }
             else
             {
-                TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.ErrorListInfoBarShow);
+                var componentModel = host.GetService(typeof(SComponentModel)) as IComponentModel;
+                TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarShow);
 
                 this.currentErrorWindowInfoBar.Closed += this.CurrentErrorWindowInfoBar_Closed;
                 this.currentErrorWindowInfoBar.ButtonClick += this.CurrentErrorWindowInfoBar_ButtonClick;
@@ -256,7 +258,8 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             // Don't log unprocessed events
-            TelemetryLoggerAccessor.GetLogger(this.host)?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
+            var componentModel = host.GetService(typeof(SComponentModel)) as IComponentModel;
+            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
 
             var bindingSerialzer = this.host.GetService<ISolutionBindingSerializer>();
             bindingSerialzer.AssertLocalServiceIsNotNull();

@@ -20,13 +20,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices;
 using SonarAnalyzer.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -48,11 +45,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /*for testing purposes*/ static readonly Version AnalyzerVersion = AnalyzerAssemblyName.Version;
         internal /*for testing purposes*/ static readonly string AnalyzerName = AnalyzerAssemblyName.Name;
 
-        internal /*for testing purposes*/ SonarAnalyzerManager(IServiceProvider serviceProvider, Workspace workspace)
+        internal /*for testing purposes*/ SonarAnalyzerManager(IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            Workspace workspace)
         {
-            if (serviceProvider == null)
+            if (activeSolutionBoundTracker == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             }
 
             if (workspace == null)
@@ -60,31 +58,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 throw new ArgumentNullException(nameof(workspace));
             }
 
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.workspace = workspace;
-            this.activeSolutionBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
-
-            if (this.activeSolutionBoundTracker == null)
-            {
-                Debug.Fail($"Could not get {nameof(IActiveSolutionBoundTracker)}");
-            }
 
             SonarAnalysisContext.ShouldAnalysisBeDisabled = tree => ShouldAnalysisBeDisabledOnTree(tree);
-        }
-
-        public SonarAnalyzerManager(IServiceProvider serviceProvider)
-            : this(serviceProvider, GetWorkspace(serviceProvider))
-        {
-        }
-
-        private static Workspace GetWorkspace(IServiceProvider serviceProvider)
-        {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            IComponentModel componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-            return componentModel.GetService<VisualStudioWorkspace>();
         }
 
         private bool ShouldAnalysisBeDisabledOnTree(SyntaxTree tree)

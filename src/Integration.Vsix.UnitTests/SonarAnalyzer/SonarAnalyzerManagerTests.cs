@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
 
@@ -35,13 +34,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
         [TestMethod]
         public void SonarAnalyzerManager_ArgChecks()
         {
-            // Arrange
-            var serviceProvider = new ConfigurableServiceProvider();
-            serviceProvider.RegisterService(typeof(SVsOutputWindow), new ConfigurableVsOutputWindow());
-
             // Act + Assert
-            Exceptions.Expect<ArgumentNullException>(() => new SonarAnalyzerManager(null));
-            Exceptions.Expect<ArgumentNullException>(() => new SonarAnalyzerManager(serviceProvider, null));
+            Exceptions.Expect<ArgumentNullException>(() => new SonarAnalyzerManager(null, new AdhocWorkspace()));
+            Exceptions.Expect<ArgumentNullException>(() => new SonarAnalyzerManager(new ConfigurableActiveSolutionBoundTracker(), null));
         }
 
         [TestMethod]

@@ -35,10 +35,7 @@ namespace SonarLint.VisualStudio.Integration
             this.ServiceProvider = serviceProvider;
         }
 
-        public IServiceProvider ServiceProvider
-        {
-            get;
-        }
+        public IServiceProvider ServiceProvider { get; }
 
         #region IOleCommandTarget
         int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
