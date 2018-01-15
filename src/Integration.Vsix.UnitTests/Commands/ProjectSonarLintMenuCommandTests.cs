@@ -58,6 +58,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         #region Tests
 
         [TestMethod]
+        public void ProjectSonarLintMenuCommand_Ctor_InvalidArgs_Throws()
+        {
+            // Arrange
+            Action act = () => new ProjectSonarLintMenuCommand(null);
+
+            // Act & Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("propertyManager");
+        }
+
+        [TestMethod]
         public void ProjectSonarLintMenuCommand_QueryStatus_NoProjects_IsDisableIsHidden()
         {
             // Arrange

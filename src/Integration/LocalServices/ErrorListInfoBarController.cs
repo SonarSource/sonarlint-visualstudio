@@ -214,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            this.currentErrorWindowInfoBar = manager.AttachInfoBar(
+            this.currentErrorWindowInfoBar = manager.AttachInfoBarWithButton(
                 ErrorListToolWindowGuid,
                 customInfoBarMessage ?? Strings.SonarLintInfoBarUnboundProjectsMessage,
                 Strings.SonarLintInfoBarUpdateCommandText,

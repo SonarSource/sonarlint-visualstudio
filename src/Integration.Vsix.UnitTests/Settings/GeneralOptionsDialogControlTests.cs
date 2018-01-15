@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         public void Ctor_WithNullDaemon_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarLintDaemonInstaller(new Mock<ISonarLintSettings>().Object, null);
+            Action act = () => new GeneralOptionsDialogControl(new Mock<ISonarLintSettings>().Object, null);
 
             // Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("daemon");
