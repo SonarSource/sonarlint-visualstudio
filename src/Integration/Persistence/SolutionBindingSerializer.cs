@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
 
         public SolutionBindingSerializer(IServiceProvider serviceProvider)
-            : this(serviceProvider, new SecretStore(StoreNamespace), serviceProvider?.GetService<ILogger>())
+            : this(serviceProvider, new SecretStore(StoreNamespace), serviceProvider?.GetMefService<ILogger>())
         {
         }
 
