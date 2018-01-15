@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <remarks><para>The lifespan of this object is tied to the lifespan of the taggers on the view. On creation of the first tagger,
     /// it starts tracking errors. On the disposal of the last tagger, it shuts down.</para>
     /// </remarks>
-    internal class IssueTagger : ITagger<IErrorTag>, IDisposable
+    internal sealed class IssueTagger : ITagger<IErrorTag>, IDisposable
     {
         private readonly DTE dte;
         private readonly TaggerProvider provider;

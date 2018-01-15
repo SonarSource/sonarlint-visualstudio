@@ -39,7 +39,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal class ErrorListInfoBarController : IErrorListInfoBarController, IDisposable
+    internal sealed class ErrorListInfoBarController : IErrorListInfoBarController, IDisposable
     {
         internal /*for testing purposes*/ static readonly Guid ErrorListToolWindowGuid = new Guid(ToolWindowGuids80.ErrorList);
 
@@ -524,7 +524,7 @@ namespace SonarLint.VisualStudio.Integration
         /// The class is responsible for quality profile related checks in determining whether
         /// to suggest the user to update his solution with the rule set.
         /// </summary>
-        internal /*testing purposes*/ class QualityProfileBackgroundProcessor : IDisposable
+        internal /*testing purposes*/ sealed class QualityProfileBackgroundProcessor : IDisposable
         {
             private readonly IHost host;
             private bool isDisposed;
@@ -685,7 +685,7 @@ namespace SonarLint.VisualStudio.Integration
 
             #region IDisposable Support
 
-            protected virtual void Dispose(bool disposing)
+            private void Dispose(bool disposing)
             {
                 if (!this.isDisposed)
                 {
@@ -708,7 +708,7 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region IDisposable Support
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!this.isDisposed)
             {

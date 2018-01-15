@@ -313,16 +313,17 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");
         }
 
-        public object GetService(Type type)
+        public object GetService(Type serviceType)
         {
             // We don't expect COM types, otherwise the dictionary would have to use a custom comparer
             Lazy<ILocalService> instanceFactory;
-            if (typeof(ILocalService).IsAssignableFrom(type) && this.localServices.TryGetValue(type, out instanceFactory))
+            if (typeof(ILocalService).IsAssignableFrom(serviceType) &&
+                this.localServices.TryGetValue(serviceType, out instanceFactory))
             {
                 return instanceFactory.Value;
             }
 
-            return this.serviceProvider.GetService(type);
+            return this.serviceProvider.GetService(serviceType);
         }
 
         internal void ReplaceInternalServiceForTesting<T>(T instance)

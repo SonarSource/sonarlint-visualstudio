@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
             }
             else if (typeof(T).IsSubclassOf(typeof(Enum)))
             {
-                equal = Enum.Equals(value, field);
+                equal = Equals(value, field);
             }
             else
             {

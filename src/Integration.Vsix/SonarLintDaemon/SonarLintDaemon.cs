@@ -33,7 +33,7 @@ using Sonarlint;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarLintDaemon))]
-    internal class SonarLintDaemon : ISonarLintDaemon
+    internal sealed class SonarLintDaemon : ISonarLintDaemon
     {
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private Channel channel;
         private StandaloneSonarLint.StandaloneSonarLintClient daemonClient;
 
-        
+
         [ImportingConstructor]
         public SonarLintDaemon(ISonarLintSettings settings, ILogger logger)
             : this(settings, logger, daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath())

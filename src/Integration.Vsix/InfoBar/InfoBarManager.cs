@@ -226,12 +226,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             #endregion
 
             #region IVsInfoBarUIEvents
-            void IVsInfoBarUIEvents.OnActionItemClicked(IVsInfoBarUIElement uiElement, IVsInfoBarActionItem actionItem)
+            void IVsInfoBarUIEvents.OnActionItemClicked(IVsInfoBarUIElement infoBarUIElement, IVsInfoBarActionItem actionItem)
             {
                 this.ButtonClick?.Invoke(this, EventArgs.Empty);
             }
 
-            void IVsInfoBarUIEvents.OnClosed(IVsInfoBarUIElement uiElement)
+            void IVsInfoBarUIEvents.OnClosed(IVsInfoBarUIElement infoBarUIElement)
             {
                 this.Unadvise();
                 this.isClosed = true;

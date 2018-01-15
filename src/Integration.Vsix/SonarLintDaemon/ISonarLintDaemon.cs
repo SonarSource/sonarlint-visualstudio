@@ -48,6 +48,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
     public interface IIssueConsumer
     {
-        void Accept(string path, IEnumerable<Issue> issue);
+        void Accept(string path, IEnumerable<Issue> issues);
     }
 }

@@ -47,9 +47,9 @@ namespace SonarLint.VisualStudio.Integration
             this.maxRetries = maxRetries;
             this.retryTimeout = retryTimeout;
             this.client = new HttpClient(httpHandler)
-                {
-                    BaseAddress = new Uri("https://chestnutsl.sonarsource.com", UriKind.RelativeOrAbsolute)
-                };
+            {
+                BaseAddress = new Uri("https://chestnutsl.sonarsource.com", UriKind.RelativeOrAbsolute)
+            };
             this.client.DefaultRequestHeaders.Add("User-Agent", "SonarLint");
         }
 

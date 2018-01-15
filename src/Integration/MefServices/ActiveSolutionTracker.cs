@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionTracker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable
+    internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable
     {
         private bool isDisposed = false;
         private readonly IVsSolution solution;
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration
             ErrorHandler.ThrowOnFailure(this.solution.AdviseSolutionEvents(this, out this.cookie));
         }
 
-        protected virtual void OnActiveSolutionChanged()
+        private void OnActiveSolutionChanged()
         {
             this.ActiveSolutionChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration
 
         #region IDisposable Support
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!this.isDisposed)
             {

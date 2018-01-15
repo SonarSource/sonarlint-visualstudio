@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public override int VersionNumber => this.versionNumber;
 
-        public override bool TryGetValue(int index, string columnName, out object content)
+        public override bool TryGetValue(int index, string keyName, out object content)
         {
             if (index < 0 || this.issueMarkers.Count <= index)
             {
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return false;
             }
 
-            switch (columnName)
+            switch (keyName)
             {
                 case StandardTableKeyNames.DocumentName:
                     content = filePath;
