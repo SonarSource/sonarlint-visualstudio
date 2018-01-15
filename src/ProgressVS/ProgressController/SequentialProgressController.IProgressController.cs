@@ -66,14 +66,14 @@ namespace SonarLint.VisualStudio.Progress.Controller
         /// which is responsible to convert the specified <see cref="IProgressStepDefinition"/>
         /// into executable <see cref="IProgressStepOperation"/>
         /// </summary>
-        /// <param name="factory">An instance of <see cref="IProgressStepFactory"/>. Required.</param>
+        /// <param name="stepFactory">An instance of <see cref="IProgressStepFactory"/>. Required.</param>
         /// <param name="stepsDefinition">set of step definitions. Required.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1500:VariableNamesShouldNotMatchFieldNames", MessageId = "stepFactory", Justification = "Using this to distinguish between them")]
-        public void Initialize(IProgressStepFactory factory, IEnumerable<IProgressStepDefinition> stepsDefinition)
+        public void Initialize(IProgressStepFactory stepFactory, IEnumerable<IProgressStepDefinition> stepsDefinition)
         {
-            if (factory == null)
+            if (stepFactory == null)
             {
-                throw new ArgumentNullException(nameof(factory));
+                throw new ArgumentNullException(nameof(stepFactory));
             }
 
             if (stepsDefinition == null)
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
             }
 
             this.notificationManager = new ErrorNotificationManager();
-            this.stepFactory = factory;
+            this.stepFactory = stepFactory;
             this.progressStepOperations = this.CreateStepOperations(stepsDefinition);
         }
 

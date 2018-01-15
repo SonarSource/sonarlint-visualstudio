@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration
     {
         internal const string VbProjectKind = "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}";
         internal const string CSharpProjectKind = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
-        internal const string VbCoreProjectKind = "{778DAE3C-4631-46EA-AA77-85C1314464D9}"; 
+        internal const string VbCoreProjectKind = "{778DAE3C-4631-46EA-AA77-85C1314464D9}";
         internal const string CSharpCoreProjectKind = "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}";
         internal const string TestProjectKind = "{3AC096D0-A1C2-E12C-1390-A8335801FDAB}";
         internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);
@@ -102,18 +102,18 @@ namespace SonarLint.VisualStudio.Integration
             return null;
         }
 
-        public IVsHierarchy GetIVsHierarchy(Project project)
+        public IVsHierarchy GetIVsHierarchy(Project dteProject)
         {
-            if (project == null)
+            if (dteProject == null)
             {
-                throw new ArgumentNullException(nameof(project));
+                throw new ArgumentNullException(nameof(dteProject));
             }
 
             IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
             IVsHierarchy hierarchy;
-            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(project.UniqueName, out hierarchy)))
+            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(dteProject.UniqueName, out hierarchy)))
             {
                 return hierarchy;
             }
@@ -152,34 +152,34 @@ namespace SonarLint.VisualStudio.Integration
             return false;
         }
 
-        public void AddFileToProject(Project project, string fullFilePath)
+        public void AddFileToProject(Project project, string file)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (string.IsNullOrWhiteSpace(fullFilePath))
+            if (string.IsNullOrWhiteSpace(file))
             {
-                throw new ArgumentNullException(nameof(fullFilePath));
+                throw new ArgumentNullException(nameof(file));
             }
 
-            if (!this.IsFileInProject(project, fullFilePath))
+            if (!this.IsFileInProject(project, file))
             {
-                project.ProjectItems.AddFromFile(fullFilePath);
+                project.ProjectItems.AddFromFile(file);
             }
         }
 
-        public void AddFileToProject(Project project, string fullFilePath, string itemType)
+        public void AddFileToProject(Project project, string file, string itemType)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (string.IsNullOrWhiteSpace(fullFilePath))
+            if (string.IsNullOrWhiteSpace(file))
             {
-                throw new ArgumentNullException(nameof(fullFilePath));
+                throw new ArgumentNullException(nameof(file));
             }
 
             if (string.IsNullOrWhiteSpace(itemType))
@@ -187,9 +187,9 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(itemType));
             }
 
-            if (!this.IsFileInProject(project, fullFilePath))
+            if (!this.IsFileInProject(project, file))
             {
-                ProjectItem item = project.ProjectItems.AddFromFile(fullFilePath);
+                ProjectItem item = project.ProjectItems.AddFromFile(file);
                 Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Constants.ItemTypePropertyKey);
                 if (itemTypeProperty != null)
                 {

@@ -39,7 +39,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal class ErrorListInfoBarController : IErrorListInfoBarController, IDisposable
+    internal sealed class ErrorListInfoBarController : IErrorListInfoBarController, IDisposable
     {
         internal /*for testing purposes*/ static readonly Guid ErrorListToolWindowGuid = new Guid(ToolWindowGuids80.ErrorList);
 
@@ -708,7 +708,7 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region IDisposable Support
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!this.isDisposed)
             {

@@ -99,17 +99,17 @@ namespace SonarLint.VisualStudio.Integration
             {
                 if (this.filesEdit.Count > 0)
                 {
-                    success = success && this.CheckoutForEdit(this.filesEdit.ToArray());
+                    success = this.CheckoutForEdit(this.filesEdit.ToArray());
                 }
 
                 if (success && this.filesCreate.Count > 0)
                 {
-                    success = success && this.CheckoutForSave(this.filesCreate.ToArray());
+                    success = this.CheckoutForSave(this.filesCreate.ToArray());
                 }
 
                 while (success && this.fileWriteOperations.Count > 0)
                 {
-                    success = success && this.fileWriteOperations.Dequeue().Invoke();
+                    success = this.fileWriteOperations.Dequeue().Invoke();
                 }
             }
             finally

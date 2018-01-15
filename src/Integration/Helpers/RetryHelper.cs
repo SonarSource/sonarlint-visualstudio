@@ -37,10 +37,7 @@ namespace SonarLint.VisualStudio.Integration
                 }
                 catch (Exception)
                 {
-                    if (attempts != times)
-                    {
-                        Task.Delay(delay).Wait();
-                    }
+                    Task.Delay(delay).Wait();
                 }
             }
 
@@ -59,10 +56,7 @@ namespace SonarLint.VisualStudio.Integration
                 }
                 catch (Exception)
                 {
-                    if (attempts != times)
-                    {
-                        Task.Delay(delay).Wait();
-                    }
+                    Task.Delay(delay).Wait();
                 }
             }
 

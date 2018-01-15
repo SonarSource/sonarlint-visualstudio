@@ -40,21 +40,21 @@ namespace SonarLint.VisualStudio.Integration
             this.serviceProvider = serviceProvider;
         }
 
-        public RuleSet LoadRuleSet(string ruleSetPath)
+        public RuleSet LoadRuleSet(string path)
         {
-            if (string.IsNullOrWhiteSpace(ruleSetPath))
+            if (string.IsNullOrWhiteSpace(path))
             {
-                throw new ArgumentNullException(nameof(ruleSetPath));
+                throw new ArgumentNullException(nameof(path));
             }
 
             var fileSystem = this.serviceProvider.GetService<IFileSystem>();
             fileSystem.AssertLocalServiceIsNotNull();
 
-            if (fileSystem.FileExist(ruleSetPath))
+            if (fileSystem.FileExist(path))
             {
                 try
                 {
-                    return RuleSet.LoadFromFile(ruleSetPath);
+                    return RuleSet.LoadFromFile(path);
                 }
                 catch (Exception ex) when (ex is InvalidRuleSetException || ex is XmlException || ex is IOException)
                 {
@@ -67,19 +67,19 @@ namespace SonarLint.VisualStudio.Integration
 
         }
 
-        public void WriteRuleSetFile(RuleSet ruleSet, string ruleSetPath)
+        public void WriteRuleSetFile(RuleSet ruleSet, string path)
         {
             if (ruleSet == null)
             {
                 throw new ArgumentNullException(nameof(ruleSet));
             }
 
-            if (string.IsNullOrWhiteSpace(ruleSetPath))
+            if (string.IsNullOrWhiteSpace(path))
             {
-                throw new ArgumentNullException(nameof(ruleSetPath));
+                throw new ArgumentNullException(nameof(path));
             }
 
-            ruleSet.WriteToFile(ruleSetPath);
+            ruleSet.WriteToFile(path);
         }
     }
 }

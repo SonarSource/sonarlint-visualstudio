@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return this.writableSettingsStore?.GetBoolean(SettingsRoot, key, defaultValue)
                 ?? defaultValue;
             }
-            catch (System.ArgumentException e)
+            catch (ArgumentException)
             {
                 return defaultValue;
             }
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return this.writableSettingsStore?.GetString(SettingsRoot, key, defaultValue)
                 ?? defaultValue;
             }
-            catch (System.ArgumentException e)
+            catch (ArgumentException)
             {
                 return defaultValue;
             }
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return this.writableSettingsStore?.GetInt32(SettingsRoot, key, defaultValue)
                     ?? defaultValue;
             }
-            catch (System.ArgumentException e)
+            catch (ArgumentException)
             {
                 return defaultValue;
             }
