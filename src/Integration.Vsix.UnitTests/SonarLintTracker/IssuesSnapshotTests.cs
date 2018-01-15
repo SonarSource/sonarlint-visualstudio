@@ -113,18 +113,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ErrorCategory_Is_CodeSmell_By_Default()
         {
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Code Smell");
+            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
         }
 
         [TestMethod]
         public void ErrorCategory_Is_Issue_Type()
         {
             issue.Type = Issue.Types.Type.Bug;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Bug");
+            issue.Severity = Issue.Types.Severity.Blocker;
+            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Bug");
             issue.Type = Issue.Types.Type.CodeSmell;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Code Smell");
+            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
             issue.Type = Issue.Types.Type.Vulnerability;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Vulnerability");
+            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Vulnerability");
         }
 
         [TestMethod]
