@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
@@ -46,10 +45,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class TaggerProvider : IViewTaggerProvider, ITableDataSource, IIssueConsumer
     {
-        internal readonly ITableManager ErrorTableManager;
-        internal readonly ITextDocumentFactoryService TextDocumentFactoryService;
-        internal readonly IContentTypeRegistryService ContentTypeRegistryService;
-        internal readonly IFileExtensionRegistryService FileExtensionRegistryService;
+        internal readonly ITableManager errorTableManager;
+        internal readonly ITextDocumentFactoryService textDocumentFactoryService;
         internal readonly DTE dte;
 
         private readonly List<SinkManager> managers = new List<SinkManager>();
@@ -57,24 +54,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly ISonarLintDaemon daemon;
         private readonly ISonarLintSettings settings;
+        private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        internal TaggerProvider(ITableManagerProvider provider,
+        internal TaggerProvider(ITableManagerProvider tableManagerProvider,
             ITextDocumentFactoryService textDocumentFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
-            IFileExtensionRegistryService fileExtensionRegistryService,
             ISonarLintDaemon daemon,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLintSettings settings,
+            ISonarLanguageRecognizer languageRecognizer,
             ILogger logger)
         {
-            this.ErrorTableManager = provider.GetTableManager(StandardTables.ErrorsTable);
-            this.TextDocumentFactoryService = textDocumentFactoryService;
-            this.ContentTypeRegistryService = contentTypeRegistryService;
-            this.FileExtensionRegistryService = fileExtensionRegistryService;
+            this.errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
+            this.textDocumentFactoryService = textDocumentFactoryService;
 
-            this.ErrorTableManager.AddSource(this, StandardTableColumnDefinitions.DetailsExpander,
+            this.errorTableManager.AddSource(this, StandardTableColumnDefinitions.DetailsExpander,
                                                    StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
                                                    StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.BuildTool,
                                                    StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
@@ -85,6 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.daemon = daemon;
             this.dte = serviceProvider.GetService<DTE>();
             this.settings = settings;
+            this.languageRecognizer = languageRecognizer;
             this.logger = logger;
         }
 
@@ -100,41 +96,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Only attempt to track the view's edit buffer.
             // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
-            if (buffer != textView.TextBuffer || typeof(T) != typeof(IErrorTag))
+            if (buffer != textView.TextBuffer ||
+                typeof(T) != typeof(IErrorTag))
             {
                 return null;
             }
 
-            ITextDocument document;
-            if (!TextDocumentFactoryService.TryGetTextDocument(textView.TextDataModel.DocumentBuffer, out document))
+            ITextDocument textDocument;
+            if (!textDocumentFactoryService.TryGetTextDocument(textView.TextDataModel.DocumentBuffer, out textDocument))
             {
                 return null;
             }
 
-            var filePath = document.FilePath;
-            var fileExtension = Path.GetExtension(filePath).Replace(".", "");
+            var detectedLanguages = languageRecognizer.Detect(textDocument, buffer);
 
-            var contentTypes = ContentTypeRegistryService.ContentTypes
-                .Where(type => FileExtensionRegistryService.GetExtensionsForContentType(type).Any(e => e == fileExtension))
-                .ToList();
-
-            if (contentTypes.Count == 0 && buffer.ContentType != null)
+            if (detectedLanguages.Any())
             {
-                // Fallback on TextBuffer content type
-                contentTypes.Add(buffer.ContentType);
-            }
-
-            if (!contentTypes.Any(t => t.IsOfType("JavaScript") || t.IsOfType("C/C++")))
-            {
-                return null;
-            }
-
-            lock (taggers)
-            {
-                if (!taggers.ExistsForFile(filePath))
+                lock (taggers)
                 {
-                    var tracker = new IssueTagger(dte, this, buffer, document, contentTypes);
-                    return tracker as ITagger<T>;
+                    if (!taggers.ExistsForFile(textDocument.FilePath))
+                    {
+                        return new IssueTagger(dte, this, buffer, textDocument, detectedLanguages) as ITagger<T>;
+                    }
                 }
             }
 
@@ -203,30 +186,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RequestAnalysis(string path, string charset, IList<IContentType> contentTypes)
+        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages)
         {
             IssueTagger tracker;
             if (taggers.TryGetValue(path, out tracker))
             {
-                foreach (IContentType type in contentTypes)
+                foreach (var language in detectedLanguages)
                 {
-                    if (type.IsOfType("JavaScript"))
+                    switch (language)
                     {
-                        daemon.RequestAnalysis(path, charset, "js", null, this);
-                        return;
-                    }
-                    if (type.IsOfType("C/C++"))
-                    {
-                        string sqLanguage;
-                        string json = CFamily.TryGetConfig(logger, tracker.ProjectItem, path, out sqLanguage);
-                        if (json != null && sqLanguage != null)
-                        {
-                            daemon.RequestAnalysis(path, charset, sqLanguage, json, this);
-                        }
-                        return;
+                        case SonarLanguage.Javascript:
+                            daemon.RequestAnalysis(path, charset, "js", null, this);
+                            break;
+
+                        case SonarLanguage.CFamily:
+                            string sqLanguage;
+                            string json = CFamily.TryGetConfig(logger, tracker.ProjectItem, path, out sqLanguage);
+                            if (json != null && sqLanguage != null)
+                            {
+                                daemon.RequestAnalysis(path, charset, sqLanguage, json, this);
+                            }
+                            break;
+
+                        default:
+                            break;
                     }
                 }
-                logger.WriteLine("Unsupported content type for " + path);
+
+                logger.WriteLine($"Unsupported content type for {path}");
             }
         }
 
