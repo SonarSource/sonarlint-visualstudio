@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    [Export(typeof(ISonarLanguageRecognizer))]
     public class SonarLanguageRecognizer : ISonarLanguageRecognizer
     {
         private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue" };
@@ -34,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IContentTypeRegistryService contentTypeRegistryService;
         private readonly IFileExtensionRegistryService fileExtensionRegistryService;
 
+        [ImportingConstructor]
         public SonarLanguageRecognizer(IContentTypeRegistryService contentTypeRegistryService,
             IFileExtensionRegistryService fileExtensionRegistryService)
         {
