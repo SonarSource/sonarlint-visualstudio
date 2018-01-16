@@ -25,6 +25,9 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    /// <summary>
+    /// Controls when to display a tooltip containing SonarLint Daemon issues.
+    /// </summary>
     public class SonarLintQuickInfoController : IIntellisenseController
     {
         private readonly SonarLintQuickInfoControllerProvider provider;

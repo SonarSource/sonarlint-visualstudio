@@ -44,13 +44,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             applicableToSpan = null;
 
             // Map the trigger point down to our buffer.
-            SnapshotPoint? subjectTriggerPoint = session.GetTriggerPoint(subjectBuffer.CurrentSnapshot);
-            if (!subjectTriggerPoint.HasValue)
+            var triggerPoint = session.GetTriggerPoint(subjectBuffer.CurrentSnapshot);
+            if (triggerPoint == null)
             {
                 return;
             }
-
-            ITextSnapshot currentSnapshot = subjectTriggerPoint.Value.Snapshot;
 
             ITextDocument document;
             if (!provider.TextDocumentFactoryService.TryGetTextDocument(subjectBuffer, out document))
@@ -58,19 +56,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            Func<Sonarlint.Issue, IssueMarker> CreateMarker = issue => issue.ToMarker(currentSnapshot);
-            Func<IssueMarker, bool> ContainsTheTriggerPoint = marker => marker.Span.Contains(subjectTriggerPoint.Value);
+            ITextSnapshot currentSnapshot = triggerPoint.Value.Snapshot;
 
-            var issuesUnderCursor = provider.SonarLintDaemon
+            Func<Sonarlint.Issue, IssueMarker> CreateMarker = issue => issue.ToMarker(currentSnapshot);
+            Func<IssueMarker, bool> ContainsTheTriggerPoint = marker => marker.Span.Contains(triggerPoint.Value);
+
+            var issueMarkers = provider.SonarLintDaemon
                 .GetIssues(document.FilePath)
                 .Select(CreateMarker)
                 .Where(ContainsTheTriggerPoint)
                 .ToList();
 
-            if (issuesUnderCursor.Count > 0)
+            if (issueMarkers.Count > 0)
             {
-                issuesUnderCursor.ForEach(quickInfoContent.Add);
-                applicableToSpan = currentSnapshot.CreateTrackingSpan(issuesUnderCursor[0].Span, SpanTrackingMode.EdgeInclusive);
+                issueMarkers.ForEach(issue => quickInfoContent.Add(issue.Issue.Message));
+                applicableToSpan = currentSnapshot.CreateTrackingSpan(issueMarkers[0].Span, SpanTrackingMode.EdgeInclusive);
             }
         }
 
