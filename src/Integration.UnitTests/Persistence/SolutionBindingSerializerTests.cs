@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using EnvDTE;
 using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -69,7 +70,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionRuleSetsInfoProvider.SolutionRootFolder = Path.GetDirectoryName(this.dte.Solution.FilePath);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.solutionRuleSetsInfoProvider);
 
-            this.serviceProvider.RegisterService(typeof(ILogger), new SonarLintOutputLogger(serviceProvider));
+            var mefExport = MefTestHelpers.CreateExport<ILogger>(new SonarLintOutputLogger(serviceProvider));
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport);
+            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
         [TestMethod]
