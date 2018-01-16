@@ -76,7 +76,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var contentTypes = contentTypeRegistryService
                 .ContentTypes
-                .Where(type => fileExtensionRegistryService.GetExtensionsForContentType(type).Any(e => e == fileExtension))
+                .Where(type => fileExtensionRegistryService.GetExtensionsForContentType(type).Any(e =>
+                    e.Equals(fileExtension, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
             if (contentTypes.Count == 0 &&
