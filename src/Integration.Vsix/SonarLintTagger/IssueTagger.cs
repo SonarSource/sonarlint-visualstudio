@@ -25,7 +25,6 @@ using EnvDTE;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -41,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly DTE dte;
         private readonly TaggerProvider provider;
         private readonly ITextBuffer textBuffer;
-        private readonly IList<IContentType> contentTypes;
+        private readonly IEnumerable<SonarLanguage> detectedLanguages;
 
         internal ProjectItem ProjectItem { get; private set; }
         private ITextSnapshot currentSnapshot;
@@ -54,12 +53,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal IssuesSnapshot Snapshot { get; set; }
 
-        internal IssueTagger(DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document, IList<IContentType> contentTypes)
+        internal IssueTagger(DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document,
+            IEnumerable<SonarLanguage> detectedLanguages)
         {
             this.dte = dte;
             this.provider = provider;
             this.textBuffer = buffer;
-            this.contentTypes = contentTypes;
+            this.detectedLanguages = detectedLanguages;
             this.currentSnapshot = buffer.CurrentSnapshot;
             this.dirtySpans = new NormalizedSnapshotSpanCollection();
 
@@ -67,7 +67,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
             this.Charset = document.Encoding.WebName;
-            this.Factory = new SnapshotFactory(new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, 0, new List<IssueMarker>()));
+            this.Factory = new SnapshotFactory(new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, 0,
+                new List<IssueMarker>()));
 
             this.Initialize();
 
@@ -102,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void RequestAnalysis()
         {
-            provider.RequestAnalysis(FilePath, Charset, contentTypes);
+            provider.RequestAnalysis(FilePath, Charset, detectedLanguages);
         }
 
         public void Dispose()
