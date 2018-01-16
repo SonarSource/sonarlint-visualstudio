@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -47,6 +49,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             textDocumentMock = new Mock<ITextDocument>();
             textBufferMock = new Mock<ITextBuffer>();
+        }
+
+        [TestMethod]
+        public void Class_IsMEF()
+        {
+            // Arrange
+            var requiredExports = new List<Export>();
+            requiredExports.Add(MefTestHelpers.CreateExport<IContentTypeRegistryService>(
+                new Mock<IContentTypeRegistryService>().Object));
+            requiredExports.Add(MefTestHelpers.CreateExport<IFileExtensionRegistryService>(
+                new Mock<IFileExtensionRegistryService>().Object));
+
+            // Act & Assert
+            MefTestHelpers.CheckTypeCanBeImported<SonarLanguageRecognizer, ISonarLanguageRecognizer>(Enumerable.Empty<Export>(),
+                requiredExports);
         }
 
         [TestMethod]
