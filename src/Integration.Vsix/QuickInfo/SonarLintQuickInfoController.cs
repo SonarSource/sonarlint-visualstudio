@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <summary>
     /// Controls when to display a tooltip containing SonarLint Daemon issues.
     /// </summary>
-    public class SonarLintQuickInfoController : IIntellisenseController
+    internal sealed class SonarLintQuickInfoController : IIntellisenseController
     {
         private readonly SonarLintQuickInfoControllerProvider provider;
         private readonly IList<ITextBuffer> subjectBuffers;
@@ -53,15 +53,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     snapshot => subjectBuffers.Contains(snapshot.TextBuffer),
                     PositionAffinity.Predecessor);
 
-            if (point != null)
+            if (point == null)
             {
-                var trackingPoint = point.Value.Snapshot
-                    .CreateTrackingPoint(point.Value.Position, PointTrackingMode.Positive);
+                return;
+            }
 
-                if (!provider.QuickInfoBroker.IsQuickInfoActive(textView))
-                {
-                    provider.QuickInfoBroker.TriggerQuickInfo(textView, trackingPoint, true);
-                }
+            var trackingPoint = point.Value.Snapshot
+                .CreateTrackingPoint(point.Value.Position, PointTrackingMode.Positive);
+
+            if (!provider.QuickInfoBroker.IsQuickInfoActive(textView))
+            {
+                provider.QuickInfoBroker.TriggerQuickInfo(textView, trackingPoint, true);
             }
         }
 

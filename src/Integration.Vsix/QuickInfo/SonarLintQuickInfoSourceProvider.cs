@@ -21,30 +21,31 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(IQuickInfoSourceProvider))]
-    [Name("ToolTip QuickInfo Source")]
+    [Name("SonarLint ToolTip Source")]
     [Order(Before = "Default Quick Info Presenter")]
     [ContentType("text")]
-    public class SonarLintQuickInfoSourceProvider : IQuickInfoSourceProvider
+    internal class SonarLintQuickInfoSourceProvider : IQuickInfoSourceProvider
     {
         [Import]
         internal ISonarLintDaemon SonarLintDaemon { get; set; }
 
         [Import]
-        internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
-
-        [Import]
-        internal ITextBufferFactoryService TextBufferFactoryService { get; set; }
-
-        [Import]
         internal ITextDocumentFactoryService TextDocumentFactoryService { get; set; }
 
-        public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer) =>
-            new SonarLintQuickInfoSource(this, textBuffer);
+        public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
+        {
+            ITextDocument document;
+            if (!TextDocumentFactoryService.TryGetTextDocument(textBuffer, out document))
+            {
+                return null;
+            }
+
+            return new SonarLintQuickInfoSource(this, textBuffer.CurrentSnapshot, document?.FilePath);
+        }
     }
 }

@@ -26,16 +26,19 @@ using Microsoft.VisualStudio.Text;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public sealed class SonarLintQuickInfoSource : IQuickInfoSource
+    internal sealed class SonarLintQuickInfoSource : IQuickInfoSource
     {
-        private readonly ITextBuffer subjectBuffer;
+        private readonly ITextSnapshot currentSnapshot;
         private readonly SonarLintQuickInfoSourceProvider provider;
+        private readonly string filePath;
         private bool disposed;
 
-        public SonarLintQuickInfoSource(SonarLintQuickInfoSourceProvider provider, ITextBuffer subjectBuffer)
+        public SonarLintQuickInfoSource(SonarLintQuickInfoSourceProvider provider, ITextSnapshot currentSnapshot,
+            string filePath)
         {
             this.provider = provider;
-            this.subjectBuffer = subjectBuffer;
+            this.currentSnapshot = currentSnapshot;
+            this.filePath = filePath;
         }
 
         public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent,
@@ -43,36 +46,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             applicableToSpan = null;
 
-            // Map the trigger point down to our buffer.
-            var triggerPoint = session.GetTriggerPoint(subjectBuffer.CurrentSnapshot);
-            if (triggerPoint == null)
+            var issueMarkers = GetIssueMarkers(session);
+
+            foreach (var marker in issueMarkers)
             {
-                return;
-            }
-
-            ITextDocument document;
-            if (!provider.TextDocumentFactoryService.TryGetTextDocument(subjectBuffer, out document))
-            {
-                return;
-            }
-
-            ITextSnapshot currentSnapshot = triggerPoint.Value.Snapshot;
-
-            Func<Sonarlint.Issue, IssueMarker> CreateMarker = issue => issue.ToMarker(currentSnapshot);
-            Func<IssueMarker, bool> ContainsTheTriggerPoint = marker => marker.Span.Contains(triggerPoint.Value);
-
-            var issueMarkers = provider.SonarLintDaemon
-                .GetIssues(document.FilePath)
-                .Select(CreateMarker)
-                .Where(ContainsTheTriggerPoint)
-                .ToList();
-
-            if (issueMarkers.Count > 0)
-            {
-                issueMarkers.ForEach(issue => quickInfoContent.Add(issue.Issue.Message));
-                applicableToSpan = currentSnapshot.CreateTrackingSpan(issueMarkers[0].Span, SpanTrackingMode.EdgeInclusive);
+                quickInfoContent.Add(marker.Issue.Message);
+                applicableToSpan = currentSnapshot.CreateTrackingSpan(marker.Span, SpanTrackingMode.EdgeInclusive);
             }
         }
+
+        private IEnumerable<IssueMarker> GetIssueMarkers(IQuickInfoSession session)
+        {
+            // Map the trigger point down to our buffer.
+            var triggerPoint = session.GetTriggerPoint(currentSnapshot);
+            if (triggerPoint == null)
+            {
+                return Enumerable.Empty<IssueMarker>();
+            }
+
+            Func<IssueMarker, bool> ContainsTheTriggerPoint = marker => marker.Span.Contains(triggerPoint.Value);
+
+            return provider.SonarLintDaemon
+                .GetIssues(filePath)
+                .Select(CreateMarker)
+                .Where(ContainsTheTriggerPoint);
+        }
+
+        private IssueMarker CreateMarker(Sonarlint.Issue issue) => issue.ToMarker(currentSnapshot);
 
         public void Dispose()
         {

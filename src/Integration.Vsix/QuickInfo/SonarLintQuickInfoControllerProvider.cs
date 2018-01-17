@@ -28,9 +28,9 @@ using Microsoft.VisualStudio.Utilities;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(IIntellisenseControllerProvider))]
-    [Name("ToolTip QuickInfo Controller")]
+    [Name("SonarLint ToolTip Controller")]
     [ContentType("text")]
-    public class SonarLintQuickInfoControllerProvider : IIntellisenseControllerProvider
+    internal class SonarLintQuickInfoControllerProvider : IIntellisenseControllerProvider
     {
         [Import]
         internal IQuickInfoBroker QuickInfoBroker { get; set; }
