@@ -19,8 +19,6 @@
  */
 
 using System.Collections.Generic;
-using System.Globalization;
-using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Service.DataModel
 {
@@ -40,11 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Service.DataModel
         public string Key { get; }
         public string MinimumVersion { get; }
         public Language Language { get; }
-
-        public override string ToString()
-        {
-            return string.Format(CultureInfo.CurrentCulture, Strings.MinimumSupportedSonarQubePlugin, Language.Name, MinimumVersion);
-        }
 
         public bool ISupported(EnvDTE.Project project)
         {

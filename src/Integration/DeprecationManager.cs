@@ -27,8 +27,6 @@ namespace SonarLint.VisualStudio.Integration
 {
     public sealed class DeprecationManager : IDisposable
     {
-        private const string VisualStudio2015Update3VersionString = "14.0.25420.00";
-        private static readonly Version VisualStudio2015Update3Version = Version.Parse(VisualStudio2015Update3VersionString);
         internal /* for testing purpose */ static readonly Guid DeprecationBarGuid = new Guid(ToolWindowGuids80.ErrorList);
 
         private readonly IInfoBarManager infoBarManager;
@@ -48,13 +46,8 @@ namespace SonarLint.VisualStudio.Integration
 
             this.infoBarManager = infoBarManager;
             this.sonarLintOutput = sonarLintOutput;
-        }
 
-        public void Initialize(string visualStudioVersion)
-        {
-            Version vsVersion;
-            if (Version.TryParse(visualStudioVersion, out vsVersion) &&
-                vsVersion < VisualStudio2015Update3Version)
+            if (VisualStudioHelpers.IsVisualStudioBeforeUpdate3())
             {
                 WriteMessageToOutput();
                 ShowDeprecationBar();

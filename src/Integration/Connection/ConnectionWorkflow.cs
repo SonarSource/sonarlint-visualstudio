@@ -319,10 +319,43 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> plugins, MinimumSupportedSonarQubePlugin minimumSupportedPlugin)
         {
             var plugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
-            var isPluginSupported = !string.IsNullOrWhiteSpace(plugin?.Version) && VersionHelper.Compare(plugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
 
-            var pluginSupportMessageFormat = string.Format(Strings.SubTextPaddingFormat, isPluginSupported ? Strings.SupportedPluginFoundMessage : Strings.UnsupportedPluginFoundMessage);
-            this.host.Logger.WriteLine(pluginSupportMessageFormat, minimumSupportedPlugin.ToString());
+            if (plugin == null) // plugin is not installed on remote server
+            {
+                return false;
+            }
+
+
+            var pluginInfoMessage = string.Format(CultureInfo.CurrentCulture, Strings.MinimumSupportedSonarQubePlugin,
+                minimumSupportedPlugin.Language.Name, minimumSupportedPlugin.MinimumVersion);
+
+            var isPluginSupported = !string.IsNullOrWhiteSpace(plugin.Version) &&
+                VersionHelper.Compare(plugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
+
+            // Let's handle specific case for old Visual Studio instances
+            if (isPluginSupported &&
+                VisualStudioHelpers.IsVisualStudioBeforeUpdate3())
+            {
+                if (minimumSupportedPlugin == MinimumSupportedSonarQubePlugin.CSharp)
+                {
+                    const string newRoslynSonarCSharpVersion = "7.0";
+                    pluginInfoMessage += $", Maximum version: '{newRoslynSonarCSharpVersion}'";
+                    isPluginSupported = VersionHelper.Compare(plugin.Version, newRoslynSonarCSharpVersion) <= 0;
+                }
+
+                if (minimumSupportedPlugin == MinimumSupportedSonarQubePlugin.VbNet)
+                {
+                    const string newRoslynSonarVBNetVersion = "5.0";
+                    pluginInfoMessage += $", Maximum version: '{newRoslynSonarVBNetVersion}'";
+                    isPluginSupported = VersionHelper.Compare(plugin.Version, newRoslynSonarVBNetVersion) <= 0;
+                }
+            }
+
+            var pluginSupportMessageFormat = string.Format(CultureInfo.CurrentCulture, Strings.SubTextPaddingFormat,
+                isPluginSupported
+                    ? Strings.SupportedPluginFoundMessage
+                    : Strings.UnsupportedPluginFoundMessage);
+            this.host.Logger.WriteLine(pluginSupportMessageFormat, pluginInfoMessage);
 
             return isPluginSupported;
         }
