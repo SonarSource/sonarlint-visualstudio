@@ -69,6 +69,20 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(3);
+            result.Select(x => x.Key).Should().BeEquivalentTo(
+                new[]
+                {
+                    "org.jenkins-ci.plugins:sonar",
+                    "org.codehaus.sonar-plugins:sonar-ant-task",
+                    "org.codehaus.sonar-plugins:sonar-build-breaker-plugin"
+                });
+            result.Select(x => x.Name).Should().BeEquivalentTo(
+                new[]
+                {
+                    "Jenkins Sonar Plugin",
+                    "Sonar Ant Task",
+                    "Sonar Build Breaker Plugin"
+                });
         }
 
         [TestMethod]
@@ -157,6 +171,8 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(3);
+            result.Select(x => x.Key).Should().BeEquivalentTo(new[] { "my_project", "another_project", "third_project" });
+            result.Select(x => x.Name).Should().BeEquivalentTo(new[] { "My Project 1", "My Project 2", "My Project 3" });
         }
 
         [TestMethod]
@@ -220,6 +236,8 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(1010);
+            result.Select(x => x.Key).Should().BeEquivalentTo(Enumerable.Range(1, 1010).Select(i => i.ToString()));
+            result.Select(x => x.Name).Should().BeEquivalentTo(Enumerable.Range(1, 1010).Select(i => $"Project{i}"));
         }
 
         [TestMethod]

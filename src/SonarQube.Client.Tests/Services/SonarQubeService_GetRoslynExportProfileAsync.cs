@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -67,6 +68,18 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().NotBeNull();
+            result.Configuration.Should().NotBeNull();
+            result.Configuration.RuleSet.Should().NotBeNull();
+            result.Configuration.RuleSet.GetAttribute("Name").Should().Be("Rules for SonarQube");
+            result.Configuration.RuleSet.GetAttribute("Description").Should().Be("This rule set was automatically generated from SonarQube.");
+            result.Configuration.RuleSet.GetAttribute("ToolsVersion").Should().Be("14.0");
+            result.Configuration.RuleSet.GetElementsByTagName("Rules").Count.Should().Be(1);
+            result.Configuration.RuleSet.GetElementsByTagName("Rule").Count.Should().Be(1);
+            result.Configuration.AdditionalFiles.Select(x => x.FileName).Should().BeEquivalentTo(new[] { "SonarLint.xml" });
+
+            result.Deployment.Should().NotBeNull();
+            result.Deployment.NuGetPackages.Select(x => x.Id).Should().BeEquivalentTo(new[] { "SonarAnalyzer.CSharp" });
+            result.Deployment.NuGetPackages.Select(x => x.Version).Should().BeEquivalentTo(new[] { "6.4.0.3322" });
         }
 
         [TestMethod]
@@ -103,6 +116,18 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().NotBeNull();
+            result.Configuration.Should().NotBeNull();
+            result.Configuration.RuleSet.Should().NotBeNull();
+            result.Configuration.RuleSet.GetAttribute("Name").Should().Be("Rules for SonarQube");
+            result.Configuration.RuleSet.GetAttribute("Description").Should().Be("This rule set was automatically generated from SonarQube.");
+            result.Configuration.RuleSet.GetAttribute("ToolsVersion").Should().Be("14.0");
+            result.Configuration.RuleSet.GetElementsByTagName("Rules").Count.Should().Be(1);
+            result.Configuration.RuleSet.GetElementsByTagName("Rule").Count.Should().Be(1);
+            result.Configuration.AdditionalFiles.Select(x => x.FileName).Should().BeEquivalentTo(new[] { "SonarLint.xml" });
+
+            result.Deployment.Should().NotBeNull();
+            result.Deployment.NuGetPackages.Select(x => x.Id).Should().BeEquivalentTo(new[] { "SonarAnalyzer.CSharp" });
+            result.Deployment.NuGetPackages.Select(x => x.Version).Should().BeEquivalentTo(new[] { "6.4.0.3322" });
         }
 
         [TestMethod]

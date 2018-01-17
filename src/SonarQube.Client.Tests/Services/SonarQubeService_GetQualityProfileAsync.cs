@@ -145,6 +145,11 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().NotBeNull();
+            result.IsDefault.Should().BeTrue();
+            result.Key.Should().Be("AU-TpxcA-iU5OvuD2FL3");
+            result.Language.Should().Be("cs");
+            result.Name.Should().Be("Sonar way");
+            result.TimeStamp.Should().Be(DateTime.Parse("2015-02-23T17:58:39+0100"));
         }
 
         [TestMethod]
@@ -206,7 +211,11 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().NotBeNull();
-            result.TimeStamp.Should().Be(new DateTime(2015, 02, 23, 17, 58, 39));
+            result.IsDefault.Should().BeTrue();
+            result.Key.Should().Be("AU-TpxcA-iU5OvuD2FL3");
+            result.Language.Should().Be("cs");
+            result.Name.Should().Be("Sonar way");
+            result.TimeStamp.Should().Be(DateTime.Parse("2015-02-23T17:58:39+0100"));
         }
 
         [TestMethod]
@@ -322,6 +331,11 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().NotBeNull();
+            result.IsDefault.Should().BeTrue();
+            result.Key.Should().Be("AU-TpxcA-iU5OvuD2FL3");
+            result.Language.Should().Be("cs");
+            result.Name.Should().Be("Sonar way");
+            result.TimeStamp.Should().Be(DateTime.Parse("2015-02-23T17:58:39+0100"));
         }
 
         [TestMethod]
@@ -383,7 +397,11 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().NotBeNull();
-            result.TimeStamp.Should().Be(new DateTime(2015, 02, 23, 17, 58, 39));
+            result.IsDefault.Should().BeTrue();
+            result.Key.Should().Be("AU-TpxcA-iU5OvuD2FL3");
+            result.Language.Should().Be("cs");
+            result.Name.Should().Be("Sonar way");
+            result.TimeStamp.Should().Be(DateTime.Parse("2015-02-23T17:58:39+0100"));
         }
 
         [TestMethod]

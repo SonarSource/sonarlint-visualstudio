@@ -45,6 +45,7 @@ namespace SonarQube.Client.Tests.Services
             var result = await service.GetSuppressedIssuesAsync("project1", CancellationToken.None);
 
             // TODO: create a protobuf file with more than one issue with different states
+            // the one above does not have suppressed issues
             result.Should().HaveCount(0);
 
             messageHandler.VerifyAll();

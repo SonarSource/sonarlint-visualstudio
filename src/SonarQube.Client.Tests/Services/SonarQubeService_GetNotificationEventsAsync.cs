@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,13 +46,15 @@ namespace SonarQube.Client.Tests.Services
       ""category"": ""QUALITY_GATE"",
       ""message"": ""Quality Gate of project 'My Project' is now Red (was Orange)"",
       ""link"": ""https://sonarcloud.io/dashboard?id=my_project"",
-      ""project"": ""my_project""
+      ""project"": ""my_project"",
+      ""date"":""2017-11-15T17:07:34+0100""
     },
     {
       ""category"": ""NEW_ISSUES"",
       ""message"": ""You have 15 new issues on project 'My Project'"",
       ""link"": ""https://sonarcloud.io/project/issues?id=my_project&createdAfter=2017-03-01T00%3A00%3A00%2B0100&assignees=me%40github&resolved=false"",
-      ""project"": ""my_project""
+      ""project"": ""my_project"",
+      ""date"":""2017-12-20T17:07:34+0100""
     }
   ]
 }");
@@ -60,6 +64,25 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(2);
+            result.Select(x => x.Category).Should().BeEquivalentTo(new[] { "QUALITY_GATE", "NEW_ISSUES" });
+            result.Select(x => x.Date).Should().BeEquivalentTo(
+                new[]
+                {
+                    DateTimeOffset.Parse("2017-11-15T17:07:34+0100"),
+                    DateTimeOffset.Parse("2017-12-20T17:07:34+0100")
+                });
+            result.Select(x => x.Link).Should().BeEquivalentTo(
+                new[]
+                {
+                    "https://sonarcloud.io/dashboard?id=my_project",
+                    "https://sonarcloud.io/project/issues?id=my_project&createdAfter=2017-03-01T00%3A00%3A00%2B0100&assignees=me%40github&resolved=false"
+                });
+            result.Select(x => x.Message).Should().BeEquivalentTo(
+                new[]
+                {
+                    "Quality Gate of project 'My Project' is now Red (was Orange)",
+                    "You have 15 new issues on project 'My Project'"
+                });
         }
 
         [TestMethod]

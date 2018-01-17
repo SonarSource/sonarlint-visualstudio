@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -62,6 +63,8 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(3);
+            result.Select(x => x.Key).Should().BeEquivalentTo(new[] { "findbugs", "l10nfr", "jira" });
+            result.Select(x => x.Version).Should().BeEquivalentTo(new[] { "2.1", "1.10", "1.2" });
         }
 
         [TestMethod]

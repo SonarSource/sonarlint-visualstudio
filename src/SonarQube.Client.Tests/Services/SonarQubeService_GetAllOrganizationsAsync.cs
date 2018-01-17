@@ -69,6 +69,8 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(2);
+            result.Select(x => x.Key).Should().BeEquivalentTo(new[] { "foo-company", "bar-company" });
+            result.Select(x => x.Name).Should().BeEquivalentTo(new[] { "Foo Company", "Bar Company" });
         }
 
         [TestMethod]
@@ -117,6 +119,8 @@ namespace SonarQube.Client.Tests.Services
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(1010);
+            result.Select(x => x.Key).Should().BeEquivalentTo(Enumerable.Range(1, 1010).Select(i => i.ToString()));
+            result.Select(x => x.Name).Should().BeEquivalentTo(Enumerable.Range(1, 1010).Select(i => $"Name{i}"));
         }
 
         [TestMethod]
