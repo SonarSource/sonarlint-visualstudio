@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         [ImportingConstructor]
         public SonarLintDaemon(ISonarLintSettings settings, ILogger logger)
-            : this(settings, logger, daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath())
+            : this(settings, logger, daemonVersion, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Path.GetTempPath())
         {
         }
 
