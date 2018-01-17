@@ -126,14 +126,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             string expectedOutputMessage =
-                 "*****************************************************************************************\r\n" +
-                 "***   Newer versions of SonarLint will not work with this version of Visual Studio.   ***\r\n" +
-                 "***   Please update to Visual Studio 2015 Update 3 or Visual Studio 2017 to benefit   ***\r\n" +
-                 "***   from new features.                                                              ***\r\n" +
-                 "*****************************************************************************************";
-            string expectedBarMessage = "Newer versions of SonarLint will not work with this version of Visual Studio. Please " +
-                "update to Visual Studio 2015 Update 3 or Visual Studio 2017 to benefit from new features.";
-
+                "*****************************************************************************************\r\n" +
+                "***   SonarLint for Visual Studio versions 4.0+ will no longer support this version   ***\r\n" +
+                "***         of Visual Studio. Please update to Visual Studio 2015 Update 3 or         ***\r\n" +
+                "***               Visual Studio 2017 to benefit from new features.                    ***\r\n" +
+                "*****************************************************************************************";
+            string expectedBarMessage = "SonarLint for Visual Studio versions 4.0+ will no longer support this version of Visual " +
+                "Studio. Please update to Visual Studio 2015 Update 3 or Visual Studio 2017 to benefit from new features.";
             // Act
             deprecationManager.Initialize(version);
 
