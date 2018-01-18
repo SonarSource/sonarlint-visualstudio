@@ -81,7 +81,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(),
                 this.GetMefService<ILogger>());
-            this.deprecationManager.Initialize(VisualStudioHelpers.VisualStudioVersion);
         }
 
         protected override void Dispose(bool disposing)

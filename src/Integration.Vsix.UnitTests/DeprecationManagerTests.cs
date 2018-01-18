@@ -30,18 +30,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class DeprecationManagerTests
     {
-        private DeprecationManager deprecationManager;
-        private Mock<ILogger> sonarLintOutputMock;
-        private Mock<IInfoBarManager> inforBarManagerMock;
-
-        [TestInitialize]
-        public void TestsInitialize()
-        {
-            sonarLintOutputMock = new Mock<ILogger>();
-            inforBarManagerMock = new Mock<IInfoBarManager>();
-            deprecationManager = new DeprecationManager(inforBarManagerMock.Object, sonarLintOutputMock.Object);
-        }
-
         [TestMethod]
         public void Ctor_WhenInfoBarManagerIsNull_ThrowsArgumentNullException()
         {
@@ -90,11 +78,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Dispose__WhenInitialized_CallsCloseOnTheBar()
         {
             // Arrange
+            VisualStudioHelpers.VisualStudioVersion = "0.0.0.0";
+
+            var sonarLintOutputMock = new Mock<ILogger>();
+            var inforBarManagerMock = new Mock<IInfoBarManager>();
             var infoBar = new Mock<IInfoBar>();
             inforBarManagerMock
                 .Setup(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, It.IsAny<string>(), It.IsAny<ImageMoniker>()))
                 .Returns(infoBar.Object);
-            deprecationManager.Initialize("0.0.0.0");
+
+            var deprecationManager = new DeprecationManager(inforBarManagerMock.Object, sonarLintOutputMock.Object);
 
             // Act
             deprecationManager.Dispose();
@@ -107,11 +100,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Dispose_WhenCalledMultipleTimes_CallsCloseOnTheBarOnlyOnce()
         {
             // Arrange
+            VisualStudioHelpers.VisualStudioVersion = "0.0.0.0";
+
+            var sonarLintOutputMock = new Mock<ILogger>();
+            var inforBarManagerMock = new Mock<IInfoBarManager>();
             var infoBar = new Mock<IInfoBar>();
             inforBarManagerMock
                 .Setup(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, It.IsAny<string>(), It.IsAny<ImageMoniker>()))
                 .Returns(infoBar.Object);
-            deprecationManager.Initialize("0.0.0.0");
+
+            var deprecationManager = new DeprecationManager(inforBarManagerMock.Object, sonarLintOutputMock.Object);
 
             // Act
             deprecationManager.Dispose();
@@ -125,6 +123,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void AssertShowsWarnings(string version, Times numberOfTimes)
         {
             // Arrange
+            VisualStudioHelpers.VisualStudioVersion = version;
+            var sonarLintOutputMock = new Mock<ILogger>();
+            var inforBarManagerMock = new Mock<IInfoBarManager>();
+
             string expectedOutputMessage =
                 "*****************************************************************************************\r\n" +
                 "***   SonarLint for Visual Studio versions 4.0+ will no longer support this version   ***\r\n" +
@@ -134,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string expectedBarMessage = "SonarLint for Visual Studio versions 4.0+ will no longer support this version of Visual " +
                 "Studio. Please update to Visual Studio 2015 Update 3 or Visual Studio 2017 to benefit from new features.";
             // Act
-            deprecationManager.Initialize(version);
+            var deprecationManager = new DeprecationManager(inforBarManagerMock.Object, sonarLintOutputMock.Object);
 
             // Assert
             sonarLintOutputMock.Verify(x => x.WriteLine(expectedOutputMessage), numberOfTimes);

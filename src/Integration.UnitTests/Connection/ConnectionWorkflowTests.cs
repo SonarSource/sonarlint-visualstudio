@@ -471,6 +471,102 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
         }
 
+        [TestMethod]
+        public void IsSonarQubePluginSupported_WhenUnsupportedVersionOfVSAndCSharpPluginEquals70_ReturnsFalseAndWriteExpectedText()
+        {
+            // Arrange
+            VisualStudioHelpers.VisualStudioVersion = "14.0";
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var sonarqubePlugin = new SonarQubePlugin("csharp", "7.0");
+
+            // Act
+            var result = testSubject.IsSonarQubePluginSupported(new[] { sonarqubePlugin }, MinimumSupportedSonarQubePlugin.CSharp);
+
+            // Assert
+            result.Should().BeFalse();
+            this.outputWindowPane.AssertOutputStrings("   Discovered an unsupported plugin: Language: 'C#', Minimum version: '5.0', Maximum version: '7.0'");
+        }
+
+        [TestMethod]
+        public void IsSonarQubePluginSupported_WhenUnsupportedVersionOfVSAndCSharpPluginEquals60_ReturnsTrue()
+        {
+            // Arrange
+            VisualStudioHelpers.VisualStudioVersion = "14.0";
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var sonarqubePlugin = new SonarQubePlugin("csharp", "6.0");
+
+            // Act
+            var result = testSubject.IsSonarQubePluginSupported(new[] { sonarqubePlugin }, MinimumSupportedSonarQubePlugin.CSharp);
+
+            // Assert
+            result.Should().BeTrue();
+            this.outputWindowPane.AssertOutputStrings("   Discovered a supported plugin: Language: 'C#', Minimum version: '5.0', Maximum version: '7.0'");
+        }
+
+        [TestMethod]
+        public void IsSonarQubePluginSupported_WhenSupportedVersionOfVSAndCSharpPluginEquals70_ReturnsTrueAndWriteExpectedText()
+        {
+            // Arrange
+            VisualStudioHelpers.VisualStudioVersion = "14.0.25420.00";
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var sonarqubePlugin = new SonarQubePlugin("csharp", "7.0");
+
+            // Act
+            var result = testSubject.IsSonarQubePluginSupported(new[] { sonarqubePlugin }, MinimumSupportedSonarQubePlugin.CSharp);
+
+            // Assert
+            result.Should().BeTrue();
+            this.outputWindowPane.AssertOutputStrings("   Discovered a supported plugin: Language: 'C#', Minimum version: '5.0'");
+        }
+
+        [TestMethod]
+        public void IsSonarQubePluginSupported_WhenUnsupportedVersionOfVSAndVBNetPluginEquals50_ReturnsFalseAndWriteExpectedText()
+        {
+            // Arrange
+            VisualStudioHelpers.VisualStudioVersion = "14.0";
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var sonarqubePlugin = new SonarQubePlugin("vbnet", "5.0");
+
+            // Act
+            var result = testSubject.IsSonarQubePluginSupported(new[] { sonarqubePlugin }, MinimumSupportedSonarQubePlugin.VbNet);
+
+            // Assert
+            result.Should().BeFalse();
+            this.outputWindowPane.AssertOutputStrings("   Discovered an unsupported plugin: Language: 'VB.NET', Minimum version: '3.0', Maximum version: '5.0'");
+        }
+
+        [TestMethod]
+        public void IsSonarQubePluginSupported_WhenUnsupportedVersionOfVSAndVBNetPluginEquals40_ReturnsTrue()
+        {
+            // Arrange
+            VisualStudioHelpers.VisualStudioVersion = "14.0";
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var sonarqubePlugin = new SonarQubePlugin("vbnet", "4.0");
+
+            // Act
+            var result = testSubject.IsSonarQubePluginSupported(new[] { sonarqubePlugin }, MinimumSupportedSonarQubePlugin.VbNet);
+
+            // Assert
+            result.Should().BeTrue();
+            this.outputWindowPane.AssertOutputStrings("   Discovered a supported plugin: Language: 'VB.NET', Minimum version: '3.0', Maximum version: '5.0'");
+        }
+
+        [TestMethod]
+        public void IsSonarQubePluginSupported_WhenSupportedVersionOfVSAndVBNetPluginEquals50_ReturnsTrueAndWriteExpectedText()
+        {
+            // Arrange
+            VisualStudioHelpers.VisualStudioVersion = "14.0.25420.00";
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var sonarqubePlugin = new SonarQubePlugin("vbnet", "5.0");
+
+            // Act
+            var result = testSubject.IsSonarQubePluginSupported(new[] { sonarqubePlugin }, MinimumSupportedSonarQubePlugin.VbNet);
+
+            // Assert
+            result.Should().BeTrue();
+            this.outputWindowPane.AssertOutputStrings("   Discovered a supported plugin: Language: 'VB.NET', Minimum version: '3.0'");
+        }
+
         #endregion Tests
 
         #region Helpers
