@@ -24,6 +24,9 @@ namespace SonarLint.VisualStudio.Integration.Helpers
     {
         bool Exists(string path);
         void Delete(string path);
+        void Delete(string path, bool recursive);
         void Create(string path);
+        string[] GetDirectories(string path, string searchPattern);
+        void Move(string sourceDirName, string destDirName);
     }
 }

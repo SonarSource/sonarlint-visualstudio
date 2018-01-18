@@ -85,6 +85,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.dteEvents.OnStartupComplete -= OnIdeStartupComplete;
             var settings = this.GetMefService<ISonarLintSettings>();
 
+            var logger = this.GetMefService<ILogger>();
+            LegacyInstallationCleanup.CleanupDaemonFiles(logger);
+
             if (settings.IsActivateMoreEnabled && daemon.IsInstalled)
             {
                 if (!daemon.IsRunning)

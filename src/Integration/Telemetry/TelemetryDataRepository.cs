@@ -64,6 +64,8 @@ namespace SonarLint.VisualStudio.Integration
 
         internal static string GetStorageFilePath()
         {
+            // Note: the data is stored in the roaming profile so it will be sync across machines
+            // for domain-joined users.
             var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var filePath = Path.Combine(appDataFolder, "SonarLint for Visual Studio", "telemetry.xml");
             return Path.GetFullPath(filePath); // get rid of the .. in file path

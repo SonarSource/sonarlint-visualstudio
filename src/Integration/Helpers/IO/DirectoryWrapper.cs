@@ -30,6 +30,12 @@ namespace SonarLint.VisualStudio.Integration.Helpers
 
         public void Delete(string path) => Directory.Delete(path);
 
+        public void Delete(string path, bool recursive) => Directory.Delete(path, recursive);
+
         public bool Exists(string path) => Directory.Exists(path);
+
+        public string[] GetDirectories(string path, string searchPattern) => Directory.GetDirectories(path, searchPattern);
+
+        public void Move(string sourceDirName, string destDirName) => Directory.Move(sourceDirName, destDirName);
     }
 }
