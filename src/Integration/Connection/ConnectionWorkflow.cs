@@ -340,14 +340,14 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 {
                     const string newRoslynSonarCSharpVersion = "7.0";
                     pluginInfoMessage += $", Maximum version: '{newRoslynSonarCSharpVersion}'";
-                    isPluginSupported = VersionHelper.Compare(plugin.Version, newRoslynSonarCSharpVersion) <= 0;
+                    isPluginSupported = VersionHelper.Compare(plugin.Version, newRoslynSonarCSharpVersion) < 0;
                 }
 
                 if (minimumSupportedPlugin == MinimumSupportedSonarQubePlugin.VbNet)
                 {
                     const string newRoslynSonarVBNetVersion = "5.0";
                     pluginInfoMessage += $", Maximum version: '{newRoslynSonarVBNetVersion}'";
-                    isPluginSupported = VersionHelper.Compare(plugin.Version, newRoslynSonarVBNetVersion) <= 0;
+                    isPluginSupported = VersionHelper.Compare(plugin.Version, newRoslynSonarVBNetVersion) < 0;
                 }
             }
 
