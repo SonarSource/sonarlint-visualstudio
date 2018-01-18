@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             new LegacyInstallationCleanup(logger,
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)),
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 new DirectoryWrapper()).Clean();
         }
 
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 directory.Delete(renamedPath, true);
                 logger.WriteLine($"Deleted daemon folder {fullPath}");
             }
-            catch(IOException ex)
+            catch (IOException ex)
             {
                 logger.WriteLine($"Failed to delete daemon folder {fullPath}. Error: {ex.Message}");
             }
