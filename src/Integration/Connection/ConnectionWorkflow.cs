@@ -316,7 +316,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
             return string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, this.host.SupportedPluginLanguages.First().Name);
         }
 
-        private bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> plugins, MinimumSupportedSonarQubePlugin minimumSupportedPlugin)
+        internal /*for testing purposes*/ bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> plugins,
+            MinimumSupportedSonarQubePlugin minimumSupportedPlugin)
         {
             var plugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
 
