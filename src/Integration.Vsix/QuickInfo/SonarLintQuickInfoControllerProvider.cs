@@ -35,8 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         [Import]
         internal IQuickInfoBroker QuickInfoBroker { get; set; }
 
-        public IIntellisenseController TryCreateIntellisenseController(ITextView textView,
-            IList<ITextBuffer> subjectBuffers) =>
+        public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers) =>
             new SonarLintQuickInfoController(textView, subjectBuffers, this);
     }
 }

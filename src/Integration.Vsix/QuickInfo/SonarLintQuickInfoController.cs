@@ -58,11 +58,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            var trackingPoint = point.Value.Snapshot
-                .CreateTrackingPoint(point.Value.Position, PointTrackingMode.Positive);
-
             if (!provider.QuickInfoBroker.IsQuickInfoActive(textView))
             {
+                var trackingPoint = point.Value.Snapshot
+                    .CreateTrackingPoint(point.Value.Position, PointTrackingMode.Positive);
+
                 provider.QuickInfoBroker.TriggerQuickInfo(textView, trackingPoint, true);
             }
         }
@@ -76,14 +76,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void ConnectSubjectBuffer(ITextBuffer subjectBuffer)
-        {
-            // Nothing to do here
-        }
+        public void ConnectSubjectBuffer(ITextBuffer subjectBuffer) =>
+            subjectBuffers.Add(subjectBuffer);
 
-        public void DisconnectSubjectBuffer(ITextBuffer subjectBuffer)
-        {
-            // Nothing to do here
-        }
+        public void DisconnectSubjectBuffer(ITextBuffer subjectBuffer) =>
+            subjectBuffers.Remove(subjectBuffer);
     }
 }

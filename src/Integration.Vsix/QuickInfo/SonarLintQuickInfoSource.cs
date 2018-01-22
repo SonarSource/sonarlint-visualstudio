@@ -72,7 +72,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 .Where(ContainsTheTriggerPoint);
         }
 
-        private IssueMarker CreateMarker(Sonarlint.Issue issue) => issue.ToMarker(currentSnapshot);
+        private IssueMarker CreateMarker(Sonarlint.Issue issue) =>
+            issue.ToMarker(currentSnapshot);
 
         public void Dispose()
         {
