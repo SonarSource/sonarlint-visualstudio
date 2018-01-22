@@ -18,37 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Net;
-using Sonarlint;
+using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public delegate void DaemonEventHandler(object sender, EventArgs e);
-
-    public interface ISonarLintDaemon : IDisposable
+    [Export(typeof(IIntellisenseControllerProvider))]
+    [Name("SonarLint ToolTip Controller")]
+    [ContentType("text")]
+    internal class SonarLintQuickInfoControllerProvider : IIntellisenseControllerProvider
     {
-        bool IsInstalled { get; }
-        bool IsRunning { get; }
+        [Import]
+        internal IQuickInfoBroker QuickInfoBroker { get; set; }
 
-        void Install();
-        event DownloadProgressChangedEventHandler DownloadProgressChanged;
-        event AsyncCompletedEventHandler DownloadCompleted;
-
-        event EventHandler<EventArgs> Ready;
-
-        void Start();
-        void Stop();
-
-        void RequestAnalysis(string path, string charset, string sqLanguage, string json, IIssueConsumer consumer);
-
-        IEnumerable<Issue> GetIssues(string filePath);
-    }
-
-    public interface IIssueConsumer
-    {
-        void Accept(string path, IEnumerable<Issue> issues);
+        public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers) =>
+            new SonarLintQuickInfoController(textView, subjectBuffers, this);
     }
 }

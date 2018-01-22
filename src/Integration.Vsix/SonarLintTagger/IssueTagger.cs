@@ -154,18 +154,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             SnapToNewSnapshot(newSnapshot);
         }
 
-        private bool IsValidIssueTextRange(Issue issue) => 1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
+        private bool IsValidIssueTextRange(Issue issue) =>
+            1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
-        private IssueMarker CreateIssueMarker(Issue issue)
-        {
-            int startPos = currentSnapshot.GetLineFromLineNumber(issue.StartLine - 1).Start.Position + issue.StartLineOffset;
-            var start = new SnapshotPoint(currentSnapshot, startPos);
-
-            int endPos = currentSnapshot.GetLineFromLineNumber(issue.EndLine - 1).Start.Position + issue.EndLineOffset;
-            var end = new SnapshotPoint(currentSnapshot, endPos);
-
-            return new IssueMarker(issue, new SnapshotSpan(start, end));
-        }
+        private IssueMarker CreateIssueMarker(Issue issue) =>
+            issue.ToMarker(currentSnapshot);
 
         private void SnapToNewSnapshot(IssuesSnapshot snapshot)
         {

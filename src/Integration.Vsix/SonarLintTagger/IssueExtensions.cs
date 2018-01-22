@@ -18,37 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Net;
-using Sonarlint;
+using Microsoft.VisualStudio.Text;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public delegate void DaemonEventHandler(object sender, EventArgs e);
-
-    public interface ISonarLintDaemon : IDisposable
+    internal static class IssueExtensions
     {
-        bool IsInstalled { get; }
-        bool IsRunning { get; }
+        public static IssueMarker ToMarker(this Sonarlint.Issue issue, ITextSnapshot currentSnapshot)
+        {
+            int startPos = currentSnapshot.GetLineFromLineNumber(issue.StartLine - 1).Start.Position + issue.StartLineOffset;
+            var start = new SnapshotPoint(currentSnapshot, startPos);
 
-        void Install();
-        event DownloadProgressChangedEventHandler DownloadProgressChanged;
-        event AsyncCompletedEventHandler DownloadCompleted;
+            int endPos = currentSnapshot.GetLineFromLineNumber(issue.EndLine - 1).Start.Position + issue.EndLineOffset;
+            var end = new SnapshotPoint(currentSnapshot, endPos);
 
-        event EventHandler<EventArgs> Ready;
-
-        void Start();
-        void Stop();
-
-        void RequestAnalysis(string path, string charset, string sqLanguage, string json, IIssueConsumer consumer);
-
-        IEnumerable<Issue> GetIssues(string filePath);
-    }
-
-    public interface IIssueConsumer
-    {
-        void Accept(string path, IEnumerable<Issue> issues);
+            return new IssueMarker(issue, new SnapshotSpan(start, end));
+        }
     }
 }
