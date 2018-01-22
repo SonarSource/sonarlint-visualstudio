@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Sonarlint;
+using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -47,6 +48,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private NormalizedSnapshotSpanCollection dirtySpans;
 
         private readonly ITextDocument document;
+        private readonly IIssueConverter issueConverter;
+
         internal string FilePath { get; private set; }
         internal string Charset { get; }
         internal SnapshotFactory Factory { get; }
@@ -55,11 +58,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal IssueTagger(DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document,
             IEnumerable<SonarLanguage> detectedLanguages)
+            : this(dte, provider, buffer, document, detectedLanguages, new IssueConverter()) { }
+
+        internal IssueTagger(DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document,
+            IEnumerable<SonarLanguage> detectedLanguages, IIssueConverter issueConverter)
         {
             this.dte = dte;
             this.provider = provider;
             this.textBuffer = buffer;
             this.detectedLanguages = detectedLanguages;
+            this.issueConverter = issueConverter;
             this.currentSnapshot = buffer.CurrentSnapshot;
             this.dirtySpans = new NormalizedSnapshotSpanCollection();
 
@@ -158,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
         private IssueMarker CreateIssueMarker(Issue issue) =>
-            issue.ToMarker(currentSnapshot);
+            issueConverter.ToMarker(issue, currentSnapshot);
 
         private void SnapToNewSnapshot(IssuesSnapshot snapshot)
         {

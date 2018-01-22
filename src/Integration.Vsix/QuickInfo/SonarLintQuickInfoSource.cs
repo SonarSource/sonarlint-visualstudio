@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -30,15 +31,36 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly ITextSnapshot currentSnapshot;
         private readonly SonarLintQuickInfoSourceProvider provider;
+        private readonly IIssueConverter issueConverter;
         private readonly string filePath;
-        private bool disposed;
+
+        public SonarLintQuickInfoSource(SonarLintQuickInfoSourceProvider provider, ITextSnapshot currentSnapshot, string filePath)
+            : this(provider, currentSnapshot, filePath, new IssueConverter()) { }
 
         public SonarLintQuickInfoSource(SonarLintQuickInfoSourceProvider provider, ITextSnapshot currentSnapshot,
-            string filePath)
+            string filePath, IIssueConverter issueConverter)
         {
+            if (provider == null)
+            {
+                throw new ArgumentNullException(nameof(provider));
+            }
+            if (subjectBuffer == null)
+            {
+                throw new ArgumentNullException(nameof(subjectBuffer));
+            }
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+            if (issueConverter == null)
+            {
+                throw new ArgumentNullException(nameof(issueConverter));
+            }
+
             this.provider = provider;
             this.currentSnapshot = currentSnapshot;
             this.filePath = filePath;
+            this.issueConverter = issueConverter;
         }
 
         public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent,
@@ -73,15 +95,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private IssueMarker CreateMarker(Sonarlint.Issue issue) =>
-            issue.ToMarker(currentSnapshot);
+            issueConverter.ToMarker(issue, currentSnapshot);
 
         public void Dispose()
         {
-            if (!disposed)
-            {
-                GC.SuppressFinalize(this);
-                disposed = true;
-            }
+            // Nothing to dispose
         }
     }
 }

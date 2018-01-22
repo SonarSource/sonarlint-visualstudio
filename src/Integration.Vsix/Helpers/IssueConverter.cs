@@ -19,36 +19,20 @@
  */
 
 using Microsoft.VisualStudio.Text;
-using Sonarlint;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
 {
-    public class IssueMarker
+    internal class IssueConverter : IIssueConverter
     {
-        public Issue Issue { get; }
-        public SnapshotSpan Span { get; }
-
-        public IssueMarker(Issue issue, SnapshotSpan span)
+        public IssueMarker ToMarker(Sonarlint.Issue issue, ITextSnapshot currentSnapshot)
         {
-            this.Issue = issue;
-            this.Span = span;
-        }
+            int startPos = currentSnapshot.GetLineFromLineNumber(issue.StartLine - 1).Start.Position + issue.StartLineOffset;
+            var start = new SnapshotPoint(currentSnapshot, startPos);
 
-        public IssueMarker Clone()
-        {
-            return new IssueMarker(Issue, Span);
-        }
+            int endPos = currentSnapshot.GetLineFromLineNumber(issue.EndLine - 1).Start.Position + issue.EndLineOffset;
+            var end = new SnapshotPoint(currentSnapshot, endPos);
 
-        public IssueMarker CloneAndTranslateTo(ITextSnapshot newSnapshot)
-        {
-            var newSpan = Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
-
-            // If the span length changed, the marker is no longer valid
-            if (newSpan.Length != Span.Length)
-            {
-                return null;
-            }
-            return new IssueMarker(Issue, newSpan);
+            return new IssueMarker(issue, new SnapshotSpan(start, end));
         }
     }
 }

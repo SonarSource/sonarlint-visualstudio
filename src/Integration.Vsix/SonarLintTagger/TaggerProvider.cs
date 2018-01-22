@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Sonarlint;
+using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -116,7 +117,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     if (!taggers.ExistsForFile(textDocument.FilePath))
                     {
-                        return new IssueTagger(dte, this, buffer, textDocument, detectedLanguages) as ITagger<T>;
+                        return new IssueTagger(dte, this, buffer, textDocument, detectedLanguages)
+                            as ITagger<T>;
                     }
                 }
             }
