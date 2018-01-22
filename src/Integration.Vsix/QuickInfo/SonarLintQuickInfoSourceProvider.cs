@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return null;
             }
 
-            return new SonarLintQuickInfoSource(this, textBuffer.CurrentSnapshot, document?.FilePath);
+            return new SonarLintQuickInfoSource(this, textBuffer, document?.FilePath);
         }
     }
 }
