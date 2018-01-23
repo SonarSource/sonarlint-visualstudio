@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -37,6 +38,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal SonarLintQuickInfoController(ITextView textView, IList<ITextBuffer> subjectBuffers,
             SonarLintQuickInfoControllerProvider provider)
         {
+            if (textView == null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+            if (subjectBuffers == null)
+            {
+                throw new ArgumentNullException(nameof(subjectBuffers));
+            }
+            if (provider == null)
+            {
+                throw new ArgumentNullException(nameof(provider));
+            }
+
             this.textView = textView;
             this.subjectBuffers = subjectBuffers;
             this.provider = provider;

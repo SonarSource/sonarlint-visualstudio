@@ -23,22 +23,44 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal sealed class SonarLintQuickInfoSource : IQuickInfoSource
     {
-        private readonly ITextSnapshot currentSnapshot;
+        private readonly ITextBuffer subjectBuffer;
         private readonly SonarLintQuickInfoSourceProvider provider;
+        private readonly IIssueConverter issueConverter;
         private readonly string filePath;
-        private bool disposed;
 
-        public SonarLintQuickInfoSource(SonarLintQuickInfoSourceProvider provider, ITextSnapshot currentSnapshot,
-            string filePath)
+        public SonarLintQuickInfoSource(SonarLintQuickInfoSourceProvider provider, ITextBuffer subjectBuffer, string filePath)
+            : this(provider, subjectBuffer, filePath, new IssueConverter()) { }
+
+        public SonarLintQuickInfoSource(SonarLintQuickInfoSourceProvider provider, ITextBuffer subjectBuffer,
+            string filePath, IIssueConverter issueConverter)
         {
+            if (provider == null)
+            {
+                throw new ArgumentNullException(nameof(provider));
+            }
+            if (subjectBuffer == null)
+            {
+                throw new ArgumentNullException(nameof(subjectBuffer));
+            }
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+            if (issueConverter == null)
+            {
+                throw new ArgumentNullException(nameof(issueConverter));
+            }
+
             this.provider = provider;
-            this.currentSnapshot = currentSnapshot;
+            this.subjectBuffer = subjectBuffer;
             this.filePath = filePath;
+            this.issueConverter = issueConverter;
         }
 
         public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent,
@@ -51,14 +73,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             foreach (var marker in issueMarkers)
             {
                 quickInfoContent.Add(marker.Issue.Message);
-                applicableToSpan = currentSnapshot.CreateTrackingSpan(marker.Span, SpanTrackingMode.EdgeInclusive);
+                applicableToSpan = subjectBuffer.CurrentSnapshot
+                    .CreateTrackingSpan(marker.Span, SpanTrackingMode.EdgeInclusive);
             }
         }
 
         private IEnumerable<IssueMarker> GetIssueMarkers(IQuickInfoSession session)
         {
             // Map the trigger point down to our buffer.
-            var triggerPoint = session.GetTriggerPoint(currentSnapshot);
+            var triggerPoint = session.GetTriggerPoint(subjectBuffer.CurrentSnapshot);
             if (triggerPoint == null)
             {
                 return Enumerable.Empty<IssueMarker>();
@@ -73,15 +96,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private IssueMarker CreateMarker(Sonarlint.Issue issue) =>
-            issue.ToMarker(currentSnapshot);
+            issueConverter.ToMarker(issue, subjectBuffer.CurrentSnapshot);
 
         public void Dispose()
         {
-            if (!disposed)
-            {
-                GC.SuppressFinalize(this);
-                disposed = true;
-            }
+            // Nothing to dispose
         }
     }
 }

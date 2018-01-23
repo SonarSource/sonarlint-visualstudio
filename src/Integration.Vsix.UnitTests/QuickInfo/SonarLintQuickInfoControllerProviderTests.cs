@@ -18,21 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Moq;
+using SonarLint.VisualStudio.Integration.Vsix;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.UnitTests.QuickInfo
 {
-    internal static class IssueExtensions
+    [TestClass]
+    public class SonarLintQuickInfoControllerProviderTests
     {
-        public static IssueMarker ToMarker(this Sonarlint.Issue issue, ITextSnapshot currentSnapshot)
+        [TestMethod]
+        public void Returns_New_Instance()
         {
-            int startPos = currentSnapshot.GetLineFromLineNumber(issue.StartLine - 1).Start.Position + issue.StartLineOffset;
-            var start = new SnapshotPoint(currentSnapshot, startPos);
+            var textViewMock = new Mock<ITextView>();
 
-            int endPos = currentSnapshot.GetLineFromLineNumber(issue.EndLine - 1).Start.Position + issue.EndLineOffset;
-            var end = new SnapshotPoint(currentSnapshot, endPos);
+            var controller = new SonarLintQuickInfoControllerProvider()
+                .TryCreateIntellisenseController(textViewMock.Object, new List<ITextBuffer>());
 
-            return new IssueMarker(issue, new SnapshotSpan(start, end));
+            controller.Should().NotBeNull();
         }
     }
 }
