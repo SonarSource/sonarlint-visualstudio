@@ -24,9 +24,9 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client.Models;
 using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IErrorListInfoBarController errorListInfoBarController;
-        private readonly ISolutionBindingInformationProvider solutionBindingInformationProvider;
+        private readonly IConfigurationProvider configurationProvider;
         private readonly ILogger sonarLintOutput;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
@@ -48,7 +48,8 @@ namespace SonarLint.VisualStudio.Integration
         public string ProjectKey { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker,
+        public ActiveSolutionBoundTracker(IHost host,
+            IActiveSolutionTracker activeSolutionTracker,
             ILogger sonarLintOutput)
         {
             if (host == null)
@@ -68,8 +69,8 @@ namespace SonarLint.VisualStudio.Integration
             this.solutionTracker = activeSolutionTracker;
             this.sonarLintOutput = sonarLintOutput;
 
-            this.solutionBindingInformationProvider = this.extensionHost.GetService<ISolutionBindingInformationProvider>();
-            this.solutionBindingInformationProvider.AssertLocalServiceIsNotNull();
+            this.configurationProvider = this.extensionHost.GetService<IConfigurationProvider>();
+            this.configurationProvider.AssertLocalServiceIsNotNull();
 
             this.errorListInfoBarController = this.extensionHost.GetService<IErrorListInfoBarController>();
             this.errorListInfoBarController.AssertLocalServiceIsNotNull();
@@ -80,8 +81,10 @@ namespace SonarLint.VisualStudio.Integration
             // The solution changed inside the IDE
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
 
-            this.IsActiveSolutionBound = this.solutionBindingInformationProvider.IsSolutionBound();
-            this.ProjectKey = this.solutionBindingInformationProvider.GetProjectKey();
+            BoundSonarQubeProject project = this.configurationProvider.GetBoundProject();
+
+            this.IsActiveSolutionBound = project != null;
+            this.ProjectKey = project?.ProjectKey;
         }
 
         private async void OnActiveSolutionChanged(object sender, EventArgs e)
@@ -111,17 +114,17 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(!sonarQubeService.IsConnected,
                 "SonarQube service should always be disconnected at this point");
 
-            bool isSolutionCurrentlyBound = this.solutionBindingInformationProvider.IsSolutionBound();
+            var boundProject = this.configurationProvider.GetBoundProject();
 
-            if (isSolutionCurrentlyBound)
+            if (boundProject != null)
             {
-                var connectionInformation = GetConnectionInformation();
+                var connectionInformation = boundProject.CreateConnectionInformation();
                 await SafeServiceCall(async () =>
                     await sonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None));
             }
 
-            Debug.Assert(isSolutionCurrentlyBound == sonarQubeService.IsConnected,
-                $"Inconsistent connection state: Solution bound={isSolutionCurrentlyBound}, service connected={sonarQubeService.IsConnected}");
+            Debug.Assert((boundProject != null) == sonarQubeService.IsConnected,
+                $"Inconsistent connection state: Solution bound={boundProject != null}, service connected={sonarQubeService.IsConnected}");
         }
 
         private async Task SafeServiceCall(Func<Task> call)
@@ -148,16 +151,6 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private ConnectionInformation GetConnectionInformation()
-        {
-            var solutionBindingStorage = this.extensionHost.GetService<ISolutionBindingSerializer>();
-            solutionBindingStorage.AssertLocalServiceIsNotNull();
-
-            return solutionBindingStorage
-                .ReadSolutionBinding()
-                ?.CreateConnectionInformation();
-        }
-
         private void OnBindingStateChanged(object sender, EventArgs e)
         {
             this.RaiseAnalyzersChangedIfBindingChanged();
@@ -165,8 +158,10 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RaiseAnalyzersChangedIfBindingChanged()
         {
-            bool isSolutionCurrentlyBound = this.solutionBindingInformationProvider.IsSolutionBound();
-            string projectKey = this.solutionBindingInformationProvider.GetProjectKey();
+            var boundProject = this.configurationProvider.GetBoundProject();
+
+            bool isSolutionCurrentlyBound = boundProject != null;
+            string projectKey = boundProject?.ProjectKey;
 
             if (this.IsActiveSolutionBound != isSolutionCurrentlyBound ||
                 this.ProjectKey != projectKey)
