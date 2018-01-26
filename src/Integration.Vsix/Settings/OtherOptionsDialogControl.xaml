@@ -40,6 +40,8 @@
                         <TextBlock Text="    &quot;sonarlint_version&quot;: &quot;3.0&quot;," />
                         <TextBlock Text="    &quot;sonarlint_product&quot;: &quot;SonarLint Visual Studio&quot;," />
                         <TextBlock Text="    &quot;connected_mode_used&quot;: true" />
+                        <TextBlock Text="    &quot;install_time&quot;: &quot;2017-12-23T08:25:35.456+01:00&quot;" />
+                        <TextBlock Text="    &quot;system_time&quot;: &quot;2018-03-15T18:55:10.123+01:00&quot;" />
                         <TextBlock Text="}" />
                     </StackPanel>
                 </Hyperlink.ToolTip>

@@ -128,8 +128,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Act
             var result = await client.SendPayload(new TelemetryPayload
             {
-                InstallDate = new DateTimeOffset(2017, 12, 23, 8, 25, 35, 456, TimeSpan.FromHours(1)),
-                SystemDate = new DateTimeOffset(2018, 3, 15, 18, 55, 10, 123, TimeSpan.FromHours(1)),
+                // Adding some ticks to ensure that we send just the milliseconds in the serialized payload
+                InstallDate = new DateTimeOffset(2017, 12, 23, 8, 25, 35, 456, TimeSpan.FromHours(1)).AddTicks(123),
+                SystemDate = new DateTimeOffset(2018, 3, 15, 18, 55, 10, 123, TimeSpan.FromHours(1)).AddTicks(123),
                 IsUsingConnectedMode = true,
                 NumberOfDaysOfUse = 200,
                 NumberOfDaysSinceInstallation = 230,
