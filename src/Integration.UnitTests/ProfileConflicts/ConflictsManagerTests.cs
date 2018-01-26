@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
@@ -39,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsProjectSystemHelper projectHelper;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private ConfigurableFileSystem fileSystem;
-        private ConfigurableSolutionBindingSerializer solutionBinding;
+        private ConfigurableConfigurationProvider configProvider;
         private ConfigurableRuleSetInspector inspector;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private DTEMock dte;
@@ -62,8 +63,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.fileSystem = new ConfigurableFileSystem();
             this.serviceProvider.RegisterService(typeof(IFileSystem), this.fileSystem);
 
-            this.solutionBinding = new ConfigurableSolutionBindingSerializer();
-            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), this.solutionBinding);
+            this.configProvider = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
 
             this.inspector = new ConfigurableRuleSetInspector();
             this.serviceProvider.RegisterService(typeof(IRuleSetInspector), this.inspector);
@@ -91,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetValidProjects();
-            this.solutionBinding.CurrentBinding = null;
+            this.configProvider.ProjectToReturn = null;
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since solution is not bound");
@@ -257,7 +258,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetValidSolutionBinding()
         {
-            this.solutionBinding.CurrentBinding = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
         }
 
         private void SetValidProjects(int numberOfProjects = 1)
@@ -279,7 +280,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             foreach (var project in this.projectHelper.FilteredProjects)
             {
                 string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
-                    this.solutionBinding.CurrentBinding.ProjectKey,
+                    this.configProvider.ProjectToReturn.ProjectKey,
                     Language.ForProject(project));
                 this.fileSystem.RegisterFile(solutionRuleSet);
             }
