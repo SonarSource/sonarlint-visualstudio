@@ -24,10 +24,14 @@ using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    // Legacy connected mode
+    // Not required in for the new connected mode
+
     internal class SolutionBindingInformationProvider : ISolutionBindingInformationProvider
     {
         private readonly IServiceProvider serviceProvider;
@@ -45,6 +49,7 @@ namespace SonarLint.VisualStudio.Integration
         #region ISolutionBindingInformationProvider
         public bool IsSolutionBound()
         {
+            // TODO: CM2: consider changing this method to "IsLegacySolutionBound"
             return this.GetSolutionBinding() != null;
         }
 
@@ -67,10 +72,10 @@ namespace SonarLint.VisualStudio.Integration
         #region Non-public API
         private BoundSonarQubeProject GetSolutionBinding()
         {
-            var bindingSerializer = this.serviceProvider.GetService<ISolutionBindingSerializer>();
-            bindingSerializer.AssertLocalServiceIsNotNull();
+            var configProvider = this.serviceProvider.GetService<IConfigurationProvider>();
+            configProvider.AssertLocalServiceIsNotNull();
 
-            return bindingSerializer.ReadSolutionBinding();
+            return configProvider.GetBoundProject();
         }
 
         private IEnumerable<Project> GetUnboundProjects(BoundSonarQubeProject binding)
