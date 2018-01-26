@@ -42,6 +42,8 @@ namespace SonarLint.VisualStudio.Integration
                 NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
                 IsUsingConnectedMode = isConnected,
+                SystemDate = now,
+                InstallDate = telemetryData.InstallationDate,
             };
         }
     }

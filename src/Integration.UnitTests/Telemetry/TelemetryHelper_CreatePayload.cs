@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreatePayload_Creates_Payload()
         {
+            // Arrange
             var now = new DateTime(2017, 7, 25);
 
             var telemetryData = new TelemetryData
@@ -40,16 +41,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 NumberOfDaysOfUse = 5
             };
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, isConnected: true);
+            VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
 
+            // Act
+            var result = TelemetryHelper.CreatePayload(
+                telemetryData,
+                new DateTimeOffset(now, TimeSpan.FromHours(2)),
+                isConnected: true);
+
+            // Assert
             result.IsUsingConnectedMode.Should().BeTrue();
             result.NumberOfDaysOfUse.Should().Be(5);
             result.NumberOfDaysSinceInstallation.Should().Be(10);
             result.SonarLintProduct.Should().Be("SonarLint Visual Studio");
             result.SonarLintVersion.Should().Be(
                 typeof(TelemetryData).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
-
-            // Cannot test result.VisualStudioVersion because it is string.Empty when running tests
+            result.VisualStudioVersion.Should().Be("1.2.3.4");
+            result.InstallDate.Should().Be(new DateTimeOffset(now.AddDays(-10), TimeSpan.FromHours(2)));
+            result.SystemDate.Should().Be(new DateTimeOffset(now, TimeSpan.FromHours(2)));
         }
 
         [TestMethod]
