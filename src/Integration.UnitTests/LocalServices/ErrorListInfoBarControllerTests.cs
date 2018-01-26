@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableInfoBarManager infoBarManager;
         private ConfigurableSolutionBindingInformationProvider solutionBindingInformationProvider;
         private ConfigurableVsOutputWindowPane outputWindowPane;
-        private ConfigurableSolutionBindingSerializer solutionBindingSerializer;
+        private ConfigurableConfigurationProvider configProvider;
         private ConfigurableStateManager stateManager;
 
         #region Test plumbing
@@ -75,8 +76,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
-            this.solutionBindingSerializer = new ConfigurableSolutionBindingSerializer();
-            this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBindingSerializer), this.solutionBindingSerializer);
+            this.configProvider = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.stateManager = (ConfigurableStateManager)this.host.VisualStateManager;
@@ -207,8 +208,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project = new ProjectMock("project.proj");
             project.SetCSProjectKind();
             projectSystem.FilteredProjects = new[] { project };
-            this.solutionBindingSerializer.CurrentBinding.Profiles = new Dictionary<Language, Persistence.ApplicableQualityProfile>();
-            this.solutionBindingSerializer.CurrentBinding.Profiles[Language.CSharp] = new Persistence.ApplicableQualityProfile
+            this.configProvider.ProjectToReturn.Profiles = new Dictionary<Language, Persistence.ApplicableQualityProfile>();
+            this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new Persistence.ApplicableQualityProfile
             {
                 ProfileKey = "Profile",
                 ProfileTimestamp = DateTime.Now
@@ -313,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Change binding
-            this.solutionBindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey");
+            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey");
 
             // Act
             infoBar.SimulateButtonClickEvent();
@@ -334,13 +335,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
             {
                 bindingCalled++;
-                vm.Key.Should().Be(this.solutionBindingSerializer.CurrentBinding.ProjectKey);
+                vm.Key.Should().Be(this.configProvider.ProjectToReturn.ProjectKey);
             });
             int refreshCalled = 0;
             this.ConfigureActiveSectionWithRefreshCommand(connection =>
             {
                 refreshCalled++;
-                connection.ServerUri.Should().Be(this.solutionBindingSerializer.CurrentBinding.ServerUri);
+                connection.ServerUri.Should().Be(this.configProvider.ProjectToReturn.ServerUri);
             });
             int disconnectCalled = 0;
             this.ConfigureActiveSectionWithDisconnectCommand(() =>
@@ -595,7 +596,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             int refreshCalled = 0;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithRefreshCommand(c =>
             {
-                c.ServerUri.Should().Be(this.solutionBindingSerializer.CurrentBinding.ServerUri);
+                c.ServerUri.Should().Be(this.configProvider.ProjectToReturn.ServerUri);
                 refreshCalled++;
             });
             int disconnectCalled = 0;
@@ -606,7 +607,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             int bindCalled = 0;
             this.ConfigureActiveSectionWithBindCommand(vm =>
             {
-                vm.Key.Should().Be(this.solutionBindingSerializer.CurrentBinding.ProjectKey);
+                vm.Key.Should().Be(this.configProvider.ProjectToReturn.ProjectKey);
                 bindCalled++;
             });
 
@@ -795,8 +796,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private ProjectViewModel ConfigureProjectViewModel(ConfigurableSectionController section)
         {
-            var vm = this.ConfigureProjectViewModel(section, this.solutionBindingSerializer.CurrentBinding?.ServerUri, this.solutionBindingSerializer.CurrentBinding?.ProjectKey);
-            if (this.solutionBindingSerializer.CurrentBinding != null)
+            var vm = this.ConfigureProjectViewModel(section, this.configProvider.ProjectToReturn?.ServerUri, this.configProvider.ProjectToReturn?.ProjectKey);
+            if (this.configProvider.ProjectToReturn != null)
             {
                 vm.IsBound = true;
             }
@@ -833,7 +834,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set
             {
                 this.solutionBindingInformationProvider.SolutionBound = value;
-                this.solutionBindingSerializer.CurrentBinding = value ? new Persistence.BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey") : null;
+                this.configProvider.ProjectToReturn = value ? new Persistence.BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey") : null;
             }
         }
 

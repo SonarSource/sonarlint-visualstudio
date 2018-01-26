@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -156,6 +157,9 @@ namespace SonarLint.VisualStudio.Integration
 
         internal /*for testing purposes*/ void ProcessSolutionBinding()
         {
+            // TODO: CM2: this code is old relevant for legacy connected mode
+            // (checks for projects that do not have a ruleset, or rulesets that are out of date)
+
             // No need to do anything if by the time got here the solution was closed (or unbound)
             if (!this.IsActiveSolutionBound)
             {
@@ -235,10 +239,10 @@ namespace SonarLint.VisualStudio.Integration
 
                 // Need to capture the current binding information since the user can change the binding
                 // and running the Update should just no-op in that case.
-                var solutionBinding = this.host.GetService<ISolutionBindingSerializer>();
-                solutionBinding.AssertLocalServiceIsNotNull();
+                var configProvider = this.host.GetService<IConfigurationProvider>();
+                configProvider.AssertLocalServiceIsNotNull();
 
-                this.infoBarBinding = solutionBinding.ReadSolutionBinding();
+                this.infoBarBinding = configProvider.GetBoundProject();
             }
         }
 
@@ -261,10 +265,12 @@ namespace SonarLint.VisualStudio.Integration
             var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
 
-            var bindingSerialzer = this.host.GetService<ISolutionBindingSerializer>();
-            bindingSerialzer.AssertLocalServiceIsNotNull();
+            var configProvider = this.host.GetService<IConfigurationProvider>();
+            configProvider.AssertLocalServiceIsNotNull();
 
-            BoundSonarQubeProject binding = bindingSerialzer.ReadSolutionBinding();
+            // TODO: CM2: only relevant for old connected mode
+
+            BoundSonarQubeProject binding = configProvider.GetBoundProject();
             if (binding == null
                 || this.infoBarBinding == null
                 || binding.ServerUri != this.infoBarBinding.ServerUri
@@ -572,10 +578,11 @@ namespace SonarLint.VisualStudio.Integration
                     return;
                 }
 
-                var solutionBinding = this.host.GetService<ISolutionBindingSerializer>();
-                solutionBinding.AssertLocalServiceIsNotNull();
+                var configProvider = this.host.GetService<IConfigurationProvider>();
+                configProvider.AssertLocalServiceIsNotNull();
 
-                var binding = solutionBinding.ReadSolutionBinding();
+                // TODO: CM2: only relevant for legacy connected mode
+                var binding = configProvider.GetBoundProject();
                 if (binding == null)
                 {
                     return;

@@ -25,6 +25,7 @@ using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -32,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class SolutionBindingInformationProviderTests
     {
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableSolutionBindingSerializer bindingSerializer;
+        private ConfigurableConfigurationProvider configProvider;
         private ConfigurableRuleSetSerializer ruleSetSerializer;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfoProvider;
@@ -42,8 +43,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.serviceProvider = new ConfigurableServiceProvider();
 
-            this.bindingSerializer = new ConfigurableSolutionBindingSerializer();
-            this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBindingSerializer), this.bindingSerializer);
+            this.configProvider = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
 
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
@@ -70,13 +71,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
 
             // Case 1: Not bound
-            this.bindingSerializer.CurrentBinding = null;
+            this.configProvider.ProjectToReturn = null;
 
             // Act + Assert
             testSubject.IsSolutionBound().Should().BeFalse();
 
             // Case 2: Bound
-            this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject();
+            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject();
 
             // Act + Assert
             testSubject.IsSolutionBound().Should().BeTrue();
@@ -89,13 +90,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
 
             // Case 1: Not bound
-            this.bindingSerializer.CurrentBinding = null;
+            this.configProvider.ProjectToReturn = null;
 
             // Act + Assert
             testSubject.GetProjectKey().Should().BeNull();
 
             // Case 2: Bound
-            this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject { ProjectKey = "PROJECT_KEY" };
+            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject { ProjectKey = "PROJECT_KEY" };
 
             // Act + Assert
             testSubject.GetProjectKey().Should().Be("PROJECT_KEY");
@@ -106,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.bindingSerializer.CurrentBinding = null;
+            this.configProvider.ProjectToReturn = null;
             IEnumerable<Project> projects;
 
             // Act
@@ -229,7 +230,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.bindingSerializer.CurrentBinding = null;
+            this.configProvider.ProjectToReturn = null;
             IEnumerable<Project> projects;
 
             // Act
@@ -279,7 +280,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetValidSolutionBinding()
         {
-            this.bindingSerializer.CurrentBinding = new Persistence.BoundSonarQubeProject { ProjectKey = "projectKey" };
+            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject { ProjectKey = "projectKey" };
         }
 
         private void SetValidFilteredProjects()
