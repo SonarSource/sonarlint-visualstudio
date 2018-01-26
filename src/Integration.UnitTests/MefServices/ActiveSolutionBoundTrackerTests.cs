@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Models;
 using SonarQube.Client.Services;
@@ -38,7 +39,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class ActiveSolutionBoundTrackerTests
     {
-
         private readonly Expression<Func<ISonarQubeService, Task>> connectMethod = x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>());
         private readonly Expression<Action<ISonarQubeService>> disconnectMethod = x => x.Disconnect();
 
@@ -47,12 +47,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableActiveSolutionTracker activeSolutionTracker;
         private ConfigurableHost host;
         private ConfigurableErrorListInfoBarController errorListController;
-        private ConfigurableSolutionBindingInformationProvider solutionBindingInformationProvider;
-        private ConfigurableSolutionBindingSerializer solutionBindingSerializer;
 
         private Mock<ILogger> sonarLintOutputMock;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
-        
+        private ConfigurableConfigurationProvider configProvider;
         private bool isMockServiceConnected;
 
         [TestInitialize]
@@ -75,11 +73,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.errorListController = new ConfigurableErrorListInfoBarController();
             this.serviceProvider.RegisterService(typeof(IErrorListInfoBarController), this.errorListController);
 
-            this.solutionBindingInformationProvider = new ConfigurableSolutionBindingInformationProvider();
-            this.serviceProvider.RegisterService(typeof(ISolutionBindingInformationProvider), this.solutionBindingInformationProvider);
-
-            this.solutionBindingSerializer = new ConfigurableSolutionBindingSerializer();
-            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBindingSerializer);
+            this.configProvider = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
 
             this.sonarLintOutputMock = new Mock<ILogger>();
         }
@@ -115,8 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ActiveSolutionBoundTracker_Initialisation_Bound()
         {
             // Arrange
-            this.solutionBindingInformationProvider.SolutionBound = true;
-            this.host.VisualStateManager.SetBoundProject(new SonarQubeProject("", ""));
+            this.ConfigureSolutionBinding(new BoundSonarQubeProject());
 
             // Act
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
@@ -423,9 +417,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void ConfigureSolutionBinding(BoundSonarQubeProject boundProject)
         {
-            this.solutionBindingSerializer.CurrentBinding = boundProject;
-            this.solutionBindingInformationProvider.SolutionBound = boundProject != null;
-            this.solutionBindingInformationProvider.ProjectKey = boundProject?.ProjectKey;
+            this.configProvider.ProjectToReturn = boundProject;
         }
 
         private void VerifyServiceConnect(Times expected)
