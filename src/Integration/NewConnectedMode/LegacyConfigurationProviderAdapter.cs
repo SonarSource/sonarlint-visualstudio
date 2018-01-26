@@ -23,9 +23,13 @@ using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
+
+    // TODO: remove this class
+    // It's a temporary measure to keep the existing code working while
+    // refactoring/adding the new lightweight connected mode
+
     internal class LegacyConfigurationProviderAdapter : IConfigurationProvider
     {
-
         private readonly ISolutionBindingSerializer legacySerializer;
 
         public LegacyConfigurationProviderAdapter(ISolutionBindingSerializer legacySerializer)
