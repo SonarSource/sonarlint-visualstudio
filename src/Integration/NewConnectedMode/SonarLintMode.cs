@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal enum ConnectedMode
+    internal enum SonarLintMode
     {
         Standalone,
         LegacyConnected,
