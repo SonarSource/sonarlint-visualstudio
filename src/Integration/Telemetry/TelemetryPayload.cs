@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Integration.Telemetry;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -47,10 +48,10 @@ namespace SonarLint.VisualStudio.Integration
         [JsonProperty("connected_mode_used")]
         public bool IsUsingConnectedMode { get; set; }
 
-        [JsonProperty("install_time")]
+        [JsonProperty("install_time"), JsonConverter(typeof(ShortIsoDateTimeOffsetConverter))]
         public DateTimeOffset InstallDate { get; set; }
 
-        [JsonProperty("system_time")]
+        [JsonProperty("system_time"), JsonConverter(typeof(ShortIsoDateTimeOffsetConverter))]
         public DateTimeOffset SystemDate { get; set; }
     }
 }
