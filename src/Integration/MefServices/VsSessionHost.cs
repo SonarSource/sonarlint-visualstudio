@@ -26,6 +26,7 @@ using System.Linq;
 using System.Windows.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -53,6 +54,7 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IRuleSetConflictsController),
                 typeof(IProjectSystemFilter),
                 typeof(IErrorListInfoBarController),
+                typeof(IConfigurationProvider),
                 typeof(ISolutionBindingInformationProvider)
         };
 
@@ -296,6 +298,7 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(this)));
             this.localServices.Add(typeof(ISolutionBindingSerializer), new Lazy<ILocalService>(() => new SolutionBindingSerializer(this)));
+            this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(() => new LegacyConfigurationProviderAdapter(this.GetService<ISolutionBindingSerializer>())));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IConflictsManager), new Lazy<ILocalService>(() => new ConflictsManager(this, Logger)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));

@@ -23,6 +23,9 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    // Legacy connected mode:
+    // Gets the rulesets/paths/solution folder for the old connected mode.
+
     interface ISolutionRuleSetsInformationProvider : ILocalService
     {
         /// <summary>
