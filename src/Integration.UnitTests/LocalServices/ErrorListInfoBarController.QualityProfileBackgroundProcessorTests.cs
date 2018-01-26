@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableHost host;
         private ConfigurableVsProjectSystemHelper projectSystem;
         private ConfigurableVsOutputWindowPane outputWindowPane;
-        private ConfigurableSolutionBindingSerializer bindingSerializer;
+        private ConfigurableConfigurationProvider configProvider;
 
         [TestInitialize]
         public void TestInit()
@@ -58,8 +59,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
-            this.bindingSerializer = new ConfigurableSolutionBindingSerializer();
-            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), this.bindingSerializer);
+            this.configProvider = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
         }
 
         #region Tests
@@ -134,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
-            this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject();
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject();
             int called = 0;
 
             // Act
@@ -156,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
-            this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
                 ProjectKey = "ProjectKey",
@@ -164,13 +165,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Same profile key
-            this.bindingSerializer.CurrentBinding.Profiles[Language.CSharp] = new ApplicableQualityProfile
+            this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new ApplicableQualityProfile
             {
                 ProfileKey = qpKey,
                 ProfileTimestamp = DateTime.Now
             };
 
-            this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding,
+            this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn,
                 DateTime.Now.AddMinutes(-1),
                 qpKey,
                 Language.CSharp);
@@ -188,18 +189,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
-            this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
                 ProjectKey = "ProjectKey",
                 Profiles = new Dictionary<Language, ApplicableQualityProfile>()
             };
-            this.bindingSerializer.CurrentBinding.Profiles[Language.CSharp] = new ApplicableQualityProfile
+            this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new ApplicableQualityProfile
             {
                 ProfileKey = "Profile2", // Different profile key
                 ProfileTimestamp = null
             };
-            this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding, DateTime.Now, qpKey, Language.CSharp);
+            this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn, DateTime.Now, qpKey, Language.CSharp);
 
             // Act + Assert
             VerifyBackgroundExecution(true, testSubject,
@@ -214,19 +215,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
-            this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
                 ProjectKey = "ProjectKey",
                 Profiles = new Dictionary<Language, ApplicableQualityProfile>()
             };
             DateTime sameTimestamp = DateTime.Now;
-            this.bindingSerializer.CurrentBinding.Profiles[Language.CSharp] = new ApplicableQualityProfile
+            this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new ApplicableQualityProfile
             {
                 ProfileKey = "csOld", // Different profile key
                 ProfileTimestamp = sameTimestamp
             };
-            this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding, sameTimestamp, qpKey, Language.CSharp);
+            this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn, sameTimestamp, qpKey, Language.CSharp);
 
             // Act + Assert
             VerifyBackgroundExecution(true, testSubject,
@@ -241,19 +242,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.VbProjectKind);
-            this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
                 ProjectKey = "ProjectKey",
                 Profiles = new Dictionary<Language, ApplicableQualityProfile>()
             };
             // Has only a profile for C#
-            this.bindingSerializer.CurrentBinding.Profiles[Language.CSharp] = new ApplicableQualityProfile
+            this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new ApplicableQualityProfile
             {
                 ProfileKey = qpKey,
                 ProfileTimestamp = null
             };
-            this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding, DateTime.Now, qpKey, Language.CSharp, Language.VBNET);
+            this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn, DateTime.Now, qpKey, Language.CSharp, Language.VBNET);
 
             // Act + Assert
             VerifyBackgroundExecution(true, testSubject,
@@ -268,25 +269,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string qpKey = "Profile1";
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
-            this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
                 ProjectKey = "ProjectKey",
                 Profiles = new Dictionary<Language, ApplicableQualityProfile>()
             };
             DateTime sameDate = DateTime.Now;
-            this.bindingSerializer.CurrentBinding.Profiles[Language.CSharp] = new ApplicableQualityProfile
+            this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new ApplicableQualityProfile
             {
                 ProfileKey = qpKey, // Same as profile
                 ProfileTimestamp = sameDate
             };
             // This profile should not be picked up in practice, no should cause an update to occur
-            this.bindingSerializer.CurrentBinding.Profiles[Language.VBNET] = new ApplicableQualityProfile
+            this.configProvider.ProjectToReturn.Profiles[Language.VBNET] = new ApplicableQualityProfile
             {
                 ProfileKey = qpKey,
                 ProfileTimestamp = null
             };
-            this.ConfigureValidSonarQubeServiceWrapper(this.bindingSerializer.CurrentBinding, sameDate, qpKey, Language.CSharp);
+            this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn, sameDate, qpKey, Language.CSharp);
 
             // Act + Assert
             VerifyBackgroundExecution(false, testSubject,
@@ -300,19 +301,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(ProjectSystemHelper.VbProjectKind, ProjectSystemHelper.VbProjectKind);
-            this.bindingSerializer.CurrentBinding = new BoundSonarQubeProject
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject
             {
                 ServerUri = new Uri("http://server"),
                 ProjectKey = "ProjectKey",
                 Profiles = new Dictionary<Language, ApplicableQualityProfile>()
             };
-            this.bindingSerializer.CurrentBinding.Profiles[Language.VBNET] = new ApplicableQualityProfile
+            this.configProvider.ProjectToReturn.Profiles[Language.VBNET] = new ApplicableQualityProfile
             {
                 ProfileKey = "vbnet",
                 ProfileTimestamp = DateTime.Now
             };
             var service = new Mock<ISonarQubeService>();
-            service.Setup(x => x.GetQualityProfileAsync(this.bindingSerializer.CurrentBinding.ProjectKey, null, SonarQubeLanguage.VbNet, It.IsAny<CancellationToken>()))
+            service.Setup(x => x.GetQualityProfileAsync(this.configProvider.ProjectToReturn.ProjectKey, null, SonarQubeLanguage.VbNet, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => { throw new Exception(); });
             this.host.SonarQubeService = service.Object;
 

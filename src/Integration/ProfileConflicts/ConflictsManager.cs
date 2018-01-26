@@ -25,6 +25,7 @@ using System.Globalization;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 
@@ -107,10 +108,11 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
         private RuleSetInformation[] GetAggregatedSolutionRuleSets()
         {
-            var solutionBinding = this.serviceProvider.GetService<ISolutionBindingSerializer>();
-            solutionBinding.AssertLocalServiceIsNotNull();
+            var configProvider = this.serviceProvider.GetService<IConfigurationProvider>();
+            configProvider.AssertLocalServiceIsNotNull();
 
-            BoundSonarQubeProject bindingInfo = solutionBinding.ReadSolutionBinding();
+            BoundSonarQubeProject bindingInfo = configProvider.GetBoundProject();
+            // TODO: CM2 - check that we are in legacy connected mode
             if (bindingInfo == null)
             {
                 return new RuleSetInformation[0];
