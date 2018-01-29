@@ -150,6 +150,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         /// <summary>
+        /// Checks that the specified service was not used.
+        /// </summary>
+        public void AssertServiceNotUsed(Type expectedServiceType)
+        {
+            this.requestedServices.Contains(expectedServiceType).Should().BeFalse("Service Provider: service should not have ben requested: {0}", expectedServiceType.FullName);
+        }
+
+        /// <summary>
         /// Checks that all of the registered services were called.
         /// </summary>
         /// <remarks>There are two reasons for this check:
