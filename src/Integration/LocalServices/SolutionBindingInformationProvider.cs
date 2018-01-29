@@ -47,35 +47,30 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         #region ISolutionBindingInformationProvider
-        public bool IsSolutionBound()
-        {
-            // TODO: CM2: consider changing this method to "IsLegacySolutionBound"
-            return this.GetSolutionBinding() != null;
-        }
-
-        public string GetProjectKey()
-        {
-            return this.GetSolutionBinding()?.ProjectKey;
-        }
 
         public IEnumerable<Project> GetBoundProjects()
         {
-            return this.GetBoundProjects(this.GetSolutionBinding());
+            return this.GetBoundProjects(this.GetLegacySolutionBinding());
         }
 
         public IEnumerable<Project> GetUnboundProjects()
         {
-            return this.GetUnboundProjects(this.GetSolutionBinding());
+            return this.GetUnboundProjects(this.GetLegacySolutionBinding());
         }
         #endregion
 
         #region Non-public API
-        private BoundSonarQubeProject GetSolutionBinding()
+        private BoundSonarQubeProject GetLegacySolutionBinding()
         {
             var configProvider = this.serviceProvider.GetService<IConfigurationProvider>();
             configProvider.AssertLocalServiceIsNotNull();
 
-            return configProvider.GetBoundProject();
+            // Only applicable in legacy mode
+            if (configProvider.GetMode() == SonarLintMode.LegacyConnected)
+            {
+                return configProvider.GetBoundProject();
+            }
+            return null;
         }
 
         private IEnumerable<Project> GetUnboundProjects(BoundSonarQubeProject binding)

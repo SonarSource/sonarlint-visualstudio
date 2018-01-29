@@ -30,6 +30,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         /// </summary>
         BoundSonarQubeProject GetBoundProject();
 
-//        ConnectedMode GetMode();
+        SonarLintMode GetMode();
     }
 }
