@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
 
-        public const string daemonVersion = "3.0.0.1140";
+        public const string daemonVersion = "3.1.0.1376";
         private const string uriFormat = "http://repo1.maven.org/maven2/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
 
         private readonly ConcurrentDictionary<string, List<Issue>> fileIssues = new ConcurrentDictionary<string, List<Issue>>();
