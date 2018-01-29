@@ -131,7 +131,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NoSolutionBinding()
+        public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_StandaloneMode_NoOp()
+        {
+            // Arrange
+            var testSubject = this.GetTestSubject();
+            this.configProvider.ModeToReturn = SonarLintMode.Standalone;
+            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind);
+
+            // Act
+            testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
+
+            // Assert
+            this.outputWindowPane.AssertOutputStrings(0);
+        }
+
+        [TestMethod]
+        public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NewConnectedMode_NoOp()
         {
             // Arrange
             var testSubject = this.GetTestSubject();
