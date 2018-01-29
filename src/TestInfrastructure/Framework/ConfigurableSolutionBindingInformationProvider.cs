@@ -31,10 +31,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public IEnumerable<Project> UnboundProjects { get; set; } = Enumerable.Empty<Project>();
 
-        public bool SolutionBound { get; set; }
-
-        public string ProjectKey { get; set; }
-
         public IEnumerable<Project> GetBoundProjects()
         {
             return this.BoundProjects;
@@ -43,16 +39,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IEnumerable<Project> GetUnboundProjects()
         {
             return this.UnboundProjects;
-        }
-
-        public bool IsSolutionBound()
-        {
-            return SolutionBound;
-        }
-
-        public string GetProjectKey()
-        {
-            return ProjectKey;
         }
     }
 }
