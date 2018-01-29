@@ -6,27 +6,49 @@ Contributors to this file, please follow the guidelines on [keepachangelog.com](
 
 For reference, the possible headings are:
 
-* **New Features* for new features.
+* **New Features** for new features.
 * **Improvements** for changes in existing functionality.
 * **Bugs** for any bug fixes.
 * **External Contributors** to list contributors outside of SonarSource SA.
 * **Notes**
 
 
-## [Unreleased]
+## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.9.0.3021...HEAD)
 
 
-## [3.8.1]
+## [3.9](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.8.1.2823...3.9.0.3021)
 
-### Bug
+### New Features
+* [#238](https://github.com/SonarSource/sonarlint-visualstudio/issues/238) - Add the support of Vue.js single file components (.vue files)
+* [#495](https://github.com/SonarSource/sonarlint-visualstudio/issues/495) - Add the support of jsx files
+
+### Improvements
+* [#248](https://github.com/SonarSource/sonarlint-visualstudio/issues/248) - Display issue description  in a tooltip for SonarLint daemon issues
+* [#288](https://github.com/SonarSource/sonarlint-visualstudio/issues/288) - Include local time in telemetry data
+* [#441](https://github.com/SonarSource/sonarlint-visualstudio/issues/441) - Include installation time in telemetry data
+* [#476](https://github.com/SonarSource/sonarlint-visualstudio/issues/476) - Display a message to users with VS2015 under update 3
+* [#500](https://github.com/SonarSource/sonarlint-visualstudio/issues/500) - Do not allow to install new major version SonarC# / SonarVB on old VS
+* [#515](https://github.com/SonarSource/sonarlint-visualstudio/issues/515) - SonarLint should embed Daemon version 3.1.0.1376
+
+### Bugs
+* [#424](https://github.com/SonarSource/sonarlint-visualstudio/issues/424) - Unable to sync custom Quality Profile from SonarCloud
+* [#470](https://github.com/SonarSource/sonarlint-visualstudio/issues/470) - Do not store data in the user's roaming profile
+* [#473](https://github.com/SonarSource/sonarlint-visualstudio/issues/473) - Cannot update bindings when SonarC# 6.7 is installed on SonarQube
+* [#480](https://github.com/SonarSource/sonarlint-visualstudio/issues/480) - Help link is not correct for JS/C/C++
+* [#494](https://github.com/SonarSource/sonarlint-visualstudio/issues/494) - Category of JS/C/C++ doesn't display the right severity
+
+
+## [3.8.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.8.0.2728...3.8.1.2823)
+
+### Bugs
 * [#458](https://github.com/SonarSource/sonarlint-visualstudio/issues/458) - Unify first day ping with other SonarLint variants
 * [#464](https://github.com/SonarSource/sonarlint-visualstudio/issues/464) - Connected mode always fetches the default quality profile for SQ6.6+
 
-### Improvement
+### Improvements
 * [#467](https://github.com/SonarSource/sonarlint-visualstudio/issues/467) - Embed SonarC#/SonarVB 6.7.1
 
 
-## [3.8]
+## [3.8](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.7.0.2645...3.8.0.2728)
 
 ### New Features
 * [#151](https://github.com/SonarSource/sonarlint-visualstudio/issues/151) - Enable connected mode for .Net Core projects
@@ -39,7 +61,7 @@ For reference, the possible headings are:
 * [#440](https://github.com/SonarSource/sonarlint-visualstudio/issues/440) - OptOut button does not work
 
 
-## [3.7]
+## [3.7](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.6.0.2584...3.7.0.2645)
 
 ### Bugs
 * [#395](https://github.com/SonarSource/sonarlint-visualstudio/issues/395) - Binding the solution to SonarQube before all projects have finished to load result in weird error
@@ -50,7 +72,7 @@ For reference, the possible headings are:
 * [#422](https://github.com/SonarSource/sonarlint-visualstudio/issues/422) - Embed SonarC# and SonarVB v6.6 RC1
 
 
-## [3.6]
+## [3.6](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.5.0.1803...3.6.0.2584)
 
 ### New Features
 * [#267](https://github.com/SonarSource/sonarlint-visualstudio/issues/267) - SonarLint should not show issues marked as FP or Won't Fix
@@ -65,7 +87,7 @@ For reference, the possible headings are:
 * [#383](https://github.com/SonarSource/sonarlint-visualstudio/issues/383) - Binding to a project on SonarCloud always prompt for organization
 
 
-## [3.5]
+## [3.5](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.4.0.1732...3.5.0.1803)
 
 ### Improvements
 * [#252](https://github.com/SonarSource/sonarlint-visualstudio/issues/252) - Embed SonarC# 6.4
@@ -75,7 +97,7 @@ For reference, the possible headings are:
 * [#243](https://github.com/SonarSource/sonarlint-visualstudio/issues/243) - The 'SonalLintDaemonPackage' package did not load correctly.
 
 
-## [3.4]
+## [3.4](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.3.0.1663...3.4.0.1732)
 
 ### New Features
 * Provide support for C/C++ in standalone
@@ -89,38 +111,38 @@ For reference, the possible headings are:
 * [#228](https://github.com/SonarSource/sonarlint-visualstudio/issues/228) - VisualStudio Enterprise considers the extension is slowing down the startup
 
 
-## [3.3]
+## [3.3](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.2.1.1639...3.3.0.1663)
 
 ### Improvements
 * [#223](https://github.com/SonarSource/sonarlint-visualstudio/issues/223) - Embed SonarC# 6.2
 * [#202](https://github.com/SonarSource/sonarlint-visualstudio/issues/202) - Update SonarLint extension description
 
 
-## [3.2.1]
+## [3.2.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.2.0.1601...3.2.1.1639)
 
 ### Bugs
 * [#216](https://github.com/SonarSource/sonarlint-visualstudio/issues/216) - Fix broken analyzer reference
 
 
-## [3.2]
+## [3.2](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.1.1.1583...3.2.0.1601)
 
 ### Improvements
 * [#211](https://github.com/SonarSource/sonarlint-visualstudio/issues/211) - Embed SonarC# 6.1
 
 
-## [3.1.1]
+## [3.1.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.1.0.1578...3.1.1.1583)
 
 ### Bugs
 * [#207](https://github.com/SonarSource/sonarlint-visualstudio/issues/207) - Fix a connectivity problem with SonarCloud
 
 
-## [3.1]
+## [3.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.0.0.1569...3.1.0.1578)
 
 ### Improvements
 * [#204](https://github.com/SonarSource/sonarlint-visualstudio/issues/204) - Embed SonarC# 6.0
 
 
-## [3.0]
+## [3.0](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.13.0.1333...3.0.0.1569)
 
 ### New Features
 * [#164](https://github.com/SonarSource/sonarlint-visualstudio/issues/164) - Provide support for Javascript in standalone
@@ -133,13 +155,13 @@ For reference, the possible headings are:
 * [#136](https://github.com/SonarSource/sonarlint-visualstudio/issues/136) - Provide a digital signature to the extension
 
 
-## [2.13]
+## [2.13](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.12.0.1175...2.13.0.1333)
 
 ### Improvements
 * [#154](https://github.com/SonarSource/sonarlint-visualstudio/issues/154) - Embed SonarC# 5.10
 
 
-## [2.12]
+## [2.12](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.11.0.1102...2.12.0.1175)
 
 ### Improvements
 * [#135](https://github.com/SonarSource/sonarlint-visualstudio/issues/135) - Embed SonarC# 5.9
@@ -148,67 +170,67 @@ For reference, the possible headings are:
 * [#132](https://github.com/SonarSource/sonarlint-visualstudio/issues/132) - SonarLint for VS2017 crashes when VS2015 is not installed
 
 
-## [2.11]
+## [2.11](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.10...2.11.0.1102)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13700)
 
 
-## [2.10]
+## [2.10](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.9-fixed...2.10)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13664)
 
 
-## [2.9]
+## [2.9](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.8.1...2.9-fixed)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13464)
 
 
-## [2.8.1]
+## [2.8.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.8...2.8.1)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13509)
 
 
-## [2.8]
+## [2.8](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.7...2.8)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13408)
 
 
-## [2.7]
+## [2.7](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.6...2.7)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13388)
 
 
-## [2.6]
+## [2.6](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.5...2.6)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13240)
 
 
-## [2.5]
+## [2.5](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.4...2.5)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13345)
 
 
-## [2.4]
+## [2.4](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.3...2.4)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13312)
 
 
-## [2.3]
+## [2.3](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.2.1...2.3)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13278)
 
 
-## [2.2.1]
+## [2.2.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.2...2.2.1)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13234)
 
 
-## [2.2]
+## [2.2](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.1...2.2)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=13034)
 
 
-## [2.1]
+## [2.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/2.0...2.1)
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=12988)
 
@@ -216,32 +238,3 @@ For reference, the possible headings are:
 ## 2.0
 
 [JIRA Release Note](https://jira.sonarsource.com/jira/secure/ReleaseNote.jspa?projectId=11242&version=12987)
-
-
-[Unreleased]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.8.0.2728...HEAD
-[3.8]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.7.0.2645...3.8.0.2728
-[3.7]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.6.0.2584...3.7.0.2645
-[3.6]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.5.0.1803...3.6.0.2584
-[3.5]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.4.0.1732...3.5.0.1803
-[3.4]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.3.0.1663...3.4.0.1732
-[3.3]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.2.1.1639...3.3.0.1663
-[3.2.1]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.2.0.1601...3.2.1.1639
-[3.2]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.1.1.1583...3.2.0.1601
-[3.1.1]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.1.0.1578...3.1.1.1583
-[3.1]: https://github.com/SonarSource/sonarlint-visualstudio/compare/3.0.0.1569...3.1.0.1578
-[3.0]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.13.0.1333...3.0.0.1569
-[2.13]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.12.0.1175...2.13.0.1333
-[2.12]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.11.0.1102...2.12.0.1175
-[2.11]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.10...2.11.0.1102
-[2.10]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.9-fixed...2.10
-[2.9]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.8.1...2.9-fixed
-[2.8.1]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.8...2.8.1
-[2.8]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.7...2.8
-[2.7]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.6...2.7
-[2.6]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.5...2.6
-[2.5]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.4...2.5
-[2.4]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.3...2.4
-[2.3]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.2.1...2.3
-[2.2.1]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.2...2.2.1
-[2.2]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.1...2.2
-[2.1]: https://github.com/SonarSource/sonarlint-visualstudio/compare/2.0...2.1
