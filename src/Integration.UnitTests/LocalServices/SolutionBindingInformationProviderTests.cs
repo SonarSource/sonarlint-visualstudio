@@ -65,49 +65,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_IsSolutionBound()
+        public void SolutionBindingInformationProvider_GetBoundProjects_SolutionNotBound_StandaloneMode()
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-
-            // Case 1: Not bound
-            this.configProvider.ProjectToReturn = null;
-
-            // Act + Assert
-            testSubject.IsSolutionBound().Should().BeFalse();
-
-            // Case 2: Bound
-            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject();
-
-            // Act + Assert
-            testSubject.IsSolutionBound().Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void SolutionBindingInformationProvider_GetProjectKey()
-        {
-            // Arrange
-            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-
-            // Case 1: Not bound
-            this.configProvider.ProjectToReturn = null;
-
-            // Act + Assert
-            testSubject.GetProjectKey().Should().BeNull();
-
-            // Case 2: Bound
-            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject { ProjectKey = "PROJECT_KEY" };
-
-            // Act + Assert
-            testSubject.GetProjectKey().Should().Be("PROJECT_KEY");
-        }
-
-        [TestMethod]
-        public void SolutionBindingInformationProvider_GetBoundProjects_SolutionNotBound()
-        {
-            // Arrange
-            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.configProvider.ProjectToReturn = null;
+            this.configProvider.ModeToReturn = SonarLintMode.Standalone;
             IEnumerable<Project> projects;
 
             // Act
@@ -115,6 +77,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             AssertEmptyResult(projects);
+            this.serviceProvider.AssertServiceNotUsed(typeof(IProjectSystemHelper));
+        }
+
+        [TestMethod]
+        public void SolutionBindingInformationProvider_GetBoundProjects_SolutionNotBound_NewConnectedMode()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            this.configProvider.ModeToReturn = SonarLintMode.Connected;
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetBoundProjects();
+
+            // Assert
+            AssertEmptyResult(projects);
+            this.serviceProvider.AssertServiceNotUsed(typeof(IProjectSystemHelper));
         }
 
         [TestMethod]
@@ -226,11 +205,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_SolutionNotBound()
+        public void SolutionBindingInformationProvider_GetUnboundProjects_SolutionNotBound_Standalone()
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.configProvider.ProjectToReturn = null;
+            this.configProvider.ModeToReturn = SonarLintMode.Standalone;
             IEnumerable<Project> projects;
 
             // Act
@@ -238,7 +217,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             AssertEmptyResult(projects);
+            this.serviceProvider.AssertServiceNotUsed(typeof(IProjectSystemHelper));
         }
+
+        [TestMethod]
+        public void SolutionBindingInformationProvider_GetUnboundProjects_SolutionNotBound_NewConnectedMode()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            this.configProvider.ModeToReturn = SonarLintMode.Connected;
+            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject();
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            AssertEmptyResult(projects);
+            this.serviceProvider.AssertServiceNotUsed(typeof(IProjectSystemHelper));
+        }
+
 
         [TestMethod]
         public void SolutionBindingInformationProvider_GetUnboundProjects_HasBoundProjects()
@@ -280,6 +278,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetValidSolutionBinding()
         {
+            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
             this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject { ProjectKey = "projectKey" };
         }
 
