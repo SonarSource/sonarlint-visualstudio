@@ -100,10 +100,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void ConflictsManager_GetCurrentConflicts_StandaloneMode_NoConflicts()
+        {
+            // Arrange
+            this.SetValidProjects();
+            this.configProvider.ModeToReturn = SonarLintMode.Standalone;
+            this.configProvider.ProjectToReturn = null;
+
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since solution is not bound");
+            this.outputWindowPane.AssertOutputStrings(0);
+        }
+
+        [TestMethod]
+        public void ConflictsManager_GetCurrentConflicts_NewConnectedMode_NoConflicts()
+        {
+            // Arrange
+            this.SetValidProjects();
+            this.configProvider.ModeToReturn = SonarLintMode.Connected;
+            this.SetSolutionBinding(SonarLintMode.Connected);
+
+            // Act + Assert
+            testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since solution is not legacy bound");
+            this.outputWindowPane.AssertOutputStrings(0);
+        }
+
+        [TestMethod]
         public void ConflictsManager_GetCurrentConflicts_NoValidProjects()
         {
             // Arrange
-            this.SetValidSolutionBinding();
+            this.SetSolutionBinding(SonarLintMode.LegacyConnected);
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since there are no projects");
@@ -114,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_MissingBaselineFile()
         {
             // Arrange
-            this.SetValidSolutionBinding();
+            this.SetSolutionBinding(SonarLintMode.LegacyConnected);
             this.SetValidProjects();
 
             // Act + Assert
@@ -129,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_NoRuleSetDeclaration()
         {
             // Arrange
-            this.SetValidSolutionBinding();
+            this.SetSolutionBinding(SonarLintMode.LegacyConnected);
             this.SetValidProjects();
             this.SetValidSolutionRuleSetPerProjectKind();
 
@@ -142,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_NoConflicts()
         {
             // Arrange
-            this.SetValidSolutionBinding();
+            this.SetSolutionBinding(SonarLintMode.LegacyConnected);
             this.SetValidProjects();
             this.SetValidSolutionRuleSetPerProjectKind();
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetSingleValidRuleSetDeclarationPerProject();
@@ -164,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_ExceptionDuringFindConflicts()
         {
             // Arrange
-            this.SetValidSolutionBinding();
+            this.SetSolutionBinding(SonarLintMode.LegacyConnected);
             this.SetValidProjects(2);
             this.SetValidSolutionRuleSetPerProjectKind();
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetSingleValidRuleSetDeclarationPerProject();
@@ -193,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_HasConflicts()
         {
             // Arrange
-            this.SetValidSolutionBinding();
+            this.SetSolutionBinding(SonarLintMode.LegacyConnected);
             this.SetValidProjects(4);
             this.SetValidSolutionRuleSetPerProjectKind();
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetSingleValidRuleSetDeclarationPerProject();
@@ -214,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_HasConflicts_WithoutAggregationApplied()
         {
             // Arrange
-            this.SetValidSolutionBinding();
+            this.SetSolutionBinding(SonarLintMode.LegacyConnected);
             this.SetValidProjects(3);
             this.SetValidSolutionRuleSetPerProjectKind();
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetValidRuleSetDeclarationPerProjectAndConfiguration(
@@ -236,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConflictsManager_GetCurrentConflicts_HasConflicts_WithAggregationApplied()
         {
             // Arrange
-            this.SetValidSolutionBinding();
+            this.SetSolutionBinding(SonarLintMode.LegacyConnected);
             this.SetValidProjects(3);
             this.SetValidSolutionRuleSetPerProjectKind();
             IEnumerable<RuleSetDeclaration> knownDeclarations = this.SetValidRuleSetDeclarationPerProjectAndConfiguration(
@@ -256,9 +282,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private void SetValidSolutionBinding()
+        private void SetSolutionBinding(SonarLintMode mode)
         {
-            this.configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
+            this.configProvider.ModeToReturn = mode;
+            this.configProvider.ProjectToReturn = mode == SonarLintMode.Standalone ? null :  new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
         }
 
         private void SetValidProjects(int numberOfProjects = 1)
