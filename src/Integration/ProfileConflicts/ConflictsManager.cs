@@ -31,6 +31,11 @@ using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 {
+    // Legacy connected mode:
+    // This class detects and returns rulesets where the locally configured
+    // ruleset is missing, or is weaker than the ruleset that auto-generated
+    // from the Quality Profile.
+
     /// <summary>
     /// Conflicts manager for a SonarQube bound solution
     /// </summary>
@@ -57,11 +62,23 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
         public IReadOnlyList<ProjectRuleSetConflict> GetCurrentConflicts()
         {
+            var configProvider = this.serviceProvider.GetService<IConfigurationProvider>();
+            configProvider.AssertLocalServiceIsNotNull();
+
+            // Check that we are in legacy connected mode
+            if (configProvider.GetMode() != SonarLintMode.LegacyConnected)
+            {
+                return new ProjectRuleSetConflict[0];
+            }
+
             // Note: some of the assumptions (see asserts below) are because have just bounded the solution (as documented on the interface),
             // in other cases assuming that the rule set are indeed on disk is not possible, and in fact re-syncing
             // would be required when we have missing rule-sets, otherwise finding conflicts will not be possible.
 
-            RuleSetInformation[] aggregatedRuleSets = GetAggregatedSolutionRuleSets();
+            BoundSonarQubeProject bindingInfo = configProvider.GetBoundProject();
+            Debug.Assert(bindingInfo != null, "Bound project should not be null when in legacy connected mode");
+
+            RuleSetInformation[] aggregatedRuleSets = GetAggregatedSolutionRuleSets(bindingInfo);
 
             if (aggregatedRuleSets.Length > 0)
             {
@@ -106,18 +123,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             return conflicts;
         }
 
-        private RuleSetInformation[] GetAggregatedSolutionRuleSets()
+        private RuleSetInformation[] GetAggregatedSolutionRuleSets(BoundSonarQubeProject bindingInfo)
         {
-            var configProvider = this.serviceProvider.GetService<IConfigurationProvider>();
-            configProvider.AssertLocalServiceIsNotNull();
-
-            BoundSonarQubeProject bindingInfo = configProvider.GetBoundProject();
-            // TODO: CM2 - check that we are in legacy connected mode
-            if (bindingInfo == null)
-            {
-                return new RuleSetInformation[0];
-            }
-
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
