@@ -33,5 +33,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             return ProjectToReturn;
         }
+
+        public SonarLintMode ModeToReturn { get; set; }
+        public SonarLintMode GetMode()
+        {
+            return ModeToReturn;
+        }
     }
 }

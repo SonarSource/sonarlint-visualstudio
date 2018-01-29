@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private readonly IHost host;
         private readonly ISolutionBindingInformationProvider bindingInformationProvider;
+        private readonly IConfigurationProvider configProvider;
         private IInfoBar currentErrorWindowInfoBar;
         private bool currentErrorWindowInfoBarHandlingClick;
         private BoundSonarQubeProject infoBarBinding;
@@ -62,6 +63,9 @@ namespace SonarLint.VisualStudio.Integration
 
             this.bindingInformationProvider = host.GetService<ISolutionBindingInformationProvider>();
             this.bindingInformationProvider.AssertLocalServiceIsNotNull();
+
+            this.configProvider = host.GetService<IConfigurationProvider>();
+            this.configProvider.AssertLocalServiceIsNotNull();
         }
 
         #region IErrorListInfoBarController
@@ -88,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration
             // We don't want to slow down solution open, so we delay the processing
             // until idle. There is a possibility that the user might close and open another solution
             // when the delegate will execute, and we should handle those cases
-            if (this.IsActiveSolutionBound)
+            if (this.IsActiveSolutionLegacyBound)
             {
                 this.InvokeWhenIdle(this.ProcessSolutionBinding);
             }
@@ -108,11 +112,11 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(this.host.UIDispatcher.CheckAccess(), "The controller needs to run on the UI thread");
         }
 
-        private bool IsActiveSolutionBound
+        private bool IsActiveSolutionLegacyBound
         {
             get
             {
-                return this.bindingInformationProvider.IsSolutionBound();
+                return this.configProvider.GetMode() == SonarLintMode.LegacyConnected;
             }
         }
 
@@ -157,11 +161,8 @@ namespace SonarLint.VisualStudio.Integration
 
         internal /*for testing purposes*/ void ProcessSolutionBinding()
         {
-            // TODO: CM2: this code is old relevant for legacy connected mode
-            // (checks for projects that do not have a ruleset, or rulesets that are out of date)
-
             // No need to do anything if by the time got here the solution was closed (or unbound)
-            if (!this.IsActiveSolutionBound)
+            if (!this.IsActiveSolutionLegacyBound)
             {
                 return;
             }
@@ -239,9 +240,6 @@ namespace SonarLint.VisualStudio.Integration
 
                 // Need to capture the current binding information since the user can change the binding
                 // and running the Update should just no-op in that case.
-                var configProvider = this.host.GetService<IConfigurationProvider>();
-                configProvider.AssertLocalServiceIsNotNull();
-
                 this.infoBarBinding = configProvider.GetBoundProject();
             }
         }
@@ -264,9 +262,6 @@ namespace SonarLint.VisualStudio.Integration
             // Don't log unprocessed events
             var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
-
-            var configProvider = this.host.GetService<IConfigurationProvider>();
-            configProvider.AssertLocalServiceIsNotNull();
 
             // TODO: CM2: only relevant for old connected mode
 
@@ -566,6 +561,15 @@ namespace SonarLint.VisualStudio.Integration
 
                 Debug.Assert(this.BackgroundTask == null, "Not expecting this method to be called more than once");
 
+                var configProvider = this.host.GetService<IConfigurationProvider>();
+                configProvider.AssertLocalServiceIsNotNull();
+
+                // This check is only relevant for legacy connected mode
+                if (configProvider.GetMode() != SonarLintMode.LegacyConnected)
+                {
+                    return;
+                }
+
                 var projectSystem = this.host.GetService<IProjectSystemHelper>();
                 projectSystem.AssertLocalServiceIsNotNull();
 
@@ -578,15 +582,8 @@ namespace SonarLint.VisualStudio.Integration
                     return;
                 }
 
-                var configProvider = this.host.GetService<IConfigurationProvider>();
-                configProvider.AssertLocalServiceIsNotNull();
-
-                // TODO: CM2: only relevant for legacy connected mode
                 var binding = configProvider.GetBoundProject();
-                if (binding == null)
-                {
-                    return;
-                }
+                Debug.Assert(binding != null, "Bound project should not be null if in legacy connected mode");
 
                 if (binding.Profiles == null || binding.Profiles.Count == 0)
                 {

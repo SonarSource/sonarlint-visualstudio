@@ -116,11 +116,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NoFilteredProjects_NoOp()
+        {
+            // Arrange
+            var testSubject = this.GetTestSubject();
+            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
+            this.SetFilteredProjects(); // no filtered projects
+
+            // Act
+            testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
+
+            // Assert
+            this.outputWindowPane.AssertOutputStrings(0);
+        }
+
+        [TestMethod]
         public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NoSolutionBinding()
         {
             // Arrange
             var testSubject = this.GetTestSubject();
-            this.SetFilteredProjects();
+            this.configProvider.ModeToReturn = SonarLintMode.Connected;
+            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind);
 
             // Act
             testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
@@ -136,6 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
             this.configProvider.ProjectToReturn = new BoundSonarQubeProject();
+            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
             int called = 0;
 
             // Act
@@ -163,6 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProjectKey = "ProjectKey",
                 Profiles = new Dictionary<Language, ApplicableQualityProfile>()
             };
+            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
 
             // Same profile key
             this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new ApplicableQualityProfile
@@ -200,6 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProfileKey = "Profile2", // Different profile key
                 ProfileTimestamp = null
             };
+            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
             this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn, DateTime.Now, qpKey, Language.CSharp);
 
             // Act + Assert
@@ -227,6 +246,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProfileKey = "csOld", // Different profile key
                 ProfileTimestamp = sameTimestamp
             };
+            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
             this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn, sameTimestamp, qpKey, Language.CSharp);
 
             // Act + Assert
@@ -254,6 +274,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProfileKey = qpKey,
                 ProfileTimestamp = null
             };
+            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
             this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn, DateTime.Now, qpKey, Language.CSharp, Language.VBNET);
 
             // Act + Assert
@@ -287,6 +308,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProfileKey = qpKey,
                 ProfileTimestamp = null
             };
+            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
             this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn, sameDate, qpKey, Language.CSharp);
 
             // Act + Assert
@@ -312,6 +334,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProfileKey = "vbnet",
                 ProfileTimestamp = DateTime.Now
             };
+            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
             var service = new Mock<ISonarQubeService>();
             service.Setup(x => x.GetQualityProfileAsync(this.configProvider.ProjectToReturn.ProjectKey, null, SonarQubeLanguage.VbNet, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => { throw new Exception(); });
