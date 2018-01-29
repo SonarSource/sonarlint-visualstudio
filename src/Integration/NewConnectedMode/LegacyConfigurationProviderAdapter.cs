@@ -49,5 +49,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         {
             return legacySerializer.ReadSolutionBinding();
         }
+
+        public SonarLintMode GetMode()
+        {
+            //TODO: support new connected mode
+            return GetBoundProject() != null ? SonarLintMode.LegacyConnected : SonarLintMode.Standalone;
+        }
     }
 }
