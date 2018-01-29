@@ -316,7 +316,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ErrorListInfoBarController_InfoBar_ClickButton_SolutionBindingAreDifferentThatTheOnesUsedForTheInfoBar()
+        public void ErrorListInfoBarController_InfoBar_ClickButton_SolutionBindingAreDifferentThatTheOnesUsedForTheInfoBar_NoOp()
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
@@ -333,6 +333,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Change binding
             this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey");
+
+            // Act
+            infoBar.SimulateButtonClickEvent();
+
+            // Assert
+            this.teamExplorerController.ShowConnectionsPageCallsCount.Should().Be(0);
+            this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
+            this.outputWindowPane.AssertOutputStrings(1);
+        }
+
+        [TestMethod]
+        public void ErrorListInfoBarController_InfoBar_ClickButton_NoLongerInLegacyConnected_NoOp()
+        {
+            // Arrange
+            this.SetBindingMode(SonarLintMode.LegacyConnected);
+            var testSubject = new ErrorListInfoBarController(this.host);
+            this.ConfigureLoadedSolution();
+            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
+            testSubject.Refresh();
+            RunAsyncAction();
+            this.outputWindowPane.Reset();
+
+            // Sanity
+            ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
+            VerifyInfoBar(infoBar);
+
+            // Change binding
+            // Note: in practice we can't switch from legacy to new connected mode, but the important
+            // thing for this test is that the solution isn't in legacy mode
+            this.SetBindingMode(SonarLintMode.Connected);
 
             // Act
             infoBar.SimulateButtonClickEvent();

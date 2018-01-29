@@ -263,10 +263,9 @@ namespace SonarLint.VisualStudio.Integration
             var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
 
-            // TODO: CM2: only relevant for old connected mode
-
             BoundSonarQubeProject binding = configProvider.GetBoundProject();
-            if (binding == null
+            if (configProvider.GetMode() != SonarLintMode.LegacyConnected
+                || binding == null
                 || this.infoBarBinding == null
                 || binding.ServerUri != this.infoBarBinding.ServerUri
                 || !SonarQubeProject.KeyComparer.Equals(binding.ProjectKey, this.infoBarBinding.ProjectKey))
