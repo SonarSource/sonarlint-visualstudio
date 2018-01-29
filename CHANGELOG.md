@@ -37,6 +37,11 @@ For reference, the possible headings are:
 * [#480](https://github.com/SonarSource/sonarlint-visualstudio/issues/480) - Help link is not correct for JS/C/C++
 * [#494](https://github.com/SonarSource/sonarlint-visualstudio/issues/494) - Category of JS/C/C++ doesn't display the right severity
 
+### Notes
+What about:
+* SonarLint for Visual Studio versions 4.0+ will no longer support Visual Studio older than VS 2015 Update 3.
+Please update to Visual Studio 2015 Update 3+ or Visual Studio 2017 to benefit from new features.
+
 
 ## [3.8.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.8.0.2728...3.8.1.2823)
 
