@@ -41,6 +41,17 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             this.legacySerializer = legacySerializer;
         }
 
+        public BindingConfiguration GetConfiguration()
+        {
+            //TODO: support new connected mode
+            var project = legacySerializer.ReadSolutionBinding();
+            if (project == null)
+            {
+                return BindingConfiguration.Standalone;
+            }
+            return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: true);
+        }
+
         /// <summary>
         /// Returns the currently bound project, or null if the current solution is
         /// not bound, or if there is not a current solution

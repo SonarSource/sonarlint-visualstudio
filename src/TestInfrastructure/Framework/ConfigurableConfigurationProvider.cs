@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 
@@ -28,16 +29,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// </summary>
     internal class ConfigurableConfigurationProvider : IConfigurationProvider
     {
-        public BoundSonarQubeProject ProjectToReturn { get; set; }
         public BoundSonarQubeProject GetBoundProject()
         {
             return ProjectToReturn;
         }
 
-        public SonarLintMode ModeToReturn { get; set; }
         public SonarLintMode GetMode()
         {
             return ModeToReturn;
         }
+
+        public BindingConfiguration GetConfiguration()
+        {
+            GetConfigurationAction?.Invoke();
+            
+            if (ModeToReturn == SonarLintMode.Standalone)
+            {
+                return BindingConfiguration.Standalone;
+            }
+            return BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, SonarLintMode.LegacyConnected == ModeToReturn);
+        }
+
+        #region Test helpers
+
+        public BoundSonarQubeProject ProjectToReturn { get; set; }
+        public SonarLintMode ModeToReturn { get; set; }
+        public Action GetConfigurationAction { get; set; }
+
+        #endregion Test helpers
+
     }
 }
