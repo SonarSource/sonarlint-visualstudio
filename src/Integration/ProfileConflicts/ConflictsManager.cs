@@ -66,19 +66,18 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             configProvider.AssertLocalServiceIsNotNull();
 
             // Check that we are in legacy connected mode
-            if (configProvider.GetMode() != SonarLintMode.LegacyConnected)
+            var bindingConfig = configProvider.GetConfiguration();
+            if (bindingConfig.Mode != SonarLintMode.LegacyConnected)
             {
                 return new ProjectRuleSetConflict[0];
             }
+            Debug.Assert(bindingConfig.Project != null, "Bound project should not be null if in legacy connected mode");
 
             // Note: some of the assumptions (see asserts below) are because have just bounded the solution (as documented on the interface),
             // in other cases assuming that the rule set are indeed on disk is not possible, and in fact re-syncing
             // would be required when we have missing rule-sets, otherwise finding conflicts will not be possible.
 
-            BoundSonarQubeProject bindingInfo = configProvider.GetBoundProject();
-            Debug.Assert(bindingInfo != null, "Bound project should not be null when in legacy connected mode");
-
-            RuleSetInformation[] aggregatedRuleSets = GetAggregatedSolutionRuleSets(bindingInfo);
+            RuleSetInformation[] aggregatedRuleSets = GetAggregatedSolutionRuleSets(bindingConfig.Project);
 
             if (aggregatedRuleSets.Length > 0)
             {

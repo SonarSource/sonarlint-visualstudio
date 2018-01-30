@@ -29,16 +29,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// </summary>
     internal class ConfigurableConfigurationProvider : IConfigurationProvider
     {
-        public BoundSonarQubeProject GetBoundProject()
-        {
-            return ProjectToReturn;
-        }
-
-        public SonarLintMode GetMode()
-        {
-            return ModeToReturn;
-        }
-
         public BindingConfiguration GetConfiguration()
         {
             GetConfigurationAction?.Invoke();

@@ -18,20 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.Persistence;
-
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     internal interface IConfigurationProvider : ILocalService
     {
         BindingConfiguration GetConfiguration();
-
-        /// <summary>
-        /// Returns the currently bound project, or null if the current solution is
-        /// not bound, or if there is not a current solution
-        /// </summary>
-        BoundSonarQubeProject GetBoundProject();
-
-        SonarLintMode GetMode();
     }
 }

@@ -51,20 +51,5 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             }
             return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: true);
         }
-
-        /// <summary>
-        /// Returns the currently bound project, or null if the current solution is
-        /// not bound, or if there is not a current solution
-        /// </summary>
-        public BoundSonarQubeProject GetBoundProject()
-        {
-            return legacySerializer.ReadSolutionBinding();
-        }
-
-        public SonarLintMode GetMode()
-        {
-            //TODO: support new connected mode
-            return GetBoundProject() != null ? SonarLintMode.LegacyConnected : SonarLintMode.Standalone;
-        }
     }
 }
