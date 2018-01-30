@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -36,6 +37,11 @@ namespace SonarLint.VisualStudio.Integration
         /// Returns project key of current project. Could be null if not bound.
         /// </summary>
         string ProjectKey { get; }
+
+        /// <summary>
+        /// Returns SonarLint current mode.
+        /// </summary>
+        SonarLintMode CurrentMode { get; }
 
         /// <summary>
         /// Event to notify subscribers when the binding status of a solution have changed.

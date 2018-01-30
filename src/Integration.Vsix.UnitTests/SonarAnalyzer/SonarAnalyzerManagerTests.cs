@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -182,6 +183,73 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             SonarAnalyzerManager.HasConflictingAnalyzerReference(
                 SonarAnalyzerManager.GetProjectAnalyzerConflictStatus(references))
                 .Should().BeTrue("Having only different reference versions should disable the embedded analyzer");
+        }
+
+        [TestMethod]
+        public void SonarAnalyzerManager_HasAnyRuleEnabled_WhenInLegacyConnectedMode_ReturnsTrue()
+        {
+            // Arrange
+            var manager = new SonarAnalyzerManager(new ConfigurableActiveSolutionBoundTracker
+            {
+                CurrentMode = NewConnectedMode.SonarLintMode.LegacyConnected
+            }, new AdhocWorkspace());
+
+            // Act
+            var result = manager.HasAnyRuleEnabled(Enumerable.Empty<DiagnosticDescriptor>());
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void SonarAnalyzerManager_HasAnyRuleEnabled_WhenInConnectedMode_ReturnsTrue()
+        {
+            // Arrange
+            var manager = new SonarAnalyzerManager(new ConfigurableActiveSolutionBoundTracker
+            {
+                CurrentMode = NewConnectedMode.SonarLintMode.Connected
+            }, new AdhocWorkspace());
+
+            // Act
+            var result = manager.HasAnyRuleEnabled(Enumerable.Empty<DiagnosticDescriptor>());
+
+            // Assert
+            // TODO: Amaury - Update the expected result
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void SonarAnalyzerManager_HasAnyRuleEnabled_WhenInStandaloneModeAndOneRuleIsInSonarWay_ReturnsTrue()
+        {
+            // Arrange
+            var manager = new SonarAnalyzerManager(new ConfigurableActiveSolutionBoundTracker
+            {
+                CurrentMode = NewConnectedMode.SonarLintMode.Standalone
+            }, new AdhocWorkspace());
+
+            var diagnostics = new[] { new DiagnosticDescriptor("RULE-ID", "", "", "", DiagnosticSeverity.Info, true, null, null, new[] { "SonarWay" }) };
+
+            // Act
+            var result = manager.HasAnyRuleEnabled(diagnostics);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void SonarAnalyzerManager_HasAnyRuleEnabled_WhenInStandaloneModeAndNoRuleIsInSonarWay_ReturnsFalse()
+        {
+            // Arrange
+            var manager = new SonarAnalyzerManager(new ConfigurableActiveSolutionBoundTracker
+            {
+                CurrentMode = NewConnectedMode.SonarLintMode.Standalone
+            }, new AdhocWorkspace());
+
+            // Act
+            var result = manager.HasAnyRuleEnabled(Enumerable.Empty<DiagnosticDescriptor>());
+
+            // Assert
+            result.Should().BeFalse();
         }
     }
 }

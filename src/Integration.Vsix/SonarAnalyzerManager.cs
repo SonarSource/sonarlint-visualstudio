@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -61,35 +62,55 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.workspace = workspace;
 
-            SonarAnalysisContext.ShouldAnalysisBeDisabled = tree => ShouldAnalysisBeDisabledOnTree(tree);
+            SonarAnalysisContext.ShouldExecuteRuleFunc = ShouldExecuteRule;
         }
 
-        private bool ShouldAnalysisBeDisabledOnTree(SyntaxTree tree)
+        private bool ShouldExecuteRule(AnalysisRunContext context)
         {
-            if (tree == null)
+            if (context.SyntaxTree == null)
             {
-                return false;
+                return true;
             }
 
-            IEnumerable<AnalyzerReference> references = workspace?.CurrentSolution?.GetDocument(tree)?.Project?.AnalyzerReferences;
-            ProjectAnalyzerStatus projectAnalyzerStatus = GetProjectAnalyzerConflictStatus(references);
+            var references = this.workspace.CurrentSolution?.GetDocument(context.SyntaxTree)?.Project?.AnalyzerReferences;
+            var projectAnalyzerStatus = GetProjectAnalyzerConflictStatus(references);
 
-            return HasConflictingAnalyzerReference(projectAnalyzerStatus) ||
-                this.GetIsBoundWithoutAnalyzer(projectAnalyzerStatus);
+            return !HasConflictingAnalyzerReference(projectAnalyzerStatus) &&
+                !GetIsBoundWithoutAnalyzer(projectAnalyzerStatus) &&
+                HasAnyRuleEnabled(context.SupportedDiagnostics);
         }
 
-        internal /*for testing purposes*/ bool GetIsBoundWithoutAnalyzer(ProjectAnalyzerStatus projectAnalyzerStatus)
+        internal /*for testing purposes*/ bool HasAnyRuleEnabled(IEnumerable<DiagnosticDescriptor> supportedDiagnostics)
         {
-            return projectAnalyzerStatus == ProjectAnalyzerStatus.NoAnalyzer &&
+            Debug.Assert(supportedDiagnostics != null, "Not expecting a null list of diagnostics");
+
+            switch (this.activeSolutionBoundTracker.CurrentMode)
+            {
+                case NewConnectedMode.SonarLintMode.Standalone:
+                    // For now the standalone is not configurable so we only enable rules part of SonarWay profile
+                    return supportedDiagnostics.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
+
+                case NewConnectedMode.SonarLintMode.LegacyConnected:
+                    // Ruleset is used to decide whether or not the rule should be enabled
+                    return true;
+
+                case NewConnectedMode.SonarLintMode.Connected:
+                    // TODO: Call the class responsible of the new rule set to decide whether any rule is enabled
+                    return true;
+
+                default:
+                    Debug.Fail("Unhandled SonarLintMode");
+                    return false;
+            }
+        }
+
+        internal /*for testing purposes*/ bool GetIsBoundWithoutAnalyzer(ProjectAnalyzerStatus projectAnalyzerStatus) =>
+            projectAnalyzerStatus == ProjectAnalyzerStatus.NoAnalyzer &&
                 this.activeSolutionBoundTracker != null &&
                 this.activeSolutionBoundTracker.IsActiveSolutionBound;
-        }
 
-        internal /*for testing purposes*/ static bool HasConflictingAnalyzerReference(
-            ProjectAnalyzerStatus projectAnalyzerStatus)
-        {
-            return projectAnalyzerStatus == ProjectAnalyzerStatus.DifferentVersion;
-        }
+        internal /*for testing purposes*/ static bool HasConflictingAnalyzerReference(ProjectAnalyzerStatus projectAnalyzerStatus) =>
+            projectAnalyzerStatus == ProjectAnalyzerStatus.DifferentVersion;
 
         internal /*for testing purposes*/ static ProjectAnalyzerStatus GetProjectAnalyzerConflictStatus(
             IEnumerable<AnalyzerReference> references)
@@ -99,11 +120,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return ProjectAnalyzerStatus.NoAnalyzer;
             }
 
-            List<AnalyzerReference> sameNamedAnalyzers = references
+            var sameNamedAnalyzers = references
                 .Where(reference => string.Equals(reference.Display, AnalyzerName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            if (!sameNamedAnalyzers.Any())
+            if (sameNamedAnalyzers.Count == 0)
             {
                 return ProjectAnalyzerStatus.NoAnalyzer;
             }

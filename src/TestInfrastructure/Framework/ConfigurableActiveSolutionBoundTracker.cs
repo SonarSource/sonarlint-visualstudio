@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -28,8 +29,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
            new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, null);
 
         public bool IsActiveSolutionBound { get; set; }
-
         public string ProjectKey { get; set; }
+        public SonarLintMode CurrentMode { get; set; }
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
 
