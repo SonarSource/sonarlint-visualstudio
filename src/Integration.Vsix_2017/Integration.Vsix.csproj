@@ -389,7 +389,8 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="SonarAnalyzer">
+    <!-- TODO: AMAURY - re-enable when SonarAnalyzer is merged to master and delete hack -->
+    <!--<Reference Include="SonarAnalyzer">
       <HintPath>..\..\binaries\SonarAnalyzer.dll</HintPath>
     </Reference>
     <Reference Include="SonarAnalyzer.CSharp">
@@ -397,6 +398,15 @@
     </Reference>
     <Reference Include="SonarAnalyzer.VisualBasic">
       <HintPath>..\..\binaries\SonarAnalyzer.VisualBasic.dll</HintPath>
+    </Reference>-->
+    <Reference Include="SonarAnalyzer">
+      <HintPath>..\..\hack-binaries\SonarAnalyzer.dll</HintPath>
+    </Reference>
+    <Reference Include="SonarAnalyzer.CSharp">
+      <HintPath>..\..\hack-binaries\SonarAnalyzer.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SonarAnalyzer.VisualBasic">
+      <HintPath>..\..\hack-binaries\SonarAnalyzer.VisualBasic.dll</HintPath>
     </Reference>
     <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>

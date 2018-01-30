@@ -47,6 +47,8 @@ namespace SonarLint.VisualStudio.Integration
 
         public string ProjectKey { get; private set; }
 
+        public SonarLintMode CurrentMode { get; private set; }
+
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host,
             IActiveSolutionTracker activeSolutionTracker,
@@ -85,6 +87,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.IsActiveSolutionBound = project != null;
             this.ProjectKey = project?.ProjectKey;
+            CurrentMode = this.configurationProvider.GetMode();
         }
 
         private async void OnActiveSolutionChanged(object sender, EventArgs e)
@@ -168,6 +171,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 this.IsActiveSolutionBound = isSolutionCurrentlyBound;
                 this.ProjectKey = projectKey;
+                CurrentMode = this.configurationProvider.GetMode();
 
                 this.SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, ProjectKey));
             }
