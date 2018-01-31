@@ -18,10 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using SonarLint.VisualStudio.Integration.Persistence;
+
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal interface IConfigurationProvider : ILocalService
+    internal class BindingConfiguration
     {
-        BindingConfiguration GetConfiguration();
+        public readonly static BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone);
+
+        public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, bool isLegacy)
+        {
+            if(project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+            return new BindingConfiguration(project, isLegacy ? SonarLintMode.LegacyConnected : SonarLintMode.Connected);
+        }
+
+        private BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode)
+        {
+            this.Project = project;
+            this.Mode = mode;
+        }
+
+        public BoundSonarQubeProject Project { get; }
+
+        public SonarLintMode Mode { get; }
     }
 }

@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private ConfigurableStateManager stateManager;
         private ConfigurableProgressStepRunner stepRunner;
-        private ConfigurableSolutionBindingSerializer solutionBinding;
+        private ConfigurableConfigurationProvider configProvider;
 
         public TestContext TestContext { get; set; }
 
@@ -51,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.stepRunner = new ConfigurableProgressStepRunner();
-            this.solutionBinding = new ConfigurableSolutionBindingSerializer();
+            this.configProvider = new ConfigurableConfigurationProvider();
 
             var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
@@ -279,7 +280,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new SonarQubeProject("bla", "");
-            this.solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
+            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key), SonarLintMode.LegacyConnected);
             this.stateManager.SetBoundProject(boundProject);
 
             // Sanity
@@ -315,7 +316,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new SonarQubeProject("bla", "");
             this.stateManager.SetBoundProject(boundProject);
-            this.solutionBinding.CurrentBinding = new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
+            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
             section.RefreshCommand = new RelayCommand(() => refreshCalled = true);
@@ -336,14 +337,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         }
 
         [TestMethod]
-        public void VsSessionHost_ResetBinding_ErrorInReadingSolutionBinding()
+        public void VsSessionHost_ResetBinding_ErrorInReadingBinding()
         {
             // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new SonarQubeProject("bla", "");
             this.stateManager.SetBoundProject(boundProject);
-            this.solutionBinding.CurrentBinding = new BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key);
+            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             testSubject.SetActiveSection(section);
 
@@ -352,7 +353,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(0);
 
             // Introduce an error
-            this.solutionBinding.ReadSolutionBindingAction = () => { throw new Exception("boom"); };
+            this.configProvider.GetConfigurationAction = () => { throw new Exception("boom"); };
 
             // Act (i.e. simulate loading a different solution)
             using (new AssertIgnoreScope()) // Ignore exception assert
@@ -411,9 +412,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             this.stateManager.Host = host;
 
-            host.ReplaceInternalServiceForTesting<ISolutionBindingSerializer>(this.solutionBinding);
+            host.ReplaceInternalServiceForTesting<IConfigurationProvider>(this.configProvider);
 
             return host;
+        }
+
+        private void SetConfiguration(BoundSonarQubeProject project, SonarLintMode mode)
+        {
+            this.configProvider.ProjectToReturn = project;
+            this.configProvider.ModeToReturn = mode;
         }
 
         #endregion Helpers
