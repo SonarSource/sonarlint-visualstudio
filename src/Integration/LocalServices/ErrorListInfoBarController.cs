@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             get
             {
-                return this.configProvider.GetMode() == SonarLintMode.LegacyConnected;
+                return this.configProvider.GetConfiguration().Mode == SonarLintMode.LegacyConnected;
             }
         }
 
@@ -240,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 // Need to capture the current binding information since the user can change the binding
                 // and running the Update should just no-op in that case.
-                this.infoBarBinding = configProvider.GetBoundProject();
+                this.infoBarBinding = configProvider.GetConfiguration().Project;
             }
         }
 
@@ -263,12 +263,12 @@ namespace SonarLint.VisualStudio.Integration
             var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
 
-            BoundSonarQubeProject binding = configProvider.GetBoundProject();
-            if (configProvider.GetMode() != SonarLintMode.LegacyConnected
-                || binding == null
+            BindingConfiguration binding = configProvider.GetConfiguration();
+            if (binding == null
+                || binding.Mode != SonarLintMode.LegacyConnected
                 || this.infoBarBinding == null
-                || binding.ServerUri != this.infoBarBinding.ServerUri
-                || !SonarQubeProject.KeyComparer.Equals(binding.ProjectKey, this.infoBarBinding.ProjectKey))
+                || binding.Project.ServerUri != this.infoBarBinding.ServerUri
+                || !SonarQubeProject.KeyComparer.Equals(binding.Project.ProjectKey, this.infoBarBinding.ProjectKey))
             {
                 // Not bound anymore, or bound to something else entirely
                 this.ClearCurrentInfoBar();
@@ -278,7 +278,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 // Prevent click handling
                 this.currentErrorWindowInfoBarHandlingClick = true;
-                this.ExecuteUpdate(binding);
+                this.ExecuteUpdate(binding.Project);
             }
         }
 
@@ -563,11 +563,14 @@ namespace SonarLint.VisualStudio.Integration
                 var configProvider = this.host.GetService<IConfigurationProvider>();
                 configProvider.AssertLocalServiceIsNotNull();
 
+                var bindingConfig = configProvider.GetConfiguration();
+
                 // This check is only relevant for legacy connected mode
-                if (configProvider.GetMode() != SonarLintMode.LegacyConnected)
+                if (bindingConfig.Mode != SonarLintMode.LegacyConnected)
                 {
                     return;
                 }
+                Debug.Assert(bindingConfig.Project != null, "Bound project should not be null if in legacy connected mode");
 
                 var projectSystem = this.host.GetService<IProjectSystemHelper>();
                 projectSystem.AssertLocalServiceIsNotNull();
@@ -581,10 +584,7 @@ namespace SonarLint.VisualStudio.Integration
                     return;
                 }
 
-                var binding = configProvider.GetBoundProject();
-                Debug.Assert(binding != null, "Bound project should not be null if in legacy connected mode");
-
-                if (binding.Profiles == null || binding.Profiles.Count == 0)
+                if (bindingConfig.Project.Profiles == null || bindingConfig.Project.Profiles.Count == 0)
                 {
                     // Old binding, force refresh immediately
                     this.host.Logger.WriteLine(Strings.SonarLintProfileCheckNoProfiles);
@@ -597,7 +597,7 @@ namespace SonarLint.VisualStudio.Integration
                 CancellationToken token = this.TokenSource.Token;
                 this.BackgroundTask = System.Threading.Tasks.Task.Run(() =>
                 {
-                    if (this.IsUpdateRequired(binding, languages, token))
+                    if (this.IsUpdateRequired(bindingConfig.Project, languages, token))
                     {
                         this.host.UIDispatcher.BeginInvoke(new Action(() =>
                         {

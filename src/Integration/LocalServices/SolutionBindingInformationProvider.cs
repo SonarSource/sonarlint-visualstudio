@@ -66,9 +66,10 @@ namespace SonarLint.VisualStudio.Integration
             configProvider.AssertLocalServiceIsNotNull();
 
             // Only applicable in legacy mode
-            if (configProvider.GetMode() == SonarLintMode.LegacyConnected)
+            BindingConfiguration bindingConfig = configProvider.GetConfiguration();
+            if (bindingConfig.Mode == SonarLintMode.LegacyConnected)
             {
-                return configProvider.GetBoundProject();
+                return bindingConfig.Project;
             }
             return null;
         }

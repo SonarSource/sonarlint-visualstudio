@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = this.GetTestSubject();
-            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
+            SetBinding(new BoundSonarQubeProject(), SonarLintMode.LegacyConnected);
             this.SetFilteredProjects(); // no filtered projects
 
             // Act
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = this.GetTestSubject();
-            this.configProvider.ModeToReturn = SonarLintMode.Standalone;
+            SetBinding(null, SonarLintMode.Standalone);
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind);
 
             // Act
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = this.GetTestSubject();
-            this.configProvider.ModeToReturn = SonarLintMode.Connected;
+            SetBinding(new BoundSonarQubeProject(), SonarLintMode.Connected);
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind);
 
             // Act
@@ -166,8 +166,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.GetTestSubject();
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
-            this.configProvider.ProjectToReturn = new BoundSonarQubeProject();
-            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
+            SetBinding(new BoundSonarQubeProject(), SonarLintMode.LegacyConnected);
             int called = 0;
 
             // Act
@@ -431,6 +430,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                project.SetProjectKind(new Guid(projectKind));
                return project;
            });
+        }
+
+        private void SetBinding(BoundSonarQubeProject boundProject, SonarLintMode mode)
+        {
+            this.configProvider.ProjectToReturn = boundProject;
+            this.configProvider.ModeToReturn = mode;
         }
 
         #endregion Helpers
