@@ -23,8 +23,8 @@ using System.Diagnostics;
 using System.IO;
 using EnvDTE;
 using Microsoft.Alm.Authentication;
-using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
@@ -34,36 +34,31 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         private readonly IServiceProvider serviceProvider;
         private readonly ICredentialStore credentialStore;
         private readonly ILogger logger;
+        private readonly IFile fileWrapper;
 
         public const string SonarQubeSolutionBindingConfigurationFileName = "SolutionBinding.sqconfig";
         public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
 
         public SolutionBindingSerializer(IServiceProvider serviceProvider)
-            : this(serviceProvider, new SecretStore(StoreNamespace), serviceProvider?.GetMefService<ILogger>())
+            : this(serviceProvider, new SecretStore(StoreNamespace), serviceProvider?.GetMefService<ILogger>(), new FileWrapper())
         {
         }
 
         internal /*for testing purposes*/ SolutionBindingSerializer(IServiceProvider serviceProvider, ICredentialStore store,
-            ILogger logger)
+            ILogger logger, IFile fileWrapper)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
-
-            if (store == null)
-            {
-                throw new ArgumentNullException(nameof(store));
-            }
-
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
+            Debug.Assert(store != null);
+            Debug.Assert(logger != null);
+            Debug.Assert(fileWrapper != null);
 
             this.serviceProvider = serviceProvider;
             this.credentialStore = store;
             this.logger = logger;
+            this.fileWrapper = fileWrapper;
         }
 
         internal ICredentialStore Store
@@ -74,12 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public BoundSonarQubeProject ReadSolutionBinding()
         {
             string configFile = this.GetSonarQubeConfigurationFilePath();
-            if (string.IsNullOrWhiteSpace(configFile) || !File.Exists(configFile))
-            {
-                return null;
-            }
-
-            return this.ReadBindingInformation(configFile);
+            return ConfigFileUtilities.ReadBindingFile(configFile, this.credentialStore, this.logger, fileWrapper);
         }
 
         public string WriteSolutionBinding(BoundSonarQubeProject binding)
@@ -161,22 +151,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return Path.Combine(rootFolder, SonarQubeSolutionBindingConfigurationFileName);
         }
 
-        private BoundSonarQubeProject ReadBindingInformation(string configFile)
-        {
-            BoundSonarQubeProject bound = this.SafeDeserializeConfigFile(configFile);
-            if (bound?.ServerUri != null)
-            {
-                var credentials = this.credentialStore.ReadCredentials(bound.ServerUri);
-                if (credentials != null)
-                {
-                    bound.Credentials = new BasicAuthCredentials(credentials.Username,
-                        credentials.Password.ToSecureString());
-                }
-            }
-
-            return bound;
-        }
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
             "S3215:\"interface\" instances should not be cast to concrete types",
             Justification = "Casting as BasicAuthCredentials is because it's the only credential type we support. Once we add more we need to think again on how to refactor the code to avoid this",
@@ -184,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             Target = "~M:SonarLint.VisualStudio.Integration.Persistence.SolutionBinding.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundProject)~System.Boolean")]
         private bool WriteBindingInformation(string configFile, BoundSonarQubeProject binding)
         {
-            if (this.SafePerformFileSystemOperation(() => WriteConfig(configFile, binding)))
+            if (ConfigFileUtilities.SafePerformFileSystemOperation(logger, () => WriteConfig(configFile, binding)))
             {
                 BasicAuthCredentials credentials = binding.Credentials as BasicAuthCredentials;
                 if (credentials != null)
@@ -201,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return false;
         }
 
-        private static void WriteConfig(string configFile, BoundSonarQubeProject binding)
+        private void WriteConfig(string configFile, BoundSonarQubeProject binding)
         {
             string directory = Path.GetDirectoryName(configFile);
             if (!Directory.Exists(directory))
@@ -209,50 +183,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 Directory.CreateDirectory(directory);
             }
 
-            File.WriteAllText(configFile, JsonHelper.Serialize(binding));
-        }
-
-        private static void ReadConfig(string configFile, out string text)
-        {
-            text = File.ReadAllText(configFile);
-        }
-
-        private BoundSonarQubeProject SafeDeserializeConfigFile(string configFilePath)
-        {
-            string configJson = null;
-            if (this.SafePerformFileSystemOperation(() => ReadConfig(configFilePath, out configJson)))
-            {
-                try
-                {
-                    return JsonHelper.Deserialize<BoundSonarQubeProject>(configJson);
-                }
-                catch (JsonException)
-                {
-                    logger.WriteLine(Strings.FailedToDeserializeSQCOnfiguration, configFilePath);
-                }
-            }
-            return null;
-        }
-
-        private bool SafePerformFileSystemOperation(Action operation)
-        {
-            Debug.Assert(operation != null);
-
-            try
-            {
-                operation();
-                return true;
-            }
-            catch (Exception e) when (e is PathTooLongException
-                                    || e is UnauthorizedAccessException
-                                    || e is FileNotFoundException
-                                    || e is DirectoryNotFoundException
-                                    || e is IOException
-                                    || e is System.Security.SecurityException)
-            {
-                logger.WriteLine(e.Message);
-                return false;
-            }
+            fileWrapper.WriteAllText(configFile, JsonHelper.Serialize(binding));
         }
     }
 }
