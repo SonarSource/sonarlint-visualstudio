@@ -26,7 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Helpers;
 
@@ -79,8 +79,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBindingSerializer_ArgChecks()
         {
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(null));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(this.serviceProvider, null, new Mock<ILogger>().Object));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(this.serviceProvider, this.store, null));
         }
 
         [TestMethod]
@@ -356,7 +354,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private SolutionBindingSerializer CreateTestSubject()
         {
-            return new SolutionBindingSerializer(this.serviceProvider, this.store, new SonarLintOutputLogger(serviceProvider));
+            return new SolutionBindingSerializer(this.serviceProvider, this.store, new SonarLintOutputLogger(serviceProvider), new FileWrapper());
         }
 
         #endregion Helpers
