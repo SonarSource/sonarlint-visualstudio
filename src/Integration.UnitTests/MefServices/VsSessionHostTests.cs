@@ -374,6 +374,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ConfigurableVsShell shell = new ConfigurableVsShell();
             shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);
+            this.serviceProvider.RegisterService(typeof(SVsSolution), new Mock<IVsSolution>().Object);
 
             // Local services
             // Act + Assert
