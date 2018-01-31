@@ -23,33 +23,40 @@ using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-
-    // TODO: remove this class
-    // It's a temporary measure to keep the existing code working while
-    // refactoring/adding the new lightweight connected mode
-
-    internal class LegacyConfigurationProviderAdapter : IConfigurationProvider
+    internal class ConfigurationProvider : IConfigurationProvider
     {
         private readonly ISolutionBindingSerializer legacySerializer;
+        private readonly ISolutionBindingSerializer newConnectedModeSerializer;
 
-        public LegacyConfigurationProviderAdapter(ISolutionBindingSerializer legacySerializer)
+        public ConfigurationProvider(ISolutionBindingSerializer legacySerializer, ISolutionBindingSerializer newConnectedModeSerializer)
         {
             if (legacySerializer == null)
             {
                 throw new ArgumentNullException(nameof(legacySerializer));
             }
+            if (newConnectedModeSerializer == null)
+            {
+                throw new ArgumentNullException(nameof(newConnectedModeSerializer));
+            }
             this.legacySerializer = legacySerializer;
+            this.newConnectedModeSerializer = newConnectedModeSerializer;
         }
 
         public BindingConfiguration GetConfiguration()
         {
-            //TODO: support new connected mode
             var project = legacySerializer.ReadSolutionBinding();
-            if (project == null)
+            if (project != null)
             {
-                return BindingConfiguration.Standalone;
+                return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: true);
             }
-            return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: true);
+
+            project = newConnectedModeSerializer.ReadSolutionBinding();
+            if (project != null)
+            {
+                return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: false);
+            }
+
+            return BindingConfiguration.Standalone;
         }
     }
 }

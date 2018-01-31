@@ -28,5 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Helpers
         void Delete(string path);
         TextReader OpenText(string path);
         TextWriter CreateText(string path);
+        string ReadAllText(string path);
+        void WriteAllText(string path, string contents);
     }
 }
