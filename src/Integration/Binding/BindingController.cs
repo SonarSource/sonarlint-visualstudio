@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal class BindingController : HostedCommandControllerBase, IBindingWorkflowExecutor
     {
         private readonly IHost host;
-        private readonly IBindingWorkflowExecutor workflow;
+        private readonly IBindingWorkflowExecutor workflowExecutor;
         private readonly IProjectSystemHelper projectSystemHelper;
 
         public BindingController(IHost host)
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
         }
 
-        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflowExecutor workflow)
+        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflowExecutor workflowExecutor)
             : base(host)
         {
             if (host == null)
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.host = host;
 
             this.BindCommand = new RelayCommand<ProjectViewModel>(this.OnBind, this.OnBindStatus);
-            this.workflow = workflow ?? this;
+            this.workflowExecutor = workflowExecutor ?? this;
             this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
         }
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
 
-            this.workflow.BindProject(projectInformation);
+            this.workflowExecutor.BindProject(projectInformation);
         }
 
         #endregion
@@ -128,13 +128,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflowExecutor.BindProject(SonarQubeProject projectInformation)
         {
+            //TODO: CM2 - choose the type of binding
+            var workflow = CreateBindingWorkflow(projectInformation);
+
+            IProgressEvents progressEvents = workflow.Run();
+            Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
+            this.SetBindingInProgress(progressEvents, projectInformation);
+        }
+
+        private IBindingWorkflow CreateBindingWorkflow(SonarQubeProject projectInformation)
+        {
             ConnectionInformation connection = this.host.VisualStateManager.GetConnectedServer(projectInformation);
             Debug.Assert(connection != null, "Could not find a connected server for project: " + projectInformation?.Key);
 
-            BindingWorkflow workflowExecutor = new BindingWorkflow(this.host, connection, projectInformation);
-            IProgressEvents progressEvents = workflowExecutor.Run();
-            Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
-            this.SetBindingInProgress(progressEvents, projectInformation);
+            return new BindingWorkflow(this.host, connection, projectInformation);
         }
 
         internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, SonarQubeProject projectInformation)
@@ -167,6 +174,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 this.host.VisualStateManager.SetBoundProject(projectInformation);
 
+                // TODO: CM2: the conflicts controller is only applicable in legacy connected mode
+                // However, it *should* be safe to call it regardless - in new connected mode it should
+                // return false.
                 var conflictsController = this.host.GetService<IRuleSetConflictsController>();
                 conflictsController.AssertLocalServiceIsNotNull();
 

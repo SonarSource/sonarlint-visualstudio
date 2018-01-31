@@ -222,14 +222,14 @@ namespace SonarLint.VisualStudio.Integration
                 this.progressStepRunner.AbortAll();
             }
 
-            // Get the binding info (null if there's none i.e. when solution is closed or not bound)
-            BoundSonarQubeProject bound = this.SafeReadBindingInformation();
-            if (bound == null)
+            var bindingConfig = this.SafeGetBindingConfig();
+            if (bindingConfig == null || bindingConfig.Mode == SonarLintMode.Standalone)
             {
                 this.ClearCurrentBinding();
             }
             else
             {
+                Debug.Assert(bindingConfig.Project != null, "Project should not be null unless in standalone mode");
                 if (this.ActiveSection == null)
                 {
                     // In case the connect section is not active, make it so that next time it activates
@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration
                 }
                 else
                 {
-                    this.ApplyBindingInformation(bound);
+                    this.ApplyBindingInformation(bindingConfig);
                 }
             }
         }
@@ -250,33 +250,30 @@ namespace SonarLint.VisualStudio.Integration
             this.VisualStateManager.ClearBoundProject();
         }
 
-        private void ApplyBindingInformation(BoundSonarQubeProject bound)
+        private void ApplyBindingInformation(BindingConfiguration bindingConfig)
         {
             // Set the project key that should become bound once the connection workflow has completed
-            this.VisualStateManager.BoundProjectKey = bound.ProjectKey;
-
-            // Recreate the connection information from what was persisted
-            ConnectionInformation connectionInformation = bound.CreateConnectionInformation();
+            this.VisualStateManager.BoundProjectKey = bindingConfig.Project.ProjectKey;
 
             Debug.Assert(this.ActiveSection != null, "Expected ActiveSection to be set");
             Debug.Assert(this.ActiveSection?.RefreshCommand != null, "Refresh command is not set");
             // Run the refresh workflow, passing the connection information
             var refreshCmd = this.ActiveSection.RefreshCommand;
-            if (refreshCmd.CanExecute(connectionInformation))
+            if (refreshCmd.CanExecute(bindingConfig))
             {
-                refreshCmd.Execute(connectionInformation); // start the workflow
+                refreshCmd.Execute(bindingConfig); // start the workflow
             }
         }
 
-        private BoundSonarQubeProject SafeReadBindingInformation()
+        private BindingConfiguration SafeGetBindingConfig()
         {
-            ISolutionBindingSerializer solutionBinding = this.GetService<ISolutionBindingSerializer>();
-            solutionBinding.AssertLocalServiceIsNotNull();
+            IConfigurationProvider configProvider = this.GetService<IConfigurationProvider>();
+            configProvider.AssertLocalServiceIsNotNull();
 
-            BoundSonarQubeProject bound = null;
+            BindingConfiguration bindingConfig = null;
             try
             {
-                bound = solutionBinding.ReadSolutionBinding();
+                bindingConfig = configProvider.GetConfiguration();
             }
             catch (Exception ex)
             {
@@ -288,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration
                 Debug.Fail("Unexpected exception: " + ex.ToString());
             }
 
-            return bound;
+            return bindingConfig;
         }
         #endregion
 
