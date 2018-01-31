@@ -32,7 +32,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     internal static class ConfigFileUtilities
     {
-        public static BoundSonarQubeProject ReadBindingFile(string fullConfigFilePath, ICredentialStore credentialStore, ILogger logger, IFile fileWrapper)
+        public static BoundSonarQubeProject ReadBindingFile(
+            string fullConfigFilePath,
+            ICredentialStore credentialStore,
+            ILogger logger,
+            IFile fileWrapper)
         {
             Debug.Assert(credentialStore != null);
             Debug.Assert(logger != null);
