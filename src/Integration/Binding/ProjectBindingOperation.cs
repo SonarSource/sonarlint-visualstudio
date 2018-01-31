@@ -28,6 +28,10 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
+    // Legacy connected mode:
+    // * make binding changes to a single project i.e. writes the ruleset files
+    // and updates the project file
+
     internal partial class ProjectBindingOperation : IBindingOperation
     {
         private readonly IServiceProvider serviceProvider;

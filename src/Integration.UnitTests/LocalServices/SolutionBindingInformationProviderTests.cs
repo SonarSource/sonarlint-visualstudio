@@ -86,6 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
             this.configProvider.ModeToReturn = SonarLintMode.Connected;
+            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject();
             IEnumerable<Project> projects;
 
             // Act

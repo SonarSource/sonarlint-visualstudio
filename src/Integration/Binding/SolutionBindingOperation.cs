@@ -30,6 +30,10 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
+    // Legacy connected mode:
+    // * writes the binding info files to disk and adds them as solution items.
+    // * co-ordinates writing project-level changes
+
     /// <summary>
     /// Solution level binding by delegating some of the work to <see cref="ProjectBindingOperation"/>
     /// </summary>

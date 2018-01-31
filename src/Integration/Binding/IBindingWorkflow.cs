@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,15 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration
-{
-    public enum DaemonLogLevel { Verbose, Info, Minimal };
+using SonarLint.VisualStudio.Progress.Controller;
 
-    public interface ISonarLintSettings
+namespace SonarLint.VisualStudio.Integration.Binding
+{
+    /// <summary>
+    /// Workflow for the bind command
+    /// </summary>
+    internal interface IBindingWorkflow
     {
-        bool ShowServerNuGetTrustWarning { get; set; } // Legacy connected mode: not used by the new connected mode
-        bool IsActivateMoreEnabled { get; set; }
-        bool SkipActivateMoreDialog { get; set; }
-        DaemonLogLevel DaemonLogLevel { get; set; }
-    }
+        IProgressEvents Run();
+   }
 }
