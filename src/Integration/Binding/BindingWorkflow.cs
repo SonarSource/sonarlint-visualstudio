@@ -40,10 +40,14 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
+    // Legacy connected mode:
+    // Handles binding a solution for legacy connected mode i.e. writes the
+    // solution-level files and adds rulesets to every applicable project.
+
     /// <summary>
     /// Workflow execution for the bind command
     /// </summary>
-    internal class BindingWorkflow
+    internal class BindingWorkflow : IBindingWorkflow
     {
         private readonly IHost host;
         private readonly ConnectionInformation connectionInformation;

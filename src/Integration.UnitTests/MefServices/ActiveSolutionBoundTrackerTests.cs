@@ -418,6 +418,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void ConfigureSolutionBinding(BoundSonarQubeProject boundProject)
         {
             this.configProvider.ProjectToReturn = boundProject;
+            this.configProvider.ModeToReturn = boundProject == null ? SonarLintMode.Standalone : SonarLintMode.LegacyConnected;
         }
 
         private void VerifyServiceConnect(Times expected)

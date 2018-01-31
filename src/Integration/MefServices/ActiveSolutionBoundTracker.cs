@@ -81,10 +81,9 @@ namespace SonarLint.VisualStudio.Integration
             // The solution changed inside the IDE
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
 
-            BoundSonarQubeProject project = this.configurationProvider.GetBoundProject();
-
-            this.IsActiveSolutionBound = project != null;
-            this.ProjectKey = project?.ProjectKey;
+            var bindingConfig = this.configurationProvider.GetConfiguration();
+            this.IsActiveSolutionBound = bindingConfig.Mode != SonarLintMode.Standalone;
+            this.ProjectKey = bindingConfig.Project?.ProjectKey;
         }
 
         private async void OnActiveSolutionChanged(object sender, EventArgs e)
@@ -114,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(!sonarQubeService.IsConnected,
                 "SonarQube service should always be disconnected at this point");
 
-            var boundProject = this.configurationProvider.GetBoundProject();
+            var boundProject = this.configurationProvider.GetConfiguration().Project;
 
             if (boundProject != null)
             {
@@ -158,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RaiseAnalyzersChangedIfBindingChanged()
         {
-            var boundProject = this.configurationProvider.GetBoundProject();
+            var boundProject = this.configurationProvider.GetConfiguration().Project;
 
             bool isSolutionCurrentlyBound = boundProject != null;
             string projectKey = boundProject?.ProjectKey;
