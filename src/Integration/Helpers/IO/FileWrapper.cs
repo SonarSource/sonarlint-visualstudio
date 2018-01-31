@@ -33,5 +33,9 @@ namespace SonarLint.VisualStudio.Integration.Helpers
         public TextReader OpenText(string path) => File.OpenText(path);
 
         public TextWriter CreateText(string path) => File.CreateText(path);
+
+        public string ReadAllText(string path) => File.ReadAllText(path);
+
+        public void WriteAllText(string path, string contents) => File.WriteAllText(path, contents);
     }
 }
