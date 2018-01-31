@@ -275,6 +275,10 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private async Task<bool> AreSolutionProjectsAndSonarQubePluginsCompatible(IProgressController controller,
             IProgressStepExecutionEvents notifications, CancellationToken cancellationToken)
         {
+            // TODO: CM2: specific to legacy connection mode???
+            // The new connection mode doesn't care which plugin versions are installed on the
+            // server, but what if C#/VB are not installed?
+
             notifications.ProgressChanged(Strings.DetectingSonarQubePlugins);
 
             var plugins = await this.host.SonarQubeService.GetAllPluginsAsync(cancellationToken);
