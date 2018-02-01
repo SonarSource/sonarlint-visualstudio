@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,28 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration.Rules
 {
-    /// <summary>
-    /// Allows checking if the current Visual Studio solution is bound to a SonarQube project or not
-    /// </summary>
-    public interface IActiveSolutionBoundTracker
+    public class QualityProfile
     {
-        /// <summary>
-        /// Get the current binding configuration.
-        /// </summary>
-        /// <remarks>
-        /// This is never null.
-        /// </remarks>
-        BindingConfiguration CurrentConfiguration { get; }
+        public QualityProfile(Language language, IEnumerable<SonarRule> rules)
+        {
+            Language = language;
+            Rules = rules;
+        }
 
-        /// <summary>
-        /// Event to notify subscribers when the binding status of a solution have changed.
-        /// This occurs when a new solution is opened, or the SonarQube binding status of the solution changes.
-        /// </summary>
-        event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
+        public Language Language { get; }
+        public IEnumerable<SonarRule> Rules { get; }
     }
 }

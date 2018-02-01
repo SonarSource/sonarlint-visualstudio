@@ -21,12 +21,11 @@
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Integration.Rules;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.Vsix.Suppression;
+using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -58,7 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private BoundSolutionAnalyzer usageAnalyzer;
         private PackageCommandManager commandManager;
         private SonarAnalyzerManager sonarAnalyzerManager;
-        private SuppressionManager suppressionManager;
         private DeprecationManager deprecationManager;
 
         protected override void Initialize()
@@ -68,19 +66,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             IServiceProvider serviceProvider = this;
 
-            var componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
-            var activeSolutioNBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
-            this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutioNBoundTracker, workspace);
-            this.suppressionManager = new SuppressionManager(serviceProvider);
+            var logger = this.GetMefService<ILogger>();
+
+            var s = new SonarQubeQualityProfileProvider(this.GetMefService<ISonarQubeService>(), logger);
+            this.sonarAnalyzerManager = new SonarAnalyzerManager(serviceProvider, s);
+
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 
             this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
             this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                 serviceProvider.GetMefService<IProjectPropertyManager>());
 
-            this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(),
-                this.GetMefService<ILogger>());
+            this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(), logger);
         }
 
         protected override void Dispose(bool disposing)
