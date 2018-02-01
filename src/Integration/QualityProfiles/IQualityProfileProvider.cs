@@ -22,8 +22,8 @@ using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.RuleSets
 {
-    internal interface IRuleSetProvider
+    internal interface IQualityProfileProvider
     {
-        SonarRuleSet GetRuleSet(BoundSonarQubeProject project, Language language);
+        QualityProfile GetQualityProfile(BoundSonarQubeProject project, Language language);
     }
 }

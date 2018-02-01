@@ -31,13 +31,13 @@ using SonarQube.Client.Services;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class SonarQubeRuleSetProviderTests
+    public class SonarQubeQualityProfileProviderTests
     {
         [TestMethod]
         public void Ctor_WhenSonarQubeServiceIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarQubeRuleSetProvider(null, new Mock<ILogger>().Object);
+            Action act = () => new SonarQubeQualityProfileProvider(null, new Mock<ILogger>().Object);
 
             // Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
@@ -47,69 +47,69 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_WhenLoggerIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarQubeRuleSetProvider(new Mock<ISonarQubeService>().Object, null);
+            Action act = () => new SonarQubeQualityProfileProvider(new Mock<ISonarQubeService>().Object, null);
 
             // Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
-        public void GetRuleSet_WhenProjectIsNull_ThrowsArgumentNullException()
+        public void GetQualityProfile_WhenProjectIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            var testSubject = new SonarQubeRuleSetProvider(new Mock<ISonarQubeService>().Object, new Mock<ILogger>().Object);
+            var testSubject = new SonarQubeQualityProfileProvider(new Mock<ISonarQubeService>().Object, new Mock<ILogger>().Object);
 
             // Act
-            Action act = () => testSubject.GetRuleSet(null, Language.CSharp);
+            Action act = () => testSubject.GetQualityProfile(null, Language.CSharp);
 
             // Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("project");
         }
 
         [TestMethod]
-        public void GetRuleSet_WhenLanguageIsNull_ThrowsArgumentNullException()
+        public void GetQualityProfile_WhenLanguageIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            var testSubject = new SonarQubeRuleSetProvider(new Mock<ISonarQubeService>().Object, new Mock<ILogger>().Object);
+            var testSubject = new SonarQubeQualityProfileProvider(new Mock<ISonarQubeService>().Object, new Mock<ILogger>().Object);
 
             // Act
-            Action act = () => testSubject.GetRuleSet(new Persistence.BoundSonarQubeProject(), null);
+            Action act = () => testSubject.GetQualityProfile(new Persistence.BoundSonarQubeProject(), null);
 
             // Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("language");
         }
 
         [TestMethod]
-        public void GetRuleSet_WhenLanguageIsUnknown_ThrowsArgumentOutOfRangeException()
+        public void GetQualityProfile_WhenLanguageIsUnknown_ThrowsArgumentOutOfRangeException()
         {
             // Arrange
-            var testSubject = new SonarQubeRuleSetProvider(new Mock<ISonarQubeService>().Object, new Mock<ILogger>().Object);
+            var testSubject = new SonarQubeQualityProfileProvider(new Mock<ISonarQubeService>().Object, new Mock<ILogger>().Object);
 
             // Act
-            Action act = () => testSubject.GetRuleSet(new Persistence.BoundSonarQubeProject(), Language.Unknown);
+            Action act = () => testSubject.GetQualityProfile(new Persistence.BoundSonarQubeProject(), Language.Unknown);
 
             // Assert
             act.ShouldThrow<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
         }
 
         [TestMethod]
-        public void GetRuleSet_WhenGetQualityProfileAsyncReturnsNull_ReturnsNull()
+        public void GetQualityProfile_WhenGetQualityProfileAsyncReturnsNull_ReturnsNull()
         {
             // Arrange
             var sonarqubeService = new Mock<ISonarQubeService>();
             sonarqubeService.Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), SonarQubeLanguage.CSharp, CancellationToken.None))
                 .ReturnsAsync(default(SonarQubeQualityProfile));
-            var testSubject = new SonarQubeRuleSetProvider(sonarqubeService.Object, new Mock<ILogger>().Object);
+            var testSubject = new SonarQubeQualityProfileProvider(sonarqubeService.Object, new Mock<ILogger>().Object);
 
             // Act
-            var result = testSubject.GetRuleSet(new Persistence.BoundSonarQubeProject(), Language.CSharp);
+            var result = testSubject.GetQualityProfile(new Persistence.BoundSonarQubeProject(), Language.CSharp);
 
             // Assert
             result.Should().BeNull();
         }
 
         [TestMethod]
-        public void GetRuleSet_WhenGetRoslynExportProfileAsyncReturnsNull_ReturnsNull()
+        public void GetQualityProfile_WhenGetRoslynExportProfileAsyncReturnsNull_ReturnsNull()
         {
             // Arrange
             var sonarqubeService = new Mock<ISonarQubeService>();
@@ -117,10 +117,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .ReturnsAsync(new SonarQubeQualityProfile("", "", "", true, DateTime.Now));
             sonarqubeService.Setup(x => x.GetRoslynExportProfileAsync(It.IsAny<string>(), It.IsAny<string>(), SonarQubeLanguage.CSharp, CancellationToken.None))
                 .ReturnsAsync(default(RoslynExportProfileResponse));
-            var testSubject = new SonarQubeRuleSetProvider(sonarqubeService.Object, new Mock<ILogger>().Object);
+            var testSubject = new SonarQubeQualityProfileProvider(sonarqubeService.Object, new Mock<ILogger>().Object);
 
             // Act
-            var result = testSubject.GetRuleSet(new Persistence.BoundSonarQubeProject(), Language.CSharp);
+            var result = testSubject.GetQualityProfile(new Persistence.BoundSonarQubeProject(), Language.CSharp);
 
             // Assert
             result.Should().BeNull();

@@ -33,12 +33,12 @@ using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.RuleSets
 {
-    internal class SonarQubeRuleSetProvider : IRuleSetProvider
+    internal class SonarQubeQualityProfileProvider : IQualityProfileProvider
     {
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
 
-        public SonarQubeRuleSetProvider(ISonarQubeService sonarQubeService, ILogger logger)
+        public SonarQubeQualityProfileProvider(ISonarQubeService sonarQubeService, ILogger logger)
         {
             if (sonarQubeService == null)
             {
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
             this.logger = logger;
         }
 
-        public SonarRuleSet GetRuleSet(BoundSonarQubeProject project, Language language)
+        public QualityProfile GetQualityProfile(BoundSonarQubeProject project, Language language)
         {
             if (project == null)
             {
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 
-            var roslynProfileExporter = GetSonarQubeRuleSet(project, language).GetAwaiter().GetResult();
+            var roslynProfileExporter = GetSonarQubeQualityProfile(project, language).GetAwaiter().GetResult();
             if (roslynProfileExporter == null)
             {
                 return null;
@@ -79,10 +79,10 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
 
             var ruleset = ConvertToCodeAnalysisRuleSet(roslynProfileExporter);
 
-            return ConvertToSonarRuleSet(ruleset, language);
+            return ConvertToSonarLintQualityProfile(ruleset, language);
         }
 
-        private async Task<RoslynExportProfileResponse> GetSonarQubeRuleSet(BoundSonarQubeProject project, Language language)
+        private async Task<RoslynExportProfileResponse> GetSonarQubeQualityProfile(BoundSonarQubeProject project, Language language)
         {
             var serverLanguage = language.ToServerLanguage();
 
@@ -142,28 +142,11 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
             return RuleSet.LoadFromFile(tempRuleSetFilePath);
         }
 
-        private SonarRuleSet ConvertToSonarRuleSet(RuleSet ruleset, Language language)
+        private QualityProfile ConvertToSonarLintQualityProfile(RuleSet ruleset, Language language)
         {
-            var rules = ruleset.Rules.Select(r => new SonarRule(r.RuleInfo.AnalyzerId, ConvertToIdeSeverity(r.Action)));
+            var rules = ruleset.Rules.Select(r => new SonarRule(r.RuleInfo.AnalyzerId, true));
 
-            return new SonarRuleSet(ruleset.DisplayName, language, rules);
-        }
-
-        private RuleIdeSeverity ConvertToIdeSeverity(RuleAction ruleAction)
-        {
-            switch (ruleAction)
-            {
-                case RuleAction.Error:
-                    return RuleIdeSeverity.Error;
-                case RuleAction.Warning:
-                    return RuleIdeSeverity.Warning;
-                case RuleAction.Info:
-                    return RuleIdeSeverity.Info;
-                case RuleAction.Hidden:
-                    return RuleIdeSeverity.Hidden;
-                default:
-                    return RuleIdeSeverity.Disabled;
-            }
+            return new QualityProfile(language, rules);
         }
     }
 }

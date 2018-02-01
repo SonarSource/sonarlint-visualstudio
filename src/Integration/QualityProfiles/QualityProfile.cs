@@ -18,27 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+
 namespace SonarLint.VisualStudio.Integration.RuleSets
 {
-    internal class SonarRule
+    internal class QualityProfile
     {
-        public SonarRule(string key, RuleIdeSeverity ideSeverity)
+        public QualityProfile(Language language, IEnumerable<SonarRule> rules)
         {
-            Key = key;
-            IdeSeverity = ideSeverity;
+            Language = language;
+            Rules = rules;
         }
 
-        public string Key { get; }
-
-        public RuleIdeSeverity IdeSeverity { get; }
-    }
-
-    internal enum RuleIdeSeverity
-    {
-        Disabled,
-        Hidden,
-        Info,
-        Warning,
-        Error
+        public Language Language { get; }
+        public IEnumerable<SonarRule> Rules { get; }
     }
 }

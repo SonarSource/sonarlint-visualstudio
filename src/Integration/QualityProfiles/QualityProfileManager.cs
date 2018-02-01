@@ -25,17 +25,17 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.RuleSets
 {
-    internal sealed class RuleSetManager : IDisposable
+    internal sealed class QualityProfileManager : IDisposable
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IProjectSystemHelper projectSystemHelper;
-        private readonly IRuleSetProvider rulesetProvider;
+        private readonly IQualityProfileProvider rulesetProvider;
 
-        internal /* for testing purposes */ readonly ConcurrentDictionary<Language, SonarRuleSet> cachedRuleSets =
-            new ConcurrentDictionary<Language, SonarRuleSet>();
+        internal /* for testing purposes */ readonly ConcurrentDictionary<Language, QualityProfile> cachedQualityProfiles =
+            new ConcurrentDictionary<Language, QualityProfile>();
 
-        public RuleSetManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, IProjectSystemHelper projectSystemHelper,
-            IRuleSetProvider rulesetProvider)
+        public QualityProfileManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, IProjectSystemHelper projectSystemHelper,
+            IQualityProfileProvider rulesetProvider)
         {
             if (activeSolutionBoundTracker == null)
             {
@@ -69,14 +69,14 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
         public void Dispose()
         {
             this.activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
-            cachedRuleSets.Clear();
+            cachedQualityProfiles.Clear();
         }
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
             if (!e.IsBound)
             {
-                cachedRuleSets.Clear();
+                cachedQualityProfiles.Clear();
             }
             else
             {
@@ -91,9 +91,9 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
                 .Where(tuple => tuple.Language != Language.Unknown)
                 .GroupBy(tuple => tuple.Language)
                 .Select(tuple => tuple.First())
-                .Select(tuple => rulesetProvider.GetRuleSet(null, tuple.Language)) // TODO: Provide the BoundSonarQubeProject
+                .Select(tuple => rulesetProvider.GetQualityProfile(null, tuple.Language)) // TODO: Provide the BoundSonarQubeProject
                 .ToList()
-                .ForEach(ruleset => cachedRuleSets.AddOrUpdate(ruleset.Language, ruleset, (l, r) => r));
+                .ForEach(ruleset => cachedQualityProfiles.AddOrUpdate(ruleset.Language, ruleset, (l, r) => r));
         }
     }
 }
