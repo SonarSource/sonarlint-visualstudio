@@ -28,6 +28,7 @@ using Moq;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -35,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class ConfigurationSerializerTests
     {
         private Mock<IVsSolution> solutionMock;
+        private ConfigurableSourceControlledFileSystem configurableSccFileSystem;
         private ICredentialStore configurableStore;
         private Mock<ILogger> loggerMock;
         private Mock<IFile> fileMock;
@@ -44,17 +46,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             solutionMock = new Mock<IVsSolution>();
+            configurableSccFileSystem = new ConfigurableSourceControlledFileSystem();
             configurableStore = new ConfigurableCredentialStore();
             loggerMock = new Mock<ILogger>();
             fileMock = new Mock<IFile>();
-            testSubject = new ConfigurationSerializer(solutionMock.Object, configurableStore, loggerMock.Object, fileMock.Object);
+            testSubject = new ConfigurationSerializer(solutionMock.Object, configurableSccFileSystem, configurableStore, loggerMock.Object, fileMock.Object);
         }
 
         [TestMethod]
         public void Ctor_InvalidArgs_NullSolution_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationSerializer(null, configurableStore, loggerMock.Object);
+            Action act = () => new ConfigurationSerializer(null, configurableSccFileSystem, configurableStore, loggerMock.Object);
 
             // Act & Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("solution");
@@ -64,17 +67,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_InvalidArgs_NullCredentialStore_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationSerializer(solutionMock.Object, null, loggerMock.Object);
+            Action act = () => new ConfigurationSerializer(solutionMock.Object, configurableSccFileSystem, null, loggerMock.Object);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("credentialStore");
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("store");
         }
 
         [TestMethod]
         public void Ctor_InvalidArgs_NullLogger_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationSerializer(solutionMock.Object, configurableStore, null);
+            Action act = () => new ConfigurationSerializer(solutionMock.Object, configurableSccFileSystem, configurableStore, null);
 
             // Act & Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
@@ -199,6 +202,80 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Organization.Key.Should().Be("OrgKey");
             actual.Organization.Name.Should().Be("OrgName");
             actual.ProjectKey.Should().Be("key111");
+        }
+
+        [TestMethod]
+        public void WriteSolution_NoCredentials_FileSavedOk()
+        {
+            // Arrange
+            SetSolutionFilePath(@"c:\mysolutionfile.foo");
+            var expectedFilePath = @"c:\.sonarlint\mysolutionfile.sqconfig";
+
+            var boundProject = new BoundSonarQubeProject
+            {
+                ProjectKey = "mykey",
+                ServerUri = new Uri("http://localhost:9000"),
+            };
+
+            // Act
+            var actualFilePath = testSubject.WriteSolutionBinding(boundProject);
+
+            // Assert
+            actualFilePath.Should().Be(expectedFilePath);
+            fileMock.Verify(x => x.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
+            var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
+            savedCredentials.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void WriteSolution_HasCredentials_FileSavedAndCredentialsSavedOk()
+        {
+            // Arrange
+            SetSolutionFilePath(@"c:\mysolutionfile.foo");
+            var expectedFilePath = @"c:\.sonarlint\mysolutionfile.sqconfig";
+
+            // Currently we can only handle saving basic auth credentials
+            BasicAuthCredentials creds = new BasicAuthCredentials("user1", "1234".ToSecureString());
+
+            var boundProject = new BoundSonarQubeProject
+            {
+                ProjectKey = "mykey",
+                ServerUri = new Uri("http://localhost:9000"),
+                Credentials = creds
+            };
+
+            // Act
+            var actualFilePath = testSubject.WriteSolutionBinding(boundProject);
+
+            // Assert
+            actualFilePath.Should().Be(expectedFilePath);
+            fileMock.Verify(x => x.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
+            var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
+            savedCredentials.Should().NotBeNull();
+            savedCredentials.Username.Should().Be("user1");
+            savedCredentials.Password.Should().Be("1234");
+        }
+
+        [TestMethod]
+        public void WriteSolution_WriteOpFails_CredentialsNoSavedAndReturnsNull()
+        {
+            // Arrange
+            SetSolutionFilePath(@"c:\mysolutionfile.foo");
+            fileMock.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws<System.IO.IOException>();
+
+            var boundProject = new BoundSonarQubeProject
+            {
+                ProjectKey = "mykey",
+                ServerUri = new Uri("http://localhost:9000"),
+            };
+
+            // Act
+            var actualFilePath = testSubject.WriteSolutionBinding(boundProject);
+
+            // Assert
+            actualFilePath.Should().BeNull();
+            var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
+            savedCredentials.Should().BeNull();
         }
 
         private void SetSolutionFilePath(string filePath)
