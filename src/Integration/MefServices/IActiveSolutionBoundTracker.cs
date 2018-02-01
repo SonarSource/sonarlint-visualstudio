@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -28,14 +29,12 @@ namespace SonarLint.VisualStudio.Integration
     public interface IActiveSolutionBoundTracker
     {
         /// <summary>
-        /// Returns whether the active solution is bound to a SonarQube project
+        /// Get the current binding configuration.
         /// </summary>
-        bool IsActiveSolutionBound { get; }
-
-        /// <summary>
-        /// Returns project key of current project. Could be null if not bound.
-        /// </summary>
-        string ProjectKey { get; }
+        /// <remarks>
+        /// This is never null.
+        /// </remarks>
+        BindingConfiguration CurrentBindingConfiguration { get; }
 
         /// <summary>
         /// Event to notify subscribers when the binding status of a solution have changed.

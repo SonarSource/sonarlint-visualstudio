@@ -23,13 +23,13 @@ using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal class BindingConfiguration
+    public class BindingConfiguration
     {
         public readonly static BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone);
 
         public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, bool isLegacy)
         {
-            if(project == null)
+            if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
