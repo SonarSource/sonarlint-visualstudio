@@ -86,9 +86,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.GetMefService<ILogger>());
 
             var host = serviceProvider.GetMefService<IHost>();
-            var projectSystemHelper = host.GetService<IProjectSystemHelper>();
             var ruleSetProvider = new SonarQubeQualityProfileProvider(host.SonarQubeService, host.Logger);
-            this.qualityProfileManager = new QualityProfileManager(activeSolutionBoundTracker, projectSystemHelper, ruleSetProvider);
+            this.qualityProfileManager = new QualityProfileManager(activeSolutionBoundTracker, ruleSetProvider);
         }
 
         protected override void Dispose(bool disposing)

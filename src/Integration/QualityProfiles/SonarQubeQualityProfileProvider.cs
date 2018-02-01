@@ -66,9 +66,10 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
                 throw new ArgumentNullException(nameof(language));
             }
 
-            if (language != Language.CSharp && language != Language.VBNET)
+            if (language != Language.CSharp &&
+                language != Language.VBNET)
             {
-                throw new ArgumentOutOfRangeException(nameof(language));
+                return null;
             }
 
             var roslynProfileExporter = GetSonarQubeQualityProfile(project, language).GetAwaiter().GetResult();

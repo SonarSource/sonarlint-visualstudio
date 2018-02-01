@@ -20,31 +20,24 @@
 
 
 using System;
-using System.Collections.Concurrent;
-using System.Linq;
+using System.Collections.Generic;
+using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.RuleSets
 {
     internal sealed class QualityProfileManager : IDisposable
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly IProjectSystemHelper projectSystemHelper;
         private readonly IQualityProfileProvider rulesetProvider;
+        private readonly Dictionary<Language, QualityProfile> cachedQualityProfiles = new Dictionary<Language, QualityProfile>();
 
-        internal /* for testing purposes */ readonly ConcurrentDictionary<Language, QualityProfile> cachedQualityProfiles =
-            new ConcurrentDictionary<Language, QualityProfile>();
+        private bool isDisposed;
 
-        public QualityProfileManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, IProjectSystemHelper projectSystemHelper,
-            IQualityProfileProvider rulesetProvider)
+        public QualityProfileManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, IQualityProfileProvider rulesetProvider)
         {
             if (activeSolutionBoundTracker == null)
             {
                 throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
-            }
-
-            if (projectSystemHelper == null)
-            {
-                throw new ArgumentNullException(nameof(projectSystemHelper));
             }
 
             if (rulesetProvider == null)
@@ -53,23 +46,27 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
             }
 
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.projectSystemHelper = projectSystemHelper;
             this.rulesetProvider = rulesetProvider;
 
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
 
             if (activeSolutionBoundTracker.IsActiveSolutionBound)
             {
-                FetchRuleSetForCurrentProjects();
+                FetchRuleSetsForCurrentlyBoundSonarQubeProject(null);
             }
-
-            // TODO: Find a way to listen to projects added to the solution (in case it is of a language we haven't yet fetched)
         }
 
         public void Dispose()
         {
+            if (isDisposed)
+            {
+                return;
+            }
+
             this.activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
-            cachedQualityProfiles.Clear();
+            this.cachedQualityProfiles.Clear();
+
+            isDisposed = true;
         }
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
@@ -80,20 +77,18 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
             }
             else
             {
-                FetchRuleSetForCurrentProjects();
+                FetchRuleSetsForCurrentlyBoundSonarQubeProject(null);
             }
         }
 
-        private void FetchRuleSetForCurrentProjects()
+        private void FetchRuleSetsForCurrentlyBoundSonarQubeProject(BoundSonarQubeProject boundProject)
         {
-            this.projectSystemHelper.GetFilteredSolutionProjects()
-                .Select(p => new { Project = p, Language = Language.ForProject(p) })
-                .Where(tuple => tuple.Language != Language.Unknown)
-                .GroupBy(tuple => tuple.Language)
-                .Select(tuple => tuple.First())
-                .Select(tuple => rulesetProvider.GetQualityProfile(null, tuple.Language)) // TODO: Provide the BoundSonarQubeProject
-                .ToList()
-                .ForEach(ruleset => cachedQualityProfiles.AddOrUpdate(ruleset.Language, ruleset, (l, r) => r));
+            foreach (var language in Language.SupportedLanguages)
+            {
+                var qualityProfile = rulesetProvider.GetQualityProfile(boundProject, language);
+                // TODO: What to do if qualityProfile is null?
+                cachedQualityProfiles.Add(qualityProfile.Language, qualityProfile);
+            }
         }
     }
 }
