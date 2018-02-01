@@ -230,9 +230,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 var serverLanguage = language.ToServerLanguage();
 
-                var qualityProfileInfo = await SafeServiceCall(() =>
+                var qualityProfileInfo = await WebServiceHelper.SafeServiceCall(() =>
                     this.host.SonarQubeService.GetQualityProfileAsync(
-                        this.bindingArgs.ProjectKey, this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken));
+                        this.bindingArgs.ProjectKey, this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
+                    this.host.Logger);
                 if (qualityProfileInfo == null)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
@@ -242,9 +243,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
                 this.QualityProfiles[language] = qualityProfileInfo;
 
-                var roslynProfileExporter = await SafeServiceCall(
-                    () => this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
-                        this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken));
+                var roslynProfileExporter = await WebServiceHelper.SafeServiceCall(() =>
+                    this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
+                        this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
+                    this.host.Logger);
                 if (roslynProfileExporter == null)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,

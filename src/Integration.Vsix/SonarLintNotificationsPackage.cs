@@ -73,10 +73,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs binding)
         {
-            if (binding.IsBound)
+            if (binding.Configuration.Mode != NewConnectedMode.SonarLintMode.Standalone)
             {
                 VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIcon);
-                notifications.StartAsync(binding.ProjectKey, notificationData);
+                notifications.StartAsync(binding.Configuration.Project.ProjectKey, notificationData);
             }
             else
             {

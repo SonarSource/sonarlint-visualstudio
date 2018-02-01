@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -45,6 +46,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryClientMock = new Mock<ITelemetryClient>();
             telemetryTimerMock = new Mock<ITelemetryTimer>();
             knownUIContexts = new Mock<IKnownUIContexts>();
+
+            activeSolutionTrackerMock.Setup(x => x.CurrentBindingConfiguration).Returns(BindingConfiguration.Standalone);
         }
 
         [TestMethod]
