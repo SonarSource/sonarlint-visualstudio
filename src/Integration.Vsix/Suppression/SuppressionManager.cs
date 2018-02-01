@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             // This method can be called on the UI thread so unhandled exceptions will crash VS
             try
             {
-                if (activeSolutionBoundTracker.IsActiveSolutionBound)
+                if (activeSolutionBoundTracker.CurrentBindingConfiguration.Mode != NewConnectedMode.SonarLintMode.Standalone)
                 {
                     SetupSuppressionHandling();
                 }
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                     CleanupSuppressionHandling();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 this.sonarLintOutput.WriteLine($"Failed to refresh suppression handling: {ex.Message}");
             }
@@ -85,8 +85,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             LiveIssueFactory liveIssueFactory = new LiveIssueFactory(workspace, solution);
             delegateInjector = new DelegateInjector(ShouldIssueBeReported, sonarLintOutput);
-            sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, this.activeSolutionBoundTracker.ProjectKey,
-                new TimerFactory());
+            sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService,
+                this.activeSolutionBoundTracker.CurrentBindingConfiguration.Project.ProjectKey, new TimerFactory());
             suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarqubeIssueProvider);
         }
 
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             // This method is called for every analyzer issue that is raised so it should be fast.
 
             if (activeSolutionBoundTracker == null ||
-                !activeSolutionBoundTracker.IsActiveSolutionBound)
+                activeSolutionBoundTracker.CurrentBindingConfiguration.Mode == NewConnectedMode.SonarLintMode.Standalone)
             {
                 return true;
             }

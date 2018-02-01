@@ -19,17 +19,13 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
     {
-        public ActiveSolutionBindingEventArgs ActiveSolutionBinding =>
-           new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, null);
-
-        public bool IsActiveSolutionBound { get; set; }
-
-        public string ProjectKey { get; set; }
+        public BindingConfiguration CurrentBindingConfiguration { get; set; }
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
 

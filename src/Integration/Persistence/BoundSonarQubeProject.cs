@@ -25,13 +25,13 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal class BoundSonarQubeProject
+    public class BoundSonarQubeProject
     {
         public BoundSonarQubeProject()
         {
         }
 
-        public BoundSonarQubeProject(Uri serverUri, string projectKey, ICredentials credentials = null,
+        internal BoundSonarQubeProject(Uri serverUri, string projectKey, ICredentials credentials = null,
             SonarQubeOrganization organization = null)
             : this()
         {
@@ -59,6 +59,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 
         [JsonIgnore]
-        public ICredentials Credentials { get; set; }
+        internal ICredentials Credentials { get; set; }
     }
 }

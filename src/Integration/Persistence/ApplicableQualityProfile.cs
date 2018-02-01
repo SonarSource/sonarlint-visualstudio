@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal class ApplicableQualityProfile
+    public class ApplicableQualityProfile
     {
         public string ProfileKey { get; set; }
 
