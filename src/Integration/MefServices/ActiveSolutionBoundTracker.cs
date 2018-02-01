@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
 
-        public BindingConfiguration CurrentBindingConfiguration { get; private set; }
+        public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host,
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration
             // The solution changed inside the IDE
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
 
-            CurrentBindingConfiguration = this.configurationProvider.GetConfiguration();
+            CurrentConfiguration = this.configurationProvider.GetConfiguration();
         }
 
         private async void OnActiveSolutionChanged(object sender, EventArgs e)
@@ -155,9 +155,9 @@ namespace SonarLint.VisualStudio.Integration
         {
             var newBindingConfiguration = this.configurationProvider.GetConfiguration();
 
-            if (CurrentBindingConfiguration != newBindingConfiguration)
+            if (CurrentConfiguration != newBindingConfiguration)
             {
-                CurrentBindingConfiguration = newBindingConfiguration;
+                CurrentConfiguration = newBindingConfiguration;
                 this.SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(newBindingConfiguration));
             }
         }

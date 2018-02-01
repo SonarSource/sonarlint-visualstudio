@@ -24,10 +24,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell;
@@ -414,32 +412,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Helpers
-
-        private async Task<T> SafeServiceCall<T>(Func<Task<T>> call)
-        {
-            try
-            {
-                return await call();
-            }
-            catch (HttpRequestException e)
-            {
-                // For some errors we will get an inner exception which will have a more specific information
-                // that we would like to show i.e.when the host could not be resolved
-                var innerException = e.InnerException as System.Net.WebException;
-                this.host.Logger.WriteLine(Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
-            }
-            catch (TaskCanceledException)
-            {
-                // Canceled or timeout
-                this.host.Logger.WriteLine(Strings.SonarQubeRequestTimeoutOrCancelled);
-            }
-            catch (Exception ex)
-            {
-                this.host.Logger.WriteLine(Strings.SonarQubeRequestFailed, ex.Message, null);
-            }
-
-            return default(T);
-        }
 
         private void AbortWorkflow(IProgressController controller, CancellationToken token)
         {
