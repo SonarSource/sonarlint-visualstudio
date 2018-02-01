@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Integration.RuleSets;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
@@ -60,6 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private SonarAnalyzerManager sonarAnalyzerManager;
         private SuppressionManager suppressionManager;
         private DeprecationManager deprecationManager;
+        private QualityProfileManager qualityProfileManager;
 
         protected override void Initialize()
         {
@@ -68,10 +70,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             IServiceProvider serviceProvider = this;
 
+            var activeSolutionBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
+
             var componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
-            var activeSolutioNBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
-            this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutioNBoundTracker, workspace);
+            this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, workspace);
             this.suppressionManager = new SuppressionManager(serviceProvider);
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 
@@ -81,6 +84,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(),
                 this.GetMefService<ILogger>());
+
+            var host = serviceProvider.GetMefService<IHost>();
+            var ruleSetProvider = new SonarQubeQualityProfileProvider(host.SonarQubeService, host.Logger);
+            this.qualityProfileManager = new QualityProfileManager(activeSolutionBoundTracker, ruleSetProvider);
         }
 
         protected override void Dispose(bool disposing)
@@ -93,6 +100,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 this.deprecationManager?.Dispose();
                 this.deprecationManager = null;
+
+                this.qualityProfileManager?.Dispose();
+                this.qualityProfileManager = null;
             }
         }
     }
