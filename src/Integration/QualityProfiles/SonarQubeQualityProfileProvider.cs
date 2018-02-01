@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.RuleSets
 
         private QualityProfile ConvertToSonarLintQualityProfile(RuleSet ruleset, Language language)
         {
-            var rules = ruleset.Rules.Select(r => new SonarRule(r.RuleInfo.AnalyzerId, true));
+            var rules = ruleset.Rules.Select(r => new SonarRule(key: r.RuleInfo.AnalyzerId, isEnabled: r.Action != RuleAction.None));
 
             return new QualityProfile(language, rules);
         }
