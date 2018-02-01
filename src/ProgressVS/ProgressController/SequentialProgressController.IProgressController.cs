@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
        Justification = "cancellationTokenSource is being disposed OnFinish wish is guaranteed (tested) to be called in the end",
        Scope = "type",
        Target = "~T:SonarLint.VisualStudio.Progress.Controller.SequentialProgressController")]
-    public partial class SequentialProgressController : IProgressController
+    internal partial class SequentialProgressController : IProgressController
     {
         private readonly object locker = new object();
         private IEnumerable<IProgressStepOperation> progressStepOperations;

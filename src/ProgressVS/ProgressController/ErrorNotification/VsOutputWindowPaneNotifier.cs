@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
     /// <see cref="IProgressErrorNotifier"/> that notifies using any output window pane
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Notifier", Justification = "False positive")]
-    public sealed class VsOutputWindowPaneNotifier : IProgressErrorNotifier
+    internal sealed class VsOutputWindowPaneNotifier : IProgressErrorNotifier
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IVsOutputWindowPane pane;

@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
+    internal class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
     {
         public ActiveSolutionBindingEventArgs ActiveSolutionBinding =>
            new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, null);

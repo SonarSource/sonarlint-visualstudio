@@ -29,7 +29,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
-    public class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel
+    internal class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel
     {
         private readonly ITimer autocloseTimer;
         private readonly Action<Action> uiThreadInvoker;

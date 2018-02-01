@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     public delegate void DaemonEventHandler(object sender, EventArgs e);
 
-    public interface ISonarLintDaemon : IDisposable
+    internal interface ISonarLintDaemon : IDisposable
     {
         bool IsInstalled { get; }
         bool IsRunning { get; }
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         IEnumerable<Issue> GetIssues(string filePath);
     }
 
-    public interface IIssueConsumer
+    internal interface IIssueConsumer
     {
         void Accept(string path, IEnumerable<Issue> issues);
     }

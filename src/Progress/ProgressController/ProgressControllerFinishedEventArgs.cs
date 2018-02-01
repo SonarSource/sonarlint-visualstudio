@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// Event argument for <see cref="IProgressController"/> execution completion
     /// <seealso cref="IProgressEvents"/>
     /// </summary>
-    public class ProgressControllerFinishedEventArgs : ProgressEventArgs
+    internal class ProgressControllerFinishedEventArgs : ProgressEventArgs
     {
         public ProgressControllerFinishedEventArgs(ProgressControllerResult result)
         {

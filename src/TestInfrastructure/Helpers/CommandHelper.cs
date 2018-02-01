@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public static class CommandHelper
+    internal static class CommandHelper
     {
         private static Random Random = new Random();
 

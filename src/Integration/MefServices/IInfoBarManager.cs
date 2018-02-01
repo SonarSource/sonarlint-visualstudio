@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.InfoBar
     /// <summary>
     /// Info bar manager
     /// </summary>
-    public interface IInfoBarManager
+    internal interface IInfoBarManager
     {
         /// <summary>
         /// Attach an info bar with just a message to an existing tool window

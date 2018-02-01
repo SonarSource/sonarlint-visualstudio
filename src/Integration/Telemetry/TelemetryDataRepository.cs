@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Integration.Helpers;
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(ITelemetryDataRepository)), PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed class TelemetryDataRepository : ITelemetryDataRepository, IDisposable
+    internal sealed class TelemetryDataRepository : ITelemetryDataRepository, IDisposable
     {
         private static readonly string StorageFilePath = GetStorageFilePath();
 

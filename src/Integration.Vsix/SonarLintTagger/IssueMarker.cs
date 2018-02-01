@@ -23,7 +23,7 @@ using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public class IssueMarker
+    internal class IssueMarker
     {
         public Issue Issue { get; }
         public SnapshotSpan Span { get; }

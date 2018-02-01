@@ -27,7 +27,7 @@ using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
-    public sealed class SonarQubeNotificationService : ISonarQubeNotificationService, IDisposable
+    internal sealed class SonarQubeNotificationService : ISonarQubeNotificationService, IDisposable
     {
         private readonly ITimer timer;
         private readonly ISonarQubeService sonarQubeService;

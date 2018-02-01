@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsShell : IVsShell
+    internal class ConfigurableVsShell : IVsShell
     {
         private readonly Dictionary<int, Func<object>> propertyGetters = new Dictionary<int, Func<object>>();
 

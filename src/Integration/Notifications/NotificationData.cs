@@ -24,7 +24,7 @@ using System.Runtime.Serialization;
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
     [Serializable]
-    public sealed class NotificationData : ISerializable
+    internal sealed class NotificationData : ISerializable
     {
         private const string EnabledKey = "Enabled";
         private const string LastNotificationDateKey = "LastNotificationDate";

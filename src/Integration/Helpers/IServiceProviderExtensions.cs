@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class IServiceProviderExtensions
+    internal static class IServiceProviderExtensions
     {
         /// <summary>
         /// Gets the service object of the specified type.

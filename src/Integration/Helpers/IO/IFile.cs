@@ -22,7 +22,7 @@ using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    public interface IFile
+    internal interface IFile
     {
         bool Exists(string path);
         void Delete(string path);

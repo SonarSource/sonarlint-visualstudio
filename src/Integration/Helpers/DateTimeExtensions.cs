@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class DateTimeExtensions
+    internal static class DateTimeExtensions
     {
         public static bool IsSameDay(this DateTime date, DateTime other) =>
             Math.Abs(date.Date.Subtract(other.Date).TotalDays) < 1;

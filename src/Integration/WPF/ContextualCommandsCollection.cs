@@ -24,7 +24,7 @@ using System.ComponentModel;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
-    public class ContextualCommandsCollection : ObservableCollection<ContextualCommandViewModel>
+    internal class ContextualCommandsCollection : ObservableCollection<ContextualCommandViewModel>
     {
         public bool HasCommands
         {

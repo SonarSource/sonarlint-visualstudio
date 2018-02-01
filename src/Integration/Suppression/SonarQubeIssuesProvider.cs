@@ -29,7 +29,7 @@ using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
-    public sealed class SonarQubeIssuesProvider : ISonarQubeIssuesProvider, IDisposable
+    internal sealed class SonarQubeIssuesProvider : ISonarQubeIssuesProvider, IDisposable
     {
         private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 10; // 10 minutes
 

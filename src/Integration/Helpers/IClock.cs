@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface IClock
+    internal interface IClock
     {
         DateTimeOffset Now { get; }
     }

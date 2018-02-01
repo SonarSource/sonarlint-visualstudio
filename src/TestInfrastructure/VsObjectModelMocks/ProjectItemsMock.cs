@@ -27,7 +27,7 @@ using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ProjectItemsMock : ProjectItems
+    internal class ProjectItemsMock : ProjectItems
     {
         private readonly List<ProjectItem> items = new List<ProjectItem>();
 

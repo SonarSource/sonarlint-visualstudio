@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// </summary>
     /// <remarks>Each instance can be executed only once</remarks>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2302:FlagServiceProviders", Justification = "Forwarding service provider")]
-    public partial class ProgressControllerStep
+    internal partial class ProgressControllerStep
     {
         #region Fields
         private readonly ProgressStepDefinition definition;

@@ -24,7 +24,7 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class CommandsMock : Commands
+    internal class CommandsMock : Commands
     {
         private readonly DTEMock dte;
 

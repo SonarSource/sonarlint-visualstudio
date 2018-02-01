@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Test helper for verification of <see cref="IProgressStepFactory"/> usage
     /// </summary>
-    public class ConfigurableProgressStepFactory : IProgressStepFactory
+    internal class ConfigurableProgressStepFactory : IProgressStepFactory
     {
         public ConfigurableProgressStepFactory()
         {

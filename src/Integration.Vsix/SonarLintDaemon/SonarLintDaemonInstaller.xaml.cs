@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <summary>
     /// Interaction logic for SonarLintDaemonInstaller.xaml
     /// </summary>
-    public partial class SonarLintDaemonInstaller : Window
+    internal partial class SonarLintDaemonInstaller : Window
     {
         private readonly ISonarLintSettings settings;
         private readonly ISonarLintDaemon daemon;

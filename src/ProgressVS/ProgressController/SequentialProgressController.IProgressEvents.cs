@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
         Justification = "cancellationTokenSource is being disposed OnFinish wish is guaranteed (tested) to be called in the end",
         Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Progress.Controller.SequentialProgressController")]
-    public partial class SequentialProgressController : IProgressEvents
+    internal partial class SequentialProgressController : IProgressEvents
     {
         /* Dev notes: Events are raised on UI thread, the reason is for simpler management of the order in which could be processed
            using an observer. Raising them on the UI thread means that they will be processed in the same order as raised and will be processed

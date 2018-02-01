@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarLintSettings))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SonarLintSettings : ISonarLintSettings, IProfileManager
+    internal class SonarLintSettings : ISonarLintSettings, IProfileManager
     {
         public const string SettingsRoot = "SonarLintForVisualStudio";
 

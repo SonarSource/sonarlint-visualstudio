@@ -23,7 +23,7 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurationMock : Configuration
+    internal class ConfigurationMock : Configuration
     {
         private readonly string configurationName;
 

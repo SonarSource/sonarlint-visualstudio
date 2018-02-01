@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableComponentModel : IComponentModel, IDisposable
+    internal class ConfigurableComponentModel : IComponentModel, IDisposable
     {
         private readonly IServiceProvider serviceProvider;
         private readonly CompositionContainer container;

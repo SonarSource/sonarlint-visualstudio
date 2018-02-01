@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Test implementation of <see cref="IProgressEvents"/>
     /// </summary>
-    public class ConfigurableProgressEvents : IProgressEvents
+    internal class ConfigurableProgressEvents : IProgressEvents
     {
         public ConfigurableProgressEvents()
         {

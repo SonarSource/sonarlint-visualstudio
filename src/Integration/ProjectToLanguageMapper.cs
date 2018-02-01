@@ -23,7 +23,7 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class ProjectToLanguageMapper
+    internal static class ProjectToLanguageMapper
     {
         internal static readonly IDictionary<Guid, Language> KnownProjectTypes = new Dictionary<Guid, Language>()
         {

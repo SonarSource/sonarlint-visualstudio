@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
     /// Interaction logic for ConnectionInfoDialogView.xaml
     /// </summary>
     [ContentProperty(nameof(ConnectionInfoDialogView))]
-    public partial class ConnectionInfoDialogView : DialogWindow
+    internal partial class ConnectionInfoDialogView : DialogWindow
     {
         public static readonly DependencyProperty ViewModelProperty =
             DependencyProperty.Register(nameof(ViewModel), typeof(ConnectionInfoDialogViewModel), typeof(ConnectionInfoDialogView));

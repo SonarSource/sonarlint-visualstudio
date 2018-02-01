@@ -26,7 +26,7 @@ using System.Windows.Media;
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
     [ExcludeFromCodeCoverage] // Not really unit-testable
-    public static class VisualStudioStatusBarHelper
+    internal static class VisualStudioStatusBarHelper
     {
         private const string SccStatusBarHostName = "PART_SccStatusBarHost";
         private const string StatusBarPanelName = "StatusBarPanel";

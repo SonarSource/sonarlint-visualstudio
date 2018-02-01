@@ -24,7 +24,7 @@ using System.IO;
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
     [ExcludeFromCodeCoverage] // Wrapper around System
-    public class DirectoryWrapper : IDirectory
+    internal class DirectoryWrapper : IDirectory
     {
         public void Create(string path) => Directory.CreateDirectory(path);
 

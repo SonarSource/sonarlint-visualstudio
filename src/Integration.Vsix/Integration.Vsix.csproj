@@ -91,7 +91,6 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="SonarLintTracker\README.md" />
     <None Include="Telemetry\SonarLintSqmData.ttinclude" />
   </ItemGroup>
   <ItemGroup>

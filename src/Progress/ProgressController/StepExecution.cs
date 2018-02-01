@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Specifies on which thread to execute the <see cref="IProgressStepOperation"/>
     /// </summary>
-    public enum StepExecution
+    internal enum StepExecution
     {
         /// <summary>
         /// UI thread

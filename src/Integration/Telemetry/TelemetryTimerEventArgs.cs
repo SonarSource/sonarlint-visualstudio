@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public sealed class TelemetryTimerEventArgs : EventArgs
+    internal sealed class TelemetryTimerEventArgs : EventArgs
     {
         public TelemetryTimerEventArgs(DateTimeOffset signalTime)
         {

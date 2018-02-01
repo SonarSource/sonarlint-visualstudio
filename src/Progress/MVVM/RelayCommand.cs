@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Progress.MVVM
     /// default return value for the CanExecute
     /// method is 'true'.
     /// </summary>
-    public class RelayCommand : ICommand
+    internal class RelayCommand : ICommand
     {
         private readonly Action<object> execute;
         private readonly Predicate<object> canExecute;

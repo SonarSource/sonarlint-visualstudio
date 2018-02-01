@@ -28,7 +28,7 @@ using NuGet.VisualStudio;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurablePackageInstaller : IVsPackageInstaller
+    internal class ConfigurablePackageInstaller : IVsPackageInstaller
     {
         private readonly bool simulateInstallerException;
         private readonly Dictionary<Project, IList<PackageName>> installedPackages =

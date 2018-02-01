@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// Information about a single Roslyn issue, decorated with the extra information required to map it to a
     /// SonarQube issue.
     /// </summary>
-    public class LiveIssue
+    internal class LiveIssue
     {
         public LiveIssue(Diagnostic diagnostic, string projectGuid, string issueFilePath = "", int startLine = 0,
             string wholeLineText = "")

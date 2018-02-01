@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Progress
     /// Apply this attribute to the value parameter of your validation methods.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class ValidatedNotNullAttribute : Attribute
+    internal sealed class ValidatedNotNullAttribute : Attribute
     {
     }
 }

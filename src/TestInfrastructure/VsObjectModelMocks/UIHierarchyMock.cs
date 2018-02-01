@@ -23,7 +23,7 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class UIHierarchyMock : UIHierarchy
+    internal class UIHierarchyMock : UIHierarchy
     {
         private readonly DTEMock dte;
 

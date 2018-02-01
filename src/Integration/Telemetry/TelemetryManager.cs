@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Shell;
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(ITelemetryManager)), PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed class TelemetryManager : ITelemetryManager, IDisposable
+    internal sealed class TelemetryManager : ITelemetryManager, IDisposable
     {
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
         private readonly ITelemetryClient telemetryClient;

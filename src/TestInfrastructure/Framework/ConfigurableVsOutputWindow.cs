@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsOutputWindow : IVsOutputWindow
+    internal class ConfigurableVsOutputWindow : IVsOutputWindow
     {
         private readonly IDictionary<Guid, ConfigurableVsOutputWindowPane> panes = new Dictionary<Guid, ConfigurableVsOutputWindowPane>();
 

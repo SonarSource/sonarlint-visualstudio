@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public class ActiveSolutionBindingEventArgs : EventArgs
+    internal class ActiveSolutionBindingEventArgs : EventArgs
     {
         public ActiveSolutionBindingEventArgs(bool isBound, string projectKey)
         {

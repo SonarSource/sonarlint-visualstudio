@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableConflictsManager : IConflictsManager
+    internal class ConfigurableConflictsManager : IConflictsManager
     {
         private readonly List<ProjectRuleSetConflict> currentConflicts = new List<ProjectRuleSetConflict>();
 

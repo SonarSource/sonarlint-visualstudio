@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsInfoBarHost : IVsInfoBarHost
+    internal class ConfigurableVsInfoBarHost : IVsInfoBarHost
     {
         private readonly List<IVsUIElement> elements = new List<IVsUIElement>();
 

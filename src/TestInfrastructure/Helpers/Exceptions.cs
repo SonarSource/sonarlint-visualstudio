@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// <summary>
     /// Static helper class to assert exception throwing behavior in delegates.
     /// </summary>
-    public static class Exceptions
+    internal static class Exceptions
     {
         /// <summary>
         /// Executes the action. Returns if action throws expected exception.

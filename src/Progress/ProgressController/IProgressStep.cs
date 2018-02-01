@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <seealso cref="IProgressStepExecutionEvents"/>
     /// <seealso cref="IProgressEvents"/>
     /// </summary>
-    public interface IProgressStep
+    internal interface IProgressStep
     {
         /// <summary>
         /// Execution state change event

@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
     /// View model for a command with fixed context that is required during command execution
     /// </summary>
     /// <typeparam name="T">Command argument. <seealso cref="ICommand"/></typeparam>
-    public class ContextualCommandViewModel : ViewModelBase
+    internal class ContextualCommandViewModel : ViewModelBase
     {
         private readonly object fixedContext;
         private readonly RelayCommand proxyCommand;

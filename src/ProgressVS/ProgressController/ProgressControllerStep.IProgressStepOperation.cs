@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Partial class implementation of <see cref="IProgressStepOperation"/>
     /// </summary>
-    public partial class ProgressControllerStep : IProgressStepOperation
+    internal partial class ProgressControllerStep : IProgressStepOperation
     {
         IProgressStep IProgressStepOperation.Step
         {

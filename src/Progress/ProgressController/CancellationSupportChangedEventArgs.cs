@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Event arguments for cancellation support changes
     /// </summary>
-    public class CancellationSupportChangedEventArgs : ProgressEventArgs
+    internal class CancellationSupportChangedEventArgs : ProgressEventArgs
     {
         /// <summary>
         /// Constructs event arguments used to update cancellable state of the controller

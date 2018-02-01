@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public enum TelemetryEvent
+    internal enum TelemetryEvent
     {
         BoundSolutionDetected,
 

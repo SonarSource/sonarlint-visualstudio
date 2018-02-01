@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// Interaction logic for OtherOptionsDialogControl.xaml
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public partial class OtherOptionsDialogControl : UserControl
+    internal partial class OtherOptionsDialogControl : UserControl
     {
         public OtherOptionsDialogControl()
         {

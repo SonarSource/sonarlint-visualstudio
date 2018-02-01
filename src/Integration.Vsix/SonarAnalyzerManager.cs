@@ -28,7 +28,7 @@ using SonarAnalyzer.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public sealed class SonarAnalyzerManager
+    internal sealed class SonarAnalyzerManager
     {
         internal /*for testing purposes*/ enum ProjectAnalyzerStatus
         {

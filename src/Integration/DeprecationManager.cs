@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Integration.InfoBar;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public sealed class DeprecationManager : IDisposable
+    internal sealed class DeprecationManager : IDisposable
     {
         internal /* for testing purpose */ static readonly Guid DeprecationBarGuid = new Guid(ToolWindowGuids80.ErrorList);
 

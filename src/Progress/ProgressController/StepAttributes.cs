@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1008:EnumsShouldHaveZeroValue", Justification = "None represents zero in bits")]
     [Flags]
-    public enum StepAttributes
+    internal enum StepAttributes
     {
         /// <summary>
         /// Cancellable, Visible, Determinate, Foreground thread and impacting on the overall progress

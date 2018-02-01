@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Installing additional languages support in SonarLint..." MinWidth="400" MinHeight="100"
         ContentRendered="Window_ContentRendered" WindowStyle="SingleBorderWindow"
-        WindowStartupLocation="CenterScreen" Topmost="True" SizeToContent="WidthAndHeight" >
+        WindowStartupLocation="CenterScreen" Topmost="True" SizeToContent="WidthAndHeight"
+        x:ClassModifier="internal">
     <StackPanel Margin="5">
         <TextBlock Text="Downloading latest version of SonarLint additional languages..."
                    HorizontalAlignment="Left" Margin="0,5"/>

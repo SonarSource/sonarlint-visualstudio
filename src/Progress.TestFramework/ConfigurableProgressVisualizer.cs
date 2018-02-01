@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Test implementation of <see cref="IProgressVisualizer"/>
     /// </summary>
-    public partial class ConfigurableProgressVisualizer : IProgressVisualizer
+    internal partial class ConfigurableProgressVisualizer : IProgressVisualizer
     {
         public bool IsShown { get; private set; }
 

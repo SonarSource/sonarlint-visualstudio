@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public static class KnownUIContextsAccessor
+    internal static class KnownUIContextsAccessor
     {
         // KnownUIContexts is not very friendly for testing, and requires this static properties
         static KnownUIContextsAccessor()

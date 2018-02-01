@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Test implementation of <see cref="IProgressErrorNotifier"/>
     /// </summary>
-    public class ConfigurableErrorNotifier : IProgressErrorNotifier
+    internal class ConfigurableErrorNotifier : IProgressErrorNotifier
     {
         public ConfigurableErrorNotifier()
         {

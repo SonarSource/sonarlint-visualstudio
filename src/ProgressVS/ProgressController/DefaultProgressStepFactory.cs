@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// Default implementation of <see cref="IProgressStepFactory"/>
     /// </summary>
     /// <remarks>The class supports only <see cref="ProgressStepDefinition"/> definitions and <see cref="ProgressControllerStep"/> operation</remarks>
-    public class DefaultProgressStepFactory : IProgressStepFactory
+    internal class DefaultProgressStepFactory : IProgressStepFactory
     {
         #region IProgressStepFactory
         /// <summary>

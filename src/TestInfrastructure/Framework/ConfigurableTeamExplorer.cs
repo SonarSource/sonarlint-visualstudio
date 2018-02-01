@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// <summary>
     /// Test implementation of <see cref="ITeamExplorer"/>.
     /// </summary>
-    public class ConfigurableTeamExplorer : ITeamExplorer
+    internal class ConfigurableTeamExplorer : ITeamExplorer
     {
         internal Guid CurrentPageId { get; private set; }
 

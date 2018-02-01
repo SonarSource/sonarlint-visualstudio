@@ -24,7 +24,7 @@ using EnvDTE80;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ToolWindowsMock : ToolWindows
+    internal class ToolWindowsMock : ToolWindows
     {
         private readonly DTEMock parent;
 

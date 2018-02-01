@@ -22,7 +22,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    public static class LanguageHelper
+    internal static class LanguageHelper
     {
         public static SonarQubeLanguage ToServerLanguage(this Language language)
         {

@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration
     /// </remarks>
     [DebuggerDisplay("{Name} (ID: {Id}, IsSupported: {IsSupported})")]
     [TypeConverter(typeof(LanguageConverter))]
-    public sealed class Language : IEquatable<Language>
+    internal sealed class Language : IEquatable<Language>
     {
         public readonly static Language Unknown = new Language();
         public readonly static Language CSharp = new Language("CSharp", Strings.CSharpLanguageName);

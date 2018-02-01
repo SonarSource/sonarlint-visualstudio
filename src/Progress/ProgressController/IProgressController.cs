@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// The interface represents a progress controller that can execute steps
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2302:FlagServiceProviders", Justification = "Service provider for future use and only forwarding by the current APIs")]
-    public interface IProgressController : IServiceProvider
+    internal interface IProgressController : IServiceProvider
     {
         /// <summary>
         /// Returns <see cref="IProgressController"/> events which are exposed via <see cref="IProgressEvents"/>

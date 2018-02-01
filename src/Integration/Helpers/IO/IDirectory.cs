@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    public interface IDirectory
+    internal interface IDirectory
     {
         bool Exists(string path);
         void Delete(string path);

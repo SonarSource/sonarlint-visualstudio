@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Simple data class representing the step definition
     /// </summary>
-    public class ProgressStepDefinition : IProgressStepDefinition
+    internal class ProgressStepDefinition : IProgressStepDefinition
     {
         public ProgressStepDefinition(string displayText, StepAttributes attributes, Action<CancellationToken, IProgressStepExecutionEvents> operation)
         {

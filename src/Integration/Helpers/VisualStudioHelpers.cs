@@ -24,7 +24,7 @@ using System.IO;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class VisualStudioHelpers
+    internal static class VisualStudioHelpers
     {
         private static readonly Version visualStudio2015Update3Version = Version.Parse("14.0.25420.00");
 

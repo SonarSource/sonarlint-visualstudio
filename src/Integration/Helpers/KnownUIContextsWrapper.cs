@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Shell;
 namespace SonarLint.VisualStudio.Integration
 {
     [ExcludeFromCodeCoverage] // Wrapper around Visual Studio
-    public class KnownUIContextsWrapper : IKnownUIContexts
+    internal class KnownUIContextsWrapper : IKnownUIContexts
     {
         public event EventHandler<UIContextChangedEventArgs> SolutionBuildingContextChanged
         {

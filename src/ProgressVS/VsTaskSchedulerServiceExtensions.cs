@@ -31,7 +31,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Progress.Threading
 {
-    public static class VsTaskSchedulerServiceExtensions
+    internal static class VsTaskSchedulerServiceExtensions
     {
         // The maximum amount of time we're allowed to run on a single idle loop.  This comes from the
         // Windows guidance on good responsiveness (50ms) minus a few milliseconds to account for overhead.

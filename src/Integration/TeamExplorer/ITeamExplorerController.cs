@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
-    public interface ITeamExplorerController
+    internal interface ITeamExplorerController
     {
         void ShowSonarQubePage();
     }

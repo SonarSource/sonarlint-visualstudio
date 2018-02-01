@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
     /// <see cref="IProgressErrorNotifier"/> that notifies to activity log
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Notifier", Justification = "False positive")]
-    public sealed class VsActivityLogNotifier : IProgressErrorNotifier
+    internal sealed class VsActivityLogNotifier : IProgressErrorNotifier
     {
         private readonly IServiceProvider serviceProvider;
         private readonly string entrySource;

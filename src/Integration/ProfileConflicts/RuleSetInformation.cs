@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     /// associated with the shared instance by adding them into <see cref="ConfigurationContexts"/>.
     /// </summary>
     /// <seealso cref="RuleSetDeclaration"/>
-    public class RuleSetInformation
+    internal class RuleSetInformation
     {
         public RuleSetInformation(string projectFullName, string baselineRuleSet, string projectRuleSet, IEnumerable<string> ruleSetDirectories)
         {

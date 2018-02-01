@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     /// <summary>
     /// RuleSet inspection service
     /// </summary>
-    public interface IRuleSetInspector : ILocalService
+    internal interface IRuleSetInspector : ILocalService
     {
         /// <summary>
         /// Inspects whether the <paramref name="baselineRuleSet"/> rules are missing or less strict than in the <paramref name="targetRuleSet"/>

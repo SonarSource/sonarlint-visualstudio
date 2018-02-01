@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// The execution results for a <see cref="IProgressController"/>
     /// </summary>
-    public enum ProgressControllerResult
+    internal enum ProgressControllerResult
     {
         /// <summary>
         /// Execution was canceled

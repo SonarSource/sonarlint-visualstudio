@@ -23,7 +23,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
-    public interface INotificationIndicatorViewModel
+    internal interface INotificationIndicatorViewModel
     {
         string ToolTipText { get; set; }
 

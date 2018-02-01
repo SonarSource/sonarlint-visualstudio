@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// <summary>
     /// Test implementation of <see cref="ICompositionService"/>
     /// </summary>
-    public class ConfigurableCompositionService : ICompositionService
+    internal class ConfigurableCompositionService : ICompositionService
     {
         private readonly CompositionContainer container;
 

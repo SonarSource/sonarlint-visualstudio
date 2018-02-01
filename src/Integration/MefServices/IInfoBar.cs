@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.InfoBar
     /// <summary>
     /// Represents an attached info bar
     /// </summary>
-    public interface IInfoBar
+    internal interface IInfoBar
     {
         /// <summary>
         /// Click event

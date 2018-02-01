@@ -23,7 +23,7 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class WindowMock : Window
+    internal class WindowMock : Window
     {
         #region Test helpers
 

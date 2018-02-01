@@ -29,7 +29,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarLanguageRecognizer))]
-    public class SonarLanguageRecognizer : ISonarLanguageRecognizer
+    internal class SonarLanguageRecognizer : ISonarLanguageRecognizer
     {
         private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue" };
 

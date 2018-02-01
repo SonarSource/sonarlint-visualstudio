@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
     /// <see cref="IProgressErrorNotifier"/> that notifies using the Message box
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Notifier", Justification = "False positive")]
-    public sealed class VsMessageBoxNotifier : IProgressErrorNotifier
+    internal sealed class VsMessageBoxNotifier : IProgressErrorNotifier
     {
         private readonly IServiceProvider serviceProvider;
         private readonly string messageTitle;

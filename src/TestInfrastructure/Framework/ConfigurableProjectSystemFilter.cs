@@ -27,7 +27,7 @@ using DteProject = EnvDTE.Project;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableProjectSystemFilter : IProjectSystemFilter
+    internal class ConfigurableProjectSystemFilter : IProjectSystemFilter
     {
         public Regex TestRegex { get; set; }
 

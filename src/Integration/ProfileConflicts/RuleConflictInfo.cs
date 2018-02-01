@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     /// <summary>
     /// Data-only class that returns conflict information between the SonarQube RuleSet and the configured RuleSet
     /// </summary>
-    public class RuleConflictInfo
+    internal class RuleConflictInfo
     {
         public RuleConflictInfo()
             : this(new RuleReference[0])

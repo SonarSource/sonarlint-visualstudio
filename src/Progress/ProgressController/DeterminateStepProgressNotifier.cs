@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// A helper class that wraps the notifications for determinate step.
     /// </summary>
-    public class DeterminateStepProgressNotifier
+    internal class DeterminateStepProgressNotifier
     {
         private readonly IProgressStepExecutionEvents executionEvents;
         private readonly int maxNumberOfIncrements;

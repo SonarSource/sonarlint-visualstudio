@@ -23,7 +23,7 @@ using System.Windows.Controls;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
-    public class IconViewModel : ViewModelBase
+    internal class IconViewModel : ViewModelBase
     {
         private Image image;
 

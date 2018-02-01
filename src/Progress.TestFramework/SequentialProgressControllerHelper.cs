@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Test extension methods
     /// </summary>
-    public static class SequentialProgressControllerHelper
+    internal static class SequentialProgressControllerHelper
     {
         /// <summary>
         /// Initializes the specified controller with custom error handler that will allow assertions to be raised

@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Stub for <see cref="IProgressStepOperation"/> with no implementation
     /// </summary>
-    public class StubProgressStepOperation : IProgressStepOperation
+    internal class StubProgressStepOperation : IProgressStepOperation
     {
         public IProgressStep Step
         {

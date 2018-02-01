@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Settings;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableSettingsManager : SettingsManager
+    internal class ConfigurableSettingsManager : SettingsManager
     {
         public WritableSettingsStore WritableSettingsStore { get; private set; }
 

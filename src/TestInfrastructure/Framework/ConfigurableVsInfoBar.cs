@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsInfoBar : IVsInfoBar, IVsInfoBarActionItemCollection, IVsInfoBarTextSpanCollection
+    internal class ConfigurableVsInfoBar : IVsInfoBar, IVsInfoBarActionItemCollection, IVsInfoBarTextSpanCollection
     {
         private readonly List<IVsInfoBarActionItem> actions = new List<IVsInfoBarActionItem>();
         private readonly List<IVsInfoBarTextSpan> spans = new List<IVsInfoBarTextSpan>();

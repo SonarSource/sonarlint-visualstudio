@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Progress.Observation
     /// Any public static (Shared in Visual Basic) members of this type are thread safe. Any instance members are not guaranteed to be thread safe.
     /// Any instance members are not guaranteed to be accessible from a non-UI threads.
     /// </remarks>
-    public sealed class ProgressObserver : IDisposable
+    internal sealed class ProgressObserver : IDisposable
     {
         #region Fields
         /// <summary>

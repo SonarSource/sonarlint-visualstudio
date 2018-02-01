@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <summary>
     /// Interaction logic for SonarLintDaemonSplashscreen.xaml
     /// </summary>
-    public partial class SonarLintDaemonSplashscreen : Window
+    internal partial class SonarLintDaemonSplashscreen : Window
     {
         private readonly ISonarLintSettings settings;
 

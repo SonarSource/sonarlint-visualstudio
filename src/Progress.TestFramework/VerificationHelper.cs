@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Verification helper class
     /// </summary>
-    public static class VerificationHelper
+    internal static class VerificationHelper
     {
         /// <summary>
         /// Verifies that the <see cref="ProgressControllerStep"/> was initialized correctly

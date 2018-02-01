@@ -22,7 +22,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
-    public interface IConnectionWorkflowExecutor
+    internal interface IConnectionWorkflowExecutor
     {
         void EstablishConnection(ConnectionInformation information);
     }

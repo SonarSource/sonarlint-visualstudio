@@ -25,7 +25,7 @@ using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
-    public class ConfigurableServiceProvider : IServiceProvider
+    internal class ConfigurableServiceProvider : IServiceProvider
     {
         private readonly Dictionary<Type, object> serviceInstances = new Dictionary<Type, object>(new TypeComparer());
         private readonly Dictionary<Type, Func<object>> serviceConstructors = new Dictionary<Type, Func<object>>(new TypeComparer());

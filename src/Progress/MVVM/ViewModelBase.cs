@@ -28,7 +28,7 @@ using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Progress.MVVM
 {
-    public abstract class ViewModelBase : INotifyPropertyChanged
+    internal abstract class ViewModelBase : INotifyPropertyChanged
     {
         private readonly Dispatcher dispatcher;
 

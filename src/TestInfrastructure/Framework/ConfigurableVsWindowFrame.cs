@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsWindowFrame : IVsWindowFrame
+    internal class ConfigurableVsWindowFrame : IVsWindowFrame
     {
         private readonly Dictionary<int, object> properties = new Dictionary<int, object>();
         internal int ShowNoActivateCalledCount { get; private set; }

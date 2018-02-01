@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     /// <summary>
     /// Handlers conflict resolution at the solution level
     /// </summary>
-    public interface IConflictsManager : ILocalService
+    internal interface IConflictsManager : ILocalService
     {
         /// <summary>
         /// Checks the current solution for conflicts

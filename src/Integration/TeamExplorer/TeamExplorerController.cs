@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
     [Export(typeof(ITeamExplorerController))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class TeamExplorerController : ITeamExplorerController
+    internal class TeamExplorerController : ITeamExplorerController
     {
         private readonly ITeamExplorer teamExplorer;
 

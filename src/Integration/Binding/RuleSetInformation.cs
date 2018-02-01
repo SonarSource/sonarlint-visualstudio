@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// Data class that exposes simple data that can be accessed from any thread.
     /// The class itself is not thread safe and assumes only one thread accessing it at any given time.
     /// </summary>
-    public class RuleSetInformation
+    internal class RuleSetInformation
     {
         public RuleSetInformation(Language language, RuleSet ruleSet)
         {

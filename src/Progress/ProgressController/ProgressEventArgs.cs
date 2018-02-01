@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Base class for <see cref="EventArgs"/>
     /// </summary>
-    public class ProgressEventArgs : EventArgs
+    internal class ProgressEventArgs : EventArgs
     {
         // The base class has debug only verification code that can be used to verify serialization
         // of event raising and handling
