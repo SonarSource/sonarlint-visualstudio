@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryTimerMock = new Mock<ITelemetryTimer>();
             knownUIContexts = new Mock<IKnownUIContexts>();
 
-            activeSolutionTrackerMock.Setup(x => x.CurrentBindingConfiguration).Returns(BindingConfiguration.Standalone);
+            activeSolutionTrackerMock.Setup(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
         }
 
         [TestMethod]
