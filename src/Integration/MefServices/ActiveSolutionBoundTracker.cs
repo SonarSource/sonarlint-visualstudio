@@ -43,9 +43,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
 
-        public bool IsActiveSolutionBound { get; private set; }
-
-        public string ProjectKey { get; private set; }
+        public BindingConfiguration CurrentBindingConfiguration { get; private set; }
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host,
@@ -81,9 +79,7 @@ namespace SonarLint.VisualStudio.Integration
             // The solution changed inside the IDE
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
 
-            var bindingConfig = this.configurationProvider.GetConfiguration();
-            this.IsActiveSolutionBound = bindingConfig.Mode != SonarLintMode.Standalone;
-            this.ProjectKey = bindingConfig.Project?.ProjectKey;
+            CurrentBindingConfiguration = this.configurationProvider.GetConfiguration();
         }
 
         private async void OnActiveSolutionChanged(object sender, EventArgs e)
@@ -157,18 +153,12 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RaiseAnalyzersChangedIfBindingChanged()
         {
-            var boundProject = this.configurationProvider.GetConfiguration().Project;
+            var newBindingConfiguration = this.configurationProvider.GetConfiguration();
 
-            bool isSolutionCurrentlyBound = boundProject != null;
-            string projectKey = boundProject?.ProjectKey;
-
-            if (this.IsActiveSolutionBound != isSolutionCurrentlyBound ||
-                this.ProjectKey != projectKey)
+            if (CurrentBindingConfiguration != newBindingConfiguration)
             {
-                this.IsActiveSolutionBound = isSolutionCurrentlyBound;
-                this.ProjectKey = projectKey;
-
-                this.SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(IsActiveSolutionBound, ProjectKey));
+                CurrentBindingConfiguration = newBindingConfiguration;
+                this.SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(newBindingConfiguration));
             }
         }
 

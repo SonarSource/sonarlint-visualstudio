@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration
         private TelemetryPayload GetPayload(TelemetryData telemetryData)
         {
             return TelemetryHelper.CreatePayload(telemetryData, DateTimeOffset.Now,
-                solutionBindingTracker.IsActiveSolutionBound);
+                solutionBindingTracker.CurrentBindingConfiguration.Mode != NewConnectedMode.SonarLintMode.Standalone);
         }
 
         private void OnAnalysisRun(object sender, UIContextChangedEventArgs e)

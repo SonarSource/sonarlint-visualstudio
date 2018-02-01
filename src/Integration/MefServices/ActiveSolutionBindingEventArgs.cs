@@ -19,19 +19,17 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration
 {
     public class ActiveSolutionBindingEventArgs : EventArgs
     {
-        public ActiveSolutionBindingEventArgs(bool isBound, string projectKey)
+        public ActiveSolutionBindingEventArgs(BindingConfiguration configuration)
         {
-            IsBound = isBound;
-            ProjectKey = projectKey;
+            Configuration = configuration;
         }
 
-        public bool IsBound { get; private set; }
-
-        public string ProjectKey { get; private set; }
+        public BindingConfiguration Configuration { get; }
     }
 }

@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             return projectAnalyzerStatus == ProjectAnalyzerStatus.NoAnalyzer &&
                 this.activeSolutionBoundTracker != null &&
-                this.activeSolutionBoundTracker.IsActiveSolutionBound;
+                this.activeSolutionBoundTracker.CurrentBindingConfiguration.Mode != NewConnectedMode.SonarLintMode.Standalone;
         }
 
         internal /*for testing purposes*/ static bool HasConflictingAnalyzerReference(

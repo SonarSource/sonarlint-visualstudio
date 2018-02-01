@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
 
             // Assert
-            testSubject.IsActiveSolutionBound.Should().BeFalse("Unbound solution should report false activation");
+            testSubject.CurrentBindingConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
             this.errorListController.RefreshCalledCount.Should().Be(0);
             this.errorListController.ResetCalledCount.Should().Be(0);
         }
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
 
             // Assert
-            testSubject.IsActiveSolutionBound.Should().BeTrue("Bound solution should report true activation");
+            testSubject.CurrentBindingConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound solution should report true activation");
             this.errorListController.RefreshCalledCount.Should().Be(0);
             this.errorListController.ResetCalledCount.Should().Be(0);
         }
@@ -172,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
 
             // Sanity
-            testSubject.IsActiveSolutionBound.Should().BeTrue("Initially bound");
+            testSubject.CurrentBindingConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Initially bound");
             this.errorListController.RefreshCalledCount.Should().Be(0);
             this.errorListController.ResetCalledCount.Should().Be(0);
             solutionBindingChangedEventCount.Should().Be(0, "no events raised during construction");
@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.VisualStateManager.ClearBoundProject();
 
             // Assert
-            testSubject.IsActiveSolutionBound.Should().BeFalse("Unbound solution should report false activation");
+            testSubject.CurrentBindingConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
             this.errorListController.RefreshCalledCount.Should().Be(0);
             this.errorListController.ResetCalledCount.Should().Be(0);
             solutionBindingChangedEventCount.Should().Be(1, "Unbind should trigger reanalysis");
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
 
             // Assert
-            testSubject.IsActiveSolutionBound.Should().BeTrue("Bound solution should report true activation");
+            testSubject.CurrentBindingConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound solution should report true activation");
             this.errorListController.RefreshCalledCount.Should().Be(0);
             this.errorListController.ResetCalledCount.Should().Be(0);
             solutionBindingChangedEventCount.Should().Be(2, "Bind should trigger reanalysis");
@@ -212,7 +212,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Assert
-            testSubject.IsActiveSolutionBound.Should().BeFalse("Should respond to solution change event and report unbound");
+            testSubject.CurrentBindingConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Should respond to solution change event and report unbound");
             this.errorListController.RefreshCalledCount.Should().Be(1);
             this.errorListController.ResetCalledCount.Should().Be(0);
             solutionBindingChangedEventCount.Should().Be(3, "Solution change should trigger reanalysis");
@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             activeSolutionTracker.SimulateActiveSolutionChanged();
 
             // Assert
-            testSubject.IsActiveSolutionBound.Should().BeTrue("Bound respond to solution change event and report bound");
+            testSubject.CurrentBindingConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound respond to solution change event and report bound");
             this.errorListController.RefreshCalledCount.Should().Be(2);
             this.errorListController.ResetCalledCount.Should().Be(0);
             solutionBindingChangedEventCount.Should().Be(4, "Solution change should trigger reanalysis");
@@ -323,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // ever go from connected->disconnected, or disconnected->connected,
             // never connected->connected. However, we should handle it gracefully
             // just in case.
-                
+
             // Arrange
             var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
             ConfigureService(isConnected: true);

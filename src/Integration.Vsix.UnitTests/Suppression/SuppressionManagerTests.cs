@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
@@ -60,13 +61,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Ctor_CallsRefresh()
         {
             // Arrange
-            activeSolutionBoundTrackerMock.SetupGet(x => x.IsActiveSolutionBound).Returns(false);
-                
+            activeSolutionBoundTrackerMock.SetupGet(x => x.CurrentBindingConfiguration).Returns(BindingConfiguration.Standalone);
+
             // Act
             var suppressionManager = new SuppressionManager(configurableServiceProvider);
 
             // Assert
-            activeSolutionBoundTrackerMock.Verify(x => x.IsActiveSolutionBound, Times.Once);
+            activeSolutionBoundTrackerMock.Verify(x => x.CurrentBindingConfiguration, Times.Once);
             sonarLintOutputMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Never);
         }
 
@@ -74,13 +75,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Ctor_ThrowDuringRefresh_Suppressed()
         {
             // Arrange
-            activeSolutionBoundTrackerMock.SetupGet(x => x.IsActiveSolutionBound).Throws<InvalidCastException>();
+            activeSolutionBoundTrackerMock.SetupGet(x => x.CurrentBindingConfiguration).Throws<InvalidCastException>();
 
             // Act
             var suppressionManager = new SuppressionManager(configurableServiceProvider);
 
             // Assert
-            activeSolutionBoundTrackerMock.Verify(x => x.IsActiveSolutionBound, Times.Once);
+            activeSolutionBoundTrackerMock.Verify(x => x.CurrentBindingConfiguration, Times.Once);
             sonarLintOutputMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Once);
         }
 
@@ -88,22 +89,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void ChangingSolution_TriggersRefresh()
         {
             // Arrange
-            activeSolutionBoundTrackerMock.SetupGet(x => x.IsActiveSolutionBound).Returns(false);
+            activeSolutionBoundTrackerMock.SetupGet(x => x.CurrentBindingConfiguration).Returns(BindingConfiguration.Standalone);
             var suppressionManager = new SuppressionManager(configurableServiceProvider);
             activeSolutionBoundTrackerMock.ResetCalls();
 
             // Act
-            activeSolutionBoundTrackerMock.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(false, "dummy key"));
+            activeSolutionBoundTrackerMock.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
 
             // Assert
-            activeSolutionBoundTrackerMock.Verify(x => x.IsActiveSolutionBound, Times.Once);
+            activeSolutionBoundTrackerMock.Verify(x => x.CurrentBindingConfiguration, Times.Once);
         }
 
         [TestMethod]
         public void Disposing_UnregistersEventHandler()
         {
             // Arrange
-            activeSolutionBoundTrackerMock.SetupGet(x => x.IsActiveSolutionBound).Returns(false);
+            activeSolutionBoundTrackerMock.SetupGet(x => x.CurrentBindingConfiguration).Returns(BindingConfiguration.Standalone);
             var suppressionManager = new SuppressionManager(configurableServiceProvider);
             activeSolutionBoundTrackerMock.ResetCalls();
 
@@ -112,8 +113,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // Assert
             // Raise the event - should not trigger any action
-            activeSolutionBoundTrackerMock.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(false, "dummy key"));
-            activeSolutionBoundTrackerMock.Verify(x => x.IsActiveSolutionBound, Times.Never);
+            activeSolutionBoundTrackerMock.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
+            activeSolutionBoundTrackerMock.Verify(x => x.CurrentBindingConfiguration, Times.Never);
         }
 
     }
