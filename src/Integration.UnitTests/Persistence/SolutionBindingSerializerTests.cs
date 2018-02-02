@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Helpers;
@@ -78,7 +79,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionBindingSerializer_ArgChecks()
         {
+            ILogger loggerMock = new Mock<ILogger>().Object;
+            IFile fileWrapper = new FileWrapper();
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(null, sourceControlledFileSystem, store, loggerMock, fileWrapper));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(serviceProvider, null, store, loggerMock, fileWrapper));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(serviceProvider, sourceControlledFileSystem, null, loggerMock, fileWrapper));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(serviceProvider, sourceControlledFileSystem, store, null, fileWrapper));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(serviceProvider, sourceControlledFileSystem, store, loggerMock, null));
         }
 
         [TestMethod]
@@ -354,7 +362,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private SolutionBindingSerializer CreateTestSubject()
         {
-            return new SolutionBindingSerializer(this.serviceProvider, this.store, new SonarLintOutputLogger(serviceProvider), new FileWrapper());
+            return new SolutionBindingSerializer(this.serviceProvider, this.sourceControlledFileSystem, this.store, new SonarLintOutputLogger(serviceProvider), new FileWrapper());
         }
 
         #endregion Helpers
