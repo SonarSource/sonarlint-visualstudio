@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -32,56 +31,39 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     /// Reads/write the binding configuration for the new connected mode.
     /// The legacy connected mode binding is written using <see cref="SolutionBindingSerializer"/>.
     /// </summary>
-    internal class ConfigurationSerializer : ISolutionBindingSerializer
+    internal class ConfigurationSerializer : FileBindingSerializer
     {
         private readonly IVsSolution solution;
-        private readonly ICredentialStore credentialStore;
-        private readonly ILogger logger;
-        private readonly IFile fileWrapper;
 
-        public ConfigurationSerializer(IVsSolution solution, ICredentialStore credentialStore, ILogger logger)
-            :this(solution, credentialStore, logger, new FileWrapper())
+        public ConfigurationSerializer(
+            IVsSolution solution,
+            ISourceControlledFileSystem sccFileSystem,
+            ICredentialStore store,
+            ILogger logger)
+            :this(solution, sccFileSystem, store, logger, new FileWrapper())
         {
-
         }
 
-        internal /* for testing */ ConfigurationSerializer(IVsSolution solution, ICredentialStore credentialStore, ILogger logger, IFile fileWrapper)
+        internal /* for testing */ ConfigurationSerializer(
+            IVsSolution solution,
+            ISourceControlledFileSystem sccFileSystem,
+            ICredentialStore store,
+            ILogger logger,
+            IFile fileWrapper)
+            :base(sccFileSystem, store, logger, fileWrapper)
         {
             if (solution == null)
             {
                 throw new ArgumentNullException(nameof(solution));
             }
-            if (credentialStore == null)
-            {
-                throw new ArgumentNullException(nameof(credentialStore));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            Debug.Assert(fileWrapper != null);
 
             this.solution = solution;
-            this.credentialStore = credentialStore;
-            this.logger = logger;
-            this.fileWrapper = fileWrapper;
         }
 
-        #region ISolutionBindingSerializer interface
-
-        public BoundSonarQubeProject ReadSolutionBinding()
+        protected override WriteMode Mode
         {
-            var solutionFilePath = GetCurrentSolutionFilePath();
-            string configFilePath = GetConnectionFilePath(solutionFilePath);
-            return ConfigFileUtilities.ReadBindingFile(configFilePath, credentialStore, logger, fileWrapper);
+            get { return WriteMode.Immediate; }
         }
-
-        public string WriteSolutionBinding(BoundSonarQubeProject binding)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
 
         internal static string GetConnectionFilePath(string solutionFilePath)
         {
@@ -96,13 +78,14 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             return Path.Combine(solutionFolder, ".sonarlint", $"{solutionName}.sqconfig");
         }
 
-        private string GetCurrentSolutionFilePath()
+        protected override string GetFullConfigurationFilePath()
         {
             object fullSolutionName;
             // If there isn't an open solution the returned hresult will indicate an error
             // and the returned solution name will be null. We'll just ignore the hresult.
             solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out fullSolutionName);
-            return (string)fullSolutionName;
+
+            return GetConnectionFilePath(fullSolutionName as string);
         }
     }
 }
