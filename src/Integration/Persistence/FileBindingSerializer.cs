@@ -31,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 {
     internal abstract class FileBindingSerializer : ISolutionBindingSerializer
     {
-        private readonly ICredentialStore credentialStore;
         private readonly IFile fileWrapper;
 
         protected readonly ISourceControlledFileSystem sccFileSystem;
@@ -71,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             }
 
             this.sccFileSystem = sccFileSystem;
-            this.credentialStore = store;
+            this.Store = store;
             this.logger = logger;
             this.fileWrapper = fileWrapper;
         }
@@ -86,15 +85,12 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return true;
         }
 
-        internal ICredentialStore Store
-        {
-            get { return this.credentialStore; }
-        }
+        internal ICredentialStore Store { get; }
 
         public BoundSonarQubeProject ReadSolutionBinding()
         {
             string configFile = this.GetFullConfigurationFilePath();
-            if (string.IsNullOrWhiteSpace(configFile) || !fileWrapper.Exists(configFile))
+            if (!fileWrapper.Exists(configFile))
             {
                 return null;
             }
@@ -138,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             BoundSonarQubeProject bound = this.SafeDeserializeConfigFile(configFile);
             if (bound?.ServerUri != null)
             {
-                var credentials = this.credentialStore.ReadCredentials(bound.ServerUri);
+                var credentials = this.Store.ReadCredentials(bound.ServerUri);
                 if (credentials != null)
                 {
                     bound.Credentials = new BasicAuthCredentials(credentials.Username,
@@ -165,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                     Debug.Assert(credentials.Password != null, "Password name is not expected to be null");
 
                     var creds = new Credential(credentials.UserName, credentials.Password.ToUnsecureString());
-                    this.credentialStore.WriteCredentials(binding.ServerUri, creds);
+                    this.Store.WriteCredentials(binding.ServerUri, creds);
                 }
                 return true;
             }
@@ -175,6 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
         private void WriteConfig(string configFile, BoundSonarQubeProject binding)
         {
+            Debug.Assert(!string.IsNullOrWhiteSpace(configFile));
             string directory = Path.GetDirectoryName(configFile);
             if (!Directory.Exists(directory))
             {
@@ -215,12 +212,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 operation();
                 return true;
             }
-            catch (Exception e) when (e is PathTooLongException
-                                    || e is UnauthorizedAccessException
-                                    || e is FileNotFoundException
-                                    || e is DirectoryNotFoundException
-                                    || e is IOException
-                                    || e is System.Security.SecurityException)
+            catch (Exception e) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(e))
             {
                 logger.WriteLine(e.Message);
                 return false;

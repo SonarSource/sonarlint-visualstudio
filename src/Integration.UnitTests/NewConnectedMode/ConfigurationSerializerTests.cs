@@ -257,7 +257,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void WriteSolution_WriteOpFails_CredentialsNoSavedAndReturnsNull()
+        public void WriteSolution_HasCredentials_FileSavedAndTokenOnlyCredentialSavedOk()
+        {
+            // Arrange
+            SetSolutionFilePath(@"c:\mysolutionfile.foo");
+            var expectedFilePath = @"c:\.sonarlint\mysolutionfile.sqconfig";
+
+            // Currently we can only handle saving basic auth credentials
+            BasicAuthCredentials creds = new BasicAuthCredentials("user1", "".ToSecureString());
+
+            var boundProject = new BoundSonarQubeProject
+            {
+                ProjectKey = "mykey",
+                ServerUri = new Uri("http://localhost:9000"),
+                Credentials = creds
+            };
+
+            // Act
+            var actualFilePath = testSubject.WriteSolutionBinding(boundProject);
+
+            // Assert
+            actualFilePath.Should().Be(expectedFilePath);
+            fileMock.Verify(x => x.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
+            var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
+            savedCredentials.Should().NotBeNull();
+            savedCredentials.Username.Should().Be("user1");
+            savedCredentials.Password.Should().Be("");
+        }
+
+
+        [TestMethod]
+        public void WriteSolution_WriteOpFails_CredentialsNotSavedAndReturnsNull()
         {
             // Arrange
             SetSolutionFilePath(@"c:\mysolutionfile.foo");
@@ -277,6 +307,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
             savedCredentials.Should().BeNull();
         }
+
+        [TestMethod]
+        public void WriteSolution_WriteThrowsCriticalException_NotSuppressed()
+        {
+            // Arrange
+            SetSolutionFilePath(@"c:\mysolutionfile.foo");
+            fileMock.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws<StackOverflowException>();
+
+            var boundProject = new BoundSonarQubeProject
+            {
+                ProjectKey = "mykey",
+                ServerUri = new Uri("http://localhost:9000"),
+            };
+
+            Action act = () => testSubject.WriteSolutionBinding(boundProject);
+
+            // Act & Assert
+            act.ShouldThrow<StackOverflowException>();
+        }
+
 
         private void SetSolutionFilePath(string filePath)
         {

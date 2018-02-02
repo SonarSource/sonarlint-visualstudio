@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             // and the returned solution name will be null. We'll just ignore the hresult.
             solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out fullSolutionName);
 
-            return GetConnectionFilePath((string)fullSolutionName);
+            return GetConnectionFilePath(fullSolutionName as string);
         }
     }
 }
