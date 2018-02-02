@@ -24,83 +24,49 @@ using System.IO;
 using EnvDTE;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.Integration.Helpers;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal class SolutionBindingSerializer : ISolutionBindingSerializer
+    internal class SolutionBindingSerializer : FileBindingSerializer
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly ICredentialStore credentialStore;
-        private readonly ILogger logger;
-        private readonly IFile fileWrapper;
 
         public const string SonarQubeSolutionBindingConfigurationFileName = "SolutionBinding.sqconfig";
         public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
 
         public SolutionBindingSerializer(IServiceProvider serviceProvider)
-            : this(serviceProvider, new SecretStore(StoreNamespace), serviceProvider?.GetMefService<ILogger>(), new FileWrapper())
+            : this(serviceProvider,
+                  serviceProvider?.GetService<ISourceControlledFileSystem>(),
+                  new SecretStore(StoreNamespace),
+                  serviceProvider?.GetMefService<ILogger>(),
+                  new FileWrapper())
         {
         }
 
-        internal /*for testing purposes*/ SolutionBindingSerializer(IServiceProvider serviceProvider, ICredentialStore store,
+        internal /*for testing purposes*/ SolutionBindingSerializer(
+            IServiceProvider serviceProvider,
+            ISourceControlledFileSystem sccFileSystem,
+            ICredentialStore store,
             ILogger logger, IFile fileWrapper)
+            : base(sccFileSystem, store, logger, fileWrapper)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
-            Debug.Assert(store != null);
-            Debug.Assert(logger != null);
-            Debug.Assert(fileWrapper != null);
-
             this.serviceProvider = serviceProvider;
-            this.credentialStore = store;
-            this.logger = logger;
-            this.fileWrapper = fileWrapper;
         }
 
-        internal ICredentialStore Store
+        protected override WriteMode Mode
         {
-            get { return this.credentialStore; }
+            get { return WriteMode.Queued; }
         }
 
-        public BoundSonarQubeProject ReadSolutionBinding()
+        protected override bool OnSuccessfulFileWrite(string filePath)
         {
-            string configFile = this.GetSonarQubeConfigurationFilePath();
-            return ConfigFileUtilities.ReadBindingFile(configFile, this.credentialStore, this.logger, fileWrapper);
-        }
-
-        public string WriteSolutionBinding(BoundSonarQubeProject binding)
-        {
-            if (binding == null)
-            {
-                throw new ArgumentNullException(nameof(binding));
-            }
-
-            ISourceControlledFileSystem sccFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
-            sccFileSystem.AssertLocalServiceIsNotNull();
-
-            string configFile = this.GetSonarQubeConfigurationFilePath();
-            if (string.IsNullOrWhiteSpace(configFile))
-            {
-                return null;
-            }
-
-            sccFileSystem.QueueFileWrite(configFile, () =>
-            {
-                if (this.WriteBindingInformation(configFile, binding))
-                {
-                    this.AddSolutionItemFile(configFile);
-                    this.RemoveSolutionItemFile(configFile);
-                    return true;
-                }
-
-                return false;
-            });
-
-            return configFile;
+            this.AddSolutionItemFile(filePath);
+            this.RemoveSolutionItemFile(filePath);
+            return true;
         }
 
         private void AddSolutionItemFile(string configFile)
@@ -137,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             }
         }
 
-        private string GetSonarQubeConfigurationFilePath()
+        protected override string GetFullConfigurationFilePath()
         {
             var solutionRuleSetsInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             string rootFolder = solutionRuleSetsInfoProvider.GetSolutionSonarQubeRulesFolder();
@@ -149,41 +115,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             }
 
             return Path.Combine(rootFolder, SonarQubeSolutionBindingConfigurationFileName);
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
-            "S3215:\"interface\" instances should not be cast to concrete types",
-            Justification = "Casting as BasicAuthCredentials is because it's the only credential type we support. Once we add more we need to think again on how to refactor the code to avoid this",
-            Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Integration.Persistence.SolutionBinding.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundProject)~System.Boolean")]
-        private bool WriteBindingInformation(string configFile, BoundSonarQubeProject binding)
-        {
-            if (ConfigFileUtilities.SafePerformFileSystemOperation(logger, () => WriteConfig(configFile, binding)))
-            {
-                BasicAuthCredentials credentials = binding.Credentials as BasicAuthCredentials;
-                if (credentials != null)
-                {
-                    Debug.Assert(credentials.UserName != null, "User name is not expected to be null");
-                    Debug.Assert(credentials.Password != null, "Password name is not expected to be null");
-
-                    var creds = new Credential(credentials.UserName, credentials.Password.ToUnsecureString());
-                    this.credentialStore.WriteCredentials(binding.ServerUri, creds);
-                }
-                return true;
-            }
-
-            return false;
-        }
-
-        private void WriteConfig(string configFile, BoundSonarQubeProject binding)
-        {
-            string directory = Path.GetDirectoryName(configFile);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            fileWrapper.WriteAllText(configFile, JsonHelper.Serialize(binding));
         }
     }
 }
