@@ -190,16 +190,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             return !HasConflictingAnalyzerReference(projectAnalyzerStatus) &&
                 !GetIsBoundWithoutAnalyzer(projectAnalyzerStatus) &&
-                HasAnyDiagnosticEnabled(context);
+                HasAnyDiagnosticEnabled(context.SupportedDiagnostics, context.SyntaxTree);
         }
 
-        internal /*for testing purposes*/ bool HasAnyDiagnosticEnabled(AnalysisRunContext context)
+        internal /*for testing purposes*/ bool HasAnyDiagnosticEnabled(IEnumerable<DiagnosticDescriptor> diagnostics, SyntaxTree
+            syntaxTree)
         {
             switch (this.activeSolutionBoundTracker.CurrentConfiguration.Mode)
             {
                 case NewConnectedMode.SonarLintMode.Standalone:
                     // For now the standalone is not configurable so we only enable rules part of SonarWay profile
-                    return HasAnyRuleInSonarWay(context.SupportedDiagnostics);
+                    return HasAnyRuleInSonarWay(diagnostics);
 
                 case NewConnectedMode.SonarLintMode.LegacyConnected:
                     // Ruleset was used to decide whether or not the rule should be enabled
@@ -207,12 +208,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case NewConnectedMode.SonarLintMode.Connected:
-                    return cachedQualityProfiles.GetValueOrDefault()
+                    return cachedQualityProfiles.GetValueOrDefault(Language.CSharp) // TODO: AMAURY - use correct language
                         ?.Rules
                         .Select(x => x.Key)
-                        .Intersect(context.SupportedDiagnostics.Select(d => d.Id))
+                        .Intersect(diagnostics.Select(d => d.Id))
                         .Any()
-                        ?? HasAnyRuleInSonarWay(context.SupportedDiagnostics);
+                        ?? HasAnyRuleInSonarWay(diagnostics);
 
                 default:
                     Debug.Fail($"Unexpected SonarLintMode: {this.activeSolutionBoundTracker.CurrentConfiguration.Mode}");
@@ -242,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // A DiagnosticAnalyzer can have multiple supported diagnostics and we decided to run the rule as long as at least
             // one of the diagnostics is enabled. Therefore we need to filter the reported issues.
-            if (!HasAnyDiagnosticEnabled(new[] { context.Diagnostic.Descriptor }))
+            if (!HasAnyDiagnosticEnabled(new[] { context.Diagnostic.Descriptor }, null))
             {
                 return;
             }
