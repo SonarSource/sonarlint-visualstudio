@@ -71,7 +71,7 @@ pipeline {
         unstash 'vsix-vs2015'
         unstash 'vsix-vs2017'
         script {
-          version = sh returnStdout: true, script: 'cat build/Version.props | grep MainVersion\\> | cut -d\'>\' -f 2 | cut -c 1-5'
+          version = sh returnStdout: true, script: 'cat build/Version.props | grep MainVersion\\> | cut -d \\> -f 2 | cut --complement -d \\< -f 2'
           version = version.trim() + ".${env.BUILD_NUMBER}"
         } 
         echo "${version}"
