@@ -13,7 +13,13 @@ For reference, the possible headings are:
 * **Notes**
 
 
-## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.9.0.3021...HEAD)
+## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.10.0.3095...HEAD)
+
+
+## [3.10](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.9.0.3021...3.10.0.3095)
+
+### New Feature
+* [#531](https://github.com/SonarSource/sonarlint-visualstudio/issues/531) - Embed SonarC# and SonarVB analyzers 6.8.1
 
 
 ## [3.9](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.8.1.2823...3.9.0.3021)
