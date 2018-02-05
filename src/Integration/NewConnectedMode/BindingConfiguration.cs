@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             return new BindingConfiguration(project, isLegacy ? SonarLintMode.LegacyConnected : SonarLintMode.Connected);
         }
 
-        private BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode)
+        internal /*for testing purposes*/ BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode)
         {
             this.Project = project;
             this.Mode = mode;

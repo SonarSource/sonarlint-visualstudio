@@ -40,12 +40,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// Injects the suppression calculator function into any versions of the Sonar
     /// analyzers that are already loaded, or in to any new versions as they are loaded
     /// </summary>
-    internal sealed class DelegateInjector : IDisposable
+    internal sealed class LoadedSonarAnalyzerDelegateInjector : IDisposable
     {
         private readonly Func<SyntaxTree, Diagnostic, bool> suppressionFunction;
         private readonly ILogger sonarLintOutput;
 
-        public DelegateInjector(Func<SyntaxTree, Diagnostic, bool> suppressionFunction, ILogger sonarLintOutput)
+        public LoadedSonarAnalyzerDelegateInjector(Func<SyntaxTree, Diagnostic, bool> suppressionFunction, ILogger sonarLintOutput)
         {
             if (suppressionFunction == null)
             {
