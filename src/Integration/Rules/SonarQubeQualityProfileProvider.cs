@@ -135,7 +135,10 @@ namespace SonarLint.VisualStudio.Integration.Rules
 
         private QualityProfile ConvertToSonarLintQualityProfile(RuleSet ruleset, Language language)
         {
-            var rules = ruleset.Rules.Select(r => new SonarRule(key: r.RuleInfo.AnalyzerId, isEnabled: r.Action != RuleAction.None));
+            // The ruleset exporter doesn't provide all rules with their activation status. Instead it returns rules activated
+            // that are not part of SonarWay and rules disabled that are in SonarWay.
+            // Hence the decision to take only activated rules (the manager will assume it is disabled by default).
+            var rules = ruleset.Rules.Where(r => r.Action != RuleAction.None).Select(r => new SonarRule(r.RuleInfo.AnalyzerId));
 
             return new QualityProfile(language, rules);
         }

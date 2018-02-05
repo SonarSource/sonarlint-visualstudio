@@ -26,7 +26,6 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.Rules;
@@ -50,51 +49,54 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /*for testing purposes*/ static readonly Version AnalyzerVersion = AnalyzerAssemblyName.Version;
         internal /*for testing purposes*/ static readonly string AnalyzerName = AnalyzerAssemblyName.Name;
 
-        private readonly IServiceProvider serviceProvider;
         private readonly IQualityProfileProvider qualityProfileProvider;
         private readonly Workspace workspace;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
         private readonly ISonarQubeService sonarQubeService;
+        private readonly IVsSolution vsSolution;
 
-        private readonly Dictionary<Language, QualityProfile> cachedQualityProfiles = new Dictionary<Language, QualityProfile>();
+        internal /*for testing purposes*/ readonly Dictionary<Language, QualityProfile> cachedQualityProfiles =
+            new Dictionary<Language, QualityProfile>();
 
-        private DelegateInjector delegateInjector;
-        private ISonarQubeIssuesProvider sonarqubeIssueProvider;
+        internal /*for testing purposes*/ LoadedSonarAnalyzerDelegateInjector delegateInjector;
+        internal /*for testing purposes*/ ISonarQubeIssuesProvider sonarqubeIssueProvider;
         private SuppressionHandler suppressionHandler;
 
-        public SonarAnalyzerManager(IServiceProvider serviceProvider, IQualityProfileProvider qualityProfileProvider)
+        public SonarAnalyzerManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, ISonarQubeService sonarQubeService,
+            Workspace workspace, IQualityProfileProvider qualityProfileProvider, IVsSolution vsSolution, ILogger logger)
         {
-            if (serviceProvider == null)
+            if (activeSolutionBoundTracker == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             }
-
+            if (sonarQubeService == null)
+            {
+                throw new ArgumentNullException(nameof(sonarQubeService));
+            }
+            if (workspace == null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
             if (qualityProfileProvider == null)
             {
                 throw new ArgumentNullException(nameof(qualityProfileProvider));
             }
-
-            this.serviceProvider = serviceProvider;
-            this.qualityProfileProvider = qualityProfileProvider;
-
-            this.activeSolutionBoundTracker = serviceProvider.GetMefService<IActiveSolutionBoundTracker>();
-            this.logger = serviceProvider.GetMefService<ILogger>();
-            this.workspace = serviceProvider.GetMefService<VisualStudioWorkspace>();
-            this.sonarQubeService = serviceProvider.GetMefService<ISonarQubeService>();
-
-            if (activeSolutionBoundTracker == null ||
-                logger == null ||
-                workspace == null ||
-                sonarQubeService == null)
+            if (logger == null)
             {
-                Debug.Fail($@"There was a problem resolving types from MEF catalog:
-- Null IActiveSolutionBoundTracker? {activeSolutionBoundTracker == null}
-- Null ILogger? {logger == null}
-- Null VisualStudioWorkspace? {workspace == null}
-- Null ISonarQubeService? {sonarQubeService == null}");
-                return;
+                throw new ArgumentNullException(nameof(logger));
             }
+            if (vsSolution == null)
+            {
+                throw new ArgumentNullException(nameof(vsSolution));
+            }
+
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.sonarQubeService = sonarQubeService;
+            this.workspace = workspace;
+            this.qualityProfileProvider = qualityProfileProvider;
+            this.logger = logger;
+            this.vsSolution = vsSolution;
 
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
 
@@ -106,14 +108,36 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void Dispose()
         {
             this.activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
-            CleanupSuppresionHandlingInNuGetAnalyzers();
             cachedQualityProfiles.Clear();
+            CleanupSuppresionHandlingInNuGetAnalyzers();
+            CleanupVsixSonarAnalyzerDelegates();
         }
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
             RefreshSuppresionHandlingInNuGetAnalyzers();
             RefreshQualityProfiles();
+        }
+
+        internal /*for testing purposes*/ static Language GetLanguage(SyntaxTree syntaxTree)
+        {
+            var rootNode = syntaxTree?.GetRoot();
+            if (rootNode == null)
+            {
+                return Language.Unknown;
+            }
+
+            if (rootNode is CompilationUnitSyntax)
+            {
+                return Language.CSharp;
+            }
+
+            if (rootNode is Microsoft.CodeAnalysis.VisualBasic.Syntax.CompilationUnitSyntax)
+            {
+                return Language.VBNET;
+            }
+
+            return Language.Unknown;
         }
 
         #region NuGet SonarAnalyzer Delegates
@@ -138,13 +162,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void SetupSuppresionHandlingInNuGetAnalyzers()
         {
-            this.delegateInjector = new DelegateInjector(ShouldNuGetAnalyzerIssueBeReported, logger);
+            this.delegateInjector = new LoadedSonarAnalyzerDelegateInjector(ShouldNuGetAnalyzerIssueBeReported, logger);
 
             this.sonarqubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService,
                 this.activeSolutionBoundTracker.CurrentConfiguration.Project.ProjectKey, new TimerFactory());
 
-            var solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
-            var liveIssueFactory = new LiveIssueFactory(this.workspace, solution);
+            var liveIssueFactory = new LiveIssueFactory(this.workspace, this.vsSolution);
 
             this.suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarqubeIssueProvider);
         }
@@ -170,6 +193,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             SonarAnalysisContext.ReportDiagnosticAction = ReportDiagnostic;
         }
 
+        private void CleanupVsixSonarAnalyzerDelegates()
+        {
+            SonarAnalysisContext.ShouldExecuteRuleFunc = null;
+            SonarAnalysisContext.ReportDiagnosticAction = null;
+        }
+
         private bool ShouldExecuteDiagnosticAnalyzer(AnalysisRunContext context)
         {
             if (context.SyntaxTree == null)
@@ -190,11 +219,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             return !HasConflictingAnalyzerReference(projectAnalyzerStatus) &&
                 !GetIsBoundWithoutAnalyzer(projectAnalyzerStatus) &&
-                HasAnyDiagnosticEnabled(context.SupportedDiagnostics, context.SyntaxTree);
+                HasAnyDiagnosticEnabled(context.SupportedDiagnostics, GetLanguage, context.SyntaxTree);
         }
 
-        internal /*for testing purposes*/ bool HasAnyDiagnosticEnabled(IEnumerable<DiagnosticDescriptor> diagnostics, SyntaxTree
-            syntaxTree)
+        internal /*for testing purposes*/ bool HasAnyDiagnosticEnabled(IEnumerable<DiagnosticDescriptor> diagnostics,
+            Func<SyntaxTree, Language> getLanguage, SyntaxTree syntaxTree = null)
         {
             switch (this.activeSolutionBoundTracker.CurrentConfiguration.Mode)
             {
@@ -208,10 +237,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case NewConnectedMode.SonarLintMode.Connected:
-                    return cachedQualityProfiles.GetValueOrDefault(Language.CSharp) // TODO: AMAURY - use correct language
+                    var language = getLanguage(syntaxTree);
+                    return cachedQualityProfiles.GetValueOrDefault(language)
                         ?.Rules
                         .Select(x => x.Key)
-                        .Intersect(diagnostics.Select(d => d.Id))
+                        .Intersect(diagnostics.Select(d => d.Id)) // We assume that a rule is enabled if present in the QP
                         .Any()
                         ?? HasAnyRuleInSonarWay(diagnostics);
 
@@ -224,7 +254,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private bool HasAnyRuleInSonarWay(IEnumerable<DiagnosticDescriptor> diagnostics) =>
             diagnostics.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
 
-        private void ReportDiagnostic(ReportingContext context)
+        internal /*for testing purposes*/ void ReportDiagnostic(ReportingContext context)
         {
             if (this.activeSolutionBoundTracker.CurrentConfiguration.Mode == NewConnectedMode.SonarLintMode.LegacyConnected)
             {
@@ -243,7 +273,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // A DiagnosticAnalyzer can have multiple supported diagnostics and we decided to run the rule as long as at least
             // one of the diagnostics is enabled. Therefore we need to filter the reported issues.
-            if (!HasAnyDiagnosticEnabled(new[] { context.Diagnostic.Descriptor }, null))
+            if (!HasAnyDiagnosticEnabled(new[] { context.Diagnostic.Descriptor }, GetLanguage))
             {
                 return;
             }
@@ -258,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             context.ReportDiagnostic(GetConfiguredDiagnostic(context.Diagnostic));
         }
 
-        private Diagnostic GetConfiguredDiagnostic(Diagnostic diagnostic)
+        internal /*for testing purposes*/ Diagnostic GetConfiguredDiagnostic(Diagnostic diagnostic)
         {
             if (this.activeSolutionBoundTracker.CurrentConfiguration.Mode == NewConnectedMode.SonarLintMode.Connected)
             {
@@ -309,7 +339,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         #endregion // VSIX SonarAnalyzer Delegates
 
         #region Quality Profiles
-        private void RefreshQualityProfiles()
+        internal /*for testing purposes*/ void RefreshQualityProfiles()
         {
             if (activeSolutionBoundTracker.CurrentConfiguration.Mode == NewConnectedMode.SonarLintMode.Connected)
             {
@@ -321,7 +351,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private void FetchRuleSetsForCurrentlyBoundSonarQubeProject()
+        internal /*for testing purposes*/ void FetchRuleSetsForCurrentlyBoundSonarQubeProject()
         {
             foreach (var language in Language.SupportedLanguages)
             {
