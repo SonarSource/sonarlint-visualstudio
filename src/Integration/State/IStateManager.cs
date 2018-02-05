@@ -55,11 +55,9 @@ namespace SonarLint.VisualStudio.Integration.State
 
         IEnumerable<ConnectionInformation> GetConnectedServers();
 
-        ConnectionInformation GetConnectedServer(SonarQubeProject project);
-
         void SetProjects(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects);
 
-        void SetBoundProject(SonarQubeProject project);
+        void SetBoundProject(ConnectionInformation connection, SonarQubeProject project);
 
         void ClearBoundProject();
 

@@ -257,8 +257,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.CreateTestSubject(tracker);
             // Previous binding information that should be cleared once there's no solution
             var boundProject = new SonarQubeProject("bla", "");
+            var connection = new ConnectionInformation(new Uri("http://localhost"));
+
             this.stateManager.BoundProjectKey = boundProject.Key;
-            this.stateManager.SetBoundProject(boundProject);
+            this.stateManager.SetBoundProject(connection, boundProject);
 
             // Sanity
             this.stateManager.BoundProject.Should().Be(boundProject);
@@ -280,8 +282,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new SonarQubeProject("bla", "");
+            var connection = new ConnectionInformation(new Uri("http://bound"));
             SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key), SonarLintMode.LegacyConnected);
-            this.stateManager.SetBoundProject(boundProject);
+            this.stateManager.SetBoundProject(connection, boundProject);
 
             // Sanity
             this.stateManager.BoundProject.Should().Be(boundProject);
@@ -315,7 +318,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new SonarQubeProject("bla", "");
-            this.stateManager.SetBoundProject(boundProject);
+            var connection = new ConnectionInformation(new Uri("http://bound"));
+            this.stateManager.SetBoundProject(connection, boundProject);
             SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
@@ -343,7 +347,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             var boundProject = new SonarQubeProject("bla", "");
-            this.stateManager.SetBoundProject(boundProject);
+            var connection = new ConnectionInformation(new Uri("http://bound"));
+
+            this.stateManager.SetBoundProject(connection, boundProject);
             SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             testSubject.SetActiveSection(section);

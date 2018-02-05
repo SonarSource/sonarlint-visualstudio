@@ -21,7 +21,6 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Input;
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -58,14 +57,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.host = host;
 
-            this.BindCommand = new RelayCommand<ProjectViewModel>(this.OnBind, this.OnBindStatus);
+            this.BindCommand = new RelayCommand<BindCommandArgs>(this.OnBind, this.OnBindStatus);
             this.workflowExecutor = workflowExecutor ?? this;
             this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
         }
 
         #region Commands
-        public RelayCommand<ProjectViewModel> BindCommand { get; }
+        public RelayCommand<BindCommandArgs> BindCommand { get; }
 
         internal /*for testing purposes*/ bool IsBindingInProgress
         {
@@ -92,19 +91,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return base.OnQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
 
-        private bool OnBindStatus(ProjectViewModel projectVM)
+        private bool OnBindStatus(BindCommandArgs args)
         {
-            return this.OnBindStatus(projectVM?.Project);
-        }
-
-        private void OnBind(ProjectViewModel projectVM)
-        {
-            this.OnBind(projectVM?.Project);
-        }
-
-        private bool OnBindStatus(SonarQubeProject projectInformation)
-        {
-            return projectInformation != null
+            return args != null
+                && args.ProjectKey != null
                 && this.host.VisualStateManager.IsConnected
                 && !this.host.VisualStateManager.IsBusy
                 && VsShellUtils.IsSolutionExistsAndFullyLoaded()
@@ -112,39 +102,33 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 && (this.projectSystemHelper.GetSolutionProjects()?.Any() ?? false);
         }
 
-        private void OnBind(SonarQubeProject projectInformation)
+        private void OnBind(BindCommandArgs args)
         {
-            Debug.Assert(this.OnBindStatus(projectInformation));
+            Debug.Assert(this.OnBindStatus(args));
 
             var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
 
-            this.workflowExecutor.BindProject(projectInformation);
+            SonarQubeProject projectInformation = new SonarQubeProject(args.ProjectKey, args.ProjectName);
+
+            this.workflowExecutor.BindProject(projectInformation, args.Connection);
         }
 
         #endregion
 
         #region IBindingWorkflowExecutor
 
-        void IBindingWorkflowExecutor.BindProject(SonarQubeProject projectInformation)
+        void IBindingWorkflowExecutor.BindProject(SonarQubeProject projectInformation, ConnectionInformation connection)
         {
             //TODO: CM2 - choose the type of binding
-            var workflow = CreateBindingWorkflow(projectInformation);
+            var workflow = new BindingWorkflow(this.host, connection, projectInformation);
 
             IProgressEvents progressEvents = workflow.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
-            this.SetBindingInProgress(progressEvents, projectInformation);
+            this.SetBindingInProgress(progressEvents, projectInformation, connection);
         }
 
-        private IBindingWorkflow CreateBindingWorkflow(SonarQubeProject projectInformation)
-        {
-            ConnectionInformation connection = this.host.VisualStateManager.GetConnectedServer(projectInformation);
-            Debug.Assert(connection != null, "Could not find a connected server for project: " + projectInformation?.Key);
-
-            return new BindingWorkflow(this.host, connection, projectInformation);
-        }
-
-        internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, SonarQubeProject projectInformation)
+        internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, SonarQubeProject projectInformation, ConnectionInformation connection)
         {
             this.OnBindingStarted();
 
@@ -155,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 progressListener.Dispose();
 
-                this.OnBindingFinished(projectInformation, result == ProgressControllerResult.Succeeded);
+                this.OnBindingFinished(projectInformation, connection, result == ProgressControllerResult.Succeeded);
             });
         }
 
@@ -165,14 +149,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToBindId);
         }
 
-        private void OnBindingFinished(SonarQubeProject projectInformation, bool isFinishedSuccessfully)
+        private void OnBindingFinished(SonarQubeProject projectInformation, ConnectionInformation connection, bool isFinishedSuccessfully)
         {
             this.IsBindingInProgress = false;
             this.host.VisualStateManager.ClearBoundProject();
 
             if (isFinishedSuccessfully)
             {
-                this.host.VisualStateManager.SetBoundProject(projectInformation);
+                this.host.VisualStateManager.SetBoundProject(connection, projectInformation);
 
                 // TODO: CM2: the conflicts controller is only applicable in legacy connected mode
                 // However, it *should* be safe to call it regardless - in new connected mode it should
@@ -197,8 +181,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 if (notifications != null)
                 {
                     // Create a command with a fixed argument with the help of ContextualCommandViewModel that creates proxy command for the contextual (fixed) instance and the passed in ICommand that expects it
-                    ICommand rebindCommand = new ContextualCommandViewModel(projectInformation, new RelayCommand<SonarQubeProject>(this.OnBind, this.OnBindStatus)).Command;
-                    notifications.ShowNotificationError(Strings.FailedToToBindSolution, NotificationIds.FailedToBindId, rebindCommand);
+                    var rebindCommandVM = new ContextualCommandViewModel(
+                        projectInformation,
+                        new RelayCommand<BindCommandArgs>(this.OnBind, this.OnBindStatus),
+                        new BindCommandArgs(projectInformation.Key, projectInformation.Name, connection));
+                    notifications.ShowNotificationError(Strings.FailedToToBindSolution, NotificationIds.FailedToBindId, rebindCommandVM.Command);
                 }
             }
         }

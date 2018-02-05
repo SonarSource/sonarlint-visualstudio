@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 3: Valid input, busy, has bound project
             this.host.VisualStateManager.IsBusy = true;
-            this.host.VisualStateManager.SetBoundProject(new SonarQubeProject("", ""));
+            this.host.VisualStateManager.SetBoundProject(new ConnectionInformation(new Uri("http://foo")), new SonarQubeProject("", ""));
             testSubject.FixConflictsCommand.CanExecute(conflicts).Should().BeFalse();
 
             // Case 4: Valid input, not busy, not bound project
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 5: Valid input, not busy, has bound project
             this.host.VisualStateManager.IsBusy = false;
-            this.host.VisualStateManager.SetBoundProject(new SonarQubeProject("", ""));
+            this.host.VisualStateManager.SetBoundProject(new ConnectionInformation(new Uri("http://bar")), new SonarQubeProject("", ""));
             testSubject.FixConflictsCommand.CanExecute(conflicts).Should().BeTrue();
         }
 
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new RuleSetConflictsController(this.host);
             this.ConfigureServiceProviderForFixConflictsCommandExecution();
             this.host.VisualStateManager.IsBusy = false;
-            this.host.VisualStateManager.SetBoundProject(new SonarQubeProject("", ""));
+            this.host.VisualStateManager.SetBoundProject(new ConnectionInformation(new Uri("http://localhost")), new SonarQubeProject("", ""));
             var section = ConfigurableSectionController.CreateDefault();
             this.host.SetActiveSection(section);
             ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;

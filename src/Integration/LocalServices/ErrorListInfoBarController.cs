@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -466,9 +467,10 @@ namespace SonarLint.VisualStudio.Integration
                     return;
                 }
 
-                if (this.host.ActiveSection.BindCommand.CanExecute(boundProject))
+                BindCommandArgs bindingArgs = new BindCommandArgs(boundProject.Project?.Key, boundProject.Project?.Name, binding.CreateConnectionInformation());
+                if (this.host.ActiveSection.BindCommand.CanExecute(bindingArgs))
                 {
-                    this.host.ActiveSection.BindCommand.Execute(boundProject);
+                    this.host.ActiveSection.BindCommand.Execute(bindingArgs);
                     this.OnFinished(BindingRequestResult.StartedUpdating);
                 }
                 else

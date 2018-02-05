@@ -70,8 +70,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public void SetBoundProject(SonarQubeProject project)
+        public void SetBoundProject(ConnectionInformation connection, SonarQubeProject project)
         {
+            connection.Should().NotBeNull();
             project.Should().NotBeNull();
 
             this.VerifyActiveSection();
@@ -98,16 +99,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IEnumerable<ConnectionInformation> GetConnectedServers()
         {
             return this.ConnectedServers;
-        }
-
-        public ConnectionInformation GetConnectedServer(SonarQubeProject project)
-        {
-            ConnectionInformation conn;
-            var isFound = this.ProjectServerMap.TryGetValue(project, out conn);
-
-            isFound.Should().BeTrue("Test setup: project-server mapping is not available for the specified project");
-
-            return conn;
         }
 
         #endregion IStateManager
