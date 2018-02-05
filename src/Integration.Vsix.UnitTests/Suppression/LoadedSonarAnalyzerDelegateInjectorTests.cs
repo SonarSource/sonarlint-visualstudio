@@ -37,7 +37,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
     [TestClass]
-    public class DelegateInjectorTests : MarshalByRefObject
+    public class LoadedSonarAnalyzerDelegateInjectorTests : MarshalByRefObject
     {
         public TestContext TestContext { get; set; }
 
@@ -57,20 +57,20 @@ namespace SonarAnalyzer.Helpers
         [TestMethod]
         public void Injector_InvalidArguments()
         {
-            Action op = () => new DelegateInjector(null, dummyServiceProvider);
+            Action op = () => new LoadedSonarAnalyzerDelegateInjector(null, dummyServiceProvider);
             op.ShouldThrow<ArgumentNullException>();
 
-            op = () => new DelegateInjector(dummyFunction, null);
+            op = () => new LoadedSonarAnalyzerDelegateInjector(dummyFunction, null);
             op.ShouldThrow<ArgumentNullException>();
 
-            op = () => new DelegateInjector(null, null);
+            op = () => new LoadedSonarAnalyzerDelegateInjector(null, null);
             op.ShouldThrow<ArgumentNullException>();
         }
 
         [TestMethod]
         public void Injector_ValidPreLoadedAssemblies_SetsPropertyOk()
         {
-            using (var wrapper = new TestDomainWrapper<DelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
             {
                 wrapper.RemoteObject.Execute_ValidPreLoadedAssemblies_SetsPropertyOk();
             }
@@ -91,7 +91,7 @@ namespace SonarAnalyzer.Helpers
             AssertSuppressionPropertyDoesNotExist(withoutPropertyAsm);
 
             // Act - should set the property for all valid loaded assemblies
-            using (new DelegateInjector(dummyFunction, dummyServiceProvider))
+            using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
             {
                 // nothing to do here
             };
@@ -104,7 +104,7 @@ namespace SonarAnalyzer.Helpers
         [TestMethod]
         public void Injector_OldSonarAnalyzerWithoutProperty_NoError()
         {
-            using (var wrapper = new TestDomainWrapper<DelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
             {
                 wrapper.RemoteObject.Execute_OldSonarAnalyzerWithoutProperty_NoError();
             }
@@ -121,7 +121,7 @@ namespace SonarAnalyzer.Helpers
             Assembly asm = CreateAndLoadAssembly(SonarAnalyzerAssemblyName, "102.0", sourceContextButNoProperty);
 
             // Act - should not error
-            using (new DelegateInjector(dummyFunction, dummyServiceProvider))
+            using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
             {
                 // nothing to do here
             };
@@ -130,7 +130,7 @@ namespace SonarAnalyzer.Helpers
         [TestMethod]
         public void Injector_WrongAssemblyName_NoErrorAndPropertyNotSet()
         {
-            using (var wrapper = new TestDomainWrapper<DelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
             {
                 wrapper.RemoteObject.Execute_WrongAssemblyName_NoErrorAndPropertyNotSet();
             }
@@ -142,7 +142,7 @@ namespace SonarAnalyzer.Helpers
             Assembly asm = CreateAndLoadAssembly("wrongAsmName", "103.0", SourceCodeWithStaticProperty);
 
             // Act
-            using (new DelegateInjector(dummyFunction, dummyServiceProvider))
+            using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
             {
                 // nothing to do here
             };
@@ -154,7 +154,7 @@ namespace SonarAnalyzer.Helpers
         [TestMethod]
         public void Injector_ErrorsSettingPropertyAreSuppressed()
         {
-            using (var wrapper = new TestDomainWrapper<DelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
             {
                 wrapper.RemoteObject.Execute_ErrorsSettingPropertyAreSuppressed();
             }
@@ -181,7 +181,7 @@ namespace SonarAnalyzer.Helpers
             // Act - should not error
             using (new AssertIgnoreScope()) // Missing output window service
             {
-                using (new DelegateInjector(dummyFunction, dummyServiceProvider))
+                using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
                 {
                     // nothing to do here
                 };
@@ -193,7 +193,7 @@ namespace SonarAnalyzer.Helpers
         [TestMethod]
         public void Injector_MonitorAssemblyLoading_SetsPropertyOk()
         {
-            using (var wrapper = new TestDomainWrapper<DelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
             {
                 wrapper.RemoteObject.Execute_MonitorAssemblyLoading_SetsPropertyOk();
             }
@@ -202,7 +202,7 @@ namespace SonarAnalyzer.Helpers
         private void Execute_MonitorAssemblyLoading_SetsPropertyOk()
         {
             // Act and assert - should set the property for valid new assemblies as they are loaded
-            using (new DelegateInjector(dummyFunction, dummyServiceProvider))
+            using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
             {
                 Assembly validAsm1 = CreateAndLoadAssembly(SonarAnalyzerAssemblyName, "105.0.1", SourceCodeWithStaticProperty);
                 AssertSuppressionPropertyIsSet(validAsm1);

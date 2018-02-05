@@ -22,14 +22,11 @@ namespace SonarLint.VisualStudio.Integration.Rules
 {
     public class SonarRule
     {
-        public SonarRule(string key, bool isEnabled)
+        public SonarRule(string key)
         {
             Key = key;
-            IsEnabled = isEnabled;
         }
 
         public string Key { get; }
-
-        public bool IsEnabled { get; }
     }
 }

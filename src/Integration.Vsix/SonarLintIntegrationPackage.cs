@@ -21,7 +21,9 @@
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.Rules;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -66,10 +68,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             IServiceProvider serviceProvider = this;
 
+            var activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
+            var sonarQubeService = this.GetMefService<ISonarQubeService>();
+            var workspace = this.GetMefService<VisualStudioWorkspace>();
             var logger = this.GetMefService<ILogger>();
-
-            var s = new SonarQubeQualityProfileProvider(this.GetMefService<ISonarQubeService>(), logger);
-            this.sonarAnalyzerManager = new SonarAnalyzerManager(serviceProvider, s);
+            var qualityProfileProvider = new SonarQubeQualityProfileProvider(sonarQubeService, logger);
+            var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
+            this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeService, workspace,
+                qualityProfileProvider, vsSolution, logger);
 
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 
@@ -85,6 +91,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             base.Dispose(disposing);
             if (disposing)
             {
+                this.sonarAnalyzerManager?.Dispose();
+                this.sonarAnalyzerManager = null;
+
                 this.usageAnalyzer?.Dispose();
                 this.usageAnalyzer = null;
 
