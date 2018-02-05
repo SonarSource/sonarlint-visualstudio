@@ -230,7 +230,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.ManagedState.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz2"))));
             testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new SonarQubeProject(Guid.NewGuid().ToString(), ""))));
             var allProjects = testSubject.ManagedState.ConnectedServers.SelectMany(s => s.Projects).ToList();
-            testSubject.SetBoundProject(new ConnectionInformation(new Uri("http://zzz1")), allProjects.First().Project);
+            testSubject.SetBoundProject(new Uri("http://zzz1"),  null, allProjects.First().Project.Key);
 
             // Sanity
             testSubject.ManagedState.HasBoundProject.Should().BeTrue();
@@ -255,6 +255,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             var conn = new ConnectionInformation(new Uri("http://xyz"));
+            conn.Organization = new SonarQubeOrganization("org1", "org1 name");
             var projects = new[] { new SonarQubeProject("111", ""), new SonarQubeProject("222", "") };
             testSubject.SetProjects(conn, projects);
             TransferableVisualState state = testSubject.ManagedState;
@@ -266,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
               };
 
             // Act
-            testSubject.SetBoundProject(conn, new SonarQubeProject("222", ""));
+            testSubject.SetBoundProject(conn.ServerUri, "org1", "222");
 
             // Assert
             notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
@@ -336,14 +337,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new SonarQubeProject(Guid.NewGuid().ToString(), ""))));
             var allProjects = testSubject.ManagedState.ConnectedServers.SelectMany(s => s.Projects).ToList();
 
-            
-
             // Sanity
             countOnBindingStateChangeFired.Should().Be(0);
 
             // Act
             // Note: creating new project and connection objects with the same uri/key as above
-            testSubject.SetBoundProject(new ConnectionInformation(new Uri("http://zzz1")),  new SonarQubeProject(allProjects.First().Project.Key, ""));
+            testSubject.SetBoundProject(new Uri("http://zzz1"), null, allProjects.First().Project.Key);
 
             // Assert
             countOnBindingStateChangeFired.Should().Be(1);

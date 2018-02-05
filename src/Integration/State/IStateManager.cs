@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.State
 
         void SetProjects(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects);
 
-        void SetBoundProject(ConnectionInformation connection, SonarQubeProject project);
+        void SetBoundProject(Uri serverUri, string organizationKey, string projectKey);
 
         void ClearBoundProject();
 

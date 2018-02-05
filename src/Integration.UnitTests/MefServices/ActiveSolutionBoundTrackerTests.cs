@@ -194,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Case 2: Set bound project
             ConfigureSolutionBinding(boundProject);
             // Act
-            host.VisualStateManager.SetBoundProject(new ConnectionInformation(new Uri("http://localhost")), new SonarQubeProject("", ""));
+            host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
 
             // Assert
             testSubject.IsActiveSolutionBound.Should().BeTrue("Bound solution should report true activation");

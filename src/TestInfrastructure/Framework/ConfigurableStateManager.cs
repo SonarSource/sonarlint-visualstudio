@@ -28,7 +28,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableStateManager : IStateManager
     {
-        internal SonarQubeProject BoundProject { get; private set; }
+        public Uri AssignedServerUri { get; private set; }
+        public string AssignedOrganizationKey { get; private set; }
+        public string AssignedProjectKey { get; private set; }
 
         public ConfigurableStateManager()
         {
@@ -57,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get
             {
-                return this.BoundProject != null;
+                return this.AssignedProjectKey != null;
             }
         }
 
@@ -65,19 +67,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.VerifyActiveSection();
 
-            this.BoundProject = null;
+            this.AssignedServerUri = null;
+            this.AssignedOrganizationKey = null;
+            this.AssignedProjectKey = null;
 
             this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public void SetBoundProject(ConnectionInformation connection, SonarQubeProject project)
+        public void SetBoundProject(Uri serverUri, string organizationKey, string projectKey)
         {
-            connection.Should().NotBeNull();
-            project.Should().NotBeNull();
+            serverUri.Should().NotBeNull();
+            projectKey.Should().NotBeNull();
 
             this.VerifyActiveSection();
 
-            this.BoundProject = project;
+            this.AssignedServerUri = serverUri;
+            this.AssignedOrganizationKey = organizationKey;
+            this.AssignedProjectKey = projectKey;
 
             this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
         }

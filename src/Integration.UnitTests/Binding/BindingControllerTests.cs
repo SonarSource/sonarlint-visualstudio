@@ -228,17 +228,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void BindingController_BindingFinished()
         {
             // Arrange
-            ServerViewModel serverVM = CreateServerViewModel();
-            serverVM.SetProjects(new[] { new SonarQubeProject("key1", "") });
-            ProjectViewModel projectVM = serverVM.Projects.First();
+            var project = new SonarQubeProject("key1", "name1");
+            var connection = new ConnectionInformation(new Uri("http://localhost"));
+
             BindingController testSubject = this.PrepareCommandForExecution();
-            this.host.VisualStateManager.ManagedState.ConnectedServers.Add(serverVM);
             var progressEvents = new ConfigurableProgressEvents();
 
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Arrange
-                testSubject.SetBindingInProgress(progressEvents, projectVM.Project, serverVM.ConnectionInformation);
+                testSubject.SetBindingInProgress(progressEvents, project, connection);
                 testSubject.IsBindingInProgress.Should().BeTrue();
 
                 // Act
@@ -249,11 +248,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 if (result == ProgressControllerResult.Succeeded)
                 {
-                    this.host.TestStateManager.BoundProject.Should().Be(projectVM.Project);
+                    this.host.TestStateManager.AssignedProjectKey.Should().Be("key1");
                 }
                 else
                 {
-                    this.host.TestStateManager.BoundProject.Should().BeNull();
+                    this.host.TestStateManager.AssignedProjectKey.Should().BeNull();
                 }
             }
         }
@@ -262,11 +261,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void BindingController_BindingFinished_Navigation()
         {
             // Arrange
-            ServerViewModel serverVM = CreateServerViewModel();
-            serverVM.SetProjects(new[] { new SonarQubeProject("key1", "") });
-            ProjectViewModel projectVM = serverVM.Projects.First();
+            var project = new SonarQubeProject("key2", "");
+            var connection = new ConnectionInformation(new Uri("http://myUri"));
+
             BindingController testSubject = this.PrepareCommandForExecution();
-            this.host.VisualStateManager.ManagedState.ConnectedServers.Add(serverVM);
             var progressEvents = new ConfigurableProgressEvents();
             var teController = new ConfigurableTeamExplorerController();
 
@@ -278,7 +276,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult nonSuccuess in new[] { ProgressControllerResult.Cancelled, ProgressControllerResult.Failed })
             {
                 // Act
-                testSubject.SetBindingInProgress(progressEvents, projectVM.Project, serverVM.ConnectionInformation);
+                testSubject.SetBindingInProgress(progressEvents, project, connection);
                 progressEvents.SimulateFinished(nonSuccuess);
 
                 // Assert
@@ -290,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.conflictsController.HasConflicts = true;
 
             // Act
-            testSubject.SetBindingInProgress(progressEvents, projectVM.Project, serverVM.ConnectionInformation);
+            testSubject.SetBindingInProgress(progressEvents, project, connection);
             progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
             // Assert
@@ -301,7 +299,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.conflictsController.HasConflicts = false;
 
             // Act
-            testSubject.SetBindingInProgress(progressEvents, projectVM.Project, serverVM.ConnectionInformation);
+            testSubject.SetBindingInProgress(progressEvents, project, connection);
             progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
             // Assert
@@ -313,9 +311,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void BindingController_SetBindingInProgress_Notifications()
         {
             // Arrange
-            ServerViewModel serverVM = CreateServerViewModel();
-            serverVM.SetProjects(new[] { new SonarQubeProject("key1", "") });
-            ProjectViewModel projectVM = serverVM.Projects.ToArray()[0];
+            var project = new SonarQubeProject("key2", "");
+            var connection = new ConnectionInformation(new Uri("http://myUri"));
             BindingController testSubject = this.PrepareCommandForExecution();
             var section = ConfigurableSectionController.CreateDefault();
             this.host.SetActiveSection(section);
@@ -326,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
             {
                 // Act - start
-                testSubject.SetBindingInProgress(progressEvents, projectVM.Project, serverVM.ConnectionInformation);
+                testSubject.SetBindingInProgress(progressEvents, project, connection);
 
                 // Assert
                 userNotifications.AssertNoNotification(NotificationIds.FailedToBindId);

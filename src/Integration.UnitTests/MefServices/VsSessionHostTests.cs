@@ -257,13 +257,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.CreateTestSubject(tracker);
             // Previous binding information that should be cleared once there's no solution
             var boundProject = new SonarQubeProject("bla", "");
-            var connection = new ConnectionInformation(new Uri("http://localhost"));
 
-            this.stateManager.BoundProjectKey = boundProject.Key;
-            this.stateManager.SetBoundProject(connection, boundProject);
+            this.stateManager.BoundProjectKey = "bla";
+            this.stateManager.SetBoundProject(new Uri("http://localhost"), null, "bla");
 
             // Sanity
-            this.stateManager.BoundProject.Should().Be(boundProject);
+            this.stateManager.AssignedProjectKey.Should().Be("bla");
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(0);
 
             // Act
@@ -271,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Assert
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(1);
-            this.stateManager.BoundProject.Should().BeNull();
+            this.stateManager.AssignedProjectKey.Should().BeNull();
             this.stateManager.BoundProjectKey.Should().BeNull("Expecting the key to be reset to null");
         }
 
@@ -281,13 +280,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
-            var boundProject = new SonarQubeProject("bla", "");
-            var connection = new ConnectionInformation(new Uri("http://bound"));
-            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key), SonarLintMode.LegacyConnected);
-            this.stateManager.SetBoundProject(connection, boundProject);
+            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), "bla"), SonarLintMode.LegacyConnected);
+            this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
 
             // Sanity
-            this.stateManager.BoundProject.Should().Be(boundProject);
+            this.stateManager.AssignedProjectKey.Should().Be("bla");
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(0);
 
             // Act (simulate solution opened event)
@@ -295,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Assert that nothing has changed (should defer all the work to when the section is connected)
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(1);
-            this.stateManager.BoundProject.Should().Be(boundProject);
+            this.stateManager.AssignedProjectKey.Should().Be("bla");
             this.stateManager.BoundProjectKey.Should().BeNull("The key should only be set when there's active section to allow marking it once fetched all the projects");
 
             // Act (set active section)
@@ -306,8 +303,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Assert (section has refreshed, no further aborts were required)
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(1);
-            this.stateManager.BoundProjectKey.Should().Be(boundProject.Key, "Key was not set, will not be able to mark project as bound after refresh");
-            this.stateManager.BoundProject.Should().Be(boundProject);
+            this.stateManager.BoundProjectKey.Should().Be("bla", "Key was not set, will not be able to mark project as bound after refresh");
+            this.stateManager.AssignedProjectKey.Should().Be("bla");
             refreshCalled.Should().BeTrue("Expected the refresh command to be called");
         }
 
@@ -317,17 +314,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
-            var boundProject = new SonarQubeProject("bla", "");
-            var connection = new ConnectionInformation(new Uri("http://bound"));
-            this.stateManager.SetBoundProject(connection, boundProject);
-            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key), SonarLintMode.LegacyConnected);
+            this.stateManager.SetBoundProject(new Uri("http://bound"), "org1", "bla");
+            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), "bla"), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
             section.RefreshCommand = new RelayCommand(() => refreshCalled = true);
             testSubject.SetActiveSection(section);
 
             // Sanity
-            this.stateManager.BoundProject.Should().Be(boundProject);
+            this.stateManager.AssignedProjectKey.Should().Be("bla");
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(0);
 
             // Act (simulate solution opened event)
@@ -335,8 +330,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Assert
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(1);
-            this.stateManager.BoundProjectKey.Should().Be(boundProject.Key, "Key was not set, will not be able to mark project as bound after refresh");
-            this.stateManager.BoundProject.Should().Be(boundProject);
+            this.stateManager.BoundProjectKey.Should().Be("bla", "Key was not set, will not be able to mark project as bound after refresh");
+            this.stateManager.AssignedProjectKey.Should().Be("bla");
             refreshCalled.Should().BeTrue("Expected the refresh command to be called");
         }
 
@@ -346,16 +341,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
-            var boundProject = new SonarQubeProject("bla", "");
-            var connection = new ConnectionInformation(new Uri("http://bound"));
 
-            this.stateManager.SetBoundProject(connection, boundProject);
-            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), boundProject.Key), SonarLintMode.LegacyConnected);
+            this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
+            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), "bla"), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             testSubject.SetActiveSection(section);
 
             // Sanity
-            this.stateManager.BoundProject.Should().Be(boundProject);
+            this.stateManager.AssignedProjectKey.Should().Be("bla");
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(0);
 
             // Introduce an error
@@ -368,7 +361,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             }
 
             // Assert
-            this.stateManager.BoundProject.Should().BeNull();
+            this.stateManager.AssignedProjectKey.Should().BeNull();
         }
 
         [TestMethod]

@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (isFinishedSuccessfully)
             {
-                this.host.VisualStateManager.SetBoundProject(connection, projectInformation);
+                this.host.VisualStateManager.SetBoundProject(connection.ServerUri, connection.Organization?.Key, projectInformation.Key);
 
                 // TODO: CM2: the conflicts controller is only applicable in legacy connected mode
                 // However, it *should* be safe to call it regardless - in new connected mode it should
