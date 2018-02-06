@@ -86,13 +86,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void BindingWorkflow_ArgChecks()
         {
-            var validConnection = new ConnectionInformation(new Uri("http://server"));
-            var validProjectInfo = new SonarQubeProject("", "");
             var validHost = new ConfigurableHost();
+            var bindingArgs = new BindCommandArgs("key", "name", new ConnectionInformation(new Uri("http://server")));
 
-            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(null, validConnection, validProjectInfo));
-            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(validHost, null, validProjectInfo));
-            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(validHost, validConnection, null));
+            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(null, bindingArgs));
+            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(validHost, null));
         }
 
         [TestMethod]
@@ -101,8 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
-            var projectInfo = new SonarQubeProject("key", ProjectName);
-            BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
+            BindingWorkflow testSubject = this.CreateTestSubject("key", ProjectName);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
@@ -196,8 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
-            var projectInfo = new SonarQubeProject("key", ProjectName);
-            BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
+            BindingWorkflow testSubject = this.CreateTestSubject("key", ProjectName);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
@@ -231,8 +227,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
-            var projectInfo = new SonarQubeProject("key", ProjectName);
-            BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
+            BindingWorkflow testSubject = this.CreateTestSubject("key", ProjectName);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
@@ -275,8 +270,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
-            var projectInfo = new SonarQubeProject("key", ProjectName);
-            BindingWorkflow testSubject = this.CreateTestSubject(projectInfo);
+            BindingWorkflow testSubject = this.CreateTestSubject("key", ProjectName);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
@@ -771,12 +765,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private BindingWorkflow CreateTestSubject(SonarQubeProject projectInfo = null)
+        private BindingWorkflow CreateTestSubject(string projectKey = "anykey", string projectName = "anyname")
         {
-            ConnectionInformation connected = new ConnectionInformation(new Uri("http://connected"));
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
-            var useProjectInfo = projectInfo ?? new SonarQubeProject("key", "");
-            return new BindingWorkflow(this.host, connected, useProjectInfo);
+
+            var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
+
+            return new BindingWorkflow(this.host, bindingArgs);
         }
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(BindingWorkflow testSubject, Dictionary<Language, IEnumerable<PackageName>> nugetPackagesByLanguage, params Project[] projects)
