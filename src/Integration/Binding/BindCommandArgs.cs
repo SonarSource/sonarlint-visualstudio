@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -22,9 +22,22 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    // Test only interface
-    internal interface IBindingWorkflowExecutor
+    /// <summary>
+    /// Data class containing the arguments required by the bind command
+    /// </summary>
+    internal class BindCommandArgs
     {
-        void BindProject(SonarQubeProject projectInformation, ConnectionInformation connection);
+        public BindCommandArgs(string projectKey, string projectName, ConnectionInformation connection)
+        {
+            this.ProjectKey = projectKey;
+            this.ProjectName = projectName;
+            this.Connection = connection;
+        }
+
+        public string ProjectKey { get; }
+
+        public string ProjectName { get; }
+
+        public ConnectionInformation Connection { get; }
     }
 }

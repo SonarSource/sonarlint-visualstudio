@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Microsoft.VisualStudio.Imaging;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -103,12 +104,6 @@ namespace SonarLint.VisualStudio.Integration.State
             return this.ManagedState.ConnectedServers.Select(s => s.ConnectionInformation);
         }
 
-        public ConnectionInformation GetConnectedServer(SonarQubeProject project)
-        {
-            return this.ManagedState.ConnectedServers
-                .SingleOrDefault(s => s.Projects.Any(p => p.Project == project))?.ConnectionInformation;
-        }
-
         public string BoundProjectKey { get; set; }
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects)
@@ -123,15 +118,17 @@ namespace SonarLint.VisualStudio.Integration.State
             }
         }
 
-        public void SetBoundProject(SonarQubeProject project)
+        public void SetBoundProject(Uri serverUri, string organizationKey, string projectKey)
         {
             this.ClearBindingErrorNotifications();
-            ProjectViewModel projectViewModel = this.ManagedState.ConnectedServers.SelectMany(s => s.Projects).SingleOrDefault(p => p.Project == project);
-            Debug.Assert(projectViewModel != null, "Expecting a single project mapped to project information");
-            this.ManagedState.SetBoundProject(projectViewModel);
-            Debug.Assert(this.HasBoundProject, "Expected to have a bound project");
 
-            this.OnBindingStateChanged();
+            var serverViewModel = this.ManagedState.ConnectedServers.FirstOrDefault(s => s.Url == serverUri && s.ConnectionInformation?.Organization?.Key == organizationKey);
+            Debug.Assert(serverViewModel != null, "Expecting the connection to map to a single server");
+
+            var projectViewModel = serverViewModel?.Projects?.FirstOrDefault(p => SonarQubeProject.KeyComparer.Equals(p.Project.Key, projectKey));
+            Debug.Assert(projectViewModel != null, "Expecting a single project mapped to project information");
+
+            DoSetBoundProject(projectViewModel);
         }
 
         public void ClearBoundProject()
@@ -230,8 +227,8 @@ namespace SonarLint.VisualStudio.Integration.State
                 return;
             }
 
-            var boundProject = serverViewModel.Projects.FirstOrDefault(pvm => SonarQubeProject.KeyComparer.Equals(pvm.Key, this.BoundProjectKey))?.Project;
-            if (boundProject == null)
+            var projectVm = serverViewModel.Projects.FirstOrDefault(pvm => SonarQubeProject.KeyComparer.Equals(pvm.Key, this.BoundProjectKey));
+            if (projectVm?.Project == null)
             {
                 // Defensive coding: invoked asynchronous and it's safer to assume that value could be null
                 // and just not do anything since if they are null it means that there's no solution open.
@@ -239,7 +236,18 @@ namespace SonarLint.VisualStudio.Integration.State
             }
             else
             {
-                this.SetBoundProject(boundProject);
+                this.DoSetBoundProject(projectVm);
+            }
+        }
+
+        private void DoSetBoundProject(ProjectViewModel projectViewModel)
+        {
+            if (projectViewModel != null)
+            {
+                this.ManagedState.SetBoundProject(projectViewModel);
+                Debug.Assert(this.HasBoundProject, "Expected to have a bound project");
+
+                this.OnBindingStateChanged();
             }
         }
 
@@ -303,7 +311,9 @@ namespace SonarLint.VisualStudio.Integration.State
                     continue;
                 }
 
-                var bindContextCommand = new ContextualCommandViewModel(projectVM, this.Host.ActiveSection.BindCommand);
+                var bindContextCommand = new ContextualCommandViewModel(projectVM,
+                    this.Host.ActiveSection.BindCommand,
+                    new BindCommandArgs(projectVM.Key, projectVM.ProjectName, serverVM.ConnectionInformation));
                 bindContextCommand.SetDynamicDisplayText(x =>
                 {
                     var ctx = x as ProjectViewModel;

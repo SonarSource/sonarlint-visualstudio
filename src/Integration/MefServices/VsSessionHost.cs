@@ -260,9 +260,11 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(this.ActiveSection?.RefreshCommand != null, "Refresh command is not set");
             // Run the refresh workflow, passing the connection information
             var refreshCmd = this.ActiveSection.RefreshCommand;
-            if (refreshCmd.CanExecute(bindingConfig))
+
+            var connection = bindingConfig.Project.CreateConnectionInformation();
+            if (refreshCmd.CanExecute(connection))
             {
-                refreshCmd.Execute(bindingConfig); // start the workflow
+                refreshCmd.Execute(connection); // start the workflow
             }
         }
 
