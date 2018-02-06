@@ -22,6 +22,7 @@ using System.Windows.Input;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -56,14 +57,14 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         ICommand<BindCommandArgs> BindCommand { get; }
 
-        ICommand BrowseToUrlCommand { get; }
+        ICommand<string> BrowseToUrlCommand { get; }
 
-        ICommand BrowseToProjectDashboardCommand { get; }
+        ICommand<ProjectViewModel> BrowseToProjectDashboardCommand { get; }
 
-        ICommand RefreshCommand { get; }
+        ICommand<ConnectionInformation> RefreshCommand { get; }
 
         ICommand DisconnectCommand { get; }
 
-        ICommand ToggleShowAllProjectsCommand { get; }
+        ICommand<ServerViewModel> ToggleShowAllProjectsCommand { get; }
     }
 }
