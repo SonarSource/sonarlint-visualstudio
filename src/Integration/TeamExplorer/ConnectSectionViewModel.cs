@@ -22,7 +22,9 @@ using System;
 using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.State;
+using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -31,8 +33,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     {
         private TransferableVisualState state;
         private ICommand connectCommand;
-        private ICommand bindCommand;
-        private ICommand browseToUrl;
+        private ICommand<BindCommandArgs> bindCommand;
+        private ICommand<string> browseToUrl;
 
         public ConnectSectionViewModel()
         {
@@ -73,13 +75,13 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             set { SetAndRaisePropertyChanged(ref this.connectCommand, value); }
         }
 
-        public ICommand BindCommand
+        public ICommand<BindCommandArgs> BindCommand
         {
             get { return this.bindCommand; }
             set { SetAndRaisePropertyChanged(ref this.bindCommand, value); }
         }
 
-        public ICommand BrowseToUrlCommand
+        public ICommand<string> BrowseToUrlCommand
         {
             get { return this.browseToUrl; }
             set { SetAndRaisePropertyChanged(ref this.browseToUrl, value); }
