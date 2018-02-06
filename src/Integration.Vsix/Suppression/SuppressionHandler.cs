@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Integration.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {
-    internal class SuppressionHandler
+    internal class SuppressionHandler : ISuppressionHandler
     {
         private readonly ILiveIssueFactory liveIssueFactory;
         private readonly ISonarQubeIssuesProvider serverIssuesProvider;

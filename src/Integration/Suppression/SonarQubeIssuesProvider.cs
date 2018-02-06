@@ -45,15 +45,13 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private bool isDisposed;
         private CancellationTokenSource cancellationTokenSource;
 
-        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService,
-            string sonarQubeProjectKey,
-            ITimerFactory timerFactory)
+        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey, ITimerFactory timerFactory)
         {
             if (sonarQubeService == null)
             {
                 throw new ArgumentNullException(nameof(sonarQubeService));
             }
-            if(string.IsNullOrWhiteSpace(sonarQubeProjectKey))
+            if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
             {
                 throw new ArgumentNullException(nameof(sonarQubeProjectKey));
             }
@@ -154,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 this.cachedSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(
                     sonarQubeProjectKey, cancellationTokenSource.Token);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 // Suppress the error - on a background thread so there isn't much else we can do
             }
