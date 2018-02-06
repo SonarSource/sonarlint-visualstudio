@@ -109,26 +109,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var componentModel = host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
 
-            SonarQubeProject projectInformation = new SonarQubeProject(args.ProjectKey, args.ProjectName);
-
-            this.workflowExecutor.BindProject(projectInformation, args.Connection);
+            this.workflowExecutor.BindProject(args);
         }
 
         #endregion
 
         #region IBindingWorkflowExecutor
 
-        void IBindingWorkflowExecutor.BindProject(SonarQubeProject projectInformation, ConnectionInformation connection)
+        void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
             //TODO: CM2 - choose the type of binding
-            var workflow = new BindingWorkflow(this.host, connection, projectInformation);
+            var workflow = new BindingWorkflow(this.host, bindingArgs);
 
             IProgressEvents progressEvents = workflow.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
-            this.SetBindingInProgress(progressEvents, projectInformation, connection);
+            this.SetBindingInProgress(progressEvents, bindingArgs);
         }
 
-        internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, SonarQubeProject projectInformation, ConnectionInformation connection)
+        internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, BindCommandArgs bindingArgs)
         {
             this.OnBindingStarted();
 
@@ -139,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 progressListener.Dispose();
 
-                this.OnBindingFinished(projectInformation, connection, result == ProgressControllerResult.Succeeded);
+                this.OnBindingFinished(bindingArgs, result == ProgressControllerResult.Succeeded);
             });
         }
 
@@ -149,14 +147,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToBindId);
         }
 
-        private void OnBindingFinished(SonarQubeProject projectInformation, ConnectionInformation connection, bool isFinishedSuccessfully)
+        private void OnBindingFinished(BindCommandArgs bindingArgs, bool isFinishedSuccessfully)
         {
             this.IsBindingInProgress = false;
             this.host.VisualStateManager.ClearBoundProject();
 
             if (isFinishedSuccessfully)
             {
-                this.host.VisualStateManager.SetBoundProject(connection.ServerUri, connection.Organization?.Key, projectInformation.Key);
+                this.host.VisualStateManager.SetBoundProject(bindingArgs.Connection.ServerUri, bindingArgs.Connection.Organization?.Key, bindingArgs.ProjectKey);
 
                 // TODO: CM2: the conflicts controller is only applicable in legacy connected mode
                 // However, it *should* be safe to call it regardless - in new connected mode it should
@@ -182,9 +180,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     // Create a command with a fixed argument with the help of ContextualCommandViewModel that creates proxy command for the contextual (fixed) instance and the passed in ICommand that expects it
                     var rebindCommandVM = new ContextualCommandViewModel(
-                        projectInformation,
-                        new RelayCommand<BindCommandArgs>(this.OnBind, this.OnBindStatus),
-                        new BindCommandArgs(projectInformation.Key, projectInformation.Name, connection));
+                        bindingArgs,
+                        new RelayCommand<BindCommandArgs>(this.OnBind, this.OnBindStatus));
                     notifications.ShowNotificationError(Strings.FailedToToBindSolution, NotificationIds.FailedToBindId, rebindCommandVM.Command);
                 }
             }
