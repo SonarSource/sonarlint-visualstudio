@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -54,13 +55,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
-        public ICommand RefreshCommand
+        public ICommand<ConnectionInformation> RefreshCommand
         {
             get;
             set;
         }
 
-        public ICommand ToggleShowAllProjectsCommand
+        public ICommand<ServerViewModel> ToggleShowAllProjectsCommand
         {
             get;
             set;
@@ -84,13 +85,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
-        public ICommand BrowseToUrlCommand
+        public ICommand<string> BrowseToUrlCommand
         {
             get;
             set;
         }
 
-        public ICommand BrowseToProjectDashboardCommand
+        public ICommand<ProjectViewModel> BrowseToProjectDashboardCommand
         {
             get;
             set;
@@ -110,10 +111,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             section.BindCommand = new RelayCommand<BindCommandArgs>(args => { });
             section.ConnectCommand = new RelayCommand(() => { });
             section.DisconnectCommand = new RelayCommand(() => { });
-            section.RefreshCommand = new RelayCommand(() => { });
-            section.BrowseToUrlCommand = new RelayCommand(() => { });
-            section.BrowseToProjectDashboardCommand = new RelayCommand(() => { });
-            section.ToggleShowAllProjectsCommand = new RelayCommand(() => { });
+            section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => { });
+            section.BrowseToUrlCommand = new RelayCommand<string>(url => { });
+            section.BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { });
+            section.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { });
             return section;
         }
 
