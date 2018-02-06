@@ -50,38 +50,34 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal class BindingWorkflow : IBindingWorkflow
     {
         private readonly IHost host;
-        private readonly ConnectionInformation connectionInformation;
-        private readonly SonarQubeProject project;
+        private readonly BindCommandArgs bindingArgs;
         private readonly IProjectSystemHelper projectSystem;
         private readonly SolutionBindingOperation solutionBindingOperation;
 
-        public BindingWorkflow(IHost host, ConnectionInformation connectionInformation, SonarQubeProject project)
+        public BindingWorkflow(IHost host, BindCommandArgs bindingArgs)
         {
             if (host == null)
             {
                 throw new ArgumentNullException(nameof(host));
             }
 
-            if (connectionInformation == null)
+            if (bindingArgs == null)
             {
-                throw new ArgumentNullException(nameof(connectionInformation));
+                throw new ArgumentNullException(nameof(bindingArgs));
             }
-
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
+            Debug.Assert(bindingArgs.ProjectKey != null);
+            Debug.Assert(bindingArgs.ProjectName != null);
+            Debug.Assert(bindingArgs.Connection != null);
 
             this.host = host;
-            this.connectionInformation = connectionInformation;
-            this.project = project;
+            this.bindingArgs = bindingArgs;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
 
             this.solutionBindingOperation = new SolutionBindingOperation(
                     this.host,
-                    this.connectionInformation,
-                    this.project.Key);
+                    this.bindingArgs.Connection,
+                    this.bindingArgs.ProjectKey);
         }
 
         #region Workflow state
@@ -236,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 var qualityProfileInfo = await SafeServiceCall(() =>
                     this.host.SonarQubeService.GetQualityProfileAsync(
-                        this.project.Key, connectionInformation.Organization?.Key, serverLanguage, cancellationToken));
+                        this.bindingArgs.ProjectKey, this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken));
                 if (qualityProfileInfo == null)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
@@ -248,7 +244,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 var roslynProfileExporter = await SafeServiceCall(
                     () => this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
-                        connectionInformation.Organization?.Key, serverLanguage, cancellationToken));
+                        this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken));
                 if (roslynProfileExporter == null)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
@@ -301,11 +297,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void UpdateDownloadedSonarQubeQualityProfile(RuleSet ruleSet, SonarQubeQualityProfile qualityProfile)
         {
-            ruleSet.NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, this.project.Name, qualityProfile.Name);
+            ruleSet.NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, this.bindingArgs.ProjectName, qualityProfile.Name);
 
             var ruleSetDescriptionBuilder = new StringBuilder();
             ruleSetDescriptionBuilder.AppendLine(ruleSet.Description);
-            ruleSetDescriptionBuilder.AppendFormat(Strings.SonarQubeQualityProfilePageUrlFormat, this.connectionInformation.ServerUri, qualityProfile.Key);
+            ruleSetDescriptionBuilder.AppendFormat(Strings.SonarQubeQualityProfilePageUrlFormat, this.bindingArgs.Connection.ServerUri, qualityProfile.Key);
             ruleSet.NonLocalizedDescription = ruleSetDescriptionBuilder.ToString();
 
             ruleSet.WriteToFile(ruleSet.FilePath);
