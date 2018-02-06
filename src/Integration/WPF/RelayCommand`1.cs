@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
     /// To use value types with this class you should box your type in a <see cref="Nullable{T}"/>.
     /// </remarks>
     /// <typeparam name="T"><see cref="Execute(T)"/> and <see cref="CanExecute(T)"/> parameter type</typeparam>
-    internal class RelayCommand<T> : RelayCommandBase where T : class
+    internal class RelayCommand<T> : RelayCommandBase, ICommand<T> where T : class
     {
         private readonly Action<T> execute;
         private readonly Predicate<T> canExecute;
