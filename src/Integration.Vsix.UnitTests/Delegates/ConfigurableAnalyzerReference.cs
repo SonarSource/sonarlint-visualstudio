@@ -22,27 +22,17 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
+namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableAnalyzerReference : AnalyzerReference
     {
-        private readonly string displayName;
-        private readonly object id;
-
         public ConfigurableAnalyzerReference(object id, string displayName)
         {
-            this.id = id;
-            this.displayName = displayName;
+            Id = id;
+            Display = displayName;
         }
 
-        public override string Display
-        {
-            get
-            {
-                return displayName;
-            }
-        }
-
+        public override string Display { get; }
         public override string FullPath
         {
             get
@@ -51,13 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarAnalyzer
             }
         }
 
-        public override object Id
-        {
-            get
-            {
-                return id;
-            }
-        }
+        public override object Id { get; }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {

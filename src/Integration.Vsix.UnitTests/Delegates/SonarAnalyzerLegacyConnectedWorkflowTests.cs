@@ -28,18 +28,29 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarAnalyzer.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
+using static SonarLint.VisualStudio.Integration.Vsix.SonarAnalyzerWorkflowBase;
 
-/* Note: these tests load dummy assemblies so each test is run in a
- * separate AppDomain to ensure there are no side-effects on other tests.
- */
-
-namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
+namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class LoadedSonarAnalyzerDelegateInjectorTests : MarshalByRefObject
+    public class SonarAnalyzerLegacyConnectedWorkflowTests : MarshalByRefObject
     {
-        public TestContext TestContext { get; set; }
+        private class TestableSonarAnalyzerLegacyConnectedWorkflow : SonarAnalyzerLegacyConnectedWorkflow
+        {
+            public TestableSonarAnalyzerLegacyConnectedWorkflow(ISuppressionHandler suppressionHandler, ILogger logger)
+                : base(new AdhocWorkspace(), suppressionHandler, logger)
+            {
+            }
+
+            public Func<SyntaxTree, ProjectAnalyzerStatus> ProjectNuGetAnalyzerStatusFunc { get; set; } =
+                tree => ProjectAnalyzerStatus.NoAnalyzer;
+
+            protected override ProjectAnalyzerStatus GetProjectNuGetAnalyzerStatus(SyntaxTree syntaxTree) =>
+                ProjectNuGetAnalyzerStatusFunc(syntaxTree);
+        }
 
         private const string SourceCodeWithStaticProperty = @"
 namespace SonarAnalyzer.Helpers
@@ -51,26 +62,133 @@ namespace SonarAnalyzer.Helpers
 }";
         private const string SonarAnalyzerAssemblyName = "SonarAnalyzer";
 
-        private static ILogger dummyServiceProvider = new Mock<ILogger>().Object;
-        private static Func<SyntaxTree, Diagnostic, bool> dummyFunction = (s, d) => true;
+        private Mock<ISuppressionHandler> suppressionHandlerMock;
+        private Mock<ILogger> loggerMock;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            suppressionHandlerMock = new Mock<ISuppressionHandler>();
+            loggerMock = new Mock<ILogger>();
+        }
+
+        public TestContext TestContext { get; set; }
+
+        #region Ctor Tests
 
         [TestMethod]
-        public void Injector_InvalidArguments()
+        public void Ctor_WhenVisualStudioWorkspaceIsNull_ThrowsArgumentNullException()
         {
-            Action op = () => new LoadedSonarAnalyzerDelegateInjector(null, dummyServiceProvider);
-            op.ShouldThrow<ArgumentNullException>();
+            // Arrange & Act
+            Action act = () => new SonarAnalyzerLegacyConnectedWorkflow(null, suppressionHandlerMock.Object, loggerMock.Object);
 
-            op = () => new LoadedSonarAnalyzerDelegateInjector(dummyFunction, null);
-            op.ShouldThrow<ArgumentNullException>();
-
-            op = () => new LoadedSonarAnalyzerDelegateInjector(null, null);
-            op.ShouldThrow<ArgumentNullException>();
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
+
+        [TestMethod]
+        public void Ctor_WhenSuppressionHandlerIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action act = () => new SonarAnalyzerLegacyConnectedWorkflow(new AdhocWorkspace(), null, loggerMock.Object);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("suppressionHandler");
+        }
+
+        [TestMethod]
+        public void Ctor_WhenILoggerIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action act = () => new SonarAnalyzerLegacyConnectedWorkflow(new AdhocWorkspace(), suppressionHandlerMock.Object, null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        #endregion
+
+        #region ShouldExecuteVsixAnalyzer Tests
+
+        [TestMethod]
+        public void ShouldExecuteVsixAnalyzer_WhenSyntaxTreeIsNull_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
+
+            // Act
+            var result = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldExecuteVsixAnalyzer_WhenProjectHasNuGetAnalyzer_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
+
+            // Act 1
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.DifferentVersion;
+            var result1 = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
+
+            // Act 2
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.SameVersion;
+            var result2 = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
+
+            // Assert
+            result1.Should().BeFalse();
+            result2.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldExecuteVsixAnalyzer_WhenAnyRuleInSonarWay_ReturnsTrue()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            var diag1 = CreateFakeDiagnostic(false, "1");
+            var diag2 = CreateFakeDiagnostic(true, "2");
+            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
+            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
+            analysisRunContextMock.SetupGet(x => x.SyntaxTree).Returns(new Mock<SyntaxTree>().Object);
+            analysisRunContextMock.SetupGet(x => x.SupportedDiagnostics).Returns(descriptors);
+
+            // Act
+            var result = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ShouldExecuteVsixAnalyzer_WhenNoRuleInSonarWay_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            var diag1 = CreateFakeDiagnostic(false, "1");
+            var diag2 = CreateFakeDiagnostic(false, "2");
+            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
+            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
+            analysisRunContextMock.SetupGet(x => x.SupportedDiagnostics).Returns(descriptors);
+
+            // Act
+            var result = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        #endregion
+
+        #region Injector Tests
 
         [TestMethod]
         public void Injector_ValidPreLoadedAssemblies_SetsPropertyOk()
         {
-            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<SonarAnalyzerLegacyConnectedWorkflowTests>())
             {
                 wrapper.RemoteObject.Execute_ValidPreLoadedAssemblies_SetsPropertyOk();
             }
@@ -78,6 +196,8 @@ namespace SonarAnalyzer.Helpers
 
         private void Execute_ValidPreLoadedAssemblies_SetsPropertyOk()
         {
+            TestInitialize();
+
             // Arrange
             // Multiple assemblies, some of which are valid
             Assembly withoutPropertyAsm = CreateAndLoadAssembly("withoutProperty", "2.9", "class MyClass{}");
@@ -91,7 +211,7 @@ namespace SonarAnalyzer.Helpers
             AssertSuppressionPropertyDoesNotExist(withoutPropertyAsm);
 
             // Act - should set the property for all valid loaded assemblies
-            using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
+            using (CreateTestSubject())
             {
                 // nothing to do here
             };
@@ -104,7 +224,7 @@ namespace SonarAnalyzer.Helpers
         [TestMethod]
         public void Injector_OldSonarAnalyzerWithoutProperty_NoError()
         {
-            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<SonarAnalyzerLegacyConnectedWorkflowTests>())
             {
                 wrapper.RemoteObject.Execute_OldSonarAnalyzerWithoutProperty_NoError();
             }
@@ -112,6 +232,8 @@ namespace SonarAnalyzer.Helpers
 
         private void Execute_OldSonarAnalyzerWithoutProperty_NoError()
         {
+            TestInitialize();
+
             // Arrange
             const string sourceContextButNoProperty = @"
 namespace SonarAnalyzer.Helpers
@@ -121,7 +243,7 @@ namespace SonarAnalyzer.Helpers
             Assembly asm = CreateAndLoadAssembly(SonarAnalyzerAssemblyName, "102.0", sourceContextButNoProperty);
 
             // Act - should not error
-            using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
+            using (CreateTestSubject())
             {
                 // nothing to do here
             };
@@ -130,7 +252,7 @@ namespace SonarAnalyzer.Helpers
         [TestMethod]
         public void Injector_WrongAssemblyName_NoErrorAndPropertyNotSet()
         {
-            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<SonarAnalyzerLegacyConnectedWorkflowTests>())
             {
                 wrapper.RemoteObject.Execute_WrongAssemblyName_NoErrorAndPropertyNotSet();
             }
@@ -138,11 +260,13 @@ namespace SonarAnalyzer.Helpers
 
         private void Execute_WrongAssemblyName_NoErrorAndPropertyNotSet()
         {
+            TestInitialize();
+
             // Arrange
             Assembly asm = CreateAndLoadAssembly("wrongAsmName", "103.0", SourceCodeWithStaticProperty);
 
             // Act
-            using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
+            using (CreateTestSubject())
             {
                 // nothing to do here
             };
@@ -154,7 +278,7 @@ namespace SonarAnalyzer.Helpers
         [TestMethod]
         public void Injector_ErrorsSettingPropertyAreSuppressed()
         {
-            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<SonarAnalyzerLegacyConnectedWorkflowTests>())
             {
                 wrapper.RemoteObject.Execute_ErrorsSettingPropertyAreSuppressed();
             }
@@ -162,6 +286,8 @@ namespace SonarAnalyzer.Helpers
 
         private void Execute_ErrorsSettingPropertyAreSuppressed()
         {
+            TestInitialize();
+
             // Test that error setting the property are not propagated.
 
             // To do this, use an assembly where the namespace etc match, but the
@@ -181,7 +307,7 @@ namespace SonarAnalyzer.Helpers
             // Act - should not error
             using (new AssertIgnoreScope()) // Missing output window service
             {
-                using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
+                using (CreateTestSubject())
                 {
                     // nothing to do here
                 };
@@ -193,7 +319,7 @@ namespace SonarAnalyzer.Helpers
         [TestMethod]
         public void Injector_MonitorAssemblyLoading_SetsPropertyOk()
         {
-            using (var wrapper = new TestDomainWrapper<LoadedSonarAnalyzerDelegateInjectorTests>())
+            using (var wrapper = new TestDomainWrapper<SonarAnalyzerLegacyConnectedWorkflowTests>())
             {
                 wrapper.RemoteObject.Execute_MonitorAssemblyLoading_SetsPropertyOk();
             }
@@ -201,8 +327,10 @@ namespace SonarAnalyzer.Helpers
 
         private void Execute_MonitorAssemblyLoading_SetsPropertyOk()
         {
+            TestInitialize();
+
             // Act and assert - should set the property for valid new assemblies as they are loaded
-            using (new LoadedSonarAnalyzerDelegateInjector(dummyFunction, dummyServiceProvider))
+            using (CreateTestSubject())
             {
                 Assembly validAsm1 = CreateAndLoadAssembly(SonarAnalyzerAssemblyName, "105.0.1", SourceCodeWithStaticProperty);
                 AssertSuppressionPropertyIsSet(validAsm1);
@@ -217,6 +345,8 @@ namespace SonarAnalyzer.Helpers
             Assembly validAsm3 = CreateAndLoadAssembly(SonarAnalyzerAssemblyName, "105.0.3", SourceCodeWithStaticProperty);
             AssertSuppressionPropertyIsNotSet(validAsm3);
         }
+
+        #endregion
 
         #region Assertion methods
 
@@ -297,5 +427,12 @@ namespace SonarAnalyzer.Helpers
         }
 
         #endregion
+
+        private TestableSonarAnalyzerLegacyConnectedWorkflow CreateTestSubject() =>
+            new TestableSonarAnalyzerLegacyConnectedWorkflow(suppressionHandlerMock.Object, loggerMock.Object);
+
+        private Diagnostic CreateFakeDiagnostic(bool isInSonarWay = false, string suffix = "") =>
+            Diagnostic.Create($"id{suffix}", $"category{suffix}", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning,
+                true, 1, customTags: isInSonarWay ? new[] { "SonarWay" } : Enumerable.Empty<string>());
     }
 }
