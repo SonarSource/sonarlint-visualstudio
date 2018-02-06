@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration
                 // Canceled or timeout
                 logger.WriteLine(Strings.SonarQubeRequestTimeoutOrCancelled);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Strings.SonarQubeRequestFailed, ex.Message, null);
             }
