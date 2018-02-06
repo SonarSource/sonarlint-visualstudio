@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -380,10 +381,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new ErrorListInfoBarController(this.host);
             this.ConfigureLoadedSolution();
             int bindingCalled = 0;
-            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
+            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args =>
             {
                 bindingCalled++;
-                vm.Key.Should().Be(this.configProvider.ProjectToReturn.ProjectKey);
+                args.ProjectKey.Should().Be(this.configProvider.ProjectToReturn.ProjectKey);
             });
             int refreshCalled = 0;
             this.ConfigureActiveSectionWithRefreshCommand(connection =>
@@ -435,10 +436,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureLoadedSolution();
             int bindingCalled = 0;
             ProjectViewModel project = null;
-            this.ConfigureActiveSectionWithBindCommand(vm =>
+            this.ConfigureActiveSectionWithBindCommand(args =>
             {
                 bindingCalled++;
-                vm.Should().Be(project);
+                args.ProjectKey.Should().Be(project.Key);
+                args.ProjectName.Should().Be(project.ProjectName);
             });
             int refreshCalled = 0;
             this.ConfigureActiveSectionWithRefreshCommand(connection =>
@@ -474,11 +476,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             int bindExecuted = 0;
             bool canExecute = false;
             ProjectViewModel project = null;
-            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
+            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args =>
             {
                 bindExecuted++;
-                vm.Should().Be(project);
-            }, vm => canExecute);
+                args.ProjectKey.Should().Be(project.Key);
+                args.ProjectName.Should().Be(project.ProjectName);
+            }, args => canExecute);
             this.ConfigureActiveSectionWithRefreshCommand(c =>
             {
                 FluentAssertions.Execution.Execute.Assertion.FailWith("Refresh is not expected to be called");
@@ -525,10 +528,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureLoadedSolution();
             int executed = 0;
             ProjectViewModel project = null;
-            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
+            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args =>
             {
                 executed++;
-                vm.Should().Be(project);
+                args.ProjectKey.Should().Be(project.Key);
             });
             project = this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
@@ -563,10 +566,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureLoadedSolution();
             int executed = 0;
             ProjectViewModel project = null;
-            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
+            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args =>
             {
                 executed++;
-                vm.Should().Be(project);
+                args.ProjectKey.Should().Be(project.Key);
+                args.ProjectName.Should().Be(project.ProjectName);
             });
             project = this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
@@ -602,10 +606,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureLoadedSolution();
             int executed = 0;
             ProjectViewModel project = null;
-            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm =>
+            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args =>
             {
                 executed++;
-                vm.Should().Be(project);
             });
             project = this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
@@ -653,9 +656,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 disconnectCalled++;
             });
             int bindCalled = 0;
-            this.ConfigureActiveSectionWithBindCommand(vm =>
+            this.ConfigureActiveSectionWithBindCommand(args =>
             {
-                vm.Key.Should().Be(this.configProvider.ProjectToReturn.ProjectKey);
+                args.ProjectKey.Should().Be(this.configProvider.ProjectToReturn.ProjectKey);
                 bindCalled++;
             });
 
@@ -699,7 +702,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new ErrorListInfoBarController(this.host);
             this.ConfigureLoadedSolution();
             int bindCommandExecuted = 0;
-            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm => { bindCommandExecuted++; });
+            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args => { bindCommandExecuted++; });
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
@@ -741,7 +744,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetBindingMode(SonarLintMode.LegacyConnected);
             var testSubject = new ErrorListInfoBarController(this.host);
             this.ConfigureLoadedSolution();
-            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm => { });
+            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args => { });
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
@@ -768,7 +771,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetBindingMode(SonarLintMode.LegacyConnected);
             var testSubject = new ErrorListInfoBarController(this.host);
             this.ConfigureLoadedSolution();
-            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(vm => { });
+            ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args => { });
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
@@ -792,7 +795,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        private ConfigurableSectionController ConfigureActiveSectionWithBindCommand(Action<ProjectViewModel> commandAction, Predicate<ProjectViewModel> canExecuteCommand = null)
+        private ConfigurableSectionController ConfigureActiveSectionWithBindCommand(Action<BindCommandArgs> commandAction, Predicate<BindCommandArgs> canExecuteCommand = null)
         {
             var section = this.host.ActiveSection as ConfigurableSectionController;
             if (section == null)
@@ -800,9 +803,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 section = ConfigurableSectionController.CreateDefault();
             }
             section.ViewModel.State = this.host.VisualStateManager.ManagedState;
-            section.BindCommand = new RelayCommand<ProjectViewModel>(pvm =>
+            section.BindCommand = new RelayCommand<BindCommandArgs>(args =>
             {
-                commandAction(pvm);
+                commandAction(args);
                 this.stateManager.SetAndInvokeBusyChanged(true);// Simulate product
             }, canExecuteCommand);
             this.host.SetActiveSection(section);

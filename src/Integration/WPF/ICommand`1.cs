@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
+using System.Windows.Input;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Integration.WPF
 {
-    // Test only interface
-    internal interface IBindingWorkflowExecutor
+    internal interface ICommand<T> : ICommand where T: class
     {
-        void BindProject(SonarQubeProject projectInformation, ConnectionInformation connection);
+        bool CanExecute(T parameter);
+        void Execute(T parameter);
     }
 }
