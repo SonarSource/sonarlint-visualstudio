@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
     public class ContextualCommandViewModel : ViewModelBase
     {
         private readonly object fixedContext;
+        private readonly object commandArgs;
         private readonly RelayCommand proxyCommand;
 
         private ICommand command;
@@ -43,6 +44,17 @@ namespace SonarLint.VisualStudio.Integration.WPF
         /// <param name="fixedContext">Required context</param>
         /// <param name="command">Optional real command to trigger and pass the fixed context to</param>
         public ContextualCommandViewModel(object fixedContext, ICommand command)
+            : this(fixedContext, command, commandArgs: null)
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of contextual command view model
+        /// </summary>
+        /// <param name="fixedContext">Required context</param>
+        /// <param name="command">Optional real command to trigger and pass the fixed context to</param>
+        /// <param name="commandArgs">Optional arguments to pass to the command. If null then <paramref name="fixedContent"/> will be passed.</param>
+        public ContextualCommandViewModel(object fixedContext, ICommand command, object commandArgs)
         {
             if (fixedContext == null)
             {
@@ -50,10 +62,10 @@ namespace SonarLint.VisualStudio.Integration.WPF
             }
 
             this.fixedContext = fixedContext;
+            this.commandArgs = commandArgs ?? fixedContext;
             this.proxyCommand = new RelayCommand(this.Execute, this.CanExecute);
             this.SetCommand(command);
         }
-
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
             "S3236:Methods with caller info attributes should not be invoked with explicit arguments",
@@ -142,12 +154,12 @@ namespace SonarLint.VisualStudio.Integration.WPF
 
         private void Execute()
         {
-            this.command.Execute(this.fixedContext);
+            this.command.Execute(this.commandArgs);
         }
 
         private bool CanExecute()
         {
-            return this.command != null && this.command.CanExecute(this.fixedContext);
+            return this.command != null && this.command.CanExecute(this.commandArgs);
         }
     }
 }

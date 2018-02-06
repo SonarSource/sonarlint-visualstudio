@@ -28,6 +28,7 @@ using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using Microsoft.VisualStudio.ComponentModelHost;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 
@@ -183,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
-        public ICommand BindCommand
+        public ICommand<BindCommandArgs> BindCommand
         {
             get;
             private set;

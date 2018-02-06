@@ -19,6 +19,7 @@
  */
 
 using System.Windows.Input;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -29,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         #region ISectionController
 
-        public ICommand BindCommand
+        public ICommand<BindCommandArgs> BindCommand
         {
             get;
             set;
@@ -106,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             section.View = new ConnectSectionView();
             section.ProgressHost = new ConfigurableProgressControlHost();
             section.UserNotifications = new ConfigurableUserNotification();
-            section.BindCommand = new RelayCommand(() => { });
+            section.BindCommand = new RelayCommand<BindCommandArgs>(args => { });
             section.ConnectCommand = new RelayCommand(() => { });
             section.DisconnectCommand = new RelayCommand(() => { });
             section.RefreshCommand = new RelayCommand(() => { });
