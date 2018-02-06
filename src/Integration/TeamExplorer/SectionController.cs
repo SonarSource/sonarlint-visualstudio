@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -190,19 +191,19 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
-        public ICommand BrowseToUrlCommand
+        public ICommand<string> BrowseToUrlCommand
         {
             get;
             private set;
         }
 
-        public ICommand BrowseToProjectDashboardCommand
+        public ICommand<ProjectViewModel> BrowseToProjectDashboardCommand
         {
             get;
             private set;
         }
 
-        public ICommand RefreshCommand
+        public ICommand<ConnectionInformation> RefreshCommand
         {
             get;
             internal /*for test purposes*/ set;
@@ -214,7 +215,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
-        public ICommand ToggleShowAllProjectsCommand
+        public ICommand<ServerViewModel> ToggleShowAllProjectsCommand
         {
             get;
             private set;
