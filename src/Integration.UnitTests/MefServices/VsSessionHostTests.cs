@@ -111,9 +111,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var section1 = ConfigurableSectionController.CreateDefault();
             var section2 = ConfigurableSectionController.CreateDefault();
             bool refresh1Called = false;
-            section1.RefreshCommand = new RelayCommand(() => refresh1Called = true);
+            section1.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refresh1Called = true);
             bool refresh2Called = false;
-            section2.RefreshCommand = new RelayCommand(() => refresh2Called = true);
+            section2.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refresh2Called = true);
 
             // Act (set section1)
             testSubject.SetActiveSection(section1);
@@ -298,7 +298,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act (set active section)
             var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
-            section.RefreshCommand = new RelayCommand(() => refreshCalled = true);
+            section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
             testSubject.SetActiveSection(section);
 
             // Assert (section has refreshed, no further aborts were required)
@@ -318,7 +318,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), "bla"), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
-            section.RefreshCommand = new RelayCommand(() => refreshCalled = true);
+            section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
             testSubject.SetActiveSection(section);
 
             // Sanity

@@ -338,7 +338,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             host.VisualStateManager.ManagedState.ConnectedServers.Clear();
             controller.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
             bool refreshCalled = false;
-            controller.RefreshCommand = new RelayCommand(() => refreshCalled = true);
+            controller.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
             controller.Refresh();
             refreshCalled.Should().BeTrue("Refresh command execution was expected");
         }
