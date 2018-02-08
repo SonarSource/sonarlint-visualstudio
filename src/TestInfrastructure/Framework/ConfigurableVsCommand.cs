@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsCommand : VsCommandBase
+    internal class ConfigurableVsCommand : VsCommandBase
     {
         private readonly Action<OleMenuCommand> queryStatusFunc;
 

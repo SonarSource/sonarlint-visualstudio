@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
     /// that allows to addition and removal of <see cref="IProgressErrorNotifier"/> that will be notified of errors
     /// </summary>
     /// <remarks>The class is thread safe and each <see cref="IProgressErrorNotifier"/> is responsible for notifying on the correct thread</remarks>
-    public sealed class ErrorNotificationManager : IErrorNotificationManager
+    internal sealed class ErrorNotificationManager : IErrorNotificationManager
     {
         #region Private fields and consts
         private readonly HashSet<IProgressErrorNotifier> notifiers = new HashSet<IProgressErrorNotifier>();

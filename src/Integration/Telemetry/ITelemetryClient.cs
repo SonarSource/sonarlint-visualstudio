@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITelemetryClient
+    internal interface ITelemetryClient
     {
         Task<bool> SendPayload(TelemetryPayload payload);
         Task<bool> OptOut(TelemetryPayload payload);

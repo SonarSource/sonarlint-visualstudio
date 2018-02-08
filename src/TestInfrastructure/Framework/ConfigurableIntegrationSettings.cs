@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableSonarLintSettings : ISonarLintSettings
+    internal class ConfigurableSonarLintSettings : ISonarLintSettings
     {
         public DaemonLogLevel DaemonLogLevel { get; set; }
 

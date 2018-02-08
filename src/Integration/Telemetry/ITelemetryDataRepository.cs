@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITelemetryDataRepository
+    internal interface ITelemetryDataRepository
     {
         TelemetryData Data { get; }
 

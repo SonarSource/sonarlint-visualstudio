@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public sealed class TimerFactory : ITimerFactory
+    internal sealed class TimerFactory : ITimerFactory
     {
         public ITimer Create()
         {

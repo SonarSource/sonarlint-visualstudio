@@ -30,7 +30,7 @@ using System.Windows.Navigation;
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class NotificationIndicator : UserControl
+    internal partial class NotificationIndicator : UserControl
     {
         public NotificationIndicator()
         {

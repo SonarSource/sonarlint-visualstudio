@@ -22,7 +22,7 @@ using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public static class DispatcherHelper
+    internal static class DispatcherHelper
     {
         public static void DispatchFrame(DispatcherPriority priority = DispatcherPriority.Background)
         {

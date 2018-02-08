@@ -23,7 +23,7 @@ using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class TelemetryHelper
+    internal static class TelemetryHelper
     {
         private static readonly string SonarLintVersion = GetSonarLintVersion();
 

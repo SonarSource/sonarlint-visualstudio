@@ -24,7 +24,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace SonarLint.VisualStudio.Integration
 {
     [ExcludeFromCodeCoverage] // Wrapper around System
-    public class Clock : IClock
+    internal class Clock : IClock
     {
         public DateTimeOffset Now => DateTimeOffset.Now;
     }

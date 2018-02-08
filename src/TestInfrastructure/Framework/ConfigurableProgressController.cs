@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableProgressController : IProgressController, IProgressEvents
+    internal class ConfigurableProgressController : IProgressController, IProgressEvents
     {
         internal int NumberOfAbortRequests { get; private set; } = 0;
         private readonly List<IProgressStep> steps = new List<IProgressStep>();

@@ -26,7 +26,7 @@ using System.Net.NetworkInformation;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public static class TcpUtil
+    internal static class TcpUtil
     {
         public static int FindFreePort(int startPort)
         {

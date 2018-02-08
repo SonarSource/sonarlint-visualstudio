@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <remarks>
     /// Registering/Unregistering to the events needs to be done on UIThread.
     /// All the events will be raised on the UI thread</remarks>
-    public interface IProgressEvents
+    internal interface IProgressEvents
     {
         /// <summary>
         /// <see cref="IProgressController"/> started to execute. Always raised if the <see cref="IProgressController"/> was started.

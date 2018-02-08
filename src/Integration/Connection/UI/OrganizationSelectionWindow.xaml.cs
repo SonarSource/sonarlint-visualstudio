@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
     /// Interaction logic for OrganizationSelectionWindow.xaml
     /// </summary>
     [ExcludeFromCodeCoverage] // Rely on Visual Studio elements that cannot be rendered under test
-    public partial class OrganizationSelectionWindow
+    internal partial class OrganizationSelectionWindow
     {
         internal OrganizationSelectionWindow(IEnumerable<SonarQubeOrganization> organizations)
         {

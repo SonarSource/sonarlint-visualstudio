@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// Data-only class that represents rule set information for specific configuration
     /// </summary>
-    public class RuleSetDeclaration
+    internal class RuleSetDeclaration
     {
         public RuleSetDeclaration(Project project, Property ruleSetProperty, string ruleSetPath, string activationContext, params string[] ruleSetDirectories)
         {

@@ -23,7 +23,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
-    public interface ISonarQubeIssuesProvider
+    internal interface ISonarQubeIssuesProvider
     {
         /// <summary>
         ///     Returns SonarQube suppressed issues for the specified project and file

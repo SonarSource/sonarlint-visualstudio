@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class RetryHelper
+    internal static class RetryHelper
     {
         public static bool RetryOnException(int times, TimeSpan delay, Action operation)
         {

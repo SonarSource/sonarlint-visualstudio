@@ -1,4 +1,4 @@
-﻿<ui:DialogWindow 
+﻿<ui:DialogWindow
             x:Class="SonarLint.VisualStudio.Progress.Observation.View.WpfWindowProgressVisualizer"
             x:Name="this"
             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -11,7 +11,8 @@
             Width="450"
             WindowStartupLocation="CenterScreen"
             HasDialogFrame="False"
-            WindowStyle="None">
+            WindowStyle="None"
+            x:ClassModifier="internal">
     <ui:DialogWindow.Resources>
         <ResourceDictionary>
             <!-- Get VS styles -->
@@ -20,8 +21,8 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </ui:DialogWindow.Resources>
-    
-    <core:ProgressVisualizerControl 
+
+    <core:ProgressVisualizerControl
         ViewModel="{Binding ElementName=this, Path=ViewModel}"
         HeaderStyle="{StaticResource ControlHeaderStyle}"
         BorderStyle="{StaticResource ControlBorderStyle}">

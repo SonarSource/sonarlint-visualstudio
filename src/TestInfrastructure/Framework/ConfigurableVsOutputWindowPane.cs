@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsOutputWindowPane : IVsOutputWindowPane
+    internal class ConfigurableVsOutputWindowPane : IVsOutputWindowPane
     {
         private readonly List<string> outputStrings = new List<string>();
 

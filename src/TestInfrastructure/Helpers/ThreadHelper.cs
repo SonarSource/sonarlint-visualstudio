@@ -22,7 +22,7 @@ using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public static class ThreadHelper
+    internal static class ThreadHelper
     {
         public static void SetCurrentThreadAsUIThread()
         {

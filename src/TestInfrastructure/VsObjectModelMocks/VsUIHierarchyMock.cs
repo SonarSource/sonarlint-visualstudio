@@ -29,7 +29,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class VsUIHierarchyMock : IVsUIHierarchy
+    internal class VsUIHierarchyMock : IVsUIHierarchy
     {
         private static int allocatedItemIds = 0;
         private readonly Dictionary<uint, Dictionary<int, object>> properties = new Dictionary<uint, Dictionary<int, object>>();

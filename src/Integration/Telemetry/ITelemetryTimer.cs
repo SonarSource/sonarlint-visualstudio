@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITelemetryTimer
+    internal interface ITelemetryTimer
     {
         event EventHandler<TelemetryTimerEventArgs> Elapsed;
 

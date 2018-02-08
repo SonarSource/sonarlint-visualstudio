@@ -24,7 +24,7 @@ using System.IO;
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
     [ExcludeFromCodeCoverage] // Wrapper around System.IO.File
-    public class FileWrapper : IFile
+    internal class FileWrapper : IFile
     {
         public void Delete(string path) => File.Delete(path);
 

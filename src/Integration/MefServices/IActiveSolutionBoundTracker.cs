@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// Allows checking if the current Visual Studio solution is bound to a SonarQube project or not
     /// </summary>
-    public interface IActiveSolutionBoundTracker
+    internal interface IActiveSolutionBoundTracker
     {
         /// <summary>
         /// Returns whether the active solution is bound to a SonarQube project

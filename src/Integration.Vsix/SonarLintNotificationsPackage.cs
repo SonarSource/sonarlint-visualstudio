@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideAutoLoad(UIContextGuids.NoSolution)]
     [ProvideAutoLoad(UIContextGuids.SolutionExists)]
-    public sealed class SonarLintNotificationsPackage : Package
+    internal sealed class SonarLintNotificationsPackage : Package
     {
         /// <summary>
         /// SonarLintNotifications GUID string.

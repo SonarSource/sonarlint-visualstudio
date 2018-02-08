@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         Justification = "By-Design. The base class exposes a Dispose override in which the disposable instances will be disposed",
         Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Integration.Vsix.SonarLintIntegrationPackage")]
-    public partial class SonarLintIntegrationPackage : Package
+    internal partial class SonarLintIntegrationPackage : Package
     {
         private BoundSolutionAnalyzer usageAnalyzer;
         private PackageCommandManager commandManager;

@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsMonitorSelection : IVsMonitorSelection
+    internal class ConfigurableVsMonitorSelection : IVsMonitorSelection
     {
         private readonly Dictionary<Guid, uint> cmdContexts = new Dictionary<Guid, uint>();
         private readonly Dictionary<uint, bool> activeContexts = new Dictionary<uint, bool>();

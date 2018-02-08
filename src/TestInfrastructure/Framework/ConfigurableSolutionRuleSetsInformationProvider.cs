@@ -25,7 +25,7 @@ using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableSolutionRuleSetsInformationProvider : ISolutionRuleSetsInformationProvider
+    internal class ConfigurableSolutionRuleSetsInformationProvider : ISolutionRuleSetsInformationProvider
     {
         private readonly Dictionary<Project, List<RuleSetDeclaration>> registeredProjectData = new Dictionary<Project, List<RuleSetDeclaration>>();
 

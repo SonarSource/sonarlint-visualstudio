@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// The interface represents the actual operation that needed to be executed in a <see cref="IProgressStep"/>
     /// <seealso cref="ProgressControllerStep"/>
     /// </summary>
-    public interface IProgressStepOperation
+    internal interface IProgressStepOperation
     {
         /// <summary>
         /// The <see cref="IProgressStep"/> associated with this operation

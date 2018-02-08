@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Activate support for additional languages in SonarLint" Width="500"
         WindowStartupLocation="CenterScreen" Topmost="True" SizeToContent="Height"
+        x:ClassModifier="internal"
         >
     <StackPanel Margin="5">
         <TextBlock Margin="0,5"

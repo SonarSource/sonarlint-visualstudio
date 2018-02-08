@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsQueryEditQuerySave2 : IVsQueryEditQuerySave2
+    internal class ConfigurableVsQueryEditQuerySave2 : IVsQueryEditQuerySave2
     {
         private int batchesStarted;
         private int batchesFinished;

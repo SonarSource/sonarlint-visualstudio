@@ -24,7 +24,7 @@ using System.IO;
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
     [ExcludeFromCodeCoverage] // Wrapper around System
-    public class FileSystemWatcherWrapperFactory : IFileSystemWatcherFactory
+    internal class FileSystemWatcherWrapperFactory : IFileSystemWatcherFactory
     {
         public IFileSystemWatcher Create() => new FileSystemWatcherWrapper();
 

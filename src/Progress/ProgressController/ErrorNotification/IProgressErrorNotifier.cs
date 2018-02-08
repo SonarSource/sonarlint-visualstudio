@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
     /// Error notifier that is used by the <see cref="IProgressController"/>
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Notifier", Justification = "False positive")]
-    public interface IProgressErrorNotifier
+    internal interface IProgressErrorNotifier
     {
         /// <summary>
         /// Notifies that an error occurred

@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ILogger
+    internal interface ILogger
     {
         /// <summary>
         /// Logs a message and appends a new line.

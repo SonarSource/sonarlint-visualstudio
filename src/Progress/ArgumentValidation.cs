@@ -25,7 +25,7 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Progress
 {
-    public static class ArgumentValidation
+    internal static class ArgumentValidation
     {
         [ContractArgumentValidator]
         public static void NotNull([ValidatedNotNull]object variable, string variableName)

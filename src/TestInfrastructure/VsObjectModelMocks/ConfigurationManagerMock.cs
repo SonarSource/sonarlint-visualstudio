@@ -25,7 +25,7 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurationManagerMock : ConfigurationManager
+    internal class ConfigurationManagerMock : ConfigurationManager
     {
         private readonly List<ConfigurationMock> configurations = new List<ConfigurationMock>();
 

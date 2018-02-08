@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     [Export(typeof(ISonarQubeService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [ExcludeFromCodeCoverage] // Simply provides MEF export
-    public class MefSonarQubeService : SonarQubeService
+    internal class MefSonarQubeService : SonarQubeService
     {
         public MefSonarQubeService()
             : base(new SonarQubeClientFactory())

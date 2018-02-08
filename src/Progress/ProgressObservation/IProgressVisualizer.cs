@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Progress.Observation
     /// <summary>
     /// Common interface for components that can display the <see cref="ProgressControllerViewModel"/> content
     /// </summary>
-    public interface IProgressVisualizer
+    internal interface IProgressVisualizer
     {
         /// <summary>
         /// Gets/sets the view model to be used by the visualizer

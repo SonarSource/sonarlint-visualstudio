@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public partial class SolutionMock : VsUIHierarchyMock, IVsSolution2
+    internal partial class SolutionMock : VsUIHierarchyMock, IVsSolution2
     {
         private readonly List<IVsSolutionEvents> sinks = new List<IVsSolutionEvents>();
         private readonly Dictionary<string, ProjectMock> projects = new Dictionary<string, ProjectMock>(StringComparer.OrdinalIgnoreCase);

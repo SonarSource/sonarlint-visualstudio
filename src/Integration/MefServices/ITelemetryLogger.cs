@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITelemetryLogger
+    internal interface ITelemetryLogger
     {
         void ReportEvent(TelemetryEvent telemetryEvent);
     }

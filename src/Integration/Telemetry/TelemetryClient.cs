@@ -26,7 +26,7 @@ using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public sealed class TelemetryClient : ITelemetryClient, IDisposable
+    internal sealed class TelemetryClient : ITelemetryClient, IDisposable
     {
         private readonly HttpClient client;
         private readonly int maxRetries;

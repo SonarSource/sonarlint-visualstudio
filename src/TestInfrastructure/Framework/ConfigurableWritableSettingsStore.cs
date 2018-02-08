@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.Settings;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableWritableSettingsStore : WritableSettingsStore
+    internal class ConfigurableWritableSettingsStore : WritableSettingsStore
     {
         private readonly IDictionary<string, IDictionary<string, object>> collections = new Dictionary<string, IDictionary<string, object>>();
 

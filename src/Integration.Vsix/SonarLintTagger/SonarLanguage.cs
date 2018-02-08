@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public enum SonarLanguage
+    internal enum SonarLanguage
     {
         Javascript,
         CFamily

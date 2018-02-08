@@ -23,7 +23,7 @@ using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    public interface IFileSystemWatcher : IDisposable
+    internal interface IFileSystemWatcher : IDisposable
     {
         string Path { get; set; }
         string Filter { get; set; }

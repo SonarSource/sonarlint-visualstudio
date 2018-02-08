@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.Observation.View
     /// Interaction logic for ProgressVisualizerControl.xaml
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public partial class ProgressVisualizerControl : UserControl
+    internal partial class ProgressVisualizerControl : UserControl
     {
         #region Static
         public static readonly DependencyProperty ViewModelProperty =

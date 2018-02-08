@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableProgressStep : IProgressStep
+    internal class ConfigurableProgressStep : IProgressStep
     {
         public bool Cancellable
         {

@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Helper class that verifies the <see cref="INotifyPropertyChanged"/> derived types
     /// </summary>
-    public class ViewModelVerifier
+    internal class ViewModelVerifier
     {
         private readonly INotifyPropertyChanged propertyChangeProvider;
         internal readonly List<string> propertyChanges = new List<string>();

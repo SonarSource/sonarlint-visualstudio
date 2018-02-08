@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.Observation.ViewModels
     /// <summary>
     /// View model for the main/sub progress
     /// </summary>
-    public class ProgressViewModel : ViewModelBase
+    internal class ProgressViewModel : ViewModelBase
     {
         private double progress;
         private bool indeterminate;

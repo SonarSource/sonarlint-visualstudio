@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Progress controller helpers
     /// </summary>
-    public static class Helpers
+    internal static class Helpers
     {
         /// <summary>
         /// The <paramref name="onFinishedAction"/> will be called once when the <paramref name="controller"/>

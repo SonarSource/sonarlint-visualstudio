@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Partial class implementation of <see cref="IProgressStepExecutionEvents"/>
     /// </summary>
-    public partial class ConfigurableProgressController : IProgressStepExecutionEvents
+    internal partial class ConfigurableProgressController : IProgressStepExecutionEvents
     {
         void IProgressStepExecutionEvents.ProgressChanged(string progressDetailText, double progress)
         {

@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
-    public interface ISonarQubeNotificationService
+    internal interface ISonarQubeNotificationService
     {
         Task StartAsync(string projectKey, NotificationData notificationData);
 

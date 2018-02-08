@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ITimerFactory
+    internal interface ITimerFactory
     {
         ITimer Create();
     }

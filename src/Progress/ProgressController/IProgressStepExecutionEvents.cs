@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// The interface is used to notify <see cref="IProgressController"/> of <see cref="IProgressStep"/> changes during execution
     /// <seealso cref="IProgressStepOperation"/>
     /// </summary>
-    public interface IProgressStepExecutionEvents
+    internal interface IProgressStepExecutionEvents
     {
         /// <summary>
         /// Progress change notification

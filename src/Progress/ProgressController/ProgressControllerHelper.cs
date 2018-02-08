@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Helper class
     /// </summary>
-    public static class ProgressControllerHelper
+    internal static class ProgressControllerHelper
     {
         #region Public
         /// <summary>

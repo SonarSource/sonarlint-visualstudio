@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(ILogger))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SonarLintOutputLogger : ILogger
+    internal class SonarLintOutputLogger : ILogger
     {
         private readonly IServiceProvider serviceProvider;
 

@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Partial class implementation of <see cref="IProgressStepExecutionEvents"/>
     /// </summary>
-    public partial class ProgressControllerStep : IProgressStepExecutionEvents
+    internal partial class ProgressControllerStep : IProgressStepExecutionEvents
     {
         private event EventHandler<StepExecutionChangedEventArgs> StateChangedPrivate;
 

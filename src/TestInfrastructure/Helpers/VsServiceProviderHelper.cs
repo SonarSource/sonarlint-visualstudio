@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public static class VsServiceProviderHelper
+    internal static class VsServiceProviderHelper
     {
         static VsServiceProviderHelper()
         {

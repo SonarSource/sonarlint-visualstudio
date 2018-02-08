@@ -25,7 +25,7 @@ using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableTelemetryLogger : ITelemetryLogger
+    internal class ConfigurableTelemetryLogger : ITelemetryLogger
     {
         private readonly List<TelemetryEvent> events = new List<TelemetryEvent>();
 

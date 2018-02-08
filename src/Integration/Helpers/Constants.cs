@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class Constants
+    internal static class Constants
     {
         /// <summary>
         /// The property key which corresponds to the code analysis rule set

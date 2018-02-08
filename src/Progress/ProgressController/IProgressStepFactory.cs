@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// Factory representation to separate the <see cref="IProgressStepDefinition"/> from <see cref="IProgressStepOperation"/> and the execution notification using <see cref="IProgressStepExecutionEvents"/>
     /// </summary>
-    public interface IProgressStepFactory
+    internal interface IProgressStepFactory
     {
         /// <summary>
         /// Create <see cref="CreateStepOperation"/> based on the <see cref="IProgressStepDefinition"/>

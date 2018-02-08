@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration
     [DebuggerDisplay("Product: {SonarLintProduct}, SonarLintVersion: {SonarLintVersion}, " +
         "VisualStudioVersion: {VisualStudioVersion}, DaysInstall: {NumberOfDaysSinceInstallation}, " +
         "DaysOfUse: {NumberOfDaysOfUse}, IsConnected: {IsUsingConnectedMode}")]
-    public sealed class TelemetryPayload
+    internal sealed class TelemetryPayload
     {
         [JsonProperty("sonarlint_product")]
         public string SonarLintProduct { get; set; }

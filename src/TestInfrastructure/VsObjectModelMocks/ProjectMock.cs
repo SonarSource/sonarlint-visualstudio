@@ -29,7 +29,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ProjectMock : VsUIHierarchyMock, IVsProject, Project, IVsBuildPropertyStorage, IVsAggregatableProjectCorrected
+    internal class ProjectMock : VsUIHierarchyMock, IVsProject, Project, IVsBuildPropertyStorage, IVsAggregatableProjectCorrected
     {
         private readonly Dictionary<string, uint> files = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
         private readonly PropertiesMock properties;

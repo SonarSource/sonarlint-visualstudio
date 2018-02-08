@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration
     /// Marker for local service.
     /// Local service are services which are hosted by <see cref="IHost"/>. <seealso cref="System.IServiceProvider"/>.
     /// </summary>
-    public interface ILocalService
+    internal interface ILocalService
     {
         ///  Local services need to derive from this interface and registered in <see cref = "VsSessionHost.SupportedLocalServices" />.
         ///  The mapping between the interface and the concrete class implemented needed to be registered in <see cref="VsSessionHost"/>

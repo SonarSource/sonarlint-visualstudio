@@ -24,7 +24,7 @@ using Moq.Language.Flow;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 {
-    public static class MoqExtensions
+    internal static class MoqExtensions
     {
         public delegate void OutAction<TOut>(out TOut outVal);
         public delegate void OutAction<in T1, TOut>(T1 arg1, out TOut outVal);

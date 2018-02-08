@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Test helper class to monitor the progress change notification (implements <see cref="IProgressStepExecutionEvents"/>)
     /// </summary>
-    public class ConfigurableProgressStepExecutionNotifier : IProgressStepExecutionEvents
+    internal class ConfigurableProgressStepExecutionNotifier : IProgressStepExecutionEvents
     {
         public ConfigurableProgressStepExecutionNotifier()
         {

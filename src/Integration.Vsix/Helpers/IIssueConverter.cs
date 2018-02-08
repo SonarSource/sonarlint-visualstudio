@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
 {
-    public interface IIssueConverter
+    internal interface IIssueConverter
     {
         IssueMarker ToMarker(Sonarlint.Issue issue, ITextSnapshot currentSnapshot);
     }

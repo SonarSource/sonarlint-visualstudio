@@ -27,7 +27,7 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public static class MefTestHelpers
+    internal static class MefTestHelpers
     {
         public static Export CreateExport<T>(object exportInstance)
         {

@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface IKnownUIContexts
+    internal interface IKnownUIContexts
     {
         event EventHandler<UIContextChangedEventArgs> SolutionBuildingContextChanged;
         event EventHandler<UIContextChangedEventArgs> SolutionExistsAndFullyLoadedContextChanged;

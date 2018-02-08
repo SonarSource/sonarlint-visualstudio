@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// Event arguments for a single <see cref="IProgressStep"/> being executed by the <see cref="IProgressController"/>
     /// <seealso cref="IProgressEvents"/>
     /// </summary>
-    public class StepExecutionChangedEventArgs : ProgressEventArgs
+    internal class StepExecutionChangedEventArgs : ProgressEventArgs
     {
         public StepExecutionChangedEventArgs(IProgressStep step)
         {

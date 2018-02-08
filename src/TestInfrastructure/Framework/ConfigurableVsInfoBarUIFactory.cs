@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsInfoBarUIFactory : IVsInfoBarUIFactory
+    internal class ConfigurableVsInfoBarUIFactory : IVsInfoBarUIFactory
     {
         #region IVsInfoBarUIFactory
 

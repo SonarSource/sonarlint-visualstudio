@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// A test implementation of <see cref="IProgressController"/> which is capable of verifying <see cref="IProgressStepExecutionEvents"/>
     /// in addition to executing <see cref="IProgressStepOperation"/> and provide cancellation support
     /// </summary>
-    public partial class ConfigurableProgressController : IDisposable
+    internal partial class ConfigurableProgressController : IDisposable
     {
         #region Fields
 

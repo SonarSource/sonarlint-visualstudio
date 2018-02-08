@@ -23,7 +23,7 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class PropertyMock : Property
+    internal class PropertyMock : Property
     {
         private readonly Properties parent;
 

@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public static class VisualStudioConstants
+    internal static class VisualStudioConstants
     {
         public const string VS2015VersionNumber = "14.0";
         public const string VS2017VersionNumber = "15.0";

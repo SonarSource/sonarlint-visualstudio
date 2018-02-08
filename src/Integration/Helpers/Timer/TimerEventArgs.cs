@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public class TimerEventArgs : EventArgs
+    internal class TimerEventArgs : EventArgs
     {
         public TimerEventArgs(DateTime signalTime)
         {

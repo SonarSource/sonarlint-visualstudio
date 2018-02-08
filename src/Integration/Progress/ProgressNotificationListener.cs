@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Progress
     /// The listener will forward the progress notifications to the output window.
     /// The listener will ignore empty and duplicate messages (duplicate with the previous one notification progress message)
     /// </summary>
-    public sealed class ProgressNotificationListener : IDisposable
+    internal sealed class ProgressNotificationListener : IDisposable
     {
         private readonly IProgressEvents progressEvents;
         private readonly ILogger logger;

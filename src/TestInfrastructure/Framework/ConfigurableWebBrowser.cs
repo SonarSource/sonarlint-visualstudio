@@ -22,7 +22,7 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableWebBrowser : IWebBrowser
+    internal class ConfigurableWebBrowser : IWebBrowser
     {
         internal readonly IList<string> NavigatedUrls = new List<string>();
 

@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Guid(PackageGuidString)]
     [ProvideAutoLoad(UIContextGuids.NoSolution)]
     [ExcludeFromCodeCoverage] // Simple bootstrapper class relying on Visual Studio
-    public sealed class SonarLintTelemetryPackage : Package
+    internal sealed class SonarLintTelemetryPackage : Package
     {
         public const string PackageGuidString = "4E057B4B-E2B8-490D-95D8-2A1A4E7ACAED";
 

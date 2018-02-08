@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Progress.Controller.ErrorNotification
     /// <summary>
     /// Manages the <see cref="IProgressErrorNotifier"/> which are used to notify about unhandled exceptions
     /// </summary>
-    public interface IErrorNotificationManager : IProgressErrorNotifier
+    internal interface IErrorNotificationManager : IProgressErrorNotifier
     {
         /// <summary>
         /// Adds a notifier

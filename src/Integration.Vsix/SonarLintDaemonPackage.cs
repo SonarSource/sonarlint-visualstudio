@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Guid(PackageGuidString)]
     [ProvideAutoLoad(UIContextGuids.NoSolution)]
     [ProvideAutoLoad(UIContextGuids.SolutionExists)]
-    public sealed class SonarLintDaemonPackage : Package
+    internal sealed class SonarLintDaemonPackage : Package
     {
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
 

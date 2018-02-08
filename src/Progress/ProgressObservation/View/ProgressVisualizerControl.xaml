@@ -8,7 +8,8 @@
              xmlns:vm="clr-namespace:SonarLint.VisualStudio.Progress.Observation.ViewModels"
              xmlns:rootNs="clr-namespace:SonarLint.VisualStudio.Progress"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="500">
+             d:DesignHeight="300" d:DesignWidth="500"
+             x:ClassModifier="internal">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -43,11 +44,11 @@
                     ItemsSource="{Binding Steps}" />
 
             <!-- Sub progress -->
-            <ContentPresenter Grid.Row="2" Margin="0,22,0,0" Height="3" 
+            <ContentPresenter Grid.Row="2" Margin="0,22,0,0" Height="3"
                               Content="{Binding Path=Current.Progress}" />
 
             <!-- Main progress-->
-            <ContentPresenter Grid.Row="3" Margin="0,2,0,0" Height="5" 
+            <ContentPresenter Grid.Row="3" Margin="0,2,0,0" Height="5"
                               Content="{Binding Path=MainProgress}" />
 
             <!-- Progress details-->

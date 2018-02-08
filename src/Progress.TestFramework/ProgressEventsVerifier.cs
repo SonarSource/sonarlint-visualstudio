@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// Test helper to verify general <see cref="IProgressController"/> and <see cref="IProgressStepOperation"/> execution
     /// and also verification of the event mechanism <see cref="IProgressEvents"/>
     /// </summary>
-    public class ProgressEventsVerifier
+    internal class ProgressEventsVerifier
     {
         private readonly IProgressEvents events;
         private bool started;

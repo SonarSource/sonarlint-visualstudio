@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <summary>
     /// Interaction logic for GeneralOptionsDialogControl.xaml
     /// </summary>
-    public partial class GeneralOptionsDialogControl : UserControl
+    internal partial class GeneralOptionsDialogControl : UserControl
     {
         private readonly ISonarLintSettings settings;
         private readonly ISonarLintDaemon daemon;

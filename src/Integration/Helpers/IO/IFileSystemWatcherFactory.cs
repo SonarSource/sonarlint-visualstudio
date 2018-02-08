@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    public interface IFileSystemWatcherFactory
+    internal interface IFileSystemWatcherFactory
     {
         IFileSystemWatcher Create();
     }

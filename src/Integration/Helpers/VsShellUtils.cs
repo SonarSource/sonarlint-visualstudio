@@ -32,7 +32,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class VsShellUtils
+    internal static class VsShellUtils
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
             "S2223:Non-constant static fields should not be visible",

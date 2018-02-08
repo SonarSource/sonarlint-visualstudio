@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// <summary>
     /// The <see cref="IProgressStep"/> execution state
     /// </summary>
-    public enum StepExecutionState
+    internal enum StepExecutionState
     {
         /// <summary>
         /// Execution has not been started

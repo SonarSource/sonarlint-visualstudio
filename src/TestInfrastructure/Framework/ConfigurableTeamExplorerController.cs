@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableTeamExplorerController : ITeamExplorerController
+    internal class ConfigurableTeamExplorerController : ITeamExplorerController
     {
         internal int ShowConnectionsPageCallsCount { get; private set; }
 

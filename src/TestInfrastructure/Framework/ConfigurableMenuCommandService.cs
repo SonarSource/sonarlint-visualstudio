@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// <summary>
     /// Test implementation of <see cref="IMenuCommandService"/>.
     /// </summary>
-    public class ConfigurableMenuCommandService : IMenuCommandService
+    internal class ConfigurableMenuCommandService : IMenuCommandService
     {
         private readonly IDictionary<CommandID, MenuCommand> commands = new Dictionary<CommandID, MenuCommand>();
 

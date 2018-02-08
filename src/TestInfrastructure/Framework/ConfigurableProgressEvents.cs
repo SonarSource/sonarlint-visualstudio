@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableProgressEvents : IProgressEvents
+    internal class ConfigurableProgressEvents : IProgressEvents
     {
         #region IProgressEvents
 

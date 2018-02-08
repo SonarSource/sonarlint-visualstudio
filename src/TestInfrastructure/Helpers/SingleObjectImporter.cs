@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// Generic class that MEF imports an arbitrary type.
     /// Used when testing that platforms extensions can be imported as expected.
     /// </summary>
-    public class SingleObjectImporter<T> where T : class
+    internal class SingleObjectImporter<T> where T : class
     {
         [Import]
         public T Import { get; set; }

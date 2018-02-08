@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     /// Data-only class that a <see cref="RuleConflictInfo"/> and also captures the information used to find that conflict
     /// </summary>
     /// <seealso cref="IRuleSetInspector"/>
-    public class ProjectRuleSetConflict
+    internal class ProjectRuleSetConflict
     {
         public ProjectRuleSetConflict(RuleConflictInfo conflict, RuleSetInformation aggregate)
         {

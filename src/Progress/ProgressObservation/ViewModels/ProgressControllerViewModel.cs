@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Progress.Observation.ViewModels
     /// </summary>
     /// <seealso cref="ProgressObserver"/>
     /// <seealso cref="WPFWindowHost"/>
-    public class ProgressControllerViewModel : ViewModelBase
+    internal class ProgressControllerViewModel : ViewModelBase
     {
         #region Fields
         private readonly ObservableCollection<ProgressStepViewModel> viewModelSteps = new ObservableCollection<ProgressStepViewModel>();

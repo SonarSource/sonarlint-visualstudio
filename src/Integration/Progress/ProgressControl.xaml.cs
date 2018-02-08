@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Progress
     /// <summary>
     /// Interaction logic for ProgressControl.xaml
     /// </summary>
-    public partial class ProgressControl : Grid, IProgressVisualizer
+    internal partial class ProgressControl : Grid, IProgressVisualizer
     {
         public static readonly DependencyProperty ViewModelProperty =
                 DependencyProperty.Register("ViewModel", typeof(ProgressControllerViewModel), typeof(ProgressControl));

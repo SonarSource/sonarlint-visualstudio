@@ -22,7 +22,7 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public sealed class TelemetryTimer : ITelemetryTimer, IDisposable
+    internal sealed class TelemetryTimer : ITelemetryTimer, IDisposable
     {
         private const double MillisecondsBeforeFirstUpload = 1000 * 60 * 5; // 5 minutes
         private const double MillisecondsBetweenUploads = 1000 * 60 * 60 * 6; // 6 hours

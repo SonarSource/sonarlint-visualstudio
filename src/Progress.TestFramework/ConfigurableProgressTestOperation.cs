@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Test implementation of <see cref="IProgressStep"/>
     /// </summary>
-    public partial class ConfigurableProgressTestOperation : IProgressStep
+    internal partial class ConfigurableProgressTestOperation : IProgressStep
     {
         private readonly Action<CancellationToken, IProgressStepExecutionEvents> operation;
         internal bool IsExecuted { get; private set; }

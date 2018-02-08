@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// Test implementation of <see cref="IVsTaskSchedulerService"/> which runs all the tasks on the same thread as the calling code
     /// </summary>
-    public class SingleThreadedTaskSchedulerService : SVsTaskSchedulerService, IVsTaskSchedulerService
+    internal class SingleThreadedTaskSchedulerService : SVsTaskSchedulerService, IVsTaskSchedulerService
     {
         private VsTaskRunContext currentContext;
 

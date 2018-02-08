@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
     /// </summary>
     /// <remarks>The <see cref="IProgressStepFactory"/> needs to support the concrete type of the definition</remarks>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1040:AvoidEmptyInterfaces", Justification = "Marker interface")]
-    public interface IProgressStepDefinition
+    internal interface IProgressStepDefinition
     {
         // Marker interface
     }

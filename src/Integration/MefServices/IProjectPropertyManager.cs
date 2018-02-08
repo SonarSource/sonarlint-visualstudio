@@ -23,7 +23,7 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface IProjectPropertyManager
+    internal interface IProjectPropertyManager
     {
         /// <summary>
         /// Get all currently selected projects in the Solution Explorer.

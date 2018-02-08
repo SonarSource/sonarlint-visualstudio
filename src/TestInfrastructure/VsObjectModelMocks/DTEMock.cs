@@ -24,7 +24,7 @@ using EnvDTE80;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class DTEMock : DTE, DTE2
+    internal class DTEMock : DTE, DTE2
     {
         public DTEMock()
         {

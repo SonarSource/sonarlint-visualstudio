@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ConfigurableVsActivityLog : IVsActivityLog
+    internal class ConfigurableVsActivityLog : IVsActivityLog
     {
         #region IVsActivityLog
 

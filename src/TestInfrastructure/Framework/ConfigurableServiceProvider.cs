@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// <summary>
     /// Configurable service provider used for testing
     /// </summary>
-    public class ConfigurableServiceProvider : System.IServiceProvider, Microsoft.VisualStudio.OLE.Interop.IServiceProvider
+    internal class ConfigurableServiceProvider : System.IServiceProvider, Microsoft.VisualStudio.OLE.Interop.IServiceProvider
     {
         private readonly Dictionary<Type, object> serviceInstances = new Dictionary<Type, object>(new TypeComparer());
         private readonly Dictionary<Type, Func<object>> serviceConstructors = new Dictionary<Type, Func<object>>(new TypeComparer());

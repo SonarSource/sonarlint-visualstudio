@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     /// <summary>
     /// Data-only class that references the fixed <see cref="RuleSet"/> and has the list of fixes applied to get it into that state
     /// </summary>
-    public class FixedRuleSetInfo
+    internal class FixedRuleSetInfo
     {
         public FixedRuleSetInfo(RuleSet ruleSet, IEnumerable<string> includesReset, IEnumerable<string> rulesDeleted)
         {

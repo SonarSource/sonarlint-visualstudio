@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// <summary>
     /// EnvDTE implementation of <see cref="Solution"/> and <see cref="Solution2"/>
     /// </summary>
-    public partial class SolutionMock : Solution, Solution2
+    internal partial class SolutionMock : Solution, Solution2
     {
         public SolutionMock(DTEMock dte, string solutionFile)
             : base(solutionFile)
