@@ -19,11 +19,10 @@
  */
 
 using System;
-using System.IO;
-using System.Linq;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -32,7 +31,133 @@ using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Rules
 {
-    public class SonarQubeQualityProfileProvider : IQualityProfileProvider
+    public sealed class QualityProfileProviderCachingDecorator : IQualityProfileProvider
+    {
+        private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 10; // 10 minutes
+        private readonly ITimer refreshTimer;
+
+        private readonly TimeSpan MillisecondsToWaitForInitialFetch = TimeSpan.FromMinutes(1);
+        private readonly CancellationTokenSource initialFetchCancellationTokenSource;
+        private readonly Task initialFetch;
+
+        private readonly IQualityProfileProvider wrappedProvider;
+        private readonly BoundSonarQubeProject boundProject;
+        private readonly ISonarQubeService sonarQubeService;
+
+        private readonly IDictionary<Language, QualityProfile> cachedQualityProfiles =
+            new Dictionary<Language, QualityProfile>();
+
+        public QualityProfileProviderCachingDecorator(IQualityProfileProvider wrappedProvider, BoundSonarQubeProject boundProject,
+            ISonarQubeService sonarQubeService, ITimerFactory timerFactory)
+        {
+            if (wrappedProvider == null)
+            {
+                throw new ArgumentNullException(nameof(wrappedProvider));
+            }
+
+            if (boundProject == null)
+            {
+                throw new ArgumentNullException(nameof(boundProject));
+            }
+
+            if (sonarQubeService == null)
+            {
+                throw new ArgumentNullException(nameof(sonarQubeService));
+            }
+
+            if (timerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(timerFactory));
+            }
+
+            this.wrappedProvider = wrappedProvider;
+            this.boundProject = boundProject;
+            this.sonarQubeService = sonarQubeService;
+
+            this.refreshTimer = timerFactory.Create();
+            this.refreshTimer.AutoReset = true;
+            this.refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
+            this.refreshTimer.Elapsed += OnRefreshTimerElapsed;
+
+            initialFetchCancellationTokenSource = new CancellationTokenSource();
+            this.initialFetch = Task.Factory.StartNew(DoInitialFetch, initialFetchCancellationTokenSource.Token);
+            refreshTimer.Start();
+        }
+
+        public QualityProfile GetQualityProfile(BoundSonarQubeProject project, Language language)
+        {
+            // Block the call while the cache is being built.
+            // If the task has already completed then this will return immediately (e.g. on subsequent calls)
+            // If we time out waiting for the initial fetch then we return null.
+            this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
+
+            QualityProfile profile;
+            return cachedQualityProfiles.TryGetValue(language, out profile)
+                ? profile
+                : null;
+        }
+
+        private void DoInitialFetch()
+        {
+            // We might not have connected to the server at this point so if necessary
+            // wait before trying to fetch the quality profiles
+            int retryCount = 0;
+            while (!this.sonarQubeService.IsConnected && retryCount < 30)
+            {
+                if (this.initialFetchCancellationTokenSource.IsCancellationRequested)
+                {
+                    return;
+                }
+                Thread.Sleep(1000);
+                retryCount++;
+            }
+
+            SynchronizeQualityProfiles();
+        }
+
+        private void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
+        {
+            SynchronizeQualityProfiles();
+        }
+
+        private void SynchronizeQualityProfiles()
+        {
+            try
+            {
+                if (!this.sonarQubeService.IsConnected)
+                {
+                    // TODO: log to output window
+                    Debug.Fail("Cannot synchronize suppressions - not connected to a SonarQube server");
+                    return;
+                }
+
+                foreach (var language in Language.SupportedLanguages)
+                {
+                    this.cachedQualityProfiles[language] = this.wrappedProvider.GetQualityProfile(this.boundProject, language);
+                }
+            }
+            catch (Exception)
+            {
+                // Suppress the error - on a background thread so there isn't much else we can do
+            }
+        }
+
+        private bool isDisposed;
+        public void Dispose()
+        {
+            if (this.isDisposed)
+            {
+                return;
+            }
+
+            refreshTimer.Dispose();
+            initialFetchCancellationTokenSource.Cancel();
+            this.cachedQualityProfiles.Clear();
+            this.isDisposed = true;
+        }
+    }
+
+    public sealed class SonarQubeQualityProfileProvider : IQualityProfileProvider
     {
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
@@ -72,15 +197,10 @@ namespace SonarLint.VisualStudio.Integration.Rules
                 return null;
             }
 
-            var roslynProfileExporter = GetSonarQubeQualityProfile(project, language).GetAwaiter().GetResult();
-            if (roslynProfileExporter == null)
-            {
-                return null;
-            }
-
-            var ruleset = ConvertToCodeAnalysisRuleSet(roslynProfileExporter);
-
-            return ConvertToSonarLintQualityProfile(ruleset, language);
+            return GetSonarQubeQualityProfile(project, language)
+                .Result
+                .ToRuleSet()
+                .ToQualityProfile(language);
         }
 
         private async Task<RoslynExportProfileResponse> GetSonarQubeQualityProfile(BoundSonarQubeProject project, Language language)
@@ -113,34 +233,9 @@ namespace SonarLint.VisualStudio.Integration.Rules
             return roslynProfileExporter;
         }
 
-        private RuleSet ConvertToCodeAnalysisRuleSet(RoslynExportProfileResponse roslynProfileExporter)
+        public void Dispose()
         {
-            RuleSet ruleSet = null;
-
-            try
-            {
-                var tempRuleSetFilePath = Path.GetTempFileName();
-
-                File.WriteAllText(tempRuleSetFilePath, roslynProfileExporter.Configuration.RuleSet.OuterXml);
-                ruleSet = RuleSet.LoadFromFile(tempRuleSetFilePath);
-                File.Delete(tempRuleSetFilePath);
-            }
-            catch
-            {
-                // Do nothing
-            }
-
-            return ruleSet;
-        }
-
-        private QualityProfile ConvertToSonarLintQualityProfile(RuleSet ruleset, Language language)
-        {
-            // The ruleset exporter doesn't provide all rules with their activation status. Instead it returns rules activated
-            // that are not part of SonarWay and rules disabled that are in SonarWay.
-            // Hence the decision to take only activated rules (the manager will assume it is disabled by default).
-            var rules = ruleset.Rules.Where(r => r.Action != RuleAction.None).Select(r => new SonarRule(r.RuleInfo.AnalyzerId));
-
-            return new QualityProfile(language, rules);
+            // Do nothing
         }
     }
 }
