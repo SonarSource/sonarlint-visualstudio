@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.InfoBar;
-using SonarLint.VisualStudio.Integration.Rules;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarQube.Client.Services;
 
@@ -73,10 +72,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var sonarQubeService = this.GetMefService<ISonarQubeService>();
             var workspace = this.GetMefService<VisualStudioWorkspace>();
             var logger = this.GetMefService<ILogger>();
-            var qualityProfileProvider = new SonarQubeQualityProfileProvider(sonarQubeService, logger);
             var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
             this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeService, workspace,
-                qualityProfileProvider, vsSolution, logger);
+                vsSolution, logger);
 
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 
