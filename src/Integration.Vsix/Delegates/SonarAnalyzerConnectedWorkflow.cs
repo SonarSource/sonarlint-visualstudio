@@ -35,7 +35,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly IQualityProfileProvider qualityProfileProvider;
         private readonly BoundSonarQubeProject boundProject;
-        private readonly IDictionary<Language, QualityProfile> cachedQualityProfiles;
         private readonly ISuppressionHandler suppressionHandler;
 
         public SonarAnalyzerConnectedWorkflow(Workspace workspace, IQualityProfileProvider qualityProfileProvider,
@@ -60,23 +59,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.qualityProfileProvider = qualityProfileProvider;
             this.boundProject = boundProject;
             this.suppressionHandler = suppressionHandler;
-            this.cachedQualityProfiles = FetchSupportedQualityProfiles();
 
             SonarAnalysisContext.ShouldExecuteRuleFunc = ShouldExecuteVsixAnalyzer;
             SonarAnalysisContext.ReportDiagnosticAction = VsixAnalyzerReportDiagnostic;
-        }
-
-        private Dictionary<Language, QualityProfile> FetchSupportedQualityProfiles()
-        {
-            var qualityProfilesPerLanguage = new Dictionary<Language, QualityProfile>();
-
-            foreach (var language in Language.SupportedLanguages)
-            {
-                var qualityProfile = this.qualityProfileProvider.GetQualityProfile(this.boundProject, language);
-                qualityProfilesPerLanguage.Add(language, qualityProfile);
-            }
-
-            return qualityProfilesPerLanguage;
         }
 
         internal /* for testing purposes */ bool ShouldExecuteVsixAnalyzer(IAnalysisRunContext context)
@@ -99,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private bool HasAnyRuleEnabled(SyntaxTree syntaxTree, IEnumerable<DiagnosticDescriptor> supportedDescriptors) =>
-            cachedQualityProfiles.GetValueOrDefault(GetLanguage(syntaxTree))
+            this.qualityProfileProvider.GetQualityProfile(this.boundProject, GetLanguage(syntaxTree))
                 ?.Rules
                 .Select(x => x.Key)
                 .Intersect(supportedDescriptors.Select(d => d.Id)) // We assume that a rule is enabled if present in the QP

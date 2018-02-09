@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarAnalyzer.Helpers;
@@ -36,7 +37,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ISonarQubeService sonarQubeService;
         private readonly Workspace workspace;
-        private readonly IQualityProfileProvider qualityProfileProvider;
         private readonly IVsSolution vsSolution;
         private readonly ILogger logger;
 
@@ -45,32 +45,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly Func<SyntaxTree, bool> previousShouldAnalysisBeDisabled;
         private readonly Func<SyntaxTree, Diagnostic, bool> previousShouldDiagnosticBeReported;
 
+        private readonly List<IDisposable> otherDisposables = new List<IDisposable>();
+
         internal /* for testing purposes */ SonarAnalyzerWorkflowBase currentWorklow;
-        private SonarQubeIssuesProvider sonarQubeIssueProvider;
 
         public SonarAnalyzerManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, ISonarQubeService sonarQubeService,
-            Workspace workspace, IQualityProfileProvider qualityProfileProvider, IVsSolution vsSolution, ILogger logger)
+            Workspace workspace, IVsSolution vsSolution, ILogger logger)
         {
             if (activeSolutionBoundTracker == null)
             {
                 throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             }
+
             if (sonarQubeService == null)
             {
                 throw new ArgumentNullException(nameof(sonarQubeService));
             }
+
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
-            if (qualityProfileProvider == null)
-            {
-                throw new ArgumentNullException(nameof(qualityProfileProvider));
-            }
+
             if (vsSolution == null)
             {
                 throw new ArgumentNullException(nameof(vsSolution));
             }
+
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
@@ -79,7 +80,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.sonarQubeService = sonarQubeService;
             this.workspace = workspace;
-            this.qualityProfileProvider = qualityProfileProvider;
             this.vsSolution = vsSolution;
             this.logger = logger;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
@@ -115,27 +115,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 case SonarLintMode.LegacyConnected:
                 case SonarLintMode.Connected:
-                    this.sonarQubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, configuration.Project.ProjectKey,
+                    var sonarQubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, configuration.Project.ProjectKey,
                         new TimerFactory());
+                    this.otherDisposables.Add(sonarQubeIssueProvider);
                     var liveIssueFactory = new LiveIssueFactory(workspace, vsSolution);
                     var suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarQubeIssueProvider);
 
-                    this.currentWorklow = configuration.Mode == SonarLintMode.Connected
-                        ? (SonarAnalyzerWorkflowBase)new SonarAnalyzerConnectedWorkflow(this.workspace,
-                            this.qualityProfileProvider, configuration.Project, suppressionHandler)
-                        : new SonarAnalyzerLegacyConnectedWorkflow(this.workspace, suppressionHandler, this.logger);
+                    if (configuration.Mode == SonarLintMode.Connected)
+                    {
+
+                        var qualityProfileProvider = new SonarQubeQualityProfileProvider(sonarQubeService, logger);
+                        var cachingProvider = new QualityProfileProviderCachingDecorator(qualityProfileProvider,
+                            configuration.Project, sonarQubeService, new TimerFactory());
+                        this.currentWorklow = new SonarAnalyzerConnectedWorkflow(this.workspace, cachingProvider,
+                            configuration.Project, suppressionHandler);
+                    }
+                    else // Legacy
+                    {
+                        this.currentWorklow = new SonarAnalyzerLegacyConnectedWorkflow(this.workspace, suppressionHandler,
+                            this.logger);
+                    }
                     break;
 
                 default:
-                    this.currentWorklow = null;
                     break;
             }
         }
 
         private void ResetState()
         {
-            this.sonarQubeIssueProvider?.Dispose();
+            this.otherDisposables.ForEach(x => x.Dispose());
+            this.otherDisposables.Clear();
             this.currentWorklow?.Dispose();
+            this.currentWorklow = null;
 
             SonarAnalysisContext.ShouldAnalysisBeDisabled = this.previousShouldAnalysisBeDisabled;
             SonarAnalysisContext.ShouldDiagnosticBeReported = this.previousShouldDiagnosticBeReported;
