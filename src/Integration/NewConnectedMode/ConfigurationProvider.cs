@@ -19,7 +19,9 @@
  */
 
 using System;
+using System.Diagnostics;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
@@ -57,6 +59,32 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             }
 
             return BindingConfiguration.Standalone;
+        }
+
+        public bool WriteConfiguration(BindingConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            string fileName = null;
+            switch (configuration.Mode)
+            {
+                case SonarLintMode.LegacyConnected:
+                    fileName = legacySerializer.WriteSolutionBinding(configuration.Project);
+                    break;
+                case SonarLintMode.Connected:
+                    fileName = newConnectedModeSerializer.WriteSolutionBinding(configuration.Project);
+                    break;
+                case SonarLintMode.Standalone:
+                    throw new InvalidOperationException(Strings.Bind_CannotSaveStandaloneConfiguration);
+                default:
+                    Debug.Fail("Unrecognised write mode");
+                    break;
+            }
+
+            return fileName != null;
         }
     }
 }

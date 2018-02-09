@@ -88,6 +88,33 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot save configuration when in Standalone mode.
+        /// </summary>
+        public static string Bind_CannotSaveStandaloneConfiguration {
+            get {
+                return ResourceManager.GetString("Bind_CannotSaveStandaloneConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save configuration.
+        /// </summary>
+        public static string Bind_FailedToSaveConfiguration {
+            get {
+                return ResourceManager.GetString("Bind_FailedToSaveConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saving configuration....
+        /// </summary>
+        public static string Bind_SavingBindingConfiguration {
+            get {
+                return ResourceManager.GetString("Bind_SavingBindingConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bind.
         /// </summary>
         public static string BindButtonText {
