@@ -266,6 +266,63 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void OnBindingStateChanged_NewConfiguration_EventRaised()
+        {
+            // Arrange
+            var initialProject = new BoundSonarQubeProject(
+                new Uri("http://localhost:9000"),
+                "projectKey",
+                organization: new SonarQubeOrganization("myOrgKey", "myOrgName"));
+
+            // Set the current configuration used by the tracker
+            ConfigureSolutionBinding(initialProject);
+            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
+
+            int solutionBindingChangedEventCount = 0;
+            testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
+
+            // Now configure the provider to return a different configuration
+            var newProject = new BoundSonarQubeProject(
+                new Uri("http://localhost:9000"),
+                "projectKey",
+                organization: new SonarQubeOrganization("myOrgKey_DIFFERENT", "myOrgName"));
+            ConfigureSolutionBinding(newProject);
+
+            // Act - simulate the binding state changing in the Team explorer section.
+            // The project configuration hasn't changed (it doesn't matter what properties
+            // we pass here; they aren't used when raising the event.)
+            host.VisualStateManager.SetBoundProject(new Uri("http://junk"), "any", "any");
+            
+            // Assert
+            // Different config so event should be raised
+            solutionBindingChangedEventCount.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void OnBindingStateChanged_SameConfiguration_EventNotRaised()
+        {
+            // Arrange
+            var boundProject = new BoundSonarQubeProject(
+                new Uri("http://localhost:9000"),
+                "projectKey",
+                organization: new SonarQubeOrganization("myOrgKey", "myOrgName"));
+
+            // Set the current configuration used by the tracker
+            ConfigureSolutionBinding(boundProject);
+            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
+
+            int solutionBindingChangedEventCount = 0;
+            testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
+
+            // Act - simulate the binding state changing in the Team explorer section.
+            host.VisualStateManager.SetBoundProject(new Uri("http://junk"), "any", "any");
+
+            // Assert
+            // Same config so event should not be raised
+            solutionBindingChangedEventCount.Should().Be(0);
+        }
+
+        [TestMethod]
         public void UpdateConnection_WasDisconnected_NewSolutionIsUnbound_NoConnectOrDisconnectCalls()
         {
             // Arrange
