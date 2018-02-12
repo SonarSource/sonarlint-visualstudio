@@ -68,9 +68,9 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
 
-            this.ConnectCommand = new RelayCommand(this.OnConnect, this.OnConnectStatus);
-            this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.OnRefreshStatus);
-            this.DontWarnAgainCommand = new RelayCommand(this.OnDontWarnAgain, this.OnDontWarnAgainStatus);
+            this.ConnectCommand = new RelayCommand(this.OnConnect, this.CanConnect);
+            this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.CanRefresh);
+            this.DontWarnAgainCommand = new RelayCommand(this.OnDontWarnAgain, this.CanDontWarnAgain);
         }
 
         #region Properties
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Connect Command
 
-        private bool OnConnectStatus()
+        private bool CanConnect()
         {
             return this.projectSystemHelper.IsSolutionFullyOpened()
                 && !this.host.VisualStateManager.IsConnected
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private void OnConnect()
         {
-            Debug.Assert(this.OnConnectStatus());
+            Debug.Assert(this.CanConnect());
             Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
 
             var componentModel = host.GetService<SComponentModel, IComponentModel>();
@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Refresh Command
 
-        private bool OnRefreshStatus(ConnectionInformation useConnection)
+        private bool CanRefresh(ConnectionInformation useConnection)
         {
             return !this.host.VisualStateManager.IsBusy
                 && (useConnection != null || this.host.VisualStateManager.IsConnected);
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private void OnRefresh(ConnectionInformation useConnection)
         {
-            Debug.Assert(this.OnRefreshStatus(useConnection));
+            Debug.Assert(this.CanRefresh(useConnection));
 
             var componentModel = this.host.GetService<SComponentModel, IComponentModel>();
             TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.RefreshCommandCommandCalled);
@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.WarnServerTrustId);
         }
 
-        private bool OnDontWarnAgainStatus()
+        private bool CanDontWarnAgain()
         {
             return this.settings != null;
         }
