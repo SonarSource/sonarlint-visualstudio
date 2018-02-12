@@ -106,5 +106,76 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Project.Should().BeSameAs(newSerializer.CurrentBinding);
             actual.Mode.Should().Be(SonarLintMode.Connected);
         }
+
+        [TestMethod]
+        public void WriteConfig_InvalidArg_Throws()
+        {
+            // Arrange
+            var legacySerializer = new ConfigurableSolutionBindingSerializer { CurrentBinding = null };
+            var newSerializer = new ConfigurableSolutionBindingSerializer { CurrentBinding = null};
+            var configProvider = new ConfigurationProvider(legacySerializer, newSerializer);
+
+            // Act
+            Action act = () => configProvider.WriteConfiguration(null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("configuration");
+        }
+
+        [TestMethod]
+        public void WriteConfig_StandaloneConfig_Throws()
+        {
+            // Arrange
+            var legacySerializer = new ConfigurableSolutionBindingSerializer();
+            var newSerializer = new ConfigurableSolutionBindingSerializer();
+            var configProvider = new ConfigurationProvider(legacySerializer, newSerializer);
+
+            // Act
+            Action act = () => configProvider.WriteConfiguration(BindingConfiguration.Standalone);
+
+            // Assert
+            act.ShouldThrow<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void WriteConfig_LegacyConfig_CallsLegacySerializer()
+        {
+            // Arrange
+            var legacySerializer = new ConfigurableSolutionBindingSerializer();
+            var newSerializer = new ConfigurableSolutionBindingSerializer();
+            var configProvider = new ConfigurationProvider(legacySerializer, newSerializer);
+            legacySerializer.WriteSolutionBindingAction = p => "filename.txt";
+
+            var config = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), isLegacy: true);
+
+            // Act
+            var actual = configProvider.WriteConfiguration(config);
+
+            // Assert
+            actual.Should().BeTrue();
+            legacySerializer.WrittenFilesCount.Should().Be(1);
+            newSerializer.WrittenFilesCount.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void WriteConfig_NewConnectedModeConfig_CallsNewSerializer()
+        {
+            // Arrange
+            var legacySerializer = new ConfigurableSolutionBindingSerializer();
+            var newSerializer = new ConfigurableSolutionBindingSerializer();
+            var configProvider = new ConfigurationProvider(legacySerializer, newSerializer);
+            newSerializer.WriteSolutionBindingAction = p => "filename.txt";
+
+            var config = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), isLegacy: false);
+
+            // Act
+            var actual = configProvider.WriteConfiguration(config);
+
+            // Assert
+            actual.Should().BeTrue();
+            legacySerializer.WrittenFilesCount.Should().Be(0);
+            newSerializer.WrittenFilesCount.Should().Be(1);
+        }
+
     }
 }

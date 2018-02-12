@@ -19,6 +19,7 @@
  */
 
 using System;
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 
@@ -40,11 +41,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, SonarLintMode.LegacyConnected == ModeToReturn);
         }
 
+        public bool WriteConfiguration(BindingConfiguration configuration)
+        {
+            configuration.Should().NotBeNull();
+            this.SavedConfiguration = configuration;
+            return this.WriteResultToReturn;
+        }
+
         #region Test helpers
 
         public BoundSonarQubeProject ProjectToReturn { get; set; }
         public SonarLintMode ModeToReturn { get; set; }
         public Action GetConfigurationAction { get; set; }
+
+        public bool WriteResultToReturn { get; set; }
+        public BindingConfiguration SavedConfiguration { get; set; }
 
         #endregion Test helpers
 
