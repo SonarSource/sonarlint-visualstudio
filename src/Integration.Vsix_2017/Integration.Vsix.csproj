@@ -391,15 +391,14 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <!-- TODO: REVERT new-binaries to binaries for the next 3 references -->
     <Reference Include="SonarAnalyzer">
-      <HintPath>..\..\new-binaries\SonarAnalyzer.dll</HintPath>
+      <HintPath>..\..\binaries\SonarAnalyzer.dll</HintPath>
     </Reference>
     <Reference Include="SonarAnalyzer.CSharp">
-      <HintPath>..\..\new-binaries\SonarAnalyzer.CSharp.dll</HintPath>
+      <HintPath>..\..\binaries\SonarAnalyzer.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="SonarAnalyzer.VisualBasic">
-      <HintPath>..\..\new-binaries\SonarAnalyzer.VisualBasic.dll</HintPath>
+      <HintPath>..\..\binaries\SonarAnalyzer.VisualBasic.dll</HintPath>
     </Reference>
     <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
