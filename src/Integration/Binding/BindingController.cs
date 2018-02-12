@@ -23,13 +23,13 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.VisualStudio.ComponentModelHost;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -119,7 +119,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
             //TODO: CM2 - choose the type of binding
-            var workflow = new BindingWorkflow(this.host, bindingArgs);
+            var writer = this.host.GetService<IConfigurationProvider>();
+            var workflow = new NewBindingWorkflow(this.host, bindingArgs, writer);
 
             IProgressEvents progressEvents = workflow.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
