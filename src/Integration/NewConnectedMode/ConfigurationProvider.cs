@@ -72,19 +72,15 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             switch (configuration.Mode)
             {
                 case SonarLintMode.LegacyConnected:
-                    fileName = legacySerializer.WriteSolutionBinding(configuration.Project);
-                    break;
+                    return legacySerializer.WriteSolutionBinding(configuration.Project) != null;
                 case SonarLintMode.Connected:
-                    fileName = newConnectedModeSerializer.WriteSolutionBinding(configuration.Project);
-                    break;
+                    return newConnectedModeSerializer.WriteSolutionBinding(configuration.Project) != null;
                 case SonarLintMode.Standalone:
                     throw new InvalidOperationException(Strings.Bind_CannotSaveStandaloneConfiguration);
                 default:
                     Debug.Fail("Unrecognised write mode");
-                    break;
+                    return false;
             }
-
-            return fileName != null;
         }
     }
 }

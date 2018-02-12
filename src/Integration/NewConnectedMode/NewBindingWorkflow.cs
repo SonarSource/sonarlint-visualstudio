@@ -99,18 +99,10 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
         {
-            StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
-
             return new ProgressStepDefinition[]
             {
-                //new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
-                //        (token, notifications) => notifications.ProgressChanged(Strings.StartedSolutionBindingWorkflow)),
-
                 new ProgressStepDefinition(Strings.Bind_SavingBindingConfiguration, StepAttributes.Indeterminate,
                         (token, notifications) => this.SaveBindingInfo(controller, notifications, token)),
-
-                //new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
-                //        (token, notifications) => this.EmitBindingCompleteMessage(notifications))
             };
         }
 
@@ -140,11 +132,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             }
         }
 
-        internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
-        {
-            notifications.ProgressChanged(Strings.FinishedSolutionBindingWorkflowSuccessful);
-        }
-
         #endregion
 
         private void AbortWorkflow(IProgressController controller, CancellationToken token)
@@ -152,6 +139,5 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             bool aborted = controller.TryAbort();
             Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
         }
-
     }
 }

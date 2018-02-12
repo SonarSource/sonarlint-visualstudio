@@ -130,24 +130,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Strings.FinishedSolutionBindingWorkflowSuccessful);
         }
 
-        //[TestMethod]
-        //public void BindingWorkflow_EmitBindingCompleteMessage()
-        //{
-        //    // Arrange
-        //    var testSubject = this.CreateTestSubject();
-        //    var notifications = new ConfigurableProgressStepExecutionEvents();
-
-        //    // Act
-        //    testSubject.EmitBindingCompleteMessage(notifications);
-
-        //    // Assert
-        //    notifications.AssertProgressMessages(Strings.FinishedSolutionBindingWorkflowSuccessful);
-        //}
-
         private NewBindingWorkflow CreateTestSubject()
         {
             return new NewBindingWorkflow(host, ValidBindArgs, configWriter);
         }
-
     }
 }
