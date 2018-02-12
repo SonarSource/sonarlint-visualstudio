@@ -45,5 +45,32 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         public BoundSonarQubeProject Project { get; }
 
         public SonarLintMode Mode { get; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if (obj.GetType() != typeof(BindingConfiguration))
+            {
+                return false;
+            }
+
+            BindingConfiguration other = (BindingConfiguration)obj;
+
+            return other.Mode == this.Mode &&
+                other.Project?.Organization?.Key == this.Project?.Organization?.Key &&
+                other.Project?.ProjectKey == this.Project?.ProjectKey &&
+                other.Project?.ServerUri == this.Project?.ServerUri;
+        }
+
+        public override int GetHashCode()
+        {
+            // The only immutable field is Mode.
+            // We don't really expect this type to be used a dictionary key
+            return this.Mode.GetHashCode();
+        }
     }
 }

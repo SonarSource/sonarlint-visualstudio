@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             var newBindingConfiguration = this.configurationProvider.GetConfiguration();
 
-            if (CurrentConfiguration != newBindingConfiguration)
+            if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
                 CurrentConfiguration = newBindingConfiguration;
                 this.SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(newBindingConfiguration));
