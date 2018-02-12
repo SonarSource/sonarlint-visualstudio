@@ -87,17 +87,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Action & Assert
             // Reflexive
-            config1.Equals(config1).Should().BeTrue();
-            config2.Equals(config2).Should().BeTrue();
+            CheckAreEqual(config1, config2);
+            CheckAreEqual(config2, config1);
 
             // Transitive
-            config1.Equals(config2).Should().BeTrue();
-            config2.Equals(config3).Should().BeTrue();
-            config3.Equals(config1).Should().BeTrue();
+            CheckAreEqual(config1, config2);
+            CheckAreEqual(config2, config3);
+            CheckAreEqual(config3, config1);
 
             // Symmetric
-            config2.Equals(config3).Should().BeTrue();
-            config3.Equals(config2).Should().BeTrue();
+            CheckAreEqual(config2, config3);
+            CheckAreEqual(config3, config2);
         }
 
         [TestMethod]
@@ -117,21 +117,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act & Assert
             // Reflexive
-            config1.Equals(config1).Should().BeTrue();
-            config2.Equals(config2).Should().BeTrue();
+            CheckAreEqual(config1, config1);
+            CheckAreEqual(config2, config2);
 
             // Transitive
-            config1.Equals(config2).Should().BeTrue();
-            config2.Equals(config3).Should().BeTrue();
-            config3.Equals(config1).Should().BeTrue();
+            CheckAreEqual(config1, config2);
+            CheckAreEqual(config2, config3);
+            CheckAreEqual(config3, config1);
 
             // Symmetric
-            config2.Equals(config3).Should().BeTrue();
-            config3.Equals(config2).Should().BeTrue();
-
-            // Hash codes
-            config1.GetHashCode().Should().Be(config2.GetHashCode());
-            config1.GetHashCode().Should().Be(config3.GetHashCode());
+            CheckAreEqual(config2, config3);
+            CheckAreEqual(config3, config2);
         }
 
         [TestMethod]
@@ -146,11 +142,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var config2 = BindingConfiguration.CreateBoundConfiguration(project2, isLegacy: true);
 
             // Act & Assert
-            config1.Equals(config2).Should().BeFalse();
-            config2.Equals(config1).Should().BeFalse();
+            CheckAreNotEqual(config1, config2);
+            CheckAreNotEqual(config2, config1);
 
-            standalone.Equals(config1).Should().BeFalse();
-            config1.Equals(standalone).Should().BeFalse();
+            CheckAreNotEqual(standalone, config1);
+            CheckAreNotEqual(config1, standalone);
         }
 
         [TestMethod]
@@ -164,8 +160,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var config2 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: false);
 
             // Act & Assert
-            config1.Equals(config2).Should().BeFalse();
-            config2.Equals(config1).Should().BeFalse();
+            CheckAreNotEqual(config1, config2);
+            CheckAreNotEqual(config2, config1);
         }
 
         [TestMethod]
@@ -181,8 +177,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var config2 = BindingConfiguration.CreateBoundConfiguration(project2, isLegacy: true);
 
             // Act & Assert
-            config1.Equals(config2).Should().BeFalse();
-            config2.Equals(config1).Should().BeFalse();
+            CheckAreNotEqual(config1, config2);
+            CheckAreNotEqual(config2, config1);
         }
 
         [TestMethod]
@@ -198,15 +194,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var config2 = BindingConfiguration.CreateBoundConfiguration(project2, isLegacy: true);
 
             // Act & Assert
-            config1.Equals(config2).Should().BeFalse();
-            config2.Equals(config1).Should().BeFalse();
+            CheckAreNotEqual(config1, config2);
+            CheckAreNotEqual(config2, config1);
         }
 
         [TestMethod]
         public void Equals_Null_AreNotEqual()
         {
             // Act & Assert
-            BindingConfiguration.Standalone.Equals(null).Should().BeFalse();
+            object nullObject = null;
+            BindingConfiguration.Standalone.Equals(nullObject).Should().BeFalse();
+
+            BindingConfiguration nullConfig = null;
+            BindingConfiguration.Standalone.Equals(nullConfig).Should().BeFalse();
         }
 
         [TestMethod]
@@ -214,6 +214,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Act & Assert
             BindingConfiguration.Standalone.Equals(new object()).Should().BeFalse();
+        }
+
+        private static void CheckAreEqual(BindingConfiguration left, BindingConfiguration right)
+        {
+            left.Equals(right).Should().BeTrue(); // strongly-typed Equals
+            left.Equals((object)right).Should().BeTrue(); // untyped Equals
+
+            left.GetHashCode().Should().Be(right.GetHashCode());
+        }
+
+        private static void CheckAreNotEqual(BindingConfiguration left, BindingConfiguration right)
+        {
+            left.Equals(right).Should().BeFalse();  // strongly-typed Equals
+            left.Equals((object)right).Should().BeFalse(); // untyped Equals
         }
 
         #endregion

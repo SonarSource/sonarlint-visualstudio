@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    public class BindingConfiguration
+    public class BindingConfiguration : IEquatable<BindingConfiguration>
     {
         public readonly static BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone);
 
@@ -46,19 +46,24 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
         public SonarLintMode Mode { get; }
 
+        #region IEquatable<BindingConfiguration> and Equals
+
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            return Equals(obj as BindingConfiguration);
+        }
+
+        public bool Equals(BindingConfiguration other)
+        {
+            if (other == null)
             {
                 return false;
             }
 
-            if (obj.GetType() != typeof(BindingConfiguration))
+            if (ReferenceEquals(other, this))
             {
-                return false;
+                return true;
             }
-
-            BindingConfiguration other = (BindingConfiguration)obj;
 
             return other.Mode == this.Mode &&
                 other.Project?.Organization?.Key == this.Project?.Organization?.Key &&
@@ -69,8 +74,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         public override int GetHashCode()
         {
             // The only immutable field is Mode.
-            // We don't really expect this type to be used a dictionary key
+            // We don't really expect this type to be used a dictionary key, but we have
+            // to override GetHashCode since we have overridden Equals
             return this.Mode.GetHashCode();
         }
+
+        #endregion
     }
 }
