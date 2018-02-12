@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -50,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void StaticCreator_LegacyProject_ModeIsLegacy()
         {
             // Arrange & Act
-            var actual =  BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), isLegacy: true);
+            var actual = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), isLegacy: true);
 
             // Assert
             actual.Should().NotBeNull();
@@ -69,5 +70,166 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Project.Should().NotBeNull();
             actual.Mode.Should().Be(SonarLintMode.Connected);
         }
+
+        #region Equality tests
+
+        [TestMethod]
+        public void Equals_NullOrg_AreEqual()
+        {
+            // Arrange
+            var projectAAA1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
+            var projectAAA2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
+            var projectAAA3 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
+
+            var config1 = BindingConfiguration.CreateBoundConfiguration(projectAAA1, isLegacy: true);
+            var config2 = BindingConfiguration.CreateBoundConfiguration(projectAAA2, isLegacy: true);
+            var config3 = BindingConfiguration.CreateBoundConfiguration(projectAAA3, isLegacy: true);
+
+            // Action & Assert
+            // Reflexive
+            CheckAreEqual(config1, config2);
+            CheckAreEqual(config2, config1);
+
+            // Transitive
+            CheckAreEqual(config1, config2);
+            CheckAreEqual(config2, config3);
+            CheckAreEqual(config3, config1);
+
+            // Symmetric
+            CheckAreEqual(config2, config3);
+            CheckAreEqual(config3, config2);
+        }
+
+        [TestMethod]
+        public void Equals_NonNullOrg_AreEqual()
+        {
+            // Arrange
+            var projectAAA1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+                organization: new SonarQubeOrganization("org1", "111"));
+            var projectAAA2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+                organization: new SonarQubeOrganization("org1", "222222222222222"));
+            var projectAAA3 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+                organization: new SonarQubeOrganization("org1", "333333333333333333"));
+
+            var config1 = BindingConfiguration.CreateBoundConfiguration(projectAAA1, isLegacy: false);
+            var config2 = BindingConfiguration.CreateBoundConfiguration(projectAAA2, isLegacy: false);
+            var config3 = BindingConfiguration.CreateBoundConfiguration(projectAAA3, isLegacy: false);
+
+            // Act & Assert
+            // Reflexive
+            CheckAreEqual(config1, config1);
+            CheckAreEqual(config2, config2);
+
+            // Transitive
+            CheckAreEqual(config1, config2);
+            CheckAreEqual(config2, config3);
+            CheckAreEqual(config3, config1);
+
+            // Symmetric
+            CheckAreEqual(config2, config3);
+            CheckAreEqual(config3, config2);
+        }
+
+        [TestMethod]
+        public void Equals_DifferentProjects_AreNotEqual()
+        {
+            // Arrange
+            var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
+            var project2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectBBB", organization: null);
+
+            var standalone = BindingConfiguration.Standalone;
+            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: true);
+            var config2 = BindingConfiguration.CreateBoundConfiguration(project2, isLegacy: true);
+
+            // Act & Assert
+            CheckAreNotEqual(config1, config2);
+            CheckAreNotEqual(config2, config1);
+
+            CheckAreNotEqual(standalone, config1);
+            CheckAreNotEqual(config1, standalone);
+        }
+
+        [TestMethod]
+        public void Equals_DifferentModes_AreNotEqual()
+        {
+            // Arrange
+            var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
+
+            var standalone = BindingConfiguration.Standalone;
+            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: true);
+            var config2 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: false);
+
+            // Act & Assert
+            CheckAreNotEqual(config1, config2);
+            CheckAreNotEqual(config2, config1);
+        }
+
+        [TestMethod]
+        public void Equals_DifferentOrganisation_AreNotEqual()
+        {
+            // Arrange
+            var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+                organization: new SonarQubeOrganization("org1", "any"));
+            var project2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+                organization: new SonarQubeOrganization("ORG1", "any")); // different in case only
+
+            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: true);
+            var config2 = BindingConfiguration.CreateBoundConfiguration(project2, isLegacy: true);
+
+            // Act & Assert
+            CheckAreNotEqual(config1, config2);
+            CheckAreNotEqual(config2, config1);
+        }
+
+        [TestMethod]
+        public void Equals_DifferentServer_AreNotEqual()
+        {
+            // Arrange
+            var project1 = new BoundSonarQubeProject(new Uri("http://localhost1"), "projectAAA",
+                organization: new SonarQubeOrganization("org1", "any"));
+            var project2 = new BoundSonarQubeProject(new Uri("http://localhost2"), "projectAAA",
+                organization: new SonarQubeOrganization("org1", "any"));
+
+            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: true);
+            var config2 = BindingConfiguration.CreateBoundConfiguration(project2, isLegacy: true);
+
+            // Act & Assert
+            CheckAreNotEqual(config1, config2);
+            CheckAreNotEqual(config2, config1);
+        }
+
+        [TestMethod]
+        public void Equals_Null_AreNotEqual()
+        {
+            // Act & Assert
+            object nullObject = null;
+            BindingConfiguration.Standalone.Equals(nullObject).Should().BeFalse();
+
+            BindingConfiguration nullConfig = null;
+            BindingConfiguration.Standalone.Equals(nullConfig).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Equals_DifferentType_AreNotEqual()
+        {
+            // Act & Assert
+            BindingConfiguration.Standalone.Equals(new object()).Should().BeFalse();
+        }
+
+        private static void CheckAreEqual(BindingConfiguration left, BindingConfiguration right)
+        {
+            left.Equals(right).Should().BeTrue(); // strongly-typed Equals
+            left.Equals((object)right).Should().BeTrue(); // untyped Equals
+
+            left.GetHashCode().Should().Be(right.GetHashCode());
+        }
+
+        private static void CheckAreNotEqual(BindingConfiguration left, BindingConfiguration right)
+        {
+            left.Equals(right).Should().BeFalse();  // strongly-typed Equals
+            left.Equals((object)right).Should().BeFalse(); // untyped Equals
+        }
+
+        #endregion
     }
 }
