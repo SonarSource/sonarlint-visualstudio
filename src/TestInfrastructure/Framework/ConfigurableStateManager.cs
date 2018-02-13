@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public event EventHandler<bool> IsBusyChanged;
 
-        public event EventHandler BindingStateChanged;
+        public event EventHandler<BindingStateEventArgs> BindingStateChanged;
 
         public string BoundProjectKey
         {
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.AssignedOrganizationKey = null;
             this.AssignedProjectKey = null;
 
-            this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
+            this.BindingStateChanged?.Invoke(this, new BindingStateEventArgs(true));
         }
 
         public void SetBoundProject(Uri serverUri, string organizationKey, string projectKey)
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.AssignedOrganizationKey = organizationKey;
             this.AssignedProjectKey = projectKey;
 
-            this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
+            this.BindingStateChanged?.Invoke(this, new BindingStateEventArgs(false));
         }
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects)

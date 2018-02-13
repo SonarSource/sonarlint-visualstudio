@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,26 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
 using System;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration.State
 {
-    public class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
+    public class BindingStateEventArgs : EventArgs
     {
-        public BindingConfiguration CurrentConfiguration { get; set; }
-
-        public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
-        public event EventHandler SolutionBindingUpdated;
-
-        public void SimulateSolutionBindingChanged(ActiveSolutionBindingEventArgs binding)
+        public BindingStateEventArgs(bool isBindingCleared)
         {
-            SolutionBindingChanged(this, binding);
+            IsBindingCleared = isBindingCleared;
         }
 
-        public void SimulateSolutionBindingUpdated()
-        {
-            SolutionBindingUpdated(this, EventArgs.Empty);
-        }
+        public bool IsBindingCleared { get; }
     }
 }

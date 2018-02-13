@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.State
         #region IStateManager
         public event EventHandler<bool> IsBusyChanged;
 
-        public event EventHandler BindingStateChanged;
+        public event EventHandler<BindingStateEventArgs> BindingStateChanged;
 
         public TransferableVisualState ManagedState
         {
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.State
             this.ManagedState.ClearBoundProject();
             Debug.Assert(!this.HasBoundProject, "Expected not to have a bound project");
 
-            this.OnBindingStateChanged();
+            this.OnBindingStateChanged(isCleared: true);
         }
 
         public void SyncCommandFromActiveSection()
@@ -156,9 +156,9 @@ namespace SonarLint.VisualStudio.Integration.State
             this.IsBusyChanged?.Invoke(this, isBusy);
         }
 
-        private void OnBindingStateChanged()
+        private void OnBindingStateChanged(bool isCleared)
         {
-            this.BindingStateChanged?.Invoke(this, EventArgs.Empty);
+            this.BindingStateChanged?.Invoke(this, new BindingStateEventArgs(isCleared));
         }
 
         private void OnStatePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -247,7 +247,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 this.ManagedState.SetBoundProject(projectViewModel);
                 Debug.Assert(this.HasBoundProject, "Expected to have a bound project");
 
-                this.OnBindingStateChanged();
+                this.OnBindingStateChanged(isCleared: false);
             }
         }
 

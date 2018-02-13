@@ -292,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // The project configuration hasn't changed (it doesn't matter what properties
             // we pass here; they aren't used when raising the event.)
             host.VisualStateManager.SetBoundProject(new Uri("http://junk"), "any", "any");
-            
+
             // Assert
             // Different config so event should be raised
             solutionBindingChangedEventCount.Should().Be(1);
@@ -453,6 +453,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyServiceDisconnect(Times.Never());
             commandCanExecuteCallCount.Should().Be(1);
             commandCallCount.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void SolutionBindingUpdated_WhenClearBoundProject_NotRaised()
+        {
+            // Arrange
+            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
+            int callCount = 0;
+            testSubject.SolutionBindingUpdated += (sender, e) => callCount++;
+
+            // Act
+            host.VisualStateManager.ClearBoundProject();
+
+            // Assert
+            callCount.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void SolutionBindingUpdated_WhenSetBoundProject_Raised()
+        {
+            // Arrange
+            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
+            int callCount = 0;
+            testSubject.SolutionBindingUpdated += (sender, e) => callCount++;
+
+            // Act
+            host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
+
+            // Assert
+            callCount.Should().Be(1);
         }
 
         private void ConfigureService(bool isConnected)
