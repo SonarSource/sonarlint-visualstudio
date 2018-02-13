@@ -118,13 +118,34 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
-            //TODO: CM2 - choose the type of binding
-            var writer = this.host.GetService<IConfigurationProvider>();
-            var workflow = new NewBindingWorkflow(this.host, bindingArgs, writer);
-
+            var workflow = CreateBindingWorkflow(bindingArgs);
+            
             IProgressEvents progressEvents = workflow.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
             this.SetBindingInProgress(progressEvents, bindingArgs);
+        }
+
+        internal /* for testing purposes */ IBindingWorkflow CreateBindingWorkflow(BindCommandArgs bindingArgs)
+        {
+            //Choose the type of binding
+            var configProvider = this.host.GetService<IConfigurationProvider>();
+            configProvider.AssertLocalServiceIsNotNull();
+
+            var currentConfiguration = configProvider.GetConfiguration();
+            if (currentConfiguration.Mode == SonarLintMode.LegacyConnected)
+            {
+                host.Logger.WriteLine(Strings.Bind_UpdatingLegacyBinding);
+                return new BindingWorkflow(host, bindingArgs);
+            }
+
+            // If we are currently in standalone then the project is being bound for the first time.
+            // If we are in connected mode then the binding is being updated.
+            host.Logger.WriteLine(
+                currentConfiguration.Mode == SonarLintMode.Standalone ?
+                    Strings.Bind_FirstTimeBinding :
+                    Strings.Bind_UpdatingNewStyleBinding);
+
+            return new NewBindingWorkflow(host, bindingArgs, configProvider);
         }
 
         internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, BindCommandArgs bindingArgs)
@@ -157,9 +178,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 this.host.VisualStateManager.SetBoundProject(bindingArgs.Connection.ServerUri, bindingArgs.Connection.Organization?.Key, bindingArgs.ProjectKey);
 
-                // TODO: CM2: the conflicts controller is only applicable in legacy connected mode
-                // However, it *should* be safe to call it regardless - in new connected mode it should
-                // return false.
+                // The conflicts controller is only applicable in legacy connected mode
+                // However, it is safe to call it regardless - in new connected mode it will
+                // not return any conflicts.
                 var conflictsController = this.host.GetService<IRuleSetConflictsController>();
                 conflictsController.AssertLocalServiceIsNotNull();
 

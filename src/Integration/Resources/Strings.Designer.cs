@@ -106,11 +106,38 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Establishing new binding....
+        /// </summary>
+        public static string Bind_FirstTimeBinding {
+            get {
+                return ResourceManager.GetString("Bind_FirstTimeBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Saving configuration....
         /// </summary>
         public static string Bind_SavingBindingConfiguration {
             get {
                 return ResourceManager.GetString("Bind_SavingBindingConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating legacy binding....
+        /// </summary>
+        public static string Bind_UpdatingLegacyBinding {
+            get {
+                return ResourceManager.GetString("Bind_UpdatingLegacyBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating binding....
+        /// </summary>
+        public static string Bind_UpdatingNewStyleBinding {
+            get {
+                return ResourceManager.GetString("Bind_UpdatingNewStyleBinding", resourceCulture);
             }
         }
         

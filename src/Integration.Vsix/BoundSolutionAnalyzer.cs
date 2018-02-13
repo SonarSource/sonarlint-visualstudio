@@ -28,8 +28,6 @@ using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    // TODO: CM2: update to record telemetry for the new connected mode
-
     /// <summary>
     /// Analyzes the solution on build in order to determine if it has SonarQube rulesets
     /// and log that using <see cref="ITelemetryLogger"/>.
