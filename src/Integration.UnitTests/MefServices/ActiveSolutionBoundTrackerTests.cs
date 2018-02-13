@@ -459,7 +459,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBindingUpdated_WhenClearBoundProject_NotRaised()
         {
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
+            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
             int callCount = 0;
             testSubject.SolutionBindingUpdated += (sender, e) => callCount++;
 
@@ -474,7 +474,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBindingUpdated_WhenSetBoundProject_Raised()
         {
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, sonarLintOutputMock.Object);
+            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
             int callCount = 0;
             testSubject.SolutionBindingUpdated += (sender, e) => callCount++;
 

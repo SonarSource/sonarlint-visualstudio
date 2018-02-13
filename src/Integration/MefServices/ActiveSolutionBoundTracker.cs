@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration
                 $"Inconsistent connection state: Solution bound={boundProject != null}, service connected={sonarQubeService.IsConnected}");
         }
 
-        private void OnBindingStateChanged(object sender, EventArgs e)
+        private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
         {
             this.RaiseAnalyzersChangedIfBindingChanged(e.IsBindingCleared);
         }
