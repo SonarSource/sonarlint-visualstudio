@@ -733,4 +733,13 @@ This is the general format to use when writing errors to output window or when t
     <value>Failed to save configuration</value>
     <comment>Message for save error in new binding workflow</comment>
   </data>
+  <data name="Bind_FirstTimeBinding" xml:space="preserve">
+    <value>Establishing new binding...</value>
+  </data>
+  <data name="Bind_UpdatingLegacyBinding" xml:space="preserve">
+    <value>Updating legacy binding...</value>
+  </data>
+  <data name="Bind_UpdatingNewStyleBinding" xml:space="preserve">
+    <value>Updating binding...</value>
+  </data>
 </root>

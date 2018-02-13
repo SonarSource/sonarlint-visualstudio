@@ -26,9 +26,12 @@ using FluentAssertions;
 using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -51,6 +54,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableVsMonitorSelection monitorSelection;
         private DTEMock dteMock;
         private ConfigurableRuleSetConflictsController conflictsController;
+        private ConfigurableConfigurationProvider configProvider;
+        private ConfigurableVsOutputWindowPane outputWindowPane;
+
+        private readonly BoundSonarQubeProject ValidProject = new BoundSonarQubeProject(new Uri("http://any"), "projectKey");
+        private readonly BindCommandArgs ValidBindingArgs = new BindCommandArgs("any key", "any name", new ConnectionInformation(new Uri("http://anyXXX")));
 
         [TestInitialize]
         public void TestInitialize()
@@ -65,8 +73,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.conflictsController = new ConfigurableRuleSetConflictsController();
+            this.configProvider = new ConfigurableConfigurationProvider();
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
+            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
+
+            var outputWindow = new ConfigurableVsOutputWindow();
+            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = sonarQubeService.Object;
@@ -352,6 +366,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             canExecuteChanged.Should().BeTrue("The command needs to invalidate the previous CanExecute state using CanExecuteChanged event");
+        }
+
+        [TestMethod]
+        public void BindingController_ChooseWorkflow_Legacy_UsesOldWorkflow()
+        {
+            // Arrange
+            configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
+            configProvider.ProjectToReturn = ValidProject;
+            serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
+
+            var testSubject = this.CreateBindingController();
+
+            // Act
+            var actual = testSubject.CreateBindingWorkflow(ValidBindingArgs);
+
+            // Assert
+            actual.Should().BeOfType<BindingWorkflow>();
+            outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingLegacyBinding);
+        }
+
+        [TestMethod]
+        public void BindingController_ChooseWorkflow_Standalone_UsesNewWorkflow()
+        {
+            // Arrange
+            configProvider.ModeToReturn = SonarLintMode.Standalone;
+            configProvider.ProjectToReturn = ValidProject;
+            var testSubject = this.CreateBindingController();
+
+            // Act
+            var actual = testSubject.CreateBindingWorkflow(ValidBindingArgs);
+
+            // Assert
+            actual.Should().BeOfType<NewBindingWorkflow>();
+            outputWindowPane.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
+        }
+
+        [TestMethod]
+        public void BindingController_ChooseWorkflow_Connected_UsesNewWorkflow()
+        {
+            // Arrange
+            configProvider.ModeToReturn = SonarLintMode.Connected;
+            configProvider.ProjectToReturn = ValidProject;
+            var testSubject = this.CreateBindingController();
+
+            // Act
+            var actual = testSubject.CreateBindingWorkflow(ValidBindingArgs);
+
+            // Assert
+            actual.Should().BeOfType<NewBindingWorkflow>();
+            outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
         }
 
         #endregion Tests
