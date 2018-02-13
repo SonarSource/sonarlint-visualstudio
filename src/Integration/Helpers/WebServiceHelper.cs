@@ -52,5 +52,10 @@ namespace SonarLint.VisualStudio.Integration
 
             return default(T);
         }
+
+        public static async Task SafeServiceCall(Func<Task> call, ILogger logger)
+        {
+            await SafeServiceCall(async () => { await call(); return 0; }, logger);
+        }
     }
 }
