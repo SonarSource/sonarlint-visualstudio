@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarAnalyzer.Helpers;
@@ -45,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly Func<SyntaxTree, bool> previousShouldAnalysisBeDisabled;
         private readonly Func<SyntaxTree, Diagnostic, bool> previousShouldDiagnosticBeReported;
 
-        private readonly List<IDisposable> otherDisposables = new List<IDisposable>();
+        private readonly List<IDisposable> disposableObjects = new List<IDisposable>();
 
         internal /* for testing purposes */ SonarAnalyzerWorkflowBase currentWorklow;
 
@@ -91,6 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.previousReportDiagnosticAction = SonarAnalysisContext.ReportDiagnosticAction;
 
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+            activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
 
             RefreshWorkflow(this.activeSolutionBoundTracker.CurrentConfiguration);
         }
@@ -98,6 +100,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
             RefreshWorkflow(e.Configuration);
+        }
+
+        private void OnSolutionBindingUpdated(object sender, EventArgs e)
+        {
+            Debug.Assert(this.activeSolutionBoundTracker.CurrentConfiguration.Mode != SonarLintMode.Standalone,
+                "Not expecting to received the solution binding update event in standalone mode.");
+
+            RefreshWorkflow(this.activeSolutionBoundTracker.CurrentConfiguration);
         }
 
         private void RefreshWorkflow(BindingConfiguration configuration)
@@ -117,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 case SonarLintMode.Connected:
                     var sonarQubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, configuration.Project.ProjectKey,
                         new TimerFactory());
-                    this.otherDisposables.Add(sonarQubeIssueProvider);
+                    this.disposableObjects.Add(sonarQubeIssueProvider);
                     var liveIssueFactory = new LiveIssueFactory(workspace, vsSolution);
                     var suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarQubeIssueProvider);
 
@@ -125,8 +135,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     {
 
                         var qualityProfileProvider = new SonarQubeQualityProfileProvider(sonarQubeService, logger);
+                        this.disposableObjects.Add(qualityProfileProvider);
                         var cachingProvider = new QualityProfileProviderCachingDecorator(qualityProfileProvider,
                             configuration.Project, sonarQubeService, new TimerFactory());
+                        this.disposableObjects.Add(cachingProvider);
                         this.currentWorklow = new SonarAnalyzerConnectedWorkflow(this.workspace, cachingProvider,
                             configuration.Project, suppressionHandler);
                     }
@@ -144,8 +156,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void ResetState()
         {
-            this.otherDisposables.ForEach(x => x.Dispose());
-            this.otherDisposables.Clear();
+            this.disposableObjects.ForEach(x => x.Dispose());
+            this.disposableObjects.Clear();
             this.currentWorklow?.Dispose();
             this.currentWorklow = null;
 

@@ -41,5 +41,7 @@ namespace SonarLint.VisualStudio.Integration
         /// This occurs when a new solution is opened, or the SonarQube binding status of the solution changes.
         /// </summary>
         event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
+
+        event EventHandler SolutionBindingUpdated;
     }
 }

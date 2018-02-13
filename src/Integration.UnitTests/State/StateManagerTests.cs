@@ -355,6 +355,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         }
 
         [TestMethod]
+        public void ClearBoundProject_RaisesBindingStateChangedWithExpectedArgs()
+        {
+            // Arrange
+            ConfigurableHost host = new ConfigurableHost();
+            var testSubject = this.CreateTestSubject(host);
+            BindingStateEventArgs actualArgs = null;
+            testSubject.BindingStateChanged += (sender, e) => actualArgs = e;
+
+            // Act
+            testSubject.ClearBoundProject();
+
+            // Assert
+            actualArgs.Should().NotBeNull();
+            actualArgs.IsBindingCleared.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void SetBoundProject_RaisesBindingStateChangedWithExpectedArgs()
+        {
+            // Arrange
+            ConfigurableHost host = new ConfigurableHost();
+            var testSubject = this.CreateTestSubject(host);
+            BindingStateEventArgs actualArgs = null;
+            testSubject.BindingStateChanged += (sender, e) => actualArgs = e;
+
+            testSubject.ManagedState.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz1"))));
+            testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new SonarQubeProject(Guid.NewGuid().ToString(), ""))));
+            var allProjects = testSubject.ManagedState.ConnectedServers.SelectMany(s => s.Projects).ToList();
+
+            // Act
+            testSubject.SetBoundProject(new Uri("http://zzz1"), null, allProjects.First().Project.Key);
+
+            // Assert
+            actualArgs.Should().NotBeNull();
+            actualArgs.IsBindingCleared.Should().BeFalse();
+        }
+
+        [TestMethod]
         public void StateManager_IsConnected()
         {
             // Arrange

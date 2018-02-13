@@ -180,6 +180,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.currentWorklow.Should().BeOfType<SonarAnalyzerConnectedWorkflow>();
         }
 
+        [TestMethod]
+        public void WhenSolutionBindingUpdated_WhenNewConnectedMode_TriggersNewInstanceOfSameKindOfWorkflow()
+        {
+            // Arrange
+            this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(
+                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.Connected);
+            var testSubject = CreateTestSubject();
+            var workflow = testSubject.currentWorklow;
+
+            // Sanity check
+            workflow.Should().BeOfType<SonarAnalyzerConnectedWorkflow>();
+
+            // Act
+            activeSolutionBoundTracker.SimulateSolutionBindingUpdated();
+
+            // Assert
+            testSubject.currentWorklow.Should().NotBe(workflow);
+            testSubject.currentWorklow.Should().BeOfType<SonarAnalyzerConnectedWorkflow>();
+        }
+
+        [TestMethod]
+        public void WhenSolutionBindingUpdated_WhenLegacyConnectedMode_TriggersNewInstanceOfSameKindOfWorkflow()
+        {
+            // Arrange
+            this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(
+                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.LegacyConnected);
+            var testSubject = CreateTestSubject();
+            var workflow = testSubject.currentWorklow;
+
+            // Sanity check
+            workflow.Should().BeOfType<SonarAnalyzerLegacyConnectedWorkflow>();
+
+            // Act
+            activeSolutionBoundTracker.SimulateSolutionBindingUpdated();
+
+            // Assert
+            testSubject.currentWorklow.Should().NotBe(workflow);
+            testSubject.currentWorklow.Should().BeOfType<SonarAnalyzerLegacyConnectedWorkflow>();
+        }
 
         [TestMethod]
         public void Dispose_ResetAllDelegates()
