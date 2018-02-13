@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -40,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IErrorListInfoBarController errorListInfoBarController;
         private readonly IConfigurationProvider configurationProvider;
-        private readonly ILogger sonarLintOutput;
+        private readonly ILogger logger;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
         public event EventHandler SolutionBindingUpdated;
@@ -48,9 +47,7 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host,
-            IActiveSolutionTracker activeSolutionTracker,
-            ILogger sonarLintOutput)
+        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger)
         {
             if (host == null)
             {
@@ -60,14 +57,14 @@ namespace SonarLint.VisualStudio.Integration
             {
                 throw new ArgumentNullException(nameof(activeSolutionTracker));
             }
-            if (sonarLintOutput == null)
+            if (logger == null)
             {
-                throw new ArgumentNullException(nameof(sonarLintOutput));
+                throw new ArgumentNullException(nameof(logger));
             }
 
             this.extensionHost = host;
             this.solutionTracker = activeSolutionTracker;
-            this.sonarLintOutput = sonarLintOutput;
+            this.logger = logger;
 
             this.configurationProvider = this.extensionHost.GetService<IConfigurationProvider>();
             this.configurationProvider.AssertLocalServiceIsNotNull();
@@ -116,39 +113,15 @@ namespace SonarLint.VisualStudio.Integration
             if (boundProject != null)
             {
                 var connectionInformation = boundProject.CreateConnectionInformation();
-                await SafeServiceCall(async () =>
-                    await sonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None));
+                await WebServiceHelper.SafeServiceCall(() => sonarQubeService.ConnectAsync(connectionInformation,
+                    CancellationToken.None), this.logger);
             }
 
             Debug.Assert((boundProject != null) == sonarQubeService.IsConnected,
                 $"Inconsistent connection state: Solution bound={boundProject != null}, service connected={sonarQubeService.IsConnected}");
         }
 
-        private async Task SafeServiceCall(Func<Task> call)
-        {
-            try
-            {
-                await call();
-            }
-            catch (HttpRequestException e)
-            {
-                // For some errors we will get an inner exception which will have a more specific information
-                // that we would like to show i.e.when the host could not be resolved
-                var innerException = e.InnerException as System.Net.WebException;
-                sonarLintOutput.WriteLine(string.Format(Strings.SonarQubeRequestFailed, e.Message, innerException?.Message));
-            }
-            catch (TaskCanceledException)
-            {
-                // Canceled or timeout
-                sonarLintOutput.WriteLine(Strings.SonarQubeRequestTimeoutOrCancelled);
-            }
-            catch (Exception e)
-            {
-                sonarLintOutput.WriteLine(string.Format(Strings.SonarQubeRequestFailed, e.Message, null));
-            }
-        }
-
-        private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
+        private void OnBindingStateChanged(object sender, EventArgs e)
         {
             this.RaiseAnalyzersChangedIfBindingChanged(e.IsBindingCleared);
         }
