@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ILogger sonarLintOutput;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
+        public event EventHandler SolutionBindingUpdated;
 
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
@@ -146,12 +148,12 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private void OnBindingStateChanged(object sender, EventArgs e)
+        private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
         {
-            this.RaiseAnalyzersChangedIfBindingChanged();
+            this.RaiseAnalyzersChangedIfBindingChanged(e.IsBindingCleared);
         }
 
-        private void RaiseAnalyzersChangedIfBindingChanged()
+        private void RaiseAnalyzersChangedIfBindingChanged(bool? isBindingCleared = null)
         {
             var newBindingConfiguration = this.configurationProvider.GetConfiguration();
 
@@ -159,6 +161,14 @@ namespace SonarLint.VisualStudio.Integration
             {
                 CurrentConfiguration = newBindingConfiguration;
                 this.SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(newBindingConfiguration));
+            }
+            else if (isBindingCleared == false)
+            {
+                SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                // do nothing
             }
         }
 
