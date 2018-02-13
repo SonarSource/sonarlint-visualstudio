@@ -245,14 +245,6 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Will refetch the SonarQube projects from the server using the existing credentials</value>
     <comment>Refresh command tooltip</comment>
   </data>
-  <data name="DisconnectCommandDisplayText" xml:space="preserve">
-    <value>Disconnect</value>
-    <comment>Context menu command display text</comment>
-  </data>
-  <data name="DisconnectCommandTooltip" xml:space="preserve">
-    <value>Disconnect from SonarQube project</value>
-    <comment>Context menu command tooltip </comment>
-  </data>
   <data name="ServerNoProjectsInlineText" xml:space="preserve">
     <value>(no projects)</value>
     <comment>Text to be displayed inline next to the connected SonarQube server in the Team Explorer tree view when there are no SonarQube Projects available under the given server</comment>
