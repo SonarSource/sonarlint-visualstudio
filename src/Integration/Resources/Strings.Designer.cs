@@ -476,24 +476,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Disconnect.
-        /// </summary>
-        public static string DisconnectCommandDisplayText {
-            get {
-                return ResourceManager.GetString("DisconnectCommandDisplayText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Disconnect from SonarQube project.
-        /// </summary>
-        public static string DisconnectCommandTooltip {
-            get {
-                return ResourceManager.GetString("DisconnectCommandTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to * {0}.
         /// </summary>
         public static string DiscoveredIncludedOrExcludedProjectFormat {
