@@ -66,7 +66,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 host.Logger.WriteLine(Strings.Unbind_DisconnectingFromSonarQube);
                 host.ActiveSection.DisconnectCommand.Execute(null);
 
-                host.VisualStateManager.ClearBoundProject(); // this will raise a "binding changed" event
+                Debug.Assert(!host.VisualStateManager.HasBoundProject,
+                    "Bound project should be null after unbinding");
+
+                Debug.Assert(!host.VisualStateManager.IsConnected,
+                    "Should be disconnected from the SQ server after unbinding");
 
                 host.Logger.WriteLine(Strings.Unbind_State_Succeeded);
             }

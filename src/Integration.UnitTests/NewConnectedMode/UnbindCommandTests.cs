@@ -126,9 +126,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.TestStateManager.IsBusy = false;
             configProvider.ModeToReturn = SonarLintMode.Connected;
 
-            bool eventRaised = false;
-            host.TestStateManager.BindingStateChanged += (s, e) => eventRaised = true;
-
             bool disconnectCalled = false;
             section.DisconnectCommand = new RelayCommand(exec =>
                 {
@@ -141,7 +138,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             configProvider.DeleteCallCount.Should().Be(1);
-            eventRaised.Should().BeTrue();
             disconnectCalled.Should().BeTrue();
 
             outputWindowPane.AssertOutputStrings(

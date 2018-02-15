@@ -287,7 +287,8 @@ namespace SonarLint.VisualStudio.Integration.State
             });
 
             var unbindCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection.UnbindCommand);
-            unbindCommand.DisplayText = "Unbind";
+            unbindCommand.DisplayText = Strings.Unbind_Command_DisplayText;
+            unbindCommand.Tooltip = Strings.Unbind_Command_Tooltip;
             unbindCommand.Icon = new IconViewModel(KnownMonikers.Disconnect);
 
             // Note: the Disconnect command is not on the context menu, although it is
@@ -335,16 +336,6 @@ namespace SonarLint.VisualStudio.Integration.State
 
                 projectVM.Commands.Add(bindContextCommand);
                 projectVM.Commands.Add(openProjectDashboardCommand);
-
-                // Only add the Unbind command to the currently bound project
-                if (projectVM.IsBound)
-                {
-                    var unbindCommand = new ContextualCommandViewModel(projectVM,
-                        this.Host.ActiveSection.UnbindCommand);
-                    unbindCommand.DisplayText = "Unbind";
-                    unbindCommand.Icon = new IconViewModel(KnownMonikers.Disconnect);
-                    projectVM.Commands.Add(unbindCommand);
-                }
             }
         }
         #endregion

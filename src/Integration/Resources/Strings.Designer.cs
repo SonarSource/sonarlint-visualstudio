@@ -1298,6 +1298,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unbind.
+        /// </summary>
+        public static string Unbind_Command_DisplayText {
+            get {
+                return ResourceManager.GetString("Unbind_Command_DisplayText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unbinds the solution from the SonarQube project and closes the connection to the SonarQube server.
+        /// </summary>
+        public static string Unbind_Command_Tooltip {
+            get {
+                return ResourceManager.GetString("Unbind_Command_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deleting binding configuration....
         /// </summary>
         public static string Unbind_DeletingBinding {
