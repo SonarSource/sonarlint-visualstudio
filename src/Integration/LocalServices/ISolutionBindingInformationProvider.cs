@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// SonarQube-bound project discovery
     /// </summary>
-    internal interface ISolutionBindingInformationProvider : ILocalService
+    internal interface ISolutionBindingInformationProvider
     {
         /// <summary>
         /// Return all the SonarQube bound projects in the current solution.

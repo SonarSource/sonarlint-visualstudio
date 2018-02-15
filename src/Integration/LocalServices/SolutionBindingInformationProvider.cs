@@ -30,7 +30,7 @@ using SonarLint.VisualStudio.Integration.Persistence;
 namespace SonarLint.VisualStudio.Integration
 {
     // Legacy connected mode
-    // Not required in for the new connected mode
+    // Not required in the new connected mode
 
     internal class SolutionBindingInformationProvider : ISolutionBindingInformationProvider
     {
