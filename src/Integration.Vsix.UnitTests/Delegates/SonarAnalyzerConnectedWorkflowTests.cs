@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetLanguage_WhenDescriptorIsNeitherCSharpNorVb_ReturnsUnknown()
+        public void GetLanguage_WhenDescriptorIsNeitherCSharpNorVb_ReturnsVB()
         {
             using (new AssertIgnoreScope())
             {
@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var result = SonarAnalyzerConnectedWorkflow.GetLanguage(descriptors);
 
                 // Assert
-                result.Should().Be(Language.Unknown);
+                result.Should().Be(Language.VBNET);
             }
         }
         #endregion
