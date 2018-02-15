@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Rules;
@@ -31,6 +30,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    // This workflow affects only the VSIX Analyzers
     internal class SonarAnalyzerConnectedWorkflow : SonarAnalyzerWorkflowBase
     {
         private readonly IQualityProfileProvider qualityProfileProvider;
@@ -60,53 +60,72 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.boundProject = boundProject;
             this.suppressionHandler = suppressionHandler;
 
-            SonarAnalysisContext.ShouldExecuteRuleFunc = ShouldExecuteVsixAnalyzer;
-            SonarAnalysisContext.ReportDiagnosticAction = VsixAnalyzerReportDiagnostic;
+            SonarAnalysisContext.ReportDiagnostic = VsixAnalyzerReportDiagnostic;
         }
 
-        internal /* for testing purposes */ bool ShouldExecuteVsixAnalyzer(IAnalysisRunContext context)
-        {
-            if (context.SyntaxTree == null)
-            {
-                return false;
-            }
-
-            Debug.Assert(context.SupportedDiagnostics?.Any() ?? false,
-                "Not expecting a null or empty collection of diagnostic descriptors");
-
-            // Disable the VSIX analyzer as we want the NuGet analyzer to take precedence
-            if (GetProjectNuGetAnalyzerStatus(context.SyntaxTree) != ProjectAnalyzerStatus.NoAnalyzer)
-            {
-                return false;
-            }
-
-            return HasAnyRuleEnabled(context.SyntaxTree, context.SupportedDiagnostics);
-        }
-
-        private bool HasAnyRuleEnabled(SyntaxTree syntaxTree, IEnumerable<DiagnosticDescriptor> supportedDescriptors) =>
-            this.qualityProfileProvider.GetQualityProfile(this.boundProject, GetLanguage(syntaxTree))
+        internal /* for testing purposes */ protected override bool? ShouldRegisterContextAction(
+            IEnumerable<DiagnosticDescriptor> descriptors) =>
+            this.qualityProfileProvider.GetQualityProfile(this.boundProject, GetLanguage(descriptors))
                 ?.Rules
                 .Select(x => x.Key)
-                .Intersect(supportedDescriptors.Select(d => d.Id)) // We assume that a rule is enabled if present in the QP
-                .Any()
-            // Fallback using SonarWay
-            ?? supportedDescriptors.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
+                .Intersect(descriptors.Select(d => d.Id)) // We assume that a rule is enabled if present in the QP
+                .Any();
 
-        internal /* for testing purposes */ virtual Language GetLanguage(SyntaxTree syntaxTree)
+        internal /* for testing purposes */ static Language GetLanguage(IEnumerable<DiagnosticDescriptor> descriptors)
         {
-            var rootNode = syntaxTree?.GetRoot();
+            if (descriptors == null ||
+                !descriptors.Any())
+            {
+                Debug.Fail("Was expecting to have at least one descriptor");
+                return Language.Unknown;
+            }
 
-            if (rootNode is CompilationUnitSyntax)
+            DEBUG_LanguageCustomTags(descriptors);
+
+            if (descriptors.First().CustomTags.Contains(LanguageNames.CSharp))
             {
                 return Language.CSharp;
             }
-
-            if (rootNode is Microsoft.CodeAnalysis.VisualBasic.Syntax.CompilationUnitSyntax)
+            else
             {
                 return Language.VBNET;
             }
+        }
 
-            return Language.Unknown;
+        [Conditional("DEBUG")]
+        private static void DEBUG_LanguageCustomTags(IEnumerable<DiagnosticDescriptor> descriptors)
+        {
+            var supportedLanguages = new List<string> { LanguageNames.CSharp, LanguageNames.VisualBasic };
+            string sharedLanguage = null;
+
+            foreach (var languageTags in descriptors.Select(d => d.CustomTags.Intersect(supportedLanguages).ToList()))
+            {
+                switch (languageTags.Count)
+                {
+                    case 0:
+                        Debug.Fail("Was expecting the diagnostic descriptor tags to contain either C# or Visual Basic");
+                        break;
+
+                    case 1:
+                        if (sharedLanguage == null)
+                        {
+                            sharedLanguage = languageTags[0];
+                        }
+                        else if (sharedLanguage != languageTags[0])
+                        {
+                            Debug.Fail("Was expecting all diagnostic descriptors to be of the same language");
+                        }
+                        else
+                        {
+                            // nothing
+                        }
+                        break;
+
+                    default:
+                        Debug.Fail("Was expecting the diagnostic descriptor tags to contain only one of C# or Visual Basic");
+                        break;
+                }
+            }
         }
 
         internal /* for testing purposes */ void VsixAnalyzerReportDiagnostic(IReportingContext context)
@@ -118,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // A DiagnosticAnalyzer can have multiple supported diagnostics and we decided to run the rule as long as at least
             // one of the diagnostics is enabled. Therefore we need to filter the reported issues.
-            if (HasAnyRuleEnabled(context.SyntaxTree, new[] { context.Diagnostic.Descriptor }) &&
+            if (ShouldRegisterContextActionWithFallback(new[] { context.Diagnostic.Descriptor }) &&
                 this.suppressionHandler.ShouldIssueBeReported(context.SyntaxTree, context.Diagnostic))
             {
                 context.ReportDiagnostic(context.Diagnostic); // TODO: Update the diagnostic based on configuration
