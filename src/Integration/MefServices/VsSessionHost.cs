@@ -46,7 +46,6 @@ namespace SonarLint.VisualStudio.Integration
         {
                 typeof(ISolutionRuleSetsInformationProvider),
                 typeof(IRuleSetSerializer),
-                typeof(ISolutionBindingSerializer),
                 typeof(IProjectSystemHelper),
                 typeof(ISourceControlledFileSystem),
                 typeof(IFileSystem),
@@ -297,12 +296,11 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(this)));
-            this.localServices.Add(typeof(ISolutionBindingSerializer), new Lazy<ILocalService>(() => new SolutionBindingSerializer(this)));
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(() =>
             {
                 var solution = this.GetService<SVsSolution, IVsSolution>();
                 var store = new SecretStore(SolutionBindingSerializer.StoreNamespace);
-                var legacySerializer = this.GetService<ISolutionBindingSerializer>();
+                var legacySerializer = new SolutionBindingSerializer(this);
                 // The SCC wrapper maintains a queue of file writes. For the new provider we want to the file write to be
                 // executed immediately, so we want our own SCC wrapper rather than sharing the one used by the legacy mode.
                 var sccFileSystem = new SourceControlledFileSystem(this); 

@@ -21,7 +21,7 @@
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
     // Test interface
-    internal interface ISolutionBindingSerializer : ILocalService
+    internal interface ISolutionBindingSerializer
     {
         /// <summary>
         /// Retrieves solution binding information
