@@ -26,27 +26,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix;
-using static SonarLint.VisualStudio.Integration.Vsix.SonarAnalyzerWorkflowBase;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class SonarAnalyzerStandaloneWorkflowTests
     {
-        private class TestableSonarAnalyzerStandaloneWorkflow : SonarAnalyzerStandaloneWorkflow
-        {
-            public TestableSonarAnalyzerStandaloneWorkflow()
-                : base(new AdhocWorkspace())
-            {
-            }
-
-            public Func<SyntaxTree, ProjectAnalyzerStatus> ProjectNuGetAnalyzerStatusFunc { get; set; } =
-                tree => ProjectAnalyzerStatus.NoAnalyzer;
-
-            protected override ProjectAnalyzerStatus GetProjectNuGetAnalyzerStatus(SyntaxTree syntaxTree) =>
-                ProjectNuGetAnalyzerStatusFunc(syntaxTree);
-        }
-
         [TestMethod]
         public void Ctor_WhenWorkspaceIsNull_ThrowsArgumentNullException()
         {
@@ -58,98 +43,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Ctor_ChangeExpectedDelegates()
-        {
-            // Arrange
-            Func<IAnalysisRunContext, bool> expectedShouldExecuteRuleFunc = ctx => false;
-            SonarAnalysisContext.ShouldExecuteRuleFunc = expectedShouldExecuteRuleFunc;
-            Action<IReportingContext> expectedReportDiagnosticAction = ctx => { };
-            SonarAnalysisContext.ReportDiagnosticAction = expectedReportDiagnosticAction;
-
-            // Act
-            var testSubject = new TestableSonarAnalyzerStandaloneWorkflow();
-
-            // Assert
-            SonarAnalysisContext.ShouldExecuteRuleFunc.Should().NotBe(expectedShouldExecuteRuleFunc);
-            SonarAnalysisContext.ReportDiagnosticAction.Should().NotBe(expectedReportDiagnosticAction);
-        }
-
-        [TestMethod]
-        public void ShouldExecuteVsixAnalyzer_WhenSyntaxTreeIsNull_ReturnsFalse()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerStandaloneWorkflow();
-            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
-
-            // Act
-            var result = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
-
-            // Assert
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ShouldExecuteVsixAnalyzer_WhenProjectHasNuGetAnalyzer_ReturnsFalse()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerStandaloneWorkflow();
-            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
-
-            // Act 1
-            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.DifferentVersion;
-            var result1 = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
-
-            // Act 2
-            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.SameVersion;
-            var result2 = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
-
-            // Assert
-            result1.Should().BeFalse();
-            result2.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ShouldExecuteVsixAnalyzer_WhenAnyRuleInSonarWay_ReturnsTrue()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerStandaloneWorkflow();
-            var diag1 = CreateFakeDiagnostic(false, "1");
-            var diag2 = CreateFakeDiagnostic(true, "2");
-            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
-            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
-            analysisRunContextMock.SetupGet(x => x.SyntaxTree).Returns(new Mock<SyntaxTree>().Object);
-            analysisRunContextMock.SetupGet(x => x.SupportedDiagnostics).Returns(descriptors);
-
-            // Act
-            var result = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
-
-            // Assert
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void ShouldExecuteVsixAnalyzer_WhenNoRuleInSonarWay_ReturnsFalse()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerStandaloneWorkflow();
-            var diag1 = CreateFakeDiagnostic(false, "1");
-            var diag2 = CreateFakeDiagnostic(false, "2");
-            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
-            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
-            analysisRunContextMock.SetupGet(x => x.SupportedDiagnostics).Returns(descriptors);
-
-            // Act
-            var result = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
-
-            // Assert
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
         public void VsixAnalyzerReportDiagnostic_WhenRuleInSonarWay_CallsReportDiagnostic()
         {
             // Arrange
-            var testSubject = new TestableSonarAnalyzerStandaloneWorkflow();
+            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace());
             var diag = CreateFakeDiagnostic(true, "1");
             var reportingContextMock = new Mock<IReportingContext>();
             reportingContextMock.SetupGet(x => x.SyntaxTree).Returns(new Mock<SyntaxTree>().Object);
@@ -166,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void VsixAnalyzerReportDiagnostic_WhenRuleNotInSonarWay_DoesNotCallReportDiagnostic()
         {
             // Arrange
-            var testSubject = new TestableSonarAnalyzerStandaloneWorkflow();
+            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace());
             var diag = CreateFakeDiagnostic(false, "1");
             var reportingContextMock = new Mock<IReportingContext>();
             reportingContextMock.SetupGet(x => x.SyntaxTree).Returns(new Mock<SyntaxTree>().Object);

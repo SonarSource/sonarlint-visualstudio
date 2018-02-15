@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    // This workflow affects both the VSIX Analyzers + the NuGet Analyzers
     internal class SonarAnalyzerLegacyConnectedWorkflow : SonarAnalyzerWorkflowBase
     {
         private readonly ISuppressionHandler suppressionHandler;
@@ -52,8 +53,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.shouldDiagnosticBeReportedFunc = ShouldIssueBeReported;
             this.suppressionHandler = suppressionHandler;
 
-            SonarAnalysisContext.ShouldExecuteRuleFunc = ShouldExecuteVsixAnalyzer;
-
             // Inject the delegate into any Sonar analyzer assemblies that are already loaded
             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -64,28 +63,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
         }
 
-        internal /* for testing purposes */ bool ShouldExecuteVsixAnalyzer(IAnalysisRunContext context)
+        internal /* for testing purposes */ bool ShouldIssueBeReported(SyntaxTree syntaxTree, Diagnostic diagnostic)
         {
-            if (context.SyntaxTree == null)
+            Debug.Assert(syntaxTree != null, "Not expecting to be called with a null SyntaxTree");
+            Debug.Assert(diagnostic != null, "Not expecting to be called with a null Diagnostic");
+
+            // If the NuGet assembly is kept in memory after this class was disposed we could end up with weird behaviors
+            // so let's make sure not to call the suppression handler and return true.
+            if (disposedValue)
             {
-                return false;
+                return true;
             }
 
-            Debug.Assert(context.SupportedDiagnostics?.Any() ?? false,
-                "Not expecting a null or empty collection of diagnostic descriptors");
+            // If there is a NuGet diagnostic is enabled, otherwise it is enabled only when in SonarWay
+            var isDiagnosticEnabled = GetProjectNuGetAnalyzerStatus(syntaxTree) != ProjectAnalyzerStatus.NoAnalyzer ||
+                diagnostic.Descriptor.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag);
 
-            // Disable the VSIX analyzer as we want the NuGet analyzer to take precedence
-            if (GetProjectNuGetAnalyzerStatus(context.SyntaxTree) != ProjectAnalyzerStatus.NoAnalyzer)
-            {
-                return false;
-            }
-
-            // If the project doesn't have any NuGet we still want to provide the SonarWay level of analysis
-            return context.SupportedDiagnostics.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
+            return isDiagnosticEnabled &&
+                this.suppressionHandler.ShouldIssueBeReported(syntaxTree, diagnostic);
         }
-
-        private bool ShouldIssueBeReported(SyntaxTree syntaxTree, Diagnostic diagnostic) =>
-            this.suppressionHandler.ShouldIssueBeReported(syntaxTree, diagnostic);
 
         private void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
         {
