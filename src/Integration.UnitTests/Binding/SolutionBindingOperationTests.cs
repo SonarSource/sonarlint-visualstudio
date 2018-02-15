@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
@@ -45,7 +46,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private SolutionMock solutionMock;
         private ConfigurableSourceControlledFileSystem sccFileSystem;
         private ConfigurableRuleSetSerializer ruleFS;
-        private ConfigurableSolutionBindingSerializer solutionBinding;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfo;
 
         private const string SolutionRoot = @"c:\solution";
@@ -67,7 +67,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
             this.sccFileSystem = new ConfigurableSourceControlledFileSystem();
             this.ruleFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
-            this.solutionBinding = new ConfigurableSolutionBindingSerializer();
             this.ruleSetInfo = new ConfigurableSolutionRuleSetsInformationProvider();
             this.ruleSetInfo.SolutionRootFolder = SolutionRoot;
 
@@ -310,7 +309,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_CommitSolutionBinding()
         {
             // Arrange
-            this.serviceProvider.RegisterService(typeof(Persistence.ISolutionBindingSerializer), this.solutionBinding);
+            var configProvider = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), configProvider);
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
             var projects = new[] { csProject };
@@ -322,26 +322,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[Language.CSharp] = new RuleSet("cs");
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             var profiles = GetQualityProfiles();
-            profiles[Language.CSharp] = new SonarQubeQualityProfile("C# Profile", "", "", false, DateTime.Now);
+
+            DateTime expectedTimeStamp = DateTime.Now;
+            profiles[Language.CSharp] = new SonarQubeQualityProfile("expected profile Key", "", "", false, expectedTimeStamp);
             testSubject.Initialize(projects, profiles);
             testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool commitCalledForBinder = false;
             testSubject.Binders.Add(new ConfigurableBindingOperation { CommitAction = () => commitCalledForBinder = true });
             testSubject.Prepare(CancellationToken.None);
-            this.solutionBinding.WriteSolutionBindingAction = bindingInfo =>
-            {
-                bindingInfo.ServerUri.Should().Be(connectionInformation.ServerUri);
-                bindingInfo.Profiles.Should().HaveCount(1);
-
-                SonarQubeQualityProfile csProfile = profiles[Language.CSharp];
-                bindingInfo.Profiles[Language.CSharp].ProfileKey.Should().Be(csProfile.Key);
-                bindingInfo.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(csProfile.TimeStamp);
-
-                return "Doesn't matter";
-            };
 
             // Sanity
-            this.solutionBinding.WrittenFilesCount.Should().Be(0);
+            configProvider.SavedConfiguration.Should().BeNull();
 
             // Act
             var commitResult = testSubject.CommitSolutionBinding();
@@ -350,7 +341,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             commitResult.Should().BeTrue();
             commitCalledForBinder.Should().BeTrue();
             this.solutionItemsProject.Files.ContainsKey(@"c:\solution\SonarQube\keyCSharp.ruleset").Should().BeTrue("Ruleset was expected to be added to solution items");
-            this.solutionBinding.WrittenFilesCount.Should().Be(1);
+
+            configProvider.SavedConfiguration.Should().NotBeNull();
+            configProvider.SavedConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected);
+
+            var savedProject = configProvider.SavedConfiguration.Project;
+            savedProject.ServerUri.Should().Be(connectionInformation.ServerUri);
+            savedProject.Profiles.Should().HaveCount(1);
+            savedProject.Profiles[Language.CSharp].ProfileKey.Should().Be("expected profile Key");
+            savedProject.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(expectedTimeStamp);
         }
 
         [TestMethod]
