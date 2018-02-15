@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         {
             var mode = this.GetConfiguration().Mode;
             Debug.Assert(mode == SonarLintMode.Connected,
-                "Cannot only delete a configuration when in new connected mode");
+                "Can only delete a configuration when in new connected mode");
 
             if (mode == SonarLintMode.Connected)
             {
