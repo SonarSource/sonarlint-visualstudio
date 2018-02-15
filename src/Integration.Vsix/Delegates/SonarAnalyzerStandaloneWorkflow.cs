@@ -25,6 +25,7 @@ using SonarAnalyzer.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    // This workflow affects only the VSIX Analyzers
     internal class SonarAnalyzerStandaloneWorkflow : SonarAnalyzerWorkflowBase
     {
         public SonarAnalyzerStandaloneWorkflow(Workspace workspace)

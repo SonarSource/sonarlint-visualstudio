@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    // This workflow affects only the VSIX Analyzers
     internal class SonarAnalyzerConnectedWorkflow : SonarAnalyzerWorkflowBase
     {
         private readonly IQualityProfileProvider qualityProfileProvider;
@@ -72,26 +73,54 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* for testing purposes */ static Language GetLanguage(IEnumerable<DiagnosticDescriptor> descriptors)
         {
-            // We assume that all descriptors share the same language so we can take only the first one
-            var tags = descriptors?.FirstOrDefault()?.CustomTags;
-
-            if (tags == null)
+            if (descriptors == null || !descriptors.Any())
             {
                 Debug.Fail("Was expecting to have at least one descriptor");
                 return Language.Unknown;
             }
-            else if (tags.Contains(LanguageNames.CSharp))
+
+#if DEBUG
+            var supportedLanguages = new List<string> { LanguageNames.CSharp, LanguageNames.VisualBasic };
+            string sharedLanguage = null;
+
+            foreach (var languageTags in descriptors.Select(d => d.CustomTags.Intersect(supportedLanguages).ToList()))
+            {
+                switch (languageTags.Count)
+                {
+                    case 0:
+                        Debug.Fail("Was expecting the diagnostic descriptor tags to contain either C# or Visual Basic");
+                        return Language.Unknown;
+
+                    case 1:
+                        if (sharedLanguage == null)
+                        {
+                            sharedLanguage = languageTags[0];
+                        }
+                        else if (sharedLanguage != languageTags[0])
+                        {
+                            Debug.Fail("Was expecting all diagnostic descriptors to be of the same language");
+                            return Language.Unknown;
+                        }
+                        else
+                        {
+                            // nothing
+                        }
+                        break;
+
+                    default:
+                        Debug.Fail("Was expecting the diagnostic descriptor tags to contain only one of C# or Visual Basic");
+                        return Language.Unknown;
+                }
+            }
+#endif
+
+            if (descriptors.First().CustomTags.Contains(LanguageNames.CSharp))
             {
                 return Language.CSharp;
             }
-            else if (tags.Contains(LanguageNames.VisualBasic))
-            {
-                return Language.VBNET;
-            }
             else
             {
-                Debug.Fail("Was expecting the diagnostic descriptor tags to contain C# or Visual Basic");
-                return Language.Unknown;
+                return Language.VBNET;
             }
         }
 

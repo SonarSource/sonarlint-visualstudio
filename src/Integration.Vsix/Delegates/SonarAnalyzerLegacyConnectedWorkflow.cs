@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    // This workflow affects both the VSIX Analyzers + the NuGet Analyzers
     internal class SonarAnalyzerLegacyConnectedWorkflow : SonarAnalyzerWorkflowBase
     {
         private readonly ISuppressionHandler suppressionHandler;
@@ -66,6 +67,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             Debug.Assert(syntaxTree != null, "Not expecting to be called with a null SyntaxTree");
             Debug.Assert(diagnostic != null, "Not expecting to be called with a null Diagnostic");
+
+            // If the NuGet assembly is kept in memory after this class was disposed we could end up with weird behaviors
+            // so let's make sure not to call the suppression handler and return true.
+            if (disposedValue)
+            {
+                return true;
+            }
 
             // If there is a NuGet diagnostic is enabled, otherwise it is enabled only when in SonarWay
             var isDiagnosticEnabled = GetProjectNuGetAnalyzerStatus(syntaxTree) != ProjectAnalyzerStatus.NoAnalyzer ||

@@ -242,6 +242,21 @@ namespace SonarAnalyzer.Helpers
             // Assert
             result.Should().BeFalse();
         }
+
+        [TestMethod]
+        public void ShouldIssueBeReported_WhenClassIsDisposed_ReturnsTrue()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            testSubject.Dispose();
+            var diagnostic = CreateFakeDiagnostic(isInSonarWay: false);
+
+            // Act
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
+
+            // Assert
+            result.Should().BeTrue();
+        }
         #endregion
 
         #region Injector Tests
