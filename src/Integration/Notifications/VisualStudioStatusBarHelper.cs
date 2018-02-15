@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,7 +39,10 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         public static void AddStatusBarIcon(FrameworkElement statusBarIcon)
         {
-            Debug.Assert(statusBarIcon.Parent == null, "Icon should not already have been sited");
+            if (statusBarIcon.Parent != null)
+            {
+                return;
+            }
 
             var root = VisualTreeHelper.GetChild(
                 VisualTreeHelper.GetChild(Application.Current.MainWindow, 0), 0);
