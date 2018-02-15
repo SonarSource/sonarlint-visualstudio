@@ -52,7 +52,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             this.workspace = workspace;
+
+            SonarAnalysisContext.ShouldRegisterContextAction = ShouldRegisterContextActionWithFallback;
+            SonarAnalysisContext.ShouldExecuteRegisteredAction = ShouldExecuteRegisteredAction;
         }
+
+        internal /* for testing purposes */ bool ShouldRegisterContextActionWithFallback(
+            IEnumerable<DiagnosticDescriptor> descriptors) =>
+            ShouldRegisterContextAction(descriptors)
+            // Fallback using SonarWay
+            ?? descriptors.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
+
+        internal /* for testing purposes */ protected virtual bool? ShouldRegisterContextAction(
+            IEnumerable<DiagnosticDescriptor> descriptors) => null;
+
+        internal /* for testing purposes */ bool ShouldExecuteRegisteredAction(SyntaxTree syntaxTree) =>
+            syntaxTree != null &&
+            GetProjectNuGetAnalyzerStatus(syntaxTree) == ProjectAnalyzerStatus.NoAnalyzer;
 
         protected virtual ProjectAnalyzerStatus GetProjectNuGetAnalyzerStatus(SyntaxTree syntaxTree)
         {

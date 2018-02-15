@@ -30,27 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public SonarAnalyzerStandaloneWorkflow(Workspace workspace)
             : base(workspace)
         {
-            SonarAnalysisContext.ShouldExecuteRuleFunc = ShouldExecuteVsixAnalyzer;
-            SonarAnalysisContext.ReportDiagnosticAction = VsixAnalyzerReportDiagnostic;
-        }
-
-        internal /* for testing purposes */ bool ShouldExecuteVsixAnalyzer(IAnalysisRunContext context)
-        {
-            if (context.SyntaxTree == null)
-            {
-                return false;
-            }
-
-            Debug.Assert(context.SupportedDiagnostics?.Any() ?? false,
-                "Not expecting a null or empty collection of diagnostic descriptors");
-
-            // Disable the VSIX analyzer as we want the NuGet analyzer to take precedence
-            if (GetProjectNuGetAnalyzerStatus(context.SyntaxTree) != ProjectAnalyzerStatus.NoAnalyzer)
-            {
-                return false;
-            }
-
-            return context.SupportedDiagnostics.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
+            SonarAnalysisContext.ReportDiagnostic = VsixAnalyzerReportDiagnostic;
         }
 
         internal /* for testing purposes */ void VsixAnalyzerReportDiagnostic(IReportingContext context)

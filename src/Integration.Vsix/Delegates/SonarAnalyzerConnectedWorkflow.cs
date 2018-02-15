@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Rules;
@@ -60,53 +59,40 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.boundProject = boundProject;
             this.suppressionHandler = suppressionHandler;
 
-            SonarAnalysisContext.ShouldExecuteRuleFunc = ShouldExecuteVsixAnalyzer;
-            SonarAnalysisContext.ReportDiagnosticAction = VsixAnalyzerReportDiagnostic;
+            SonarAnalysisContext.ReportDiagnostic = VsixAnalyzerReportDiagnostic;
         }
 
-        internal /* for testing purposes */ bool ShouldExecuteVsixAnalyzer(IAnalysisRunContext context)
-        {
-            if (context.SyntaxTree == null)
-            {
-                return false;
-            }
-
-            Debug.Assert(context.SupportedDiagnostics?.Any() ?? false,
-                "Not expecting a null or empty collection of diagnostic descriptors");
-
-            // Disable the VSIX analyzer as we want the NuGet analyzer to take precedence
-            if (GetProjectNuGetAnalyzerStatus(context.SyntaxTree) != ProjectAnalyzerStatus.NoAnalyzer)
-            {
-                return false;
-            }
-
-            return HasAnyRuleEnabled(context.SyntaxTree, context.SupportedDiagnostics);
-        }
-
-        private bool HasAnyRuleEnabled(SyntaxTree syntaxTree, IEnumerable<DiagnosticDescriptor> supportedDescriptors) =>
-            this.qualityProfileProvider.GetQualityProfile(this.boundProject, GetLanguage(syntaxTree))
+        internal /* for testing purposes */ protected override bool? ShouldRegisterContextAction(
+            IEnumerable<DiagnosticDescriptor> descriptors) =>
+            this.qualityProfileProvider.GetQualityProfile(this.boundProject, GetLanguage(descriptors))
                 ?.Rules
                 .Select(x => x.Key)
-                .Intersect(supportedDescriptors.Select(d => d.Id)) // We assume that a rule is enabled if present in the QP
-                .Any()
-            // Fallback using SonarWay
-            ?? supportedDescriptors.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
+                .Intersect(descriptors.Select(d => d.Id)) // We assume that a rule is enabled if present in the QP
+                .Any();
 
-        internal /* for testing purposes */ virtual Language GetLanguage(SyntaxTree syntaxTree)
+        internal /* for testing purposes */ static Language GetLanguage(IEnumerable<DiagnosticDescriptor> descriptors)
         {
-            var rootNode = syntaxTree?.GetRoot();
+            // We assume that all descriptors share the same language so we can take only the first one
+            var tags = descriptors?.FirstOrDefault()?.CustomTags;
 
-            if (rootNode is CompilationUnitSyntax)
+            if (tags == null)
+            {
+                Debug.Fail("Was expecting to have at least one descriptor");
+                return Language.Unknown;
+            }
+            else if (tags.Contains(LanguageNames.CSharp))
             {
                 return Language.CSharp;
             }
-
-            if (rootNode is Microsoft.CodeAnalysis.VisualBasic.Syntax.CompilationUnitSyntax)
+            else if (tags.Contains(LanguageNames.VisualBasic))
             {
                 return Language.VBNET;
             }
-
-            return Language.Unknown;
+            else
+            {
+                Debug.Fail("Was expecting the diagnostic descriptor tags to contain C# or Visual Basic");
+                return Language.Unknown;
+            }
         }
 
         internal /* for testing purposes */ void VsixAnalyzerReportDiagnostic(IReportingContext context)
@@ -118,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // A DiagnosticAnalyzer can have multiple supported diagnostics and we decided to run the rule as long as at least
             // one of the diagnostics is enabled. Therefore we need to filter the reported issues.
-            if (HasAnyRuleEnabled(context.SyntaxTree, new[] { context.Diagnostic.Descriptor }) &&
+            if (ShouldRegisterContextActionWithFallback(new[] { context.Diagnostic.Descriptor }) &&
                 this.suppressionHandler.ShouldIssueBeReported(context.SyntaxTree, context.Diagnostic))
             {
                 context.ReportDiagnostic(context.Diagnostic); // TODO: Update the diagnostic based on configuration

@@ -20,6 +20,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -225,26 +226,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             int callCount = 0;
-            Func<IAnalysisRunContext, bool> expectedShouldExecuteRuleFunc = ctx => { callCount++; return false; };
-            Action<IReportingContext> expectedReportDiagnosticAction = ctx => { callCount++; };
-            Func<SyntaxTree, bool> expectedShouldAnalysisBeDisabled = tree => { callCount++; return false; };
+            Func<IEnumerable<DiagnosticDescriptor>, bool> expectedShouldRegisterContextAction = list => { callCount++; return false; };
+            Func<SyntaxTree, bool> expectedShouldExecuteRegisteredAction = tree => { callCount++; return false; };
             Func<SyntaxTree, Diagnostic, bool> expectedShouldDiagnosticBeReported = (t, d) => { callCount++; return false; };
+            Action<IReportingContext> expectedReportDiagnostic = ctx => { callCount++; };
 
             var testSubject = CreateTestSubject();
 
-            SonarAnalysisContext.ShouldAnalysisBeDisabled = expectedShouldAnalysisBeDisabled;
+            SonarAnalysisContext.ShouldRegisterContextAction = expectedShouldRegisterContextAction;
+            SonarAnalysisContext.ShouldExecuteRegisteredAction = expectedShouldExecuteRegisteredAction;
             SonarAnalysisContext.ShouldDiagnosticBeReported = expectedShouldDiagnosticBeReported;
-            SonarAnalysisContext.ShouldExecuteRuleFunc = expectedShouldExecuteRuleFunc;
-            SonarAnalysisContext.ReportDiagnosticAction = expectedReportDiagnosticAction;
+            SonarAnalysisContext.ReportDiagnostic = expectedReportDiagnostic;
 
             // Act
             testSubject.Dispose();
 
             // Assert
-            SonarAnalysisContext.ShouldAnalysisBeDisabled.Should().NotBe(expectedShouldAnalysisBeDisabled);
+            SonarAnalysisContext.ShouldRegisterContextAction.Should().NotBe(expectedShouldRegisterContextAction);
             SonarAnalysisContext.ShouldDiagnosticBeReported.Should().NotBe(expectedShouldDiagnosticBeReported);
-            SonarAnalysisContext.ShouldExecuteRuleFunc.Should().NotBe(expectedShouldExecuteRuleFunc);
-            SonarAnalysisContext.ReportDiagnosticAction.Should().NotBe(expectedReportDiagnosticAction);
+            SonarAnalysisContext.ShouldExecuteRegisteredAction.Should().NotBe(expectedShouldExecuteRegisteredAction);
+            SonarAnalysisContext.ReportDiagnostic.Should().NotBe(expectedReportDiagnostic);
         }
 
         private SonarAnalyzerManager CreateTestSubject() => new SonarAnalyzerManager(activeSolutionBoundTracker,
