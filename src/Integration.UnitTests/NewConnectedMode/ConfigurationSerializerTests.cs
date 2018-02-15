@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ICredentialStore configurableStore;
         private Mock<ILogger> loggerMock;
         private Mock<IFile> fileMock;
+        private Mock<IDirectory> directoryMock;
         private ConfigurationSerializer testSubject;
 
         [TestInitialize]
@@ -50,7 +51,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             configurableStore = new ConfigurableCredentialStore();
             loggerMock = new Mock<ILogger>();
             fileMock = new Mock<IFile>();
-            testSubject = new ConfigurationSerializer(solutionMock.Object, configurableSccFileSystem, configurableStore, loggerMock.Object, fileMock.Object);
+            directoryMock = new Mock<IDirectory>();
+
+            testSubject = new ConfigurationSerializer(solutionMock.Object,
+                configurableSccFileSystem, configurableStore, loggerMock.Object, fileMock.Object, directoryMock.Object);
         }
 
         [TestMethod]
@@ -120,10 +124,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ReadSolution_NoFileName_ReturnsNull()
         {
             // Arrange
-            Mock<IVsSolution> solutionMock = new Mock<IVsSolution>();
-            ConfigurableCredentialStore configurableStore = new ConfigurableCredentialStore();
-            Mock<ILogger> loggerMock = new Mock<ILogger>();
-
             SetSolutionFilePath(null);
 
             // Act
@@ -327,6 +327,54 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             act.ShouldThrow<StackOverflowException>();
         }
 
+        [TestMethod]
+        public void Delete_FileDoesNotExist_NoOp()
+        {
+            // Arrange
+            fileMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+
+            // Act
+            using (new AssertIgnoreScope())
+            {
+                testSubject.DeleteBinding();
+            }
+
+            // Assert
+            fileMock.Verify(x => x.Delete(It.IsAny<string>()), Times.Never);
+            directoryMock.Verify(x => x.Delete(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void Delete_FileExists_NoOp()
+        {
+            // Arrange
+            SetSolutionFilePath("c:\\anyfile.txt");
+            fileMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+
+            // Act
+            testSubject.DeleteBinding();
+
+            // Assert
+            fileMock.Verify(x => x.Exists(It.IsAny<string>()), Times.Once);
+            fileMock.Verify(x => x.Delete(It.IsAny<string>()), Times.Once);
+            directoryMock.Verify(x => x.Delete(It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void Delete_FileSystemError_ErrorIsSuppressed()
+        {
+            // Arrange
+            SetSolutionFilePath("c:\\anyfile.txt");
+            fileMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+            fileMock.Setup(x => x.Delete(It.IsAny<string>())).Throws<InvalidOperationException>();
+
+            // Act
+            testSubject.DeleteBinding();
+
+            // Assert
+            fileMock.Verify(x => x.Delete(It.IsAny<string>()), Times.Once);
+            directoryMock.Verify(x => x.Delete(It.IsAny<string>()), Times.Never);
+        }
 
         private void SetSolutionFilePath(string filePath)
         {

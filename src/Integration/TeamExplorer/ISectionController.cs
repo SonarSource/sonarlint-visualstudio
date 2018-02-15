@@ -57,6 +57,11 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         ICommand<BindCommandArgs> BindCommand { get; }
 
+        /// <summary>
+        /// Unbind the currently bound project
+        /// </summary>
+        ICommand UnbindCommand { get; }
+
         ICommand<string> BrowseToUrlCommand { get; }
 
         ICommand<ProjectViewModel> BrowseToProjectDashboardCommand { get; }
