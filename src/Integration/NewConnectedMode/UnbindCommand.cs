@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
         public void Execute()
         {
-            Debug.Assert(this.CanExecute(), $"Should not be called UnbindCommand.Execute if CanExecute is false");
+            Debug.Assert(this.CanExecute(), "UnbindCommand.Execute should not be called if CanExecute is false");
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected step to be run on the UI thread");
 
             host.Logger.WriteLine(Strings.Unbind_State_Started);
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
                 host.Logger.WriteLine(Strings.Unbind_State_Succeeded);
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 host.Logger.WriteLine(ex.Message);
                 host.Logger.WriteLine(Strings.Unbind_State_Failed);

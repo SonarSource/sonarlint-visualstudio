@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public bool WriteResultToReturn { get; set; }
         public BindingConfiguration SavedConfiguration { get; set; }
 
-        public int DeleteCallCount { get; set; }
+        public int DeleteCallCount { get; private set; }
 
         #endregion Test helpers
 
