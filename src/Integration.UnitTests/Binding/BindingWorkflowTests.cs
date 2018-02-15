@@ -38,7 +38,6 @@ using NuGet;
 using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Helpers;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
@@ -71,11 +70,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var sccFileSystem = new ConfigurableSourceControlledFileSystem();
             var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem);
-            var solutionBinding = new ConfigurableSolutionBindingSerializer();
 
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), ruleSerializer);
-            this.serviceProvider.RegisterService(typeof(ISolutionBindingSerializer), solutionBinding);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);

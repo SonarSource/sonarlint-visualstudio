@@ -25,6 +25,7 @@ using System.IO;
 using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Models;
 
@@ -234,8 +235,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.qualityProfileMap != null, "Initialize was expected to be called first");
 
-            var binding = this.serviceProvider.GetService<ISolutionBindingSerializer>();
-            binding.AssertLocalServiceIsNotNull();
+            var bindingSerializer = this.serviceProvider.GetService<IConfigurationProvider>();
+            bindingSerializer.AssertLocalServiceIsNotNull();
 
             BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
 
@@ -254,7 +255,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 connInfo.Organization);
             bound.Profiles = map;
 
-            binding.WriteSolutionBinding(bound);
+            var config = new BindingConfiguration(bound, SonarLintMode.LegacyConnected);
+            bindingSerializer.WriteConfiguration(config);
         }
 
         private void AddFileToSolutionItems(string fullFilePath)
