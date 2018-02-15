@@ -1298,6 +1298,69 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unbind.
+        /// </summary>
+        public static string Unbind_Command_DisplayText {
+            get {
+                return ResourceManager.GetString("Unbind_Command_DisplayText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unbinds the solution from the SonarQube project and closes the connection to the SonarQube server.
+        /// </summary>
+        public static string Unbind_Command_Tooltip {
+            get {
+                return ResourceManager.GetString("Unbind_Command_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting binding configuration....
+        /// </summary>
+        public static string Unbind_DeletingBinding {
+            get {
+                return ResourceManager.GetString("Unbind_DeletingBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disconnecting from the server....
+        /// </summary>
+        public static string Unbind_DisconnectingFromSonarQube {
+            get {
+                return ResourceManager.GetString("Unbind_DisconnectingFromSonarQube", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unbinding operation failed..
+        /// </summary>
+        public static string Unbind_State_Failed {
+            get {
+                return ResourceManager.GetString("Unbind_State_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unbinding started....
+        /// </summary>
+        public static string Unbind_State_Started {
+            get {
+                return ResourceManager.GetString("Unbind_State_Started", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unbinding operation completed succesfully..
+        /// </summary>
+        public static string Unbind_State_Succeeded {
+            get {
+                return ResourceManager.GetString("Unbind_State_Succeeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}: Unexpected error: {1}. You can help us improve by reporting this bug at {2}..
         /// </summary>
         public static string UnexpectedErrorMessageFormat {

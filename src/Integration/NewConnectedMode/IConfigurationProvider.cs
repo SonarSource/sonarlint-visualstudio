@@ -25,5 +25,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         BindingConfiguration GetConfiguration();
 
         bool WriteConfiguration(BindingConfiguration configuration);
+
+        void DeleteConfiguration();
     }
 }
