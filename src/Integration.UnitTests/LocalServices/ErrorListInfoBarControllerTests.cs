@@ -71,7 +71,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
 
             this.solutionBindingInformationProvider = new ConfigurableSolutionBindingInformationProvider();
-            this.serviceProvider.RegisterService(typeof(ISolutionBindingInformationProvider), this.solutionBindingInformationProvider);
 
             var outputWindow = new ConfigurableVsOutputWindow();
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
@@ -89,9 +88,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Tests
 
         [TestMethod]
-        public void ErrorListInfoBarController_ArgChecks()
+        public void ErrorListInfoBarController_Ctor_NullHost_Throws()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ErrorListInfoBarController(null));
+            // Arrange
+            Action act = () => new ErrorListInfoBarController(null, this.solutionBindingInformationProvider);
+
+            // Act & Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("host");
+        }
+
+        [TestMethod]
+        public void ErrorListInfoBarController_Ctor_NullBindingProvider_Throws()
+        {
+            // Arrange
+            Action act = () => new ErrorListInfoBarController(this.host, null);
+
+            // Act & Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("bindingInformationProvider");
         }
 
         [TestMethod]
@@ -99,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution(hasUnboundProject: false);
             // Set project system with no filtered project, to quickly stop SonarQubeQualityProfileBackgroundProcessor
             var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
@@ -122,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
             this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
             this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
 
             // Act
             testSubject.Refresh();
@@ -140,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             SetSolutionExistsAndFullyLoadedContextState(isActive: false);
 
@@ -167,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.Standalone);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution(hasUnboundProject: true);
 
             // Act
@@ -184,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.Connected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution(hasUnboundProject: true);
 
             // Act
@@ -201,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution(hasUnboundProject: false);
 
             // Act
@@ -219,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution(hasUnboundProject: false);
             var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
@@ -256,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             testSubject.Refresh();
             RunAsyncAction();
@@ -278,7 +291,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             testSubject.Refresh();
             RunAsyncAction();
@@ -299,7 +312,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             testSubject.Refresh();
@@ -321,7 +334,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             testSubject.Refresh();
@@ -349,7 +362,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             testSubject.Refresh();
@@ -378,7 +391,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ErrorListInfoBarController_InfoBar_ClickButton_HasDisconnectedActiveSection()
         {
             // Arrange
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             int bindingCalled = 0;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args =>
@@ -432,7 +445,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             int bindingCalled = 0;
             ProjectViewModel project = null;
@@ -471,7 +484,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             int bindExecuted = 0;
             bool canExecute = false;
@@ -524,7 +537,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             int executed = 0;
             ProjectViewModel project = null;
@@ -562,7 +575,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             int executed = 0;
             ProjectViewModel project = null;
@@ -602,7 +615,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             int executed = 0;
             ProjectViewModel project = null;
@@ -642,7 +655,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             int refreshCalled = 0;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithRefreshCommand(c =>
@@ -699,7 +712,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             int bindCommandExecuted = 0;
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args => { bindCommandExecuted++; });
@@ -742,7 +755,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args => { });
             this.ConfigureProjectViewModel(section);
@@ -769,7 +782,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
-            var testSubject = new ErrorListInfoBarController(this.host);
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
             this.ConfigureLoadedSolution();
             ConfigurableSectionController section = this.ConfigureActiveSectionWithBindCommand(args => { });
             this.ConfigureProjectViewModel(section);

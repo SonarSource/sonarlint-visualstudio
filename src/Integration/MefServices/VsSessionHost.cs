@@ -54,8 +54,7 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IRuleSetConflictsController),
                 typeof(IProjectSystemFilter),
                 typeof(IErrorListInfoBarController),
-                typeof(IConfigurationProvider),
-                typeof(ISolutionBindingInformationProvider)
+                typeof(IConfigurationProvider)
         };
 
         private readonly IServiceProvider serviceProvider;
@@ -312,8 +311,7 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
             this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this)));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() => new ProjectSystemFilter(this)));
-            this.localServices.Add(typeof(ISolutionBindingInformationProvider), new Lazy<ILocalService>(() => new SolutionBindingInformationProvider(this)));
-            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this)));
+            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, new SolutionBindingInformationProvider(this))));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this));
