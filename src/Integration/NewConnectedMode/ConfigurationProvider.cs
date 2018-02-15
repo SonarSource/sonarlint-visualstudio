@@ -68,7 +68,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            string fileName = null;
             switch (configuration.Mode)
             {
                 case SonarLintMode.LegacyConnected:
@@ -80,6 +79,18 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 default:
                     Debug.Fail("Unrecognised write mode");
                     return false;
+            }
+        }
+
+        public void DeleteConfiguration()
+        {
+            var mode = this.GetConfiguration().Mode;
+            Debug.Assert(mode == SonarLintMode.Connected,
+                "Can only delete a configuration when in new connected mode");
+
+            if (mode == SonarLintMode.Connected)
+            {
+                newConnectedModeSerializer.DeleteBinding();
             }
         }
     }

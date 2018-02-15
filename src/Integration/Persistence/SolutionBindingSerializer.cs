@@ -62,6 +62,12 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             get { return WriteMode.Queued; }
         }
 
+        public override void DeleteBinding()
+        {
+            // Deleting binding is not supported for legacy mode
+            throw new InvalidOperationException();
+        }
+
         protected override bool OnSuccessfulFileWrite(string filePath)
         {
             this.AddSolutionItemFile(filePath);
