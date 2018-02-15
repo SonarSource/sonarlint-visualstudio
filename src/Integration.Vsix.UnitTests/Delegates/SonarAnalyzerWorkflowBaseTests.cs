@@ -19,9 +19,13 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix;
 using static SonarLint.VisualStudio.Integration.Vsix.SonarAnalyzerWorkflowBase;
 
@@ -32,10 +36,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private class TestableSonarAnalyzerWorkflow : SonarAnalyzerWorkflowBase
         {
+            public Func<SyntaxTree, ProjectAnalyzerStatus> GetProjectNuGetAnalyzerStatusFunc { get; set; }
+            public Func<IEnumerable<DiagnosticDescriptor>, bool?> ShouldRegisterContextActionFunc { get; set; }
+
             public TestableSonarAnalyzerWorkflow(Workspace workspace)
                 : base(workspace)
             {
             }
+
+            protected override ProjectAnalyzerStatus GetProjectNuGetAnalyzerStatus(SyntaxTree syntaxTree) =>
+                GetProjectNuGetAnalyzerStatusFunc(syntaxTree);
+
+            protected internal override bool? ShouldRegisterContextAction(IEnumerable<DiagnosticDescriptor> descriptors) =>
+                ShouldRegisterContextActionFunc?.Invoke(descriptors);
         }
 
         [TestMethod]
@@ -46,6 +59,142 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("workspace");
+        }
+
+        [TestMethod]
+        public void Ctor_SetsTheExpectedDelegates()
+        {
+            // Arrange
+            Func<IEnumerable<DiagnosticDescriptor>, bool> expectedShouldRegisterContextAction = list => false;
+            SonarAnalysisContext.ShouldRegisterContextAction = expectedShouldRegisterContextAction;
+            Func<SyntaxTree, bool> expectedShouldExecuteRegisteredAction = tree => true;
+            SonarAnalysisContext.ShouldExecuteRegisteredAction = expectedShouldExecuteRegisteredAction;
+
+            // Act
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+
+            // Assert
+            SonarAnalysisContext.ShouldRegisterContextAction.Should().NotBe(expectedShouldRegisterContextAction);
+            SonarAnalysisContext.ShouldExecuteRegisteredAction.Should().NotBe(expectedShouldExecuteRegisteredAction);
+        }
+
+        [TestMethod]
+        public void ShouldExecuteRegisteredAction_WhenTreeIsNull_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+
+            // Act
+            var result = testSubject.ShouldExecuteRegisteredAction(null);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldExecuteRegisteredAction_WhenTreeNotNullAndNoNuGetAnalyzer_ReturnsTrue()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+            testSubject.GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.NoAnalyzer;
+
+            // Act
+            var result = testSubject.ShouldExecuteRegisteredAction(new Mock<SyntaxTree>().Object);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ShouldExecuteRegisteredAction_WhenTreeNotNullAndNuGetAnalyzerSameVersion_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+            testSubject.GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.SameVersion;
+
+            // Act
+            var result = testSubject.ShouldExecuteRegisteredAction(new Mock<SyntaxTree>().Object);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldExecuteRegisteredAction_WhenTreeNotNullAndNuGetAnalyzerDifferentVersion_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+            testSubject.GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.DifferentVersion;
+
+            // Act
+            var result = testSubject.ShouldExecuteRegisteredAction(new Mock<SyntaxTree>().Object);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldRegisterContextAction_AlwaysReturnsNull()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+
+            // Act
+            var result1 = testSubject.ShouldRegisterContextAction(null);
+            var result2 = testSubject.ShouldRegisterContextAction(Enumerable.Empty<DiagnosticDescriptor>());
+
+            // Assert
+            result1.Should().BeNull();
+            result2.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void ShouldRegisterContextActionWithFallback_WhenShouldRegisterContextActionReturnsNullAndRuleInSonarWay_ReturnsTrue()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+            var diag1 = CreateFakeDiagnostic(false, "1");
+            var diag2 = CreateFakeDiagnostic(true, "2");
+            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
+
+            // Act
+            var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ShouldRegisterContextActionWithFallback_WhenShouldRegisterContextActionReturnsNullAndRuleNotInSonarWay_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+            var diag1 = CreateFakeDiagnostic(false, "1");
+            var diag2 = CreateFakeDiagnostic(false, "2");
+            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
+
+            // Act
+            var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldRegisterContextActionWithFallback_WhenShouldRegisterContextActionDoesNotReturnNull_ReturnsSameResult()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+            var diag1 = CreateFakeDiagnostic(true, "1");
+            var diag2 = CreateFakeDiagnostic(true, "2");
+            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
+            testSubject.ShouldRegisterContextActionFunc = d => false;
+
+            // Act
+            var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
+
+            // Assert
+            result.Should().BeFalse();
         }
 
         [TestMethod]
@@ -98,5 +247,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             result.Should().Be(ProjectAnalyzerStatus.SameVersion);
         }
+
+        private Diagnostic CreateFakeDiagnostic(bool isInSonarWay = false, string suffix = "") =>
+            Diagnostic.Create($"id{suffix}", $"category{suffix}", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning,
+                true, 1, customTags: isInSonarWay ? new[] { "SonarWay" } : Enumerable.Empty<string>());
     }
 }

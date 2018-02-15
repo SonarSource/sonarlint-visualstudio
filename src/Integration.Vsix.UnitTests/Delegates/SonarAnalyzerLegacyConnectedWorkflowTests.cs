@@ -28,10 +28,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
-using static SonarLint.VisualStudio.Integration.Vsix.SonarAnalyzerWorkflowBase;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -108,79 +106,157 @@ namespace SonarAnalyzer.Helpers
 
         #endregion
 
-        #region ShouldExecuteVsixAnalyzer Tests
-
+        #region ShouldIssueBeReported Tests
         [TestMethod]
-        public void ShouldExecuteVsixAnalyzer_WhenSyntaxTreeIsNull_ReturnsFalse()
+        public void ShouldIssueBeReported_WhenNuGetSameVersionAndIssueSuppressed_ReturnsFalse()
         {
             // Arrange
             var testSubject = CreateTestSubject();
-            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => SonarAnalyzerWorkflowBase.ProjectAnalyzerStatus.SameVersion;
+            var diagnostic = CreateFakeDiagnostic();
+            this.suppressionHandlerMock.Setup(x => x.ShouldIssueBeReported(It.IsAny<SyntaxTree>(), diagnostic))
+                .Returns(false);
 
             // Act
-            var result = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
 
             // Assert
             result.Should().BeFalse();
         }
 
         [TestMethod]
-        public void ShouldExecuteVsixAnalyzer_WhenProjectHasNuGetAnalyzer_ReturnsFalse()
+        public void ShouldIssueBeReported_WhenNuGetSameVersionAndIssueNotSuppressed_ReturnsTrue()
         {
             // Arrange
             var testSubject = CreateTestSubject();
-            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
-
-            // Act 1
-            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.DifferentVersion;
-            var result1 = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
-
-            // Act 2
-            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.SameVersion;
-            var result2 = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
-
-            // Assert
-            result1.Should().BeFalse();
-            result2.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ShouldExecuteVsixAnalyzer_WhenAnyRuleInSonarWay_ReturnsTrue()
-        {
-            // Arrange
-            var testSubject = CreateTestSubject();
-            var diag1 = CreateFakeDiagnostic(false, "1");
-            var diag2 = CreateFakeDiagnostic(true, "2");
-            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
-            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
-            analysisRunContextMock.SetupGet(x => x.SyntaxTree).Returns(new Mock<SyntaxTree>().Object);
-            analysisRunContextMock.SetupGet(x => x.SupportedDiagnostics).Returns(descriptors);
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => SonarAnalyzerWorkflowBase.ProjectAnalyzerStatus.SameVersion;
+            var diagnostic = CreateFakeDiagnostic();
+            this.suppressionHandlerMock.Setup(x => x.ShouldIssueBeReported(It.IsAny<SyntaxTree>(), diagnostic))
+                .Returns(true);
 
             // Act
-            var result = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
 
             // Assert
             result.Should().BeTrue();
         }
 
         [TestMethod]
-        public void ShouldExecuteVsixAnalyzer_WhenNoRuleInSonarWay_ReturnsFalse()
+        public void ShouldIssueBeReported_WhenNuGetDifferentVersionAndIssueSuppressed_ReturnsFalse()
         {
             // Arrange
             var testSubject = CreateTestSubject();
-            var diag1 = CreateFakeDiagnostic(false, "1");
-            var diag2 = CreateFakeDiagnostic(false, "2");
-            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
-            var analysisRunContextMock = new Mock<IAnalysisRunContext>();
-            analysisRunContextMock.SetupGet(x => x.SupportedDiagnostics).Returns(descriptors);
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => SonarAnalyzerWorkflowBase.ProjectAnalyzerStatus.DifferentVersion;
+            var diagnostic = CreateFakeDiagnostic();
+            this.suppressionHandlerMock.Setup(x => x.ShouldIssueBeReported(It.IsAny<SyntaxTree>(), diagnostic))
+                .Returns(false);
 
             // Act
-            var result = testSubject.ShouldExecuteVsixAnalyzer(analysisRunContextMock.Object);
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
 
             // Assert
             result.Should().BeFalse();
         }
 
+        [TestMethod]
+        public void ShouldIssueBeReported_WhenNuGetDifferentVersionAndIssueNotSuppressed_ReturnsTrue()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => SonarAnalyzerWorkflowBase.ProjectAnalyzerStatus.DifferentVersion;
+            var diagnostic = CreateFakeDiagnostic();
+            this.suppressionHandlerMock.Setup(x => x.ShouldIssueBeReported(It.IsAny<SyntaxTree>(), diagnostic))
+                .Returns(true);
+
+            // Act
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ShouldIssueBeReported_WhenNoNuGetAndInSonarWayAndIssueSuppressed_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => SonarAnalyzerWorkflowBase.ProjectAnalyzerStatus.NoAnalyzer;
+            var diagnostic = CreateFakeDiagnostic(isInSonarWay: true);
+            this.suppressionHandlerMock.Setup(x => x.ShouldIssueBeReported(It.IsAny<SyntaxTree>(), diagnostic))
+                .Returns(false);
+
+            // Act
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldIssueBeReported_WhenNoNuGetAndNotInSonarWayAndIssueSuppressed_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => SonarAnalyzerWorkflowBase.ProjectAnalyzerStatus.NoAnalyzer;
+            var diagnostic = CreateFakeDiagnostic(isInSonarWay: false);
+            this.suppressionHandlerMock.Setup(x => x.ShouldIssueBeReported(It.IsAny<SyntaxTree>(), diagnostic))
+                .Returns(false);
+
+            // Act
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldIssueBeReported_WhenNoNuGetAndInSonarWayAndIssueNotSuppressed_ReturnsTrue()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => SonarAnalyzerWorkflowBase.ProjectAnalyzerStatus.NoAnalyzer;
+            var diagnostic = CreateFakeDiagnostic(isInSonarWay: true);
+            this.suppressionHandlerMock.Setup(x => x.ShouldIssueBeReported(It.IsAny<SyntaxTree>(), diagnostic))
+                .Returns(true);
+
+            // Act
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ShouldIssueBeReported_WhenNoNuGetAndNotInSonarWayAndIssueNotSuppressed_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => SonarAnalyzerWorkflowBase.ProjectAnalyzerStatus.NoAnalyzer;
+            var diagnostic = CreateFakeDiagnostic(isInSonarWay: false);
+            this.suppressionHandlerMock.Setup(x => x.ShouldIssueBeReported(It.IsAny<SyntaxTree>(), diagnostic))
+                .Returns(true);
+
+            // Act
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldIssueBeReported_WhenClassIsDisposed_ReturnsTrue()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            testSubject.Dispose();
+            var diagnostic = CreateFakeDiagnostic(isInSonarWay: false);
+
+            // Act
+            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
+
+            // Assert
+            result.Should().BeTrue();
+        }
         #endregion
 
         #region Injector Tests

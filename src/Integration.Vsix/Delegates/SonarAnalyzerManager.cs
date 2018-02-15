@@ -41,9 +41,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IVsSolution vsSolution;
         private readonly ILogger logger;
 
-        private readonly Func<IAnalysisRunContext, bool> previousShouldExecuteRuleFunc;
-        private readonly Action<IReportingContext> previousReportDiagnosticAction;
-        private readonly Func<SyntaxTree, bool> previousShouldAnalysisBeDisabled;
+        private readonly Func<SyntaxTree, bool> previousShouldExecuteRegisteredAction;
+        private readonly Action<IReportingContext> previousReportDiagnostic;
+        private readonly Func<IEnumerable<DiagnosticDescriptor>, bool> previousShouldRegisterContextAction;
         private readonly Func<SyntaxTree, Diagnostic, bool> previousShouldDiagnosticBeReported;
 
         private readonly List<IDisposable> disposableObjects = new List<IDisposable>();
@@ -86,10 +86,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
 
             // Saving previous state so that SonarLint doesn't have to know what's the default state in SonarAnalyzer
-            this.previousShouldAnalysisBeDisabled = SonarAnalysisContext.ShouldAnalysisBeDisabled;
+            this.previousShouldRegisterContextAction = SonarAnalysisContext.ShouldRegisterContextAction;
+            this.previousShouldExecuteRegisteredAction = SonarAnalysisContext.ShouldExecuteRegisteredAction;
             this.previousShouldDiagnosticBeReported = SonarAnalysisContext.ShouldDiagnosticBeReported;
-            this.previousShouldExecuteRuleFunc = SonarAnalysisContext.ShouldExecuteRuleFunc;
-            this.previousReportDiagnosticAction = SonarAnalysisContext.ReportDiagnosticAction;
+            this.previousReportDiagnostic = SonarAnalysisContext.ReportDiagnostic;
 
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
             activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
@@ -161,10 +161,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.currentWorklow?.Dispose();
             this.currentWorklow = null;
 
-            SonarAnalysisContext.ShouldAnalysisBeDisabled = this.previousShouldAnalysisBeDisabled;
+            SonarAnalysisContext.ShouldRegisterContextAction = this.previousShouldRegisterContextAction;
             SonarAnalysisContext.ShouldDiagnosticBeReported = this.previousShouldDiagnosticBeReported;
-            SonarAnalysisContext.ShouldExecuteRuleFunc = this.previousShouldExecuteRuleFunc;
-            SonarAnalysisContext.ReportDiagnosticAction = this.previousReportDiagnosticAction;
+            SonarAnalysisContext.ShouldExecuteRegisteredAction = this.previousShouldExecuteRegisteredAction;
+            SonarAnalysisContext.ReportDiagnostic = this.previousReportDiagnostic;
         }
 
         #region IDisposable Support
