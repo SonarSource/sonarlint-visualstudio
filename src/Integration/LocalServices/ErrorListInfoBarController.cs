@@ -53,17 +53,19 @@ namespace SonarLint.VisualStudio.Integration
         private BoundSonarQubeProject infoBarBinding;
         private bool isDisposed;
 
-        public ErrorListInfoBarController(IHost host)
+        public ErrorListInfoBarController(IHost host, ISolutionBindingInformationProvider bindingInformationProvider)
         {
             if (host == null)
             {
                 throw new ArgumentNullException(nameof(host));
             }
+            if (bindingInformationProvider == null)
+            {
+                throw new ArgumentNullException(nameof(bindingInformationProvider));
+            }
 
             this.host = host;
-
-            this.bindingInformationProvider = host.GetService<ISolutionBindingInformationProvider>();
-            this.bindingInformationProvider.AssertLocalServiceIsNotNull();
+            this.bindingInformationProvider = bindingInformationProvider;
 
             this.configProvider = host.GetService<IConfigurationProvider>();
             this.configProvider.AssertLocalServiceIsNotNull();
