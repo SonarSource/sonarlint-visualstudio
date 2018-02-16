@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -61,16 +60,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /* for testing purposes */ bool ShouldRegisterContextActionWithFallback(
             IEnumerable<DiagnosticDescriptor> descriptors)
         {
-            // Let's disable all the utility analyzers under SonarLint
-            // - Note 1:
-            // There is already some logic within the analyzer to disable the execution when the output-cs/vbnet folder is not
-            // found which I decided to skip here.
-            // - Note 2:
-            // The CPD could be useful but is also disabled at the moment
-            if (descriptors.Any(d => d.Id.StartsWith("S9999-")))
+            // If the descriptor is marked as not configurable then we shouldn't change its behavior (enabled/disabled)
+            // Note: Utility analyzers have the NotConfigurable tag so they will fit in this case (but they have a built-in
+            // mechanism to be turned-off when run under SLVS).
+            if (descriptors.Any(d => d.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable)))
             {
-                Debug.Assert(descriptors.Count() == 1, "Not expecting to receive multiple utility-analyzer descriptors at once");
-                return false;
+                return true;
             }
 
             return ShouldRegisterContextAction(descriptors)

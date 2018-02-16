@@ -149,36 +149,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ShouldRegisterContextActionWithFallback_WhenOnlyOneDescriptorStartsWithS9999_ReturnsFalse()
+        public void ShouldRegisterContextActionWithFallback_WhenAnyDescriptorNotConfigurable_ReturnsTrue()
         {
             // Arrange
             var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-            var diag1 = CreateFakeDiagnostic(false, "9999-test");
-
-            // Act
-            var result = testSubject.ShouldRegisterContextActionWithFallback(new[] { diag1.Descriptor });
-
-            // Assert
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ShouldRegisterContextActionWithFallback_WhenAnyDescriptorStartsWithS9999_ReturnsFalse()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-            var diag1 = CreateFakeDiagnostic(false, "1");
-            var diag2 = CreateFakeDiagnostic(false, "9999-test");
+            var diag1 = CreateFakeDiagnostic(false, "1", isNotConfigurable: false);
+            var diag2 = CreateFakeDiagnostic(false, "2", isNotConfigurable: true);
             var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
 
-            using (new AssertIgnoreScope())
-            {
-                // Act
-                var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
+            // Act
+            var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
 
-                // Assert
-                result.Should().BeFalse();
-            }
+            // Assert
+            result.Should().BeTrue();
         }
 
         [TestMethod]
@@ -281,8 +264,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().Be(ProjectAnalyzerStatus.SameVersion);
         }
 
-        private Diagnostic CreateFakeDiagnostic(bool isInSonarWay = false, string suffix = "") =>
-            Diagnostic.Create($"S{suffix}", $"category{suffix}", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning,
-                true, 1, customTags: isInSonarWay ? new[] { "SonarWay" } : Enumerable.Empty<string>());
+        private Diagnostic CreateFakeDiagnostic(bool isInSonarWay = false, string suffix = "", bool isNotConfigurable = false)
+        {
+            var tags = new List<string>();
+
+            if (isInSonarWay)
+            {
+                tags.Add("SonarWay");
+            }
+            if (isNotConfigurable)
+            {
+                tags.Add(WellKnownDiagnosticTags.NotConfigurable);
+            }
+
+            return Diagnostic.Create($"id{suffix}", $"category{suffix}", "message", DiagnosticSeverity.Warning,
+                DiagnosticSeverity.Warning, true, 1, customTags: tags.ToArray());
+        }
     }
 }
