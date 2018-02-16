@@ -22,13 +22,13 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal interface IActiveSolutionTracker
+    public class ActiveSolutionTrackerEventArgs : EventArgs
     {
-        /// <summary>
-        /// The active solution has changed (either opened or closed).
-        /// </summary>
-        /// <remarks>The solution might not be fully loaded when this event is raised.
-        /// The event argument value will be true if a solution is open and false otherwise.</remarks>
-        event EventHandler<ActiveSolutionTrackerEventArgs> ActiveSolutionChanged;
+        public ActiveSolutionTrackerEventArgs(bool isSolutionOpen)
+        {
+            IsSolutionOpen = isSolutionOpen;
+        }
+
+        public bool IsSolutionOpen { get; }
     }
 }

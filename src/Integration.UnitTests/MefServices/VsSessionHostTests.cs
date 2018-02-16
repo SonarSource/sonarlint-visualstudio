@@ -266,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(0);
 
             // Act
-            tracker.SimulateActiveSolutionChanged();
+            tracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
 
             // Assert
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(1);
@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(0);
 
             // Act (simulate solution opened event)
-            tracker.SimulateActiveSolutionChanged();
+            tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
             // Assert that nothing has changed (should defer all the work to when the section is connected)
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(1);
@@ -326,7 +326,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(0);
 
             // Act (simulate solution opened event)
-            tracker.SimulateActiveSolutionChanged();
+            tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
             // Assert
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(1);
@@ -357,7 +357,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act (i.e. simulate loading a different solution)
             using (new AssertIgnoreScope()) // Ignore exception assert
             {
-                tracker.SimulateActiveSolutionChanged();
+                tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
             }
 
             // Assert
