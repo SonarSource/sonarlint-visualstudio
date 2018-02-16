@@ -82,13 +82,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             DEBUG_LanguageCustomTags(descriptors);
 
-            if (descriptors.First().CustomTags.Contains(LanguageNames.CSharp))
+            var firstDescriptorTags = descriptors.First().CustomTags;
+            if (firstDescriptorTags.Contains(LanguageNames.CSharp))
             {
                 return Language.CSharp;
             }
-            else
+            else if (firstDescriptorTags.Contains(LanguageNames.VisualBasic))
             {
                 return Language.VBNET;
+            }
+            else
+            {
+                return Language.Unknown;
             }
         }
 
