@@ -49,7 +49,6 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IProjectSystemHelper),
                 typeof(ISourceControlledFileSystem),
                 typeof(IFileSystem),
-                typeof(IConflictsManager),
                 typeof(IRuleSetInspector),
                 typeof(IRuleSetConflictsController),
                 typeof(IProjectSystemFilter),
@@ -307,9 +306,8 @@ namespace SonarLint.VisualStudio.Integration
                 return new ConfigurationProvider(legacySerializer, newConfigSerializer);
             }));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
-            this.localServices.Add(typeof(IConflictsManager), new Lazy<ILocalService>(() => new ConflictsManager(this, Logger)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this)));
+            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger))));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() => new ProjectSystemFilter(this)));
             this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, new SolutionBindingInformationProvider(this))));
 
