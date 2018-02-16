@@ -25,7 +25,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client.Services;
 
@@ -81,12 +80,20 @@ namespace SonarLint.VisualStudio.Integration
             CurrentConfiguration = this.configurationProvider.GetConfiguration();
         }
 
-        private async void OnActiveSolutionChanged(object sender, EventArgs e)
+        private async void OnActiveSolutionChanged(object sender, bool isSolutionOpen)
         {
-            await UpdateConnection();
+            // An exception here will crash VS
+            try
+            {
+                await UpdateConnection();
 
-            this.RaiseAnalyzersChangedIfBindingChanged();
-            this.errorListInfoBarController.Refresh();
+                this.RaiseAnalyzersChangedIfBindingChanged();
+                this.errorListInfoBarController.Refresh();
+            }
+            catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine($"Error handling solution change: {ex.Message}");
+            }
         }
 
         private async Task UpdateConnection()

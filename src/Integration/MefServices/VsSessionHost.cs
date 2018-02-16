@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration
         };
 
         private readonly IServiceProvider serviceProvider;
-        private readonly IActiveSolutionTracker solutionTacker;
+        private readonly IActiveSolutionTracker solutionTracker;
         private readonly IProgressStepRunnerWrapper progressStepRunner;
         private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
 
@@ -111,8 +111,8 @@ namespace SonarLint.VisualStudio.Integration
             this.progressStepRunner = progressStepRunner ?? this;
             this.UIDispatcher = uiDispatcher;
             this.SonarQubeService = sonarQubeService;
-            this.solutionTacker = solutionTacker;
-            this.solutionTacker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
+            this.solutionTracker = solutionTacker;
+            this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger;
 
             this.RegisterLocalServices();
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region Active solution changed event handler
-        private void OnActiveSolutionChanged(object sender, EventArgs e)
+        private void OnActiveSolutionChanged(object sender, bool isSolutionOpen)
         {
             // Reset, and abort workflows
             this.ResetBinding(abortCurrentlyRunningWorklows: true);
@@ -352,7 +352,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 if (disposing)
                 {
-                    this.solutionTacker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
+                    this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
 
                     this.localServices.Values
                         .Where(v => v.IsValueCreated)

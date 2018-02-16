@@ -60,14 +60,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             int counter = 0;
+            bool isSolutionOpenArg = false;
             var testSubject = new ActiveSolutionTracker(this.serviceProvider);
-            testSubject.ActiveSolutionChanged += (o, e) => counter++;
+            testSubject.ActiveSolutionChanged += (o, e) => { counter++; isSolutionOpenArg = e; };
 
             // Act
             this.solutionMock.SimulateSolutionOpen();
 
             // Assert
             counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
+            isSolutionOpenArg.Should().BeTrue();
         }
 
         [TestMethod]
@@ -75,14 +77,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             int counter = 0;
+            bool isSolutionOpenEventArg = true;
             var testSubject = new ActiveSolutionTracker(this.serviceProvider);
-            testSubject.ActiveSolutionChanged += (o, e) => counter++;
+            testSubject.ActiveSolutionChanged += (o, e) => { counter++; isSolutionOpenEventArg = e; };
 
             // Act
             this.solutionMock.SimulateSolutionClose();
 
             // Assert
             counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
+            isSolutionOpenEventArg.Should().BeFalse();
         }
 
         [TestMethod]
