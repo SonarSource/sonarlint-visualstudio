@@ -36,15 +36,21 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         private const string Indent = "\t";
 
         private readonly IHost host;
+        private readonly IConflictsManager conflictsManager;
 
-        public RuleSetConflictsController(IHost host)
+        public RuleSetConflictsController(IHost host, IConflictsManager conflictsManager)
         {
             if (host == null)
             {
                 throw new ArgumentNullException(nameof(host));
             }
+            if (conflictsManager == null)
+            {
+                throw new ArgumentNullException(nameof(conflictsManager));
+            }
 
             this.host = host;
+            this.conflictsManager = conflictsManager;
             this.FixConflictsCommand = new RelayCommand<IEnumerable<ProjectRuleSetConflict>>(this.OnFixConflicts, this.OnFixConflictsStatus);
         }
 
@@ -55,7 +61,6 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         {
             Debug.Assert(this.host.UIDispatcher.CheckAccess(), "Expected to be called from the UI thread");
 
-            var conflictsManager = this.host.GetService<IConflictsManager>();
             var conflicts = conflictsManager.GetCurrentConflicts();
 
             if (conflicts.Count > 0)

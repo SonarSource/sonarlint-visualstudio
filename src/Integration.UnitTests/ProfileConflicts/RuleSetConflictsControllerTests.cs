@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -43,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableRuleSetInspector ruleSetInspector;
         private ConfigurableSourceControlledFileSystem sccFS;
         private ConfigurableRuleSetSerializer rsSerializer;
+        private ConfigurableConflictsManager conflictsManager;
 
         [TestInitialize]
         public void TestInit()
@@ -58,6 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ruleSetInspector = null;
             this.sccFS = null;
             this.rsSerializer = null;
+            this.conflictsManager = new ConfigurableConflictsManager();
 
             // Instead of ignored unexpected service, register one (for telemetry)
             this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel());
@@ -68,9 +69,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void RuleSetConflictsController_Ctor()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new RuleSetConflictsController(null));
+            Exceptions.Expect<ArgumentNullException>(() => new RuleSetConflictsController(null, this.conflictsManager));
+            Exceptions.Expect<ArgumentNullException>(() => new RuleSetConflictsController(this.host, null));
 
-            var testSubject = new RuleSetConflictsController(this.host);
+            var testSubject = new RuleSetConflictsController(this.host, this.conflictsManager);
             testSubject.FixConflictsCommand.Should().NotBeNull("Command instance is expected");
         }
 
@@ -78,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RuleSetConflictsController_Clear()
         {
             // Arrange
-            var testSubject = new RuleSetConflictsController(this.host);
+            var testSubject = new RuleSetConflictsController(this.host, this.conflictsManager);
 
             // Case 1: No active section (should not crash)
             testSubject.Clear();
@@ -100,9 +102,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RuleSetConflictsController_CheckForConflicts()
         {
             // Arrange
-            var conflictsMananger = new ConfigurableConflictsManager();
-            this.serviceProvider.RegisterService(typeof(IConflictsManager), conflictsMananger);
-            var testSubject = new RuleSetConflictsController(this.host);
+            var testSubject = new RuleSetConflictsController(this.host, this.conflictsManager);
             bool result;
 
             // Case 1: No conflicts
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane.AssertOutputStrings(0);
 
             // Case 2: Has conflicts, no active section
-            ProjectRuleSetConflict conflict = conflictsMananger.AddConflict();
+            ProjectRuleSetConflict conflict = conflictsManager.AddConflict();
 
             // Act
             result = testSubject.CheckForConflicts();
@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RuleSetConflictsController_FixConflictsCommandStatus()
         {
             // Arrange
-            var testSubject = new RuleSetConflictsController(this.host);
+            var testSubject = new RuleSetConflictsController(this.host, this.conflictsManager);
 
             // Case 1: Nulls
             testSubject.FixConflictsCommand.CanExecute(null).Should().BeFalse();
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RuleSetConflictsController_FixConflictsCommandExecution()
         {
             // Arrange
-            var testSubject = new RuleSetConflictsController(this.host);
+            var testSubject = new RuleSetConflictsController(this.host, this.conflictsManager);
             this.ConfigureServiceProviderForFixConflictsCommandExecution();
             this.host.VisualStateManager.IsBusy = false;
             this.host.VisualStateManager.SetBoundProject(new Uri("http://foo"), null, "project123");
