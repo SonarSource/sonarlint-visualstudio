@@ -147,9 +147,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // cause a Debug.Assert in the product code that we need to suppress
             using (new AssertIgnoreScope())
             {
-                this.activeSolutionTracker.SimulateActiveSolutionChanged();
-                this.activeSolutionTracker.SimulateActiveSolutionChanged();
-                this.activeSolutionTracker.SimulateActiveSolutionChanged();
+                this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+                this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
             }
 
             // Assert
@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Case 3: Bound solution unloaded -> disconnect
             ConfigureSolutionBinding(null);
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
 
             // Assert
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Should respond to solution change event and report unbound");
@@ -224,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Case 4: Load a bound solution
             ConfigureSolutionBinding(boundProject);
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
             // Assert
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound respond to solution change event and report bound");
@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Case 5: Close a bound solution
             ConfigureSolutionBinding(null);
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
 
             // Assert
             // TODO: this.errorListController.RefreshCalledCount.Should().Be(4);
@@ -331,7 +331,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigureSolutionBinding(null);
 
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
             // Assert
             VerifyServiceConnect(Times.Never());
@@ -348,7 +348,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey"));
 
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
             // Assert
             VerifyServiceConnect(Times.Once());
@@ -365,7 +365,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigureSolutionBinding(null);
 
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
             // Assert
             VerifyServiceConnect(Times.Never());
@@ -387,7 +387,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey"));
 
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
             // Assert
             VerifyServiceConnect(Times.Once());
@@ -417,7 +417,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigureSolutionBinding(null);
 
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
 
             // Assert
             VerifyServiceConnect(Times.Never());
@@ -446,7 +446,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigureSolutionBinding(null);
 
             // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged();
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
 
             // Assert
             VerifyServiceConnect(Times.Never());
