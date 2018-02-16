@@ -149,6 +149,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void ShouldRegisterContextActionWithFallback_WhenOnlyOneDescriptorStartsWithS9999_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+            var diag1 = CreateFakeDiagnostic(false, "9999-test");
+
+            // Act
+            var result = testSubject.ShouldRegisterContextActionWithFallback(new[] { diag1.Descriptor });
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldRegisterContextActionWithFallback_WhenAnyDescriptorStartsWithS9999_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+            var diag1 = CreateFakeDiagnostic(false, "1");
+            var diag2 = CreateFakeDiagnostic(false, "9999-test");
+            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
+
+            using (new AssertIgnoreScope())
+            {
+                // Act
+                var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
+
+                // Assert
+                result.Should().BeFalse();
+            }
+        }
+
+        [TestMethod]
         public void ShouldRegisterContextActionWithFallback_WhenShouldRegisterContextActionReturnsNullAndRuleInSonarWay_ReturnsTrue()
         {
             // Arrange
@@ -249,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         private Diagnostic CreateFakeDiagnostic(bool isInSonarWay = false, string suffix = "") =>
-            Diagnostic.Create($"id{suffix}", $"category{suffix}", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning,
+            Diagnostic.Create($"S{suffix}", $"category{suffix}", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning,
                 true, 1, customTags: isInSonarWay ? new[] { "SonarWay" } : Enumerable.Empty<string>());
     }
 }
