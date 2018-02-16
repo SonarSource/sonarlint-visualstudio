@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region Active solution changed event handler
-        private void OnActiveSolutionChanged(object sender, bool isSolutionOpen)
+        private void OnActiveSolutionChanged(object sender, ActiveSolutionTrackerEventArgs args)
         {
             // Reset, and abort workflows
             this.ResetBinding(abortCurrentlyRunningWorklows: true);

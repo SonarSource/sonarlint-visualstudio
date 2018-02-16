@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// <see cref="IActiveSolutionTracker.ActiveSolutionChanged"/>
         /// </summary>
-        public event EventHandler<bool> ActiveSolutionChanged;
+        public event EventHandler<ActiveSolutionTrackerEventArgs> ActiveSolutionChanged;
 
         [ImportingConstructor]
         public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void OnActiveSolutionChanged(bool isSolutionOpen)
         {
-            this.ActiveSolutionChanged?.Invoke(this, isSolutionOpen);
+            this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionTrackerEventArgs(isSolutionOpen));
         }
 
         #region IVsSolutionEvents

@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration
             CurrentConfiguration = this.configurationProvider.GetConfiguration();
         }
 
-        private async void OnActiveSolutionChanged(object sender, bool isSolutionOpen)
+        private async void OnActiveSolutionChanged(object sender, ActiveSolutionTrackerEventArgs args)
         {
             // An exception here will crash VS
             try
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration
                 this.RaiseAnalyzersChangedIfBindingChanged();
                 this.errorListInfoBarController.Refresh();
             }
-            catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine($"Error handling solution change: {ex.Message}");
             }

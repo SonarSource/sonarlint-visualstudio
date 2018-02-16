@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             int counter = 0;
             bool isSolutionOpenArg = false;
             var testSubject = new ActiveSolutionTracker(this.serviceProvider);
-            testSubject.ActiveSolutionChanged += (o, e) => { counter++; isSolutionOpenArg = e; };
+            testSubject.ActiveSolutionChanged += (o, e) => { counter++; isSolutionOpenArg = e.IsSolutionOpen; };
 
             // Act
             this.solutionMock.SimulateSolutionOpen();
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             int counter = 0;
             bool isSolutionOpenEventArg = true;
             var testSubject = new ActiveSolutionTracker(this.serviceProvider);
-            testSubject.ActiveSolutionChanged += (o, e) => { counter++; isSolutionOpenEventArg = e; };
+            testSubject.ActiveSolutionChanged += (o, e) => { counter++; isSolutionOpenEventArg = e.IsSolutionOpen; };
 
             // Act
             this.solutionMock.SimulateSolutionClose();
