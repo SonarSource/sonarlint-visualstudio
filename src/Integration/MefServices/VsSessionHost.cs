@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration
                 // so reset the binding if applicable. No reason to abort since
                 // this is the first time after the solution was opened so that
                 // we switched to the connect section.
-                this.ResetBinding(abortCurrentlyRunningWorklows: false);
+                this.ResetBinding(abortCurrentlyRunningWorklows: false, clearCurrentBinding: false);
             }
 
             this.OnActiveSectionChanged();
@@ -209,10 +209,10 @@ namespace SonarLint.VisualStudio.Integration
         private void OnActiveSolutionChanged(object sender, ActiveSolutionTrackerEventArgs args)
         {
             // Reset, and abort workflows
-            this.ResetBinding(abortCurrentlyRunningWorklows: true);
+            this.ResetBinding(abortCurrentlyRunningWorklows: true, clearCurrentBinding: !args.IsSolutionOpen);
         }
 
-        private void ResetBinding(bool abortCurrentlyRunningWorklows)
+        private void ResetBinding(bool abortCurrentlyRunningWorklows, bool clearCurrentBinding)
         {
             if (abortCurrentlyRunningWorklows)
             {
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             var bindingConfig = this.SafeGetBindingConfig();
-            if (bindingConfig == null || bindingConfig.Mode == SonarLintMode.Standalone)
+            if (clearCurrentBinding || bindingConfig == null || bindingConfig.Mode == SonarLintMode.Standalone)
             {
                 this.ClearCurrentBinding();
             }
@@ -296,14 +296,9 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(this)));
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(() =>
             {
-                var solution = this.GetService<SVsSolution, IVsSolution>();
-                var store = new SecretStore(SolutionBindingSerializer.StoreNamespace);
                 var legacySerializer = new SolutionBindingSerializer(this);
-                // The SCC wrapper maintains a queue of file writes. For the new provider we want to the file write to be
-                // executed immediately, so we want our own SCC wrapper rather than sharing the one used by the legacy mode.
-                var sccFileSystem = new SourceControlledFileSystem(this); 
-                var newConfigSerializer = new ConfigurationSerializer(solution, sccFileSystem, store, Logger);
-                return new ConfigurationProvider(legacySerializer, newConfigSerializer);
+                return new ConfigurationProvider(legacySerializer, new InMemoryConfigurationProvider());
+
             }));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));

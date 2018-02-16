@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal interface IConfigurationProvider : ILocalService
+    public interface IConfigurationProvider : ILocalService
     {
         BindingConfiguration GetConfiguration();
 
