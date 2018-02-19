@@ -65,5 +65,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 InMemoryConfigurationProvider.Instance.WriteConfiguration(previous);
             }
         }
+
+        [TestMethod]
+        public void Singleton()
+        {
+            // Arrange
+            var instance1 = InMemoryConfigurationProvider.Instance;
+            var instance2 = InMemoryConfigurationProvider.Instance;
+
+            // Act & Assert
+            object.ReferenceEquals(instance1, instance2).Should().BeTrue();
+        }
     }
 }

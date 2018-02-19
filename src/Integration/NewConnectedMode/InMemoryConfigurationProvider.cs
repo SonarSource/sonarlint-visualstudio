@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -33,11 +33,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     {
         private BindingConfiguration data = BindingConfiguration.Standalone;
 
-        public static InMemoryConfigurationProvider Instance => new InMemoryConfigurationProvider();
+        public static InMemoryConfigurationProvider Instance { get; } = new InMemoryConfigurationProvider();
 
         private InMemoryConfigurationProvider()
         {
-            // Singleton
+            // Singleton using the static initialization pattern - see https://msdn.microsoft.com/en-us/library/ff650316.aspx
         }
 
         public void DeleteConfiguration()
