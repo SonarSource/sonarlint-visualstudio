@@ -12,9 +12,9 @@
 //                                                                           
 // This file contains SQM trace logging methods.
 
-using EnvDTE;
 using System;
 using System.Globalization;
+using EnvDTE;
 using Microsoft.VisualStudio;
 
 namespace SonarLint.VisualStudio.Integration
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration
 
             if (dte == null)
             {
-                dte = serviceProvider.GetService(typeof(DTE)) as DTE;
+                dte = serviceProvider.GetService<DTE>();
             }
         }
 

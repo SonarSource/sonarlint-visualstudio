@@ -60,9 +60,9 @@ namespace SonarLint.VisualStudio.Integration
 
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
-            // This handler enables ALL psuedo commands for logging SQM data.
+            // This handler enables ALL pseudo commands for logging SQM data.
             // i.e. all commands in guid group SonarLintSqmCommandTarget.CommandSetIdentifier
-            // are psuedo commands for logging SQM and this handler will enable them when fired.
+            // are pseudo commands for logging SQM and this handler will enable them when fired.
 
             int commandId = (int)prgCmds[0].cmdID;
             if (IsSqmCommand(pguidCmdGroup, commandId))
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         /// </summary>
-        /// Returns true if the specified command is a recognised SQM command, otherwise false.
+        /// Returns true if the specified command is a recognized SQM command, otherwise false.
         /// </summary>
         public static bool IsSqmCommand(Guid commandGroup, int commandId)
         {
