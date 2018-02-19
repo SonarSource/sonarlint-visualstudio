@@ -121,6 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     var boundProject = JsonHelper.Deserialize<BoundSonarQubeProject>(data as string);
                     var configuration = BindingConfiguration.CreateBoundConfiguration(boundProject, isLegacy: false);
                     InMemoryConfigurationProvider.Instance.WriteConfiguration(configuration);
+                    logger.WriteLine(GetBindingAsText(configuration));
                 }
                 else
                 {
@@ -152,6 +153,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 if (currentConfig.Mode == SonarLintMode.Connected)
                 {
                     logger.WriteLine("Binding: writing binding information to the .suo file");
+                    logger.WriteLine(GetBindingAsText(currentConfig));
+
                     var serializable = JsonHelper.Serialize(currentConfig.Project);
                     formatter.Serialize(stream, serializable);
                 }
@@ -164,6 +167,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger.WriteLine($"Failed to write binding data to the .suo file: {ex.Message}");
             }
+        }
+
+        private static string GetBindingAsText(BindingConfiguration configuration)
+        {
+            string project = configuration.Project?.ProjectKey ?? "{empty}";
+            string org = configuration.Project?.Organization?.Key ?? "{empty}";
+            string uri = configuration.Project.ServerUri?.ToString();
+            return $"    Mode={configuration.Mode}, project={project}, organization={org}, server={uri}";
         }
 
         #endregion
