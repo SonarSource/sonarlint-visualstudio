@@ -85,6 +85,11 @@ namespace SonarLint.VisualStudio.Integration
             // An exception here will crash VS
             try
             {
+                if (!args.IsSolutionOpen)
+                {
+                    this.configurationProvider.WriteConfiguration(BindingConfiguration.Standalone);
+                }
+
                 await UpdateConnection();
 
                 this.RaiseAnalyzersChangedIfBindingChanged();
