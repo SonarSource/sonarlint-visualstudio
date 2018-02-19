@@ -369,14 +369,6 @@ Localization note: '[Don't warn me again]()' is a special markup used to transla
     <value>Warnings</value>
     <comment>Warnings settings category for Security options page</comment>
   </data>
-  <data name="ShowServerNuGetTrustWarningSettingDescription" xml:space="preserve">
-    <value>Show a warning about automatically downloading NuGet packages when establishing a SonarQube server connection.</value>
-    <comment>Description for the ShowServerNuGetTrustWarning setting</comment>
-  </data>
-  <data name="ShowServerNuGetTrustWarningSettingName" xml:space="preserve">
-    <value>Show NuGet package warnings</value>
-    <comment>Name of the ShowServerNuGetTrustWarning setting</comment>
-  </data>
   <data name="CannotCompareVersionStrings" xml:space="preserve">
     <value>A SonarQube server plugin has a malformed version and cannot be compared. Version was '{0}'.</value>
     <comment>Exception message indicating that the provided version string is malformed and cannot be compared. {0} version string</comment>

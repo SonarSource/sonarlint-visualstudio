@@ -137,12 +137,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
         #endregion // IProfileManager
 
-        public bool ShowServerNuGetTrustWarning
-        {
-            get { return this.GetValueOrDefault(nameof(ShowServerNuGetTrustWarning), true); }
-            set { this.SetValue(nameof(ShowServerNuGetTrustWarning), value); }
-        }
-
         public bool SkipActivateMoreDialog
         {
             get { return this.GetValueOrDefault(nameof(SkipActivateMoreDialog), false); }

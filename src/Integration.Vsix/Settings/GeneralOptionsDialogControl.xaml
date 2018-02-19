@@ -12,8 +12,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -50,14 +48,5 @@
 
             <ComboBox x:Name="DaemonVerbosity" SelectedIndex="2" HorizontalContentAlignment="Stretch" Margin="5" Padding="5,2.5"/>
         </StackPanel>
-
-        <CheckBox Grid.ColumnSpan="2" Grid.Row="3"
-                  x:Name="ShowServerNuGetTrustWarning"
-                  Content="Display a warning about NuGet packages" Margin="5"/>
-
-        <TextBlock Grid.ColumnSpan="2" Grid.Row="4"
-                   Text="Display a warning about automatically downloading NuGet packages when establishing a SonarQube server connection."
-                   Margin="20,5,10,5" TextWrapping="Wrap" />
-
     </Grid>
 </UserControl>

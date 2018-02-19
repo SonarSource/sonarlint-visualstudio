@@ -956,24 +956,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show a warning about automatically downloading NuGet packages when establishing a SonarQube server connection..
-        /// </summary>
-        public static string ShowServerNuGetTrustWarningSettingDescription {
-            get {
-                return ResourceManager.GetString("ShowServerNuGetTrustWarningSettingDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Show NuGet package warnings.
-        /// </summary>
-        public static string ShowServerNuGetTrustWarningSettingName {
-            get {
-                return ResourceManager.GetString("ShowServerNuGetTrustWarningSettingName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to This solution contains no supported project language (C#, VB.Net). Please create at least one project of the supported language and then try to reconnect..
         /// </summary>
         public static string SolutionContainsNoSupportedProject {

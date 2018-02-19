@@ -28,8 +28,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Models;
 using SonarQube.Client.Services;
@@ -85,7 +83,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Assert
             testSubject.ConnectCommand.Should().NotBeNull("Connected command should not be null");
-            testSubject.DontWarnAgainCommand.Should().NotBeNull("DontWarnAgain command should not be null");
             testSubject.RefreshCommand.Should().NotBeNull("Refresh command should not be null");
             testSubject.WorkflowExecutor.Should().NotBeNull("Need to be able to execute the workflow");
             testSubject.IsConnectionInProgress.Should().BeFalse("Connection is not in progress");
@@ -317,110 +314,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 testSubject.ConnectCommand.CanExecute().Should().BeTrue("Connection is finished with result: {0}", controllerResult);
                 testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeTrue("Connection is finished with result: {0}", controllerResult);
             }
-        }
-
-        [TestMethod]
-        public void ConnectionController_ShowNuGetWarning()
-        {
-            // Arrange
-            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
-                this.connectionWorkflowMock.Object);
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            ConfigurableUserNotification notifications = (ConfigurableUserNotification)this.host.ActiveSection.UserNotifications;
-            this.connectionProvider.ConnectionInformationToReturn = null;
-            var progressEvents = new ConfigurableProgressEvents();
-
-            // Case 1: do NOT show
-            // Arrange
-            this.settings.ShowServerNuGetTrustWarning = false;
-
-            // Act
-            testSubject.SetConnectionInProgress(progressEvents);
-            progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
-
-            // Assert
-            notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
-
-            // Case 2: show, but canceled
-            // Arrange
-            this.settings.ShowServerNuGetTrustWarning = false;
-
-            // Act
-            testSubject.SetConnectionInProgress(progressEvents);
-            progressEvents.SimulateFinished(ProgressControllerResult.Cancelled);
-
-            // Assert
-            notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
-
-            // Case 3: show, but failed
-            // Arrange
-            this.settings.ShowServerNuGetTrustWarning = false;
-
-            // Act
-            testSubject.SetConnectionInProgress(progressEvents);
-            progressEvents.SimulateFinished(ProgressControllerResult.Failed);
-
-            // Assert
-            notifications.AssertNoNotification(NotificationIds.WarnServerTrustId);
-
-            // Test Case 4: show, succeeded
-            // Arrange
-            this.settings.ShowServerNuGetTrustWarning = true;
-
-            // Act
-            testSubject.SetConnectionInProgress(progressEvents);
-            progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
-
-            // Assert
-            notifications.AssertNotification(NotificationIds.WarnServerTrustId, Strings.ServerNuGetTrustWarningMessage);
-        }
-
-        [TestMethod]
-        public void ConnectionController_DontWarnAgainCommand_Execution()
-        {
-            // Arrange
-            var testSubject = new ConnectionController(this.host);
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.settings.ShowServerNuGetTrustWarning = true;
-            this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
-
-            // Sanity
-            testSubject.DontWarnAgainCommand.CanExecute().Should().BeTrue();
-
-            // Act
-            testSubject.DontWarnAgainCommand.Execute();
-
-            // Assert
-            this.settings.ShowServerNuGetTrustWarning.Should().BeFalse("Expected show warning settings to be false");
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.WarnServerTrustId);
-        }
-
-        [TestMethod]
-        public void ConnectionController_DontWarnAgainCommand_Status_NoIntegrationSettings()
-        {
-            // Arrange
-            this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel(), replaceExisting: true);
-            var testSubject = new ConnectionController(this.host);
-            this.projectSystemHelper.SetIsSolutionFullyOpened(true);
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.settings.ShowServerNuGetTrustWarning = true;
-            this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
-
-            // Act + Assert
-            testSubject.DontWarnAgainCommand.CanExecute().Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ConnectionController_DontWarnAgainCommand_Status()
-        {
-            // Arrange
-            var testSubject = new ConnectionController(this.host);
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.settings.ShowServerNuGetTrustWarning = true;
-            this.host.ActiveSection.UserNotifications.ShowNotificationWarning("myMessage", NotificationIds.WarnServerTrustId, new RelayCommand(() => { }));
-
-            // Act + Assert
-            testSubject.DontWarnAgainCommand.CanExecute().Should().BeTrue();
         }
 
         #endregion Tests
