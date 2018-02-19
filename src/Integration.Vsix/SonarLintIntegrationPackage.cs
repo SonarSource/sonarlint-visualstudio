@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -67,7 +68,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private SonarAnalyzerManager sonarAnalyzerManager;
         private DeprecationManager deprecationManager;
 
-        private InMemoryConfigurationProvider inMemoryConfigProvider;
         private const string SonarLintDataKey = "SonarLintBindingData";
         private readonly IFormatter formatter = new BinaryFormatter();
         private ILogger logger;
@@ -88,6 +88,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var sonarQubeService = this.GetMefService<ISonarQubeService>();
             var workspace = this.GetMefService<VisualStudioWorkspace>();
             logger = this.GetMefService<ILogger>();
+            Debug.Assert(logger != null, "MEF composition error - failed to retrieve a logger");
+
             var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
             this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeService, workspace,
                 vsSolution, logger);
@@ -105,6 +107,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         protected override void OnLoadOptions(string key, Stream stream)
         {
+            // TODO: investigate why this method is called before package.Initialize
+            // has completed. Calling base.Initialize causes this method to be called,
+            // before the rest of the Initialize method has completed i.e. before the
+            // logger has been retrieved.
+            // This method is then called a second time, after Initialize has completed.
+
             if (key != SonarLintDataKey)
             {
                 return;
@@ -114,23 +122,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (stream.Length > 0)
                 {
-                    logger.WriteLine("Binding: reading binding information from the .suo file");
+                    logger?.WriteLine("Binding: reading binding information from the .suo file");
 
                     var data = formatter.Deserialize(stream);
 
                     var boundProject = JsonHelper.Deserialize<BoundSonarQubeProject>(data as string);
                     var configuration = BindingConfiguration.CreateBoundConfiguration(boundProject, isLegacy: false);
                     InMemoryConfigurationProvider.Instance.WriteConfiguration(configuration);
-                    logger.WriteLine(GetBindingAsText(configuration));
+                    logger?.WriteLine(GetBindingAsText(configuration));
                 }
                 else
                 {
-                    logger.WriteLine("Binding: no binding information found in the .suo file");
+                    logger?.WriteLine("Binding: no binding information found in the .suo file");
                 }
             }
             catch (Exception ex)
             {
-                logger.WriteLine($"Failed to read binding data from the .suo file: {ex.Message}");
+                logger?.WriteLine($"Failed to read binding data from the .suo file: {ex.Message}");
             }
         }
 
