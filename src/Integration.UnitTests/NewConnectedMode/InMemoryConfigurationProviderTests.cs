@@ -31,27 +31,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ReadAndWrite()
         {
-            // Arrange
-            var testSubject = new InMemoryConfigurationProvider();
-            var config = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), isLegacy: false);
+            // This test changes a static variable.
+            // Save and reset the value to avoid unintended side-effects.
+            var previous = InMemoryConfigurationProvider.Instance.GetConfiguration();
 
-            // 1. Write then read
-            testSubject.WriteConfiguration(config);
-            var read = testSubject.GetConfiguration();
+            try
+            {
+                // Arrange
+                var testSubject = InMemoryConfigurationProvider.Instance;
+                var config = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), isLegacy: false);
 
-            // Assert
-            read.Should().NotBeNull();
-            read.Project.Should().Be(config.Project);
-            read.Mode.Should().Be(SonarLintMode.Connected);
+                // 1. Write then read
+                testSubject.WriteConfiguration(config);
+                var read = testSubject.GetConfiguration();
 
-            // 2. Delete then read
-            testSubject.DeleteConfiguration();
-            read = testSubject.GetConfiguration();
+                // Assert
+                read.Should().NotBeNull();
+                read.Project.Should().Be(config.Project);
+                read.Mode.Should().Be(SonarLintMode.Connected);
 
-            // Assert
-            read.Should().NotBeNull();
-            read.Project.Should().BeNull();
-            read.Mode.Should().Be(SonarLintMode.Standalone);
+                // 2. Delete then read
+                testSubject.DeleteConfiguration();
+                read = testSubject.GetConfiguration();
+
+                // Assert
+                read.Should().NotBeNull();
+                read.Project.Should().BeNull();
+                read.Mode.Should().Be(SonarLintMode.Standalone);
+            }
+
+            finally
+            {
+                InMemoryConfigurationProvider.Instance.WriteConfiguration(previous);
+            }
         }
     }
 }

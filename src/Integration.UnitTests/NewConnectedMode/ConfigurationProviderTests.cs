@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationProvider(serializer, null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("wrappedConfigProvider");
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("wrappedProvider");
         }
 
         [TestMethod]

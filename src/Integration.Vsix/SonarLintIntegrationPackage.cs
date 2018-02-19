@@ -98,68 +98,70 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 serviceProvider.GetMefService<IProjectPropertyManager>());
 
             this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(), logger);
-
-            this.inMemoryConfigProvider = new InMemoryConfigurationProvider();
         }
 
         #region .suo serialization
 
         protected override void OnLoadOptions(string key, Stream stream)
         {
-            if (key == SonarLintDataKey)
+            if (key != SonarLintDataKey)
             {
-                try
-                {
-                    if (stream.Length > 0)
-                    {
-                        logger.WriteLine("Binding: reading binding information from the .suo file");
+                return;
+            }
 
-                        var data = formatter.Deserialize(stream);
-
-                        var boundProject = JsonHelper.Deserialize<BoundSonarQubeProject>(data as string);
-                        var configuration = BindingConfiguration.CreateBoundConfiguration(boundProject, isLegacy: false);
-                        this.inMemoryConfigProvider.WriteConfiguration(configuration);
-                    }
-                    else
-                    {
-                        logger.WriteLine("Binding: no binding information found in the .suo file");
-                    }
-                }
-                catch (Exception ex)
+            try
+            {
+                if (stream.Length > 0)
                 {
-                    logger.WriteLine($"Failed to read binding data from the .suo file: {ex.Message}");
+                    logger.WriteLine("Binding: reading binding information from the .suo file");
+
+                    var data = formatter.Deserialize(stream);
+
+                    var boundProject = JsonHelper.Deserialize<BoundSonarQubeProject>(data as string);
+                    var configuration = BindingConfiguration.CreateBoundConfiguration(boundProject, isLegacy: false);
+                    InMemoryConfigurationProvider.Instance.WriteConfiguration(configuration);
                 }
+                else
+                {
+                    logger.WriteLine("Binding: no binding information found in the .suo file");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.WriteLine($"Failed to read binding data from the .suo file: {ex.Message}");
             }
         }
 
         protected override void OnSaveOptions(string key, Stream stream)
         {
-            if (key == SonarLintDataKey)
+            if (key != SonarLintDataKey)
             {
-                try
-                {
-                    var currentConfig = inMemoryConfigProvider.GetConfiguration();
+                return;
+            }
 
-                    // We only save the configuration in the .suo file when 
-                    // in the new connected mode.
-                    // The data is serialized to json first for two reasons:
-                    // 1. it means the data is a string so it can be binary-serialized
-                    // 2. it gives us more flexibility in the future if the format changes
-                    if (currentConfig.Mode == SonarLintMode.Connected)
-                    {
-                        logger.WriteLine("Binding: writing binding information to the .suo file");
-                        var serializable = JsonHelper.Serialize(currentConfig.Project);
-                        formatter.Serialize(stream, serializable);
-                    }
-                    else
-                    {
-                        logger.WriteLine($"Binding: mode= {currentConfig.Mode.ToString() }. No data will be written to the .suo file");
-                    }
-                }
-                catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            try
+            {
+                var currentConfig = InMemoryConfigurationProvider.Instance.GetConfiguration();
+
+                // We only save the configuration in the .suo file when 
+                // in the new connected mode.
+                // The data is serialized to json first for two reasons:
+                // 1. it means the data is a string so it can be binary-serialized
+                // 2. it gives us more flexibility in the future if the format changes
+                if (currentConfig.Mode == SonarLintMode.Connected)
                 {
-                    logger.WriteLine($"Failed to write binding data to the .suo file: {ex.Message}");
+                    logger.WriteLine("Binding: writing binding information to the .suo file");
+                    var serializable = JsonHelper.Serialize(currentConfig.Project);
+                    formatter.Serialize(stream, serializable);
                 }
+                else
+                {
+                    logger.WriteLine($"Binding: mode= {currentConfig.Mode.ToString() }. No data will be written to the .suo file");
+                }
+            }
+            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine($"Failed to write binding data to the .suo file: {ex.Message}");
             }
         }
 

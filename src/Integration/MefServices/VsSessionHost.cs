@@ -208,6 +208,15 @@ namespace SonarLint.VisualStudio.Integration
         #region Active solution changed event handler
         private void OnActiveSolutionChanged(object sender, ActiveSolutionTrackerEventArgs args)
         {
+            // TODO: simplifying the eventing model.
+            // Both this class and the ActiveSolutionBoundTracker both listen for solution closing events.
+            // The ASBT can set the current configuration to Standalone, and this class reads the
+            // configuration. However, we can't control the order they receive the "solution closing"
+            // notification, so this class might try to read the configuration before it has been
+            // updated by the ASBT.
+            // To work round this, we have specifically check whether there is an open solution
+            // so we do the right thing here.
+
             // Reset, and abort workflows
             this.ResetBinding(abortCurrentlyRunningWorklows: true, clearCurrentBinding: !args.IsSolutionOpen);
         }
@@ -297,7 +306,7 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(() =>
             {
                 var legacySerializer = new SolutionBindingSerializer(this);
-                return new ConfigurationProvider(legacySerializer, new InMemoryConfigurationProvider());
+                return new ConfigurationProvider(legacySerializer, InMemoryConfigurationProvider.Instance);
 
             }));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));

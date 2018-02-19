@@ -22,24 +22,27 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-
     /// <summary>
     /// Egregious hack to enable saving the configuration in .suo files
     /// </summary>
     /// <remarks>Only VS packages can save data in .suo files. However, the serialization
     /// classes depend on internal classes and MEF-created classes that are in this assembly.
-    /// As a hacky workaround, this config provider saves data to a well-known location (i.e.
-    /// the static "data" field of this class). The package can get/set this data simply
-    /// by creating its own copy of this class.</remarks>
+    /// As a hacky workaround, this config provider is a singleton that is visible to the
+    /// package assembly.
     public class InMemoryConfigurationProvider : IConfigurationProvider
     {
-        private static BindingConfiguration data = BindingConfiguration.Standalone;
+        private BindingConfiguration data = BindingConfiguration.Standalone;
+
+        public static InMemoryConfigurationProvider Instance => new InMemoryConfigurationProvider();
+
+        private InMemoryConfigurationProvider()
+        {
+            // Singleton
+        }
 
         public void DeleteConfiguration()
         {
-#pragma warning disable S2696 // Instance members should not write to "static" fields
             data = BindingConfiguration.Standalone;
-#pragma warning restore S2696 // Instance members should not write to "static" fields
         }
 
         public BindingConfiguration GetConfiguration()
@@ -54,10 +57,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-#pragma warning disable S2696 // Instance members should not write to "static" fields
             data = configuration;
-#pragma warning restore S2696 // Instance members should not write to "static" fields
-
             return true;
         }
     }
