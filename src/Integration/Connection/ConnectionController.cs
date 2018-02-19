@@ -24,7 +24,6 @@ using System.Linq;
 using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Models;
@@ -36,14 +35,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
     /// Provides the following commands:
     /// <see cref="ConnectCommand"/>
     /// <see cref="RefreshCommand"/>
-    /// <see cref="DontWarnAgainCommand"/>
     /// </summary>
     internal sealed class ConnectionController : HostedCommandControllerBase, IConnectionInformationProvider,
         IConnectionWorkflowExecutor
     {
         private readonly IHost host;
         private readonly IConnectionInformationProvider connectionProvider;
-        private readonly ISonarLintSettings settings;
         private readonly IProjectSystemHelper projectSystemHelper;
 
         public ConnectionController(IHost host)
@@ -63,24 +60,17 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.host = host;
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
-            this.settings = this.host.GetMefService<ISonarLintSettings>();
 
             this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
 
             this.ConnectCommand = new RelayCommand(this.OnConnect, this.CanConnect);
             this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.CanRefresh);
-            this.DontWarnAgainCommand = new RelayCommand(this.OnDontWarnAgain, this.CanDontWarnAgain);
         }
 
         #region Properties
 
         public RelayCommand ConnectCommand
-        {
-            get;
-        }
-
-        public RelayCommand DontWarnAgainCommand
         {
             get;
         }
@@ -165,30 +155,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
         }
         #endregion
 
-        #region Don't warn again command
-        private void ShowNuGetWarning(ProgressControllerResult executionResult)
-        {
-            if (executionResult == ProgressControllerResult.Succeeded && this.settings.ShowServerNuGetTrustWarning)
-            {
-                this.host.ActiveSection?.UserNotifications?.ShowNotificationWarning(Strings.ServerNuGetTrustWarningMessage, NotificationIds.WarnServerTrustId, this.DontWarnAgainCommand);
-            }
-        }
-
-        private void OnDontWarnAgain()
-        {
-            var componentModel = base.ServiceProvider.GetService<SComponentModel, IComponentModel>();
-            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.DontWarnAgainCommandCalled);
-
-            this.settings.ShowServerNuGetTrustWarning = false;
-            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.WarnServerTrustId);
-        }
-
-        private bool CanDontWarnAgain()
-        {
-            return this.settings != null;
-        }
-        #endregion
-
         #region IConnectionInformationProvider
 
         ConnectionInformation IConnectionInformationProvider.GetConnectionInformation(ConnectionInformation currentConnection)
@@ -227,7 +193,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
             {
                 progressListener.Dispose();
                 this.IsConnectionInProgress = false;
-                this.ShowNuGetWarning(result);
             });
         }
         #endregion

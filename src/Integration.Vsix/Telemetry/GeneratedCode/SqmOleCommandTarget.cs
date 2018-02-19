@@ -31,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration
         RefreshCommandCommandId = 0x304,
         DisconnectCommandCommandId = 0x305,
         ToggleShowAllProjectsCommandCommandId = 0x306,
-        DontWarnAgainCommandCommandId = 0x307,
         FixConflictsCommandCommandId = 0x308,
         FixConflictsShowCommandId = 0x309,
         ErrorListInfoBarShowCommandId = 0x400,
@@ -61,9 +60,9 @@ namespace SonarLint.VisualStudio.Integration
 
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
-            // This handler enables ALL pseudo commands for logging SQM data.
+            // This handler enables ALL psuedo commands for logging SQM data.
             // i.e. all commands in guid group SonarLintSqmCommandTarget.CommandSetIdentifier
-            // are pseudo commands for logging SQM and this handler will enable them when fired.
+            // are psuedo commands for logging SQM and this handler will enable them when fired.
 
             int commandId = (int)prgCmds[0].cmdID;
             if (IsSqmCommand(pguidCmdGroup, commandId))
@@ -79,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         /// </summary>
-        /// Returns true if the specified command is a recognized SQM command, otherwise false.
+        /// Returns true if the specified command is a recognised SQM command, otherwise false.
         /// </summary>
         public static bool IsSqmCommand(Guid commandGroup, int commandId)
         {
@@ -96,7 +95,6 @@ namespace SonarLint.VisualStudio.Integration
                     case SonarLintSqmCommandIds.RefreshCommandCommandId:
                     case SonarLintSqmCommandIds.DisconnectCommandCommandId:
                     case SonarLintSqmCommandIds.ToggleShowAllProjectsCommandCommandId:
-                    case SonarLintSqmCommandIds.DontWarnAgainCommandCommandId:
                     case SonarLintSqmCommandIds.FixConflictsCommandCommandId:
                     case SonarLintSqmCommandIds.FixConflictsShowCommandId:
                     case SonarLintSqmCommandIds.ErrorListInfoBarShowCommandId:

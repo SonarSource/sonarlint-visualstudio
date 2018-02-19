@@ -55,7 +55,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.eventLoggerMap[TelemetryEvent.DisconnectCommandCommandCalled] = SonarLintSqmFacade.DisconnectCommand;
             this.eventLoggerMap[TelemetryEvent.RefreshCommandCommandCalled] = SonarLintSqmFacade.RefreshCommand;
             this.eventLoggerMap[TelemetryEvent.ToggleShowAllProjectsCommandCommandCalled] = SonarLintSqmFacade.ToggleShowAllProjectsCommand;
-            this.eventLoggerMap[TelemetryEvent.DontWarnAgainCommandCalled] = SonarLintSqmFacade.DontWarnAgainCommand;
             this.eventLoggerMap[TelemetryEvent.FixConflictsCommandCalled] = SonarLintSqmFacade.FixConflictsCommand;
             this.eventLoggerMap[TelemetryEvent.FixConflictShow] = SonarLintSqmFacade.FixConflictsShow;
             this.eventLoggerMap[TelemetryEvent.ErrorListInfoBarUpdateCalled] = SonarLintSqmFacade.ErrorListInfoBarUpdateCommand;

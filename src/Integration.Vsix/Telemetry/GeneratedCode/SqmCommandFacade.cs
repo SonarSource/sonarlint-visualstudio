@@ -12,9 +12,9 @@
 //                                                                           
 // This file contains SQM trace logging methods.
 
+using EnvDTE;
 using System;
 using System.Globalization;
-using EnvDTE;
 using Microsoft.VisualStudio;
 
 namespace SonarLint.VisualStudio.Integration
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration
 
             if (dte == null)
             {
-                dte = serviceProvider.GetService<DTE>();
+                dte = serviceProvider.GetService(typeof(DTE)) as DTE;
             }
         }
 
@@ -135,15 +135,6 @@ namespace SonarLint.VisualStudio.Integration
         {
             RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.ToggleShowAllProjectsCommandCommandId);
             DEBUG_LogSqmCommandsToOutputWindow("ToggleShowAllProjectsCommand");
-        }
-
-        /// <summary>
-        /// SQM command for DontWarnAgainCommand.
-        /// </summary>
-        public static void DontWarnAgainCommand()
-        {
-            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.DontWarnAgainCommandCommandId);
-            DEBUG_LogSqmCommandsToOutputWindow("DontWarnAgainCommand");
         }
 
         /// <summary>
