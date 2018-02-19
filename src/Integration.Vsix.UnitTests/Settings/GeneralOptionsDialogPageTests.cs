@@ -54,7 +54,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
-                ShowServerNuGetTrustWarning = true,
                 SkipActivateMoreDialog = true
             };
 
@@ -68,7 +67,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 
             // Assert
             page.Control.Should().NotBeNull();
-            page.Control.ShowServerNuGetTrustWarning.IsChecked.Should().Be(true);
             page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Verbose);
         }
 
@@ -79,7 +77,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             {
                 DaemonLogLevel = DaemonLogLevel.Info,
                 IsActivateMoreEnabled = true,
-                ShowServerNuGetTrustWarning = false,
                 SkipActivateMoreDialog = true
             };
 
@@ -93,7 +90,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 
             // Assert
             page.Control.Should().NotBeNull();
-            page.Control.ShowServerNuGetTrustWarning.IsChecked.Should().Be(false);
             page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Info);
         }
 
@@ -104,7 +100,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
-                ShowServerNuGetTrustWarning = true,
                 SkipActivateMoreDialog = true
             };
 
@@ -114,14 +109,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             ConfigureSiteMock(page, settings, daemonMock.Object);
             page.ActivateAccessor();
 
-            page.Control.ShowServerNuGetTrustWarning.IsChecked = false;
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
 
             // Act
             page.ApplyAccessor(Microsoft.VisualStudio.Shell.DialogPage.ApplyKind.Cancel);
 
             // Assert
-            settings.ShowServerNuGetTrustWarning.Should().BeTrue();
             settings.DaemonLogLevel.Should().Be(DaemonLogLevel.Verbose);
         }
 
@@ -132,7 +125,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
-                ShowServerNuGetTrustWarning = true,
                 SkipActivateMoreDialog = true
             };
 
@@ -142,14 +134,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             ConfigureSiteMock(page, settings, daemonMock.Object);
             page.ActivateAccessor();
 
-            page.Control.ShowServerNuGetTrustWarning.IsChecked = false;
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
 
             // Act
             page.ApplyAccessor(Microsoft.VisualStudio.Shell.DialogPage.ApplyKind.Apply);
 
             // Assert
-            settings.ShowServerNuGetTrustWarning.Should().BeFalse();
             settings.DaemonLogLevel.Should().Be(DaemonLogLevel.Minimal);
         }
 

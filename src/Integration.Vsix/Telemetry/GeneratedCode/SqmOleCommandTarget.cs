@@ -31,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration
         RefreshCommandCommandId = 0x304,
         DisconnectCommandCommandId = 0x305,
         ToggleShowAllProjectsCommandCommandId = 0x306,
-        DontWarnAgainCommandCommandId = 0x307,
         FixConflictsCommandCommandId = 0x308,
         FixConflictsShowCommandId = 0x309,
         ErrorListInfoBarShowCommandId = 0x400,
@@ -96,7 +95,6 @@ namespace SonarLint.VisualStudio.Integration
                     case SonarLintSqmCommandIds.RefreshCommandCommandId:
                     case SonarLintSqmCommandIds.DisconnectCommandCommandId:
                     case SonarLintSqmCommandIds.ToggleShowAllProjectsCommandCommandId:
-                    case SonarLintSqmCommandIds.DontWarnAgainCommandCommandId:
                     case SonarLintSqmCommandIds.FixConflictsCommandCommandId:
                     case SonarLintSqmCommandIds.FixConflictsShowCommandId:
                     case SonarLintSqmCommandIds.ErrorListInfoBarShowCommandId:

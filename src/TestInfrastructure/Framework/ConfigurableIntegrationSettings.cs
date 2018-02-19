@@ -26,8 +26,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool IsActivateMoreEnabled { get; set; }
 
-        public bool ShowServerNuGetTrustWarning { get; set; }
-
         public bool SkipActivateMoreDialog { get; set; }
     }
 }

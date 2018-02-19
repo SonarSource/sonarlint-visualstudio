@@ -138,15 +138,6 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         /// <summary>
-        /// SQM command for DontWarnAgainCommand.
-        /// </summary>
-        public static void DontWarnAgainCommand()
-        {
-            RunCommand(CommandSetIdentifier, (int)SonarLintSqmCommandIds.DontWarnAgainCommandCommandId);
-            DEBUG_LogSqmCommandsToOutputWindow("DontWarnAgainCommand");
-        }
-
-        /// <summary>
         /// SQM command for FixConflictsCommand.
         /// </summary>
         public static void FixConflictsCommand()

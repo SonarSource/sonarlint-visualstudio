@@ -24,7 +24,6 @@ namespace SonarLint.VisualStudio.Integration
 
     public interface ISonarLintSettings
     {
-        bool ShowServerNuGetTrustWarning { get; set; } // Legacy connected mode: not used by the new connected mode
         bool IsActivateMoreEnabled { get; set; }
         bool SkipActivateMoreDialog { get; set; }
         DaemonLogLevel DaemonLogLevel { get; set; }

@@ -32,7 +32,6 @@ namespace SonarLint.VisualStudio.Integration
         RefreshCommandCommandCalled,
         DisconnectCommandCommandCalled,
         ToggleShowAllProjectsCommandCommandCalled,
-        DontWarnAgainCommandCalled,
         FixConflictsCommandCalled,
         FixConflictShow,
 

@@ -79,14 +79,6 @@
                     </Strings>
                 </Button>
   
-                <Button guid="guidCmdSet" id="DontWarnAgainCommand" priority="0x00" type="Button">
-                    <CommandFlag>NoButtonCustomize</CommandFlag>
-                    <CommandFlag>NoKeyCustomize</CommandFlag>
-                    <Strings>
-                        <ButtonText>DontWarnAgainCommand</ButtonText>
-                    </Strings>
-                </Button>
-  
                 <Button guid="guidCmdSet" id="FixConflictsCommand" priority="0x00" type="Button">
                     <CommandFlag>NoButtonCustomize</CommandFlag>
                     <CommandFlag>NoKeyCustomize</CommandFlag>
@@ -131,7 +123,6 @@
                     <IDSymbol name="RefreshCommand" value="0x304" />
                     <IDSymbol name="DisconnectCommand" value="0x305" />
                     <IDSymbol name="ToggleShowAllProjectsCommand" value="0x306" />
-                    <IDSymbol name="DontWarnAgainCommand" value="0x307" />
                     <IDSymbol name="FixConflictsCommand" value="0x308" />
                     <IDSymbol name="FixConflictsShow" value="0x309" />
                     <IDSymbol name="ErrorListInfoBarShow" value="0x400" />
@@ -149,7 +140,6 @@
             <UsedCommand guid="guidCmdSet" id="RefreshCommand" />
             <UsedCommand guid="guidCmdSet" id="DisconnectCommand" />
             <UsedCommand guid="guidCmdSet" id="ToggleShowAllProjectsCommand" />
-            <UsedCommand guid="guidCmdSet" id="DontWarnAgainCommand" />
             <UsedCommand guid="guidCmdSet" id="FixConflictsCommand" />
             <UsedCommand guid="guidCmdSet" id="FixConflictsShow" />
             <UsedCommand guid="guidCmdSet" id="ErrorListInfoBarShow" />
