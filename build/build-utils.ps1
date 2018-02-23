@@ -127,6 +127,11 @@ function Get-SonarQubeRunnerPath {
     $downloadLink = "https://github.com/SonarSource/sonar-msbuild-runner/releases/download/${sonarqube_runner_version}/sonar-scanner-msbuild-${sonarqube_runner_version}.zip"
     $sonarqube_runner_zip = (Resolve-RepoPath "MSBuild.SonarQube.Runner.zip")
 
+    # NB: the WebClient class defaults to TLS v1, which is no longer supported by GitHub
+    # See https://githubengineering.com/crypto-removal-notice/
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+    Write-Debug "Current security protocol: $([System.Net.ServicePointManager]::SecurityProtocol)"
+    Write-Host "Attempting to download Scanner for MSBuild from ${downloadLink}"
     (New-Object System.Net.WebClient).DownloadFile($downloadLink, $sonarqube_runner_zip)
 
     # perhaps we could use other folder, not the repository root
