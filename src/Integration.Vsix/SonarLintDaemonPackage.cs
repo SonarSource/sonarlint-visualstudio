@@ -20,8 +20,9 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -42,16 +43,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// To get loaded into VS, the package must be referred by &lt;Asset Type="Microsoft.VisualStudio.VsPackage" ...&gt; in .vsixmanifest file.
     /// </para>
     /// </remarks>
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(PackageGuidString)]
-    [ProvideAutoLoad(UIContextGuids.NoSolution)]
-    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
-    public sealed class SonarLintDaemonPackage : Package
+    [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
+    public sealed class SonarLintDaemonPackage : AsyncPackage
     {
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
 
         private ISonarLintDaemon daemon;
-        private EnvDTE.DTEEvents dteEvents;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -66,47 +65,48 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region Package Members
 
-        /// <summary>
-        /// Initialization of the package; this method is called right after the package is sited, so this is the place
-        /// where you can put all the initialization code that rely on services provided by VisualStudio.
-        /// </summary>
-        protected override void Initialize()
+        protected override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
-
-            var dte = this.GetService<EnvDTE.DTE>();
-            this.dteEvents = dte.Events.DTEEvents;
-            this.dteEvents.OnStartupComplete += OnIdeStartupComplete;
-            this.daemon = this.GetMefService<ISonarLintDaemon>();
+            JoinableTaskFactory.RunAsync(Init);
+            return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        private void OnIdeStartupComplete()
+        private async System.Threading.Tasks.Task Init()
         {
-            this.dteEvents.OnStartupComplete -= OnIdeStartupComplete;
-            var settings = this.GetMefService<ISonarLintSettings>();
-
-            var logger = this.GetMefService<ILogger>();
-            LegacyInstallationCleanup.CleanupDaemonFiles(logger);
-
-            if (settings.IsActivateMoreEnabled && daemon.IsInstalled)
+            try
             {
-                if (!daemon.IsRunning)
+                this.daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
+                var settings = await this.GetMefServiceAsync<ISonarLintSettings>();
+                var logger = await this.GetMefServiceAsync<ILogger>();
+
+                LegacyInstallationCleanup.CleanupDaemonFiles(logger);
+
+                if (settings.IsActivateMoreEnabled && daemon.IsInstalled)
                 {
-                    daemon.Start();
+                    if (!daemon.IsRunning)
+                    {
+                        daemon.Start();
+                    }
                 }
-            }
-            else if (settings.IsActivateMoreEnabled)
-            {
-                // User already agreed to have the daemon installed, so directly start download
-                new SonarLintDaemonInstaller(settings, daemon).Show();
-            }
-            else if (!settings.SkipActivateMoreDialog)
-            {
-                var result = new SonarLintDaemonSplashscreen(settings).ShowDialog();
-                if (result == true)
+                else if (settings.IsActivateMoreEnabled)
                 {
+                    // User already agreed to have the daemon installed, so directly start download
+                    await JoinableTaskFactory.SwitchToMainThreadAsync();
                     new SonarLintDaemonInstaller(settings, daemon).Show();
                 }
+                else if (!settings.SkipActivateMoreDialog)
+                {
+                    await JoinableTaskFactory.SwitchToMainThreadAsync();
+                    var result = new SonarLintDaemonSplashscreen(settings).ShowDialog();
+                    if (result == true)
+                    {
+                        new SonarLintDaemonInstaller(settings, daemon).Show();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Log this
             }
         }
 
@@ -116,7 +116,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
-                this.dteEvents.OnStartupComplete -= OnIdeStartupComplete;
                 this.daemon?.Dispose();
                 this.daemon = null;
             }
