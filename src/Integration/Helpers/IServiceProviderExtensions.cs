@@ -73,6 +73,19 @@ namespace SonarLint.VisualStudio.Integration
             return componentModel?.GetExtensions<T>().SingleOrDefault();
         }
 
+        public static async System.Threading.Tasks.Task<T> GetMefServiceAsync<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
+            where T : class
+        {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            IComponentModel componentModel = await serviceProvider.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            // We don't want to throw in the case of a missing service (don't use GetService<T>)
+            return componentModel?.GetExtensions<T>().SingleOrDefault();
+        }
+
         [Conditional("DEBUG")]
         internal static void AssertLocalServiceIsNotNull<T>(this T service)
             where T : class, ILocalService
