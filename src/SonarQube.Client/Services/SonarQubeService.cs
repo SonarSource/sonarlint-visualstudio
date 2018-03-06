@@ -19,6 +19,7 @@ namespace SonarQube.Client.Services
 
         private readonly HttpMessageHandler messageHandler;
         private readonly RequestFactory requestFactory;
+        public readonly string userAgent;
 
         private HttpClient httpClient;
 
@@ -38,10 +39,11 @@ namespace SonarQube.Client.Services
 
         public bool IsConnected => connected;
 
-        public SonarQubeService(HttpMessageHandler messageHandler, RequestFactory requestFactory)
+        public SonarQubeService(HttpMessageHandler messageHandler, RequestFactory requestFactory, string userAgent)
         {
             this.messageHandler = messageHandler;
             this.requestFactory = requestFactory;
+            this.userAgent = userAgent;
         }
 
         private Task<TResponse> InvokeRequestAsync<TRequest, TResponse>(CancellationToken token)
@@ -81,6 +83,8 @@ namespace SonarQube.Client.Services
                         connection.UserName, connection.Password, connection.Authentication),
                 },
             };
+
+            httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
 
             connected = true;
 

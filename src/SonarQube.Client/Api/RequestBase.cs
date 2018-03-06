@@ -47,7 +47,7 @@ namespace SonarQube.Client
             return result.Value;
         }
 
-        protected virtual async Task<Result<TResponse>> InvokeImplAsync(HttpClient httpClient, CancellationToken token)
+        protected async Task<Result<TResponse>> InvokeImplAsync(HttpClient httpClient, CancellationToken token)
         {
             string query = QueryStringSerializer.ToQueryString(this);
 
@@ -58,10 +58,10 @@ namespace SonarQube.Client
             var httpResponse = await httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, token)
                 .ConfigureAwait(false);
 
-            return await ReadResponse(httpResponse);
+            return await ReadResponseAsync(httpResponse);
         }
 
-        protected virtual async Task<Result<TResponse>> ReadResponse(HttpResponseMessage httpResponse)
+        protected virtual async Task<Result<TResponse>> ReadResponseAsync(HttpResponseMessage httpResponse)
         {
             if (!httpResponse.IsSuccessStatusCode)
             {

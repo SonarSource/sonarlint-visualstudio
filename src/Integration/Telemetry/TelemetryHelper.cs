@@ -19,25 +19,18 @@
  */
 
 using System;
-using System.Diagnostics;
+using SonarLint.VisualStudio.Integration.Service;
 
 namespace SonarLint.VisualStudio.Integration
 {
     public static class TelemetryHelper
     {
-        private static readonly string SonarLintVersion = GetSonarLintVersion();
-
-        private static string GetSonarLintVersion()
-        {
-            return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
-        }
-
         public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now, bool isConnected)
         {
             return new TelemetryPayload
             {
                 SonarLintProduct = "SonarLint Visual Studio",
-                SonarLintVersion = SonarLintVersion,
+                SonarLintVersion = VersionHelper.SonarLintVersion,
                 VisualStudioVersion = VisualStudioHelpers.VisualStudioVersion,
                 NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,

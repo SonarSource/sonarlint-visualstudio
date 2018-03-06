@@ -36,11 +36,6 @@ namespace SonarQube.Client.Helpers
         /// </summary>
         internal static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
 
-        ////public static AuthenticationHeaderValue Create(ConnectionRequest connectionInfo)
-        ////{
-        ////    return Create(connectionInfo.
-        ////}
-
         public static AuthenticationHeaderValue Create(string username, SecureString password, AuthenticationType authentication)
         {
             if (authentication == AuthenticationType.Basic)

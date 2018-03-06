@@ -33,10 +33,10 @@ namespace SonarQube.Client.Api
         private const int MaximumPageSize = 500;
 
         [JsonProperty("p")]
-        public int Page { get; set; } = FirstPage;
+        public virtual int Page { get; set; } = FirstPage;
 
         [JsonProperty("ps")]
-        public int PageSize { get; set; } = MaximumPageSize;
+        public virtual int PageSize { get; set; } = MaximumPageSize;
 
         public async override Task<TResponseItem[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {

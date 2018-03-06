@@ -27,7 +27,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Models;
-using SonarQube.Client.Services;
 
 namespace SonarQube.Client.Api.Requests.V5_20
 {
@@ -37,26 +36,28 @@ namespace SonarQube.Client.Api.Requests.V5_20
         public virtual string ProjectKey { get; set; }
 
         [JsonProperty("organization")]
-        public string OrganizationKey { get; set; }
+        public virtual string OrganizationKey { get; set; }
 
         [JsonProperty("defaults")]
-        public bool? Defaults => string.IsNullOrWhiteSpace(ProjectKey) ? (bool?)true : null;
+        public virtual bool? Defaults => string.IsNullOrWhiteSpace(ProjectKey) ? (bool?)true : null;
 
         protected override string Path => "api/qualityprofiles/search";
 
-        protected async override Task<Result<SonarQubeQualityProfile[]>> InvokeImplAsync(HttpClient httpClient, CancellationToken token)
+        public override async Task<SonarQubeQualityProfile[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
-            var result = await base.InvokeImplAsync(httpClient, token);
+            var result = await InvokeImplAsync(httpClient, token);
 
             if (result.StatusCode == HttpStatusCode.NotFound)
             {
                 // The project has not been scanned yet, get default quality profile
                 ProjectKey = null;
 
-                result = await base.InvokeImplAsync(httpClient, token);
+                result = await InvokeImplAsync(httpClient, token);
             }
 
-            return result;
+            result.EnsureSuccess();
+
+            return result.Value;
         }
 
         protected override SonarQubeQualityProfile[] ParseResponse(string response) =>

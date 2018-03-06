@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using SonarLint.VisualStudio.Integration.Resources;
 
@@ -26,6 +27,13 @@ namespace SonarLint.VisualStudio.Integration.Service
 {
     internal static class VersionHelper
     {
+        public static readonly string SonarLintVersion = GetSonarLintVersion();
+
+        private static string GetSonarLintVersion()
+        {
+            return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
+        }
+
         private const char PrereleaseSeparator = '-';
 
         /// <summary>

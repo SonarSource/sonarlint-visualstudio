@@ -35,11 +35,11 @@ namespace SonarQube.Client.Api.V5_10
     public class GetIssuesRequest : RequestBase<SonarQubeIssue[]>, IGetIssuesRequest
     {
         [JsonProperty("key")]
-        public string ProjectKey { get; set; }
+        public virtual string ProjectKey { get; set; }
 
         protected override string Path => "batch/issues";
 
-        protected async override Task<Result<SonarQubeIssue[]>> ReadResponse(HttpResponseMessage httpResponse)
+        protected async override Task<Result<SonarQubeIssue[]>> ReadResponseAsync(HttpResponseMessage httpResponse)
         {
             if (!httpResponse.IsSuccessStatusCode)
             {

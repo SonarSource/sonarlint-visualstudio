@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarQube.Client.Messages;
-
 namespace SonarQube.Client.Models
 {
     public class SonarQubeIssue
@@ -44,22 +41,5 @@ namespace SonarQube.Client.Models
         public string ModuleKey { get; }
         public SonarQubeIssueResolutionState ResolutionState { get; }
         public string RuleId { get; }
-
-        public static SonarQubeIssueResolutionState ParseResolutionState(string resolution)
-        {
-            switch (resolution)
-            {
-                case "":
-                    return SonarQubeIssueResolutionState.Unresolved;
-                case "WONTFIX":
-                    return SonarQubeIssueResolutionState.WontFix;
-                case "FALSE-POSITIVE":
-                    return SonarQubeIssueResolutionState.FalsePositive;
-                case "FIXED":
-                    return SonarQubeIssueResolutionState.Fixed;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(resolution));
-            }
-        }
     }
 }

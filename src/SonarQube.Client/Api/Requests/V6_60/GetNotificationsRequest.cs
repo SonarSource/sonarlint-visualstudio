@@ -22,39 +22,40 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
-using SonarQube.Client.Services;
 
 namespace SonarQube.Client.Api.Requests.V6_60
 {
     public class GetNotificationsRequest : RequestBase<SonarQubeNotification[]>, IGetNotificationsRequest
     {
         [JsonProperty("projects")]
-        public string ProjectKey { get; set; }
+        public virtual string ProjectKey { get; set; }
 
         [JsonProperty("from"), JsonConverter(typeof(JavaDateConverter))]
-        public DateTimeOffset EventsSince { get; set; }
+        public virtual DateTimeOffset EventsSince { get; set; }
 
         protected override string Path => "api/developers/search_events";
 
-        protected override async Task<Result<SonarQubeNotification[]>> ReadResponse(HttpResponseMessage httpResponse)
+        public async override Task<SonarQubeNotification[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
-            if (httpResponse.IsSuccessStatusCode)
+            var result = await InvokeImplAsync(httpClient, token);
+
+            switch (result.StatusCode)
             {
-                return await base.ReadResponse(httpResponse);
+                case HttpStatusCode.OK:
+                    return result.Value;
+
+                case HttpStatusCode.NotFound:
+                    return null; // Feature is not enabled, null will stop future checks
+
+                default:
+                    return new SonarQubeNotification[0];
             }
-
-            var result = httpResponse.StatusCode == HttpStatusCode.NotFound
-                ? null // Not supported on server => disable in SLVS
-                : new SonarQubeNotification[0];
-
-            httpResponse.StatusCode = HttpStatusCode.OK; // Do not throw in the service
-
-            return new Result<SonarQubeNotification[]>(httpResponse, result);
         }
 
         protected override SonarQubeNotification[] ParseResponse(string response) =>

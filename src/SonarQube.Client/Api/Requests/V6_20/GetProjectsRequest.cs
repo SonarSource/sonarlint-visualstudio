@@ -28,10 +28,10 @@ namespace SonarQube.Client.Api.Requests.V6_20
     public class GetProjectsRequest : PagedRequestBase<SonarQubeProject>, IGetProjectsRequest
     {
         [JsonProperty("organization")]
-        public string OrganizationKey { get; set; }
+        public virtual string OrganizationKey { get; set; }
 
         [JsonProperty("asc")]
-        public bool Ascending { get; set; } = true;
+        public virtual bool Ascending { get; set; } = true;
 
         protected override string Path => "api/components/search_projects";
 

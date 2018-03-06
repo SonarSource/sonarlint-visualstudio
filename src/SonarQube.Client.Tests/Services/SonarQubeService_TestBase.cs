@@ -41,6 +41,8 @@ namespace SonarQube.Client.Tests.Services
 
         private static readonly Uri BasePath = new Uri("http://localhost");
 
+        private const string UserAgent = "the-test-user-agent/1.0";
+
         [TestInitialize]
         public void TestInitialize()
         {
@@ -49,7 +51,7 @@ namespace SonarQube.Client.Tests.Services
             requestFactory = new RequestFactory();
             DefaultConfiguration.Configure(requestFactory);
 
-            service = new SonarQubeService(messageHandler.Object, requestFactory);
+            service = new SonarQubeService(messageHandler.Object, requestFactory, UserAgent);
         }
 
         protected async Task ConnectToSonarQube(string version = "5.6.0.0")
@@ -66,7 +68,9 @@ namespace SonarQube.Client.Tests.Services
         {
             messageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(m => m.RequestUri == new Uri(BasePath, relativePath)),
+                    ItExpr.Is<HttpRequestMessage>(m =>
+                        m.RequestUri == new Uri(BasePath, relativePath) &&
+                        m.Headers.UserAgent.ToString() == UserAgent),
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
                 {

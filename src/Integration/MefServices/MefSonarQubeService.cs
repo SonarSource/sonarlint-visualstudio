@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
+using SonarLint.VisualStudio.Integration.Service;
 using SonarQube.Client;
 using SonarQube.Client.Api.Requests;
 using SonarQube.Client.Services;
@@ -37,7 +38,9 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     public class MefSonarQubeService : SonarQubeService
     {
         public MefSonarQubeService()
-            : base(new HttpClientHandler(), DefaultConfiguration.Configure(new RequestFactory()))
+            : base(new HttpClientHandler(),
+                  DefaultConfiguration.Configure(new RequestFactory()),
+                  userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}")
         {
         }
     }

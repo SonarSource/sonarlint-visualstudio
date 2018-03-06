@@ -18,27 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Linq;
 using Newtonsoft.Json;
-using SonarQube.Client.Models;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Api.Requests.V2_10
 {
     public class GetProjectsRequest : RequestBase<SonarQubeProject[]>, IGetProjectsRequest
     {
         [JsonIgnore]
-        public bool Ascending { get; set; }
+        public virtual bool Ascending { get; set; }
 
         [JsonIgnore]
-        public string OrganizationKey { get; set; }
+        public virtual string OrganizationKey { get; set; }
 
         [JsonIgnore]
-        public int Page { get; set; }
+        public virtual int Page { get; set; }
 
         [JsonIgnore]
-        public int PageSize { get; set; }
+        public virtual int PageSize { get; set; }
 
         protected override string Path => "api/projects/index";
 

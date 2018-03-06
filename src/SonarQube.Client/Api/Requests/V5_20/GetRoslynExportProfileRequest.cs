@@ -27,7 +27,7 @@ namespace SonarQube.Client.Api.Requests.V5_20
     public class GetRoslynExportProfileRequest : RequestBase<RoslynExportProfileResponse>, IGetRoslynExportProfileRequest
     {
         [JsonProperty("language")]
-        public string LanguageKey { get; set; }
+        public virtual string LanguageKey { get; set; }
 
         [JsonProperty("name")]
         public virtual string QualityProfileName { get; set; }
@@ -36,7 +36,7 @@ namespace SonarQube.Client.Api.Requests.V5_20
         public virtual string OrganizationKey { get; set; }
 
         [JsonProperty("exporterKey", Required = Required.Always)]
-        public string ExporterKey => $"roslyn-{LanguageKey}";
+        public virtual string ExporterKey => $"roslyn-{LanguageKey}";
 
         protected override string Path => "api/qualityprofiles/export";
 

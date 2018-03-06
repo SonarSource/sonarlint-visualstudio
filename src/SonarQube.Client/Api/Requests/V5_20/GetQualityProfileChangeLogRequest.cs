@@ -28,7 +28,7 @@ namespace SonarQube.Client.Api.Requests.V5_20
     public class GetQualityProfileChangeLogRequest : PagedRequestBase<DateTime>, IGetQualityProfileChangeLogRequest
     {
         [JsonProperty("profileKey")]
-        public string QualityProfileKey { get; set; }
+        public virtual string QualityProfileKey { get; set; }
 
         protected override string Path => "api/qualityprofiles/changelog";
 
