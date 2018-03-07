@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.OnActivate(e);
 
+            dialogControl.ShowAdditionalLanguageDownloadDialogue.IsChecked = !Settings.SkipActivateMoreDialog;
             dialogControl.DaemonVerbosity.ItemsSource = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
             dialogControl.DaemonVerbosity.SelectedItem = Settings.DaemonLogLevel;
         }
@@ -60,6 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (e.ApplyBehavior == ApplyKind.Apply)
             {
+                settings.SkipActivateMoreDialog = !dialogControl.ShowAdditionalLanguageDownloadDialogue.IsChecked.Value;
                 Settings.DaemonLogLevel = (DaemonLogLevel)dialogControl.DaemonVerbosity.SelectedItem;
             }
 

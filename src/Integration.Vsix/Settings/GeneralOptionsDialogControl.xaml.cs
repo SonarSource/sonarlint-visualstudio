@@ -67,14 +67,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 ActivateButton.Visibility = Visibility.Collapsed;
                 ActivateText.Visibility = Visibility.Collapsed;
+                ShowAdditionalLanguageDownloadDialogue.Visibility = Visibility.Collapsed;
+                ShowAdditionalLanguageDownloadText.Visibility = Visibility.Collapsed;
                 DeactivateButton.Visibility = Visibility.Visible;
                 DeactivateText.Visibility = Visibility.Visible;
                 VerbosityPanel.Visibility = Visibility.Visible;
+                
             }
             else
             {
                 ActivateButton.Visibility = Visibility.Visible;
                 ActivateText.Visibility = Visibility.Visible;
+                ShowAdditionalLanguageDownloadDialogue.Visibility = Visibility.Visible;
+                ShowAdditionalLanguageDownloadText.Visibility = Visibility.Visible;
                 DeactivateButton.Visibility = Visibility.Collapsed;
                 DeactivateText.Visibility = Visibility.Collapsed;
                 VerbosityPanel.Visibility = Visibility.Collapsed;
