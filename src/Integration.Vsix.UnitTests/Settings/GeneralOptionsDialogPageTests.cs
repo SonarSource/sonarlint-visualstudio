@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Windows;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -48,8 +49,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        public void OnActivate_ControlsAreConfiguredFromSettings1()
+        public void OnActivate_WhenDaemonIsNotInstalled_ControlsAreConfiguredForActivation()
         {
+            // Daemon is not installed so the control should be set up so the user
+            // can "Activate"
             var settings = new ConfigurableSonarLintSettings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
@@ -58,6 +61,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             };
 
             var daemonMock = new Mock<ISonarLintDaemon>();
+            daemonMock.SetupGet<bool>(x => x.IsInstalled).Returns(false);
+
+            GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
+            ConfigureSiteMock(page, settings, daemonMock.Object);
+
+            // Act
+            page.ActivateAccessor();
+
+            // Assert
+            page.Control.Should().NotBeNull();
+            page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Verbose);
+
+            // Daemon is not installed, so deactivate options should not be visible
+            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Collapsed);
+            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Collapsed);
+            page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Collapsed);
+
+            // ... and activate options should be visible
+            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Visible);
+            page.Control.ActivateText.Visibility.Should().Be(Visibility.Visible);
+            page.Control.ShowAdditionalLanguageDownloadDialogue.IsChecked.Should().BeFalse();
+            page.Control.ShowAdditionalLanguageDownloadText.Visibility.Should().Be(Visibility.Visible);
+        }
+
+
+        [TestMethod]
+        public void OnActivate_WhenDaemonIsInstalled_ControlsAreConfiguredFromSettings1()
+        {
+            // Daemon is installed so the settings as supplied should be used
+            var settings = new ConfigurableSonarLintSettings
+            {
+                DaemonLogLevel = DaemonLogLevel.Verbose,
+                IsActivateMoreEnabled = true,
+                SkipActivateMoreDialog = true
+            };
+
+            var daemonMock = new Mock<ISonarLintDaemon>();
+            daemonMock.SetupGet<bool>(x => x.IsInstalled).Returns(true);
             
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
             ConfigureSiteMock(page, settings, daemonMock.Object);
@@ -68,19 +109,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Assert
             page.Control.Should().NotBeNull();
             page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Verbose);
+
+            // Daemon is activate, so deactivate options should be visible
+            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Visible);
+            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Visible);
+            page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Visible);
+
+            // ... and active options should not
+            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Collapsed);
+            page.Control.ActivateText.Visibility.Should().Be(Visibility.Collapsed);
+            page.Control.ShowAdditionalLanguageDownloadDialogue.IsChecked.Should().BeFalse();  // inverse of SkipActivateMoreDialog
+            page.Control.ShowAdditionalLanguageDownloadText.Visibility.Should().Be(Visibility.Collapsed);
         }
 
         [TestMethod]
-        public void OnActivate_ControlsAreConfiguredFromSettings2()
+        public void OnActivate_WhenDaemonIsInstalled_ControlsAreConfiguredFromSettings2()
         {
+            // Daemon is installed so the settings as supplied should be used
             var settings = new ConfigurableSonarLintSettings
             {
                 DaemonLogLevel = DaemonLogLevel.Info,
-                IsActivateMoreEnabled = true,
-                SkipActivateMoreDialog = true
+                IsActivateMoreEnabled = false,
+                SkipActivateMoreDialog = false
             };
 
             var daemonMock = new Mock<ISonarLintDaemon>();
+            daemonMock.SetupGet<bool>(x => x.IsInstalled).Returns(true);
 
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
             ConfigureSiteMock(page, settings, daemonMock.Object);
@@ -91,6 +145,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Assert
             page.Control.Should().NotBeNull();
             page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Info);
+
+            // Daemon is inactive, so deactivate options should be collapsed
+            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Collapsed);
+            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Collapsed);
+            page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Collapsed);
+
+            // ... and activate options should be visible
+            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Visible);
+            page.Control.ActivateText.Visibility.Should().Be(Visibility.Visible);
+            page.Control.ShowAdditionalLanguageDownloadDialogue.IsChecked.Should().BeTrue();  // inverse of SkipActivateMoreDialog
+            page.Control.ShowAdditionalLanguageDownloadText.Visibility.Should().Be(Visibility.Visible);
         }
 
         [TestMethod]
