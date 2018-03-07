@@ -121,6 +121,10 @@
     <value>Cannot find tool window with the specified guid: {0}</value>
     <comment>Exception message, {0} guid</comment>
   </data>
+  <data name="ERROR_InitializingDaemon" xml:space="preserve">
+    <value>Error occurred initializing the daemon: {0}</value>
+    <comment>Error message in output window when an exception thrown during async daemon initialization</comment>
+  </data>
   <data name="InvalidInfoBarInstance" xml:space="preserve">
     <value>The specified argument is of a valid type.</value>
     <comment>Exception message</comment>

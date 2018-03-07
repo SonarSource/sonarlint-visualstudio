@@ -73,11 +73,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async System.Threading.Tasks.Task Init()
         {
+            ILogger logger = null;
+
             try
             {
+                logger = await this.GetMefServiceAsync<ILogger>();
+                logger.WriteLine("Try writing from background thread");
+
                 this.daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
                 var settings = await this.GetMefServiceAsync<ISonarLintSettings>();
-                var logger = await this.GetMefServiceAsync<ILogger>();
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 
@@ -104,9 +108,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                // Log this
+                if (logger != null)
+                {
+                    logger.WriteLine(Resources.Strings.ERROR_InitializingDaemon, ex);
+                }
             }
         }
 
