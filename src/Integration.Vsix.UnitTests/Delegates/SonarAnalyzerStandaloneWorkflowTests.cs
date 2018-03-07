@@ -32,21 +32,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class SonarAnalyzerStandaloneWorkflowTests
     {
+        private Mock<IProjectsRuleSetProvider> ruleSetsProviderMock;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            ruleSetsProviderMock = new Mock<IProjectsRuleSetProvider>();
+        }
+
         [TestMethod]
         public void Ctor_WhenWorkspaceIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarAnalyzerStandaloneWorkflow(null);
+            Action act = () => new SonarAnalyzerStandaloneWorkflow(null, ruleSetsProviderMock.Object);
 
             // Assert
             act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
 
         [TestMethod]
+        public void Ctor_IProjectsRuleSetProviderIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action act = () => new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace(), null);
+
+            // Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("ruleSetsProvider");
+        }
+
+        [TestMethod]
         public void VsixAnalyzerReportDiagnostic_WhenRuleInSonarWay_CallsReportDiagnostic()
         {
             // Arrange
-            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace());
+            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace(), ruleSetsProviderMock.Object);
             var diag = CreateFakeDiagnostic(true, "1");
             var reportingContextMock = new Mock<IReportingContext>();
             reportingContextMock.SetupGet(x => x.SyntaxTree).Returns(new Mock<SyntaxTree>().Object);
@@ -63,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void VsixAnalyzerReportDiagnostic_WhenRuleNotInSonarWay_DoesNotCallReportDiagnostic()
         {
             // Arrange
-            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace());
+            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace(), ruleSetsProviderMock.Object);
             var diag = CreateFakeDiagnostic(false, "1");
             var reportingContextMock = new Mock<IReportingContext>();
             reportingContextMock.SetupGet(x => x.SyntaxTree).Returns(new Mock<SyntaxTree>().Object);

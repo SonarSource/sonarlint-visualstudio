@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration
             CurrentConfiguration = this.configurationProvider.GetConfiguration();
         }
 
-        private async void OnActiveSolutionChanged(object sender, ActiveSolutionTrackerEventArgs args)
+        private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
         {
             // An exception here will crash VS
             try

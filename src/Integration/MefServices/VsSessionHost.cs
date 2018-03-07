@@ -206,7 +206,7 @@ namespace SonarLint.VisualStudio.Integration
         #endregion
 
         #region Active solution changed event handler
-        private void OnActiveSolutionChanged(object sender, ActiveSolutionTrackerEventArgs args)
+        private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
         {
             // TODO: simplifying the eventing model.
             // Both this class and the ActiveSolutionBoundTracker both listen for solution closing events.

@@ -39,9 +39,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarQubeService sonarQubeService;
         private readonly Workspace workspace;
         private readonly IVsSolution vsSolution;
+        private readonly IProjectsRuleSetProvider ruleSetProvider;
         private readonly ILogger logger;
 
-        private readonly Func<SyntaxTree, bool> previousShouldExecuteRegisteredAction;
+        private readonly Func<IEnumerable<DiagnosticDescriptor>, SyntaxTree, bool> previousShouldExecuteRegisteredAction;
         private readonly Action<IReportingContext> previousReportDiagnostic;
         private readonly Func<IEnumerable<DiagnosticDescriptor>, bool> previousShouldRegisterContextAction;
         private readonly Func<SyntaxTree, Diagnostic, bool> previousShouldDiagnosticBeReported;
@@ -51,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /* for testing purposes */ SonarAnalyzerWorkflowBase currentWorklow;
 
         public SonarAnalyzerManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, ISonarQubeService sonarQubeService,
-            Workspace workspace, IVsSolution vsSolution, ILogger logger)
+            Workspace workspace, IVsSolution vsSolution, IProjectsRuleSetProvider ruleSetProvider, ILogger logger)
         {
             if (activeSolutionBoundTracker == null)
             {
@@ -78,12 +79,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 throw new ArgumentNullException(nameof(logger));
             }
 
+            if (ruleSetProvider == null)
+            {
+                throw new ArgumentNullException(nameof(ruleSetProvider));
+            }
+
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.sonarQubeService = sonarQubeService;
             this.workspace = workspace;
             this.vsSolution = vsSolution;
             this.logger = logger;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.ruleSetProvider = ruleSetProvider;
 
             // Saving previous state so that SonarLint doesn't have to know what's the default state in SonarAnalyzer
             this.previousShouldRegisterContextAction = SonarAnalysisContext.ShouldRegisterContextAction;
@@ -120,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             switch (configuration?.Mode)
             {
                 case SonarLintMode.Standalone:
-                    this.currentWorklow = new SonarAnalyzerStandaloneWorkflow(this.workspace);
+                    this.currentWorklow = new SonarAnalyzerStandaloneWorkflow(this.workspace, ruleSetProvider);
                     break;
 
                 case SonarLintMode.LegacyConnected:

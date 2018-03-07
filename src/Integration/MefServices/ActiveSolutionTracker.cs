@@ -38,7 +38,8 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// <see cref="IActiveSolutionTracker.ActiveSolutionChanged"/>
         /// </summary>
-        public event EventHandler<ActiveSolutionTrackerEventArgs> ActiveSolutionChanged;
+        public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
+        public event EventHandler<ProjectOpenedEventArgs> AfterProjectOpened;
 
         [ImportingConstructor]
         public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
@@ -48,14 +49,10 @@ namespace SonarLint.VisualStudio.Integration
             ErrorHandler.ThrowOnFailure(this.solution.AdviseSolutionEvents(this, out this.cookie));
         }
 
-        private void OnActiveSolutionChanged(bool isSolutionOpen)
-        {
-            this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionTrackerEventArgs(isSolutionOpen));
-        }
-
         #region IVsSolutionEvents
         int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
         {
+            this.AfterProjectOpened?.Invoke(this, new ProjectOpenedEventArgs(pHierarchy));
             return VSConstants.S_OK;
         }
 
@@ -88,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             // Note: if lightweight solution load is enabled then the solution might not
             // be fully opened at this point
-            this.OnActiveSolutionChanged(true);
+            this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen: true));
             return VSConstants.S_OK;
         }
 
@@ -104,8 +101,7 @@ namespace SonarLint.VisualStudio.Integration
 
         int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
         {
-            this.OnActiveSolutionChanged(false);
-
+            this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen: false));
             return VSConstants.S_OK;
         }
         #endregion

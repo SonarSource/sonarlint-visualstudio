@@ -19,9 +19,43 @@
  */
 
 using System;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    internal class ActiveSolutionChangedEventArgs : EventArgs
+    {
+        public ActiveSolutionChangedEventArgs(bool isSolutionOpen)
+        {
+            IsSolutionOpen = isSolutionOpen;
+        }
+
+        public bool IsSolutionOpen { get; }
+    }
+
+    internal class ProjectOpenedEventArgs : EventArgs
+    {
+        private readonly IVsHierarchy pHierarchy;
+        private readonly Lazy<EnvDTE.Project> project;
+
+        public ProjectOpenedEventArgs(IVsHierarchy pHierarchy)
+        {
+            this.pHierarchy = pHierarchy;
+            this.project = new Lazy<EnvDTE.Project>(GetProject);
+        }
+
+        public EnvDTE.Project Project => project.Value;
+
+        private EnvDTE.Project GetProject()
+        {
+            object objProj;
+            pHierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
+
+            return objProj as EnvDTE.Project;
+        }
+    }
+
     internal interface IActiveSolutionTracker
     {
         /// <summary>
@@ -29,6 +63,8 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         /// <remarks>The solution might not be fully loaded when this event is raised.
         /// The event argument value will be true if a solution is open and false otherwise.</remarks>
-        event EventHandler<ActiveSolutionTrackerEventArgs> ActiveSolutionChanged;
+        event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
+
+        event EventHandler<ProjectOpenedEventArgs> AfterProjectOpened;
     }
 }
