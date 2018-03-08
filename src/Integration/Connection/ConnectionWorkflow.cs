@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -80,14 +80,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             this.OnProjectsChanged(information, null);
             IProgressEvents progress = ProgressStepRunner.StartAsync(this.host, this.host.ActiveSection.ProgressHost, (controller) => this.CreateConnectionSteps(controller, information));
-            this.DebugOnly_MonitorProgress(progress);
-            return progress;
-        }
 
-        [Conditional("DEBUG")]
-        private void DebugOnly_MonitorProgress(IProgressEvents progress)
-        {
+#if DEBUG
             progress.RunOnFinished(r => this.host.Logger.WriteLine("DEBUGONLY: Connect workflow finished, Execution result: {0}", r));
+#endif
+
+            return progress;
         }
 
         private ProgressStepDefinition[] CreateConnectionSteps(IProgressController controller, ConnectionInformation connection)

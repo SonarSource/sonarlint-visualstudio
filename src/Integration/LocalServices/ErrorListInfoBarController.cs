@@ -110,6 +110,9 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         [Conditional("DEBUG")]
+        // Note: Conditional DEBUG methods are still compiled in release mode but won't be called.
+        // However, they do contribute to the lines of code for code coverage purposes, so if
+        // possible use #if DEBUG instead.
         private void AssertOnUIThread()
         {
             Debug.Assert(this.host.UIDispatcher.CheckAccess(), "The controller needs to run on the UI thread");

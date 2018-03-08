@@ -87,6 +87,9 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         [Conditional("DEBUG")]
+        // Note: Conditional DEBUG methods are still compiled in release mode but won't be called.
+        // However, they do contribute to the lines of code for code coverage purposes, so if
+        // possible use #if DEBUG instead.
         internal static void AssertLocalServiceIsNotNull<T>(this T service)
             where T : class, ILocalService
         {
