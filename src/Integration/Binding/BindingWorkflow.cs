@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -124,15 +124,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.host.ActiveSection.ProgressHost,
                 controller => this.CreateWorkflowSteps(controller));
 
-            this.DebugOnly_MonitorProgress(progress);
-
-            return progress;
-        }
-
-        [Conditional("DEBUG")]
-        private void DebugOnly_MonitorProgress(IProgressEvents progress)
-        {
+#if DEBUG
             progress.RunOnFinished(r => this.host.Logger.WriteLine("DEBUGONLY: Binding workflow finished, Execution result: {0}", r));
+#endif
+            return progress;
         }
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)

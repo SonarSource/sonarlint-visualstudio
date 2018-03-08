@@ -80,7 +80,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return Language.Unknown;
             }
 
+#if DEBUG
             DEBUG_LanguageCustomTags(descriptors);
+#endif
 
             var firstDescriptorTags = descriptors.First().CustomTags;
             if (firstDescriptorTags.Contains(LanguageNames.CSharp))
@@ -97,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        [Conditional("DEBUG")]
+#if DEBUG
         private static void DEBUG_LanguageCustomTags(IEnumerable<DiagnosticDescriptor> descriptors)
         {
             var supportedLanguages = new List<string> { LanguageNames.CSharp, LanguageNames.VisualBasic };
@@ -132,6 +134,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 }
             }
         }
+
+#endif
 
         internal /* for testing purposes */ void VsixAnalyzerReportDiagnostic(IReportingContext context)
         {
