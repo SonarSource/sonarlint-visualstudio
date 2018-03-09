@@ -49,7 +49,8 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IConfigurationProvider configurationProvider;
         private readonly ILogger logger;
 
-        private readonly Dictionary<string, ProjectData> projectPathToCachedData = new Dictionary<string, ProjectData>();
+        internal /* for testing purposes */ readonly Dictionary<string, ProjectData> projectPathToCachedData =
+            new Dictionary<string, ProjectData>();
         private readonly Dictionary<string, FileChangeTracker> filesToTrack = new Dictionary<string, FileChangeTracker>();
 
         private bool isDisposed;
@@ -101,6 +102,9 @@ namespace SonarLint.VisualStudio.Integration
             BuildCacheAsync();
         }
 
+        public bool HasRuleSetWithSonarAnalyzerRules(string projectFilePath) =>
+            projectPathToCachedData.ContainsKey(projectFilePath) && projectPathToCachedData[projectFilePath].HasAnySonarRule;
+
         private async void OnAfterProjectOpened(object sender, ProjectOpenedEventArgs e)
         {
             // Haven't been able to find an event for a project being added to the solution but this one does get called after
@@ -125,9 +129,6 @@ namespace SonarLint.VisualStudio.Integration
                 await BuildCacheAsync();
             }
         }
-
-        public bool HasRuleSetWithSonarAnalyzerRules(string projectFilePath) =>
-            projectPathToCachedData.ContainsKey(projectFilePath) && projectPathToCachedData[projectFilePath].HasAnySonarRule;
 
         private void ClearCache()
         {
@@ -343,7 +344,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private class ProjectData
+        internal /* for testing purposes */ class ProjectData
         {
             public ProjectData(string ruleSetPath, bool hasAnySonarRule)
             {

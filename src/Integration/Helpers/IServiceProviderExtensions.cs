@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration
             return componentModel?.GetExtensions<T>().SingleOrDefault();
         }
 
-        public static async System.Threading.Tasks.Task<T> GetMefServiceAsync<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
+        public static System.Threading.Tasks.Task<T> GetMefServiceAsync<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
             where T : class
         {
             if (serviceProvider == null)
@@ -81,6 +81,12 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
+            return GetMefServiceAsyncIterator<T>(serviceProvider);
+        }
+
+        private static async System.Threading.Tasks.Task<T> GetMefServiceAsyncIterator<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
+            where T : class
+        {
             IComponentModel componentModel = await serviceProvider.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
             // We don't want to throw in the case of a missing service (don't use GetService<T>)
             return componentModel?.GetExtensions<T>().SingleOrDefault();

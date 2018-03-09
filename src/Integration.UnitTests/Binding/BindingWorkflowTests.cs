@@ -54,8 +54,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableHost host;
 
-        public TestContext TestContext { get; set; }
-
         [TestInitialize]
         public void TestInitialize()
         {

@@ -50,8 +50,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private const string SolutionRoot = @"c:\solution";
 
-        public TestContext TestContext { get; set; }
-
         [TestInitialize]
         public void TestInitialize()
         {

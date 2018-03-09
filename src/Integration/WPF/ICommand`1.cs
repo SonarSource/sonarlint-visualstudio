@@ -22,7 +22,7 @@ using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
-    internal interface ICommand<T> : ICommand where T: class
+    internal interface ICommand<in T> : ICommand where T: class
     {
         bool CanExecute(T parameter);
         void Execute(T parameter);
