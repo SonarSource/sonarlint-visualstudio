@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -67,6 +68,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IServiceProvider nullServiceProvider = null;
             Exceptions.Expect<ArgumentNullException>(() => nullServiceProvider.GetService<IService, IOther>());
             Exceptions.Expect<ArgumentNullException>(() => IServiceProviderExtensions.GetService<IService, IOther>(nullServiceProvider));
+        }
+
+        [TestMethod]
+        public void IServiceProviderExtensions_GetMefService_NullArgChecks()
+        {
+            IServiceProvider nullServiceProvider = null;
+            Exceptions.Expect<ArgumentNullException>(() => nullServiceProvider.GetMefService<IService>());
+            Exceptions.Expect<ArgumentNullException>(() => IServiceProviderExtensions.GetMefService<IService>(nullServiceProvider));
+        }
+
+        [TestMethod]
+        public void IServiceProviderExtensions_GetMefServiceAsync_NullArgChecks()
+        {
+            IAsyncServiceProvider nullServiceProvider = null;
+            Exceptions.Expect<ArgumentNullException>(() => nullServiceProvider.GetMefServiceAsync<IService>());
+            Exceptions.Expect<ArgumentNullException>(() => IServiceProviderExtensions.GetMefServiceAsync<IService>(nullServiceProvider));
         }
 
         [TestMethod]

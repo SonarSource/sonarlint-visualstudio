@@ -436,7 +436,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         /// <summary>
-        /// Configures the mcvice to execute the supplied function when
+        /// Configures the service to execute the supplied function when
         /// GetSuppressed issues is called
         /// </summary>
         private void SetupSolutionBinding(bool isConnected, Func<IList<SonarQubeIssue>> serviceFetchIssuesTask)
