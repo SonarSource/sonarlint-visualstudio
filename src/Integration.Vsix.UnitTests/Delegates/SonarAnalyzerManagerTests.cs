@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionBoundTracker");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionBoundTracker");
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
         }
 
         [TestMethod]
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("workspace");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
 
         [TestMethod]
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 workspace, null, rulesetProviderMock.Object, loggerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("vsSolution");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("vsSolution");
         }
 
         [TestMethod]
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 workspace, vsSolutionMock.Object, null, loggerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("ruleSetProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetProvider");
         }
 
         [TestMethod]
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 workspace, vsSolutionMock.Object, rulesetProviderMock.Object, null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]

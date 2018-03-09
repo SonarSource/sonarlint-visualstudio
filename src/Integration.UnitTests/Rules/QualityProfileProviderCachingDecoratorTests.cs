@@ -69,19 +69,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
 
             // 1. Null wrapped provider
             Action act = () => new QualityProfileProviderCachingDecorator(null, validProject, serviceMock.Object, timerFactoryMock.Object);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("wrappedProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("wrappedProvider");
 
             // 2. Null project
             act = () => new QualityProfileProviderCachingDecorator(wrappedProvider, null, serviceMock.Object, timerFactoryMock.Object);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("boundProject");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("boundProject");
 
             // 3. Null service
             act = () => new QualityProfileProviderCachingDecorator(wrappedProvider, validProject, null, timerFactoryMock.Object);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
 
             // 4. Null timer factory
             act = () => new QualityProfileProviderCachingDecorator(wrappedProvider, validProject, serviceMock.Object, null);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("timerFactory");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("timerFactory");
         }
 
         [TestMethod]
@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
             VerifyServiceIsConnected(Times.Exactly(1));
             wrappedProvider.GetQualityProfileCallCount.Should().Be(0);
         }
-        
+
         [TestMethod]
         public void SynchOnTimerElapsed_WhenErrorThrown_IsSuppressed()
         {
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
 
             // Act
            RaiseTimerElapsed(DateTime.UtcNow);
- 
+
             // Assert
             VerifyServiceIsConnected(Times.Exactly(1));
             wrappedProvider.GetQualityProfileCallCount.Should().Be(0);

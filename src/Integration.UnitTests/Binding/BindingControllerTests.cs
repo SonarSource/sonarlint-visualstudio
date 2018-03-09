@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Action act = () => new BindingController(null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [TestMethod]

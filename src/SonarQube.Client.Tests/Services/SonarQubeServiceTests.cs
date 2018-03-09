@@ -50,7 +50,7 @@ namespace SonarQube.Client.Services.Tests
             Action action = () => new SonarQubeService(null);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace SonarQube.Client.Services.Tests
 
             // Assert
             client.VerifyAll();
-            func.ShouldThrow<InvalidOperationException>().WithMessage("This operation expects the service not to be connected.");
+            func.Should().ThrowExactly<InvalidOperationException>().WithMessage("This operation expects the service not to be connected.");
         }
 
         [TestMethod]
@@ -85,7 +85,7 @@ namespace SonarQube.Client.Services.Tests
                 await service.ConnectAsync(new ConnectionInformation(new Uri("http://mysq.com")), CancellationToken.None);
 
             // Assert
-            func.ShouldThrow<Exception>().WithMessage("Invalid credentials.");
+            func.Should().ThrowExactly<Exception>().WithMessage("Invalid credentials.");
         }
 
         [TestMethod]
@@ -102,11 +102,11 @@ namespace SonarQube.Client.Services.Tests
 
             // Assert
             client.VerifyAll();
-            action.ShouldNotThrow<InvalidOperationException>();
+            action.Should().NotThrow<InvalidOperationException>();
         }
 
         [TestMethod]
-        public void EnsureIsConnected_WhenNotConnected_ShouldThrow()
+        public void EnsureIsConnected_WhenNotConnected_Throws()
         {
             // Arrange
             var client = new Mock<ISonarQubeClient>();
@@ -116,7 +116,7 @@ namespace SonarQube.Client.Services.Tests
             Action action = () => service.EnsureIsConnected();
 
             // Assert
-            action.ShouldThrow<InvalidOperationException>().WithMessage("This operation expects the service to be connected.");
+            action.Should().ThrowExactly<InvalidOperationException>().WithMessage("This operation expects the service to be connected.");
         }
 
         [TestMethod]
@@ -445,7 +445,7 @@ namespace SonarQube.Client.Services.Tests
 
         private void AssertExceptionThrownWhenNotConnected(Func<Task> asyncCall)
         {
-            asyncCall.ShouldThrow<InvalidOperationException>()
+            asyncCall.Should().ThrowExactly<InvalidOperationException>()
                 .And.Message.Should().Be("This operation expects the service to be connected.");
         }
 

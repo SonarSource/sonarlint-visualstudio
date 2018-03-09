@@ -172,16 +172,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.QuickInfo
         public void Ctor_Argument_Checks()
         {
             Action action = () => new SonarLintQuickInfoSource(null, new Mock<ITextBuffer>().Object, "some path", new Mock<IIssueConverter>().Object);
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("provider");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("provider");
 
             action = () => new SonarLintQuickInfoSource(new SonarLintQuickInfoSourceProvider(), null, "some path", new Mock<IIssueConverter>().Object);
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("subjectBuffer");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("subjectBuffer");
 
             action = () => new SonarLintQuickInfoSource(new SonarLintQuickInfoSourceProvider(), new Mock<ITextBuffer>().Object, null, new Mock<IIssueConverter>().Object);
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
 
             action = () => new SonarLintQuickInfoSource(new SonarLintQuickInfoSourceProvider(), new Mock<ITextBuffer>().Object, "some path", null);
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("issueConverter");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueConverter");
         }
     }
 }

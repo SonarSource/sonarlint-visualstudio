@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ErrorListInfoBarController(null, this.solutionBindingInformationProvider);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("host");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
 
         [TestMethod]
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ErrorListInfoBarController(this.host, null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("bindingInformationProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingInformationProvider");
         }
 
         [TestMethod]

@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             Action act = () => new SonarLintOutputLogger(null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [TestMethod]

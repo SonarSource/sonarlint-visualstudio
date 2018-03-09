@@ -45,12 +45,17 @@ namespace SonarLint.VisualStudio.Integration
             this.project = new Lazy<EnvDTE.Project>(GetProject);
         }
 
+        internal ProjectOpenedEventArgs(EnvDTE.Project dteProject)
+        {
+            this.project = new Lazy<EnvDTE.Project>(() => dteProject);
+        }
+
         public EnvDTE.Project Project => project.Value;
 
         private EnvDTE.Project GetProject()
         {
-            object objProj;
-            pHierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
+            object objProj = null;
+            pHierarchy?.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
 
             return objProj as EnvDTE.Project;
         }

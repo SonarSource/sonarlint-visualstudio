@@ -52,7 +52,7 @@ namespace SonarQube.Client.Helpers
         public void ReadJson()
         {
             Action action = () => new JavaDateConverter().ReadJson(null, null, null, null);
-            action.ShouldThrow<NotSupportedException>();
+            action.Should().ThrowExactly<NotSupportedException>();
         }
 
         [TestMethod]

@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new DeprecationManager(null, new Mock<ILogger>().Object);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("infoBarManager");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("infoBarManager");
         }
 
         [TestMethod]
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new DeprecationManager(new Mock<IInfoBarManager>().Object, null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("sonarLintOutput");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarLintOutput");
         }
 
         [TestMethod]

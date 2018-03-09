@@ -81,7 +81,7 @@ namespace SonarAnalyzer.Helpers
             Action act = () => new SonarAnalyzerLegacyConnectedWorkflow(null, suppressionHandlerMock.Object, loggerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("workspace");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace SonarAnalyzer.Helpers
             Action act = () => new SonarAnalyzerLegacyConnectedWorkflow(new AdhocWorkspace(), null, loggerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("suppressionHandler");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("suppressionHandler");
         }
 
         [TestMethod]
@@ -101,7 +101,7 @@ namespace SonarAnalyzer.Helpers
             Action act = () => new SonarAnalyzerLegacyConnectedWorkflow(new AdhocWorkspace(), suppressionHandlerMock.Object, null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         #endregion

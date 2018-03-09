@@ -19,6 +19,9 @@
  */
 
 using System;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class ProjectsRuleSetProviderTests
     {
-        private ConfigurableVsProjectSystemHelper projectSystemHelperMock;
+        private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private Mock<IVsFileChangeEx> fileChangeServiceMock;
         private ConfigurableActiveSolutionTracker activeSolutionTracker;
         private Mock<IConfigurationProvider> configurationProviderMock;
@@ -40,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             var serviceProvider = new ConfigurableServiceProvider();
-            projectSystemHelperMock = new ConfigurableVsProjectSystemHelper(serviceProvider);
+            projectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
             fileChangeServiceMock = new Mock<IVsFileChangeEx>();
             activeSolutionTracker = new ConfigurableActiveSolutionTracker();
             configurationProviderMock = new Mock<IConfigurationProvider>();
@@ -55,58 +58,58 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 configurationProviderMock.Object, loggerMock.Object);
 
             // Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectSystemHelper");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectSystemHelper");
         }
 
         [TestMethod]
         public void Ctor_WhenIVsFileChangeExNull_Throws()
         {
             // Arrange
-            Action act = () => new ProjectsRuleSetProvider(projectSystemHelperMock, null, activeSolutionTracker,
+            Action act = () => new ProjectsRuleSetProvider(projectSystemHelper, null, activeSolutionTracker,
                 configurationProviderMock.Object, loggerMock.Object);
 
             // Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileChangeService");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileChangeService");
         }
 
         [TestMethod]
         public void Ctor_WhenIActiveSolutionTrackerNull_Throws()
         {
             // Arrange
-            Action act = () => new ProjectsRuleSetProvider(projectSystemHelperMock, fileChangeServiceMock.Object, null,
+            Action act = () => new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object, null,
                 configurationProviderMock.Object, loggerMock.Object);
 
             // Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionTracker");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionTracker");
         }
 
         [TestMethod]
         public void Ctor_WhenIConfigurationProviderNull_Throws()
         {
             // Arrange
-            Action act = () => new ProjectsRuleSetProvider(projectSystemHelperMock, fileChangeServiceMock.Object,
+            Action act = () => new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
                 activeSolutionTracker, null, loggerMock.Object);
 
             // Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("configurationProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("configurationProvider");
         }
 
         [TestMethod]
         public void Ctor_WhenILoggerNull_Throws()
         {
             // Arrange
-            Action act = () => new ProjectsRuleSetProvider(projectSystemHelperMock, fileChangeServiceMock.Object,
+            Action act = () => new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
                 activeSolutionTracker, configurationProviderMock.Object, null);
 
             // Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
         public void HasRuleSetWithSonarAnalyzerRules_WhenFilePathIsNotCached_ReturnsFalse()
         {
             // Arrange
-            var testSubject = new ProjectsRuleSetProvider(projectSystemHelperMock, fileChangeServiceMock.Object,
+            var testSubject = new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
                 activeSolutionTracker, configurationProviderMock.Object, loggerMock.Object);
             testSubject.projectPathToCachedData.Clear();
 
@@ -121,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void HasRuleSetWithSonarAnalyzerRules_WhenFilePathIsCachedAndDoesNotContainSonarRule_ReturnsFalse()
         {
             // Arrange
-            var testSubject = new ProjectsRuleSetProvider(projectSystemHelperMock, fileChangeServiceMock.Object,
+            var testSubject = new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
                 activeSolutionTracker, configurationProviderMock.Object, loggerMock.Object);
             testSubject.projectPathToCachedData.Add("foo", new ProjectsRuleSetProvider.ProjectData("bar.ruleset", false));
 
@@ -136,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void HasRuleSetWithSonarAnalyzerRules_WhenFilePathIsCachedAndContainsSonarRule_ReturnsTrue()
         {
             // Arrange
-            var testSubject = new ProjectsRuleSetProvider(projectSystemHelperMock, fileChangeServiceMock.Object,
+            var testSubject = new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
                 activeSolutionTracker, configurationProviderMock.Object, loggerMock.Object);
             testSubject.projectPathToCachedData.Add("foo", new ProjectsRuleSetProvider.ProjectData("bar.ruleset", true));
 
@@ -145,6 +148,112 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenSolutionClosed_ClearCache()
+        {
+            // Arrange
+            var testSubject = new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
+                activeSolutionTracker, configurationProviderMock.Object, loggerMock.Object);
+            testSubject.projectPathToCachedData.Add("foo", new ProjectsRuleSetProvider.ProjectData("bar.ruleset", true));
+
+            // Sanity check
+            testSubject.projectPathToCachedData.Should().NotBeEmpty();
+
+            // Act
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+
+            // Assert
+            testSubject.projectPathToCachedData.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void WhenSolutionOpened_RebuildCache()
+        {
+            // Arrange
+            var testSubject = new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
+                activeSolutionTracker, configurationProviderMock.Object, loggerMock.Object);
+            projectSystemHelper.SetIsSolutionFullyOpened(true);
+            projectSystemHelper.Projects = new[] { new ProjectMock(Path.GetTempFileName()) };
+
+            // Sanity check
+            testSubject.projectPathToCachedData.Should().BeEmpty();
+
+            // Act
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+
+            // Assert
+            testSubject.projectPathToCachedData.Should().NotBeEmpty();
+        }
+
+        [TestMethod]
+        public void WhenProjectAdded_RebuildCache()
+        {
+            // Arrange
+            var testSubject = new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
+                activeSolutionTracker, configurationProviderMock.Object, loggerMock.Object);
+            projectSystemHelper.SetIsSolutionFullyOpened(true);
+            projectSystemHelper.Projects = new[] { new ProjectMock(Path.GetTempFileName()) };
+
+            // Sanity check
+            testSubject.projectPathToCachedData.Should().BeEmpty();
+
+            // Act
+            activeSolutionTracker.SimulateProjectOpened(new ProjectMock(Path.GetTempFileName()));
+
+            // Assert
+            testSubject.projectPathToCachedData.Should().NotBeEmpty();
+        }
+
+        [TestMethod]
+        public async Task WhenProjectChanges_RebuildCache()
+        {
+            // Arrange
+            var testSubject = new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
+                activeSolutionTracker, configurationProviderMock.Object, loggerMock.Object);
+            projectSystemHelper.SetIsSolutionFullyOpened(true);
+            var filePath = Path.GetTempFileName();
+            projectSystemHelper.Projects = new[] { new ProjectMock(filePath) };
+
+            // Sanity check
+            testSubject.projectPathToCachedData.Should().BeEmpty();
+
+            // Act
+            using (var stream = File.OpenWrite(filePath))
+            {
+                var bytes = Encoding.ASCII.GetBytes("something");
+                stream.Write(bytes, 0, bytes.Length);
+            }
+
+            // We need to wait a bit for the provider to detect the change and rebuild the cache
+            int count = 0;
+            while (count < 5 &&
+                testSubject.projectPathToCachedData.Count == 0)
+            {
+                await Task.Delay(600);
+            }
+
+            // Assert
+            testSubject.projectPathToCachedData.Should().NotBeEmpty();
+        }
+
+        [TestMethod]
+        public void Dispose_ClearCache()
+        {
+            // Arrange
+            var testSubject = new ProjectsRuleSetProvider(projectSystemHelper, fileChangeServiceMock.Object,
+                activeSolutionTracker, configurationProviderMock.Object, loggerMock.Object);
+            testSubject.projectPathToCachedData.Add("foo", new ProjectsRuleSetProvider.ProjectData("bar.ruleset", true));
+
+            // Sanity check
+            testSubject.projectPathToCachedData.Should().NotBeEmpty();
+
+            // Act
+            testSubject.Dispose();
+
+            // Arrange
+            testSubject.projectPathToCachedData.Should().BeEmpty();
         }
     }
 }

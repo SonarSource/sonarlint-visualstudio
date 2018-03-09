@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 new BoundSonarQubeProject(), suppressionHandlerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("workspace");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
 
         [TestMethod]
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 suppressionHandlerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("qualityProfileProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("qualityProfileProvider");
         }
 
         [TestMethod]
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 suppressionHandlerMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("boundProject");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("boundProject");
         }
 
         [TestMethod]
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 new BoundSonarQubeProject(), null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("suppressionHandler");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("suppressionHandler");
         }
         #endregion
 

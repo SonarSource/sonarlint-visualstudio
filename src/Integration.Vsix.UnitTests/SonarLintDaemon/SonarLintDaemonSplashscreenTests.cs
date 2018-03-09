@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             Action act = () => new SonarLintDaemonSplashscreen(null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("settings");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
         }
     }
 }

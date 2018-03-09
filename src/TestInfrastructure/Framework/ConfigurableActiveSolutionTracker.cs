@@ -34,6 +34,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen));
         }
 
+        public void SimulateProjectOpened(EnvDTE.Project dteProject)
+        {
+            this.AfterProjectOpened?.Invoke(this, new ProjectOpenedEventArgs(dteProject));
+        }
+
         #endregion Test helpers
     }
 }

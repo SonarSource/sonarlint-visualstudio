@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             Action act = () => new SonarLintDaemonInstaller(null, new Mock<ISonarLintDaemon>().Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("settings");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
         }
 
         [TestMethod]
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             Action act = () => new SonarLintDaemonInstaller(new Mock<ISonarLintSettings>().Object, null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("daemon");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("daemon");
         }
     }
 }

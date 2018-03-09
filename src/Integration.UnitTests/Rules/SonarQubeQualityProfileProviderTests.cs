@@ -55,11 +55,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
         {
             // 1. Null service
             Action act = () => new SonarQubeQualityProfileProvider(null, loggerMock.Object);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
 
             // 2. Null logger
             act = () => new SonarQubeQualityProfileProvider(serviceMock.Object, null);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -69,11 +69,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
 
             // 1. Null project
             Action act = () => testSubject.GetQualityProfile(null, Language.CSharp);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
 
             // 2. Null language
             act = () => testSubject.GetQualityProfile(new BoundSonarQubeProject(), null);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("language");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("language");
         }
 
         [TestMethod]

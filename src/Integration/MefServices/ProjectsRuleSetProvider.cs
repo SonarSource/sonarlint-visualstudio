@@ -209,10 +209,14 @@ namespace SonarLint.VisualStudio.Integration
             TrackIfNotTracked(project.FullName);
 
             var projectRuleSetPath = projectSystemHelper.GetProjectProperty(project, Constants.CodeAnalysisRuleSetPropertyKey);
-            var projectDirectoryFullPath = new FileInfo(project.FullName).Directory.FullName;
-            var projectRuleSetFullPath = GetFullPath(projectRuleSetPath, projectDirectoryFullPath);
+            if (projectRuleSetPath == null)
+            {
+                return new ProjectData(null, false);
+            }
 
             var hasAnySonarRule = false;
+            var projectDirectoryFullPath = new FileInfo(project.FullName).Directory.FullName;
+            var projectRuleSetFullPath = GetFullPath(projectRuleSetPath, projectDirectoryFullPath);
 
             if (File.Exists(projectRuleSetFullPath))
             {

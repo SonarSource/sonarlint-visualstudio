@@ -57,10 +57,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Ctor_Arguments()
         {
             Action op = () => new SuppressionHandler(null, issueProviderMock.Object);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("liveIssueFactory");
+            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("liveIssueFactory");
 
             op = () => new SuppressionHandler(issueFactoryMock.Object, null);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serverIssuesProvider");
+            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverIssuesProvider");
         }
 
         [TestMethod]

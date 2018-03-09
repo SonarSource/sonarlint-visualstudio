@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
@@ -47,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new SonarAnalyzerStandaloneWorkflow(null, ruleSetsProviderMock.Object);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("workspace");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
 
         [TestMethod]
@@ -57,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace(), null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("ruleSetsProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetsProvider");
         }
 
         [TestMethod]
@@ -94,8 +95,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reportingContextMock.Verify(x => x.ReportDiagnostic(It.IsAny<Diagnostic>()), Times.Never);
         }
 
-        private Diagnostic CreateFakeDiagnostic(bool isInSonarWay = false, string suffix = "") =>
-            Diagnostic.Create($"id{suffix}", $"category{suffix}", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning,
-                true, 1, customTags: isInSonarWay ? new[] { "SonarWay" } : Enumerable.Empty<string>());
+        [TestMethod]
+        public void ShouldRegisterContextAction_ReturnsTrue()
+        {
+            // Arrange
+            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace(), ruleSetsProviderMock.Object);
+
+            // Act
+            var result = testSubject.ShouldRegisterContextAction(Enumerable.Empty<DiagnosticDescriptor>());
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ShouldExecuteRegisteredAction_WhenAnyDescriptorNotConfigurable_ReturnsTrue()
+        {
+            // Arrange
+            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace(), ruleSetsProviderMock.Object);
+            var diag1 = CreateFakeDiagnostic(false, "1", isNotConfigurable: false);
+            var diag2 = CreateFakeDiagnostic(false, "2", isNotConfigurable: true);
+            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
+
+            // Act
+            var result = testSubject.ShouldExecuteRegisteredAction(descriptors, new Mock<SyntaxTree>().Object);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        private Diagnostic CreateFakeDiagnostic(bool isInSonarWay = false, string suffix = "", bool isNotConfigurable = false)
+        {
+            var tags = new List<string>();
+
+            if (isInSonarWay)
+            {
+                tags.Add("SonarWay");
+            }
+            if (isNotConfigurable)
+            {
+                tags.Add(WellKnownDiagnosticTags.NotConfigurable);
+            }
+
+            return Diagnostic.Create($"id{suffix}", $"category{suffix}", "message", DiagnosticSeverity.Warning,
+                DiagnosticSeverity.Warning, true, 1, customTags: tags.ToArray());
+        }
     }
 }
