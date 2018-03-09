@@ -46,9 +46,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             protected override ProjectAnalyzerStatus GetProjectNuGetAnalyzerStatus(SyntaxTree syntaxTree) =>
                 GetProjectNuGetAnalyzerStatusFunc(syntaxTree);
-
-            protected internal override bool? ShouldRegisterContextAction(IEnumerable<DiagnosticDescriptor> descriptors) =>
-                ShouldRegisterContextActionFunc?.Invoke(descriptors);
         }
 
         [TestMethod]
@@ -65,16 +62,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_SetsTheExpectedDelegates()
         {
             // Arrange
-            Func<IEnumerable<DiagnosticDescriptor>, bool> expectedShouldRegisterContextAction = list => false;
-            SonarAnalysisContext.ShouldRegisterContextAction = expectedShouldRegisterContextAction;
-            Func<SyntaxTree, bool> expectedShouldExecuteRegisteredAction = tree => true;
+            Func<IEnumerable<DiagnosticDescriptor>, SyntaxTree, bool> expectedShouldExecuteRegisteredAction = (list, tree) => true;
             SonarAnalysisContext.ShouldExecuteRegisteredAction = expectedShouldExecuteRegisteredAction;
 
             // Act
             var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
 
             // Assert
-            SonarAnalysisContext.ShouldRegisterContextAction.Should().NotBe(expectedShouldRegisterContextAction);
             SonarAnalysisContext.ShouldExecuteRegisteredAction.Should().NotBe(expectedShouldExecuteRegisteredAction);
         }
 
@@ -85,7 +79,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
 
             // Act
-            var result = testSubject.ShouldExecuteRegisteredAction(null);
+            var result = testSubject.ShouldExecuteRegisteredAction(Enumerable.Empty<DiagnosticDescriptor>(), null);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldExecuteRegisteredAction_WhenDiagnosticsIsNull_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
+
+            // Act
+            var result = testSubject.ShouldExecuteRegisteredAction(null, new Mock<SyntaxTree>().Object);
 
             // Assert
             result.Should().BeFalse();
@@ -99,7 +106,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.NoAnalyzer;
 
             // Act
-            var result = testSubject.ShouldExecuteRegisteredAction(new Mock<SyntaxTree>().Object);
+            var result = testSubject.ShouldExecuteRegisteredAction(Enumerable.Empty<DiagnosticDescriptor>(),
+                new Mock<SyntaxTree>().Object);
 
             // Assert
             result.Should().BeTrue();
@@ -113,7 +121,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.SameVersion;
 
             // Act
-            var result = testSubject.ShouldExecuteRegisteredAction(new Mock<SyntaxTree>().Object);
+            var result = testSubject.ShouldExecuteRegisteredAction(Enumerable.Empty<DiagnosticDescriptor>(),
+                new Mock<SyntaxTree>().Object);
 
             // Assert
             result.Should().BeFalse();
@@ -127,87 +136,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.DifferentVersion;
 
             // Act
-            var result = testSubject.ShouldExecuteRegisteredAction(new Mock<SyntaxTree>().Object);
-
-            // Assert
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ShouldRegisterContextAction_AlwaysReturnsNull()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-
-            // Act
-            var result1 = testSubject.ShouldRegisterContextAction(null);
-            var result2 = testSubject.ShouldRegisterContextAction(Enumerable.Empty<DiagnosticDescriptor>());
-
-            // Assert
-            result1.Should().BeNull();
-            result2.Should().BeNull();
-        }
-
-        [TestMethod]
-        public void ShouldRegisterContextActionWithFallback_WhenAnyDescriptorNotConfigurable_ReturnsTrue()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-            var diag1 = CreateFakeDiagnostic(false, "1", isNotConfigurable: false);
-            var diag2 = CreateFakeDiagnostic(false, "2", isNotConfigurable: true);
-            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
-
-            // Act
-            var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
-
-            // Assert
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void ShouldRegisterContextActionWithFallback_WhenShouldRegisterContextActionReturnsNullAndRuleInSonarWay_ReturnsTrue()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-            var diag1 = CreateFakeDiagnostic(false, "1");
-            var diag2 = CreateFakeDiagnostic(true, "2");
-            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
-
-            // Act
-            var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
-
-            // Assert
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void ShouldRegisterContextActionWithFallback_WhenShouldRegisterContextActionReturnsNullAndRuleNotInSonarWay_ReturnsFalse()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-            var diag1 = CreateFakeDiagnostic(false, "1");
-            var diag2 = CreateFakeDiagnostic(false, "2");
-            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
-
-            // Act
-            var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
-
-            // Assert
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ShouldRegisterContextActionWithFallback_WhenShouldRegisterContextActionDoesNotReturnNull_ReturnsSameResult()
-        {
-            // Arrange
-            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-            var diag1 = CreateFakeDiagnostic(true, "1");
-            var diag2 = CreateFakeDiagnostic(true, "2");
-            var descriptors = new[] { diag1, diag2 }.Select(x => x.Descriptor);
-            testSubject.ShouldRegisterContextActionFunc = d => false;
-
-            // Act
-            var result = testSubject.ShouldRegisterContextActionWithFallback(descriptors);
+            var result = testSubject.ShouldExecuteRegisteredAction(Enumerable.Empty<DiagnosticDescriptor>(),
+                new Mock<SyntaxTree>().Object);
 
             // Assert
             result.Should().BeFalse();

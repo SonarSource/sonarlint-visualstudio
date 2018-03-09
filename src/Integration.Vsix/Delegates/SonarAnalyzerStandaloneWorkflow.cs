@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -28,10 +30,48 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     // This workflow affects only the VSIX Analyzers
     internal class SonarAnalyzerStandaloneWorkflow : SonarAnalyzerWorkflowBase
     {
-        public SonarAnalyzerStandaloneWorkflow(Workspace workspace)
+        private readonly IProjectsRuleSetProvider ruleSetsProvider;
+
+        public SonarAnalyzerStandaloneWorkflow(Workspace workspace, IProjectsRuleSetProvider ruleSetsProvider)
             : base(workspace)
         {
+            if (ruleSetsProvider == null)
+            {
+                throw new ArgumentNullException(nameof(ruleSetsProvider));
+            }
+
+            this.ruleSetsProvider = ruleSetsProvider;
+
+            SonarAnalysisContext.ShouldRegisterContextAction = ShouldRegisterContextAction;
             SonarAnalysisContext.ReportDiagnostic = VsixAnalyzerReportDiagnostic;
+        }
+
+        // We don't want to interfere with potential SonarRules in ruleset so we always let the rule execute
+        internal /* for testing purposes */ bool ShouldRegisterContextAction(IEnumerable<DiagnosticDescriptor> descriptors)
+            => true;
+
+        protected internal override bool ShouldExecuteRegisteredAction(IEnumerable<DiagnosticDescriptor> descriptors,
+            SyntaxTree syntaxTree)
+        {
+            if (!base.ShouldExecuteRegisteredAction(descriptors, syntaxTree))
+            {
+                return false;
+            }
+
+            Debug.Assert(descriptors != null, "Should have been handled by the base method.");
+
+            // If the descriptor is marked as not configurable then we shouldn't change its behavior (enabled/disabled)
+            // Note: Utility analyzers have the NotConfigurable tag so they will fit in this case (but they have a built-in
+            // mechanism to be turned-off when run under SLVS).
+            if (descriptors.Any(d => d.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable)))
+            {
+                return true;
+            }
+
+            // If the project has a ruleset with any Sonar rule then the ruleset has already decided to run this rule
+            return ruleSetsProvider.HasRuleSetWithSonarAnalyzerRules(base.workspace?.CurrentSolution
+                ?.GetDocument(syntaxTree)?.Project?.FilePath) ||
+                 descriptors.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
         }
 
         internal /* for testing purposes */ void VsixAnalyzerReportDiagnostic(IReportingContext context)

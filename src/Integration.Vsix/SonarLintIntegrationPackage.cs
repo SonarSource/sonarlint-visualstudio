@@ -87,12 +87,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             var sonarQubeService = this.GetMefService<ISonarQubeService>();
             var workspace = this.GetMefService<VisualStudioWorkspace>();
+            var ruleSetProvider = this.GetMefService<IProjectsRuleSetProvider>();
             logger = this.GetMefService<ILogger>();
             Debug.Assert(logger != null, "MEF composition error - failed to retrieve a logger");
 
             var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
             this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeService, workspace,
-                vsSolution, logger);
+                vsSolution, ruleSetProvider, logger);
 
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 
@@ -153,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 var currentConfig = InMemoryConfigurationProvider.Instance.GetConfiguration();
 
-                // We only save the configuration in the .suo file when 
+                // We only save the configuration in the .suo file when
                 // in the new connected mode.
                 // The data is serialized to json first for two reasons:
                 // 1. it means the data is a string so it can be binary-serialized

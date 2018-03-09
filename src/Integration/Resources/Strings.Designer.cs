@@ -1442,6 +1442,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ruleset for projects &apos;{0}&apos; contain Sonar rules. This is not a supported configuration, any enabled rules that are not in the project Quality Profile won&apos;t be enabled. Please remove the ruleset and configure the rules on your SonarQube/SonarCloud Quality Profile instead..
+        /// </summary>
+        public static string WarningProjectsWithSonarRulesWhileNewConnected {
+            get {
+                return ResourceManager.GetString("WarningProjectsWithSonarRulesWhileNewConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warnings.
         /// </summary>
         public static string WarningsSettingsCategory {
