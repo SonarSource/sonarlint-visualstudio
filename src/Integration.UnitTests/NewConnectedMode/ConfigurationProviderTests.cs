@@ -79,17 +79,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetConfig_LegacyAndNewConfig_ReturnsLegacy()
+        public void GetConfig_WhenLegacyConfigExists_BothProvidersReturnSameLegacyConfig()
         {
-            // Note that this should not happen in practice - we only expect the legacys
+            // Note that this should not happen in practice - we only expect the legacy
             // or new bindings to present. However, the legacy should take priority.
 
             // Arrange
             legacySerializer.CurrentBinding = new BoundSonarQubeProject();
             newSerializer.ModeToReturn = SonarLintMode.Connected;
             newSerializer.ProjectToReturn = new BoundSonarQubeProject();
+            newSerializer.SavedConfiguration = null;
 
-            // Act
+            // Act - get config, expecting the legacy binding
             var actual = testSubject.GetConfiguration();
 
             // Assert
@@ -97,6 +98,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Project.Should().NotBeNull();
             actual.Project.Should().BeSameAs(legacySerializer.CurrentBinding);
             actual.Mode.Should().Be(SonarLintMode.LegacyConnected);
+
+            newSerializer.SavedConfiguration.Project.Should().BeSameAs(legacySerializer.CurrentBinding);
+            newSerializer.SavedConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected);
         }
 
         [TestMethod]
@@ -131,21 +135,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void WriteConfig_StandaloneConfig_CallsWrappedProvider()
+        public void WriteConfig_StandaloneConfig_CallsWrappedProviderOnly()
         {
             newSerializer.ModeToReturn = SonarLintMode.Connected;
             newSerializer.ProjectToReturn = new BoundSonarQubeProject();
+            newSerializer.WriteResultToReturn = true;
 
             // Act
-            testSubject.WriteConfiguration(BindingConfiguration.Standalone);
+            var actual = testSubject.WriteConfiguration(BindingConfiguration.Standalone);
 
             // Assert
+            actual.Should().BeTrue();
             newSerializer.SavedConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
             newSerializer.SavedConfiguration.Project.Should().BeNull();
+            legacySerializer.WrittenFilesCount.Should().Be(0);
         }
 
         [TestMethod]
-        public void WriteConfig_LegacyConfig_CallsLegacySerializer()
+        public void WriteConfig_LegacyConfig_CallsLegacySerializerAndNewSerializer()
         {
             // Arrange
             legacySerializer.WriteSolutionBindingAction = p => "filename.txt";
@@ -158,11 +165,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().BeTrue();
             legacySerializer.WrittenFilesCount.Should().Be(1);
-            newSerializer.SavedConfiguration.Should().BeNull();
+            newSerializer.SavedConfiguration.Should().BeSameAs(config);
         }
 
         [TestMethod]
-        public void WriteConfig_NewConnectedModeConfig_CallsWrappedProvider()
+        public void WriteConfig_NewConnectedModeConfig_CallsWrappedProviderOnly()
         {
             // Arrange
             newSerializer.WriteResultToReturn = true;
