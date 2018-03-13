@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationProvider(null, new ConfigurableConfigurationProvider());
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("legacySerializer");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacySerializer");
         }
 
         [TestMethod]
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationProvider(serializer, null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("wrappedProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("wrappedProvider");
         }
 
         [TestMethod]
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => testSubject.WriteConfiguration(null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("configuration");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("configuration");
         }
 
         [TestMethod]

@@ -366,7 +366,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => testSubject.DeleteBinding();
 
             // Act & Assert
-            act.ShouldThrow<InvalidOperationException>();
+            act.Should().ThrowExactly<InvalidOperationException>();
         }
 
         #region Helpers

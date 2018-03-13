@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationSerializer(null, configurableSccFileSystem, configurableStore, loggerMock.Object);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("solution");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solution");
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationSerializer(solutionMock.Object, configurableSccFileSystem, null, loggerMock.Object);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("store");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("store");
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationSerializer(solutionMock.Object, configurableSccFileSystem, configurableStore, null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -324,7 +324,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => testSubject.WriteSolutionBinding(boundProject);
 
             // Act & Assert
-            act.ShouldThrow<StackOverflowException>();
+            act.Should().ThrowExactly<StackOverflowException>();
         }
 
         [TestMethod]

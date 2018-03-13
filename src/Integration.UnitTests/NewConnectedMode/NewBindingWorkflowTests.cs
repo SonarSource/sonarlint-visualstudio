@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new NewBindingWorkflow(null, ValidBindArgs, configWriter);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("host");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
 
         [TestMethod]
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new NewBindingWorkflow(host, null, configWriter);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new NewBindingWorkflow(host, ValidBindArgs, null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("configWriter");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("configWriter");
         }
 
         [TestMethod]

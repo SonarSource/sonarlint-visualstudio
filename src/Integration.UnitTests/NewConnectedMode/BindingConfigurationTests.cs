@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => BindingConfiguration.CreateBoundConfiguration(null, false);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("project");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
         }
 
         [TestMethod]

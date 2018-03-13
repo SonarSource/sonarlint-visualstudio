@@ -74,22 +74,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var loggerMock = new Mock<ILogger>();
             Action action = () => new VsSessionHost(this.serviceProvider, null, new ConfigurableActiveSolutionTracker(),
                 loggerMock.Object);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().ThrowExactly<ArgumentNullException>();
 
             action = () => new VsSessionHost(null, sonarQubeServiceMock.Object, new ConfigurableActiveSolutionTracker(),
                 loggerMock.Object);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().ThrowExactly<ArgumentNullException>();
 
             action = () => new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object, null, loggerMock.Object);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().ThrowExactly<ArgumentNullException>();
 
             action = () => new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object,
                 new ConfigurableActiveSolutionTracker(), null);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().ThrowExactly<ArgumentNullException>();
 
             action = () => new VsSessionHost(this.serviceProvider, null, null, sonarQubeServiceMock.Object,
                 new ConfigurableActiveSolutionTracker(), loggerMock.Object, null);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().ThrowExactly<ArgumentNullException>();
 
             using (var host = new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object,
                 new ConfigurableActiveSolutionTracker(), loggerMock.Object))

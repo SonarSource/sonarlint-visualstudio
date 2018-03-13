@@ -31,7 +31,7 @@ namespace SonarQube.Client.Helpers.Tests
         public void UriHelper_NullArgChecks()
         {
             Action action = () => UriHelper.EnsureTrailingSlash(null);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

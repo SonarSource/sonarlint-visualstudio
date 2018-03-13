@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 telemetryTimerMock.Object, knownUIContexts.Object);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingTracker");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingTracker");
         }
 
         [TestMethod]
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 telemetryTimerMock.Object, knownUIContexts.Object);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryRepository");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryRepository");
         }
 
         [TestMethod]
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 telemetryTimerMock.Object, knownUIContexts.Object);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryClient");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryClient");
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 telemetryClientMock.Object, null, knownUIContexts.Object);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryTimer");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryTimer");
         }
 
         [TestMethod]

@@ -107,16 +107,20 @@ namespace SonarLint.VisualStudio.Integration
 
         private async void OnAfterProjectOpened(object sender, ProjectOpenedEventArgs e)
         {
-            // Haven't been able to find an event for a project being added to the solution but this one does get called after
-            // the added project is opened. This if is trying to detect if that's a project being added or not.
-            if (this.projectSystemHelper.IsSolutionFullyOpened() &&
-                e.Project != null &&
-                !string.IsNullOrEmpty(e.Project.FullName) &&
-                !projectPathToCachedData.ContainsKey(e.Project.FullName))
+            if (this.projectSystemHelper.IsSolutionFullyOpened())
             {
-                // Improve me: there is no need to rebuild the full cache here
-                ClearCache();
-                await BuildCacheAsync();
+                // Haven't been able to find an event for a project being added to the solution but this one does get called after
+                // the added project is opened. This if is trying to detect if that's a project being added or not.
+                var project = this.projectSystemHelper.GetProject(e.ProjectHierarchy);
+
+                if (project != null &&
+                    !string.IsNullOrEmpty(project.FullName) &&
+                    !projectPathToCachedData.ContainsKey(project.FullName))
+                {
+                    // Improve me: there is no need to rebuild the full cache here
+                    ClearCache();
+                    await BuildCacheAsync();
+                }
             }
         }
 
@@ -209,10 +213,14 @@ namespace SonarLint.VisualStudio.Integration
             TrackIfNotTracked(project.FullName);
 
             var projectRuleSetPath = projectSystemHelper.GetProjectProperty(project, Constants.CodeAnalysisRuleSetPropertyKey);
-            var projectDirectoryFullPath = new FileInfo(project.FullName).Directory.FullName;
-            var projectRuleSetFullPath = GetFullPath(projectRuleSetPath, projectDirectoryFullPath);
+            if (projectRuleSetPath == null)
+            {
+                return new ProjectData(null, false);
+            }
 
             var hasAnySonarRule = false;
+            var projectDirectoryFullPath = new FileInfo(project.FullName).Directory.FullName;
+            var projectRuleSetFullPath = GetFullPath(projectRuleSetPath, projectDirectoryFullPath);
 
             if (File.Exists(projectRuleSetFullPath))
             {

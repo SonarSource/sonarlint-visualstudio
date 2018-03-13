@@ -44,7 +44,7 @@ namespace SonarQube.Client.Services.Tests
             Action action = () => new SonarQubeClient(null, new HttpClientHandler(), TimeSpan.MaxValue);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("connection");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("connection");
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace SonarQube.Client.Services.Tests
             Action action = () => new SonarQubeClient(new ConnectionRequest(), null, TimeSpan.MaxValue);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("messageHandler");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("messageHandler");
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace SonarQube.Client.Services.Tests
             Action action = () => new SonarQubeClient(new ConnectionRequest(), new HttpClientHandler(), TimeSpan.Zero);
 
             // Assert
-            action.ShouldThrow<ArgumentException>()
+            action.Should().ThrowExactly<ArgumentException>()
                 .WithMessage("Doesn't expect a zero or negative timeout.\r\nParameter name: requestTimeout")
                 .And.ParamName.Should().Be("requestTimeout");
         }
@@ -76,7 +76,7 @@ namespace SonarQube.Client.Services.Tests
             Action action = () => new SonarQubeClient(new ConnectionRequest(), new HttpClientHandler(), TimeSpan.MinValue);
 
             // Assert
-            action.ShouldThrow<ArgumentException>()
+            action.Should().ThrowExactly<ArgumentException>()
                 .WithMessage("Doesn't expect a zero or negative timeout.\r\nParameter name: requestTimeout")
                 .And.ParamName.Should().Be("requestTimeout");
         }
@@ -424,7 +424,7 @@ namespace SonarQube.Client.Services.Tests
             Func<Task<Result<T>>> funct = async () => await call(client, cancellationToken.Token);
 
             // Assert
-            funct.ShouldThrow<OperationCanceledException>();
+            funct.Should().Throw<OperationCanceledException>();
         }
         #endregion
 
@@ -507,7 +507,7 @@ namespace SonarQube.Client.Services.Tests
             Func<Task<Result<T>>> funct = async () => await call(client, CancellationToken.None);
 
             // Assert
-            funct.ShouldThrow<Exception>().And.Message.Should().Be(expectedException.Message);
+            funct.Should().ThrowExactly<Exception>().And.Message.Should().Be(expectedException.Message);
         }
         #endregion
 

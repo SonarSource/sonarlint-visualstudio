@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new SonarLanguageRecognizer(null, new Mock<IFileExtensionRegistryService>().Object);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("contentTypeRegistryService");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("contentTypeRegistryService");
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new SonarLanguageRecognizer(new Mock<IContentTypeRegistryService>().Object, null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("fileExtensionRegistryService");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileExtensionRegistryService");
         }
 
         [TestMethod]

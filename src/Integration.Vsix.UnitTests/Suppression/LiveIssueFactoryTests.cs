@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             Action action = () => new LiveIssueFactory(null, new Mock<IVsSolution>().Object);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("workspace");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
 
         [TestMethod]
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             Action action = () => new LiveIssueFactory(new AdhocWorkspace(), null);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("vsSolution");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("vsSolution");
         }
 
         [TestMethod]

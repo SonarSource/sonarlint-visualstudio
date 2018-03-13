@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new UnbindCommand(null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("host");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
 
         [TestMethod]

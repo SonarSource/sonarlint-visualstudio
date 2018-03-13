@@ -101,6 +101,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.CurrentActiveSolution;
         }
 
+        public Project GetProject(IVsHierarchy projectHierarchy)
+        {
+            if (this.SimulateIVsHierarchyFailure)
+            {
+                return null;
+            }
+
+            return projectHierarchy as Project;
+        }
+
         IVsHierarchy IProjectSystemHelper.GetIVsHierarchy(Project dteProject)
         {
             if (this.SimulateIVsHierarchyFailure)

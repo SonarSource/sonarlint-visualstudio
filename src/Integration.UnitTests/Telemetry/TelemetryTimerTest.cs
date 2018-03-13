@@ -53,14 +53,14 @@ namespace SonarLint.VisualStudio.Integration
         public void Ctor_Throws_ArgumentNullException_For_TelemetryRepository()
         {
             Action action = () => new TelemetryTimer(null, new Mock<ITimerFactory>().Object);
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("telemetryRepository");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryRepository");
         }
 
         [TestMethod]
         public void Ctor_Throws_ArgumentNullException_For_MainTimer()
         {
             Action action = () => new TelemetryTimer(new Mock<ITelemetryDataRepository>().Object, null);
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("timerFactory");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("timerFactory");
         }
 
         [TestMethod]
@@ -179,13 +179,13 @@ namespace SonarLint.VisualStudio.Integration
                 .Returns(new TelemetryData { LastUploadDate = now.Subtract(_05h_59m_59s) });
 
             telemetryTimer.Start();
-            telemetryTimer.MonitorEvents();
+            var monitor = telemetryTimer.Monitor();
 
             // Act
             timerMock.Raise(x => x.Elapsed += null, new TimerEventArgs(now));
 
             // Assert
-            telemetryTimer.ShouldNotRaise(nameof(TelemetryTimer.Elapsed));
+            monitor.Should().NotRaise(nameof(TelemetryTimer.Elapsed));
         }
 
         [TestMethod]
@@ -198,13 +198,13 @@ namespace SonarLint.VisualStudio.Integration
                 .Returns(new TelemetryData { LastUploadDate = now.Subtract(_06h_00m_00s) });
 
             telemetryTimer.Start();
-            telemetryTimer.MonitorEvents();
+            var monitor = telemetryTimer.Monitor();
 
             // Act
             timerMock.Raise(x => x.Elapsed += null, new TimerEventArgs(now));
 
             // Assert
-            telemetryTimer.ShouldRaise(nameof(TelemetryTimer.Elapsed));
+            monitor.Should().Raise(nameof(TelemetryTimer.Elapsed));
         }
 
         [TestMethod]
@@ -217,13 +217,13 @@ namespace SonarLint.VisualStudio.Integration
                 .Returns(new TelemetryData { LastUploadDate = now.Subtract(_05h_59m_59s) });
 
             telemetryTimer.Start();
-            telemetryTimer.MonitorEvents();
+            var monitor = telemetryTimer.Monitor();
 
             // Act
             timerMock.Raise(x => x.Elapsed += null, new TimerEventArgs(now));
 
             // Assert
-            telemetryTimer.ShouldNotRaise(nameof(TelemetryTimer.Elapsed));
+            monitor.Should().NotRaise(nameof(TelemetryTimer.Elapsed));
         }
 
         [TestMethod]
@@ -236,13 +236,13 @@ namespace SonarLint.VisualStudio.Integration
                 .Returns(new TelemetryData { LastUploadDate = now.Subtract(_06h_00m_00s) });
 
             telemetryTimer.Start();
-            telemetryTimer.MonitorEvents();
+            var monitor = telemetryTimer.Monitor();
 
             // Act
             timerMock.Raise(x => x.Elapsed += null, new TimerEventArgs(now));
 
             // Assert
-            telemetryTimer.ShouldNotRaise(nameof(TelemetryTimer.Elapsed));
+            monitor.Should().NotRaise(nameof(TelemetryTimer.Elapsed));
         }
     }
 }

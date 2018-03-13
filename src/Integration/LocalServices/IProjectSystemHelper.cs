@@ -85,6 +85,11 @@ namespace SonarLint.VisualStudio.Integration
         IVsHierarchy GetIVsHierarchy(Project dteProject);
 
         /// <summary>
+        /// Returns the <see cref="Project"/> referenced by the project <seealso cref="IVsHierarchy"/>
+        /// </summary>
+        Project GetProject(IVsHierarchy projectHierarchy);
+
+        /// <summary>
         /// Returns the currently selected projects in the active solution.
         /// </summary>
         IEnumerable<Project> GetSelectedProjects();

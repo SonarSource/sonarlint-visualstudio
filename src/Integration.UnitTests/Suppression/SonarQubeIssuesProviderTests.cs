@@ -73,19 +73,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             string validProjectKey = "key1";
 
             Action op = () => new SonarQubeIssuesProvider(null, validProjectKey, mockTimerFactory.Object);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
+            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
 
             op = () => new SonarQubeIssuesProvider(mockSqService.Object, null, mockTimerFactory.Object);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeProjectKey");
+            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeProjectKey");
 
             op = () => new SonarQubeIssuesProvider(mockSqService.Object, "", mockTimerFactory.Object);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeProjectKey");
+            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeProjectKey");
 
             op = () => new SonarQubeIssuesProvider(mockSqService.Object, "\r\n ", mockTimerFactory.Object);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeProjectKey");
+            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeProjectKey");
 
             op = () => new SonarQubeIssuesProvider(mockSqService.Object, validProjectKey, null);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("timerFactory");
+            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("timerFactory");
         }
 
         [TestMethod]

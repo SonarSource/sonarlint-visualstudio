@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             Action act = () => new ProjectSonarLintMenuCommand(null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("propertyManager");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyManager");
         }
 
         [TestMethod]

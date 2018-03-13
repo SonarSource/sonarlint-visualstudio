@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             Func<Task> action = async () => await notifications.StartAsync(null, null);
 
             // Act & Assert
-            action.ShouldThrow<ArgumentNullException>()
+            action.Should().ThrowExactly<ArgumentNullException>()
                 .And.ParamName.Should().Be("projectKey");
         }
 

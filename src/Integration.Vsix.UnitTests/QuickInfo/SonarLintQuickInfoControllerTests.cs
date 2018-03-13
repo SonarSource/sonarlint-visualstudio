@@ -200,13 +200,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.QuickInfo
         public void Ctor_Argument_Checks()
         {
             Action action = () => new SonarLintQuickInfoController(null, new List<ITextBuffer>(), new SonarLintQuickInfoControllerProvider());
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("textView");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("textView");
 
             action = () => new SonarLintQuickInfoController(new Mock<ITextView>().Object, null, new SonarLintQuickInfoControllerProvider());
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("subjectBuffers");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("subjectBuffers");
 
             action = () => new SonarLintQuickInfoController(new Mock<ITextView>().Object, new List<ITextBuffer>(), null);
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("provider");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("provider");
         }
     }
 }

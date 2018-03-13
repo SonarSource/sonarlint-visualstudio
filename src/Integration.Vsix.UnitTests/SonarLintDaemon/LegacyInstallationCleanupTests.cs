@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             Action act = () => LegacyInstallationCleanup.CleanupDaemonFiles(null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]

@@ -40,60 +40,60 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         public void Text_Raises_PropertyChanged()
         {
             var model = new NotificationIndicatorViewModel();
-            model.MonitorEvents();
+            var monitor = model.Monitor();
 
             model.ToolTipText = "test";
 
             model.ToolTipText.Should().Be("test");
-            model.ShouldRaisePropertyChangeFor(x => x.ToolTipText);
+            monitor.Should().RaisePropertyChangeFor(x => x.ToolTipText);
         }
 
         [TestMethod]
         public void HasUnreadEvents_Raises_PropertyChanged()
         {
             var model = new NotificationIndicatorViewModel();
-            model.MonitorEvents();
+            var monitor = model.Monitor();
 
             model.HasUnreadEvents = true;
 
             model.HasUnreadEvents.Should().BeTrue();
-            model.ShouldRaisePropertyChangeFor(x => x.HasUnreadEvents);
+            monitor.Should().RaisePropertyChangeFor(x => x.HasUnreadEvents);
         }
 
         [TestMethod]
         public void IsIconVisible_Raises_PropertyChanged()
         {
             var model = new NotificationIndicatorViewModel();
-            model.MonitorEvents();
+            var monitor = model.Monitor();
 
             model.IsIconVisible = true;
 
             model.IsIconVisible.Should().BeTrue();
-            model.ShouldRaisePropertyChangeFor(x => x.IsIconVisible);
+            monitor.Should().RaisePropertyChangeFor(x => x.IsIconVisible);
         }
 
         [TestMethod]
         public void AreNotificationsEnabled_Raises_PropertyChanged()
         {
             var model = new NotificationIndicatorViewModel();
-            model.MonitorEvents();
+            var monitor = model.Monitor();
 
             model.AreNotificationsEnabled = true;
 
             model.AreNotificationsEnabled.Should().BeTrue();
-            model.ShouldRaisePropertyChangeFor(x => x.AreNotificationsEnabled);
+            monitor.Should().RaisePropertyChangeFor(x => x.AreNotificationsEnabled);
         }
 
         [TestMethod]
         public void IsToolTipVisible_Raises_PropertyChanged()
         {
             var model = new NotificationIndicatorViewModel();
-            model.MonitorEvents();
+            var monitor = model.Monitor();
 
             model.IsToolTipVisible = true;
 
             model.IsToolTipVisible.Should().BeTrue();
-            model.ShouldRaisePropertyChangeFor(x => x.IsToolTipVisible);
+            monitor.Should().RaisePropertyChangeFor(x => x.IsToolTipVisible);
         }
 
         [TestMethod]
@@ -115,12 +115,12 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         public void HasUnreadEvents_WithNo_Events_UpdatesTooltipText()
         {
             var model = new NotificationIndicatorViewModel();
-            model.MonitorEvents();
+            var monitor = model.Monitor();
 
             model.IsIconVisible = true;
             model.AreNotificationsEnabled = true;
             model.IsToolTipVisible = true;
-            model.ShouldRaisePropertyChangeFor(x => x.IsToolTipVisible);
+            monitor.Should().RaisePropertyChangeFor(x => x.IsToolTipVisible);
 
             model.ToolTipText.Should().Be("You have no unread events.");
         }
@@ -130,14 +130,14 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         {
             var timerMock = new Mock<ITimer>();
             var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object);
-            model.MonitorEvents();
+            var monitor = model.Monitor();
 
             model.IsIconVisible = true;
             model.AreNotificationsEnabled = true;
             model.IsToolTipVisible = true;
             model.SetNotificationEvents(testEvents);
 
-            model.ShouldRaisePropertyChangeFor(x => x.IsToolTipVisible);
+            monitor.Should().RaisePropertyChangeFor(x => x.IsToolTipVisible);
 
             model.ToolTipText.Should().Be("You have 1 unread event.");
         }

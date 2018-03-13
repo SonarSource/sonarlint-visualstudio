@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new TestableSonarAnalyzerWorkflow(null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("workspace");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
 
         [TestMethod]

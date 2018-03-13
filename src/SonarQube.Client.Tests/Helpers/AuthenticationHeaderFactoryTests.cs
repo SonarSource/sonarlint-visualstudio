@@ -37,7 +37,7 @@ namespace SonarQube.Client.Helpers.Tests
             using (new AssertIgnoreScope())
             {
                 Action action = () => AuthenticationHeaderFactory.GetBasicAuthToken(user, password.ToSecureString());
-                action.ShouldThrow<ArgumentOutOfRangeException>();
+                action.Should().ThrowExactly<ArgumentOutOfRangeException>();
             }
 
             // ASCII
