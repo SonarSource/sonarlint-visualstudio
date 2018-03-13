@@ -28,7 +28,7 @@ using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Rules
 {
-    public sealed class QualityProfileProviderCachingDecorator : IQualityProfileProvider
+    public class QualityProfileProviderCachingDecorator : IQualityProfileProvider
     {
         private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 10; // 10 minutes
         private readonly ITimer refreshTimer;
@@ -110,6 +110,18 @@ namespace SonarLint.VisualStudio.Integration.Rules
             }
 
             SynchronizeQualityProfiles();
+
+
+            Thread.Sleep(1000);
+
+            OnInitialFetchComplete();
+        }
+
+        protected virtual void OnInitialFetchComplete()
+        {
+            // No-op
+            // This method only exists so that tests can reliable wait until
+            // the instance has been initialised.
         }
 
         private void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
@@ -142,15 +154,25 @@ namespace SonarLint.VisualStudio.Integration.Rules
         private bool isDisposed;
         public void Dispose()
         {
-            if (this.isDisposed)
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
             {
                 return;
             }
 
-            refreshTimer.Dispose();
-            initialFetchCancellationTokenSource.Cancel();
-            this.cachedQualityProfiles.Clear();
-            this.isDisposed = true;
+            if (disposing)
+            {
+                refreshTimer.Dispose();
+                initialFetchCancellationTokenSource.Cancel();
+                this.cachedQualityProfiles.Clear();
+            }
+
+            isDisposed = true;
         }
     }
 }

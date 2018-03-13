@@ -85,7 +85,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
         }
 
         [TestMethod]
-        [Ignore] // failing on CIX
         public void ObjectLifecycle_Create_InitialFetch_Timer_Dispose()
         {
             // Arrange
@@ -94,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
             SetServiceConnectionStatus(isConnected: true);
 
             // 1. Construction -> timer initialised
-            var testSubject = new QualityProfileProviderCachingDecorator(
+            var testSubject = new TestableCachingDecorator(
                 wrappedProvider,
                 new BoundSonarQubeProject(),
                 serviceMock.Object,
@@ -110,8 +109,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
             // The initial fetch is run in a background thread - wait until
             // the wrapped provider indicates that the fetch has started
             WaitForInitialFetchTaskToStart();
-
             VerifyServiceIsConnected(Times.Exactly(2));
+
+            // Now wait for the fetch to complete
+            testSubject.WaitForInitialFetchTaskToComplete();
             wrappedProvider.GetQualityProfileCallCount.Should().Be(Language.SupportedLanguages.Count());
 
             // 3. Timer event raised -> check attempt is made to synchronize data
@@ -132,7 +133,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
         }
 
         [TestMethod]
-        [Ignore] // failing on CIX
         public void SynchOnTimerElapsed_WhenNotConnected_NoErrors()
         {
             // Arrange - initialise in a connected state, then disconnect
@@ -154,7 +154,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
         }
         
         [TestMethod]
-        [Ignore] // failing on CIX
         public void SynchOnTimerElapsed_WhenErrorThrown_IsSuppressed()
         {
             // Arrange - initialise in a connected state, then disconnect
@@ -173,7 +172,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
         }
 
         [TestMethod]
-        [Ignore] // failing on CIX
         public void GetQualityProfile_ReturnsExpectedProfile()
         {
             // Arrange
@@ -203,12 +201,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
             // Arrange - intialise in a connected state, then disconnect
             SetServiceConnectionStatus(isConnected: true);
 
-            var testSubject = new QualityProfileProviderCachingDecorator(
+            var testSubject = new TestableCachingDecorator(
                 wrappedProvider,
                 new BoundSonarQubeProject(),
                 serviceMock.Object,
                 timerFactoryMock.Object);
-            WaitForInitialFetchTaskToStart();
+            testSubject.WaitForInitialFetchTaskToComplete();
 
             // Sanity check - should have fetch the data once
             VerifyServiceIsConnected(Times.Exactly(2));
@@ -246,13 +244,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
             timerMock.Raise(t => t.Elapsed += null, new TimerEventArgs(eventTime));
         }
 
+        private class TestableCachingDecorator : QualityProfileProviderCachingDecorator
+        {
+            private EventWaitHandle initialFetchCompletedWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+
+            public TestableCachingDecorator(IQualityProfileProvider wrappedProvider, BoundSonarQubeProject boundProject,
+            ISonarQubeService sonarQubeService, ITimerFactory timerFactory)
+                : base(wrappedProvider, boundProject, sonarQubeService, timerFactory)
+            {
+            }
+
+            protected override void OnInitialFetchComplete()
+            {
+                initialFetchCompletedWaitHandle.Set();
+            }
+
+            public void WaitForInitialFetchTaskToComplete()
+            {
+                var waitSignaled = initialFetchCompletedWaitHandle.WaitOne(Debugger.IsAttached ? 20000 : 5000); // wait for fetch to complete...
+                waitSignaled.Should().BeTrue(); // error - initial fetch did not complete in time
+            }
+        }
+
         private class WrappedQualityProfileProvider : IQualityProfileProvider
         {
             /// <summary>
             /// Wait handle that is set to signalled when the initial fetch task has started
             /// </summary>
             public EventWaitHandle InitialFetchStartedWaitHandle { get; } = new EventWaitHandle(false, EventResetMode.ManualReset);
-            private bool initialFetchCompleted;
+            private bool initialFetchStarted;
 
             public IDictionary<Language, QualityProfile> ProfilesToReturnByLanguage { get; } = new Dictionary<Language, QualityProfile>();
 
@@ -267,9 +287,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
             {
                 GetQualityProfileCallCount++;
 
-                if (!initialFetchCompleted)
+                if (!initialFetchStarted)
                 {
-                    initialFetchCompleted = true;
+                    initialFetchStarted = true;
 
                     // Mark that the initial fetch has started
                     InitialFetchStartedWaitHandle.Set();
