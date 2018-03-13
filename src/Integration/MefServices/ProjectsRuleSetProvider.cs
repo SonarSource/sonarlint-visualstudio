@@ -103,34 +103,52 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         public bool HasRuleSetWithSonarAnalyzerRules(string projectFilePath) =>
-            projectPathToCachedData.ContainsKey(projectFilePath) && projectPathToCachedData[projectFilePath].HasAnySonarRule;
+            !string.IsNullOrWhiteSpace(projectFilePath) &&
+            projectPathToCachedData.ContainsKey(projectFilePath) &&
+            projectPathToCachedData[projectFilePath].HasAnySonarRule;
 
         private async void OnAfterProjectOpened(object sender, ProjectOpenedEventArgs e)
         {
-            if (this.projectSystemHelper.IsSolutionFullyOpened())
+            try
             {
-                // Haven't been able to find an event for a project being added to the solution but this one does get called after
-                // the added project is opened. This if is trying to detect if that's a project being added or not.
-                var project = this.projectSystemHelper.GetProject(e.ProjectHierarchy);
-
-                if (project != null &&
-                    !string.IsNullOrEmpty(project.FullName) &&
-                    !projectPathToCachedData.ContainsKey(project.FullName))
+                if (this.projectSystemHelper.IsSolutionFullyOpened())
                 {
-                    // Improve me: there is no need to rebuild the full cache here
-                    ClearCache();
-                    await BuildCacheAsync();
+                    // Haven't been able to find an event for a project being added to the solution but this one does get called after
+                    // the added project is opened. This if is trying to detect if that's a project being added or not.
+                    var project = this.projectSystemHelper.GetProject(e.ProjectHierarchy);
+
+                    if (project != null &&
+                        !string.IsNullOrEmpty(project.FullName) &&
+                        !projectPathToCachedData.ContainsKey(project.FullName))
+                    {
+                        // Improve me: there is no need to rebuild the full cache here
+                        ClearCache();
+                        await BuildCacheAsync();
+                    }
                 }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Swallow the exception because we are on UI thread
+                this.logger.WriteLine($"RuleSetProvider: error in {nameof(OnAfterProjectOpened)}, message: {ex.Message}");
             }
         }
 
         private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {
-            ClearCache();
-
-            if (e.IsSolutionOpen)
+            try
             {
-                await BuildCacheAsync();
+                ClearCache();
+
+                if (e.IsSolutionOpen)
+                {
+                    await BuildCacheAsync();
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Swallow the exception because we are on UI thread
+                this.logger.WriteLine($"RuleSetProvider: error in {nameof(OnActiveSolutionChanged)}, message: {ex.Message}");
             }
         }
 
@@ -153,7 +171,9 @@ namespace SonarLint.VisualStudio.Integration
             {
                 // This call has side effects (i.e. modify the field with the list of tracked files)
                 var projectData = ProcessProjectAndCollectFilesToTrack(project);
-                projectPathToCachedData.Add(project.FullName, projectData);
+                Debug.Assert(!projectPathToCachedData.ContainsKey(project.FullName),
+                    "Not expecting the cache to already contain this project");
+                projectPathToCachedData[project.FullName] = projectData;
             }
 
             if (this.configurationProvider.GetConfiguration().Mode == SonarLintMode.Connected)
