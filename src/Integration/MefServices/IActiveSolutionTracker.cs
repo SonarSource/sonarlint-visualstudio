@@ -19,7 +19,6 @@
  */
 
 using System;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration
@@ -36,29 +35,12 @@ namespace SonarLint.VisualStudio.Integration
 
     internal class ProjectOpenedEventArgs : EventArgs
     {
-        private readonly IVsHierarchy pHierarchy;
-        private readonly Lazy<EnvDTE.Project> project;
-
         public ProjectOpenedEventArgs(IVsHierarchy pHierarchy)
         {
-            this.pHierarchy = pHierarchy;
-            this.project = new Lazy<EnvDTE.Project>(GetProject);
+            ProjectHierarchy = pHierarchy;
         }
 
-        internal ProjectOpenedEventArgs(EnvDTE.Project dteProject)
-        {
-            this.project = new Lazy<EnvDTE.Project>(() => dteProject);
-        }
-
-        public EnvDTE.Project Project => project.Value;
-
-        private EnvDTE.Project GetProject()
-        {
-            object objProj = null;
-            pHierarchy?.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
-
-            return objProj as EnvDTE.Project;
-        }
+        public IVsHierarchy ProjectHierarchy { get; }
     }
 
     internal interface IActiveSolutionTracker

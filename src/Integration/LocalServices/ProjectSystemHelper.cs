@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration
             return GetSolutionProjects().Where(x => projectFilter.IsAccepted(x));
         }
 
-        private static Project GetProject(IVsHierarchy hierarchy)
+        public Project GetProject(IVsHierarchy hierarchy)
         {
             if (hierarchy == null)
             {

@@ -19,6 +19,7 @@
  */
 
 using System;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -34,9 +35,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen));
         }
 
-        public void SimulateProjectOpened(EnvDTE.Project dteProject)
+        public void SimulateProjectOpened(EnvDTE.Project project)
         {
-            this.AfterProjectOpened?.Invoke(this, new ProjectOpenedEventArgs(dteProject));
+            this.AfterProjectOpened?.Invoke(this, new ProjectOpenedEventArgs(project as IVsHierarchy));
         }
 
         #endregion Test helpers
