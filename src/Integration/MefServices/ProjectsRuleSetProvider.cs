@@ -184,6 +184,10 @@ namespace SonarLint.VisualStudio.Integration
                     p.FullName.Equals(fileChangeTracker.FilePath, StringComparison.OrdinalIgnoreCase));
                 if (project != null)
                 {
+                    // TODO: We only try to access the global CodeAnalysisRuleSet not a configuration specific. When we will handle
+                    // this we should be careful to subscribe to configuration change in the IDE to re-build the cache.
+                    // Note that handling the configuration specific will still not handle all cases where we could see/find a
+                    // ruleset (for example we could have a condition on some file existing...)
                     var projectRuleSetPath = projectSystemHelper.GetProjectProperty(project, Constants.CodeAnalysisRuleSetPropertyKey);
                     var projectDirectoryFullPath = new FileInfo(project.FullName).Directory.FullName;
                     var projectRuleSetFullPath = GetFullPath(projectRuleSetPath, projectDirectoryFullPath);
