@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -48,7 +48,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             var project = legacySerializer.ReadSolutionBinding();
             if (project != null)
             {
-                return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: true);
+                var config = BindingConfiguration.CreateBoundConfiguration(project, isLegacy: true);
+                
+                // Make sure the new config has the same value
+                wrappedProvider.WriteConfiguration(config);
+                return config;
             }
 
             return wrappedProvider.GetConfiguration();
@@ -61,17 +65,19 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            switch (configuration.Mode)
+            // For legacy mode, we need to write the configuration to
+            // disk, as well as storing it in the in-memory provider
+            if (configuration.Mode == SonarLintMode.LegacyConnected)
             {
-                case SonarLintMode.LegacyConnected:
-                    return legacySerializer.WriteSolutionBinding(configuration.Project) != null;
-                case SonarLintMode.Connected:
-                case SonarLintMode.Standalone:
-                    return wrappedProvider.WriteConfiguration(configuration);
-                default:
-                    Debug.Fail("Unrecognised write mode");
-                    return false;
+                bool success = legacySerializer.WriteSolutionBinding(configuration.Project) != null;
+                if (success)
+                {
+                    wrappedProvider.WriteConfiguration(configuration);
+                }
+                return success;
             }
+
+            return wrappedProvider.WriteConfiguration(configuration);
         }
 
         public void DeleteConfiguration()

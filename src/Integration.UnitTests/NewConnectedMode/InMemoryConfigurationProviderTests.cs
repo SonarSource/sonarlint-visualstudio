@@ -58,8 +58,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 read.Should().NotBeNull();
                 read.Project.Should().BeNull();
                 read.Mode.Should().Be(SonarLintMode.Standalone);
-            }
 
+                // 3. Write a different mode then read
+                var newConfig = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), isLegacy: true);
+                testSubject.WriteConfiguration(newConfig);
+                read = testSubject.GetConfiguration();
+
+                // Assert
+                read.Should().NotBeNull();
+                read.Project.Should().NotBeNull();
+                read.Mode.Should().Be(SonarLintMode.LegacyConnected);
+            }
             finally
             {
                 InMemoryConfigurationProvider.Instance.WriteConfiguration(previous);
