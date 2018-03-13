@@ -110,10 +110,6 @@ namespace SonarLint.VisualStudio.Integration.Rules
             }
 
             SynchronizeQualityProfiles();
-
-
-            Thread.Sleep(1000);
-
             OnInitialFetchComplete();
         }
 
