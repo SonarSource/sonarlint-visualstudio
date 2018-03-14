@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ILogger> loggerMock;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private Mock<IVsSolution> vsSolutionMock;
-        private Mock<IProjectsRuleSetProvider> rulesetProviderMock;
+        private Mock<IDeprecatedSonarRuleSetManager> deprecatedSonarRulesManagerMock;
 
         [TestInitialize]
         public void TestInitialize()
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             sonarQubeServiceMock = new Mock<ISonarQubeService>();
             vsSolutionMock = new Mock<IVsSolution>();
             vsSolutionMock.As<IVsSolution5>(); // Allows to cast IVsSolution into IVsSolution5
-            rulesetProviderMock = new Mock<IProjectsRuleSetProvider>();
+            deprecatedSonarRulesManagerMock = new Mock<IDeprecatedSonarRuleSetManager>();
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(null, sonarQubeServiceMock.Object, workspace,
-                vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
+                vsSolutionMock.Object, deprecatedSonarRulesManagerMock.Object, loggerMock.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionBoundTracker");
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, null, workspace,
-                vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
+                vsSolutionMock.Object, deprecatedSonarRulesManagerMock.Object, loggerMock.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object, null,
-                vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
+                vsSolutionMock.Object, deprecatedSonarRulesManagerMock.Object, loggerMock.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
@@ -94,21 +94,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object,
-                workspace, null, rulesetProviderMock.Object, loggerMock.Object);
+                workspace, null, deprecatedSonarRulesManagerMock.Object, loggerMock.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("vsSolution");
         }
 
         [TestMethod]
-        public void Ctor_WhenIProjectsRuleSetProviderIsNull_ThrowsArgumentNullException()
+        public void Ctor_WhenIDeprecatedSonarRuleSetManagerIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object,
                 workspace, vsSolutionMock.Object, null, loggerMock.Object);
 
             // Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("deprecatedSonarRulesManager");
         }
 
         [TestMethod]
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object,
-                workspace, vsSolutionMock.Object, rulesetProviderMock.Object, null);
+                workspace, vsSolutionMock.Object, deprecatedSonarRulesManagerMock.Object, null);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
@@ -235,6 +235,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void WhenStandaloneMode_CallsWarnIfAnyProjectHasSonarRuleSet()
+        {
+            // Arrange
+            this.activeSolutionBoundTracker.CurrentConfiguration = BindingConfiguration.Standalone;
+
+            // Act
+            CreateTestSubject();
+
+            // Assert
+            deprecatedSonarRulesManagerMock.Verify(x => x.WarnIfAnyProjectHasSonarRuleSet(), Times.Once);
+        }
+
+
+        [TestMethod]
+        public void WhenLegacyConnectedMode_DoesNotCallWarnIfAnyProjectHasSonarRuleSet()
+        {
+            // Arrange
+            this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(
+                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.LegacyConnected);
+
+            // Act
+            CreateTestSubject();
+
+            // Assert
+            deprecatedSonarRulesManagerMock.Verify(x => x.WarnIfAnyProjectHasSonarRuleSet(), Times.Never);
+        }
+
+        [TestMethod]
+        public void WhenNewConnectedMode_CallsWarnIfAnyProjectHasSonarRuleSet()
+        {
+            // Arrange
+            this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(
+                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.Connected);
+
+            // Act
+            CreateTestSubject();
+
+            // Assert
+            deprecatedSonarRulesManagerMock.Verify(x => x.WarnIfAnyProjectHasSonarRuleSet(), Times.Once);
+        }
+
+        [TestMethod]
         public void Dispose_ResetAllDelegates()
         {
             // Arrange
@@ -266,6 +308,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         private SonarAnalyzerManager CreateTestSubject() => new SonarAnalyzerManager(activeSolutionBoundTracker,
-            sonarQubeServiceMock.Object, workspace, vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
+            sonarQubeServiceMock.Object, workspace, vsSolutionMock.Object, deprecatedSonarRulesManagerMock.Object, loggerMock.Object);
     }
 }

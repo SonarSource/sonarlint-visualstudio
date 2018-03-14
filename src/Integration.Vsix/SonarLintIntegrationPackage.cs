@@ -87,13 +87,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             var sonarQubeService = this.GetMefService<ISonarQubeService>();
             var workspace = this.GetMefService<VisualStudioWorkspace>();
-            var ruleSetProvider = this.GetMefService<IProjectsRuleSetProvider>();
+            var deprecatedSonarRuleSetManager = this.GetMefService<IDeprecatedSonarRuleSetManager>();
             logger = this.GetMefService<ILogger>();
             Debug.Assert(logger != null, "MEF composition error - failed to retrieve a logger");
 
             var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
             this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeService, workspace,
-                vsSolution, ruleSetProvider, logger);
+                vsSolution, deprecatedSonarRuleSetManager, logger);
 
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 

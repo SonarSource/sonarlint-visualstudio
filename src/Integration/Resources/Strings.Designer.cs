@@ -838,6 +838,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Some of the projects are using Sonar rules through the ruleset. This is not a supported configuration and any enabled rules that are not in SonarWay (standalone mode) or on the Quality Profile (connected mode) won&apos;t be enabled. .
+        /// </summary>
+        public static string ProjectWithSonarRules {
+            get {
+                return ResourceManager.GetString("ProjectWithSonarRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to download quality profile. Name: &apos;{0}&apos;, Key: &apos;{1}&apos;, Language: &apos;{2}&apos;.
         /// </summary>
         public static string QualityProfileDownloadFailedMessageFormat {
@@ -1438,15 +1447,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string ViewInSonarQubeMenuItemTooltip {
             get {
                 return ResourceManager.GetString("ViewInSonarQubeMenuItemTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ruleset for projects &apos;{0}&apos; contain Sonar rules. This is not a supported configuration, any enabled rules that are not in the project Quality Profile won&apos;t be enabled. Please remove the ruleset and configure the rules on your SonarQube/SonarCloud Quality Profile instead..
-        /// </summary>
-        public static string WarningProjectsWithSonarRulesWhileNewConnected {
-            get {
-                return ResourceManager.GetString("WarningProjectsWithSonarRulesWhileNewConnected", resourceCulture);
             }
         }
         

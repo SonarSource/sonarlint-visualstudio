@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarQubeService sonarQubeService;
         private readonly Workspace workspace;
         private readonly IVsSolution vsSolution;
-        private readonly IProjectsRuleSetProvider ruleSetProvider;
+        private readonly IDeprecatedSonarRuleSetManager deprecatedSonarRulesManager;
         private readonly ILogger logger;
 
         private readonly Func<IEnumerable<DiagnosticDescriptor>, SyntaxTree, bool> previousShouldExecuteRegisteredAction;
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /* for testing purposes */ SonarAnalyzerWorkflowBase currentWorklow;
 
         public SonarAnalyzerManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, ISonarQubeService sonarQubeService,
-            Workspace workspace, IVsSolution vsSolution, IProjectsRuleSetProvider ruleSetProvider, ILogger logger)
+            Workspace workspace, IVsSolution vsSolution, IDeprecatedSonarRuleSetManager deprecatedSonarRulesManager, ILogger logger)
         {
             if (activeSolutionBoundTracker == null)
             {
@@ -79,9 +79,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            if (ruleSetProvider == null)
+            if (deprecatedSonarRulesManager == null)
             {
-                throw new ArgumentNullException(nameof(ruleSetProvider));
+                throw new ArgumentNullException(nameof(deprecatedSonarRulesManager));
             }
 
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.vsSolution = vsSolution;
             this.logger = logger;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.ruleSetProvider = ruleSetProvider;
+            this.deprecatedSonarRulesManager = deprecatedSonarRulesManager;
 
             // Saving previous state so that SonarLint doesn't have to know what's the default state in SonarAnalyzer
             this.previousShouldRegisterContextAction = SonarAnalysisContext.ShouldRegisterContextAction;
@@ -127,7 +127,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             switch (configuration?.Mode)
             {
                 case SonarLintMode.Standalone:
-                    this.currentWorklow = new SonarAnalyzerStandaloneWorkflow(this.workspace, ruleSetProvider);
+                    this.deprecatedSonarRulesManager.WarnIfAnyProjectHasSonarRuleSet();
+                    this.currentWorklow = new SonarAnalyzerStandaloneWorkflow(this.workspace);
                     break;
 
                 case SonarLintMode.LegacyConnected:
@@ -140,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                     if (configuration.Mode == SonarLintMode.Connected)
                     {
-
+                        this.deprecatedSonarRulesManager.WarnIfAnyProjectHasSonarRuleSet();
                         var qualityProfileProvider = new SonarQubeQualityProfileProvider(sonarQubeService, logger);
                         this.disposableObjects.Add(qualityProfileProvider);
                         var cachingProvider = new QualityProfileProviderCachingDecorator(qualityProfileProvider,
