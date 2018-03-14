@@ -749,7 +749,4 @@ This is the general format to use when writing errors to output window or when t
     <value>Unbinds the solution from the SonarQube project and closes the connection to the SonarQube server</value>
     <comment>Menu item tool tip</comment>
   </data>
-  <data name="ProjectWithSonarRules" xml:space="preserve">
-    <value>Some of the projects are using Sonar rules through the ruleset. This is not a supported configuration and any enabled rules that are not in SonarWay (standalone mode) or on the Quality Profile (connected mode) won't be enabled. </value>
-  </data>
 </root>

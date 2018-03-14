@@ -24,33 +24,61 @@ using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.CodeAnalysis.Extensibility;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface IDeprecatedSonarRuleSetManager
+    public interface IDeprecatedSonarRuleSetManager : IDisposable
     {
-        void WarnIfAnyProjectHasSonarRuleSet();
     }
 
     [Export(typeof(IDeprecatedSonarRuleSetManager))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class DeprecatedSonarRuleSetManager : IDeprecatedSonarRuleSetManager
     {
+        internal const string DeprecationMessage =
+            "*****************************************************************************************\r\n" +
+            "***   Some of the projects are using Sonar rules through the ruleset. This is not a   ***\r\n" +
+            "***       supported configuration and any enabled rules that are not in SonarWay      ***\r\n" +
+            "***   (standalone mode) or on the Quality Profile (connected mode) won't be enabled.  ***\r\n" +
+            "*****************************************************************************************";
+
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IActiveSolutionTracker activeSolutionTracker;
         private readonly IProjectSystemHelper projectSystemHelper;
+        private readonly ISolutionRuleSetsInformationProvider ruleSetProvider;
         private readonly ILogger logger;
+
+        private bool isDisposed;
 
         [ImportingConstructor]
         public DeprecatedSonarRuleSetManager(IHost host)
-            : this(host.GetService<IProjectSystemHelper>(), host.Logger)
+            : this(host.GetMefService<IActiveSolutionBoundTracker>(), host.GetMefService<IActiveSolutionTracker>(),
+                host.GetService<IProjectSystemHelper>(), host.GetService<ISolutionRuleSetsInformationProvider>(), host.Logger)
         {
         }
 
-        internal DeprecatedSonarRuleSetManager(IProjectSystemHelper projectSystemHelper, ILogger logger)
+        internal /* for testing purposes */ DeprecatedSonarRuleSetManager(IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IActiveSolutionTracker activeSolutionTracker, IProjectSystemHelper projectSystemHelper,
+            ISolutionRuleSetsInformationProvider ruleSetProvider, ILogger logger)
         {
+            if (activeSolutionBoundTracker == null)
+            {
+                throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
+            }
+
+            if (activeSolutionTracker == null)
+            {
+                throw new ArgumentNullException(nameof(activeSolutionTracker));
+            }
+
             if (projectSystemHelper == null)
             {
                 throw new ArgumentNullException(nameof(projectSystemHelper));
+            }
+
+            if (ruleSetProvider == null)
+            {
+                throw new ArgumentNullException(nameof(ruleSetProvider));
             }
 
             if (logger == null)
@@ -58,29 +86,55 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(logger));
             }
 
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.activeSolutionTracker = activeSolutionTracker;
             this.projectSystemHelper = projectSystemHelper;
+            this.ruleSetProvider = ruleSetProvider;
             this.logger = logger;
-        }
 
-        public void WarnIfAnyProjectHasSonarRuleSet()
-        {
-            if (this.projectSystemHelper.GetSolutionProjects().Any(HasAnySonarRule))
+            this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+            this.activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
+
+            if (this.activeSolutionBoundTracker.CurrentConfiguration != null &&
+                this.activeSolutionBoundTracker.CurrentConfiguration.Mode != NewConnectedMode.SonarLintMode.LegacyConnected)
             {
-                this.logger.WriteLine(Strings.ProjectWithSonarRules);
+                WarnIfAnyProjectHasSonarRuleSet();
             }
         }
 
-        private bool HasAnySonarRule(EnvDTE.Project project)
+        private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {
-            // We only look for the "global" CodeAnalysisRuleSet property (i.e. not under any condition)
-            var projectRuleSetPath = this.projectSystemHelper.GetProjectProperty(project, Constants.CodeAnalysisRuleSetPropertyKey);
-            if (projectRuleSetPath == null)
+            if (e.IsSolutionOpen)
             {
-                return false;
+                WarnIfAnyProjectHasSonarRuleSet();
             }
+        }
 
-            var projectDirectoryFullPath = new FileInfo(project.FullName).Directory.FullName;
-            var projectRuleSetFullPath = GetFullPath(projectRuleSetPath, projectDirectoryFullPath);
+        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
+        {
+            if (e.Configuration != null &&
+                e.Configuration.Mode != NewConnectedMode.SonarLintMode.LegacyConnected)
+            {
+                WarnIfAnyProjectHasSonarRuleSet();
+            }
+        }
+
+        private void WarnIfAnyProjectHasSonarRuleSet()
+        {
+            var hasAnySonarRule = this.projectSystemHelper.GetSolutionProjects()
+                .SelectMany(p => ruleSetProvider.GetProjectRuleSetsDeclarations(p))
+                .Any(HasAnySonarRule);
+
+            if (hasAnySonarRule)
+            {
+                this.logger.WriteLine(DeprecationMessage);
+            }
+        }
+
+        private bool HasAnySonarRule(RuleSetDeclaration ruleSetDeclaration)
+        {
+            var projectDirectoryFullPath = Path.GetDirectoryName(ruleSetDeclaration.RuleSetProjectFullName);
+            var projectRuleSetFullPath = GetFullPath(ruleSetDeclaration.RuleSetPath, projectDirectoryFullPath);
             if (!File.Exists(projectRuleSetFullPath))
             {
                 return false;
@@ -103,5 +157,15 @@ namespace SonarLint.VisualStudio.Integration
             Path.IsPathRooted(maybeRelativePath)
                 ? maybeRelativePath
                 : Path.GetFullPath(Path.Combine(relativeTo, maybeRelativePath));
+
+        public void Dispose()
+        {
+            if (!isDisposed)
+            {
+                this.activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+                this.activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
+                isDisposed = true;
+            }
+        }
     }
 }
