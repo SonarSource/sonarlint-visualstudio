@@ -133,18 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.activeSolutionBoundTracker.CurrentConfiguration = NewConnectedMode.BindingConfiguration.Standalone;
-            var projectPath = Path.GetTempFileName();
-
-            var rulesetName = $"{Guid.NewGuid()}.ruleset";
-            var ruleset = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "S110" }, "SonarAnalyzer.Foo");
-            ruleset.WriteToFile(Path.Combine(Path.GetDirectoryName(projectPath), rulesetName));
-
-            var project = new ProjectMock(projectPath);
-            projectSystemHelper.Projects = new[] { project };
-            project.SetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey, rulesetName);
-
-            this.ruleSetProvider.RegisterProjectInfo(project, new RuleSetDeclaration(project, new PropertyMock("bar", null),
-                rulesetName, "", ""));
+            CreateProjectAndRuleSet();
 
             // Act
             CreateTestSubject();
@@ -158,16 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.activeSolutionBoundTracker.CurrentConfiguration = NewConnectedMode.BindingConfiguration.Standalone;
-            var projectPath = Path.GetTempFileName();
-
-            var rulesetName = $"{Guid.NewGuid()}.ruleset";
-
-            var project = new ProjectMock(projectPath);
-            projectSystemHelper.Projects = new[] { project };
-            project.SetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey, rulesetName);
-
-            this.ruleSetProvider.RegisterProjectInfo(project, new RuleSetDeclaration(project, new PropertyMock("bar", null),
-                rulesetName, "", ""));
+            CreateProjectAndRuleSet(createRuleSet: false);
 
             // Act
             CreateTestSubject();
@@ -182,24 +162,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             this.activeSolutionBoundTracker.CurrentConfiguration = new NewConnectedMode.BindingConfiguration(
                 new Persistence.BoundSonarQubeProject(), NewConnectedMode.SonarLintMode.Connected);
-            var projectPath = Path.GetTempFileName();
-
-            var rulesetName = $"{Guid.NewGuid()}.ruleset";
-            var ruleset = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "S110" }, "SonarAnalyzer.Foo");
-            ruleset.WriteToFile(Path.Combine(Path.GetDirectoryName(projectPath), rulesetName));
-
-            var project = new ProjectMock(projectPath);
-            projectSystemHelper.Projects = new[] { project };
-            project.SetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey, rulesetName);
-
-            this.ruleSetProvider.RegisterProjectInfo(project, new RuleSetDeclaration(project, new PropertyMock("bar", null),
-                rulesetName, "", ""));
+            CreateProjectAndRuleSet();
 
             // Act
             CreateTestSubject();
 
             // Assert
             loggerMock.Verify(x => x.WriteLine(DeprecatedSonarRuleSetManager.DeprecationMessage), Times.Once);
+        }
+
+        [TestMethod]
+        public void Ctor_WhenStandaloneAndProjectDoesNotHaveSonarRules_DoesNotWarn()
+        {
+            // Arrange
+            this.activeSolutionBoundTracker.CurrentConfiguration = new NewConnectedMode.BindingConfiguration(
+                new Persistence.BoundSonarQubeProject(), NewConnectedMode.SonarLintMode.Connected);
+            CreateProjectAndRuleSet(analyzerId: "StyleCop");
+
+            // Act
+            CreateTestSubject();
+
+            // Assert
+            loggerMock.Verify(x => x.WriteLine(DeprecatedSonarRuleSetManager.DeprecationMessage), Times.Never);
         }
 
         [TestMethod]
@@ -220,29 +204,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void OnActiveSolutionChanged_WhenSolutionOpened_DoWarn()
         {
-            // Arrange
-            this.activeSolutionBoundTracker.CurrentConfiguration = new NewConnectedMode.BindingConfiguration(
-                new Persistence.BoundSonarQubeProject(), NewConnectedMode.SonarLintMode.LegacyConnected);
-
-            var projectPath = Path.GetTempFileName();
-
-            var rulesetName = $"{Guid.NewGuid()}.ruleset";
-            var ruleset = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "S110" }, "SonarAnalyzer.Foo");
-            ruleset.WriteToFile(Path.Combine(Path.GetDirectoryName(projectPath), rulesetName));
-
-            var project = new ProjectMock(projectPath);
-            projectSystemHelper.Projects = new[] { project };
-            project.SetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey, rulesetName);
-
-            this.ruleSetProvider.RegisterProjectInfo(project, new RuleSetDeclaration(project, new PropertyMock("bar", null),
-                rulesetName, "", ""));
-            CreateTestSubject();
-
-            // Act
-            this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
-
-            // Assert
-            loggerMock.Verify(x => x.WriteLine(DeprecatedSonarRuleSetManager.DeprecationMessage), Times.Once);
+            WhenGivenAction_DoesTheExpected(() =>
+                this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true),
+                warns: true);
         }
 
         [TestMethod]
@@ -265,71 +229,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void OnSolutionBindingChanged_WhenStandaloneAndProjectHasSonarRules_DoWarn()
         {
-            // Arrange
-            this.activeSolutionBoundTracker.CurrentConfiguration = new NewConnectedMode.BindingConfiguration(
-                new Persistence.BoundSonarQubeProject(), NewConnectedMode.SonarLintMode.LegacyConnected);
-            var projectPath = Path.GetTempFileName();
-
-            var rulesetName = $"{Guid.NewGuid()}.ruleset";
-            var ruleset = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "S110" }, "SonarAnalyzer.Foo");
-            ruleset.WriteToFile(Path.Combine(Path.GetDirectoryName(projectPath), rulesetName));
-
-            var project = new ProjectMock(projectPath);
-            projectSystemHelper.Projects = new[] { project };
-            project.SetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey, rulesetName);
-
-            this.ruleSetProvider.RegisterProjectInfo(project, new RuleSetDeclaration(project, new PropertyMock("bar", null),
-                rulesetName, "", ""));
-            CreateTestSubject();
-
-            // Act
-            this.activeSolutionBoundTracker.SimulateSolutionBindingChanged(new ActiveSolutionBindingEventArgs(
-                NewConnectedMode.BindingConfiguration.Standalone));
-
-            // Assert
-            loggerMock.Verify(x => x.WriteLine(DeprecatedSonarRuleSetManager.DeprecationMessage), Times.Once);
+            WhenGivenAction_DoesTheExpected(() =>
+                this.activeSolutionBoundTracker.SimulateSolutionBindingChanged(new ActiveSolutionBindingEventArgs(
+                    NewConnectedMode.BindingConfiguration.Standalone)),
+                    warns:
+                true);
         }
 
         [TestMethod]
         public void OnSolutionBindingChanged_WhenNewConnectedAndProjectHasSonarRules_DoWarn()
         {
-            // Arrange
-            this.activeSolutionBoundTracker.CurrentConfiguration = new NewConnectedMode.BindingConfiguration(
-                new Persistence.BoundSonarQubeProject(), NewConnectedMode.SonarLintMode.LegacyConnected);
-            var projectPath = Path.GetTempFileName();
-
-            var rulesetName = $"{Guid.NewGuid()}.ruleset";
-            var ruleset = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "S110" }, "SonarAnalyzer.Foo");
-            ruleset.WriteToFile(Path.Combine(Path.GetDirectoryName(projectPath), rulesetName));
-
-            var project = new ProjectMock(projectPath);
-            projectSystemHelper.Projects = new[] { project };
-            project.SetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey, rulesetName);
-
-            this.ruleSetProvider.RegisterProjectInfo(project, new RuleSetDeclaration(project, new PropertyMock("bar", null),
-                rulesetName, "", ""));
-            CreateTestSubject();
-
-            // Act
-            this.activeSolutionBoundTracker.SimulateSolutionBindingChanged(new ActiveSolutionBindingEventArgs(
-                new NewConnectedMode.BindingConfiguration(new Persistence.BoundSonarQubeProject(),
-                NewConnectedMode.SonarLintMode.Connected)));
-
-            // Assert
-            loggerMock.Verify(x => x.WriteLine(DeprecatedSonarRuleSetManager.DeprecationMessage), Times.Once);
+            WhenGivenAction_DoesTheExpected(() =>
+                this.activeSolutionBoundTracker.SimulateSolutionBindingChanged(new ActiveSolutionBindingEventArgs(
+                    new NewConnectedMode.BindingConfiguration(new Persistence.BoundSonarQubeProject(),
+                    NewConnectedMode.SonarLintMode.Connected))),
+                warns: true);
         }
 
         [TestMethod]
         public void OnSolutionBindingChanged_WhenEventModeIsNull_DoNotWarn()
         {
-            // Arrange
+            WhenGivenAction_DoesTheExpected(() =>
+                this.activeSolutionBoundTracker.SimulateSolutionBindingChanged(new ActiveSolutionBindingEventArgs(null)),
+                warns: false);
+        }
+
+        private void WhenGivenAction_DoesTheExpected(Action actAction, bool warns)
+        {
             this.activeSolutionBoundTracker.CurrentConfiguration = new NewConnectedMode.BindingConfiguration(
                 new Persistence.BoundSonarQubeProject(), NewConnectedMode.SonarLintMode.LegacyConnected);
+            CreateProjectAndRuleSet();
+            CreateTestSubject();
+
+            // Act
+            actAction();
+
+            // Assert
+            loggerMock.Verify(x => x.WriteLine(DeprecatedSonarRuleSetManager.DeprecationMessage),
+                warns ? Times.Once() : Times.Never());
+        }
+
+        private void CreateProjectAndRuleSet(bool createRuleSet = true, string analyzerId = "SonarAnalyzer.Foo")
+        {
             var projectPath = Path.GetTempFileName();
 
             var rulesetName = $"{Guid.NewGuid()}.ruleset";
-            var ruleset = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "S110" }, "SonarAnalyzer.Foo");
-            ruleset.WriteToFile(Path.Combine(Path.GetDirectoryName(projectPath), rulesetName));
+            if (createRuleSet)
+            {
+                var ruleset = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "S110" }, analyzerId);
+                ruleset.WriteToFile(Path.Combine(Path.GetDirectoryName(projectPath), rulesetName));
+            }
 
             var project = new ProjectMock(projectPath);
             projectSystemHelper.Projects = new[] { project };
@@ -337,13 +286,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.ruleSetProvider.RegisterProjectInfo(project, new RuleSetDeclaration(project, new PropertyMock("bar", null),
                 rulesetName, "", ""));
-            CreateTestSubject();
-
-            // Act
-            this.activeSolutionBoundTracker.SimulateSolutionBindingChanged(new ActiveSolutionBindingEventArgs(null));
-
-            // Assert
-            loggerMock.Verify(x => x.WriteLine(DeprecatedSonarRuleSetManager.DeprecationMessage), Times.Never);
         }
 
         private void CreateTestSubject() =>

@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.CodeAnalysis.Extensibility;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
@@ -104,18 +105,32 @@ namespace SonarLint.VisualStudio.Integration
 
         private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {
-            if (e.IsSolutionOpen)
+            try
             {
-                WarnIfAnyProjectHasSonarRuleSet();
+                if (e.IsSolutionOpen)
+                {
+                    WarnIfAnyProjectHasSonarRuleSet();
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Swallow the exception as we are on UI thread
             }
         }
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
-            if (e.Configuration != null &&
-                e.Configuration.Mode != NewConnectedMode.SonarLintMode.LegacyConnected)
+            try
             {
-                WarnIfAnyProjectHasSonarRuleSet();
+                if (e.Configuration != null &&
+                    e.Configuration.Mode != NewConnectedMode.SonarLintMode.LegacyConnected)
+                {
+                    WarnIfAnyProjectHasSonarRuleSet();
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Swallow the exception as we are on UI thread
             }
         }
 
