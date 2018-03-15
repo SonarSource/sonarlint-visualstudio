@@ -60,28 +60,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.boundProject = boundProject;
             this.suppressionHandler = suppressionHandler;
 
-            SonarAnalysisContext.ShouldRegisterContextAction = ShouldRegisterContextActionWithFallback;
             SonarAnalysisContext.ReportDiagnostic = VsixAnalyzerReportDiagnostic;
         }
 
-        internal /* for testing purposes */ bool ShouldRegisterContextActionWithFallback(IEnumerable<DiagnosticDescriptor> descriptors)
-        {
-            // If the descriptor is marked as not configurable then we shouldn't change its behavior (enabled/disabled)
-            // Note: Utility analyzers have the NotConfigurable tag so they will fit in this case (but they have a built-in
-            // mechanism to be turned-off when run under SLVS).
-            if (descriptors.Any(d => d.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable)))
-            {
-                return true;
-            }
-
-            return this.qualityProfileProvider.GetQualityProfile(this.boundProject, GetLanguage(descriptors))
+        internal /* for testing purposes */ protected override bool? ShouldRegisterContextAction(
+            IEnumerable<DiagnosticDescriptor> descriptors) =>
+            this.qualityProfileProvider.GetQualityProfile(this.boundProject, GetLanguage(descriptors))
                 ?.Rules
                 .Select(x => x.Key)
                 .Intersect(descriptors.Select(d => d.Id)) // We assume that a rule is enabled if present in the QP
-                .Any()
-                // Fallback using SonarWay
-                ?? descriptors.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
-        }
+                .Any();
 
         internal /* for testing purposes */ static Language GetLanguage(IEnumerable<DiagnosticDescriptor> descriptors)
         {

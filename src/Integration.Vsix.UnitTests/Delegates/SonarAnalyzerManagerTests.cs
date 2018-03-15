@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ILogger> loggerMock;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private Mock<IVsSolution> vsSolutionMock;
-        private Mock<IProjectsRuleSetProvider> rulesetProviderMock;
 
         [TestInitialize]
         public void TestInitialize()
@@ -53,7 +52,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             sonarQubeServiceMock = new Mock<ISonarQubeService>();
             vsSolutionMock = new Mock<IVsSolution>();
             vsSolutionMock.As<IVsSolution5>(); // Allows to cast IVsSolution into IVsSolution5
-            rulesetProviderMock = new Mock<IProjectsRuleSetProvider>();
         }
 
         [TestMethod]
@@ -61,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(null, sonarQubeServiceMock.Object, workspace,
-                vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
+                vsSolutionMock.Object, loggerMock.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionBoundTracker");
@@ -72,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, null, workspace,
-                vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
+                vsSolutionMock.Object, loggerMock.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
@@ -83,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object, null,
-                vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
+                vsSolutionMock.Object, loggerMock.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
@@ -94,21 +92,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object,
-                workspace, null, rulesetProviderMock.Object, loggerMock.Object);
+                workspace, null, loggerMock.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("vsSolution");
-        }
-
-        [TestMethod]
-        public void Ctor_WhenIProjectsRuleSetProviderIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange & Act
-            Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object,
-                workspace, vsSolutionMock.Object, null, loggerMock.Object);
-
-            // Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetProvider");
         }
 
         [TestMethod]
@@ -116,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange & Act
             Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object,
-                workspace, vsSolutionMock.Object, rulesetProviderMock.Object, null);
+                workspace, vsSolutionMock.Object, null);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
@@ -266,6 +253,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         private SonarAnalyzerManager CreateTestSubject() => new SonarAnalyzerManager(activeSolutionBoundTracker,
-            sonarQubeServiceMock.Object, workspace, vsSolutionMock.Object, rulesetProviderMock.Object, loggerMock.Object);
+            sonarQubeServiceMock.Object, workspace, vsSolutionMock.Object, loggerMock.Object);
     }
 }

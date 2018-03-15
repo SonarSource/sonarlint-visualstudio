@@ -67,6 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private PackageCommandManager commandManager;
         private SonarAnalyzerManager sonarAnalyzerManager;
         private DeprecationManager deprecationManager;
+        private IDeprecatedSonarRuleSetManager deprecatedSonarRuleSetManager;
 
         private const string SonarLintDataKey = "SonarLintBindingData";
         private readonly IFormatter formatter = new BinaryFormatter();
@@ -84,16 +85,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             IServiceProvider serviceProvider = this;
 
+            this.deprecatedSonarRuleSetManager = this.GetMefService<IDeprecatedSonarRuleSetManager>();
+
             var activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             var sonarQubeService = this.GetMefService<ISonarQubeService>();
             var workspace = this.GetMefService<VisualStudioWorkspace>();
-            var ruleSetProvider = this.GetMefService<IProjectsRuleSetProvider>();
             logger = this.GetMefService<ILogger>();
             Debug.Assert(logger != null, "MEF composition error - failed to retrieve a logger");
 
             var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
             this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeService, workspace,
-                vsSolution, ruleSetProvider, logger);
+                vsSolution, logger);
 
             this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 
@@ -201,6 +203,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 this.deprecationManager?.Dispose();
                 this.deprecationManager = null;
+
+                this.deprecatedSonarRuleSetManager?.Dispose();
+                this.deprecatedSonarRuleSetManager = null;
             }
         }
     }
