@@ -43,23 +43,29 @@ namespace SonarLint.VisualStudio.Integration
         public string InstallationDateString
         {
             get { return InstallationDate.ToString("o"); }
-            // ParseExact will throw an exception when value is invalid date, but
-            // XmlSerializer will swallow it and return default(TelemetryData)
-            set { InstallationDate = DateTimeOffset.ParseExact(value, "o", null); }
+            set { InstallationDate = ParseSavedString(value); }
         }
 
         [XmlElement(nameof(LastSavedAnalysisDate)), EditorBrowsable(EditorBrowsableState.Never)]
         public string LastSavedAnalysisDateString
         {
             get { return LastSavedAnalysisDate.ToString("o"); }
-            set { LastSavedAnalysisDate = DateTimeOffset.ParseExact(value, "o", null); }
+            set { LastSavedAnalysisDate = ParseSavedString(value); }
         }
 
         [XmlElement(nameof(LastUploadDate)), EditorBrowsable(EditorBrowsableState.Never)]
         public string LastUploadDateString
         {
             get { return LastUploadDate.ToString("o"); }
-            set { LastUploadDate = DateTimeOffset.ParseExact(value, "o", null); }
+            set { LastUploadDate = ParseSavedString(value); }
+        }
+
+        private static DateTimeOffset ParseSavedString(string data)
+        {
+            // ParseExact will throw an exception when value is invalid date, but
+            // XmlSerializer will swallow it and return default(TelemetryData)
+            return DateTimeOffset.ParseExact(data, "o", null,
+                System.Globalization.DateTimeStyles.AssumeLocal | System.Globalization.DateTimeStyles.AdjustToUniversal);
         }
     }
 }

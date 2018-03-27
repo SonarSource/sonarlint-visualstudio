@@ -151,16 +151,24 @@ namespace SonarLint.VisualStudio.Integration.Tests
  <LastUploadDate>1999-12-31T23:59:59.9999999</LastUploadDate>
 </TelemetryData>");
 
+            // Calculate the expected result.
+            // Previously, this test started failing when daylight saving was applied on the test agent
+            // machine. Creating the local date first then converting it to a DateTimeOffset gives the
+            // expected result regardless of the local time zone or whether the test agent machine is
+            // automatically adjusting dor daylight saving time or not.
+            var expectedDate = new DateTime(1999, 12, 31, 23, 59, 59, 999, DateTimeKind.Local).AddTicks(9999);
+            var expectedDateTimeOffset = new DateTimeOffset(expectedDate);
+
             InitializeMocks(fileContents, fileExists: true, dirExists: true);
 
             // Act
             var repository = new TelemetryDataRepository(fileMock.Object, directoryMock.Object, watcherFactoryMock.Object);
 
             // Assert
-            repository.Data.InstallationDate.Should().Be(new DateTimeOffset(1999, 12, 31, 23, 59, 59, 999, DateTimeOffset.Now.Offset).AddTicks(9999));
-            repository.Data.LastSavedAnalysisDate.Should().Be(new DateTimeOffset(1999, 12, 31, 23, 59, 59, 999, DateTimeOffset.Now.Offset).AddTicks(9999));
+            repository.Data.InstallationDate.Should().Be(expectedDateTimeOffset);
+            repository.Data.LastSavedAnalysisDate.Should().Be(expectedDateTimeOffset);
             repository.Data.NumberOfDaysOfUse.Should().Be(5807);
-            repository.Data.LastUploadDate.Should().Be(new DateTimeOffset(1999, 12, 31, 23, 59, 59, 999, DateTimeOffset.Now.Offset).AddTicks(9999));
+            repository.Data.LastUploadDate.Should().Be(expectedDateTimeOffset);
             repository.Data.IsAnonymousDataShared.Should().BeFalse();
 
             Mock.VerifyAll(fileMock, directoryMock, watcherFactoryMock);
