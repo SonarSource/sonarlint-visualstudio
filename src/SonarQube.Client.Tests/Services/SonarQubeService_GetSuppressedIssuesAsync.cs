@@ -61,7 +61,7 @@ namespace SonarQube.Client.Tests.Services
             Func<Task<IList<SonarQubeIssue>>> func = async () =>
                 await service.GetSuppressedIssuesAsync("project1", CancellationToken.None);
 
-            func.ShouldThrow<HttpRequestException>().And
+            func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
             messageHandler.VerifyAll();

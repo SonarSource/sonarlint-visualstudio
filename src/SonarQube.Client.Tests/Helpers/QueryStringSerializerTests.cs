@@ -65,7 +65,7 @@ namespace SonarQube.Client.Helpers
         [TestMethod]
         public void Object_Properties_Throw_InvalidOperationExcepion()
         {
-            Action action = () => serializer.ToQueryString(new InnerObject());
+            Action action = () => QueryStringSerializer.ToQueryString(new InnerObject());
             action.Should().ThrowExactly<NotSupportedException>();
         }
 

@@ -74,8 +74,8 @@ namespace SonarQube.Client.Tests.Services
             result.Select(x => x.Link).Should().BeEquivalentTo(
                 new[]
                 {
-                    "https://sonarcloud.io/dashboard?id=my_project",
-                    "https://sonarcloud.io/project/issues?id=my_project&createdAfter=2017-03-01T00%3A00%3A00%2B0100&assignees=me%40github&resolved=false"
+                    new Uri("https://sonarcloud.io/dashboard?id=my_project"),
+                    new Uri("https://sonarcloud.io/project/issues?id=my_project&createdAfter=2017-03-01T00%3A00%3A00%2B0100&assignees=me%40github&resolved=false")
                 });
             result.Select(x => x.Message).Should().BeEquivalentTo(
                 new[]
@@ -127,7 +127,7 @@ namespace SonarQube.Client.Tests.Services
             Func<Task> action = async () =>
                 await service.GetNotificationEventsAsync("my_project", new DateTimeOffset(), CancellationToken.None);
 
-            action.ShouldThrow<InvalidOperationException>();
+            action.Should().ThrowExactly<InvalidOperationException>();
         }
     }
 }

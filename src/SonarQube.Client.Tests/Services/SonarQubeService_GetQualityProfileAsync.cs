@@ -415,7 +415,7 @@ namespace SonarQube.Client.Tests.Services
             Func<Task<SonarQubeQualityProfile>> func = async () =>
                 await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp, CancellationToken.None);
 
-            func.ShouldThrow<HttpRequestException>().And
+            func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 500 (Internal Server Error).");
 
             messageHandler.VerifyAll();

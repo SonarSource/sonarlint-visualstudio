@@ -177,7 +177,7 @@ namespace SonarQube.Client.Tests.Services
             Func<Task<IList<SonarQubeProperty>>> func = async () =>
                 await service.GetAllPropertiesAsync(CancellationToken.None);
 
-            func.ShouldThrow<HttpRequestException>().And
+            func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
             messageHandler.VerifyAll();
