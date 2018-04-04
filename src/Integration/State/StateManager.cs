@@ -286,17 +286,11 @@ namespace SonarLint.VisualStudio.Integration.State
                 return ctx?.ShowAllProjects ?? false ? Strings.HideUnboundProjectsCommandText : Strings.ShowAllProjectsCommandText;
             });
 
-            var unbindCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection.UnbindCommand);
-            unbindCommand.DisplayText = Strings.Unbind_Command_DisplayText;
-            unbindCommand.Tooltip = Strings.Unbind_Command_Tooltip;
-            unbindCommand.Icon = new IconViewModel(KnownMonikers.Disconnect);
-
             // Note: the Disconnect command is not on the context menu, although it is
             // called directly from code e.g. when the solution unloads
             serverVM.Commands.Add(refreshContextualCommand);
             serverVM.Commands.Add(browseServerContextualCommand);
             serverVM.Commands.Add(toggleShowAllProjectsCommand);
-            serverVM.Commands.Add(unbindCommand);
         }
 
         private void SetServerProjectsVMCommands(ServerViewModel serverVM)

@@ -79,17 +79,5 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
             return wrappedProvider.WriteConfiguration(configuration);
         }
-
-        public void DeleteConfiguration()
-        {
-            var mode = this.GetConfiguration().Mode;
-            Debug.Assert(mode == SonarLintMode.Connected,
-                "Can only delete a configuration when in new connected mode");
-
-            if (mode != SonarLintMode.LegacyConnected)
-            {
-                wrappedProvider.DeleteConfiguration();
-            }
-        }
     }
 }
