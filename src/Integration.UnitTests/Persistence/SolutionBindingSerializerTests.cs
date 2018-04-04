@@ -358,17 +358,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             solutionProject.Files.ContainsKey(output).Should().BeTrue("File {0} should remain in the project", output);
         }
 
-        [TestMethod]
-        public void SolutionBindingSerializer_Delete_Throws()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-            Action act = () => testSubject.DeleteBinding();
-
-            // Act & Assert
-            act.Should().ThrowExactly<InvalidOperationException>();
-        }
-
         #region Helpers
 
         private SolutionBindingSerializer CreateTestSubject()

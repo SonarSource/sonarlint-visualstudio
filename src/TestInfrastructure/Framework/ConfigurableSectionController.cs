@@ -37,12 +37,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
-        public ICommand UnbindCommand
-        {
-            get;
-            set;
-        }
-
         public ICommand ConnectCommand
         {
             get;
@@ -115,7 +109,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             section.ProgressHost = new ConfigurableProgressControlHost();
             section.UserNotifications = new ConfigurableUserNotification();
             section.BindCommand = new RelayCommand<BindCommandArgs>(args => { });
-            section.UnbindCommand = new RelayCommand(() => { });
             section.ConnectCommand = new RelayCommand(() => { });
             section.DisconnectCommand = new RelayCommand(() => { });
             section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => { });

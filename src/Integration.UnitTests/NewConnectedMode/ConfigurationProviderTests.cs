@@ -185,54 +185,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             newSerializer.SavedConfiguration.Mode.Should().Be(SonarLintMode.Connected);
         }
 
-        [TestMethod]
-        public void DeleteConfig_Standalone_CallsWrappedProvider()
-        {
-            // Arrange
-            legacySerializer.CurrentBinding = null;
-
-            // Act
-            using (new AssertIgnoreScope())
-            {
-                testSubject.DeleteConfiguration();
-            }
-
-            // Assert
-            legacySerializer.DeleteCallCount.Should().Be(0);
-            newSerializer.DeleteCallCount.Should().Be(1);
-        }
-
-        [TestMethod]
-        public void DeleteConfig_Legacy_NoOp()
-        {
-            // Arrange
-            legacySerializer.CurrentBinding = new BoundSonarQubeProject();
-
-            // Act
-            using (new AssertIgnoreScope())
-            {
-                testSubject.DeleteConfiguration();
-            }
-
-            // Assert
-            legacySerializer.DeleteCallCount.Should().Be(0);
-            newSerializer.DeleteCallCount.Should().Be(0);
-        }
-
-        [TestMethod]
-        public void DeleteConfig_ConnectedMode_CallsWrappedProvider()
-        {
-            // Arrange
-            legacySerializer.CurrentBinding = null;
-            newSerializer.ModeToReturn = SonarLintMode.Connected;
-            newSerializer.ProjectToReturn = new BoundSonarQubeProject();
-
-            // Act
-            testSubject.DeleteConfiguration();
-
-            // Assert
-            legacySerializer.DeleteCallCount.Should().Be(0);
-            newSerializer.DeleteCallCount.Should().Be(1);
-        }
     }
 }

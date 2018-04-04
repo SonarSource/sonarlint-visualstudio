@@ -48,11 +48,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.WriteResultToReturn;
         }
 
-        public void DeleteConfiguration()
-        {
-            DeleteCallCount++;
-        }
-
         #region Test helpers
 
         public BoundSonarQubeProject ProjectToReturn { get; set; }
@@ -61,8 +56,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool WriteResultToReturn { get; set; }
         public BindingConfiguration SavedConfiguration { get; set; }
-
-        public int DeleteCallCount { get; private set; }
 
         #endregion Test helpers
 
