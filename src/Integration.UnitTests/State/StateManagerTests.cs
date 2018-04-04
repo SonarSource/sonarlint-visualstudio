@@ -483,11 +483,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
         private static void VerifySectionCommands(ISectionController section, ServerViewModel serverVM)
         {
-            AssertExpectedNumberOfCommands(serverVM.Commands, 4);
+            AssertExpectedNumberOfCommands(serverVM.Commands, 3);
             VerifyServerViewModelCommand(serverVM, section.RefreshCommand, fixedContext: serverVM, hasIcon: true);
             VerifyServerViewModelCommand(serverVM, section.BrowseToUrlCommand, fixedContext: serverVM.ConnectionInformation.ServerUri.ToString(), hasIcon: true);
             VerifyServerViewModelCommand(serverVM, section.ToggleShowAllProjectsCommand, fixedContext: serverVM, hasIcon: false);
-            VerifyServerViewModelCommand(serverVM, section.UnbindCommand, fixedContext: serverVM, hasIcon: true);
 
             foreach (ProjectViewModel project in serverVM.Projects)
             {

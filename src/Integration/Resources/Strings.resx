@@ -726,27 +726,4 @@ This is the general format to use when writing errors to output window or when t
   <data name="Bind_UpdatingNewStyleBinding" xml:space="preserve">
     <value>Updating binding...</value>
   </data>
-  <data name="Unbind_DeletingBinding" xml:space="preserve">
-    <value>Deleting binding configuration...</value>
-  </data>
-  <data name="Unbind_DisconnectingFromSonarQube" xml:space="preserve">
-    <value>Disconnecting from the server...</value>
-  </data>
-  <data name="Unbind_State_Failed" xml:space="preserve">
-    <value>Unbinding operation failed.</value>
-  </data>
-  <data name="Unbind_State_Started" xml:space="preserve">
-    <value>Unbinding started...</value>
-  </data>
-  <data name="Unbind_State_Succeeded" xml:space="preserve">
-    <value>Unbinding operation completed succesfully.</value>
-  </data>
-  <data name="Unbind_Command_DisplayText" xml:space="preserve">
-    <value>Unbind</value>
-    <comment>Menu item display text</comment>
-  </data>
-  <data name="Unbind_Command_Tooltip" xml:space="preserve">
-    <value>Unbinds the solution from the SonarQube project and closes the connection to the SonarQube server</value>
-    <comment>Menu item tool tip</comment>
-  </data>
 </root>
