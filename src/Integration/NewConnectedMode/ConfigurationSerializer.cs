@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -35,14 +34,13 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     internal class ConfigurationSerializer : FileBindingSerializer
     {
         private readonly IVsSolution solution;
-        private readonly IDirectory directoryWrapper;
 
         public ConfigurationSerializer(
             IVsSolution solution,
             ISourceControlledFileSystem sccFileSystem,
             ICredentialStore store,
             ILogger logger)
-            :this(solution, sccFileSystem, store, logger, new FileWrapper(), new DirectoryWrapper())
+            :this(solution, sccFileSystem, store, logger, new FileWrapper())
         {
         }
 
@@ -51,37 +49,15 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             ISourceControlledFileSystem sccFileSystem,
             ICredentialStore store,
             ILogger logger,
-            IFile fileWrapper,
-            IDirectory directoryWrapper)
+            IFile fileWrapper)
             :base(sccFileSystem, store, logger, fileWrapper)
         {
             if (solution == null)
             {
                 throw new ArgumentNullException(nameof(solution));
             }
-            Debug.Assert(directoryWrapper != null);
 
             this.solution = solution;
-            this.directoryWrapper = directoryWrapper;
-        }
-
-        public override void DeleteBinding()
-        {
-            //TODO: we are assuming the files are not under source control
-            string configFile = this.GetFullConfigurationFilePath();
-
-            if (!fileWrapper.Exists(configFile))
-            {
-                Debug.Fail($"Nothing to delete - binding file does not exist: {configFile}");
-                return;
-            }
-
-            SafePerformFileSystemOperation(() =>
-            {
-                fileWrapper.Delete(configFile);
-                string sonarLintDir = Path.GetDirectoryName(configFile);
-                directoryWrapper.Delete(sonarLintDir);
-            });
         }
 
         protected override WriteMode Mode

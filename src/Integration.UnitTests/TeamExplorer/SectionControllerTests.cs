@@ -28,7 +28,6 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
@@ -61,7 +60,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), new ConfigurableVsProjectSystemHelper(this.serviceProvider));
-            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), new ConfigurableConfigurationProvider());
         }
 
         #region Tests

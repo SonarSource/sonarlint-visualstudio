@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 {
     internal abstract class FileBindingSerializer : ISolutionBindingSerializer
     {
-        protected readonly IFile fileWrapper;
+        private readonly IFile fileWrapper;
 
         protected readonly ISourceControlledFileSystem sccFileSystem;
         protected readonly ILogger logger;
@@ -128,9 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
             return configFile;
         }
-
-        public abstract void DeleteBinding();
-
+        
         private BoundSonarQubeProject ReadBindingInformation(string configFile)
         {
             BoundSonarQubeProject bound = this.SafeDeserializeConfigFile(configFile);
@@ -205,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return null;
         }
 
-        protected bool SafePerformFileSystemOperation(Action operation)
+        private bool SafePerformFileSystemOperation(Action operation)
         {
             Debug.Assert(operation != null);
 

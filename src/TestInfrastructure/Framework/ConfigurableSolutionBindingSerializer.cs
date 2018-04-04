@@ -27,7 +27,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     internal class ConfigurableSolutionBindingSerializer : ISolutionBindingSerializer
     {
         internal int WrittenFilesCount { get; private set; }
-        internal int DeleteCallCount { get; private set; }
 
         #region ISolutionBindingSerializer
 
@@ -45,11 +44,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.WrittenFilesCount++;
 
             return filePath;
-        }
-
-        void ISolutionBindingSerializer.DeleteBinding()
-        {
-            this.DeleteCallCount++;
         }
 
         #endregion ISolutionBindingSerializer

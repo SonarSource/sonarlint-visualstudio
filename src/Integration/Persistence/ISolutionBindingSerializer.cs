@@ -36,10 +36,5 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         /// <param name="sccFileSystem">Required</param>
         /// <returns>The file path to the binding file</returns>
         string WriteSolutionBinding(BoundSonarQubeProject binding);
-
-        /// <summary>
-        /// Deletes the current binding
-        /// </summary>
-        void DeleteBinding();
     }
 }
