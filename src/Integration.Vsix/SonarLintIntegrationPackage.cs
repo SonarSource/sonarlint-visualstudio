@@ -72,12 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private const string SonarLintDataKey = "SonarLintBindingData";
         private readonly IFormatter formatter = new BinaryFormatter();
         private ILogger logger;
-
-        public SonarLintIntegrationPackage()
-        {
-            AddOptionKey(SonarLintDataKey);
-        }
-
+        
         protected override void Initialize()
         {
             base.Initialize();
@@ -105,90 +100,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(), logger);
         }
-
-        #region .suo serialization
-
-        protected override void OnLoadOptions(string key, Stream stream)
-        {
-            // TODO: investigate why this method is called before package.Initialize
-            // has completed. Calling base.Initialize causes this method to be called,
-            // before the rest of the Initialize method has completed i.e. before the
-            // logger has been retrieved.
-            // This method is then called a second time, after Initialize has completed.
-
-            if (key != SonarLintDataKey)
-            {
-                return;
-            }
-
-            try
-            {
-                if (stream.Length > 0)
-                {
-                    logger?.WriteLine("Binding: reading binding information from the .suo file");
-
-                    var data = formatter.Deserialize(stream);
-
-                    var boundProject = JsonHelper.Deserialize<BoundSonarQubeProject>(data as string);
-                    var configuration = BindingConfiguration.CreateBoundConfiguration(boundProject, isLegacy: false);
-                    InMemoryConfigurationProvider.Instance.WriteConfiguration(configuration);
-                    logger?.WriteLine(GetBindingAsText(configuration));
-                }
-                else
-                {
-                    logger?.WriteLine("Binding: no binding information found in the .suo file");
-                }
-            }
-            catch (Exception ex)
-            {
-                logger?.WriteLine($"Failed to read binding data from the .suo file: {ex.Message}");
-            }
-        }
-
-        protected override void OnSaveOptions(string key, Stream stream)
-        {
-            if (key != SonarLintDataKey)
-            {
-                return;
-            }
-
-            try
-            {
-                var currentConfig = InMemoryConfigurationProvider.Instance.GetConfiguration();
-
-                // We only save the configuration in the .suo file when
-                // in the new connected mode.
-                // The data is serialized to json first for two reasons:
-                // 1. it means the data is a string so it can be binary-serialized
-                // 2. it gives us more flexibility in the future if the format changes
-                if (currentConfig.Mode == SonarLintMode.Connected)
-                {
-                    logger.WriteLine("Binding: writing binding information to the .suo file");
-                    logger.WriteLine(GetBindingAsText(currentConfig));
-
-                    var serializable = JsonHelper.Serialize(currentConfig.Project);
-                    formatter.Serialize(stream, serializable);
-                }
-                else
-                {
-                    logger.WriteLine($"Binding: mode= {currentConfig.Mode.ToString() }. No data will be written to the .suo file");
-                }
-            }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine($"Failed to write binding data to the .suo file: {ex.Message}");
-            }
-        }
-
-        private static string GetBindingAsText(BindingConfiguration configuration)
-        {
-            string project = configuration.Project?.ProjectKey ?? "{empty}";
-            string org = configuration.Project?.Organization?.Key ?? "{empty}";
-            string uri = configuration.Project.ServerUri?.ToString();
-            return $"    Mode={configuration.Mode}, project={project}, organization={org}, server={uri}";
-        }
-
-        #endregion
 
         protected override void Dispose(bool disposing)
         {
