@@ -21,26 +21,27 @@
 using System;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     internal class ConfigurationProvider : IConfigurationProvider
     {
         private readonly ISolutionBindingSerializer legacySerializer;
-        private readonly IConfigurationProvider wrappedProvider;
+        private readonly ISolutionBindingSerializer newConnectedModeSerializer;
 
-        public ConfigurationProvider(ISolutionBindingSerializer legacySerializer, IConfigurationProvider wrappedProvider)
+        public ConfigurationProvider(ISolutionBindingSerializer legacySerializer, ISolutionBindingSerializer newConnectedModeSerializer)
         {
             if (legacySerializer == null)
             {
                 throw new ArgumentNullException(nameof(legacySerializer));
             }
-            if (wrappedProvider == null)
+            if (newConnectedModeSerializer == null)
             {
-                throw new ArgumentNullException(nameof(wrappedProvider));
+                throw new ArgumentNullException(nameof(newConnectedModeSerializer));
             }
             this.legacySerializer = legacySerializer;
-            this.wrappedProvider = wrappedProvider;
+            this.newConnectedModeSerializer = newConnectedModeSerializer;
         }
 
         public BindingConfiguration GetConfiguration()
@@ -48,14 +49,16 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             var project = legacySerializer.ReadSolutionBinding();
             if (project != null)
             {
-                var config = BindingConfiguration.CreateBoundConfiguration(project, isLegacy: true);
-                
-                // Make sure the new config has the same value
-                wrappedProvider.WriteConfiguration(config);
-                return config;
+                return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: true);
             }
 
-            return wrappedProvider.GetConfiguration();
+            project = newConnectedModeSerializer.ReadSolutionBinding();
+            if (project != null)
+            {
+                return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: false);
+            }
+
+            return BindingConfiguration.Standalone;
         }
 
         public bool WriteConfiguration(BindingConfiguration configuration)
@@ -65,19 +68,18 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            // For legacy mode, we need to write the configuration to
-            // disk, as well as storing it in the in-memory provider
-            if (configuration.Mode == SonarLintMode.LegacyConnected)
+            switch (configuration.Mode)
             {
-                bool success = legacySerializer.WriteSolutionBinding(configuration.Project) != null;
-                if (success)
-                {
-                    wrappedProvider.WriteConfiguration(configuration);
-                }
-                return success;
+                case SonarLintMode.LegacyConnected:
+                    return legacySerializer.WriteSolutionBinding(configuration.Project) != null;
+                case SonarLintMode.Connected:
+                    return newConnectedModeSerializer.WriteSolutionBinding(configuration.Project) != null;
+                case SonarLintMode.Standalone:
+                    throw new InvalidOperationException(Strings.Bind_CannotSaveStandaloneConfiguration);
+                default:
+                    Debug.Fail("Unrecognised write mode");
+                    return false;
             }
-
-            return wrappedProvider.WriteConfiguration(configuration);
         }
     }
 }
