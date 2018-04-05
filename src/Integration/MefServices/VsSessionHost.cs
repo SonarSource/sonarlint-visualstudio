@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -305,9 +305,14 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(this)));
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(() =>
             {
+                var solution = this.GetService<SVsSolution, IVsSolution>();
+                var store = new SecretStore(SolutionBindingSerializer.StoreNamespace);
                 var legacySerializer = new SolutionBindingSerializer(this);
-                return new ConfigurationProvider(legacySerializer, InMemoryConfigurationProvider.Instance);
-
+                // The SCC wrapper maintains a queue of file writes. For the new provider we want to the file write to be
+                // executed immediately, so we want our own SCC wrapper rather than sharing the one used by the legacy mode.
+                var sccFileSystem = new SourceControlledFileSystem(this);
+                var newConfigSerializer = new ConfigurationSerializer(solution, sccFileSystem, store, Logger);
+                return new ConfigurationProvider(legacySerializer, newConfigSerializer);
             }));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
