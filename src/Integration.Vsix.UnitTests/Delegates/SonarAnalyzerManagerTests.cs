@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -226,8 +226,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             int callCount = 0;
-            Func<IEnumerable<DiagnosticDescriptor>, bool> expectedShouldRegisterContextAction =
-                list => { callCount++; return false; };
             Func<IEnumerable<DiagnosticDescriptor>, SyntaxTree, bool> expectedShouldExecuteRegisteredAction =
                 (list, tree) => { callCount++; return false; };
             Func<SyntaxTree, Diagnostic, bool> expectedShouldDiagnosticBeReported =
@@ -237,7 +235,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = CreateTestSubject();
 
-            SonarAnalysisContext.ShouldRegisterContextAction = expectedShouldRegisterContextAction;
             SonarAnalysisContext.ShouldExecuteRegisteredAction = expectedShouldExecuteRegisteredAction;
             SonarAnalysisContext.ShouldDiagnosticBeReported = expectedShouldDiagnosticBeReported;
             SonarAnalysisContext.ReportDiagnostic = expectedReportDiagnostic;
@@ -246,7 +243,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Dispose();
 
             // Assert
-            SonarAnalysisContext.ShouldRegisterContextAction.Should().NotBe(expectedShouldRegisterContextAction);
             SonarAnalysisContext.ShouldDiagnosticBeReported.Should().NotBe(expectedShouldDiagnosticBeReported);
             SonarAnalysisContext.ShouldExecuteRegisteredAction.Should().NotBe(expectedShouldExecuteRegisteredAction);
             SonarAnalysisContext.ReportDiagnostic.Should().NotBe(expectedReportDiagnostic);
