@@ -138,24 +138,50 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             return new ProgressStepDefinition[]
             {
+                // Some of the steps are broken into multiple sub-steps, either
+                // because the work needs to be done on a different thread or
+                // to report progress separate.
+
+                //*****************************************************************
+                // Initialization
+                //*****************************************************************
+                // Show an initial message and check the solution isn't dirty
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
                         (token, notifications) => notifications.ProgressChanged(Strings.StartedSolutionBindingWorkflow)),
 
                 new ProgressStepDefinition(null, StepAttributes.Indeterminate | StepAttributes.Hidden,
                         (token, notifications) => this.PromptSaveSolutionIfDirty(controller, token)),
 
+                //*****************************************************************
+                // Preparation
+                //*****************************************************************
+                // Check for eligible projects in the solution
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.Indeterminate,
                         (token, notifications) => this.DiscoverProjects(controller, notifications)),
 
+                // Fetch data from Sonar server and write shared ruleset file(s) to temporary location on disk
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, this.GetBindingLanguages(), token).GetAwaiter().GetResult()),
 
+                //*****************************************************************
+                // NuGet package handling
+                //*****************************************************************
+                // Initialize the VS NuGet installer service
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => { NuGetHelper.LoadService(this.host); /*The service needs to be loaded on UI thread*/ }),
 
+                // Install the appropriate package for each project
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.InstallPackages(controller, token, notifications)),
 
+                //*****************************************************************
+                // Solution update phase
+                //*****************************************************************
+                // * copy shared ruleset to shared location
+                // * add files to solution
+                // * create/update per-project ruleset
+                // * set project-level properties
+                // Most of the work is delegated to SolutionBindingOperation
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableUIStep,
                         (token, notifications) => this.InitializeSolutionBindingOnUIThread(notifications)),
 
@@ -165,6 +191,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(null, StepAttributes.Hidden | StepAttributes.Indeterminate,
                         (token, notifications) => this.FinishSolutionBindingOnUIThread(controller, token)),
 
+                //*****************************************************************
+                // Finalization
+                //*****************************************************************
+                // Save solution and show message
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
                         (token, notifications) => this.SilentSaveSolutionIfDirty()),
 
@@ -263,6 +293,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
+                //### NUGET
                 if (roslynProfileExporter.Deployment.NuGetPackages.Count == 0)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
