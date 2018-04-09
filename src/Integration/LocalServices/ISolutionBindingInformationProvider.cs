@@ -23,25 +23,14 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    // Legacy connected mode
-    // The "GetUnboundProjects"/"GetBoundProjects" are only used by the error list controller
-    // in legacy mode to find projects that have been added to a legacy bound solution (and
-    // in fact "GetBoundProjects" doesn't seem to be called at all).
+    // "GetUnboundProjects"is only used by the error list controller
+    // in legacy mode to find projects that have been added to a legacy bound solution
 
     /// <summary>
     /// SonarQube-bound project discovery
     /// </summary>
     internal interface ISolutionBindingInformationProvider
     {
-        /// <summary>
-        /// Return all the SonarQube bound projects in the current solution.
-        /// It's up to the caller to make sure that the solution is fully loaded before calling this method.
-        /// </summary>
-        /// <remarks>Internally projects are filtered using the <see cref="IProjectSystemFilter"/> service.
-        /// <seealso cref="IProjectSystemHelper.GetFilteredSolutionProjects"/></remarks>
-        /// <returns>Will always return an instance, never a null</returns>
-        IEnumerable<Project> GetBoundProjects();
-
         /// <summary>
         /// Return all the SonarQube unbound projects in the current solution.
         /// It's up to the caller to make sure that the solution is fully loaded before calling this method.
