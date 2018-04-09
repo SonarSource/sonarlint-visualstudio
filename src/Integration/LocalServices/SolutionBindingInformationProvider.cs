@@ -48,11 +48,6 @@ namespace SonarLint.VisualStudio.Integration
 
         #region ISolutionBindingInformationProvider
 
-        public IEnumerable<Project> GetBoundProjects()
-        {
-            return this.GetBoundProjects(this.GetLegacySolutionBinding());
-        }
-
         public IEnumerable<Project> GetUnboundProjects()
         {
             return this.GetUnboundProjects(this.GetLegacySolutionBinding());
@@ -84,24 +79,10 @@ namespace SonarLint.VisualStudio.Integration
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
-            // Reuse the binding information passed in to avoid reading it more than once
-            return projectSystem.GetFilteredSolutionProjects().Except(this.GetBoundProjects(binding));
-        }
-
-        private IEnumerable<Project> GetBoundProjects(BoundSonarQubeProject binding)
-        {
-            if (binding == null)
-            {
-                return Enumerable.Empty<Project>();
-            }
-
-            var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystem.AssertLocalServiceIsNotNull();
-
             // Projects will be using the same solution ruleset in most of the cases,
             // projects could have multiple configurations all of which using the same rule set,
             // we want to minimize the number of disk operations since the
-            // method ca be called from the UI thread, hence this short-lived cache
+            // method can be called from the UI thread, hence this short-lived cache
             Dictionary<string, RuleSet> cache = new Dictionary<string, RuleSet>(StringComparer.OrdinalIgnoreCase);
 
             // Note: we will still may end up analyzing the same project rule set
@@ -109,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration
 
             // Reuse the binding information passed in to avoid reading it more than once
             return projectSystem.GetFilteredSolutionProjects()
-                .Where(p => this.IsFullyBoundProject(cache, binding, p));
+                .Where(p => !this.IsFullyBoundProject(cache, binding, p));
         }
 
         private bool IsFullyBoundProject(Dictionary<string, RuleSet> cache, BoundSonarQubeProject binding, Project project)
