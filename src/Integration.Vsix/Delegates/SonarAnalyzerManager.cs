@@ -43,7 +43,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly Func<IEnumerable<DiagnosticDescriptor>, SyntaxTree, bool> previousShouldExecuteRegisteredAction;
         private readonly Action<IReportingContext> previousReportDiagnostic;
-        private readonly Func<IEnumerable<DiagnosticDescriptor>, bool> previousShouldRegisterContextAction;
         private readonly Func<SyntaxTree, Diagnostic, bool> previousShouldDiagnosticBeReported;
 
         private readonly List<IDisposable> disposableObjects = new List<IDisposable>();
@@ -83,10 +82,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.workspace = workspace;
             this.vsSolution = vsSolution;
             this.logger = logger;
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
 
             // Saving previous state so that SonarLint doesn't have to know what's the default state in SonarAnalyzer
-            this.previousShouldRegisterContextAction = SonarAnalysisContext.ShouldRegisterContextAction;
             this.previousShouldExecuteRegisteredAction = SonarAnalysisContext.ShouldExecuteRegisteredAction;
             this.previousShouldDiagnosticBeReported = SonarAnalysisContext.ShouldDiagnosticBeReported;
             this.previousReportDiagnostic = SonarAnalysisContext.ReportDiagnostic;
@@ -133,13 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                     if (configuration.Mode == SonarLintMode.Connected)
                     {
-                        var qualityProfileProvider = new SonarQubeQualityProfileProvider(sonarQubeService, logger);
-                        this.disposableObjects.Add(qualityProfileProvider);
-                        var cachingProvider = new QualityProfileProviderCachingDecorator(qualityProfileProvider,
-                            configuration.Project, sonarQubeService, new TimerFactory());
-                        this.disposableObjects.Add(cachingProvider);
-                        this.currentWorklow = new SonarAnalyzerConnectedWorkflow(this.workspace, cachingProvider,
-                            configuration.Project, suppressionHandler);
+                        this.currentWorklow = new SonarAnalyzerConnectedWorkflow(this.workspace, suppressionHandler);
                     }
                     else // Legacy
                     {
@@ -160,7 +151,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.currentWorklow?.Dispose();
             this.currentWorklow = null;
 
-            SonarAnalysisContext.ShouldRegisterContextAction = this.previousShouldRegisterContextAction;
             SonarAnalysisContext.ShouldDiagnosticBeReported = this.previousShouldDiagnosticBeReported;
             SonarAnalysisContext.ShouldExecuteRegisteredAction = this.previousShouldExecuteRegisteredAction;
             SonarAnalysisContext.ReportDiagnostic = this.previousReportDiagnostic;
