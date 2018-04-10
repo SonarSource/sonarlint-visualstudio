@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -39,11 +39,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return installer;
         }
 
-        public static bool TryInstallPackage(IServiceProvider serviceProvider, Project project, string packageId, string version = null)
+        public static bool TryInstallPackage(IServiceProvider serviceProvider, ILogger logger, Project project, string packageId, string version = null)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
             }
 
             if (project == null)
@@ -80,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
 
                 var message = string.Format(Strings.FailedDuringNuGetPackageInstall, packageId, project.Name, ex.Message);
-                VsShellUtils.WriteToSonarLintOutputPane(serviceProvider, Strings.SubTextPaddingFormat, message);
+                logger.WriteLine(Strings.SubTextPaddingFormat, message);
                 return false;
             }
         }
