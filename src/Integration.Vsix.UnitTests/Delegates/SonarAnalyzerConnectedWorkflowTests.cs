@@ -36,13 +36,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class SonarAnalyzerConnectedWorkflowTests
     {
-        private Mock<IQualityProfileProvider> qualityProfileProviderMock;
         private Mock<ISuppressionHandler> suppressionHandlerMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            qualityProfileProviderMock = new Mock<IQualityProfileProvider>();
             suppressionHandlerMock = new Mock<ISuppressionHandler>();
         }
 
@@ -51,114 +49,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_WhenVisualStudioWorkspaceIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarAnalyzerConnectedWorkflow(null, qualityProfileProviderMock.Object,
-                new BoundSonarQubeProject(), suppressionHandlerMock.Object);
+            Action act = () => new SonarAnalyzerConnectedWorkflow(null, suppressionHandlerMock.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
 
         [TestMethod]
-        public void Ctor_WhenIQualityProfileProviderIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange & Act
-            Action act = () => new SonarAnalyzerConnectedWorkflow(new AdhocWorkspace(), null, new BoundSonarQubeProject(),
-                suppressionHandlerMock.Object);
-
-            // Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("qualityProfileProvider");
-        }
-
-        [TestMethod]
-        public void Ctor_WhenBoundSonarQubeProjectIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange & Act
-            Action act = () => new SonarAnalyzerConnectedWorkflow(new AdhocWorkspace(), qualityProfileProviderMock.Object, null,
-                suppressionHandlerMock.Object);
-
-            // Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("boundProject");
-        }
-
-        [TestMethod]
         public void Ctor_WhenISonarQubeServiceIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarAnalyzerConnectedWorkflow(new AdhocWorkspace(), qualityProfileProviderMock.Object,
-                new BoundSonarQubeProject(), null);
+            Action act = () => new SonarAnalyzerConnectedWorkflow(new AdhocWorkspace(), null);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("suppressionHandler");
-        }
-        #endregion
-
-        #region GetLanguage Tests
-        [TestMethod]
-        public void GetLanguage_WhenFirstDescriptorContainsCSharp_ReturnsCSharp()
-        {
-            // Arrange
-            var descriptors = new[] { CreateFakeDiagnostic(LanguageNames.CSharp).Descriptor };
-
-            // Act
-            var result = SonarAnalyzerConnectedWorkflow.GetLanguage(descriptors);
-
-            // Assert
-            result.Should().Be(Language.CSharp);
-        }
-
-        [TestMethod]
-        public void GetLanguage_WhenFirstDescriptorContainsVB_ReturnsVB()
-        {
-            // Arrange
-            var descriptors = new[] { CreateFakeDiagnostic(LanguageNames.VisualBasic).Descriptor };
-
-            // Act
-            var result = SonarAnalyzerConnectedWorkflow.GetLanguage(descriptors);
-
-            // Assert
-            result.Should().Be(Language.VBNET);
-        }
-
-        [TestMethod]
-        public void GetLanguage_WhenDescriptorsIsNull_ReturnsUnknown()
-        {
-            using (new AssertIgnoreScope())
-            {
-                // Act
-                var result = SonarAnalyzerConnectedWorkflow.GetLanguage(null);
-
-                // Assert
-                result.Should().Be(Language.Unknown);
-            }
-        }
-
-        [TestMethod]
-        public void GetLanguage_WhenNoDescriptor_ReturnsUnknown()
-        {
-            using (new AssertIgnoreScope())
-            {
-                // Act
-                var result = SonarAnalyzerConnectedWorkflow.GetLanguage(Enumerable.Empty<DiagnosticDescriptor>());
-
-                // Assert
-                result.Should().Be(Language.Unknown);
-            }
-        }
-
-        [TestMethod]
-        public void GetLanguage_WhenDescriptorIsNeitherCSharpNorVb_ReturnsUnknown()
-        {
-            using (new AssertIgnoreScope())
-            {
-                // Arrange
-                var descriptors = new[] { CreateFakeDiagnostic("foo").Descriptor };
-
-                // Act
-                var result = SonarAnalyzerConnectedWorkflow.GetLanguage(descriptors);
-
-                // Assert
-                result.Should().Be(Language.Unknown);
-            }
         }
         #endregion
 
@@ -169,8 +73,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var language = Language.CSharp;
             var boundProject = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
-            this.qualityProfileProviderMock.Setup(x => x.GetQualityProfile(boundProject, language))
-                .Returns(new QualityProfile(language, new[] { new SonarRule("id3") }));
             var testSubject = CreateTestSubject(boundProject);
             var diag = CreateFakeDiagnostic(LanguageNames.CSharp, true, "1");
             var reportingContextMock = new Mock<IReportingContext>();
@@ -190,8 +92,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var language = Language.CSharp;
             var boundProject = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
-            this.qualityProfileProviderMock.Setup(x => x.GetQualityProfile(boundProject, language))
-                .Returns(default(QualityProfile));
             var testSubject = CreateTestSubject(boundProject);
             var diag = CreateFakeDiagnostic(LanguageNames.CSharp, false, "1");
             var reportingContextMock = new Mock<IReportingContext>();
@@ -211,8 +111,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var language = Language.CSharp;
             var boundProject = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
-            this.qualityProfileProviderMock.Setup(x => x.GetQualityProfile(boundProject, language))
-                .Returns(new QualityProfile(language, new[] { new SonarRule("id1") }));
             var testSubject = CreateTestSubject(boundProject);
             var diag = CreateFakeDiagnostic(LanguageNames.CSharp, true, "1");
             var reportingContextMock = new Mock<IReportingContext>();
@@ -234,8 +132,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var language = Language.CSharp;
             var boundProject = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
-            this.qualityProfileProviderMock.Setup(x => x.GetQualityProfile(boundProject, language))
-                .Returns(default(QualityProfile));
             var testSubject = CreateTestSubject(boundProject);
             var diag = CreateFakeDiagnostic(LanguageNames.CSharp, false, "1");
             var reportingContextMock = new Mock<IReportingContext>();
@@ -257,8 +153,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var language = Language.CSharp;
             var boundProject = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
-            this.qualityProfileProviderMock.Setup(x => x.GetQualityProfile(boundProject, language))
-                .Returns(new QualityProfile(language, new[] { new SonarRule("id1") }));
             var testSubject = CreateTestSubject(boundProject);
             var diag = CreateFakeDiagnostic(LanguageNames.CSharp, true, "1");
             var reportingContextMock = new Mock<IReportingContext>();
@@ -280,8 +174,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var language = Language.CSharp;
             var boundProject = new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
-            this.qualityProfileProviderMock.Setup(x => x.GetQualityProfile(boundProject, language))
-                .Returns(default(QualityProfile));
             var testSubject = CreateTestSubject(boundProject);
             var diag = CreateFakeDiagnostic(LanguageNames.CSharp, true, "1");
             var reportingContextMock = new Mock<IReportingContext>();
@@ -299,8 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion
 
         private SonarAnalyzerConnectedWorkflow CreateTestSubject(BoundSonarQubeProject boundProject = null) =>
-            new SonarAnalyzerConnectedWorkflow(new AdhocWorkspace(), qualityProfileProviderMock.Object,
-                boundProject ?? new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, suppressionHandlerMock.Object);
+            new SonarAnalyzerConnectedWorkflow(new AdhocWorkspace(), suppressionHandlerMock.Object);
 
         private Diagnostic CreateFakeDiagnostic(string language, bool isInSonarWay = false, string suffix = "")
         {
