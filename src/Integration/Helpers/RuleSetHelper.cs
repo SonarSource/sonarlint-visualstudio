@@ -110,8 +110,10 @@ namespace SonarLint.VisualStudio.Integration
             }
             else
             {
+                // Only caller use this result decide whether or not we are bound so finding more than one hit should still
+                // return the element to say we are bound.
                 Debug.Fail("Not expecting to find multiple RuleSetInclude matching the filter");
-                return null;
+                return matchingRuleSetIncludes[0];
             }
         }
 
