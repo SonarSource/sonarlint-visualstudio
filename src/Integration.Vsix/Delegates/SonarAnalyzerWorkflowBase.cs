@@ -53,28 +53,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.workspace = workspace;
 
-            SonarAnalysisContext.ShouldRegisterContextAction = ShouldRegisterContextActionWithFallback;
             SonarAnalysisContext.ShouldExecuteRegisteredAction = ShouldExecuteRegisteredAction;
         }
-
-        internal /* for testing purposes */ bool ShouldRegisterContextActionWithFallback(
-            IEnumerable<DiagnosticDescriptor> descriptors)
-        {
-            // If the descriptor is marked as not configurable then we shouldn't change its behavior (enabled/disabled)
-            // Note: Utility analyzers have the NotConfigurable tag so they will fit in this case (but they have a built-in
-            // mechanism to be turned-off when run under SLVS).
-            if (descriptors.Any(d => d.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable)))
-            {
-                return true;
-            }
-
-            return ShouldRegisterContextAction(descriptors)
-                // Fallback using SonarWay
-                ?? descriptors.Any(d => d.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag));
-        }
-
-        internal /* for testing purposes */ protected virtual bool? ShouldRegisterContextAction(
-            IEnumerable<DiagnosticDescriptor> descriptors) => null;
 
         internal /* for testing purposes */ protected virtual bool ShouldExecuteRegisteredAction(
             IEnumerable<DiagnosticDescriptor> descriptors, SyntaxTree syntaxTree) =>
