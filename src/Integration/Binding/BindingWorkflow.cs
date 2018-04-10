@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -33,7 +32,6 @@ using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
-using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -51,8 +49,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly BindCommandArgs bindingArgs;
         private readonly IProjectSystemHelper projectSystem;
         private readonly SolutionBindingOperation solutionBindingOperation;
+        private readonly INuGetBindingOperation nugetBindingOperation;
 
         public BindingWorkflow(IHost host, BindCommandArgs bindingArgs)
+            : this(host, bindingArgs, new NuGetBindingOperation(host, host?.Logger))
+        {
+        }
+
+        internal /* for testing */ BindingWorkflow(IHost host,
+            BindCommandArgs bindingArgs,
+            INuGetBindingOperation nugetBindingOperation)
         {
             if (host == null)
             {
@@ -76,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     this.host,
                     this.bindingArgs.Connection,
                     this.bindingArgs.ProjectKey);
+            this.nugetBindingOperation = nugetBindingOperation;
         }
 
         #region Workflow state
@@ -90,11 +97,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new Dictionary<Language, RuleSet>();
 
-        public Dictionary<Language, List<NuGetPackageInfoResponse>> NuGetPackages
-        {
-            get;
-        } = new Dictionary<Language, List<NuGetPackageInfoResponse>>();
-
         public Dictionary<Language, string> SolutionRulesetPaths
         {
             get;
@@ -105,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
         } = new Dictionary<Language, SonarQubeQualityProfile>();
 
-        internal /*for testing purposes*/ bool AllNuGetPackagesInstalled
+        internal /*for testing purposes*/ bool BindingOperationSucceeded
         {
             get;
             set;
@@ -168,11 +170,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 //*****************************************************************
                 // Initialize the VS NuGet installer service
                 new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
-                        (token, notifications) => { NuGetHelper.LoadService(this.host); /*The service needs to be loaded on UI thread*/ }),
+                        (token, notifications) => { this.PrepareToInstallPackages(); }),
 
                 // Install the appropriate package for each project
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.InstallPackages(controller, token, notifications)),
+                        (token, notifications) => this.InstallPackages(controller, notifications, token)),
 
                 //*****************************************************************
                 // Solution update phase
@@ -293,16 +295,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
-                //### NUGET
-                if (roslynProfileExporter.Deployment.NuGetPackages.Count == 0)
+                if (!this.nugetBindingOperation.ProcessExport(language, roslynProfileExporter))
                 {
-                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                        string.Format(Strings.NoNuGetPackageForQualityProfile, language.Name)));
                     this.AbortWorkflow(controller, cancellationToken);
                     return;
                 }
-
-                this.NuGetPackages.Add(language, roslynProfileExporter.Deployment.NuGetPackages);
 
                 // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
                 UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfileInfo);
@@ -358,67 +355,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        /// <summary>
-        /// Will install the NuGet packages for the current managed projects.
-        /// The packages that will be installed will be based on the information from <see cref="Analyzer.GetRequiredNuGetPackages"/>
-        /// and is specific to the <see cref="RuleSet"/>.
-        /// </summary>
-        internal /*for testing purposes*/ void InstallPackages(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents)
+        internal /*for testing purposes*/ void PrepareToInstallPackages()
         {
-            if (!this.NuGetPackages.Any())
-            {
-                return;
-            }
+            this.nugetBindingOperation.PrepareOnUIThread();
+        }
 
-            Debug.Assert(this.NuGetPackages.Count == this.NuGetPackages.Distinct().Count(), "Duplicate NuGet packages specified");
-
-            if (!this.BindingProjects.Any())
-            {
-                Debug.Fail("Not expected to be called when there are no projects");
-                return;
-            }
-
-            var projectNugets = this.BindingProjects
-                .SelectMany(bindingProject =>
-                {
-                    var projectLanguage = Language.ForProject(bindingProject);
-
-                    List<NuGetPackageInfoResponse> nugetPackages;
-                    if (!this.NuGetPackages.TryGetValue(projectLanguage, out nugetPackages))
-                    {
-                        var message = string.Format(Strings.BindingProjectLanguageNotMatchingAnyQualityProfileLanguage, bindingProject.Name);
-                        this.host.Logger.WriteLine(Strings.SubTextPaddingFormat, message);
-                        nugetPackages = new List<NuGetPackageInfoResponse>();
-                    }
-
-                    return nugetPackages.Select(nugetPackage => new { Project = bindingProject, NugetPackage = nugetPackage });
-                })
-                .ToArray();
-
-            DeterminateStepProgressNotifier progressNotifier = new DeterminateStepProgressNotifier(notificationEvents, projectNugets.Length);
-            foreach (var projectNuget in projectNugets)
-            {
-                if (token.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                string message = string.Format(CultureInfo.CurrentCulture, Strings.EnsuringNugetPackagesProgressMessage, projectNuget.NugetPackage.Id, projectNuget.Project.Name);
-                this.host.Logger.WriteLine(Strings.SubTextPaddingFormat, message);
-
-                var isNugetInstallSuccessful = NuGetHelper.TryInstallPackage(this.host, projectNuget.Project, projectNuget.NugetPackage.Id, projectNuget.NugetPackage.Version);
-
-                if (isNugetInstallSuccessful) // NuGetHelper.TryInstallPackage already displayed the error message so only take care of the success message
-                {
-                    message = string.Format(CultureInfo.CurrentCulture, Strings.SuccessfullyInstalledNugetPackageForProject, projectNuget.NugetPackage.Id, projectNuget.Project.Name);
-                    this.host.Logger.WriteLine(Strings.SubTextPaddingFormat, message);
-                }
-
-                // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
-                this.AllNuGetPackagesInstalled &= isNugetInstallSuccessful;
-
-                progressNotifier.NotifyIncrementedProgress(string.Empty);
-            }
+        internal /*for testing purposes*/ void InstallPackages(IProgressController controller, IProgressStepExecutionEvents notificationEvents, CancellationToken token)
+        {
+            this.BindingOperationSucceeded = this.nugetBindingOperation.InstallPackages(this.BindingProjects, controller, notificationEvents, token);
         }
 
         internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
@@ -429,7 +373,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
         {
-            var message = this.AllNuGetPackagesInstalled
+            var message = this.BindingOperationSucceeded
                 ? Strings.FinishedSolutionBindingWorkflowSuccessful
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
             notifications.ProgressChanged(message);
