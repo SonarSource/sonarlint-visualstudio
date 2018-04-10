@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -21,8 +21,8 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NuGet;
 using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Integration.Binding;
@@ -37,33 +37,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void NuGetHelper_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => NuGetHelper.TryInstallPackage(null, new ProjectMock("123"), "123"));
-            Exceptions.Expect<ArgumentNullException>(() => NuGetHelper.TryInstallPackage(CreateServiceProvider(), null, "123"));
-            Exceptions.Expect<ArgumentNullException>(() => NuGetHelper.TryInstallPackage(CreateServiceProvider(), new ProjectMock("123"), null));
+            var loggerMock = new Mock<ILogger>().Object;
+
+            Exceptions.Expect<ArgumentNullException>(() => NuGetHelper.TryInstallPackage(null, loggerMock, new ProjectMock("123"), "123"));
+            Exceptions.Expect<ArgumentNullException>(() => NuGetHelper.TryInstallPackage(CreateServiceProvider(), null, new ProjectMock("123"), "123"));
+            Exceptions.Expect<ArgumentNullException>(() => NuGetHelper.TryInstallPackage(CreateServiceProvider(), loggerMock, null, "123"));
+            Exceptions.Expect<ArgumentNullException>(() => NuGetHelper.TryInstallPackage(CreateServiceProvider(), loggerMock, new ProjectMock("123"), null));
         }
 
         [TestMethod]
         public void NuGetHelper_HandleFailures()
         {
             // Arrange
-            ConfigurableServiceProvider sp = CreateServiceProvider();
-            var outputWindow = new ConfigurableVsOutputWindow();
-            var outputPane = outputWindow.GetOrCreateSonarLintPane();
-            sp.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            var sp = CreateServiceProvider();
+            var testLogger = new TestLogger();
 
             // Case 1: No MEF service
             // Act + Assert
             using (new AssertIgnoreScope()) // Missing MEF service
             {
-                NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), "pcg").Should().BeFalse("No MEF service should be resulted with a false returned value");
+                NuGetHelper.TryInstallPackage(sp, testLogger, new ProjectMock("prj"), "pcg").Should().BeFalse("No MEF service should be resulted with a false returned value");
             }
-            outputPane.AssertOutputStrings(0);
+            testLogger.AssertOutputStrings(0);
 
             // Case 2: Exception from the service
             sp.RegisterService(typeof(SComponentModel), ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IVsPackageInstaller>(new ConfigurablePackageInstaller(simulateInstallerException: true))), replaceExisting: true);
             // Act + Assert
-            NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), "pcg").Should().BeFalse("Non critical exception should result with a false returned value");
-            outputPane.AssertOutputStrings(1);
+            NuGetHelper.TryInstallPackage(sp, testLogger, new ProjectMock("prj"), "pcg").Should().BeFalse("Non critical exception should result with a false returned value");
+            testLogger.AssertOutputStrings(1);
         }
 
         [TestMethod]
@@ -76,8 +77,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ConfigurableServiceProvider sp = CreateServiceProvider();
             sp.RegisterService(typeof(SComponentModel), ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IVsPackageInstaller>(new ConfigurablePackageInstaller(availablePackages, simulateInstallerException: false))), replaceExisting: true);
 
+            var testLogger = new TestLogger();
+
             // Act + Assert
-            NuGetHelper.TryInstallPackage(sp, new ProjectMock("prj"), package.Id, package.Version.ToNormalizedString()).Should().BeTrue("The package is expected to be installed successfully");
+            NuGetHelper.TryInstallPackage(sp, testLogger, new ProjectMock("prj"), package.Id, package.Version.ToNormalizedString()).Should().BeTrue("The package is expected to be installed successfully");
         }
 
         #endregion Tests
