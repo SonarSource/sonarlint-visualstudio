@@ -34,7 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class NuGetBindingOperation : INuGetBindingOperation
     {
-
         private readonly ILogger logger;
         private readonly IServiceProvider serviceProvider;
 
@@ -71,16 +70,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// The packages that will be installed will be based on the information from <see cref="Analyzer.GetRequiredNuGetPackages"/>
         /// and is specific to the <see cref="RuleSet"/>.
         /// </summary>
-        public bool InstallPackages(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents, ISet<Project> projectsToBind)
+        public bool InstallPackages(ISet<Project> projectsToBind, IProgressController controller, IProgressStepExecutionEvents notificationEvents, CancellationToken token)
         {
-            if (!this.NuGetPackages.Any())
+            if (this.NuGetPackages.Count == 0)
             {
                 return true;
             }
 
             Debug.Assert(this.NuGetPackages.Count == this.NuGetPackages.Distinct().Count(), "Duplicate NuGet packages specified");
 
-            if (projectsToBind == null || !projectsToBind.Any())
+            if (projectsToBind == null || projectsToBind.Count == 0)
             {
                 Debug.Fail("Not expected to be called when there are no projects");
                 return true;

@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 // Install the appropriate package for each project
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.InstallPackages(controller, token, notifications)),
+                        (token, notifications) => this.InstallPackages(controller, notifications, token)),
 
                 //*****************************************************************
                 // Solution update phase
@@ -360,9 +360,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.nugetBindingOperation.PrepareOnUIThread();
         }
 
-        internal /*for testing purposes*/ void InstallPackages(IProgressController controller, CancellationToken token, IProgressStepExecutionEvents notificationEvents)
+        internal /*for testing purposes*/ void InstallPackages(IProgressController controller, IProgressStepExecutionEvents notificationEvents, CancellationToken token)
         {
-            this.BindingOperationSucceeded = this.nugetBindingOperation.InstallPackages(controller, token, notificationEvents, this.BindingProjects);
+            this.BindingOperationSucceeded = this.nugetBindingOperation.InstallPackages(this.BindingProjects, controller, notificationEvents, token);
         }
 
         internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()

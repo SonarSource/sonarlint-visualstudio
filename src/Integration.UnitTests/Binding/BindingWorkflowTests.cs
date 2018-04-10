@@ -314,10 +314,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = new BindCommandArgs("projectKey", "projectName", new ConnectionInformation(new Uri("http://connected")));
 
             Mock<INuGetBindingOperation> nugetMock = new Mock<INuGetBindingOperation>();
-            nugetMock.Setup(x => x.InstallPackages(It.IsAny<IProgressController>(),
-                It.IsAny<CancellationToken>(),
+            nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
+                It.IsAny<IProgressController>(),
                 It.IsAny<IProgressStepExecutionEvents>(),
-                It.IsAny<ISet<Project>>())).Returns(true);
+                It.IsAny<CancellationToken>())).Returns(true);
 
             var testSubject = new BindingWorkflow(this.host, bindingArgs, nugetMock.Object);
 
@@ -331,7 +331,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.BindingOperationSucceeded = false;
 
             // Act
-            testSubject.InstallPackages(new ConfigurableProgressController(), cts.Token, progressEvents);
+            testSubject.InstallPackages(new ConfigurableProgressController(), progressEvents, cts.Token);
 
             // Assert
             testSubject.BindingOperationSucceeded.Should().BeTrue();
@@ -344,10 +344,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = new BindCommandArgs("projectKey", "projectName", new ConnectionInformation(new Uri("http://connected")));
 
             Mock<INuGetBindingOperation> nugetMock = new Mock<INuGetBindingOperation>();
-            nugetMock.Setup(x => x.InstallPackages(It.IsAny<IProgressController>(),
-                It.IsAny<CancellationToken>(),
+            nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
+                It.IsAny<IProgressController>(),
                 It.IsAny<IProgressStepExecutionEvents>(),
-                It.IsAny<ISet<Project>>())).Returns(false);
+                It.IsAny<CancellationToken>())).Returns(false);
 
             var testSubject = new BindingWorkflow(this.host, bindingArgs, nugetMock.Object);
 
@@ -361,7 +361,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.BindingOperationSucceeded = true;
 
             // Act
-            testSubject.InstallPackages(new ConfigurableProgressController(), cts.Token, progressEvents);
+            testSubject.InstallPackages(new ConfigurableProgressController(), progressEvents, cts.Token);
 
             // Assert
             testSubject.BindingOperationSucceeded.Should().BeFalse();
