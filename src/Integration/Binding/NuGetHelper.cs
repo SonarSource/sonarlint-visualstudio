@@ -19,11 +19,8 @@
  */
 
 using System;
-using System.Diagnostics;
-using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ComponentModelHost;
 using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Integration.Resources;
 
@@ -33,10 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         public static IVsPackageInstaller LoadService(IServiceProvider serviceProvider)
         {
-            IComponentModel componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
-            var installer = componentModel.GetExtensions<IVsPackageInstaller>().SingleOrDefault();
-            Debug.Assert(installer != null, "Cannot find IVsPackageInstaller");
-            return installer;
+            return serviceProvider.GetMefService<IVsPackageInstaller>();
         }
 
         public static bool TryInstallPackage(IServiceProvider serviceProvider, Project project, string packageId, string version = null)

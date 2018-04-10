@@ -184,9 +184,16 @@ namespace SonarLint.VisualStudio.Integration.State
             }
             else
             {
-                var existingServerVM = this.ManagedState.ConnectedServers.SingleOrDefault(serverVM => serverVM.Url == connection.ServerUri);
+                var matchingServers = this.ManagedState.ConnectedServers.Where(serverVM => serverVM.Url == connection.ServerUri)
+                    .ToList();
+
                 ServerViewModel serverViewModel;
-                if (existingServerVM == null)
+                if (matchingServers.Count > 1)
+                {
+                    Debug.Fail($"Not expecting to find multiple connected servers with url '{connection.ServerUri}'");
+                    return;
+                }
+                else if (matchingServers.Count == 0)
                 {
                     // Add new server
                     serverViewModel = new ServerViewModel(connection);
@@ -196,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 else
                 {
                     // Update existing server
-                    serverViewModel = existingServerVM;
+                    serverViewModel = matchingServers[0];
                 }
 
                 serverViewModel.SetProjects(projects);

@@ -95,9 +95,24 @@ namespace SonarLint.VisualStudio.Integration
 
             string relativeTargetFilePath = PathHelper.CalculateRelativePath(source.FilePath, target.FilePath);
 
-            return source.RuleSetIncludes.SingleOrDefault(i =>
+            var matchingRuleSetIncludes = source.RuleSetIncludes.Where(i =>
                 StringComparer.OrdinalIgnoreCase.Equals(i.FilePath, relativeTargetFilePath)
-                || StringComparer.OrdinalIgnoreCase.Equals(i.FilePath, target.FilePath));
+                || StringComparer.OrdinalIgnoreCase.Equals(i.FilePath, target.FilePath))
+                .ToList();
+
+            if (matchingRuleSetIncludes.Count == 0)
+            {
+                return null;
+            }
+            else if (matchingRuleSetIncludes.Count == 1)
+            {
+                return matchingRuleSetIncludes[0];
+            }
+            else
+            {
+                Debug.Fail("Not expecting to find multiple RuleSetInclude matching the filter");
+                return null;
+            }
         }
 
         /// <summary>

@@ -21,9 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using EnvDTE;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -80,18 +78,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             string[] existingFiles = Directory.GetFiles(expectedSonarQubeDirectory, SonarQubeSolutionBindingConfigurationSearchPattern, SearchOption.TopDirectoryOnly);
-            if (existingFiles.Length > 0)
+            if (existingFiles.Length == 0)
             {
-                var componentModel = this.serviceProvider.GetService<SComponentModel, IComponentModel>();
-                var telemetryLogger = componentModel?.GetExtensions<ITelemetryLogger>().SingleOrDefault();
-                if (telemetryLogger == null)
-                {
-                    Debug.Fail("Failed to find ITelemetryLogger");
-                    return;
-                }
-
-                telemetryLogger.ReportEvent(TelemetryEvent.BoundSolutionDetected);
+                return;
             }
+
+            this.serviceProvider.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.BoundSolutionDetected);
         }
 
         #region IDisposable Support

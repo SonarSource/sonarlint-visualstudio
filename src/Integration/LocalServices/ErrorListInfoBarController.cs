@@ -26,7 +26,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using EnvDTE;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -238,8 +237,7 @@ namespace SonarLint.VisualStudio.Integration
             }
             else
             {
-                var componentModel = host.GetService<SComponentModel, IComponentModel>();
-                TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarShow);
+                host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.ErrorListInfoBarShow);
 
                 this.currentErrorWindowInfoBar.Closed += this.CurrentErrorWindowInfoBar_Closed;
                 this.currentErrorWindowInfoBar.ButtonClick += this.CurrentErrorWindowInfoBar_ButtonClick;
@@ -266,8 +264,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             // Don't log unprocessed events
-            var componentModel = host.GetService<SComponentModel, IComponentModel>();
-            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
+            host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
 
             BindingConfiguration binding = configProvider.GetConfiguration();
             if (binding == null
@@ -522,8 +519,34 @@ namespace SonarLint.VisualStudio.Integration
 
             private ProjectViewModel FindProject(Uri serverUri, string projectKey)
             {
-                ServerViewModel serverVM = this.State.ConnectedServers.SingleOrDefault(s => s.Url == serverUri);
-                return serverVM?.Projects.SingleOrDefault(p => SonarQubeProject.KeyComparer.Equals(p.Key, projectKey));
+                var matchingServers = this.State.ConnectedServers.Where(s => s.Url == serverUri).ToList();
+
+                if (matchingServers.Count == 0)
+                {
+                    return null;
+                }
+                else if (matchingServers.Count > 1)
+                {
+                    Debug.Fail($"Not expecting to find multiple connected servers with url '{serverUri}'");
+                    return null;
+                }
+
+                var matchingProjects = matchingServers[0]?.Projects
+                    .Where(p => SonarQubeProject.KeyComparer.Equals(p.Key, projectKey)).ToList();
+
+                if (matchingProjects == null || matchingProjects.Count == 0)
+                {
+                    return null;
+                }
+                else if (matchingProjects.Count > 1)
+                {
+                    Debug.Fail($"Not expecting to find multiple projects with kye '{projectKey}' on url '{serverUri}'");
+                    return null;
+                }
+                else
+                {
+                    return matchingProjects[0];
+                }
             }
         }
 

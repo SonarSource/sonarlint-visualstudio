@@ -137,8 +137,23 @@ namespace SonarLint.VisualStudio.Integration
 
         public static Property FindProperty(Properties properties, string propertyName)
         {
-            return properties?.OfType<Property>()
-                .SingleOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, propertyName));
+            var matchingProperties = properties?.OfType<Property>()
+                .Where(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, propertyName))
+                .ToList();
+
+            if (matchingProperties == null || matchingProperties.Count == 0)
+            {
+                return null;
+            }
+            else if (matchingProperties.Count == 1)
+            {
+                return matchingProperties[0];
+            }
+            else
+            {
+                Debug.Fail($"Not expecting to find multiple properties with the same name '{propertyName}'");
+                return null;
+            }
         }
 
         public static bool SaveSolution(IServiceProvider serviceProvider, bool silent)

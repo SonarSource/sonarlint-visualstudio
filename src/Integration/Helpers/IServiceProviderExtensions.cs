@@ -69,8 +69,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             IComponentModel componentModel = serviceProvider.GetService<SComponentModel, IComponentModel>();
-            // We don't want to throw in the case of a missing service (don't use GetService<T>)
-            return componentModel?.GetExtensions<T>().SingleOrDefault();
+            return GetMefService<T>(componentModel);
         }
 
         public static System.Threading.Tasks.Task<T> GetMefServiceAsync<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
@@ -88,8 +87,33 @@ namespace SonarLint.VisualStudio.Integration
             where T : class
         {
             IComponentModel componentModel = await serviceProvider.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            return GetMefService<T>(componentModel);
+        }
+
+        public static T GetMefService<T>(this IComponentModel componentModel)
+            where T : class
+        {
             // We don't want to throw in the case of a missing service (don't use GetService<T>)
-            return componentModel?.GetExtensions<T>().SingleOrDefault();
+            var results = componentModel?.GetExtensions<T>().ToList();
+
+            if (results == null)
+            {
+                return null;
+            }
+            else if (results.Count == 0)
+            {
+                Debug.Fail($"Cannot find any export of {typeof(T)}");
+                return null;
+            }
+            else if (results.Count > 1)
+            {
+                Debug.Fail($"Not expecting to find multiple export of {typeof(T)}");
+                return null;
+            }
+            else
+            {
+                return results[0];
+            }
         }
 
         [Conditional("DEBUG")]

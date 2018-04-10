@@ -132,11 +132,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void IServiceProviderExtensions_GetMefServiceOfT_NotFound_ReturnsNull()
         {
-            // Act
-            IMissingMefService mefService = this.serviceProvider.GetMefService<IMissingMefService>();
+            using (new AssertIgnoreScope())
+            {
+                // Act
+                IMissingMefService mefService = this.serviceProvider.GetMefService<IMissingMefService>();
 
-            // Assert
-            mefService.Should().BeNull();
+                // Assert
+                mefService.Should().BeNull();
+            }
         }
 
         #endregion Tests

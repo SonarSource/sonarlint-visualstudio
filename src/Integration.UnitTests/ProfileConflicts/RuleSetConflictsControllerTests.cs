@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -60,8 +61,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.rsSerializer = null;
             this.conflictsManager = new ConfigurableConflictsManager();
 
-            // Instead of ignored unexpected service, register one (for telemetry)
-            this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel());
+            IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
+                new Export[]
+                {
+                    MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger())
+                });
+            this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
         }
 
         #region Tests

@@ -67,6 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 {
                     MefTestHelpers.CreateExport<ITeamExplorerController>(this.teamExplorerController),
                     MefTestHelpers.CreateExport<IInfoBarManager>(this.infoBarManager),
+                    MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger())
                 });
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
 

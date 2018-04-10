@@ -24,7 +24,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
-using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -67,8 +66,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 this.WriteConflictsSummaryToOutputWindow(conflicts);
 
-                var componentModel = host.GetService<SComponentModel, IComponentModel>();
-                TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.FixConflictShow);
+                host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.FixConflictShow);
 
                 // Let the user know that they have conflicts
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationWarning(
@@ -107,8 +105,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         {
             if (this.OnFixConflictsStatus(conflicts))
             {
-                var componentModel = host.GetService<SComponentModel, IComponentModel>();
-                TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.FixConflictsCommandCalled);
+                host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.FixConflictsCommandCalled);
 
                 IRuleSetInspector inspector = this.host.GetService<IRuleSetInspector>();
                 inspector.AssertLocalServiceIsNotNull();

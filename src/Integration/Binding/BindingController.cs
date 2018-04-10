@@ -22,7 +22,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.TeamFoundation.Client.CommandTarget;
-using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -106,8 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.OnBindStatus(args));
 
-            var componentModel = host.GetService<SComponentModel, IComponentModel>();
-            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
+            host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
 
             this.workflowExecutor.BindProject(args);
         }
@@ -119,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
             var workflow = CreateBindingWorkflow(bindingArgs);
-            
+
             IProgressEvents progressEvents = workflow.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
             this.SetBindingInProgress(progressEvents, bindingArgs);

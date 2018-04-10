@@ -61,9 +61,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
 
-            var sonarLintSettingsMefExport = MefTestHelpers.CreateExport<ISonarLintSettings>(settings);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(sonarLintSettingsMefExport);
-            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
+            IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
+                new []
+                {
+                    MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger()),
+                    MefTestHelpers.CreateExport<ISonarLintSettings>(settings)
+                });
+            this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
         }
 
