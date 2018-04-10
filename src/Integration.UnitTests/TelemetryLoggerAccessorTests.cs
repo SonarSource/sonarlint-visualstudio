@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 MefTestHelpers.CreateExport<ITelemetryLogger>(loggerInstance));
 
             // Act
-            ITelemetryLogger logger = TelemetryLoggerAccessor.GetLogger(componentModel);
+            ITelemetryLogger logger = componentModel.GetMefService<ITelemetryLogger>();
 
             // Assert
             logger.Should().Be(loggerInstance, "Failed to find the MEF service: {0}", nameof(ITelemetryLogger));

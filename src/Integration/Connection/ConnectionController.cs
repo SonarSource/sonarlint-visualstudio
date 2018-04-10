@@ -21,7 +21,6 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -119,8 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             Debug.Assert(this.CanConnect());
             Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
 
-            var componentModel = host.GetService<SComponentModel, IComponentModel>();
-            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.ConnectCommandCommandCalled);
+            host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.ConnectCommandCommandCalled);
 
             var connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
             if (connectionInfo != null)
@@ -142,12 +140,11 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             Debug.Assert(this.CanRefresh(useConnection));
 
-            var componentModel = this.host.GetService<SComponentModel, IComponentModel>();
-            TelemetryLoggerAccessor.GetLogger(componentModel)?.ReportEvent(TelemetryEvent.RefreshCommandCommandCalled);
+            host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.RefreshCommandCommandCalled);
 
             // We're currently only connected to one server. when this will change we will need to refresh all the connected servers
-            ConnectionInformation currentlyConnectedServer = this.host.VisualStateManager.GetConnectedServers().SingleOrDefault();
-            ConnectionInformation connectionToRefresh = useConnection ?? currentlyConnectedServer;
+            ConnectionInformation connectionToRefresh = useConnection
+                ?? this.host.VisualStateManager.GetConnectedServers().FirstOrDefault();
             Debug.Assert(connectionToRefresh != null, "Expecting either to be connected to get a connection to connect to");
 
             // Any existing connection will be disposed, so create a copy and use it to connect

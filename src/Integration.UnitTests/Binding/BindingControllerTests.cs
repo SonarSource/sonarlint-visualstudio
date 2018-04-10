@@ -85,8 +85,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.host.SonarQubeService = sonarQubeService.Object;
 
-            // Instead of ignored unexpected service, register one (for telemetry)
-            this.serviceProvider.RegisterService(typeof(SComponentModel), new ConfigurableComponentModel());
+            IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
+                new []
+                {
+                    MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger())
+                });
+            this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
         }
 
         #region Tests
