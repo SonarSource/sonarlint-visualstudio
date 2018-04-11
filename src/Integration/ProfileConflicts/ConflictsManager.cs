@@ -139,7 +139,9 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                     bindingInfo.ProjectKey,
-                    Language.ForProject(project));
+                    Language.ForProject(project),
+                    // TODO: duncanp decide whether to support new connected mode
+                    SonarLintMode.LegacyConnected);
 
                 if (!fileSystem.FileExist(baselineRuleSet))
                 {
