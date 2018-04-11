@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -392,13 +392,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             configProvider.ModeToReturn = SonarLintMode.Standalone;
             configProvider.ProjectToReturn = ValidProject;
+            serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
+
             var testSubject = this.CreateBindingController();
 
             // Act
             var actual = testSubject.CreateBindingWorkflow(ValidBindingArgs);
 
             // Assert
-            actual.Should().BeOfType<NewBindingWorkflow>();
+            actual.Should().BeOfType<BindingWorkflow>();
+            var bindingWorkFlow = (BindingWorkflow)actual;
+            bindingWorkFlow.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
             outputWindowPane.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
         }
 
@@ -408,13 +412,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             configProvider.ModeToReturn = SonarLintMode.Connected;
             configProvider.ProjectToReturn = ValidProject;
+            serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
+
             var testSubject = this.CreateBindingController();
 
             // Act
             var actual = testSubject.CreateBindingWorkflow(ValidBindingArgs);
 
             // Assert
-            actual.Should().BeOfType<NewBindingWorkflow>();
+            actual.Should().BeOfType<BindingWorkflow>();
+            var bindingWorkFlow = (BindingWorkflow)actual;
+            bindingWorkFlow.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
             outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
         }
 

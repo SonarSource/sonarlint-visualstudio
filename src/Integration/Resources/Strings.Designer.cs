@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -111,6 +111,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string Bind_FirstTimeBinding {
             get {
                 return ResourceManager.GetString("Bind_FirstTimeBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to INFO: SonarLint connected mode no longer installs the analyzers NuGet packages. The analyzers embedded in the VSIX are used instead..
+        /// </summary>
+        public static string Bind_NuGetAnalyzersNoLongerInstalled {
+            get {
+                return ResourceManager.GetString("Bind_NuGetAnalyzersNoLongerInstalled", resourceCulture);
             }
         }
         
