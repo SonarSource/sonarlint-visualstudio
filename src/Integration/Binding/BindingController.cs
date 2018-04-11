@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -134,8 +134,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var currentConfiguration = configProvider.GetConfiguration();
             if (currentConfiguration.Mode == SonarLintMode.LegacyConnected)
             {
+                var nugetBindingOp = new NuGetBindingOperation(host, host.Logger);
                 host.Logger.WriteLine(Strings.Bind_UpdatingLegacyBinding);
-                return new BindingWorkflow(host, bindingArgs);
+                return new BindingWorkflow(host, bindingArgs, nugetBindingOp);
             }
 
             // If we are currently in standalone then the project is being bound for the first time.
@@ -145,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     Strings.Bind_FirstTimeBinding :
                     Strings.Bind_UpdatingNewStyleBinding);
 
-            return new NewBindingWorkflow(host, bindingArgs, configProvider);
+            return new BindingWorkflow(host, bindingArgs, new NoOpNuGetBindingOperation(host.Logger));
         }
 
         internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, BindCommandArgs bindingArgs)
