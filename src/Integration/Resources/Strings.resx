@@ -726,4 +726,7 @@ This is the general format to use when writing errors to output window or when t
   <data name="Bind_UpdatingNewStyleBinding" xml:space="preserve">
     <value>Updating binding...</value>
   </data>
+  <data name="Bind_NuGetAnalyzersNoLongerInstalled" xml:space="preserve">
+    <value>INFO: SonarLint connected mode no longer installs the analyzers NuGet packages. The analyzers embedded in the VSIX are used instead.</value>
+  </data>
 </root>

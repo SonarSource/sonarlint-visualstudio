@@ -51,12 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly SolutionBindingOperation solutionBindingOperation;
         private readonly INuGetBindingOperation nugetBindingOperation;
 
-        public BindingWorkflow(IHost host, BindCommandArgs bindingArgs)
-            : this(host, bindingArgs, new NuGetBindingOperation(host, host?.Logger))
-        {
-        }
-
-        internal /* for testing */ BindingWorkflow(IHost host,
+        public BindingWorkflow(IHost host,
             BindCommandArgs bindingArgs,
             INuGetBindingOperation nugetBindingOperation)
         {
@@ -73,6 +68,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(bindingArgs.ProjectName != null);
             Debug.Assert(bindingArgs.Connection != null);
 
+            if (nugetBindingOperation == null)
+            {
+                throw new ArgumentNullException(nameof(nugetBindingOperation));
+            }
+
             this.host = host;
             this.bindingArgs = bindingArgs;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
@@ -84,6 +84,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     this.bindingArgs.ProjectKey);
             this.nugetBindingOperation = nugetBindingOperation;
         }
+
+        internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation {  get { return this.nugetBindingOperation; } }
 
         #region Workflow state
 
