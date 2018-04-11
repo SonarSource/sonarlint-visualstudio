@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -255,6 +255,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 connInfo.Organization);
             bound.Profiles = map;
 
+            // TODO: choose solution binding mode
             var config = new BindingConfiguration(bound, SonarLintMode.LegacyConnected);
             bindingSerializer.WriteConfiguration(config);
         }

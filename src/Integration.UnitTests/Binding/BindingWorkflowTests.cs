@@ -36,6 +36,7 @@ using Moq;
 using NuGet;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Messages;
@@ -82,9 +83,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var validHost = new ConfigurableHost();
             var bindingArgs = new BindCommandArgs("key", "name", new ConnectionInformation(new Uri("http://server")));
+            var nuGetOp = new Mock<INuGetBindingOperation>().Object;
 
-            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(null, bindingArgs));
-            Exceptions.Expect<ArgumentNullException>(() => new BindingWorkflow(validHost, null));
+            // 1. Null host
+            Action act = () => new BindingWorkflow(null, bindingArgs, nuGetOp);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
+
+            // 2. Null binding args
+            act = () => new BindingWorkflow(validHost, null, nuGetOp);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
+
+            // 3. Null NuGet operation
+            act = () => new BindingWorkflow(validHost, bindingArgs, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("nugetBindingOperation");
         }
 
         [TestMethod]
@@ -270,12 +281,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task BindingWorkflow_DownloadQualityProfile_WithNoNugetPackage_Fails()
+        public async Task BindingWorkflow_DownloadQualityProfile_LegacyMode_WithNoNugetPackage_Fails()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
-            BindingWorkflow testSubject = this.CreateTestSubject("key", ProjectName);
+            var legacyNuGetBinding = new NuGetBindingOperation(this.host, this.host.Logger);
+            BindingWorkflow testSubject = this.CreateTestSubject("key", ProjectName, legacyNuGetBinding);
             ConfigurableProgressController controller = new ConfigurableProgressController();
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
@@ -658,7 +670,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             if (nuGetBindingOperation == null)
             {
-                return new BindingWorkflow(this.host, bindingArgs);
+                return new BindingWorkflow(this.host, bindingArgs, new NoOpNuGetBindingOperation(this.host.Logger));
             }
             return new BindingWorkflow(this.host, bindingArgs, nuGetBindingOperation);
         }
