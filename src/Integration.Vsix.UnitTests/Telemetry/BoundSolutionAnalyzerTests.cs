@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -70,10 +70,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BoundSolutionAnalyzer_HasNoRuleSetsInSonarQubeDirectory()
+        public void BoundSolutionAnalyzer_HasNoRuleSetsInSonarQubeDirectory_Legacy()
         {
             // Arrange
-            string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, BoundSolutionAnalyzer.SonarQubeFilesFolder);
+            string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, Constants.LegacySonarQubeManagedFolderName);
             DeleteBindingInformationFile(sonarQubeDirectory);
             using (var testSubject = new BoundSolutionAnalyzer(this.serviceProvider))
             {
@@ -86,11 +86,83 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BoundSolutionAnalyzer_HasRuleSetsInSonarQubeDirectory()
+        public void BoundSolutionAnalyzer_HasNoRuleSetsInSonarQubeDirectory_Connected()
         {
             // Arrange
-            string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, BoundSolutionAnalyzer.SonarQubeFilesFolder);
-            GenerateBindingInformationFile(sonarQubeDirectory);
+            string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, Constants.SonarlintManagedFolderName);
+            DeleteBindingInformationFile(sonarQubeDirectory);
+            using (var testSubject = new BoundSolutionAnalyzer(this.serviceProvider))
+            {
+                // Act
+                this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
+
+                // Assert
+                this.logger.AssertNoEventWasWritten();
+            }
+        }
+
+        [TestMethod]
+        public void BoundSolutionAnalyzer_HasRuleSetsInSonarQubeDirectory_Legacy()
+        {
+            // Arrange
+            string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, Constants.LegacySonarQubeManagedFolderName);
+            GenerateBindingInformationFile(sonarQubeDirectory, SolutionBindingSerializer.LegacyBindingConfigurationFileName);
+            BoundSolutionAnalyzer testSubject = null;
+
+            try
+            {
+                // Case 1: Context is already active
+                this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
+
+                // Act
+                testSubject = new BoundSolutionAnalyzer(this.serviceProvider);
+
+                // Assert
+                this.logger.AssertSingleEventWasWritten(TelemetryEvent.BoundSolutionDetected);
+
+                // Case 2: Context deactivated
+                this.logger.Reset();
+
+                // Act
+                this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, false);
+
+                // Assert
+                this.logger.AssertNoEventWasWritten();
+
+                // Case 3: Context activated
+                this.logger.Reset();
+
+                // Act
+                this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
+
+                // Assert
+                this.logger.AssertSingleEventWasWritten(TelemetryEvent.BoundSolutionDetected);
+
+                // Case 4: reactivate when disposed
+                this.logger.Reset();
+                this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, false);
+                testSubject.Dispose();
+                testSubject = null;
+
+                // Act
+                this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
+
+                // Assert
+                this.logger.AssertNoEventWasWritten();
+            }
+            finally
+            {
+                testSubject?.Dispose();
+                DeleteBindingInformationFile(sonarQubeDirectory);
+            }
+        }
+
+        [TestMethod]
+        public void BoundSolutionAnalyzer_HasRuleSetsInSonarQubeDirectory_Connected()
+        {
+            // Arrange
+            string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, Constants.SonarlintManagedFolderName);
+            GenerateBindingInformationFile(sonarQubeDirectory, "foo.slconfig");
             BoundSolutionAnalyzer testSubject = null;
 
             try
@@ -145,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private static void GenerateBindingInformationFile(string directory)
+        private static void GenerateBindingInformationFile(string directory, string fileName)
         {
             if (Directory.Exists(directory))
             {
@@ -156,14 +228,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Directory.CreateDirectory(directory);
             }
 
-            File.WriteAllText(Path.Combine(directory, SolutionBindingSerializer.LegacyBindingConfigurationFileName), string.Empty);
+            File.WriteAllText(Path.Combine(directory, fileName), string.Empty);
         }
 
         private static void DeleteBindingInformationFile(string directory)
         {
             if (Directory.Exists(directory))
             {
-                var filesToDelete = Directory.EnumerateFiles(directory, BoundSolutionAnalyzer.SonarQubeSolutionBindingConfigurationSearchPattern).ToList();
+                var filesToDelete = Directory.EnumerateFiles(directory, BoundSolutionAnalyzer.BindingConfigurationSearchPattern).ToList();
                 filesToDelete.ForEach(File.Delete);
             }
         }
