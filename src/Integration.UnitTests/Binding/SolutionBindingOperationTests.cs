@@ -310,7 +310,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOperation_CommitSolutionBinding()
+        public void SolutionBindingOperation_CommitSolutionBinding_LegacyConnectedMode()
+        {
+            // Act & Assert
+            ExecuteCommitSolutionBindingTest(SonarLintMode.LegacyConnected);
+
+            var expectedRuleset = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName, "keyCSharp.ruleset");
+            this.solutionItemsProject.Files.ContainsKey(expectedRuleset).Should().BeTrue("Ruleset was expected to be added to solution items when in legacy mode");
+        }
+
+        [TestMethod]
+        public void SolutionBindingOperation_CommitSolutionBinding_ConnectedMode()
+        {
+            // Act & Assert
+            ExecuteCommitSolutionBindingTest(SonarLintMode.Connected);
+
+            this.solutionItemsProject.Files.Count.Should().Be(0, "Not expecting any items to be added to the solution in new connected mode");
+        }
+
+        private void ExecuteCommitSolutionBindingTest(SonarLintMode bindingMode)
         {
             // Arrange
             var configProvider = new ConfigurableConfigurationProvider();
@@ -320,7 +338,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projects = new[] { csProject };
 
             var connectionInformation = new ConnectionInformation(new Uri("http://xyz"));
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation);
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation, bindingMode);
 
             var ruleSetMap = new Dictionary<Language, RuleSet>();
             ruleSetMap[Language.CSharp] = new RuleSet("cs");
@@ -344,11 +362,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             commitResult.Should().BeTrue();
             commitCalledForBinder.Should().BeTrue();
-            var expectedFile = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName, "keyCSharp.ruleset");
-            this.solutionItemsProject.Files.ContainsKey(expectedFile).Should().BeTrue("Ruleset was expected to be added to solution items");
 
             configProvider.SavedConfiguration.Should().NotBeNull();
-            configProvider.SavedConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected);
+            configProvider.SavedConfiguration.Mode.Should().Be(bindingMode);
 
             var savedProject = configProvider.SavedConfiguration.Project;
             savedProject.ServerUri.Should().Be(connectionInformation.ServerUri);
@@ -367,12 +383,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         #region Helpers
 
-        private SolutionBindingOperation CreateTestSubject(string projectKey, ConnectionInformation connection = null)
+        private SolutionBindingOperation CreateTestSubject(string projectKey,
+            ConnectionInformation connection = null,
+            SonarLintMode bindingMode = SonarLintMode.LegacyConnected)
         {
             return new SolutionBindingOperation(this.serviceProvider,
                 connection ?? new ConnectionInformation(new Uri("http://host")),
                 projectKey,
-                SonarLintMode.LegacyConnected);
+                bindingMode);
         }
 
         private static Dictionary<Language, SonarQubeQualityProfile> GetQualityProfiles()
