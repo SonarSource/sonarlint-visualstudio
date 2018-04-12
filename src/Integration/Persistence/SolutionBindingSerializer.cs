@@ -60,11 +60,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             this.serviceProvider = serviceProvider;
         }
 
-        protected override WriteMode Mode
-        {
-            get { return WriteMode.Queued; }
-        }
-
         protected override bool OnSuccessfulFileWrite(string filePath)
         {
             this.AddSolutionItemFile(filePath);
