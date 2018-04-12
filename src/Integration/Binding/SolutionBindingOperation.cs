@@ -48,8 +48,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private Dictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string ProjectKey;
+        private readonly SonarLintMode bindingMode;
 
-        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string ProjectKey)
+        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string ProjectKey, SonarLintMode bindingMode)
         {
             if (serviceProvider == null)
             {
@@ -66,6 +67,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(ProjectKey));
             }
 
+            if (bindingMode != SonarLintMode.Connected && bindingMode != SonarLintMode.LegacyConnected)
+            {
+                throw new ArgumentOutOfRangeException(nameof(bindingMode));
+            }
+
             this.serviceProvider = serviceProvider;
             this.connection = connection;
             this.ProjectKey = ProjectKey;
@@ -75,6 +81,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
+
+            this.bindingMode = bindingMode;
         }
 
         #region State
@@ -111,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 Debug.Assert(!this.ruleSetsInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
 
-                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.ProjectKey, keyValue.Key);
+                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.ProjectKey, keyValue.Key, this.bindingMode);
                 this.ruleSetsInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
             }
         }
@@ -255,7 +263,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 connInfo.Organization);
             bound.Profiles = map;
 
-            // TODO: choose solution binding mode
+            // TODO: duncanp choose solution binding mode
             var config = new BindingConfiguration(bound, SonarLintMode.LegacyConnected);
             bindingSerializer.WriteConfiguration(config);
         }
@@ -264,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(Path.IsPathRooted(fullFilePath) && this.sourceControlledFileSystem.FileExist(fullFilePath), "Expecting a rooted path to existing file");
 
-            Project solutionItemsProject = this.projectSystem.GetSolutionFolderProject(Constants.SonarQubeManagedFolderName, true);
+            Project solutionItemsProject = this.projectSystem.GetSolutionFolderProject(Constants.LegacySonarQubeManagedFolderName, true);
             if (solutionItemsProject == null)
             {
                 Debug.Fail("Could not find the solution items project");

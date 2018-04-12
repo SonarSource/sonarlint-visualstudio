@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -80,12 +80,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_ArgChecks()
         {
             var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key", SonarLintMode.LegacyConnected));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key", SonarLintMode.LegacyConnected));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, SonarLintMode.LegacyConnected));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty, SonarLintMode.LegacyConnected));
 
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key");
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", SonarLintMode.Standalone));
+
+            var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key", SonarLintMode.LegacyConnected);
             testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
         }
 
@@ -182,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Initialize(projects, GetQualityProfiles());
 
             // Assert
-            testSubject.SolutionFullPath.Should().Be(@"c:\solution\xxx.sln");
+            testSubject.SolutionFullPath.Should().Be(Path.Combine(SolutionRoot, "xxx.sln"));
             testSubject.Binders.Should().HaveCount(projects.Length, "Should be one per managed project");
         }
 
@@ -209,12 +211,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Binders.Add(binder);
             bool prepareCalledForBinder = false;
             binder.PrepareAction = (ct) => prepareCalledForBinder = true;
-            string sonarQubeRulesDirectory = Path.Combine(SolutionRoot, Constants.SonarQubeManagedFolderName);
+            string sonarQubeRulesDirectory = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
+
+            var csharpRulesetPath = Path.Combine(sonarQubeRulesDirectory, "keyCSharp.ruleset");
+            var vbRulesetPath = Path.Combine(sonarQubeRulesDirectory, "keyVB.ruleset");
 
             // Sanity
             this.sccFileSystem.directories.Should().NotContain(sonarQubeRulesDirectory);
-            testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().Be(@"c:\solution\SonarQube\keyCSharp.ruleset");
-            testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().Be(@"c:\solution\SonarQube\keyVB.ruleset");
+            testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().Be(csharpRulesetPath);
+            testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().Be(vbRulesetPath);
 
             // Act
             testSubject.Prepare(CancellationToken.None);
@@ -222,15 +227,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             this.sccFileSystem.directories.Should().NotContain(sonarQubeRulesDirectory);
             prepareCalledForBinder.Should().BeTrue("Expected to propagate the prepare call to binders");
-            this.sccFileSystem.files.Should().NotContainKey(@"c:\solution\SonarQube\keyCSharp.ruleset");
-            this.sccFileSystem.files.Should().NotContainKey(@"c:\solution\SonarQube\keyVB.ruleset");
+            this.sccFileSystem.files.Should().NotContainKey(csharpRulesetPath);
+            this.sccFileSystem.files.Should().NotContainKey(vbRulesetPath);
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert
-            this.sccFileSystem.files.Should().ContainKey(@"c:\solution\SonarQube\keyCSharp.ruleset");
-            this.sccFileSystem.files.Should().ContainKey(@"c:\solution\SonarQube\keyVB.ruleset");
+            this.sccFileSystem.files.Should().ContainKey(csharpRulesetPath);
+            this.sccFileSystem.files.Should().ContainKey(vbRulesetPath);
             this.sccFileSystem.directories.Should().Contain(sonarQubeRulesDirectory);
         }
 
@@ -263,8 +268,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             }
 
             // Assert
-            testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().Be(@"c:\solution\SonarQube\keyCSharp.ruleset");
-            testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().Be(@"c:\solution\SonarQube\keyVB.ruleset");
+            string expectedSolutionFolder = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
+            testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keyCSharp.ruleset"));
+            testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keyVB.ruleset"));
             prepareCalledForBinder.Should().BeFalse("Expected to be canceled as soon as possible i.e. after the first binder");
         }
 
@@ -338,7 +344,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             commitResult.Should().BeTrue();
             commitCalledForBinder.Should().BeTrue();
-            this.solutionItemsProject.Files.ContainsKey(@"c:\solution\SonarQube\keyCSharp.ruleset").Should().BeTrue("Ruleset was expected to be added to solution items");
+            var expectedFile = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName, "keyCSharp.ruleset");
+            this.solutionItemsProject.Files.ContainsKey(expectedFile).Should().BeTrue("Ruleset was expected to be added to solution items");
 
             configProvider.SavedConfiguration.Should().NotBeNull();
             configProvider.SavedConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected);
@@ -364,7 +371,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             return new SolutionBindingOperation(this.serviceProvider,
                 connection ?? new ConnectionInformation(new Uri("http://host")),
-                projectKey);
+                projectKey,
+                SonarLintMode.LegacyConnected);
         }
 
         private static Dictionary<Language, SonarQubeQualityProfile> GetQualityProfiles()

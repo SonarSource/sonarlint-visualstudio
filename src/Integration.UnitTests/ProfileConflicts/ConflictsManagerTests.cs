@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since the solution baseline is missing");
             this.outputWindowPane.AssertOutputStrings(1);
             this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0,
-                words: new[] { Constants.SonarQubeManagedFolderName },
+                words: new[] { ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName },
                 splitter: new[] { Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar });
         }
 
@@ -308,7 +308,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                     this.configProvider.ProjectToReturn.ProjectKey,
-                    Language.ForProject(project));
+                    Language.ForProject(project),
+                    SonarLintMode.LegacyConnected);
                 this.fileSystem.RegisterFile(solutionRuleSet);
             }
         }

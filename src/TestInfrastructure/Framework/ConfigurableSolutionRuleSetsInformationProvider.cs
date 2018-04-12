@@ -22,11 +22,15 @@ using System.Collections.Generic;
 using System.IO;
 using EnvDTE;
 using FluentAssertions;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableSolutionRuleSetsInformationProvider : ISolutionRuleSetsInformationProvider
     {
+        public const string DummyLegacyModeFolderName = "XXXLegacySolutionFolder";
+        public const string DummyConnectedModeFolderName = "XXXConnectedSolutionFolder";
+
         private readonly Dictionary<Project, List<RuleSetDeclaration>> registeredProjectData = new Dictionary<Project, List<RuleSetDeclaration>>();
 
         #region ISolutionRuleSetsInformationProvider
@@ -45,15 +49,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return result;
         }
 
-        string ISolutionRuleSetsInformationProvider.GetSolutionSonarQubeRulesFolder()
+        string ISolutionRuleSetsInformationProvider.GetSolutionSonarQubeRulesFolder(SonarLintMode bindingMode)
         {
-            return Path.Combine(this.SolutionRootFolder, Constants.SonarQubeManagedFolderName);
+            switch (bindingMode)
+            {
+                case SonarLintMode.LegacyConnected:
+                    return Path.Combine(this.SolutionRootFolder, DummyLegacyModeFolderName);
+                case SonarLintMode.Connected:
+                    return Path.Combine(this.SolutionRootFolder, DummyConnectedModeFolderName);
+                default:
+                    throw new System.ArgumentOutOfRangeException($"Invalid bindingMode supplied: {bindingMode}");
+            }
+            return Path.Combine(this.SolutionRootFolder, bindingMode.ToString());
         }
 
-        string ISolutionRuleSetsInformationProvider.CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language)
+        string ISolutionRuleSetsInformationProvider.CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language, SonarLintMode bindingMode)
         {
             string fileName = $"{ProjectKey}{language.Id}.{Constants.RuleSetFileExtension}";
-            return Path.Combine(((ISolutionRuleSetsInformationProvider)this).GetSolutionSonarQubeRulesFolder(), fileName);
+            return Path.Combine(((ISolutionRuleSetsInformationProvider)this).GetSolutionSonarQubeRulesFolder(bindingMode), fileName);
         }
 
         bool ISolutionRuleSetsInformationProvider.TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath)

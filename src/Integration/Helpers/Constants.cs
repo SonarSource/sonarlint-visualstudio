@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -33,9 +33,14 @@ namespace SonarLint.VisualStudio.Integration
         public const string CodeAnalysisRuleSetDirectoriesPropertyKey = "CodeAnalysisRuleSetDirectories";
 
         /// <summary>
-        /// The directory name of the SonarQube specific files that are being created
+        /// The directory name of the SonarQube specific files that are being created in legacy connected mode
         /// </summary>
-        public const string SonarQubeManagedFolderName = "SonarQube";
+        public const string LegacySonarQubeManagedFolderName = "SonarQube";
+
+        /// <summary>
+        /// The directory name of the SonarQube specific files that are being created in legacy connected mode
+        /// </summary>
+        public const string SonarlintManagedFolderName = ".sonarlint";
 
         /// <summary>
         /// The generated rule set name
