@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -29,25 +29,21 @@ using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
+    /// <summary>
+    /// Writes the binding configuration file to the source controlled file system
+    /// </summary>
+    /// <remarks>
+    /// The file will be enqued but not actually written.
+    /// It is the responsibility of the caller to flush the queue.
+    /// This is to allow multiple other files to be written using the 
+    /// same instance of the SCC wrapper (e.g. ruleset files).
+    /// </remarks>
     internal abstract class FileBindingSerializer : ISolutionBindingSerializer
     {
         private readonly IFile fileWrapper;
 
         protected readonly ISourceControlledFileSystem sccFileSystem;
         protected readonly ILogger logger;
-
-        protected enum WriteMode
-        {
-            // The file will be enqued but not actually written.
-            // It is the responsibility of the caller to flush the queue.
-            // This option should be used if multiple other files are being
-            // written using the same instance of the SCC wrapper
-            // (e.g. legacy connected mode, which also writes the rulesets)
-            Queued,
-
-            // The file will be written to the SCC file system immediately
-            Immediate
-        }
 
         protected FileBindingSerializer(ISourceControlledFileSystem sccFileSystem, ICredentialStore store,
             ILogger logger, IFile fileWrapper)
@@ -74,8 +70,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             this.logger = logger;
             this.fileWrapper = fileWrapper;
         }
-
-        protected abstract WriteMode Mode { get; }
 
         protected abstract string GetFullConfigurationFilePath();
 
@@ -120,11 +114,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
                 return false;
             });
-
-            if (this.Mode == WriteMode.Immediate && !sccFileSystem.WriteQueuedFiles())
-            {
-                return null; // write operation failed
-            }
 
             return configFile;
         }

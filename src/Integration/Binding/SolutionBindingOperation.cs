@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// <summary>
     /// Solution level binding by delegating some of the work to <see cref="ProjectBindingOperation"/>
     /// </summary>
-    internal class SolutionBindingOperation : ISolutionRuleStore
+    internal class SolutionBindingOperation : ISolutionBindingOperation
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
@@ -216,14 +216,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (this.sourceControlledFileSystem.WriteQueuedFiles())
             {
                 // No reason to modify VS state if could not write files
-
                 this.childBinder.ForEach(b => b.Commit());
 
-                foreach (RuleSetInformation info in ruleSetsInformationMap.Values)
+                /* only show the files in the Solution Explorer in legacy mode */
+                if (this.bindingMode == SonarLintMode.LegacyConnected)
                 {
-                    Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
-                    this.AddFileToSolutionItems(info.NewRuleSetFilePath);
-                    this.RemoveFileFromSolutionItems(info.NewRuleSetFilePath);
+                    UpdateSolutionFile();
                 }
 
                 return true;
@@ -263,9 +261,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 connInfo.Organization);
             bound.Profiles = map;
 
-            // TODO: duncanp choose solution binding mode
-            var config = new BindingConfiguration(bound, SonarLintMode.LegacyConnected);
+            var config = new BindingConfiguration(bound, this.bindingMode);
             bindingSerializer.WriteConfiguration(config);
+        }
+
+        private void UpdateSolutionFile()
+        {
+            foreach (RuleSetInformation info in ruleSetsInformationMap.Values)
+            {
+                Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
+                this.AddFileToSolutionItems(info.NewRuleSetFilePath);
+                this.RemoveFileFromSolutionItems(info.NewRuleSetFilePath);
+            }
         }
 
         private void AddFileToSolutionItems(string fullFilePath)

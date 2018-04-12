@@ -132,21 +132,35 @@ namespace SonarLint.VisualStudio.Integration.Binding
             configProvider.AssertLocalServiceIsNotNull();
 
             var currentConfiguration = configProvider.GetConfiguration();
+
+            SonarLintMode modeToBind;
+            INuGetBindingOperation nugetBindingOp;
             if (currentConfiguration.Mode == SonarLintMode.LegacyConnected)
             {
-                var nugetBindingOp = new NuGetBindingOperation(host, host.Logger);
                 host.Logger.WriteLine(Strings.Bind_UpdatingLegacyBinding);
-                return new BindingWorkflow(host, bindingArgs, nugetBindingOp);
+                modeToBind = SonarLintMode.LegacyConnected;
+                nugetBindingOp = new NuGetBindingOperation(host, host.Logger);
+            }
+            else
+            {
+                // If we are currently in standalone then the project is being bound for the first time.
+                // If we are in connected mode then the binding is being updated.
+                host.Logger.WriteLine(
+                    currentConfiguration.Mode == SonarLintMode.Standalone ?
+                        Strings.Bind_FirstTimeBinding :
+                        Strings.Bind_UpdatingNewStyleBinding);
+                
+                modeToBind = SonarLintMode.Connected;
+                nugetBindingOp = new NoOpNuGetBindingOperation(host.Logger);
             }
 
-            // If we are currently in standalone then the project is being bound for the first time.
-            // If we are in connected mode then the binding is being updated.
-            host.Logger.WriteLine(
-                currentConfiguration.Mode == SonarLintMode.Standalone ?
-                    Strings.Bind_FirstTimeBinding :
-                    Strings.Bind_UpdatingNewStyleBinding);
+            var solutionBindingOp = new SolutionBindingOperation(
+                host,
+                bindingArgs.Connection,
+                bindingArgs.ProjectKey,
+                modeToBind);
 
-            return new BindingWorkflow(host, bindingArgs, new NoOpNuGetBindingOperation(host.Logger));
+            return new BindingWorkflow(host, bindingArgs, solutionBindingOp, nugetBindingOp);
         }
 
         internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, BindCommandArgs bindingArgs)

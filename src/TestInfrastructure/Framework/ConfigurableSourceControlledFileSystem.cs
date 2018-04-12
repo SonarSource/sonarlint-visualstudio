@@ -77,9 +77,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ((ISourceControlledFileSystem)this).WriteQueuedFiles().Should().BeFalse("Expected to fail writing the pending files");
         }
 
+        public void WritePendingFiles()
+        {
+            ((ISourceControlledFileSystem)this).WriteQueuedFiles();
+        }
+
         public void ClearPending()
         {
             this.fileWriteOperations.Clear();
+        }
+
+        public void AssertQueuedOperationCount(int expected)
+        {
+            this.fileWriteOperations.Count.Should().Be(expected);
         }
 
         #endregion Test helpers
