@@ -111,9 +111,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 this.deprecationManager?.Dispose();
                 this.deprecationManager = null;
-
-                this.deprecatedSonarRuleSetManager?.Dispose();
-                this.deprecatedSonarRuleSetManager = null;
             }
         }
     }
