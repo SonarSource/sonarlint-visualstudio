@@ -19,24 +19,26 @@
  */
 
 using System.Collections.Generic;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using System.Threading;
+using EnvDTE;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     /// <summary>
-    /// Provides access to solution level rules
+    /// Encapsulates solution-level binding operations.
     /// </summary>
-    public interface ISolutionRuleStore
+    /// <remarks>
+    /// * writes the binding info files and shared rulesets to disk
+    /// * co-ordinates writing project-level changes (delegating to to <see cref="ProjectBindingOperation"/>)
+    /// For legacy connected mode, the solution-level items are added to the solution file
+    /// </remarks>
+    public interface ISolutionBindingOperation : ISolutionRuleStore
     {
-        /// <summary>
-        /// Registers a mapping of <see cref="Language"/> to <see cref="RuleSet"/>.
-        /// </summary>
-        /// <param name="ruleSets">Required</param>
-        void RegisterKnownRuleSets(IDictionary<Language, RuleSet> ruleSets);
+        void Initialize(IEnumerable<Project> projects, IDictionary<Language, SonarQubeQualityProfile> profilesMap);
 
-        /// <summary>
-        /// Retrieves the solution-level <see cref="RuleSet"/> mapped to the <see cref="Language"/>.
-        /// </summary>
-        RuleSetInformation GetRuleSetInformation(Language language);
+        void Prepare(CancellationToken token);
+
+        bool CommitSolutionBinding();
     }
 }

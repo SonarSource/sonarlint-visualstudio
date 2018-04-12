@@ -60,11 +60,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             this.solution = solution;
         }
 
-        protected override WriteMode Mode
-        {
-            get { return WriteMode.Immediate; }
-        }
-
         internal static string GetConnectionFilePath(string solutionFilePath)
         {
             if (solutionFilePath == null)

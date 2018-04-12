@@ -83,18 +83,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var validHost = new ConfigurableHost();
             var bindingArgs = new BindCommandArgs("key", "name", new ConnectionInformation(new Uri("http://server")));
+            var slnBindOp = new Mock<ISolutionBindingOperation>().Object;
             var nuGetOp = new Mock<INuGetBindingOperation>().Object;
 
             // 1. Null host
-            Action act = () => new BindingWorkflow(null, bindingArgs, nuGetOp);
+            Action act = () => new BindingWorkflow(null, bindingArgs, slnBindOp, nuGetOp);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
 
             // 2. Null binding args
-            act = () => new BindingWorkflow(validHost, null, nuGetOp);
+            act = () => new BindingWorkflow(validHost, null, slnBindOp, nuGetOp);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
+            // 4. Null solution binding operation
+            act = () => new BindingWorkflow(validHost, bindingArgs, null, nuGetOp);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingOperation");
+
             // 3. Null NuGet operation
-            act = () => new BindingWorkflow(validHost, bindingArgs, null);
+            act = () => new BindingWorkflow(validHost, bindingArgs, slnBindOp, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("nugetBindingOperation");
         }
 
@@ -325,13 +330,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var bindingArgs = new BindCommandArgs("projectKey", "projectName", new ConnectionInformation(new Uri("http://connected")));
 
-            Mock<INuGetBindingOperation> nugetMock = new Mock<INuGetBindingOperation>();
+            var slnBindOpMock = new Mock<ISolutionBindingOperation>();
+            var nugetMock = new Mock<INuGetBindingOperation>();
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
                 It.IsAny<IProgressController>(),
                 It.IsAny<IProgressStepExecutionEvents>(),
                 It.IsAny<CancellationToken>())).Returns(true);
 
-            var testSubject = new BindingWorkflow(this.host, bindingArgs, nugetMock.Object);
+            var testSubject = new BindingWorkflow(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.BindingProjects.Clear();
@@ -355,13 +361,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var bindingArgs = new BindCommandArgs("projectKey", "projectName", new ConnectionInformation(new Uri("http://connected")));
 
-            Mock<INuGetBindingOperation> nugetMock = new Mock<INuGetBindingOperation>();
+            var slnBindOpMock = new Mock<ISolutionBindingOperation>();
+            var nugetMock = new Mock<INuGetBindingOperation>();
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
                 It.IsAny<IProgressController>(),
                 It.IsAny<IProgressStepExecutionEvents>(),
                 It.IsAny<CancellationToken>())).Returns(false);
 
-            var testSubject = new BindingWorkflow(this.host, bindingArgs, nugetMock.Object);
+            var testSubject = new BindingWorkflow(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.BindingProjects.Clear();
@@ -668,11 +675,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
 
+            var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, SonarLintMode.LegacyConnected);
+
             if (nuGetBindingOperation == null)
             {
-                return new BindingWorkflow(this.host, bindingArgs, new NoOpNuGetBindingOperation(this.host.Logger));
+                return new BindingWorkflow(this.host, bindingArgs, slnBindOperation, new NoOpNuGetBindingOperation(this.host.Logger));
             }
-            return new BindingWorkflow(this.host, bindingArgs, nuGetBindingOperation);
+            return new BindingWorkflow(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation);
         }
 
         private SonarQubeQualityProfile ConfigureProfileExport(RoslynExportProfileResponse export, Language language, string profileName)

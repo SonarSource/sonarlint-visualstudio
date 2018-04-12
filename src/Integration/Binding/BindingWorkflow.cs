@@ -48,11 +48,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IHost host;
         private readonly BindCommandArgs bindingArgs;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly SolutionBindingOperation solutionBindingOperation;
-        private readonly INuGetBindingOperation nugetBindingOperation;
+        private readonly ISolutionBindingOperation solutionBindingOperation;
 
         public BindingWorkflow(IHost host,
             BindCommandArgs bindingArgs,
+            ISolutionBindingOperation solutionBindingOperation,
             INuGetBindingOperation nugetBindingOperation)
         {
             if (host == null)
@@ -68,6 +68,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(bindingArgs.ProjectName != null);
             Debug.Assert(bindingArgs.Connection != null);
 
+            if (solutionBindingOperation == null)
+            {
+                throw new ArgumentNullException(nameof(solutionBindingOperation));
+            }
+
             if (nugetBindingOperation == null)
             {
                 throw new ArgumentNullException(nameof(nugetBindingOperation));
@@ -78,16 +83,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
 
-            this.solutionBindingOperation = new SolutionBindingOperation(
-                    this.host,
-                    this.bindingArgs.Connection,
-                    this.bindingArgs.ProjectKey,
-                    //TODO: duncanp pick the correct mode
-                    NewConnectedMode.SonarLintMode.LegacyConnected);
-            this.nugetBindingOperation = nugetBindingOperation;
+            this.solutionBindingOperation = solutionBindingOperation;
+            this.NuGetBindingOperation = nugetBindingOperation;
         }
 
-        internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation {  get { return this.nugetBindingOperation; } }
+        internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; private set;}
 
         #region Workflow state
 
@@ -299,7 +299,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
-                if (!this.nugetBindingOperation.ProcessExport(language, roslynProfileExporter))
+                if (!this.NuGetBindingOperation.ProcessExport(language, roslynProfileExporter))
                 {
                     this.AbortWorkflow(controller, cancellationToken);
                     return;
@@ -361,12 +361,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void PrepareToInstallPackages()
         {
-            this.nugetBindingOperation.PrepareOnUIThread();
+            this.NuGetBindingOperation.PrepareOnUIThread();
         }
 
         internal /*for testing purposes*/ void InstallPackages(IProgressController controller, IProgressStepExecutionEvents notificationEvents, CancellationToken token)
         {
-            this.BindingOperationSucceeded = this.nugetBindingOperation.InstallPackages(this.BindingProjects, controller, notificationEvents, token);
+            this.BindingOperationSucceeded = this.NuGetBindingOperation.InstallPackages(this.BindingProjects, controller, notificationEvents, token);
         }
 
         internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()

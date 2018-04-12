@@ -214,7 +214,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var actualFilePath = testSubject.WriteSolutionBinding(boundProject);
+            var actualFilePath = testSubject.WriteSolutionBinding(boundProject); // queue the changes
+            configurableSccFileSystem.WritePendingNoErrorsExpected(); // write the queued changes
 
             // Assert
             actualFilePath.Should().Be(expectedFilePath);
@@ -240,10 +241,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Credentials = creds
             };
 
-            // Act
+            // Step 1 - file write should be queued but not written
             var actualFilePath = testSubject.WriteSolutionBinding(boundProject);
 
-            // Assert
+            actualFilePath.Should().Be(expectedFilePath);
+            configurableSccFileSystem.AssertQueuedOperationCount(1);
+            fileMock.Verify(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+
+            // Step 2 - execute the queued write
+            configurableSccFileSystem.WritePendingNoErrorsExpected(); // write the queued changes
+
             actualFilePath.Should().Be(expectedFilePath);
             fileMock.Verify(x => x.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
             var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
@@ -270,7 +277,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var actualFilePath = testSubject.WriteSolutionBinding(boundProject);
+            var actualFilePath = testSubject.WriteSolutionBinding(boundProject); // queue the changes
+            configurableSccFileSystem.WritePendingNoErrorsExpected(); // write the queued changes
 
             // Assert
             actualFilePath.Should().Be(expectedFilePath);
@@ -281,12 +289,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             savedCredentials.Password.Should().Be("");
         }
 
-
         [TestMethod]
-        public void WriteSolution_WriteOpFails_CredentialsNotSavedAndReturnsNull()
+        public void WriteSolution_WriteOpFails_CredentialsNotSaved()
         {
             // Arrange
-            SetSolutionFilePath(@"c:\mysolutionfile.foo");
+            SetSolutionFilePath(@"c:\my solution file.foo");
+            var expectedFilePath = @"c:\.sonarlint\my solution file.sqconfig";
             fileMock.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws<System.IO.IOException>();
 
             var boundProject = new BoundSonarQubeProject
@@ -296,10 +304,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var actualFilePath = testSubject.WriteSolutionBinding(boundProject);
+            var actualFilePath = testSubject.WriteSolutionBinding(boundProject); // queue the changes
+            configurableSccFileSystem.WritePendingErrorsExpected(); // write the queued changes
 
             // Assert
-            actualFilePath.Should().BeNull();
+            actualFilePath.Should().Be(expectedFilePath);
             var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
             savedCredentials.Should().BeNull();
         }
@@ -317,13 +326,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ServerUri = new Uri("http://localhost:9000"),
             };
 
-            Action act = () => testSubject.WriteSolutionBinding(boundProject);
+            testSubject.WriteSolutionBinding(boundProject); // queue the changes
+            Action act = () => configurableSccFileSystem.WritePendingFiles();
 
             // Act & Assert
             act.Should().ThrowExactly<StackOverflowException>();
         }
-
-
         private void SetSolutionFilePath(string filePath)
         {
             object outVal = filePath;
