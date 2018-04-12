@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
     /// Writes the binding configuration file to the source controlled file system
     /// </summary>
     /// <remarks>
-    /// The file will be enqued but not actually written.
+    /// The file will be enqueued but not actually written.
     /// It is the responsibility of the caller to flush the queue.
     /// This is to allow multiple other files to be written using the 
     /// same instance of the SCC wrapper (e.g. ruleset files).
