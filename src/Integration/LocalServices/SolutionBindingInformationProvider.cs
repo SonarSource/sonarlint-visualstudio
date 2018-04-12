@@ -127,7 +127,9 @@ namespace SonarLint.VisualStudio.Integration
 
             string expectedSolutionRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                          binding.ProjectKey,
-                         Language.ForProject(project));
+                         Language.ForProject(project),
+                         // TODO: duncanp decide whether to support new connected mode
+                         SonarLintMode.LegacyConnected);
 
             RuleSet solutionRuleSet;
             if (!cache.TryGetValue(expectedSolutionRuleSet, out solutionRuleSet))

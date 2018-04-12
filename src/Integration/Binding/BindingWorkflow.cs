@@ -81,7 +81,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.solutionBindingOperation = new SolutionBindingOperation(
                     this.host,
                     this.bindingArgs.Connection,
-                    this.bindingArgs.ProjectKey);
+                    this.bindingArgs.ProjectKey,
+                    //TODO: duncanp pick the correct mode
+                    NewConnectedMode.SonarLintMode.LegacyConnected);
             this.nugetBindingOperation = nugetBindingOperation;
         }
 

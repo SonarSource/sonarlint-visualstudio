@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -27,6 +27,9 @@ using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
+    /// <summary>
+    /// Serializer for legacy connected mode
+    /// </summary>
     internal class SolutionBindingSerializer : FileBindingSerializer
     {
         private readonly IServiceProvider serviceProvider;
@@ -76,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             var projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystemHelper.AssertLocalServiceIsNotNull();
 
-            Project solutionItemsProject = projectSystemHelper.GetSolutionFolderProject(Constants.SonarQubeManagedFolderName, true);
+            Project solutionItemsProject = projectSystemHelper.GetSolutionFolderProject(Constants.LegacySonarQubeManagedFolderName, true);
             if (solutionItemsProject == null)
             {
                 Debug.Fail("Could not find the solution items project"); // Should never happen
@@ -106,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         protected override string GetFullConfigurationFilePath()
         {
             var solutionRuleSetsInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            string rootFolder = solutionRuleSetsInfoProvider.GetSolutionSonarQubeRulesFolder();
+            string rootFolder = solutionRuleSetsInfoProvider.GetSolutionSonarQubeRulesFolder(NewConnectedMode.SonarLintMode.LegacyConnected);
 
             // When the solution is closed return null
             if (rootFolder == null)
