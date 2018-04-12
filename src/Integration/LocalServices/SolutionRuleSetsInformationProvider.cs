@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using EnvDTE;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
@@ -94,8 +95,10 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public string GetSolutionSonarQubeRulesFolder()
+        public string GetSolutionSonarQubeRulesFolder(SonarLintMode bindingMode)
         {
+            CheckIsConnectedMode(bindingMode);
+
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             string solutionFullPath = projectSystem.GetCurrentActiveSolution()?.FullName;
 
@@ -106,19 +109,29 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             string solutionRoot = Path.GetDirectoryName(solutionFullPath);
-            string ruleSetDirectoryRoot = Path.Combine(solutionRoot, Constants.SonarQubeManagedFolderName);
+            string ruleSetDirectoryRoot = Path.Combine(solutionRoot, 
+                bindingMode == SonarLintMode.LegacyConnected ?
+                Constants.LegacySonarQubeManagedFolderName :
+                Constants.SonarlintManagedFolderName);
 
             return ruleSetDirectoryRoot;
         }
 
-        public string CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language)
+        public string CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language, SonarLintMode bindingMode)
         {
             if (string.IsNullOrWhiteSpace(ProjectKey))
             {
                 throw new ArgumentNullException(nameof(ProjectKey));
             }
 
-            string ruleSetDirectoryRoot = this.GetSolutionSonarQubeRulesFolder();
+            if (language == null)
+            {
+                throw new ArgumentOutOfRangeException(nameof(language));
+            }
+
+            CheckIsConnectedMode(bindingMode);
+
+            string ruleSetDirectoryRoot = this.GetSolutionSonarQubeRulesFolder(bindingMode);
 
             if (string.IsNullOrWhiteSpace(ruleSetDirectoryRoot))
             {
@@ -164,6 +177,14 @@ namespace SonarLint.VisualStudio.Integration
             // a dot (.) then everything after this will be replaced with .ruleset
             string fileName = $"{PathHelper.EscapeFileName(ProjectKey + fileNameSuffix)}.{Constants.RuleSetFileExtension}";
             return Path.Combine(ruleSetRootPath, fileName);
+        }
+
+        private static void CheckIsConnectedMode(SonarLintMode bindingMode)
+        {
+            if (bindingMode != SonarLintMode.Connected && bindingMode != SonarLintMode.LegacyConnected)
+            {
+                throw new ArgumentOutOfRangeException(nameof(bindingMode));
+            }
         }
     }
 }

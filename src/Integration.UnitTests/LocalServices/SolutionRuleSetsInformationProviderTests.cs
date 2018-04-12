@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -166,29 +167,64 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_ArgChecks()
         {
             // Act Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.CSharp));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.VBNET));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.CSharp, SonarLintMode.LegacyConnected));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.VBNET, SonarLintMode.Connected));
+
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("123", Language.VBNET, SonarLintMode.Standalone));
         }
 
         [TestMethod]
-        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_OnOpenSolution()
+        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_InvalidBindingMode_Throws()
+        {
+            // Arrange
+            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
+
+            // Act + Assert
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.Standalone));
+        }
+
+        [TestMethod]
+        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_LegacyMode_OnOpenSolution()
         {
             // Arrange
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
 
             // Case 1: VB + invalid path characters
             // Act
-            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(), Language.VBNET);
+            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(),
+                Language.VBNET, SonarLintMode.LegacyConnected);
 
             // Assert
             ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\MyKey_VB.ruleset");
 
             // Case 2: C# + valid path characters
             // Act
-            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp);
+            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.LegacyConnected);
 
             // Assert
             ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\MyKeyCSharp.ruleset");
+        }
+
+        [TestMethod]
+        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_ConnectedMode_OnOpenSolution()
+        {
+            // Arrange
+            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
+
+            // Case 1: VB + invalid path characters
+            // Act
+            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(),
+                Language.VBNET, SonarLintMode.Connected);
+
+            // Assert
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\MyKey_VB.ruleset");
+
+            // Case 2: C# + valid path characters
+            // Act
+            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.Connected);
+
+            // Assert
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\MyKeyCSharp.ruleset");
         }
 
         [TestMethod]
@@ -198,7 +234,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
 
             // Act + Assert
-            Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp));
+            Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.LegacyConnected));
+            Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.Connected));
+        }
+
+        [TestMethod]
+        public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_InvalidBindMode_Throws()
+        {
+            // Arrange
+            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
+
+            // Act + Assert
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.Standalone));
         }
 
         [TestMethod]
@@ -207,12 +254,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
 
-            //
-            // Act
-            string path = testSubject.GetSolutionSonarQubeRulesFolder();
-
-            // Assert
+            // 1. Legacy connected mode
+            string path = testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.LegacyConnected);
             path.Should().Be(@"z:\folder\solution\SonarQube");
+
+            // 2. Connected mode
+            path = testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.Connected);
+            path.Should().Be(@"z:\folder\solution\.sonarlint");
         }
 
         [TestMethod]
@@ -221,11 +269,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
 
-            //
-            // Act
-            string path = testSubject.GetSolutionSonarQubeRulesFolder();
+            // 1. Legacy connected mode
+            string path = testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.LegacyConnected);
+            path.Should().BeNull();
 
-            // Assert
+            // 2. Connected mode
+            path = testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.Connected);
             path.Should().BeNull();
         }
 

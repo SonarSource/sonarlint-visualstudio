@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -74,7 +74,8 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
             var solutionFolder = Path.GetDirectoryName(solutionFilePath);
             var solutionName = Path.GetFileNameWithoutExtension(solutionFilePath);
-
+            
+            // TODO: duncanp modify to use the ISolutionRulesetsInformationProvider
             return Path.Combine(solutionFolder, ".sonarlint", $"{solutionName}.sqconfig");
         }
 

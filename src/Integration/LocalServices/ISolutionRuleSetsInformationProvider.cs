@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using EnvDTE;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -41,8 +42,9 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         /// <param name="ProjectKey">Required</param>
         /// <param name="language">The language this rule set corresponds to</param>
+        /// <param name="bindingMode">The binding mode (legacy or new)</param>
         /// <returns>Full file path. The file may not actually exist on disk</returns>
-        string CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language);
+        string CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language, SonarLintMode bindingMode);
 
         /// <summary>
         /// Will return a calculated file path to the expected project RuleSet
@@ -58,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration
         /// Returns the path to solution level rulesets.
         /// When the solution is closed returns null.
         /// </summary>
-        string GetSolutionSonarQubeRulesFolder();
+        /// <param name="bindingMode">The binding mode (legacy or new)</param>
+        string GetSolutionSonarQubeRulesFolder(SonarLintMode bindingMode);
     }
 }
