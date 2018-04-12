@@ -67,7 +67,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private PackageCommandManager commandManager;
         private SonarAnalyzerManager sonarAnalyzerManager;
         private DeprecationManager deprecationManager;
-        private IDeprecatedSonarRuleSetManager deprecatedSonarRuleSetManager;
 
         private const string SonarLintDataKey = "SonarLintBindingData";
         private readonly IFormatter formatter = new BinaryFormatter();
@@ -79,8 +78,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.InitializeSqm();
 
             IServiceProvider serviceProvider = this;
-
-            this.deprecatedSonarRuleSetManager = this.GetMefService<IDeprecatedSonarRuleSetManager>();
 
             var activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
             var sonarQubeService = this.GetMefService<ISonarQubeService>();
