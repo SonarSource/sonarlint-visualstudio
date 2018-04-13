@@ -91,13 +91,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private static string[] GetFiles(string rootDirectory, string folder, string pattern)
         {
-            string[] matches = null;
             string searchDir = Path.Combine(rootDirectory, folder);
-            if (Directory.Exists(searchDir))
+            if (!Directory.Exists(searchDir))
             {
-                matches = Directory.GetFiles(searchDir, pattern, SearchOption.TopDirectoryOnly);
+                return null;
             }
-            return matches;
+            return Directory.GetFiles(searchDir, pattern, SearchOption.TopDirectoryOnly);
         }
 
         #region IDisposable Support
