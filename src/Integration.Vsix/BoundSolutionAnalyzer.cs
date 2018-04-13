@@ -75,15 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             
             if (existingFiles?.Length > 0)
             {
-                var componentModel = this.serviceProvider.GetService<SComponentModel, IComponentModel>();
-                var telemetryLogger = componentModel?.GetExtensions<ITelemetryLogger>().SingleOrDefault();
-                if (telemetryLogger == null)
-                {
-                    Debug.Fail("Failed to find ITelemetryLogger");
-                    return;
-                }
-
-                telemetryLogger.ReportEvent(TelemetryEvent.BoundSolutionDetected);
+                this.serviceProvider.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.BoundSolutionDetected);
             }
         }
 
