@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -85,11 +85,6 @@ namespace SonarLint.VisualStudio.Integration
             // An exception here will crash VS
             try
             {
-                if (!args.IsSolutionOpen)
-                {
-                    this.configurationProvider.WriteConfiguration(BindingConfiguration.Standalone);
-                }
-
                 await UpdateConnection();
 
                 this.RaiseAnalyzersChangedIfBindingChanged();
