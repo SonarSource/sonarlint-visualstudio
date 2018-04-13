@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string actual = ConfigurationSerializer.GetConnectionFilePath(fullSolutionFilePath);
 
             // Assert
-            actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.sqconfig");
+            actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.slconfig");
         }
 
         [TestMethod]
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string actual = ConfigurationSerializer.GetConnectionFilePath(fullSolutionFilePath);
 
             // Assert
-            actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.foo.sqconfig");
+            actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.foo.slconfig");
         }
 
         [TestMethod]
@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
   ""ProjectKey"": ""MyProject Key""
 }";
             SetSolutionFilePath(@"c:\mysolutionfile.foo");
-            SetFileContents(@"c:\.sonarlint\mysolutionfile.sqconfig", validConfig);
+            SetFileContents(@"c:\.sonarlint\mysolutionfile.slconfig", validConfig);
 
             // Act
             var actual = testSubject.ReadSolutionBinding();
@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
   ""ProjectKey"": ""key111""
 }";
             SetSolutionFilePath(@"c:\mysolutionfile.foo");
-            SetFileContents(@"c:\.sonarlint\mysolutionfile.sqconfig", validConfig);
+            SetFileContents(@"c:\.sonarlint\mysolutionfile.slconfig", validConfig);
 
             Credential cred = new Credential("user1");
             configurableStore.WriteCredentials(new TargetUri("https://xxx:123"), cred);
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             SetSolutionFilePath(@"c:\mysolutionfile.foo");
-            var expectedFilePath = @"c:\.sonarlint\mysolutionfile.sqconfig";
+            var expectedFilePath = @"c:\.sonarlint\mysolutionfile.slconfig";
 
             var boundProject = new BoundSonarQubeProject
             {
@@ -229,7 +229,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             SetSolutionFilePath(@"c:\mysolutionfile.foo");
-            var expectedFilePath = @"c:\.sonarlint\mysolutionfile.sqconfig";
+            var expectedFilePath = @"c:\.sonarlint\mysolutionfile.slconfig";
 
             // Currently we can only handle saving basic auth credentials
             BasicAuthCredentials creds = new BasicAuthCredentials("user1", "1234".ToSecureString());
@@ -264,7 +264,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             SetSolutionFilePath(@"c:\mysolutionfile.foo");
-            var expectedFilePath = @"c:\.sonarlint\mysolutionfile.sqconfig";
+            var expectedFilePath = @"c:\.sonarlint\mysolutionfile.slconfig";
 
             // Currently we can only handle saving basic auth credentials
             BasicAuthCredentials creds = new BasicAuthCredentials("user1", "".ToSecureString());
@@ -294,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             SetSolutionFilePath(@"c:\my solution file.foo");
-            var expectedFilePath = @"c:\.sonarlint\my solution file.sqconfig";
+            var expectedFilePath = @"c:\.sonarlint\my solution file.slconfig";
             fileMock.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws<System.IO.IOException>();
 
             var boundProject = new BoundSonarQubeProject
