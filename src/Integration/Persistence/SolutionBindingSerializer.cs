@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
     {
         private readonly IServiceProvider serviceProvider;
 
-        public const string SonarQubeSolutionBindingConfigurationFileName = "SolutionBinding.sqconfig";
+        public const string LegacyBindingConfigurationFileName = "SolutionBinding.sqconfig";
         public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
 
         public SolutionBindingSerializer(IServiceProvider serviceProvider)
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 return null;
             }
 
-            return Path.Combine(rootFolder, SonarQubeSolutionBindingConfigurationFileName);
+            return Path.Combine(rootFolder, LegacyBindingConfigurationFileName);
         }
     }
 }

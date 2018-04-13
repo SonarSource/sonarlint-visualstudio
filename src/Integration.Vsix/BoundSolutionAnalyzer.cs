@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -27,16 +27,14 @@ using Microsoft.VisualStudio.Shell;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     /// <summary>
-    /// Analyzes the solution on build in order to determine if it has SonarQube rulesets
+    /// Analyzes the solution on build in order to determine if has a SonarQube/Cloud configuration file
     /// and log that using <see cref="ITelemetryLogger"/>.
     /// </summary>
     internal sealed class BoundSolutionAnalyzer : IDisposable
     {
         private readonly IServiceProvider serviceProvider;
 
-        // Don't use the constants from the referenced project in order to not accidentally load things that were not loaded previously
-        internal const string SonarQubeFilesFolder = "SonarQube";
-        internal const string SonarQubeSolutionBindingConfigurationSearchPattern = "*.sqconfig";
+        internal const string BindingConfigurationSearchPattern = "*.sqconfig;*.slconfig";
 
         public BoundSolutionAnalyzer(IServiceProvider serviceProvider)
         {
@@ -71,19 +69,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            string expectedSonarQubeDirectory = Path.Combine(Path.GetDirectoryName(fullSolutionPath), SonarQubeFilesFolder);
-            if (!Directory.Exists(expectedSonarQubeDirectory))
+            string solutionDir = Path.GetDirectoryName(fullSolutionPath);
+            string[] existingFiles = GetFiles(solutionDir, Constants.LegacySonarQubeManagedFolderName, "*.sqconfig")
+                ?? GetFiles(solutionDir, Constants.SonarlintManagedFolderName, "*.slconfig");
+            
+            if (existingFiles?.Length > 0)
             {
-                return; //Bail out no need to analyze the projects
-            }
+                var componentModel = this.serviceProvider.GetService<SComponentModel, IComponentModel>();
+                var telemetryLogger = componentModel?.GetExtensions<ITelemetryLogger>().SingleOrDefault();
+                if (telemetryLogger == null)
+                {
+                    Debug.Fail("Failed to find ITelemetryLogger");
+                    return;
+                }
 
-            string[] existingFiles = Directory.GetFiles(expectedSonarQubeDirectory, SonarQubeSolutionBindingConfigurationSearchPattern, SearchOption.TopDirectoryOnly);
-            if (existingFiles.Length == 0)
+                telemetryLogger.ReportEvent(TelemetryEvent.BoundSolutionDetected);
+            }
+        }
+
+        private static string[] GetFiles(string rootDirectory, string folder, string pattern)
+        {
+            string searchDir = Path.Combine(rootDirectory, folder);
+            if (!Directory.Exists(searchDir))
             {
-                return;
+                return null;
             }
-
-            this.serviceProvider.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.BoundSolutionDetected);
+            return Directory.GetFiles(searchDir, pattern, SearchOption.TopDirectoryOnly);
         }
 
         #region IDisposable Support
