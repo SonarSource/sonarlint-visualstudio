@@ -70,8 +70,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             var solutionFolder = Path.GetDirectoryName(solutionFilePath);
             var solutionName = Path.GetFileNameWithoutExtension(solutionFilePath);
             
-            // TODO: duncanp modify to use the ISolutionRulesetsInformationProvider
-            return Path.Combine(solutionFolder, ".sonarlint", $"{solutionName}.sqconfig");
+            return Path.Combine(solutionFolder, Constants.SonarlintManagedFolderName, $"{solutionName}.slconfig");
         }
 
         protected override string GetFullConfigurationFilePath()
