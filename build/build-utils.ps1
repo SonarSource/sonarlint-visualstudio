@@ -117,34 +117,6 @@ function Expand-ZIPFile($source, $destination) {
     }
 }
 
-function Get-SonarQubeRunnerPath {
-    $sonarqube_runner_exe = (Resolve-RepoPath "MSBuild.SonarQube.Runner.exe")
-
-    if (Test-Path $sonarqube_runner_exe) {
-        return $sonarqube_runner_exe
-    }
-
-    $downloadLink = "https://github.com/SonarSource/sonar-msbuild-runner/releases/download/${sonarqube_runner_version}/sonar-scanner-msbuild-${sonarqube_runner_version}.zip"
-    $sonarqube_runner_zip = (Resolve-RepoPath "MSBuild.SonarQube.Runner.zip")
-
-    # NB: the WebClient class defaults to TLS v1, which is no longer supported by GitHub
-    # See https://githubengineering.com/crypto-removal-notice/
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-    Write-Debug "Current security protocol: $([System.Net.ServicePointManager]::SecurityProtocol)"
-    Write-Host "Attempting to download Scanner for MSBuild from ${downloadLink}"
-    (New-Object System.Net.WebClient).DownloadFile($downloadLink, $sonarqube_runner_zip)
-
-    # perhaps we could use other folder, not the repository root
-    Expand-ZIPFile $sonarqube_runner_zip (Resolve-RepoPath "")
-    # PS v5.0 -> Expand-Archive $sonarqube_runner_zip (Resolve-RepoPath "") -Force
-
-    Remove-Item $sonarqube_runner_zip -Force
-
-    Write-Debug "Found MSBuild.SonarQube.Runner.exe at ${sonarqube_runner_exe}"
-
-    return $sonarqube_runner_exe
-}
-
 function Set-Version {
     Write-Header "Updating version in all files..."
 
@@ -180,35 +152,6 @@ function Restore-Packages ([string]$solutionPath) {
     $nuget_exe = Get-NuGetPath
     & $nuget_exe restore $solutionPath
     Test-ExitCode "ERROR: Restoring NuGet packages FAILED."
-}
-
-function Begin-Analysis(
-    [string]$sonarQubeUrl,
-    [string]$sonarQubeToken,
-    [string]$sonarQubeProjectKey,
-    [string]$sonarQubeProjectName,
-    [array][parameter(ValueFromRemainingArguments = $true)] $remainingArgs) {
-
-    Write-Header "Running SonarQube Analysis begin step..."
-
-    $sonarqube_runner_exe = Get-SonarQubeRunnerPath
-
-    & $sonarqube_runner_exe begin `
-        /k:$sonarQubeProjectKey `
-        /n:$sonarQubeProjectName `
-        /d:sonar.host.url=$sonarQubeUrl `
-        /d:sonar.login=$sonarQubeToken `
-        $remainingArgs
-    Test-ExitCode "ERROR: SonarQube Analysis begin step FAILED."
-}
-
-function End-Analysis([string]$sonarQubeToken) {
-    Write-Header "Running SonarQube Analysis end step..."
-
-    $sonarqube_runner_exe = Get-SonarQubeRunnerPath
-
-    & $sonarqube_runner_exe end /d:sonar.login=$sonarQubeToken
-    Test-ExitCode "ERROR: SonarQube Analysis end step FAILED."
 }
 
 function Build-Solution (
