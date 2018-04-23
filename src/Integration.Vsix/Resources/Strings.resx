@@ -121,6 +121,12 @@
     <value>Cannot find tool window with the specified guid: {0}</value>
     <comment>Exception message, {0} guid</comment>
   </data>
+  <data name="Daemon_InitializationComplete" xml:space="preserve">
+    <value>Finished initializing the daemon.</value>
+  </data>
+  <data name="Daemon_Initializing" xml:space="preserve">
+    <value>Initializing the daemon...</value>
+  </data>
   <data name="ERROR_InitializingDaemon" xml:space="preserve">
     <value>Error occurred initializing the daemon: {0}</value>
     <comment>Error message in output window when an exception thrown during async daemon initialization</comment>

@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             try
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
-                logger.WriteLine("Try writing from background thread");
+                logger.WriteLine(Resources.Strings.Daemon_Initializing);
 
                 this.daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
                 var settings = await this.GetMefServiceAsync<ISonarLintSettings>();
@@ -110,11 +110,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                if (logger != null)
-                {
-                    logger.WriteLine(Resources.Strings.ERROR_InitializingDaemon, ex);
-                }
+                logger?.WriteLine(Resources.Strings.ERROR_InitializingDaemon, ex);
             }
+            logger?.WriteLine(Resources.Strings.Daemon_InitializationComplete);
         }
 
         protected override void Dispose(bool disposing)
