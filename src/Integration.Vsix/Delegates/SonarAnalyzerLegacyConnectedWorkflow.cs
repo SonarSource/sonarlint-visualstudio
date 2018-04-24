@@ -20,7 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using SonarAnalyzer.Helpers;
@@ -75,12 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return true;
             }
 
-            // If there is a NuGet diagnostic is enabled, otherwise it is enabled only when in SonarWay
-            var isDiagnosticEnabled = GetProjectNuGetAnalyzerStatus(syntaxTree) != ProjectAnalyzerStatus.NoAnalyzer ||
-                diagnostic.Descriptor.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag);
-
-            return isDiagnosticEnabled &&
-                this.suppressionHandler.ShouldIssueBeReported(syntaxTree, diagnostic);
+            return suppressionHandler.ShouldIssueBeReported(syntaxTree, diagnostic);
         }
 
         private void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)

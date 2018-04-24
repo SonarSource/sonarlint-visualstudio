@@ -51,11 +51,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(GetProjectNuGetAnalyzerStatus(context.SyntaxTree) == ProjectAnalyzerStatus.NoAnalyzer,
                 "Not expecting to be called when project contains any SonarAnalyzer NuGet");
 
-            // A DiagnosticAnalyzer can have multiple supported diagnostics and we decided to run the rule as long as at least
-            // one of the diagnostics is enabled. Therefore we need to filter the reported issues.
             if (this.suppressionHandler.ShouldIssueBeReported(context.SyntaxTree, context.Diagnostic))
             {
-                context.ReportDiagnostic(context.Diagnostic); // TODO: Update the diagnostic based on configuration
+                context.ReportDiagnostic(context.Diagnostic);
             }
         }
     }
