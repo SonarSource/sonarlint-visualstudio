@@ -108,7 +108,7 @@ try {
         $skippedAnalysis = $true
     }
 
-    $solutionRelativePath="src\${solutionName}"
+    $solutionRelativePath = "${solutionName}"
     if ($solutionRelativePath.Contains("2017")) {
         Restore-Packages $solutionRelativePath
         Start-Process "build/vs2017.bat" -NoNewWindow -Wait
