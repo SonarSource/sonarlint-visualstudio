@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CreatePayload_Creates_Payload()
         {
             // Arrange
-            var now = new DateTime(2017, 7, 25);
+            var now = new DateTime(2017, 7, 25, 0, 0, 0, DateTimeKind.Local).AddHours(2);
 
             var telemetryData = new TelemetryData
             {
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             var result = TelemetryHelper.CreatePayload(
                 telemetryData,
-                new DateTimeOffset(now, TimeSpan.FromHours(2)),
+                new DateTimeOffset(now),
                 isConnected: true);
 
             // Assert
@@ -57,8 +57,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.SonarLintVersion.Should().Be(
                 typeof(TelemetryData).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
             result.VisualStudioVersion.Should().Be("1.2.3.4");
-            result.InstallDate.Should().Be(new DateTimeOffset(now.AddDays(-10), TimeSpan.FromHours(2)));
-            result.SystemDate.Should().Be(new DateTimeOffset(now, TimeSpan.FromHours(2)));
+            result.InstallDate.Should().Be(new DateTimeOffset(now.AddDays(-10)));
+            result.SystemDate.Should().Be(new DateTimeOffset(now));
         }
 
         [TestMethod]
