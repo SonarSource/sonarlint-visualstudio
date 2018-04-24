@@ -19,12 +19,8 @@
  */
 
 using System;
-using System.Linq;
 using FluentAssertions;
-using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -41,43 +37,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
         }
-
-        [TestMethod]
-        public void VsixAnalyzerReportDiagnostic_WhenRuleInSonarWay_CallsReportDiagnostic()
-        {
-            // Arrange
-            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace());
-            var diag = CreateFakeDiagnostic(true, "1");
-            var reportingContextMock = new Mock<IReportingContext>();
-            reportingContextMock.SetupGet(x => x.SyntaxTree).Returns(new Mock<SyntaxTree>().Object);
-            reportingContextMock.SetupGet(x => x.Diagnostic).Returns(diag);
-
-            // Act
-            testSubject.VsixAnalyzerReportDiagnostic(reportingContextMock.Object);
-
-            // Assert
-            reportingContextMock.Verify(x => x.ReportDiagnostic(diag), Times.Once);
-        }
-
-        [TestMethod]
-        public void VsixAnalyzerReportDiagnostic_WhenRuleNotInSonarWay_DoesNotCallReportDiagnostic()
-        {
-            // Arrange
-            var testSubject = new SonarAnalyzerStandaloneWorkflow(new AdhocWorkspace());
-            var diag = CreateFakeDiagnostic(false, "1");
-            var reportingContextMock = new Mock<IReportingContext>();
-            reportingContextMock.SetupGet(x => x.SyntaxTree).Returns(new Mock<SyntaxTree>().Object);
-            reportingContextMock.SetupGet(x => x.Diagnostic).Returns(diag);
-
-            // Act
-            testSubject.VsixAnalyzerReportDiagnostic(reportingContextMock.Object);
-
-            // Assert
-            reportingContextMock.Verify(x => x.ReportDiagnostic(It.IsAny<Diagnostic>()), Times.Never);
-        }
-
-        private Diagnostic CreateFakeDiagnostic(bool isInSonarWay = false, string suffix = "") =>
-            Diagnostic.Create($"id{suffix}", $"category{suffix}", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning,
-                true, 1, customTags: isInSonarWay ? new[] { "SonarWay" } : Enumerable.Empty<string>());
     }
 }

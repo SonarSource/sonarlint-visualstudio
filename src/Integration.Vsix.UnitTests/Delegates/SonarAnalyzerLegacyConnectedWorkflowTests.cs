@@ -227,23 +227,6 @@ namespace SonarAnalyzer.Helpers
         }
 
         [TestMethod]
-        public void ShouldIssueBeReported_WhenNoNuGetAndNotInSonarWayAndIssueNotSuppressed_ReturnsFalse()
-        {
-            // Arrange
-            var testSubject = CreateTestSubject();
-            testSubject.ProjectNuGetAnalyzerStatusFunc = tree => SonarAnalyzerWorkflowBase.ProjectAnalyzerStatus.NoAnalyzer;
-            var diagnostic = CreateFakeDiagnostic(isInSonarWay: false);
-            this.suppressionHandlerMock.Setup(x => x.ShouldIssueBeReported(It.IsAny<SyntaxTree>(), diagnostic))
-                .Returns(true);
-
-            // Act
-            var result = testSubject.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diagnostic);
-
-            // Assert
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
         public void ShouldIssueBeReported_WhenClassIsDisposed_ReturnsTrue()
         {
             // Arrange

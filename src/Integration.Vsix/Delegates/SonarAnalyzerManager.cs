@@ -25,7 +25,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Rules;
 using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 using SonarQube.Client.Services;

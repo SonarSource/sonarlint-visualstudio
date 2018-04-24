@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis;
-using SonarAnalyzer.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -31,22 +28,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public SonarAnalyzerStandaloneWorkflow(Workspace workspace)
             : base(workspace)
         {
-            SonarAnalysisContext.ReportDiagnostic = VsixAnalyzerReportDiagnostic;
-        }
-
-        internal /* for testing purposes */ void VsixAnalyzerReportDiagnostic(IReportingContext context)
-        {
-            Debug.Assert(context.SyntaxTree != null, "Not expecting to be called with a null SyntaxTree");
-            Debug.Assert(context.Diagnostic != null, "Not expecting to be called with a null Diagnostic");
-            Debug.Assert(GetProjectNuGetAnalyzerStatus(context.SyntaxTree) == ProjectAnalyzerStatus.NoAnalyzer,
-                "Not expecting to be called when project contains any SonarAnalyzer NuGet");
-
-            // A DiagnosticAnalyzer can have multiple supported diagnostics and we decided to run the rule as long as at least
-            // one of the diagnostics is enabled. Therefore we need to filter the reported issues.
-            if (context.Diagnostic.Descriptor.CustomTags.Contains(DiagnosticTagsHelper.SonarWayTag))
-            {
-                context.ReportDiagnostic(context.Diagnostic);
-            }
         }
     }
 }
