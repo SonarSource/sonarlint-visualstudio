@@ -60,19 +60,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Tests
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_ArgCheck()
+        public void ArgCheck()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingInformationProvider(null));
+            // Arrange
+            Action action = () => new SolutionBindingInformationProvider(null);
+
+            // Act & Assert
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_SolutionBound_EmptyFilteredProjects()
+        public void GetUnboundProjects_Legacy_SolutionBound_EmptyFilteredProjects()
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.SetValidSolutionBinding();
             this.projectSystemHelper.FilteredProjects = new Project[0];
             IEnumerable<Project> projects;
+
+            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
 
             // Act
             projects = testSubject.GetUnboundProjects();
@@ -82,37 +87,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_ValidSolution_SolutionRuleSetIsMissing()
+        public void GetUnboundProjects_Connected_SolutionBound_EmptyFilteredProjects()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            this.projectSystemHelper.FilteredProjects = new Project[0];
+            IEnumerable<Project> projects;
+
+            this.SetValidSolutionBinding(SonarLintMode.Connected);
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            AssertEmptyResult(projects);
+        }
+
+        [TestMethod]
+        public void GetUnboundProjects_Legacy_ValidSolution_SolutionRuleSetIsMissing()
         {
             // If the solution ruleset is missing then all projects will be returned as unbound
 
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.SetValidSolutionBinding();
             var expected = this.SetValidFilteredProjects();
 
-            IEnumerable<Project> projects;
-
-            // Act
-            projects = testSubject.GetUnboundProjects();
-
-            // Assert
-            AssertExpectedProjects(expected, projects);
-        }
-
-        private void AssertExpectedProjects(IEnumerable<Project> expected, IEnumerable<Project> projects)
-        {
-            expected.Should().BeEquivalentTo(projects); // order is not important
-        }
-
-        [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_ValidSolution_ProjectRuleSetIsMissing()
-        {
-            // Arrange
-            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.SetValidSolutionBinding();
-            var expected = this.SetValidFilteredProjects();
-            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"));
+            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
 
             IEnumerable<Project> projects;
 
@@ -124,15 +124,74 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_ValidSolution_ProjectRuleSetNotIncludingSolutionRuleSet()
+        public void GetUnboundProjects_Connected_ValidSolution_SolutionRuleSetIsMissing()
+        {
+            // If the solution ruleset is missing then all projects will be returned as unbound
+
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            var expected = this.SetValidFilteredProjects();
+
+            this.SetValidSolutionBinding(SonarLintMode.Connected);
+
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            AssertExpectedProjects(expected, projects);
+        }
+
+        [TestMethod]
+        public void GetUnboundProjects_Legacy_ValidSolution_ProjectRuleSetIsMissing()
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.SetValidSolutionBinding();
             var expected = this.SetValidFilteredProjects();
-            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"));
+
+            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
+            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.LegacyConnected);
+
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            AssertExpectedProjects(expected, projects);
+        }
+
+        [TestMethod]
+        public void GetUnboundProjects_Connected_ValidSolution_ProjectRuleSetIsMissing()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            var expected = this.SetValidFilteredProjects();
+
+            this.SetValidSolutionBinding(SonarLintMode.Connected);
+            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.Connected);
+
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            AssertExpectedProjects(expected, projects);
+        }
+
+        [TestMethod]
+        public void GetUnboundProjects_Legacy_ValidSolution_ProjectRuleSetNotIncludingSolutionRuleSet()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            var expected = this.SetValidFilteredProjects();
             this.SetValidProjectRuleSets((project, filePath) => new RuleSet("ProjectRuleSet") { FilePath = filePath });
 
+            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
+            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.LegacyConnected);
+
             IEnumerable<Project> projects;
 
             // Act
@@ -143,33 +202,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_ValidSolution_ProjectRuleSetIncludesSolutionRuleSet()
+        public void GetUnboundProjects_Connected_ValidSolution_ProjectRuleSetNotIncludingSolutionRuleSet()
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.SetValidSolutionBinding();
-            var allProjects = this.SetValidFilteredProjects();
-            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets();
+            var expected = this.SetValidFilteredProjects();
+            this.SetValidProjectRuleSets((project, filePath) => new RuleSet("ProjectRuleSet") { FilePath = filePath });
+
+            this.SetValidSolutionBinding(SonarLintMode.Connected);
+            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.Connected);
+
             IEnumerable<Project> projects;
 
             // Act
             projects = testSubject.GetUnboundProjects();
 
             // Assert
-            AssertExpectedProjects(allProjects.Except(new Project[] { boundProject }), projects);
-            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();            
+            AssertExpectedProjects(expected, projects);
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_ValidSolution_ProjectRuleSetIncludesSolutionRuleSet_RuleSetAggregation()
+        public void GetUnboundProjects_LegacyValidSolution_ProjectRuleSetIncludesSolutionRuleSet()
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.SetValidSolutionBinding();
             var allProjects = this.SetValidFilteredProjects();
-            // Duplicate the configurations, which will create duplicate rule sets
-            allProjects.OfType<ProjectMock>().ToList().ForEach(p => this.SetValidProjectConfiguration(p, "AnotherConfiguration"));
-            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets();
+
+            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets(SonarLintMode.LegacyConnected);
+
             IEnumerable<Project> projects;
 
             // Act
@@ -181,7 +242,71 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_SolutionNotBound_Standalone()
+        public void GetUnboundProjects_Connected_ValidSolution_ProjectRuleSetIncludesSolutionRuleSet()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            var allProjects = this.SetValidFilteredProjects();
+
+            this.SetValidSolutionBinding(SonarLintMode.Connected);
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets(SonarLintMode.Connected);
+
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            AssertExpectedProjects(allProjects.Except(new Project[] { boundProject }), projects);
+            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
+        }
+
+        [TestMethod]
+        public void GetUnboundProjects_Legacy_ValidSolution_ProjectRuleSetIncludesSolutionRuleSet_RuleSetAggregation()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            var allProjects = this.SetValidFilteredProjects();
+            // Duplicate the configurations, which will create duplicate rule sets
+            allProjects.OfType<ProjectMock>().ToList().ForEach(p => this.SetValidProjectConfiguration(p, "AnotherConfiguration"));
+
+            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets(SonarLintMode.LegacyConnected);
+
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            AssertExpectedProjects(allProjects.Except(new Project[] { boundProject }), projects);
+            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
+        }
+
+        [TestMethod]
+        public void GetUnboundProjects_Connected_ValidSolution_ProjectRuleSetIncludesSolutionRuleSet_RuleSetAggregation()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+            var allProjects = this.SetValidFilteredProjects();
+            // Duplicate the configurations, which will create duplicate rule sets
+            allProjects.OfType<ProjectMock>().ToList().ForEach(p => this.SetValidProjectConfiguration(p, "AnotherConfiguration"));
+
+            this.SetValidSolutionBinding(SonarLintMode.Connected);
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets(SonarLintMode.Connected);
+
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            AssertExpectedProjects(allProjects.Except(new Project[] { boundProject }), projects);
+            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
+        }
+
+        [TestMethod]
+        public void GetUnboundProjects_SolutionNotBound_Standalone()
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
@@ -197,30 +322,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_SolutionNotBound_NewConnectedMode()
+        public void GetUnboundProjects_Legacy_HasBoundProjects()
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.configProvider.ModeToReturn = SonarLintMode.Connected;
-            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject();
-            IEnumerable<Project> projects;
-
-            // Act
-            projects = testSubject.GetUnboundProjects();
-
-            // Assert
-            AssertEmptyResult(projects);
-            this.serviceProvider.AssertServiceNotUsed(typeof(IProjectSystemHelper));
-        }
-
-        [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_HasBoundProjects()
-        {
-            // Arrange
-            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.SetValidSolutionBinding();
             this.SetValidFilteredProjects();
-            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets();
+
+            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets(SonarLintMode.LegacyConnected);
+
             ProjectMock unboundProject = this.projectSystemHelper.FilteredProjects.OfType<ProjectMock>().Except(new[] { boundProject }).SingleOrDefault();
             IEnumerable<Project> projects;
 
@@ -232,12 +342,53 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingInformationProvider_GetUnboundProjects_HasNoBoundProjects()
+        public void GetUnboundProjects_Connected_HasBoundProjects()
         {
             // Arrange
             var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
-            this.SetValidSolutionBinding();
             this.SetValidFilteredProjects();
+
+            this.SetValidSolutionBinding(SonarLintMode.Connected);
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets(SonarLintMode.Connected);
+
+            ProjectMock unboundProject = this.projectSystemHelper.FilteredProjects.OfType<ProjectMock>().Except(new[] { boundProject }).SingleOrDefault();
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            projects.SingleOrDefault().Should().Be(unboundProject, "Unexpected unbound project");
+        }
+
+        [TestMethod]
+        public void GetUnboundProjects_Legacy_HasNoBoundProjects()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+
+            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
+            this.SetValidFilteredProjects();
+
+            IEnumerable<Project> projects;
+
+            // Act
+            projects = testSubject.GetUnboundProjects();
+
+            // Assert
+            CollectionAssert.AreEquivalent(this.projectSystemHelper.FilteredProjects.ToArray(), projects.ToArray(), "Unexpected unbound projects");
+        }
+
+
+        [TestMethod]
+        public void GetUnboundProjects_Connected_HasNoBoundProjects()
+        {
+            // Arrange
+            var testSubject = new SolutionBindingInformationProvider(this.serviceProvider);
+
+            this.SetValidSolutionBinding(SonarLintMode.Connected);
+            this.SetValidFilteredProjects();
+
             IEnumerable<Project> projects;
 
             // Act
@@ -250,12 +401,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion Tests
 
         #region Helpers
-
-        private void SetValidSolutionBinding()
-        {
-            this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
-            this.configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = "projectKey" };
-        }
 
         private IEnumerable<Project> SetValidFilteredProjects()
         {
@@ -288,20 +433,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             });
         }
 
-        private void SetValidSolutionRuleSet(RuleSet ruleSet)
-        {
-            string expectedSolutionRuleSet = ((ISolutionRuleSetsInformationProvider)this.ruleSetInfoProvider)
-                .CalculateSolutionSonarQubeRuleSetFilePath("projectKey", Language.CSharp, SonarLintMode.LegacyConnected);
-            ruleSet.FilePath = expectedSolutionRuleSet;
-
-            this.ruleSetSerializer.RegisterRuleSet(ruleSet);
-        }
-
         private void SetValidProjectRuleSets(Func<ProjectMock, string, RuleSet> filePathToRuleSetFactory)
         {
-            foreach(ProjectMock project in this.projectSystemHelper.FilteredProjects.OfType<ProjectMock>())
+            foreach (ProjectMock project in this.projectSystemHelper.FilteredProjects.OfType<ProjectMock>())
             {
-                foreach(ConfigurationMock config in project.ConfigurationManager.Configurations)
+                foreach (ConfigurationMock config in project.ConfigurationManager.Configurations)
                 {
                     PropertyMock property = config.Properties
                         .OfType<PropertyMock>()
@@ -316,17 +452,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
+        private void SetValidSolutionBinding(SonarLintMode bindingMode)
+        {
+            this.configProvider.ModeToReturn = bindingMode;
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = "projectKey" };
+        }
+
+        private void SetValidSolutionRuleSet(RuleSet ruleSet, SonarLintMode bindingMode)
+        {
+            string expectedSolutionRuleSet = ((ISolutionRuleSetsInformationProvider)this.ruleSetInfoProvider)
+                .CalculateSolutionSonarQubeRuleSetFilePath("projectKey", Language.CSharp, bindingMode);
+            ruleSet.FilePath = expectedSolutionRuleSet;
+
+            this.ruleSetSerializer.RegisterRuleSet(ruleSet);
+        }
+
         /// <summary>
         /// Sets configures the solution and project rule sets to have
         /// one rule set that will be considered as a rule set for a bound project
         /// </summary>
         /// <returns>The bound project for which the rule set was set</returns>
-        private ProjectMock SetValidSolutionAndProjectRuleSets()
+        private ProjectMock SetValidSolutionAndProjectRuleSets(SonarLintMode bindingMode)
         {
             var solutionRuleSet = new RuleSet("SolutionRuleSet");
             ProjectMock boundProject = this.projectSystemHelper.FilteredProjects.OfType<ProjectMock>().First();
 
-            this.SetValidSolutionRuleSet(solutionRuleSet);
+            this.SetValidSolutionRuleSet(solutionRuleSet, bindingMode);
             this.SetValidProjectRuleSets((project, filePath) =>
             {
                 var ruleSet = new RuleSet("ProjectRuleSet") { FilePath = filePath };
@@ -351,6 +502,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private static string GetString(IEnumerable<Project> projects)
         {
             return string.Join(", ", projects.Select(p => p.FullName));
+        }
+
+        private void AssertExpectedProjects(IEnumerable<Project> expected, IEnumerable<Project> projects)
+        {
+            expected.Should().BeEquivalentTo(projects); // order is not important
         }
 
         #endregion Helpers

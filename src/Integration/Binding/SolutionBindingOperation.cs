@@ -67,10 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(ProjectKey));
             }
 
-            if (bindingMode != SonarLintMode.Connected && bindingMode != SonarLintMode.LegacyConnected)
-            {
-                throw new ArgumentOutOfRangeException(nameof(bindingMode));
-            }
+            bindingMode.ThrowIfNotConnected();
 
             this.serviceProvider = serviceProvider;
             this.connection = connection;

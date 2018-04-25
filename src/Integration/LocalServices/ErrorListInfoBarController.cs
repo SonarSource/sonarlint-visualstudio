@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration
             // We don't want to slow down solution open, so we delay the processing
             // until idle. There is a possibility that the user might close and open another solution
             // when the delegate will execute, and we should handle those cases
-            if (this.IsActiveSolutionLegacyBound)
+            if (this.IsActiveSolutionBound)
             {
                 this.InvokeWhenIdle(this.ProcessSolutionBinding);
             }
@@ -117,11 +117,11 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(this.host.UIDispatcher.CheckAccess(), "The controller needs to run on the UI thread");
         }
 
-        private bool IsActiveSolutionLegacyBound
+        private bool IsActiveSolutionBound
         {
             get
             {
-                return this.configProvider.GetConfiguration().Mode == SonarLintMode.LegacyConnected;
+                return this.configProvider.GetConfiguration().Mode.IsInAConnectedMode();
             }
         }
 
@@ -167,7 +167,8 @@ namespace SonarLint.VisualStudio.Integration
         internal /*for testing purposes*/ void ProcessSolutionBinding()
         {
             // No need to do anything if by the time got here the solution was closed (or unbound)
-            if (!this.IsActiveSolutionLegacyBound)
+            var mode = this.configProvider.GetConfiguration().Mode;
+            if (!mode.IsInAConnectedMode())
             {
                 return;
             }
@@ -268,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration
 
             BindingConfiguration binding = configProvider.GetConfiguration();
             if (binding == null
-                || binding.Mode != SonarLintMode.LegacyConnected
+                || !binding.Mode.IsInAConnectedMode()
                 || this.infoBarBinding == null
                 || binding.Project.ServerUri != this.infoBarBinding.ServerUri
                 || !SonarQubeProject.KeyComparer.Equals(binding.Project.ProjectKey, this.infoBarBinding.ProjectKey))
@@ -595,8 +596,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 var bindingConfig = configProvider.GetConfiguration();
 
-                // This check is only relevant for legacy connected mode
-                if (bindingConfig.Mode != SonarLintMode.LegacyConnected)
+                if (!bindingConfig.Mode.IsInAConnectedMode())
                 {
                     return;
                 }

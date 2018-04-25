@@ -946,16 +946,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to NuGet analyzer packages may be downloaded and installed automatically when you bind to a SonarQube project.
-        ///[Don&apos;t warn me again]().
-        /// </summary>
-        public static string ServerNuGetTrustWarningMessage {
-            get {
-                return ResourceManager.GetString("ServerNuGetTrustWarningMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Show All Projects.
         /// </summary>
         public static string ShowAllProjectsCommandText {

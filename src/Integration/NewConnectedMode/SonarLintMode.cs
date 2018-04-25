@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     public enum SonarLintMode
@@ -25,5 +27,21 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         Standalone,
         LegacyConnected,
         Connected
+    }
+
+    internal static class SonarLintModeExtensions
+    {
+        public static void ThrowIfNotConnected(this SonarLintMode bindingMode)
+        {
+            if (!bindingMode.IsInAConnectedMode())
+            {
+                throw new ArgumentOutOfRangeException(nameof(bindingMode));
+            }
+        }
+
+        public static bool IsInAConnectedMode(this SonarLintMode bindingMode)
+        {
+            return (bindingMode == SonarLintMode.Connected || bindingMode == SonarLintMode.LegacyConnected);
+        }
     }
 }

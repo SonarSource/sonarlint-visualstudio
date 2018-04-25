@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public string GetSolutionSonarQubeRulesFolder(SonarLintMode bindingMode)
         {
-            CheckIsConnectedMode(bindingMode);
+            bindingMode.ThrowIfNotConnected();
 
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             string solutionFullPath = projectSystem.GetCurrentActiveSolution()?.FullName;
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 
-            CheckIsConnectedMode(bindingMode);
+            bindingMode.ThrowIfNotConnected();
 
             string ruleSetDirectoryRoot = this.GetSolutionSonarQubeRulesFolder(bindingMode);
 
@@ -177,14 +177,6 @@ namespace SonarLint.VisualStudio.Integration
             // a dot (.) then everything after this will be replaced with .ruleset
             string fileName = $"{PathHelper.EscapeFileName(ProjectKey + fileNameSuffix)}.{Constants.RuleSetFileExtension}";
             return Path.Combine(ruleSetRootPath, fileName);
-        }
-
-        private static void CheckIsConnectedMode(SonarLintMode bindingMode)
-        {
-            if (bindingMode != SonarLintMode.Connected && bindingMode != SonarLintMode.LegacyConnected)
-            {
-                throw new ArgumentOutOfRangeException(nameof(bindingMode));
-            }
         }
     }
 }

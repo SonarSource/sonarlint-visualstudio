@@ -25,13 +25,9 @@ using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    // Legacy connected mode
-    // Not required in the new connected mode
-
     internal class SolutionBindingInformationProvider : ISolutionBindingInformationProvider
     {
         private readonly IServiceProvider serviceProvider;
@@ -50,31 +46,27 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<Project> GetUnboundProjects()
         {
-            return this.GetUnboundProjects(this.GetLegacySolutionBinding());
+            var configProvider = this.serviceProvider.GetService<IConfigurationProvider>();
+            configProvider.AssertLocalServiceIsNotNull();
+
+            // Only applicable in connected mode (legacy or new)
+            var bindingConfig = configProvider.GetConfiguration();
+
+            if (!bindingConfig.Mode.IsInAConnectedMode())
+            {
+                return Enumerable.Empty<Project>();
+            }
+
+            return this.GetUnboundProjects(bindingConfig);
         }
         #endregion
 
         #region Non-public API
-        private BoundSonarQubeProject GetLegacySolutionBinding()
-        {
-            var configProvider = this.serviceProvider.GetService<IConfigurationProvider>();
-            configProvider.AssertLocalServiceIsNotNull();
 
-            // Only applicable in legacy mode
-            BindingConfiguration bindingConfig = configProvider.GetConfiguration();
-            if (bindingConfig.Mode == SonarLintMode.LegacyConnected)
-            {
-                return bindingConfig.Project;
-            }
-            return null;
-        }
-
-        private IEnumerable<Project> GetUnboundProjects(BoundSonarQubeProject binding)
+        private IEnumerable<Project> GetUnboundProjects(BindingConfiguration binding)
         {
-            if (binding == null)
-            {
-                return Enumerable.Empty<Project>();
-            }
+            Debug.Assert(binding.Mode.IsInAConnectedMode());
+            Debug.Assert(binding.Project != null);
 
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
@@ -93,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration
                 .Where(p => !this.IsFullyBoundProject(cache, binding, p));
         }
 
-        private bool IsFullyBoundProject(Dictionary<string, RuleSet> cache, BoundSonarQubeProject binding, Project project)
+        private bool IsFullyBoundProject(Dictionary<string, RuleSet> cache, BindingConfiguration binding, Project project)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
@@ -120,16 +112,15 @@ namespace SonarLint.VisualStudio.Integration
             return (projectRuleSet != null && RuleSetHelper.FindInclude(projectRuleSet, sonarQubeRuleSet) != null);
         }
 
-        private RuleSet FindSonarQubeSolutionRuleSet(Dictionary<string, RuleSet> cache, BoundSonarQubeProject binding, Project project)
+        private RuleSet FindSonarQubeSolutionRuleSet(Dictionary<string, RuleSet> cache, BindingConfiguration binding, Project project)
         {
             var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
 
             string expectedSolutionRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
-                         binding.ProjectKey,
+                         binding.Project.ProjectKey,
                          Language.ForProject(project),
-                         // TODO: duncanp decide whether to support new connected mode
-                         SonarLintMode.LegacyConnected);
+                         binding.Mode);
 
             RuleSet solutionRuleSet;
             if (!cache.TryGetValue(expectedSolutionRuleSet, out solutionRuleSet))

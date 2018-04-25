@@ -23,12 +23,11 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    // "GetUnboundProjects"is only used by the error list controller
-    // in legacy mode to find projects that have been added to a legacy bound solution
+    // "GetUnboundProjects"is used by the error list controller in connected mode (legacy & new)
+    // to find projects that have been added to a bound solution but do not have the ruleset
+    // set correctly.
 
-    /// <summary>
-    /// SonarQube-bound project discovery
-    /// </summary>
+    // TODO: rename this interface e.g. IUnboundProjectProvider/Finder/Locator
     internal interface ISolutionBindingInformationProvider
     {
         /// <summary>

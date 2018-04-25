@@ -129,12 +129,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ErrorListInfoBarController_Refresh_ActiveSolutionBoundAndFullyLoaded_HasUnboundProjects()
+        public void ErrorListInfoBarController_Refresh_Legacy_ActiveSolutionBoundAndFullyLoaded_HasUnboundProjects()
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
-            this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
+            this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
+            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
+
+            // Act
+            testSubject.Refresh();
+            RunAsyncAction();
+
+            // Assert
+            this.outputWindowPane.AssertOutputStrings(2);
+            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "unbound.csproj" }, splitter: "\r\n\t ()".ToArray());
+            ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
+            VerifyInfoBar(infoBar);
+        }
+
+        [TestMethod]
+        public void ErrorListInfoBarController_Refresh_Connected_ActiveSolutionBoundAndFullyLoaded_HasUnboundProjects()
+        {
+            // Arrange
+            this.SetBindingMode(SonarLintMode.Connected);
+            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
             this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
             var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
 
@@ -192,24 +211,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
-
-        [TestMethod]
-        public void ErrorListInfoBarController_Refresh_ActiveSolution_NewConnectedMode()
-        {
-            // Arrange
-            this.SetBindingMode(SonarLintMode.Connected);
-            var testSubject = new ErrorListInfoBarController(this.host, this.solutionBindingInformationProvider);
-            this.ConfigureLoadedSolution(hasUnboundProject: true);
-
-            // Act
-            testSubject.Refresh();
-            RunAsyncAction();
-
-            // Assert
-            this.outputWindowPane.AssertOutputStrings(0);
-            this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
-        }
-
+        
         [TestMethod]
         public void ErrorListInfoBarController_Refresh_ActiveSolutionBecameUnboundAfterRefresh()
         {
@@ -359,7 +361,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ErrorListInfoBarController_InfoBar_ClickButton_NoLongerInLegacyConnected_NoOp()
+        public void ErrorListInfoBarController_InfoBar_ClickButton_NoLongerInConnected_NoOp()
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
@@ -375,9 +377,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Change binding
-            // Note: in practice we can't switch from legacy to new connected mode, but the important
-            // thing for this test is that the solution isn't in legacy mode
-            this.SetBindingMode(SonarLintMode.Connected);
+            this.SetBindingMode(SonarLintMode.Standalone);
 
             // Act
             infoBar.SimulateButtonClickEvent();
@@ -912,13 +912,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Dispatcher.PushFrame(frame);
         }
 
-        private void ConfigureLoadedSolution(bool hasBoundProject = true, bool hasUnboundProject = true)
+        private void ConfigureLoadedSolution(bool hasUnboundProject = true)
         {
-            if (hasBoundProject)
-            {
-                this.solutionBindingInformationProvider.BoundProjects = new[] { new ProjectMock("bound.csproj") };
-            }
-
             if (hasUnboundProject)
             {
                 this.solutionBindingInformationProvider.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };

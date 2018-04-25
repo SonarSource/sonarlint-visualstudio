@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
@@ -27,14 +26,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableSolutionBindingInformationProvider : ISolutionBindingInformationProvider
     {
-        public IEnumerable<Project> BoundProjects { get; set; } = Enumerable.Empty<Project>();
-
         public IEnumerable<Project> UnboundProjects { get; set; } = Enumerable.Empty<Project>();
-
-        public IEnumerable<Project> GetBoundProjects()
-        {
-            return this.BoundProjects;
-        }
 
         public IEnumerable<Project> GetUnboundProjects()
         {

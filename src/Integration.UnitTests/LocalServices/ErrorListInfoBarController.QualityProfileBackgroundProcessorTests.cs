@@ -101,21 +101,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NoFilteredProjects()
-        {
-            // Arrange
-            var testSubject = this.GetTestSubject();
-            this.projectSystem.Projects = new Project[] { new ProjectMock("project.proj") };
-            this.projectSystem.FilteredProjects = null;
-
-            // Act
-            testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
-
-            // Assert
-            this.outputWindowPane.AssertOutputStrings(0);
-        }
-
-        [TestMethod]
         public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NoFilteredProjects_NoOp()
         {
             // Arrange
@@ -136,21 +121,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.GetTestSubject();
             SetBinding(null, SonarLintMode.Standalone);
-            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind);
-
-            // Act
-            testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
-
-            // Assert
-            this.outputWindowPane.AssertOutputStrings(0);
-        }
-
-        [TestMethod]
-        public void QualityProfileBackgroundProcessor_QueueCheckIfUpdateIsRequired_NewConnectedMode_NoOp()
-        {
-            // Arrange
-            var testSubject = this.GetTestSubject();
-            SetBinding(new BoundSonarQubeProject(), SonarLintMode.Connected);
             this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind);
 
             // Act
@@ -182,7 +152,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void QualityProfileBackgroundProcessor_BackgroundTask_DifferentTimestamp_RequiresUpdate()
+        public void QualityProfileBackgroundProcessor_BackgroundTask_DifferentTimestamp_RequiresUpdate_Connected()
+        {
+            // Arrange
+            string qpKey = "Profile1";
+            var testSubject = this.GetTestSubject();
+            this.SetFilteredProjects(ProjectSystemHelper.CSharpProjectKind, ProjectSystemHelper.CSharpProjectKind);
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject
+            {
+                ServerUri = new Uri("http://server"),
+                ProjectKey = "ProjectKey",
+                Profiles = new Dictionary<Language, ApplicableQualityProfile>()
+            };
+            this.configProvider.ModeToReturn = SonarLintMode.Connected;
+
+            // Same profile key
+            this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new ApplicableQualityProfile
+            {
+                ProfileKey = qpKey,
+                ProfileTimestamp = DateTime.Now
+            };
+
+            this.ConfigureValidSonarQubeServiceWrapper(this.configProvider.ProjectToReturn,
+                DateTime.Now.AddMinutes(-1),
+                qpKey,
+                Language.CSharp);
+
+            // Act + Assert
+            VerifyBackgroundExecution(true, testSubject,
+                Strings.SonarLintProfileCheck,
+                Strings.SonarLintProfileCheckProfileUpdated);
+        }
+
+        [TestMethod]
+        public void QualityProfileBackgroundProcessor_BackgroundTask_DifferentTimestamp_RequiresUpdate_Legacy()
         {
             // Arrange
             string qpKey = "Profile1";
