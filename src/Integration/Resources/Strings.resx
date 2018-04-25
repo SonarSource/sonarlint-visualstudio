@@ -359,12 +359,6 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>Could not acquire service: {0}</value>
     <comment>Exception message indicating the package could not acquire the given service. {0} service name</comment>
   </data>
-  <data name="ServerNuGetTrustWarningMessage" xml:space="preserve">
-    <value>NuGet analyzer packages may be downloaded and installed automatically when you bind to a SonarQube project.
-[Don't warn me again]()</value>
-    <comment>Team explorer warning notification about connecting to a server which will cause NuGet packages to be downloaded.
-Localization note: '[Don't warn me again]()' is a special markup used to translate the text 'try again' into a hyperlink. Make sure to keep it localized content in with that format to avoid reducing functionality in the localized version of the product</comment>
-  </data>
   <data name="WarningsSettingsCategory" xml:space="preserve">
     <value>Warnings</value>
     <comment>Warnings settings category for Security options page</comment>
