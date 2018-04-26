@@ -70,10 +70,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 ProgressBar.Visibility = Visibility.Visible;
                 CompletedMessage.Visibility = Visibility.Collapsed;
 
-                this.logger.WriteLine(Strings.Daemon_DownloadingDaemon);
                 daemon.DownloadProgressChanged += DownloadProgressChanged;
                 daemon.DownloadCompleted += DownloadCompleted;
-                this.logger.WriteLine(Strings.Daemon_DaemonDownloaded);
 
                 daemon.Install();
             }
@@ -137,10 +135,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal void Show(Action callback)
         {
-            this.logger.WriteLine(Strings.Daemon_InstallingDaemon);
+            this.logger.WriteLine(Strings.Daemon_Installing);
             this.callback = callback;
             Show();
-            this.logger.WriteLine(Strings.Daemon_DaemonInstalled);
+            this.logger.WriteLine(Strings.Daemon_Installed);
         }
 
         protected override void OnClosing(CancelEventArgs e)
