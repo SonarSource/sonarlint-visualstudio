@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     // User already agreed to have the daemon installed, so directly start download
                     await JoinableTaskFactory.SwitchToMainThreadAsync();
-                    new SonarLintDaemonInstaller(settings, daemon).Show();
+                    new SonarLintDaemonInstaller(settings, daemon, logger).Show();
                 }
                 else if (!settings.SkipActivateMoreDialog)
                 {
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     var result = new SonarLintDaemonSplashscreen(settings).ShowDialog();
                     if (result == true)
                     {
-                        new SonarLintDaemonInstaller(settings, daemon).Show();
+                        new SonarLintDaemonInstaller(settings, daemon, logger).Show();
                     }
                 }
             }

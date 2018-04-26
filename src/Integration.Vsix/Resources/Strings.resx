@@ -121,15 +121,33 @@
     <value>Cannot find tool window with the specified guid: {0}</value>
     <comment>Exception message, {0} guid</comment>
   </data>
+  <data name="Daemon_DaemonDownloaded" xml:space="preserve">
+    <value>Finished downloading the daemon.</value>
+  </data>
+  <data name="Daemon_DaemonInstalled" xml:space="preserve">
+    <value>Finished installing the daemon.</value>
+  </data>
+  <data name="Daemon_DownloadingDaemon" xml:space="preserve">
+    <value>Downloading the daemon...</value>
+  </data>
   <data name="Daemon_InitializationComplete" xml:space="preserve">
     <value>Finished initializing the daemon.</value>
   </data>
   <data name="Daemon_Initializing" xml:space="preserve">
     <value>Initializing the daemon...</value>
   </data>
+  <data name="Daemon_InstallingDaemon" xml:space="preserve">
+    <value>Installing the daemon...</value>
+  </data>
+  <data name="ERROR_ConfiguringDaemon" xml:space="preserve">
+    <value>Error occurred configuring the daemon: {0}</value>
+  </data>
   <data name="ERROR_InitializingDaemon" xml:space="preserve">
     <value>Error occurred initializing the daemon: {0}</value>
     <comment>Error message in output window when an exception thrown during async daemon initialization</comment>
+  </data>
+  <data name="ERROR_InstallingDaemon" xml:space="preserve">
+    <value>Error occurred installing the daemon: {0}</value>
   </data>
   <data name="InvalidInfoBarInstance" xml:space="preserve">
     <value>The specified argument is of a valid type.</value>
@@ -138,9 +156,5 @@
   <data name="InvalidVisualStudioVersion" xml:space="preserve">
     <value>Invalid VisualStudio version, expecting '14.0' or '15.0' got '{0}'.</value>
     <comment>Error message in output window when the VisualStudio version is not the expected one. {0} Actual VisualStudio version</comment>
-  </data>
-  <data name="MissingRuntimeOptionsInWorkspace" xml:space="preserve">
-    <value>Impossible to trigger reanalysis of the full solution because 'RuntimeOptions' roslyn type could not be found in the current workspace.</value>
-    <comment>Error message in output window when RuntimeOptions type from roslyn can't be found</comment>
   </data>
 </root>

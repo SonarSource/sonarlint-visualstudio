@@ -21,6 +21,8 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -31,8 +33,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly ISonarLintSettings settings;
         private readonly ISonarLintDaemon daemon;
+        private readonly ILogger logger;
 
-        public GeneralOptionsDialogControl(ISonarLintSettings settings, ISonarLintDaemon daemon)
+        public GeneralOptionsDialogControl(ISonarLintSettings settings, ISonarLintDaemon daemon, ILogger logger)
         {
             if (settings == null)
             {
@@ -42,23 +45,35 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 throw new ArgumentNullException(nameof(daemon));
             }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
 
             this.settings = settings;
             this.daemon = daemon;
+            this.logger = logger;
 
             InitializeComponent();
         }
 
         protected override void OnInitialized(EventArgs e)
         {
-            base.OnInitialized(e);
-
-            if (!daemon.IsInstalled)
+            try
             {
-                settings.IsActivateMoreEnabled = false;
-            }
+                base.OnInitialized(e);
 
-            UpdateActiveMoreControls();
+                if (!daemon.IsInstalled)
+                {
+                    settings.IsActivateMoreEnabled = false;
+                }
+
+                UpdateActiveMoreControls();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Strings.ERROR_ConfiguringDaemon, ex);
+            }
         }
 
         private void UpdateActiveMoreControls()
@@ -88,31 +103,44 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void OnActivateMoreClicked(object sender, RoutedEventArgs e)
         {
-            if (!daemon.IsInstalled)
+            try
             {
-                new SonarLintDaemonInstaller(settings, daemon).Show(UpdateActiveMoreControls);
-                return;
-            }
+                if (!daemon.IsInstalled)
+                {
+                    new SonarLintDaemonInstaller(settings, daemon, logger).Show(UpdateActiveMoreControls);
+                    return;
+                }
+                
+                if (!daemon.IsRunning)
+                {
+                    daemon.Start();
+                }
+                settings.IsActivateMoreEnabled = true;
 
-            if (!daemon.IsRunning)
+                UpdateActiveMoreControls();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                daemon.Start();
+                logger.WriteLine(Strings.ERROR_ConfiguringDaemon, ex);
             }
-            settings.IsActivateMoreEnabled = true;
-
-            UpdateActiveMoreControls();
         }
 
         private void OnDeactivateClicked(object sender, RoutedEventArgs e)
         {
-            if (daemon.IsRunning)
+            try
             {
-                daemon.Stop();
+                if (daemon.IsRunning)
+                {
+                    daemon.Stop();
+                }
+                settings.IsActivateMoreEnabled = false;
+
+                UpdateActiveMoreControls();
             }
-            settings.IsActivateMoreEnabled = false;
-
-            UpdateActiveMoreControls();
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Strings.ERROR_ConfiguringDaemon, ex);
+            }
         }
-
     }
 }
