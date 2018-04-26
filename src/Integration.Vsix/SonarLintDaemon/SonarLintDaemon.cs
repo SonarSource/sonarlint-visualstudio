@@ -29,7 +29,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using Grpc.Core;
+using Microsoft.VisualStudio;
 using Sonarlint;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -112,6 +114,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 throw new InvalidOperationException("Daemon is not installed");
             }
 
+            logger.WriteLine(Strings.Daemon_Starting);
+
             port = TcpUtil.FindFreePort(DEFAULT_DAEMON_PORT);
             process = new Process
             {
@@ -159,6 +163,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 process.Start();
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
+                logger.WriteLine(Strings.Daemon_Started);
             }
             catch (Exception e)
             {
@@ -242,12 +247,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
                 // throw exception?
             }
+
+            logger.WriteLine(Strings.Daemon_Stopping);
             daemonClient = null;
             channel?.ShutdownAsync().Wait();
             channel = null;
             process?.Kill();
             process?.WaitForExit();
             process = null;
+            logger.WriteLine(Strings.Daemon_Stopped);
         }
 
         public int Port => port;
@@ -256,12 +264,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Download()
         {
+            this.logger.WriteLine(Strings.Daemon_Downloading);
+
             Uri uri = new Uri(string.Format(uriFormat, version));
             using (var client = new WebClient())
             {
                 client.DownloadProgressChanged += (sender, args) => DownloadProgressChanged?.Invoke(sender, args);
                 client.DownloadFileCompleted += Unzip;
-                client.DownloadFileCompleted += (sender, args) => DownloadCompleted?.Invoke(sender, args);
+                client.DownloadFileCompleted += (sender, args) =>
+                    {
+                        this.logger.WriteLine(Strings.Daemon_Downloaded);
+                        DownloadCompleted?.Invoke(sender, args);
+                    };
                 client.DownloadFileAsync(uri, ZipFilePath);
             }
         }

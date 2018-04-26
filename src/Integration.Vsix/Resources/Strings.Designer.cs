@@ -72,32 +72,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Finished downloading the daemon..
         /// </summary>
-        internal static string Daemon_DaemonDownloaded {
+        internal static string Daemon_Downloaded {
             get {
-                return ResourceManager.GetString("Daemon_DaemonDownloaded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Finished installing the daemon..
-        /// </summary>
-        internal static string Daemon_DaemonInstalled {
-            get {
-                return ResourceManager.GetString("Daemon_DaemonInstalled", resourceCulture);
+                return ResourceManager.GetString("Daemon_Downloaded", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Downloading the daemon....
         /// </summary>
-        internal static string Daemon_DownloadingDaemon {
+        internal static string Daemon_Downloading {
             get {
-                return ResourceManager.GetString("Daemon_DownloadingDaemon", resourceCulture);
+                return ResourceManager.GetString("Daemon_Downloading", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finished initializing the daemon..
+        ///   Looks up a localized string similar to Finished initializing the daemon package..
         /// </summary>
         internal static string Daemon_InitializationComplete {
             get {
@@ -106,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Initializing the daemon....
+        ///   Looks up a localized string similar to Initializing the daemon package....
         /// </summary>
         internal static string Daemon_Initializing {
             get {
@@ -115,11 +106,56 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Finished installing the daemon..
+        /// </summary>
+        internal static string Daemon_Installed {
+            get {
+                return ResourceManager.GetString("Daemon_Installed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Installing the daemon....
         /// </summary>
-        internal static string Daemon_InstallingDaemon {
+        internal static string Daemon_Installing {
             get {
-                return ResourceManager.GetString("Daemon_InstallingDaemon", resourceCulture);
+                return ResourceManager.GetString("Daemon_Installing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Daemon started successfully..
+        /// </summary>
+        internal static string Daemon_Started {
+            get {
+                return ResourceManager.GetString("Daemon_Started", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting the daemon....
+        /// </summary>
+        internal static string Daemon_Starting {
+            get {
+                return ResourceManager.GetString("Daemon_Starting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Daemon stopped successfully..
+        /// </summary>
+        internal static string Daemon_Stopped {
+            get {
+                return ResourceManager.GetString("Daemon_Stopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stopping the daemon....
+        /// </summary>
+        internal static string Daemon_Stopping {
+            get {
+                return ResourceManager.GetString("Daemon_Stopping", resourceCulture);
             }
         }
         
@@ -133,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error occurred initializing the daemon: {0}.
+        ///   Looks up a localized string similar to Error occurred initializing the daemon package: {0}.
         /// </summary>
         internal static string ERROR_InitializingDaemon {
             get {
