@@ -213,6 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             var mefHostMock = new Mock<IComponentModel>();
             mefHostMock.Setup(m => m.GetExtensions<ISonarLintDaemon>()).Returns(() => new[] { daemon });
             mefHostMock.Setup(m => m.GetExtensions<ISonarLintSettings>()).Returns(() => new[] { settings });
+            mefHostMock.Setup(m => m.GetExtensions<ILogger>()).Returns(() => new[] { new TestLogger() });
 
             var siteMock = new Mock<ISite>();
             siteMock.As<IServiceProvider>().Setup(m => m.GetService(It.Is<Type>(t => t == typeof(SComponentModel)))).Returns(mefHostMock.Object);

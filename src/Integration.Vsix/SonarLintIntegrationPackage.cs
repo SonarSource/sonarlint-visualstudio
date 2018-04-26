@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -29,10 +28,7 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.InfoBar;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarQube.Client.Helpers;
 using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Vsix

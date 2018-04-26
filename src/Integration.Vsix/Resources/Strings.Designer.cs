@@ -70,6 +70,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Finished downloading the daemon..
+        /// </summary>
+        internal static string Daemon_DaemonDownloaded {
+            get {
+                return ResourceManager.GetString("Daemon_DaemonDownloaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finished installing the daemon..
+        /// </summary>
+        internal static string Daemon_DaemonInstalled {
+            get {
+                return ResourceManager.GetString("Daemon_DaemonInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading the daemon....
+        /// </summary>
+        internal static string Daemon_DownloadingDaemon {
+            get {
+                return ResourceManager.GetString("Daemon_DownloadingDaemon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finished initializing the daemon..
         /// </summary>
         internal static string Daemon_InitializationComplete {
@@ -88,11 +115,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Installing the daemon....
+        /// </summary>
+        internal static string Daemon_InstallingDaemon {
+            get {
+                return ResourceManager.GetString("Daemon_InstallingDaemon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error occurred configuring the daemon: {0}.
+        /// </summary>
+        internal static string ERROR_ConfiguringDaemon {
+            get {
+                return ResourceManager.GetString("ERROR_ConfiguringDaemon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error occurred initializing the daemon: {0}.
         /// </summary>
         internal static string ERROR_InitializingDaemon {
             get {
                 return ResourceManager.GetString("ERROR_InitializingDaemon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error occurred installing the daemon: {0}.
+        /// </summary>
+        internal static string ERROR_InstallingDaemon {
+            get {
+                return ResourceManager.GetString("ERROR_InstallingDaemon", resourceCulture);
             }
         }
         
@@ -111,15 +165,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         internal static string InvalidVisualStudioVersion {
             get {
                 return ResourceManager.GetString("InvalidVisualStudioVersion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Impossible to trigger reanalysis of the full solution because &apos;RuntimeOptions&apos; roslyn type could not be found in the current workspace..
-        /// </summary>
-        internal static string MissingRuntimeOptionsInWorkspace {
-            get {
-                return ResourceManager.GetString("MissingRuntimeOptionsInWorkspace", resourceCulture);
             }
         }
     }
