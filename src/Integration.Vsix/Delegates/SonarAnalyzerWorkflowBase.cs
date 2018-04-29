@@ -108,6 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

@@ -64,8 +64,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private SonarAnalyzerManager sonarAnalyzerManager;
         private DeprecationManager deprecationManager;
 
-        private const string SonarLintDataKey = "SonarLintBindingData";
-        private readonly IFormatter formatter = new BinaryFormatter();
         private ILogger logger;
         
         protected override void Initialize()
