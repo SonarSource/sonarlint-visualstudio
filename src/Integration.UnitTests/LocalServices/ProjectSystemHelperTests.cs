@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -53,13 +53,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ProjectSystemHelper_ArgCheck()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectSystemHelper(null));
+            // Arrange
+            Action act = () => new ProjectSystemHelper(null);
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [TestMethod]
         public void ProjectSystemHelper_GetIVsHierarchy_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.GetIVsHierarchy(null));
+            // Arrange
+            Action act = () => this.testSubject.GetIVsHierarchy(null);
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
         }
 
         [TestMethod]
@@ -108,10 +116,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ProjectSystemHelper_IsFileInProject_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(null, "file"));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(new ProjectMock("project"), null));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(new ProjectMock("project"), ""));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.IsFileInProject(new ProjectMock("project"), "\t\n"));
+            // 1. Invalid project
+            Action act = () => this.testSubject.IsFileInProject(null, "file");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
+
+            // 2. Null file name
+            act = () => this.testSubject.IsFileInProject(new ProjectMock("project"), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
+
+            // 3. Empty file name
+            act = () => this.testSubject.IsFileInProject(new ProjectMock("project"), "");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
+
+            // 4. Null file name
+            act = () => this.testSubject.IsFileInProject(new ProjectMock("project"), "\t\n");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
         }
 
         [TestMethod]
@@ -255,10 +274,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ProjectSystemHelper_AddFileToProject_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(null, "file"));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(new ProjectMock("project"), null));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(new ProjectMock("project"), ""));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.AddFileToProject(new ProjectMock("project"), "\t\n"));
+            // 1. Invalid project
+            Action act = () => this.testSubject.AddFileToProject(null, "file");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
+
+            // 2. Null file name
+            act = () => this.testSubject.AddFileToProject(new ProjectMock("project"), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
+
+            // 3. Empty file name
+            act = () => this.testSubject.AddFileToProject(new ProjectMock("project"), "");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
+
+            // 4. Whitespace file name
+            act = () => this.testSubject.AddFileToProject(new ProjectMock("project"), "\t\n");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
         }
 
         [TestMethod]
@@ -378,9 +408,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ProjectSystemHelper_GetProjectProperty_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectProperty(null, "prop"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectProperty(new ProjectMock("a.proj"), null));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectProperty(new ProjectMock("a.proj"), string.Empty));
+            // 1. Null project
+            Action act = () => testSubject.GetProjectProperty(null, "prop");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
+
+            // 2. Null property name
+            act = () => testSubject.GetProjectProperty(new ProjectMock("a.proj"), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
+
+            // 3. Empty property name
+            act = () => testSubject.GetProjectProperty(new ProjectMock("a.proj"), string.Empty);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
         }
 
         [TestMethod]
@@ -414,9 +452,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ProjectSystemHelper_SetProjectProperty_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetProjectProperty(null, "prop", "val"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetProjectProperty(new ProjectMock("a.proj"), null, "val"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.SetProjectProperty(new ProjectMock("a.proj"), string.Empty, "val"));
+            // 1. Null project
+            Action act = () => testSubject.SetProjectProperty(null, "prop", "val");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
+
+            // 2. Null property name
+            act = () => testSubject.SetProjectProperty(new ProjectMock("a.proj"), null, "val");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
+
+            // 3. Empty property name
+            act = () => testSubject.SetProjectProperty(new ProjectMock("a.proj"), string.Empty, "val");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
         }
 
         [TestMethod]
@@ -450,9 +496,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ProjectSystemHelper_ClearProjectProperty_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.ClearProjectProperty(null, "prop"));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), null));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), string.Empty));
+            // 1. Null project
+            Action act = () => testSubject.ClearProjectProperty(null, "prop");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
+
+            // 2. Null property name
+            act = () => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
+
+            // 3. Empty property name
+            act = () => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), string.Empty);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
         }
 
         [TestMethod]
@@ -471,9 +525,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void ProjectSystemHelper_GetProject_ArgChecks()
+        {
+            // Arrange
+            Action act = () => testSubject.GetProject(null);
+
+            // Act and assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectHierarchy");
+        }
+
+        [TestMethod]
         public void ProjectSystemHelper_GetAggregateProjectKinds_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.GetAggregateProjectKinds(null).FirstOrDefault());
+            // Arrange
+            Action act = () => this.testSubject.GetAggregateProjectKinds(null).FirstOrDefault();
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("hierarchy");
         }
 
         [TestMethod]

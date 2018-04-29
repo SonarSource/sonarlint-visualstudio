@@ -86,15 +86,15 @@ namespace SonarLint.VisualStudio.Integration
             return GetSolutionProjects().Where(x => projectFilter.IsAccepted(x));
         }
 
-        public Project GetProject(IVsHierarchy hierarchy)
+        public Project GetProject(IVsHierarchy projectHierarchy)
         {
-            if (hierarchy == null)
+            if (projectHierarchy == null)
             {
-                throw new ArgumentNullException(nameof(hierarchy));
+                throw new ArgumentNullException(nameof(projectHierarchy));
             }
 
             object project;
-            if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out project)))
+            if (ErrorHandler.Succeeded(projectHierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out project)))
             {
                 return project as Project;
             }

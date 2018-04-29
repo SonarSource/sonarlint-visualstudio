@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    public class BindingConfiguration : IEquatable<BindingConfiguration>
+    public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
     {
         public readonly static BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone);
 

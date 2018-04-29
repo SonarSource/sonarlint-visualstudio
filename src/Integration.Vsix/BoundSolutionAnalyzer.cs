@@ -84,6 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             string searchDir = Path.Combine(rootDirectory, folder);
             if (!Directory.Exists(searchDir))
             {
+                // Returning null so the caller can use the null-coalesce operator to check for other directories
                 return null;
             }
             return Directory.GetFiles(searchDir, pattern, SearchOption.TopDirectoryOnly);
