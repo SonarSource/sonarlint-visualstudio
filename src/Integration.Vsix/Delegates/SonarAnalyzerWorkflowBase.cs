@@ -60,7 +60,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IEnumerable<DiagnosticDescriptor> descriptors, SyntaxTree syntaxTree) =>
             descriptors != null &&
             syntaxTree != null &&
-            GetProjectNuGetAnalyzerStatus(syntaxTree) == ProjectAnalyzerStatus.NoAnalyzer;
+            // When the same version of an analyzer is available both as NuGet and Vsix, Roslyn kills/shuts the one available
+            // in the NuGet so we need the Vsix to run.
+            // Summary: Vsix can run when there is NoAnalyzer (NuGet) or when they have same version.
+            GetProjectNuGetAnalyzerStatus(syntaxTree) != ProjectAnalyzerStatus.DifferentVersion;
 
         protected virtual ProjectAnalyzerStatus GetProjectNuGetAnalyzerStatus(SyntaxTree syntaxTree)
         {
