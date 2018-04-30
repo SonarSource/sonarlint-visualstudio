@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ShouldExecuteRegisteredAction_WhenTreeNotNullAndNuGetAnalyzerSameVersion_ReturnsFalse()
+        public void ShouldExecuteRegisteredAction_WhenTreeNotNullAndNuGetAnalyzerSameVersion_ReturnsTrue()
         {
             // Arrange
             var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var result = testSubject.ShouldExecuteRegisteredAction(Enumerable.Empty<DiagnosticDescriptor>(), new Mock<SyntaxTree>().Object);
 
             // Assert
-            result.Should().BeFalse();
+            result.Should().BeTrue();
         }
 
         [TestMethod]
