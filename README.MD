@@ -2,8 +2,8 @@
 
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/SonarSource/sonar-csharp.svg?columns=all)](https://waffle.io/SonarSource/sonar-csharp?source=SonarSource%2Fsonarlint-visualstudio)
 
-[![Quality Gate](https://next.sonarqube.com/sonarqube/api/badges/gate?key=sonarlint-visualstudio)](https://next.sonarqube.com/sonarqube/dashboard?id=sonarlint-visualstudio)
-[![Coverage](https://next.sonarqube.com/sonarqube/api/badges/measure?key=sonarlint-visualstudio&metric=coverage)](https://next.sonarqube.com/sonarqube/component_measures/domain/Coverage?id=sonarlint-visualstudio)
+[![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=sonarlint-visualstudio&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=sonarlint-visualstudio)
+[![Coverage](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=sonarlint-visualstudio&metric=coverage)](https://next.sonarqube.com/sonarqube/component_measures/domain/Coverage?id=sonarlint-visualstudio)
 
 
 SonarLint is a Visual Studio 2015 and 2017 extension that provides on-the-fly feedback to developers on new bugs and
