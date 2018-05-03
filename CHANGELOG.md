@@ -13,7 +13,23 @@ For reference, the possible headings are:
 * **Notes**
 
 
-## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.10.0.3095...HEAD)
+## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.0.0.3479...HEAD)
+
+
+## [4.0](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.10.0.3095...4.0.0.3479)
+
+### New features
+* [#188](https://github.com/SonarSource/sonarlint-visualstudio/issues/188) - Add a command to unbind a project
+
+### Improvements
+* [#400](https://github.com/SonarSource/sonarlint-visualstudio/issues/400) - Updating the bound project (SonarQube Team Explorer page) should refresh suppressed issues
+* [#539](https://github.com/SonarSource/sonarlint-visualstudio/issues/539) - Use AsyncPackage class instead of Package to load in the background
+* [#547](https://github.com/SonarSource/sonarlint-visualstudio/issues/547) - Clicking Update on SonarQube Team Explorer page should force synchronization of Quality Profiles
+* [#638](https://github.com/SonarSource/sonarlint-visualstudio/issues/638) - Update daemon to version 3.4.0.1536
+* [#640](https://github.com/SonarSource/sonarlint-visualstudio/issues/640) - Update SonarAnalyzer to 7.1.0.5212
+
+### Bug fixes
+* [#594](https://github.com/SonarSource/sonarlint-visualstudio/issues/594) - InvalidOperationException thrown
 
 
 ## [3.10](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.9.0.3021...3.10.0.3095)
