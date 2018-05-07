@@ -1,5 +1,5 @@
 #!/bin/groovy
-@Library('SonarSource@1.2') _
+@Library('SonarSource@1.9') _
 
 pipeline {
   agent { 
