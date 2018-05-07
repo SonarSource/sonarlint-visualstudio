@@ -20,6 +20,7 @@
 
 using System;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.Resources;
 
@@ -56,6 +57,37 @@ namespace SonarLint.VisualStudio.Integration
         public static async Task SafeServiceCall(Func<Task> call, ILogger logger)
         {
             await SafeServiceCall(async () => { await call(); return 0; }, logger);
+        }
+
+        // Real bug found in Roslyn - see https://github.com/dotnet/roslyn/pull/21258
+        public static bool TryRedirect(AssemblyName name, byte[] token, int major, int minor, int build, int revision)
+        {
+            var version = new Version(major, minor, revision, build);
+            if (KeysEqual(name.GetPublicKeyToken(), token) && name.Version < version)
+            {
+                name.Version = version;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool KeysEqual(byte[] left, byte[] right)
+        {
+            if (left.Length != right.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < left.Length; i++)
+            {
+                if (left[i] != right[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
