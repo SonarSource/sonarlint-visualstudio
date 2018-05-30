@@ -18,19 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Api.Requests
+using System.Linq;
+using Newtonsoft.Json;
+using SonarQube.Client.Models;
+using SonarQube.Client.Helpers;
+
+namespace SonarQube.Client.Api.Requests.V2_10
 {
-    public static class DefaultConfiguration
+    public class GetPluginsRequest : RequestBase<SonarQubePlugin[]>, IGetPluginsRequest
     {
-        public static RequestFactory Configure(RequestFactory requestFactory)
+        protected override string Path => "api/updatecenter/installed_plugins";
+
+        protected override SonarQubePlugin[] ParseResponse(string response) =>
+            JsonHelper.Deserialize<PluginResponse[]>(response)
+                .Select(ToPlugin)
+                .ToArray();
+
+        private SonarQubePlugin ToPlugin(PluginResponse response) =>
+            new SonarQubePlugin(response.Key, response.Version);
+
+        private class PluginResponse
         {
-            requestFactory
-                .RegisterRequest<IGetPluginsRequest, V2_10.GetPluginsRequest>("2.1")
-                .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>("2.1")
-                .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>("3.3")
-                .RegisterRequest<IGetOrganizationsRequest, V6_20.GetOrganizationsRequest>("6.2")
-                ;
-            return requestFactory;
+            [JsonProperty("key")]
+            public string Key { get; set; }
+
+            [JsonProperty("version")]
+            public string Version { get; set; }
         }
     }
 }

@@ -152,10 +152,8 @@ namespace SonarQube.Client.Api
         public async Task<IList<SonarQubeOrganization>> GetAllOrganizationsAsync(CancellationToken token) =>
             await InvokeRequestAsync<IGetOrganizationsRequest, SonarQubeOrganization[]>(token);
 
-        public Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token) =>
+            await InvokeRequestAsync<IGetPluginsRequest, SonarQubePlugin[]>(token);
 
         public Task<IList<SonarQubeProject>> GetAllProjectsAsync(string organizationKey, CancellationToken token)
         {
