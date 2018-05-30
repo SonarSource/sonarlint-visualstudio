@@ -18,18 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarQube.Client.Models;
+
 namespace SonarQube.Client.Api.Requests
 {
-    public static class DefaultConfiguration
+    public interface IGetOrganizationsRequest : IPagedRequest<SonarQubeOrganization>
     {
-        public static RequestFactory Configure(RequestFactory requestFactory)
-        {
-            requestFactory
-                .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>("2.1")
-                .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>("3.3")
-                .RegisterRequest<IGetOrganizationsRequest, V6_20.GetOrganizationsRequest>("6.2")
-                ;
-            return requestFactory;
-        }
     }
 }

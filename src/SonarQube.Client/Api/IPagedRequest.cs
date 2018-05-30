@@ -18,18 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Api.Requests
+namespace SonarQube.Client.Api
 {
-    public static class DefaultConfiguration
+    /// <summary>
+    /// Implement this interface for requests that return multiple items in pages.
+    /// </summary>
+    /// <typeparam name="TResponseItem">The type of the items returned by this request.</typeparam>
+    public interface IPagedRequest<TResponseItem> : IRequest<TResponseItem[]>
     {
-        public static RequestFactory Configure(RequestFactory requestFactory)
-        {
-            requestFactory
-                .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>("2.1")
-                .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>("3.3")
-                .RegisterRequest<IGetOrganizationsRequest, V6_20.GetOrganizationsRequest>("6.2")
-                ;
-            return requestFactory;
-        }
+        int Page { get; set; }
+
+        int PageSize { get; set; }
     }
 }

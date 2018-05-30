@@ -21,6 +21,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -28,6 +29,7 @@ using Moq;
 using Moq.Protected;
 using SonarQube.Client.Api;
 using SonarQube.Client.Api.Requests;
+using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests.Api
 {
@@ -65,6 +67,16 @@ namespace SonarQube.Client.Tests.Api
                     StatusCode = statusCode,
                     Content = new StringContent(response)
                 }));
+        }
+
+        protected async Task ConnectToSonarQube(string version = "5.6.0.0")
+        {
+            SetupRequest("api/server/version", version);
+            SetupRequest("api/authentication/validate", "{ \"valid\": true}");
+
+            await service.ConnectAsync(
+                new ConnectionInformation(BasePath, "valeri", new SecureString()),
+                CancellationToken.None);
         }
     }
 }
