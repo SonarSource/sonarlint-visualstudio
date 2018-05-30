@@ -36,6 +36,7 @@ namespace SonarQube.Client.Api.Requests
                 .RegisterRequest<IGetProjectsRequest, V6_20.GetProjectsRequest>("6.2")
                 .RegisterRequest<IGetPropertiesRequest, V6_30.GetPropertiesRequest>("6.3")
                 .RegisterRequest<IGetNotificationsRequest, V6_60.GetNotificationsRequest>("6.6")
+                .RegisterRequest<IGetRoslynExportProfileRequest, V6_60.GetRoslynExportProfileRequest>("6.6")
                 ;
             return requestFactory;
         }

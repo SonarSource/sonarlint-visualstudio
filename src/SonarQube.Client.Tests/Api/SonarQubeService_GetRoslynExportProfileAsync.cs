@@ -35,7 +35,7 @@ namespace SonarQube.Client.Tests.Api
     public class SonarQubeService_GetRoslynExportProfileAsync : SonarQubeService_TestBase
     {
         [TestMethod]
-        public async Task GetRoslynQualityProfile_ExampleFromSonarQube()
+        public async Task GetRoslynQualityProfile_Old_ExampleFromSonarQube()
         {
             await ConnectToSonarQube();
 
@@ -98,6 +98,54 @@ namespace SonarQube.Client.Tests.Api
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
             messageHandler.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task GetRoslynQualityProfile_ExampleFromSonarQube()
+        {
+            await ConnectToSonarQube("6.6.0.0");
+
+            SetupRequest("api/qualityprofiles/export?qualityProfile=quality_profile&language=cs&organization=my-org&exporterKey=roslyn-cs",
+                @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RoslynExportProfile Version=""1.0"">
+  <Configuration>
+    <RuleSet Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube."" ToolsVersion=""14.0"">
+      <Rules AnalyzerId=""SonarAnalyzer.CSharp"" RuleNamespace=""SonarAnalyzer.CSharp"">
+        <Rule Id=""S121"" Action=""Warning"" />
+      </Rules>
+    </RuleSet>
+    <AdditionalFiles>
+      <AdditionalFile FileName=""SonarLint.xml"" />
+    </AdditionalFiles>
+  </Configuration>
+  <Deployment>
+    <Plugins>
+      <Plugin Key=""csharp"" Version=""6.4.0.3322"" StaticResourceName=""SonarAnalyzer-6.4.0.3322.zip"" />
+    </Plugins>
+    <NuGetPackages>
+      <NuGetPackage Id=""SonarAnalyzer.CSharp"" Version=""6.4.0.3322"" />
+    </NuGetPackages>
+  </Deployment>
+</RoslynExportProfile>");
+
+            var result = await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
+                CancellationToken.None);
+
+            messageHandler.VerifyAll();
+
+            result.Should().NotBeNull();
+            result.Configuration.Should().NotBeNull();
+            result.Configuration.RuleSet.Should().NotBeNull();
+            result.Configuration.RuleSet.GetAttribute("Name").Should().Be("Rules for SonarQube");
+            result.Configuration.RuleSet.GetAttribute("Description").Should().Be("This rule set was automatically generated from SonarQube.");
+            result.Configuration.RuleSet.GetAttribute("ToolsVersion").Should().Be("14.0");
+            result.Configuration.RuleSet.GetElementsByTagName("Rules").Count.Should().Be(1);
+            result.Configuration.RuleSet.GetElementsByTagName("Rule").Count.Should().Be(1);
+            result.Configuration.AdditionalFiles.Select(x => x.FileName).Should().BeEquivalentTo(new[] { "SonarLint.xml" });
+
+            result.Deployment.Should().NotBeNull();
+            result.Deployment.NuGetPackages.Select(x => x.Id).Should().BeEquivalentTo(new[] { "SonarAnalyzer.CSharp" });
+            result.Deployment.NuGetPackages.Select(x => x.Version).Should().BeEquivalentTo(new[] { "6.4.0.3322" });
         }
     }
 }
