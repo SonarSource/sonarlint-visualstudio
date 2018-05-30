@@ -19,27 +19,29 @@
  */
 
 using System;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests.V5_20
 {
-    public class SonarQubeQualityProfile
+    public class GetQualityProfileChangeLogRequest : PagedRequestBase<DateTime>, IGetQualityProfileChangeLogRequest
     {
-        // Ordinal comparer, similar to project key comparer
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+        [JsonProperty("profileKey")]
+        public virtual string QualityProfileKey { get; set; }
 
-        public string Key { get; }
-        public string Name { get; }
-        public string Language { get; }
-        public bool IsDefault { get; }
-        public DateTime TimeStamp { get; }
+        protected override string Path => "api/qualityprofiles/changelog";
 
-        public SonarQubeQualityProfile(string key, string name, string language, bool isDefault, DateTime timeStamp)
+        protected override DateTime[] ParseResponse(string response) =>
+            JObject.Parse(response)["events"]
+                .ToObject<QualityProfileChangeItemResponse[]>()
+                .Select(x => x.Date)
+                .ToArray();
+
+        private class QualityProfileChangeItemResponse
         {
-            Key = key;
-            Name = name;
-            Language = language;
-            IsDefault = isDefault;
-            TimeStamp = timeStamp;
+            [JsonProperty("date")]
+            public DateTime Date { get; set; }
         }
     }
 }

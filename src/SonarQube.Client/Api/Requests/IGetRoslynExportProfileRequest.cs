@@ -18,28 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using SonarQube.Client.Messages;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests
 {
-    public class SonarQubeQualityProfile
+    interface IGetRoslynExportProfileRequest : IRequest<RoslynExportProfileResponse>
     {
-        // Ordinal comparer, similar to project key comparer
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+        string LanguageKey { get; set; }
 
-        public string Key { get; }
-        public string Name { get; }
-        public string Language { get; }
-        public bool IsDefault { get; }
-        public DateTime TimeStamp { get; }
+        string QualityProfileName { get; set; }
 
-        public SonarQubeQualityProfile(string key, string name, string language, bool isDefault, DateTime timeStamp)
-        {
-            Key = key;
-            Name = name;
-            Language = language;
-            IsDefault = isDefault;
-            TimeStamp = timeStamp;
-        }
+        string OrganizationKey { get; set; }
     }
 }

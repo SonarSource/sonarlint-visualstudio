@@ -20,26 +20,10 @@
 
 using System;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests
 {
-    public class SonarQubeQualityProfile
+    public interface IGetQualityProfileChangeLogRequest : IPagedRequest<DateTime>
     {
-        // Ordinal comparer, similar to project key comparer
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
-
-        public string Key { get; }
-        public string Name { get; }
-        public string Language { get; }
-        public bool IsDefault { get; }
-        public DateTime TimeStamp { get; }
-
-        public SonarQubeQualityProfile(string key, string name, string language, bool isDefault, DateTime timeStamp)
-        {
-            Key = key;
-            Name = name;
-            Language = language;
-            IsDefault = isDefault;
-            TimeStamp = timeStamp;
-        }
+        string QualityProfileKey { get; set; }
     }
 }

@@ -29,24 +29,16 @@ namespace SonarQube.Client.Helpers
     [TestClass]
     public class QueryStringSerializerTests
     {
-        public QueryStringSerializer serializer;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            serializer = new QueryStringSerializer();
-        }
-
         [TestMethod]
         public void Request_Null_Returns_Null()
         {
-            serializer.ToQueryString(null).Should().BeNull();
+            QueryStringSerializer.ToQueryString(null).Should().BeNull();
         }
 
         [TestMethod]
         public void Simple_Properties_Test()
         {
-            serializer.ToQueryString(
+            QueryStringSerializer.ToQueryString(
                 new SimpleProperties
                 {
                     a = 5,
@@ -62,7 +54,7 @@ namespace SonarQube.Client.Helpers
         [TestMethod]
         public void Collection_Properties_Test()
         {
-            serializer.ToQueryString(new ArrayProperties
+            QueryStringSerializer.ToQueryString(new ArrayProperties
             {
                 a = new[] { 1, 2, 3 },
                 b = new[] { "x", "y", "z" },
@@ -73,35 +65,35 @@ namespace SonarQube.Client.Helpers
         [TestMethod]
         public void Object_Properties_Throw_InvalidOperationExcepion()
         {
-            Action action = () => serializer.ToQueryString(new InnerObject());
+            Action action = () => QueryStringSerializer.ToQueryString(new InnerObject());
             action.Should().ThrowExactly<NotSupportedException>();
         }
 
         [TestMethod]
         public void JsonProperty_Overrides_Property_Name()
         {
-            serializer.ToQueryString(new JsonAttributes { MyProperty = 10 })
+            QueryStringSerializer.ToQueryString(new JsonAttributes { MyProperty = 10 })
                 .Should().Be("a=10");
         }
 
         [TestMethod]
         public void Optional_Properties_Not_Serialized()
         {
-            serializer.ToQueryString(new OptionalProperties())
+            QueryStringSerializer.ToQueryString(new OptionalProperties())
                 .Should().Be("");
         }
 
         [TestMethod]
         public void Non_Public_Properties_Not_Serialized()
         {
-            serializer.ToQueryString(new PrivateProperties())
+            QueryStringSerializer.ToQueryString(new PrivateProperties())
                 .Should().Be("");
         }
 
         [TestMethod]
         public void Anonymous_Objects_Serialized()
         {
-            serializer.ToQueryString(new { a = 10, b = true, c = new[] { "x", "y" } })
+            QueryStringSerializer.ToQueryString(new { a = 10, b = true, c = new[] { "x", "y" } })
                 .Should().Be("a=10&b=true&c=x&c=y");
         }
 

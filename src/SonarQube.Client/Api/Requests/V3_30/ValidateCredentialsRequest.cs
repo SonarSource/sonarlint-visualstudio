@@ -18,28 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using Newtonsoft.Json.Linq;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests.V3_30
 {
-    public class SonarQubeQualityProfile
+    public class ValidateCredentialsRequest : RequestBase<bool>, IValidateCredentialsRequest
     {
-        // Ordinal comparer, similar to project key comparer
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+        protected override string Path => "api/authentication/validate";
 
-        public string Key { get; }
-        public string Name { get; }
-        public string Language { get; }
-        public bool IsDefault { get; }
-        public DateTime TimeStamp { get; }
-
-        public SonarQubeQualityProfile(string key, string name, string language, bool isDefault, DateTime timeStamp)
-        {
-            Key = key;
-            Name = name;
-            Language = language;
-            IsDefault = isDefault;
-            TimeStamp = timeStamp;
-        }
+        protected override bool ParseResponse(string response) =>
+            (bool)JObject.Parse(response).SelectToken("valid");
     }
 }

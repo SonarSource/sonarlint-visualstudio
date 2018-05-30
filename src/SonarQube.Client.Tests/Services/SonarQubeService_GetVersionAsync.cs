@@ -18,28 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Tests.Services
 {
-    public class SonarQubeQualityProfile
+    public class SonarQubeService_GetVersionAsync
     {
-        // Ordinal comparer, similar to project key comparer
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
-
-        public string Key { get; }
-        public string Name { get; }
-        public string Language { get; }
-        public bool IsDefault { get; }
-        public DateTime TimeStamp { get; }
-
-        public SonarQubeQualityProfile(string key, string name, string language, bool isDefault, DateTime timeStamp)
-        {
-            Key = key;
-            Name = name;
-            Language = language;
-            IsDefault = isDefault;
-            TimeStamp = timeStamp;
-        }
+        // This request is tested in all other tests because it is used in the setup phase
     }
 }

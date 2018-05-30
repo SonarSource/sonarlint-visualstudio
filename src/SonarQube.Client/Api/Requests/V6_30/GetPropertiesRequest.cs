@@ -18,28 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SonarQube.Client.Models;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests.V6_30
 {
-    public class SonarQubeQualityProfile
+    public class GetPropertiesRequest : RequestBase<SonarQubeProperty[]>, IGetPropertiesRequest
     {
-        // Ordinal comparer, similar to project key comparer
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+        protected override string Path => "api/settings/values";
 
-        public string Key { get; }
-        public string Name { get; }
-        public string Language { get; }
-        public bool IsDefault { get; }
-        public DateTime TimeStamp { get; }
+        protected override SonarQubeProperty[] ParseResponse(string response) =>
+            JObject.Parse(response)["settings"]
+                .ToObject<PropertyResponse[]>()
+                .Select(ToProperty)
+                .ToArray();
 
-        public SonarQubeQualityProfile(string key, string name, string language, bool isDefault, DateTime timeStamp)
+        private SonarQubeProperty ToProperty(PropertyResponse arg) =>
+            new SonarQubeProperty(arg.Key, arg.Value);
+
+        private class PropertyResponse
         {
-            Key = key;
-            Name = name;
-            Language = language;
-            IsDefault = isDefault;
-            TimeStamp = timeStamp;
+            [JsonProperty("key")]
+            public string Key { get; set; }
+
+            [JsonProperty("value")]
+            public string Value { get; set; }
         }
     }
 }
