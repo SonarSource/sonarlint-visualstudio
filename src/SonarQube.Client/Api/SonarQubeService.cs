@@ -171,9 +171,36 @@ namespace SonarQube.Client.Api
             throw new NotImplementedException();
         }
 
-        public Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey, SonarQubeLanguage language, CancellationToken token)
+        public async Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey, SonarQubeLanguage language, CancellationToken token)
         {
-            throw new NotImplementedException();
+            var qualityProfiles = await InvokeRequestAsync<IGetQualityProfilesRequest, SonarQubeQualityProfile[]>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                    request.OrganizationKey = organizationKey;
+                },
+                token);
+
+            // Consider adding the language filter to the request configuration above and removing this line
+            var profilesWithGivenLanguage = qualityProfiles.Where(x => x.Language == language.Key).ToList();
+
+            var qualityProfile = profilesWithGivenLanguage.Count > 1
+                ? profilesWithGivenLanguage.Single(x => x.IsDefault)
+                : profilesWithGivenLanguage.Single();
+
+            var changeLog = await InvokeRequestAsync<IGetQualityProfileChangeLogRequest, DateTime[]>(
+                request =>
+                {
+                    request.Page = 1;
+                    request.PageSize = 1;
+                    request.QualityProfileKey = qualityProfile.Key;
+                },
+                token);
+
+            var updatedDate = changeLog.Any() ? changeLog.Single() : qualityProfile.TimeStamp;
+
+            return new SonarQubeQualityProfile(qualityProfile.Key, qualityProfile.Name, qualityProfile.Language,
+                qualityProfile.IsDefault, updatedDate);
         }
 
         public async Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName,
