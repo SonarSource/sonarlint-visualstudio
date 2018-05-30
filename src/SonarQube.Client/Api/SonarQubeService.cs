@@ -186,9 +186,14 @@ namespace SonarQube.Client.Api
             throw new NotImplementedException();
         }
 
-        public Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey, DateTimeOffset eventsSince, CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey, DateTimeOffset eventsSince,
+            CancellationToken token) =>
+            await InvokeRequestAsync<IGetNotificationsRequest, SonarQubeNotification[]>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                    request.EventsSince = eventsSince;
+                },
+                token);
     }
 }
