@@ -176,10 +176,16 @@ namespace SonarQube.Client.Api
             throw new NotImplementedException();
         }
 
-        public Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName, string organizationKey, SonarQubeLanguage language, CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName,
+            string organizationKey, SonarQubeLanguage language, CancellationToken token) =>
+            await InvokeRequestAsync<IGetRoslynExportProfileRequest, RoslynExportProfileResponse>(
+                request =>
+                {
+                    request.QualityProfileName = qualityProfileName;
+                    request.LanguageKey = language.Key;
+                    request.OrganizationKey = organizationKey;
+                },
+                token);
 
         public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string key, CancellationToken token)
         {
