@@ -163,10 +163,8 @@ namespace SonarQube.Client.Api
                 },
                 token);
 
-        public Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(CancellationToken token) =>
+            await InvokeRequestAsync<IGetPropertiesRequest, SonarQubeProperty[]>(token);
 
         public Uri GetProjectDashboardUrl(string projectKey)
         {

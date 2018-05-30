@@ -18,22 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Api.Requests
+using System.Linq;
+using Newtonsoft.Json;
+using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
+
+namespace SonarQube.Client.Api.Requests.V2_60
 {
-    public static class DefaultConfiguration
+    public class GetPropertiesRequest : RequestBase<SonarQubeProperty[]>, IGetPropertiesRequest
     {
-        public static RequestFactory Configure(RequestFactory requestFactory)
+        protected override string Path => "api/properties";
+
+        protected override SonarQubeProperty[] ParseResponse(string response) =>
+            JsonHelper.Deserialize<PropertyResponse[]>(response)
+                .Select(ToProperty)
+                .ToArray();
+
+        private SonarQubeProperty ToProperty(PropertyResponse arg) =>
+            new SonarQubeProperty(arg.Key, arg.Value);
+
+        private class PropertyResponse
         {
-            requestFactory
-                .RegisterRequest<IGetPluginsRequest, V2_10.GetPluginsRequest>("2.1")
-                .RegisterRequest<IGetProjectsRequest, V2_10.GetProjectsRequest>("2.1")
-                .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>("2.1")
-                .RegisterRequest<IGetPropertiesRequest, V2_60.GetPropertiesRequest>("2.6")
-                .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>("3.3")
-                .RegisterRequest<IGetOrganizationsRequest, V6_20.GetOrganizationsRequest>("6.2")
-                .RegisterRequest<IGetProjectsRequest, V6_20.GetProjectsRequest>("6.2")
-                ;
-            return requestFactory;
+            [JsonProperty("key")]
+            public string Key { get; set; }
+
+            [JsonProperty("value")]
+            public string Value { get; set; }
         }
     }
 }
