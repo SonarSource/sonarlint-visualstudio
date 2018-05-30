@@ -35,7 +35,6 @@ namespace SonarQube.Client.Services
 {
     public sealed class SonarQubeClient : ISonarQubeClient, IDisposable
     {
-        private readonly QueryStringSerializer queryStringSerializer = new QueryStringSerializer();
         private readonly HttpClient httpClient;
         private bool isDisposed;
 
@@ -191,7 +190,7 @@ namespace SonarQube.Client.Services
 
         private Uri BuildRelativeUrl(string relativePath, object request = null)
         {
-            var queryString = queryStringSerializer.ToQueryString(request);
+            var queryString = QueryStringSerializer.ToQueryString(request);
             var url = string.IsNullOrEmpty(queryString)
                 ? relativePath
                 : $"{relativePath}?{queryString}";
