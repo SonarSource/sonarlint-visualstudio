@@ -181,9 +181,18 @@ namespace SonarQube.Client.Api
             throw new NotImplementedException();
         }
 
-        public Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string key, CancellationToken token)
+        public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string key, CancellationToken token)
         {
-            throw new NotImplementedException();
+            var result = await InvokeRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
+                request =>
+                {
+                    request.ProjectKey = key;
+                },
+                token);
+
+            return result
+                .Where(x => x.ResolutionState != SonarQubeIssueResolutionState.Unresolved)
+                .ToList();
         }
 
         public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey, DateTimeOffset eventsSince,

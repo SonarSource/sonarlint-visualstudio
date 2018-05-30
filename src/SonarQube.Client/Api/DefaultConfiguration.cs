@@ -30,6 +30,7 @@ namespace SonarQube.Client.Api.Requests
                 .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>("2.1")
                 .RegisterRequest<IGetPropertiesRequest, V2_60.GetPropertiesRequest>("2.6")
                 .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>("3.3")
+                .RegisterRequest<IGetIssuesRequest, V5_10.GetIssuesRequest>("5.1")
                 .RegisterRequest<IGetOrganizationsRequest, V6_20.GetOrganizationsRequest>("6.2")
                 .RegisterRequest<IGetProjectsRequest, V6_20.GetProjectsRequest>("6.2")
                 .RegisterRequest<IGetPropertiesRequest, V6_30.GetPropertiesRequest>("6.3")
