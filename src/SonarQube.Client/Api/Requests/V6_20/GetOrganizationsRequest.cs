@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -27,6 +28,15 @@ namespace SonarQube.Client.Api.Requests.V6_20
 {
     public class GetOrganizationsRequest : PagedRequestBase<SonarQubeOrganization>, IGetOrganizationsRequest
     {
+        private const bool OnlyUserOrganizationsDefault = false;
+
+        [JsonProperty("member", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue(OnlyUserOrganizationsDefault)]
+        public virtual bool OnlyUserOrganizations
+        {
+            get { return OnlyUserOrganizationsDefault; }
+            set { /* to prevent the property from serialization we always return the default value */ }
+        }
+
         protected override string Path => "api/organizations/search";
 
         protected override SonarQubeOrganization[] ParseResponse(string response) =>

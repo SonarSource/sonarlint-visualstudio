@@ -18,17 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
-
-namespace SonarQube.Client.Api.Requests
+namespace SonarQube.Client.Api.Requests.V7_00
 {
-    public interface IGetOrganizationsRequest : IPagedRequest<SonarQubeOrganization>
+    public class GetOrganizationsRequest : V6_20.GetOrganizationsRequest
     {
-        /// <summary>
-        /// When this value is true, the response will contain only the organizations
-        /// the currently authenticated user is member of. Otherwise it will contain
-        /// all organizations.
-        /// </summary>
-        bool OnlyUserOrganizations { get; set; }
+        public override bool OnlyUserOrganizations { get; set; }
     }
 }
