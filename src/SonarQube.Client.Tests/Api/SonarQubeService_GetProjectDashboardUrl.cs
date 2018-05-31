@@ -18,27 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Client.Messages;
-using SonarQube.Client.Services;
 
-namespace SonarQube.Client.Tests.Services
+namespace SonarQube.Client.Tests.Api
 {
     [TestClass]
-    public class SonarQubeClientFactoryTests
+    public class SonarQubeService_GetProjectDashboardUrl : SonarQubeService_TestBase
     {
         [TestMethod]
-        public void Create_ReturnsNewInstanceOfSonarQubeClient()
+        public async Task GetProjectDashboardUrl_ReturnsExpectedUrl()
         {
-            // Arrange
-            var connection = new ConnectionRequest();
+            await ConnectToSonarQube("6.2.0.0");
 
-            // Act
-            var result = new SonarQubeClientFactory().Create(connection);
+            var result = service.GetProjectDashboardUrl("myProject");
 
-            // Assert
-            result.Should().BeOfType<SonarQubeClient>();
+            result.Host.Should().Be("localhost");
+            result.LocalPath.Should().Be("/dashboard/index/myProject");
         }
     }
 }

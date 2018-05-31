@@ -173,7 +173,11 @@ namespace SonarQube.Client.Api
 
         public Uri GetProjectDashboardUrl(string projectKey)
         {
-            throw new NotImplementedException();
+            EnsureIsConnected();
+
+            const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
+
+            return new Uri(httpClient.BaseAddress, string.Format(ProjectDashboardRelativeUrl, projectKey));
         }
 
         public async Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey, SonarQubeLanguage language, CancellationToken token)
