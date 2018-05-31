@@ -38,6 +38,7 @@ namespace SonarQube.Client.Api.Requests
                 .RegisterRequest<IGetProjectsRequest, V6_20.GetProjectsRequest>("6.2")
                 .RegisterRequest<IGetPluginsRequest, V6_30.GetPluginsRequest>("6.3")
                 .RegisterRequest<IGetPropertiesRequest, V6_30.GetPropertiesRequest>("6.3")
+                .RegisterRequest<IGetQualityProfileChangeLogRequest, V6_50.GetQualityProfileChangeLogRequest>("6.5")
                 .RegisterRequest<IGetQualityProfilesRequest, V6_50.GetQualityProfilesRequest>("6.5")
                 .RegisterRequest<IGetNotificationsRequest, V6_60.GetNotificationsRequest>("6.6")
                 .RegisterRequest<IGetRoslynExportProfileRequest, V6_60.GetRoslynExportProfileRequest>("6.6")

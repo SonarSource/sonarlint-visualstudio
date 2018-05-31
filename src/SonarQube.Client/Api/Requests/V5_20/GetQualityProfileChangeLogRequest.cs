@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -29,6 +30,20 @@ namespace SonarQube.Client.Api.Requests.V5_20
     {
         [JsonProperty("profileKey")]
         public virtual string QualityProfileKey { get; set; }
+
+        [JsonProperty("qualityProfile", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue(null)]
+        public virtual string QualityProfileName
+        {
+            get { return null; }
+            set { /* to prevent the property from serialization we always return the default */ }
+        }
+
+        [JsonProperty("language", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue(null)]
+        public virtual string LanguageName
+        {
+            get { return null; }
+            set { /* to prevent the property from serialization we always return the default */ }
+        }
 
         protected override string Path => "api/qualityprofiles/changelog";
 
