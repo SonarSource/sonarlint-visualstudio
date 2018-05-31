@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarQube Client
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -35,9 +35,6 @@ namespace SonarQube.Client.Helpers
         /// Encoding used to create the basic authentication token
         /// </summary>
         internal static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
-
-        public static AuthenticationHeaderValue Create(ConnectionRequest connectionInfo) =>
-            Create(connectionInfo.Login, connectionInfo.Password, connectionInfo.Authentication);
 
         public static AuthenticationHeaderValue Create(string userName, SecureString password, AuthenticationType authentication)
         {

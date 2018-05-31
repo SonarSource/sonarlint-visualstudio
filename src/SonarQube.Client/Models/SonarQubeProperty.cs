@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Messages;
-
 namespace SonarQube.Client.Models
 {
     public class SonarQubeProperty
@@ -34,11 +32,6 @@ namespace SonarQube.Client.Models
         {
             Key = key;
             Value = value;
-        }
-
-        public static SonarQubeProperty FromResponse(PropertyResponse response)
-        {
-            return new SonarQubeProperty(response.Key, response.Value);
         }
     }
 }

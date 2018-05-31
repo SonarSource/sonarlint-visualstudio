@@ -19,7 +19,6 @@
  */
 
 using System;
-using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Models
 {
@@ -35,16 +34,6 @@ namespace SonarQube.Client.Models
         {
             Key = key;
             Name = name;
-        }
-
-        public static SonarQubeProject FromResponse(ProjectResponse response)
-        {
-            return new SonarQubeProject(response.Key, response.Name);
-        }
-
-        public static SonarQubeProject FromResponse(ComponentResponse response)
-        {
-            return new SonarQubeProject(response.Key, response.Name);
         }
     }
 }

@@ -19,7 +19,6 @@
  */
 
 using System;
-using SonarQube.Client.Messages;
 
 namespace SonarQube.Client.Models
 {
@@ -39,12 +38,6 @@ namespace SonarQube.Client.Models
             Message = message;
             Link = link;
             Date = date;
-        }
-
-        public static SonarQubeNotification FromResponse(NotificationsResponse response)
-        {
-            return new SonarQubeNotification(response.Category, response.Message,
-                response.Link, response.Date);
         }
     }
 }

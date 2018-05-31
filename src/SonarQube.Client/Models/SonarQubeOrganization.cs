@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Messages;
-
 namespace SonarQube.Client.Models
 {
     public class SonarQubeOrganization
@@ -31,11 +29,6 @@ namespace SonarQube.Client.Models
         {
             Key = key;
             Name = name;
-        }
-
-        internal static SonarQubeOrganization FromResponse(OrganizationResponse response)
-        {
-            return new SonarQubeOrganization(response.Key, response.Name);
         }
     }
 }
