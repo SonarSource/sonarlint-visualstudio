@@ -23,6 +23,12 @@ using System.Net.Http;
 
 namespace SonarQube.Client.Services
 {
+public class UnusedClass
+{
+  public string field1;
+  public void Unused(){}
+}
+
     public struct Result<TValue>
     {
         private readonly HttpResponseMessage response;
