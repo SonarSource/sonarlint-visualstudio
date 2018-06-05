@@ -24,7 +24,7 @@ using Newtonsoft.Json;
 namespace SonarLint.VisualStudio.Integration.Telemetry
 {
     /// <summary>
-    /// Converts DateTimeOffset to roundtrip (ISO 8061) but with just milliseconds, no ticks
+    /// Converts DateTimeOffset to roundtrip (ISO 8601) but with just milliseconds, no ticks
     /// </summary>
     internal class ShortIsoDateTimeOffsetConverter : JsonConverter
     {
@@ -34,7 +34,17 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) =>
             reader.ReadAsDateTimeOffset();
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>
-            writer.WriteValue(((DateTimeOffset)value).ToString("yyyy-MM-ddTHH:mm:ss.fffzzz"));
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            // Use the standard format string for ISO 8601
+            var iso8601Date = ((DateTimeOffset)value).ToString("o");
+
+            // Remove the ticks part (not expected by our server side)
+            const int millisecondLastIndex = 23;
+            const int timeOffsetFirstIndex = 27;
+            var simplifiedDate = iso8601Date.Substring(0, millisecondLastIndex) + iso8601Date.Substring(timeOffsetFirstIndex);
+
+            writer.WriteValue(simplifiedDate);
+        }
     }
 }
