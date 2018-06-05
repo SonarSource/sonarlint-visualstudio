@@ -54,5 +54,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             results.Should().HaveCount(cultureCount);
             nonMatchingDates.Should().BeEmpty();
         }
+
+        [TestMethod]
+        public void Convert_AlwaysReturnsAFixedSizeString()
+        {
+            // Arrange
+            var testSubject = new ShortIsoDateTimeOffsetConverter();
+            var jsonWriterMock = new Mock<JsonWriter>();
+            var resultLengths = new List<int>();
+            jsonWriterMock.Setup(x => x.WriteValue(It.IsAny<string>()))
+                .Callback<string>(s => resultLengths.Add(s.Length));
+
+            // Act
+            testSubject.WriteJson(jsonWriterMock.Object, new DateTimeOffset(), null);
+            testSubject.WriteJson(jsonWriterMock.Object, new DateTimeOffset(DateTime.Now), null);
+            testSubject.WriteJson(jsonWriterMock.Object, new DateTimeOffset(DateTime.UtcNow, TimeSpan.Zero), null);
+            testSubject.WriteJson(jsonWriterMock.Object, new DateTimeOffset(1, TimeSpan.Zero), null);
+            testSubject.WriteJson(jsonWriterMock.Object, new DateTimeOffset(1, 1, 1, 1, 1, 1, TimeSpan.Zero), null);
+            testSubject.WriteJson(jsonWriterMock.Object, new DateTimeOffset(1, 1, 1, 1, 1, 1, 1, TimeSpan.Zero), null);
+            testSubject.WriteJson(jsonWriterMock.Object, new DateTimeOffset(1, 1, 1, 1, 1, 1, 1, new JapaneseCalendar(), TimeSpan.FromHours(1)), null);
+
+            // Assert
+            resultLengths.Should().HaveCount(7);
+            resultLengths.Should().AllBeEquivalentTo(29);
+        }
     }
 }
