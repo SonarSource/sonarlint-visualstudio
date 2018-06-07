@@ -13,7 +13,15 @@ For reference, the possible headings are:
 * **Notes**
 
 
-## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.0.0.3479...HEAD)
+## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.1.0.3539...HEAD)
+
+## [4.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.0.0.3479...4.1.0.3539)
+
+### Improvements
+* [#656](https://github.com/SonarSource/sonarlint-visualstudio/issues/656) - Update SonarAnalyzer to 7.2 
+
+### Bug fixes
+* [#653](https://github.com/SonarSource/sonarlint-visualstudio/issues/653) - Fix telemetry dates by handling cultures
 
 
 ## [4.0](https://github.com/SonarSource/sonarlint-visualstudio/compare/3.10.0.3095...4.0.0.3479)
