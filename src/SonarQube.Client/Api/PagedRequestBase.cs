@@ -50,7 +50,7 @@ namespace SonarQube.Client.Api
             Result<TResponseItem[]> pageResult;
             do
             {
-                pageResult = await InvokeImplAsync(httpClient, token);
+                pageResult = await InvokeUncheckedAsync(httpClient, token);
                 pageResult.EnsureSuccess();
 
                 result.AddRange(pageResult.Value);

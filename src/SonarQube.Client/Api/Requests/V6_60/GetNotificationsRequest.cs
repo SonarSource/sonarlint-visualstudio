@@ -43,7 +43,7 @@ namespace SonarQube.Client.Api.Requests.V6_60
 
         public async override Task<SonarQubeNotification[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
-            var result = await InvokeImplAsync(httpClient, token);
+            var result = await InvokeUncheckedAsync(httpClient, token);
 
             switch (result.StatusCode)
             {

@@ -62,7 +62,7 @@ namespace SonarQube.Client
         /// <returns>Class instance that represents the request response.</returns>
         public virtual async Task<TResponse> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
-            var result = await InvokeImplAsync(httpClient, token);
+            var result = await InvokeUncheckedAsync(httpClient, token);
 
             result.EnsureSuccess();
 
@@ -75,7 +75,7 @@ namespace SonarQube.Client
         /// <param name="httpClient">HttpClient instance to be used to invoke the request.</param>
         /// <param name="token">CancellationToken instance to be used to cancel the execution of the request.</param>
         /// <returns>Result instance that contains the HttpStatusCode and the deserialized request response.</returns>
-        protected async Task<Result<TResponse>> InvokeImplAsync(HttpClient httpClient, CancellationToken token)
+        protected async Task<Result<TResponse>> InvokeUncheckedAsync(HttpClient httpClient, CancellationToken token)
         {
             string query = QueryStringSerializer.ToQueryString(this);
 

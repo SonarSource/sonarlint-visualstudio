@@ -24,7 +24,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using SonarQube.Client.Api;
 using SonarQube.Client.Api.Requests;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Messages;
@@ -225,12 +224,12 @@ namespace SonarQube.Client.Api
                 },
                 token);
 
-        public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string key, CancellationToken token)
+        public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, CancellationToken token)
         {
             var result = await InvokeRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
                 request =>
                 {
-                    request.ProjectKey = key;
+                    request.ProjectKey = projectKey;
                 },
                 token);
 

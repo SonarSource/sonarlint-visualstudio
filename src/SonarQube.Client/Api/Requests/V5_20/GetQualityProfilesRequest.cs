@@ -45,14 +45,14 @@ namespace SonarQube.Client.Api.Requests.V5_20
 
         public override async Task<SonarQubeQualityProfile[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
-            var result = await InvokeImplAsync(httpClient, token);
+            var result = await InvokeUncheckedAsync(httpClient, token);
 
             if (result.StatusCode == HttpStatusCode.NotFound)
             {
                 // The project has not been scanned yet, get default quality profile
                 ProjectKey = null;
 
-                result = await InvokeImplAsync(httpClient, token);
+                result = await InvokeUncheckedAsync(httpClient, token);
             }
 
             result.EnsureSuccess();
@@ -70,8 +70,6 @@ namespace SonarQube.Client.Api.Requests.V5_20
             new SonarQubeQualityProfile(
                 response.Key, response.Name, response.Language, response.IsDefault, response.LastRuleChange);
 
-        // This class MUST NOT change! If a breaking change in the API is introduced,
-        // create a new versioned request and reimplement the serialization there
         private class QualityProfileResponse
         {
             [JsonProperty("key")]

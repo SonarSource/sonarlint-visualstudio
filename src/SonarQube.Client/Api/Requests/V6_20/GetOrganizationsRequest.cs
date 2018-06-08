@@ -30,11 +30,15 @@ namespace SonarQube.Client.Api.Requests.V6_20
     {
         private const bool OnlyUserOrganizationsDefault = false;
 
+        /// <summary>
+        /// This property does not exist before SonarQube 7.0 and is deliberately implemented to always return
+        /// the default value in order to prevent it from serialization.
+        /// </summary>
         [JsonProperty("member", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue(OnlyUserOrganizationsDefault)]
         public virtual bool OnlyUserOrganizations
         {
             get { return OnlyUserOrganizationsDefault; }
-            set { /* to prevent the property from serialization we always return the default value */ }
+            set { /* not supported in this implementation */ }
         }
 
         protected override string Path => "api/organizations/search";

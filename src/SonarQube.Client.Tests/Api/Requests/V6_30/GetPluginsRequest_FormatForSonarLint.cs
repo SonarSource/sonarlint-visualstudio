@@ -41,6 +41,7 @@ namespace SonarQube.Client.Tests.Api.Requests.V6_30
             GetPluginsRequest.FormatForSonarLint("1 (build 2345)").Should().Be("1.0.0"); // lower case B
             GetPluginsRequest.FormatForSonarLint("1.2 (Build 3456)").Should().Be("1.2.0");
             GetPluginsRequest.FormatForSonarLint("1.2.3 (Build 4567)").Should().Be("1.2.3");
+            GetPluginsRequest.FormatForSonarLint("10.20.30 (Build 4567)").Should().Be("10.20.30");
         }
     }
 }

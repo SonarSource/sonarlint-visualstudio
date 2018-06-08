@@ -28,7 +28,7 @@ namespace SonarQube.Client.Tests.Services
     public class RequestFactoryTests
     {
         [TestMethod]
-        public void Create_Throws_When_Not_Regitered()
+        public void Create_Throws_When_Not_Registered()
         {
             var factory = new RequestFactory();
             Action action = () => factory.Create<ITestRequest>(new Version(1, 0, 0));
@@ -40,7 +40,7 @@ namespace SonarQube.Client.Tests.Services
         public void Create_Throws_For_Not_Supported_Versions()
         {
             var factory = new RequestFactory();
-            factory.RegisterRequest<ITestRequest, TestRequest1>("2.0.0", () => new TestRequest1());
+            factory.RegisterRequest<ITestRequest, TestRequest1>("2.0.0");
 
             Action action = () => factory.Create<ITestRequest>(new Version(1, 0, 0));
             action.Should().ThrowExactly<InvalidOperationException>().And
@@ -49,22 +49,6 @@ namespace SonarQube.Client.Tests.Services
 
         [TestMethod]
         public void Create_Returns_New_Instance_For_Supported_Versions()
-        {
-            var factory = new RequestFactory();
-            factory.RegisterRequest<ITestRequest, TestRequest1>("1.0.0", () => new TestRequest1());
-            factory.RegisterRequest<ITestRequest, TestRequest2>("2.0.0", () => new TestRequest2());
-            factory.RegisterRequest<ITestRequest, TestRequest3>("3.0.0", () => new TestRequest3());
-
-            factory.Create<ITestRequest>(new Version(1, 0, 0)).Should().BeOfType<TestRequest1>();
-            factory.Create<ITestRequest>(new Version(1, 99, 99)).Should().BeOfType<TestRequest1>();
-            factory.Create<ITestRequest>(new Version(2, 0, 0)).Should().BeOfType<TestRequest2>();
-            factory.Create<ITestRequest>(new Version(2, 99, 99)).Should().BeOfType<TestRequest2>();
-            factory.Create<ITestRequest>(new Version(3, 0, 0)).Should().BeOfType<TestRequest3>();
-            factory.Create<ITestRequest>(new Version(99, 0, 0)).Should().BeOfType<TestRequest3>();
-        }
-
-        [TestMethod]
-        public void Simple_Create_Returns_New_Instance_For_Supported_Versions()
         {
             var factory = new RequestFactory();
             factory.RegisterRequest<ITestRequest, TestRequest1>("1.0.0");
@@ -79,7 +63,59 @@ namespace SonarQube.Client.Tests.Services
             factory.Create<ITestRequest>(new Version(99, 0, 0)).Should().BeOfType<TestRequest3>();
         }
 
+        [TestMethod]
+        public void Create_Returns_Correct_Types()
+        {
+            var factory = new RequestFactory();
+            factory.RegisterRequest<ITestRequest, TestRequest1>("1.0.0");
+            factory.RegisterRequest<IAnotherRequest, AnotherRequest1>("1.0.0");
+
+            factory.Create<IAnotherRequest>(new Version(1, 0, 0)).Should().BeOfType<AnotherRequest1>();
+            factory.Create<ITestRequest>(new Version(1, 0, 0)).Should().BeOfType<TestRequest1>();
+        }
+
+        [TestMethod]
+        public void Create_Null_Returns_Latest_Registered_Version()
+        {
+            var factory = new RequestFactory();
+            factory.RegisterRequest<ITestRequest, TestRequest1>("1.0.0");
+            factory.RegisterRequest<ITestRequest, TestRequest2>("2.0.0");
+
+            factory.Create<ITestRequest>(null).Should().BeOfType<TestRequest2>();
+
+            factory.RegisterRequest<ITestRequest, TestRequest3>("3.0.0");
+
+            factory.Create<ITestRequest>(null).Should().BeOfType<TestRequest3>();
+        }
+
+        [TestMethod]
+        public void Register_Same_RequestInterface_Same_Version_Throws()
+        {
+            var factory = new RequestFactory();
+            factory.RegisterRequest<ITestRequest, TestRequest1>("1.0.0");
+
+            Action action = () => factory.RegisterRequest<ITestRequest, TestRequest2>("1.0.0");
+
+            action.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("Registration for ITestRequest with version 1.0.0 already exists.");
+        }
+
+        [TestMethod]
+        public void Register_Invalid_Version_Throws()
+        {
+            var factory = new RequestFactory();
+
+            Action action = () => factory.RegisterRequest<ITestRequest, TestRequest2>("asdasd");
+
+            action.Should().ThrowExactly<ArgumentException>().And
+                .ParamName.Should().Be("version");
+        }
+
         public interface ITestRequest : IRequest
+        {
+        }
+
+        public interface IAnotherRequest : IRequest
         {
         }
 
@@ -92,6 +128,10 @@ namespace SonarQube.Client.Tests.Services
         }
 
         public class TestRequest3 : ITestRequest
+        {
+        }
+
+        public class AnotherRequest1 : IAnotherRequest
         {
         }
     }

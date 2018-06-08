@@ -26,12 +26,17 @@ namespace SonarQube.Client
 {
     public class RequestFactory
     {
-        private readonly Dictionary<Type, SortedList<Version, Func<object>>> requestMappings =
-            new Dictionary<Type, SortedList<Version, Func<object>>>();
+        /// <summary>
+        /// Map between request type and a list with versioned request implementation factories.
+        /// Each request type could have implementations for multiple versions of SonarQube. The
+        /// SortedList is a map between the minimum supported version of the request implementation
+        /// and the corresponding factory.
+        /// </summary>
+        private readonly Dictionary<Type, SortedList<Version, Func<IRequest>>> registrations =
+            new Dictionary<Type, SortedList<Version, Func<IRequest>>>();
 
         /// <summary>
-        /// Registers a simple request factory for the specified version of SonarQube. It works only for types that
-        /// have parameterless constructor.
+        /// Registers a simple request factory for the specified version of SonarQube.
         /// </summary>
         /// <typeparam name="TRequest">The type of the request interface to create implementation for.</typeparam>
         /// <typeparam name="TRequestImpl">The type implementing TRequest that has a parameterless constructor.</typeparam>
@@ -44,25 +49,30 @@ namespace SonarQube.Client
             return RegisterRequest<TRequest, TRequestImpl>(version, () => new TRequestImpl());
         }
 
-        /// <summary>
-        /// Registers a request factory for the specified version of SonarQube.
-        /// </summary>
-        /// <typeparam name="TRequest">The type of the request interface to create implementation for.</typeparam>
-        /// <typeparam name="TRequestImpl">The type implementing TRequest.</typeparam>
-        /// <param name="version">The version of SonarQube which first implements the request.</param>
-        /// <param name="factory">Factory function to create new instances of TRequestImpl.</param>
-        /// <returns>Returns this.</returns>
-        public RequestFactory RegisterRequest<TRequest, TRequestImpl>(string version, Func<TRequestImpl> factory)
+        private RequestFactory RegisterRequest<TRequest, TRequestImpl>(string version, Func<TRequestImpl> factory)
             where TRequest : IRequest
             where TRequestImpl : TRequest
         {
-            SortedList<Version, Func<object>> map;
-            if (!requestMappings.TryGetValue(typeof(TRequest), out map))
+            Version parsedVersion;
+            if (!Version.TryParse(version, out parsedVersion))
             {
-                map = new SortedList<Version, Func<object>>();
-                requestMappings[typeof(TRequest)] = map;
+                throw new ArgumentException($"Invalid version string '{version}'.", nameof(version));
             }
-            map[Version.Parse(version)] = () => factory();
+
+            SortedList<Version, Func<IRequest>> versionRequestMap;
+            if (!registrations.TryGetValue(typeof(TRequest), out versionRequestMap))
+            {
+                versionRequestMap = new SortedList<Version, Func<IRequest>>();
+                registrations[typeof(TRequest)] = versionRequestMap;
+            }
+            else if (versionRequestMap.ContainsKey(parsedVersion))
+            {
+                throw new InvalidOperationException(
+                    $"Registration for {typeof(TRequest).Name} with version {version} already exists.");
+            }
+
+            versionRequestMap[parsedVersion] = () => factory();
+
             return this;
         }
 
@@ -71,15 +81,15 @@ namespace SonarQube.Client
         /// </summary>
         /// <typeparam name="TRequest">The type of the request implementation to create.</typeparam>
         /// <param name="version">
-        /// SonarQube version to return a request implementation for. The default value returns the
-        /// latest registered implementation.QueryStringSerializer
+        /// SonarQube version to return a request implementation for. When the provided value is null
+        /// returns the registered implementation with the highest version number.
         /// </param>
-        /// <returns>New TRequest implementation for the specified SonarQube version.</returns>
-        public TRequest Create<TRequest>(Version version = null)
+        /// <returns>New the newest TRequest implementation for the specified SonarQube version.</returns>
+        public TRequest Create<TRequest>(Version version)
             where TRequest : IRequest
         {
-            SortedList<Version, Func<object>> map;
-            if (requestMappings.TryGetValue(typeof(TRequest), out map))
+            SortedList<Version, Func<IRequest>> map;
+            if (registrations.TryGetValue(typeof(TRequest), out map))
             {
                 var factory = map
                     .LastOrDefault(entry => version == null || entry.Key <= version)
@@ -92,6 +102,7 @@ namespace SonarQube.Client
 
                 throw new InvalidOperationException($"Could not find compatible implementation of '{typeof(TRequest).Name}' for SonarQube {version}.");
             }
+
             throw new InvalidOperationException($"Could not find factory for '{typeof(TRequest).Name}'.");
         }
     }
