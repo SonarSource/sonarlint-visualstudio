@@ -22,7 +22,7 @@ SonarLint is free, open source, and available in the Visual Studio Gallery.
 ## Useful links
 * [Project homepage](https://redirect.sonarsource.com/doc/sonar-visualstudio.html)
 * [Issue tracking](https://github.com/SonarSource/sonarlint-visualstudio/issues)
-* [Google Group](https://groups.google.com/forum/#!forum/sonarlint)
+* [Community Forum](https://community.sonarsource.com/)
 * [StackOverflow](https://stackoverflow.com/questions/tagged/sonarlint-vs)
 * [SonarC#](https://github.com/SonarSource/sonar-csharp)
 
@@ -30,7 +30,7 @@ SonarLint is free, open source, and available in the Visual Studio Gallery.
 
 To provide feedback (request a feature, report a bug etc.), simply
 [create a GitHub Issue](https://github.com/SonarSource/sonarlint-visualstudio/issues/new).
-Alternatively you can use [SonarQube Google Group](https://groups.google.com/forum/#!forum/sonarlint) or
+Alternatively you can use the [Community Forum](https://community.sonarsource.com/) or
 [StackOverflow](http://stackoverflow.com/questions/tagged/sonarlint-vs) with the tag `sonarlint-vs`.
 
 ## How to contribute
