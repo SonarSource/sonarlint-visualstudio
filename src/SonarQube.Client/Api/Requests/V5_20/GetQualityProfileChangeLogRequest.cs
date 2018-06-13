@@ -31,11 +31,15 @@ namespace SonarQube.Client.Api.Requests.V5_20
         [JsonProperty("profileKey")]
         public virtual string QualityProfileKey { get; set; }
 
+        /// <summary>
+        /// This property does not exist before SonarQube 6.5 and is deliberately implemented to always return
+        /// the default value in order to prevent it from serialization.
+        /// </summary>
         [JsonProperty("qualityProfile", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue(null)]
         public virtual string QualityProfileName
         {
             get { return null; }
-            set { /* to prevent the property from serialization we always return the default */ }
+            set { /* not supported in this implementation */ }
         }
 
         /// <summary>

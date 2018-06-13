@@ -145,7 +145,8 @@ namespace SonarQube.Client.Tests.Api
 
             Func<Task> action = async () => await service.GetAllOrganizationsAsync(CancellationToken.None);
 
-            action.Should().ThrowExactly<InvalidOperationException>();
+            action.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("Could not find compatible implementation of 'IGetOrganizationsRequest' for SonarQube 6.1.0.0.");
         }
 
         [TestMethod]

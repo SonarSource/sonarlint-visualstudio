@@ -127,7 +127,8 @@ namespace SonarQube.Client.Tests.Api
             Func<Task> action = async () =>
                 await service.GetNotificationEventsAsync("my_project", new DateTimeOffset(), CancellationToken.None);
 
-            action.Should().ThrowExactly<InvalidOperationException>();
+            action.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("Could not find compatible implementation of 'IGetNotificationsRequest' for SonarQube 6.5.0.0.");
         }
     }
 }

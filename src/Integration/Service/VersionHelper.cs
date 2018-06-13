@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Service
     {
         private const char PrereleaseSeparator = '-';
 
-        public static readonly string SonarLintVersion = GetSonarLintVersion();
+        public static string SonarLintVersion { get; } = GetSonarLintVersion();
 
         private static string GetSonarLintVersion()
         {
