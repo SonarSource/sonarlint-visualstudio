@@ -18,22 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests.V2_10
 {
-    public class SonarQubeProject
+    public class GetVersionRequest : RequestBase<string>, IGetVersionRequest
     {
-        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+        protected override string Path => "api/server/version";
 
-        public string Key { get; }
-        public string Name { get; }
-
-        public SonarQubeProject(string key, string name)
-        {
-            Key = key;
-            Name = name;
-        }
+        protected override string ParseResponse(string response) => response;
     }
 }

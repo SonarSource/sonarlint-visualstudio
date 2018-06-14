@@ -18,22 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests
 {
-    public class SonarQubeProject
+    public interface IValidateCredentialsRequest : IRequest<bool>
     {
-        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
-
-        public string Key { get; }
-        public string Name { get; }
-
-        public SonarQubeProject(string key, string name)
-        {
-            Key = key;
-            Name = name;
-        }
     }
 }

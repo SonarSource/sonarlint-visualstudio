@@ -18,22 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using SonarQube.Client.Models;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests
 {
-    public class SonarQubeProject
+    public interface IGetOrganizationsRequest : IPagedRequest<SonarQubeOrganization>
     {
-        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
-
-        public string Key { get; }
-        public string Name { get; }
-
-        public SonarQubeProject(string key, string name)
-        {
-            Key = key;
-            Name = name;
-        }
+        /// <summary>
+        /// When this value is true, the response will contain only the organizations
+        /// the currently authenticated user is member of. Otherwise it will contain
+        /// all organizations.
+        /// </summary>
+        bool OnlyUserOrganizations { get; set; }
     }
 }

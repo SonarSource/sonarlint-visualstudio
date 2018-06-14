@@ -18,22 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api
 {
-    public class SonarQubeProject
+    /// <summary>
+    /// Implement this interface for requests that return multiple items in pages.
+    /// </summary>
+    /// <typeparam name="TResponseItem">The type of the items returned by this request.</typeparam>
+    public interface IPagedRequest<TResponseItem> : IRequest<TResponseItem[]>
     {
-        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+        int Page { get; set; }
 
-        public string Key { get; }
-        public string Name { get; }
-
-        public SonarQubeProject(string key, string name)
-        {
-            Key = key;
-            Name = name;
-        }
+        int PageSize { get; set; }
     }
 }

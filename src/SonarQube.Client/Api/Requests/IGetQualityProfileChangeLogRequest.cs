@@ -20,20 +20,12 @@
 
 using System;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests
 {
-    public class SonarQubeProject
+    public interface IGetQualityProfileChangeLogRequest : IPagedRequest<DateTime>
     {
-        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
-
-        public string Key { get; }
-        public string Name { get; }
-
-        public SonarQubeProject(string key, string name)
-        {
-            Key = key;
-            Name = name;
-        }
+        string QualityProfileKey { get; set; }
+        string QualityProfileName { get; set; }
+        string LanguageName { get; set; }
     }
 }

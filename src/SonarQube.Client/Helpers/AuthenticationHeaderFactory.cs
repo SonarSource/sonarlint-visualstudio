@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarQube Client
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -36,19 +36,18 @@ namespace SonarQube.Client.Helpers
         /// </summary>
         internal static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
 
-        public static AuthenticationHeaderValue Create(ConnectionRequest connectionInfo)
+        public static AuthenticationHeaderValue Create(string userName, SecureString password, AuthenticationType authentication)
         {
-            if (connectionInfo.Authentication == AuthenticationType.Basic)
+            if (authentication == AuthenticationType.Basic)
             {
-                return string.IsNullOrWhiteSpace(connectionInfo.Login)
+                return string.IsNullOrWhiteSpace(userName)
                     ? null
-                    : new AuthenticationHeaderValue("Basic", GetBasicAuthToken(connectionInfo.Login,
-                        connectionInfo.Password));
+                    : new AuthenticationHeaderValue("Basic", GetBasicAuthToken(userName, password));
                 // See more info: https://www.visualstudio.com/en-us/integrate/get-started/auth/overview
             }
             else
             {
-                Debug.Fail("Unsupported Authentication: " + connectionInfo.Authentication);
+                Debug.Fail("Unsupported Authentication: " + authentication);
                 return null;
             }
         }

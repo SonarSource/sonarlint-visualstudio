@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using SonarLint.VisualStudio.Integration.Resources;
 
@@ -27,6 +28,13 @@ namespace SonarLint.VisualStudio.Integration.Service
     internal static class VersionHelper
     {
         private const char PrereleaseSeparator = '-';
+
+        public static string SonarLintVersion { get; } = GetSonarLintVersion();
+
+        private static string GetSonarLintVersion()
+        {
+            return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
+        }
 
         /// <summary>
         /// Compare two SonarQube version strings in the format:<para/>

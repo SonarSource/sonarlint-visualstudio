@@ -18,22 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Linq;
+using Newtonsoft.Json;
+using SonarQube.Client.Models;
+using SonarQube.Client.Helpers;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client.Api.Requests.V2_10
 {
-    public class SonarQubeProject
+    public class GetPluginsRequest : RequestBase<SonarQubePlugin[]>, IGetPluginsRequest
     {
-        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+        protected override string Path => "api/updatecenter/installed_plugins";
 
-        public string Key { get; }
-        public string Name { get; }
+        protected override SonarQubePlugin[] ParseResponse(string response) =>
+            JsonHelper.Deserialize<PluginResponse[]>(response)
+                .Select(ToPlugin)
+                .ToArray();
 
-        public SonarQubeProject(string key, string name)
+        private SonarQubePlugin ToPlugin(PluginResponse response) =>
+            new SonarQubePlugin(response.Key, response.Version);
+
+        private class PluginResponse
         {
-            Key = key;
-            Name = name;
+            [JsonProperty("key")]
+            public string Key { get; set; }
+
+            [JsonProperty("version")]
+            public string Version { get; set; }
         }
     }
 }

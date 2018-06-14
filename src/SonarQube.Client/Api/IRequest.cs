@@ -18,22 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace SonarQube.Client.Models
+namespace SonarQube.Client
 {
-    public class SonarQubeProject
+    /// <summary>
+    /// Base request interface, do not directly implement.
+    /// </summary>
+    public interface IRequest
     {
-        // Ordinal comparer should be good enough: http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-        public static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+    }
 
-        public string Key { get; }
-        public string Name { get; }
-
-        public SonarQubeProject(string key, string name)
-        {
-            Key = key;
-            Name = name;
-        }
+    /// <summary>
+    /// Implement this interface on SonarQube request classes.
+    /// </summary>
+    /// <typeparam name="TResponse">The type of the request result.</typeparam>
+    public interface IRequest<TResponse> : IRequest
+    {
+        Task<TResponse> InvokeAsync(HttpClient httpClient, CancellationToken token);
     }
 }

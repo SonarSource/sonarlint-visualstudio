@@ -27,11 +27,11 @@ using Newtonsoft.Json.Linq;
 
 namespace SonarQube.Client.Helpers
 {
-    public class QueryStringSerializer
+    public static class QueryStringSerializer
     {
         private const string QueryDelimiter = "&";
 
-        public string ToQueryString(object request)
+        public static string ToQueryString(object request)
         {
             if (request == null)
             {
