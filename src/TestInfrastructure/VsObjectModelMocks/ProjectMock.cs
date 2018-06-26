@@ -32,8 +32,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class ProjectMock : VsUIHierarchyMock, IVsProject, Project, IVsBuildPropertyStorage, IVsAggregatableProjectCorrected
     {
         private readonly Dictionary<string, uint> files = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
-        private readonly PropertiesMock properties;
-        private readonly ConfigurationManagerMock configurationManager = new ConfigurationManagerMock();
         private readonly IDictionary<string, string> buildProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private string aggregateProjectTypeGuids = string.Empty;
 
@@ -43,7 +41,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             : base(projectFile, (uint)VSConstants.VSITEMID.Root)
         {
             ((Project)this).Name = Path.GetFileName(projectFile);
-            this.properties = new PropertiesMock(this);
         }
 
         public bool IsLoaded
@@ -67,13 +64,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public PropertiesMock Properties
         {
-            get { return this.properties; }
-        }
+            get;
+        } = new PropertiesMock();
 
         public ConfigurationManagerMock ConfigurationManager
         {
-            get { return this.configurationManager; }
-        }
+            get;
+            // Setter for testing
+            set;
+        } = new ConfigurationManagerMock();
 
         #region Project
 

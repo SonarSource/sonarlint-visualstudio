@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio;
@@ -128,6 +129,84 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             sonarLintPane.IsActivated.Should().BeTrue("Expected pane to be activated");
             sonarLintPane.Name.Should().Be(Strings.SonarLintOutputPaneTitle, "Unexpected pane name.");
+        }
+
+        [TestMethod]
+        public void EnumerateProjectProperties_NullConfigManager_ReturnsNull()
+        {
+            // Arrange
+            var project = new ProjectMock("projectfile.proj");
+            project.ConfigurationManager = null; 
+
+            // Act
+            var result = VsShellUtils.GetProjectProperties(project, "anyproperty");
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Count().Should().Be(0);
+        }
+
+        [TestMethod]
+        public void EnumerateProjectProperties_SingleMatchingProperty_NoConfiguration()
+        {
+            // Arrange
+            var project = new ProjectMock("projectfile.proj");
+            project.ConfigurationManager = null;
+            project.Properties.RegisterKnownProperty("AAA").Value = "aaa value";
+            project.Properties.RegisterKnownProperty("BBB").Value = "bbb value";
+            project.Properties.RegisterKnownProperty("CCC").Value = "ccc value";
+
+            // Act
+            var result = VsShellUtils.GetProjectProperties(project, "BBB");
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Count().Should().Be(1);
+            result.First().Value.Should().Be("bbb value");
+        }
+
+        [TestMethod]
+        public void EnumerateProjectProperties_WithConfiguration_MultipleMatches()
+        {
+            // Arrange
+            var project = new ProjectMock("projectfile.proj");
+
+            project.Properties.RegisterKnownProperty("no match1").Value = "value1";
+            project.Properties.RegisterKnownProperty("no match2").Value = "value2";
+
+            // Expected results
+            CreatePropertyForConfiguration(project, "config1", "prop1", "config1 prop1");
+            CreatePropertyForConfiguration(project, "config2", "prop1", "config2 prop1");
+            CreatePropertyForConfiguration(project, "config4", "prop1", "config4 prop1");
+
+            // Additional non-matching properties
+            CreatePropertyForConfiguration(project, "config1", "prop2", "config1 prop2");
+            CreatePropertyForConfiguration(project, "config2", "propXXX", "config2 propXXX");
+            CreatePropertyForConfiguration(project, "config3", "prop1aa", "config3 prop1aa");
+
+            // Act
+            var result = VsShellUtils.GetProjectProperties(project, "prop1");
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Count().Should().Be(3);
+            result.Select(p => p.Value).Should().BeEquivalentTo(
+                new string[] { "config1 prop1", "config2 prop1", "config4 prop1" });
+        }
+
+        private static PropertyMock CreatePropertyForConfiguration(ProjectMock project,
+            string configurationName, string propertyName, object propertyValue)
+        {
+            ConfigurationMock config = project.ConfigurationManager.Configurations.SingleOrDefault(c => c.ConfigurationName == configurationName);
+            if (config == null)
+            {
+                config = new ConfigurationMock(configurationName);
+                project.ConfigurationManager.Configurations.Add(config);
+            }
+
+            var prop = config.Properties.RegisterKnownProperty(propertyName);
+            prop.Value = propertyValue;
+            return prop;
         }
     }
 }

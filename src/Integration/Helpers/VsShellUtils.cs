@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -111,28 +111,29 @@ namespace SonarLint.VisualStudio.Integration
             dte.ToolWindows.SolutionExplorer.Parent.Activate();
         }
 
-        public static IEnumerable<Property> EnumerateProjectProperties(Project project, string propertyName)
+        public static IEnumerable<Property> GetProjectProperties(Project project, string propertyName)
         {
             // Try to find the property on the project level properties (relevant for legacy web projects only)
             Property property = FindProperty(project.Properties, propertyName);
-            if (property == null)
+
+            if (property != null)
+            {
+                return new Property[] { property };
+            }
+
+            if (project.ConfigurationManager != null)
             {
                 // Try to find the property for specific configuration (managed and web 4.5 onward)
                 Configuration[] configurations = project.ConfigurationManager.OfType<Configuration>().ToArray();
-                if (configurations.Length == 0)
+                if (configurations.Length != 0)
                 {
-                    yield break;
+                    return configurations.Select(c => FindProperty(c.Properties, propertyName))
+                        .Where(p => p != null)
+                        .ToList();
                 }
+            }
 
-                foreach (var configuration in configurations)
-                {
-                    yield return FindProperty(configuration.Properties, propertyName);
-                }
-            }
-            else
-            {
-                yield return property;
-            }
+            return Enumerable.Empty<Property>();
         }
 
         public static Property FindProperty(Properties properties, string propertyName)
