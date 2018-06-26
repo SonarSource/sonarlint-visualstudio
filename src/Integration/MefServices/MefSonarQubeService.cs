@@ -20,7 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarQube.Client;
 using SonarQube.Client.Api;
@@ -38,9 +38,10 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     [ExcludeFromCodeCoverage] // Simply provides MEF export
     public class MefSonarQubeService : SonarQubeService
     {
-        public MefSonarQubeService()
-            : base(new HttpClientHandler(),
-                DefaultConfiguration.Configure(new RequestFactory()),
+        [ImportingConstructor]
+        public MefSonarQubeService(ILogger logger)
+            : base(new LoggingHttpClientHandler(logger),
+                DefaultConfiguration.Configure(new RequestFactory(s => logger.LogDebug(s))),
                 userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}")
         {
         }
