@@ -35,6 +35,13 @@ namespace SonarQube.Client
         private readonly Dictionary<Type, SortedList<Version, Func<IRequest>>> registrations =
             new Dictionary<Type, SortedList<Version, Func<IRequest>>>();
 
+        private Action<string> Log { get; }
+
+        public RequestFactory(Action<string> log = null)
+        {
+            Log = log ?? (s => { });
+        }
+
         /// <summary>
         /// Registers a simple request factory for the specified version of SonarQube.
         /// </summary>
@@ -91,13 +98,19 @@ namespace SonarQube.Client
             SortedList<Version, Func<IRequest>> map;
             if (registrations.TryGetValue(typeof(TRequest), out map))
             {
+                Log($"Looking up implementation of '{typeof(TRequest).Name}' for version '{version}'.");
+
                 var factory = map
                     .LastOrDefault(entry => version == null || entry.Key <= version)
                     .Value;
 
                 if (factory != null)
                 {
-                    return (TRequest)factory();
+                    var request = (TRequest)factory();
+
+                    Log($"Created request of type '{request.GetType().FullName}'.");
+
+                    return request;
                 }
 
                 throw new InvalidOperationException($"Could not find compatible implementation of '{typeof(TRequest).Name}' for SonarQube {version}.");
