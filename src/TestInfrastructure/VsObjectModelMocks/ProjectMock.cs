@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             : base(projectFile, (uint)VSConstants.VSITEMID.Root)
         {
             ((Project)this).Name = Path.GetFileName(projectFile);
+            this.Properties = new PropertiesMock(this);
         }
 
         public bool IsLoaded
@@ -62,10 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
-        public PropertiesMock Properties
-        {
-            get;
-        } = new PropertiesMock();
+        public PropertiesMock Properties { get; }
 
         public ConfigurationManagerMock ConfigurationManager
         {
@@ -141,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get
             {
-                return this.properties;
+                return this.Properties;
             }
         }
 
@@ -202,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             get
             {
-                return this.configurationManager;
+                return this.ConfigurationManager;
             }
         }
 
