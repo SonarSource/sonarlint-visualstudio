@@ -77,7 +77,10 @@ namespace SonarLint.VisualStudio.Integration
 
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
 
-            foreach (Property ruleSetProperty in VsShellUtils.EnumerateProjectProperties(project, Constants.CodeAnalysisRuleSetPropertyKey).Where(p => p != null))
+            var ruleSetProperties = VsShellUtils.GetProjectProperties(project, Constants.CodeAnalysisRuleSetPropertyKey);
+            Debug.Assert(ruleSetProperties != null);
+            Debug.Assert(ruleSetProperties.All(p => p != null), "Not expecting nulls in the list of properties");
+            foreach (Property ruleSetProperty in ruleSetProperties)
             {
                 found = true;
 
