@@ -19,6 +19,7 @@
  */
 
 using System;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -270,6 +271,104 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             loggerMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Once);
             json.Should().BeNull();
             sqLanguage.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void TryGetConfig_HeaderFile_ReturnsNull()
+        {
+            // Arrange
+            var loggerMock = new Mock<ILogger>();
+            string sqLanguage;
+
+            var projectItemMock = new Mock<ProjectItem>();
+
+            string json = CFamily.TryGetConfig(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", out sqLanguage);
+
+            // Assert
+            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
+                s => s.Equals("Cannot analyze header files. File: 'c:\\dummy\\file.h'"))), Times.Once);
+            json.Should().BeNull();
+            sqLanguage.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void TryGetConfig_FileOutsideSolution_ReturnsNull()
+        {
+            // Arrange
+            var loggerMock = new Mock<ILogger>();
+            string sqLanguage;
+
+            var projectItemMock = new Mock<ProjectItem>();
+            var projectMock = new ProjectMock("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+            projectItemMock.Setup(i => i.ContainingProject).Returns(projectMock);
+
+            // Act
+            string json = CFamily.TryGetConfig(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", out sqLanguage);
+
+            // Assert
+            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
+                s => s.Equals("Unable to retrieve the configuration for file 'c:\\dummy\\file.cpp'. Check the file is part of a project in the current solution."))),
+                Times.Once);
+            json.Should().BeNull();
+            sqLanguage.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void IsFileInSolution_NullItem_ReturnsFalse()
+        {
+            // Arrange and Act
+            var result = CFamily.IsFileInSolution(null);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsFileInSolution_SingleFileIntelliSense_ReturnsFalse()
+        {
+            // Arrange
+            var projectItemMock = new Mock<ProjectItem>();
+            var projectMock = new ProjectMock("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+            projectItemMock.Setup(i => i.ContainingProject).Returns(projectMock);
+
+            // Act
+            var result = CFamily.IsFileInSolution(projectItemMock.Object);
+
+            // Assert
+            result.Should().BeFalse();
+            projectItemMock.Verify(x => x.ContainingProject, Times.Once); // check the test hit the expected path
+        }
+
+        [TestMethod]
+        public void IsFileInSolution_ExceptionThrown_ReturnsFalse()
+        {
+            // Arrange
+            var projectItemMock = new Mock<ProjectItem>();
+            projectItemMock.Setup(i => i.ContainingProject).Throws<System.Runtime.InteropServices.COMException>();
+
+            // Act
+            var result = CFamily.IsFileInSolution(projectItemMock.Object);
+
+            // Assert
+            result.Should().BeFalse();
+            projectItemMock.Verify(x => x.ContainingProject, Times.Once); // check the test hit the expected path
+        }
+
+        [TestMethod]
+        public void IsHeaderFile_DotHExtension_ReturnsTrue()
+        {
+            // Act and Assert
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\file.h").Should().Be(true);
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\FILE.H").Should().Be(true);
+        }
+
+        [TestMethod]
+        public void IsHeaderFile_NotDotHExtension_ReturnsFalse()
+        {
+            // Act and Assert
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\file.hh").Should().Be(false);
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\FILE.cpp").Should().Be(false);
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\noextension").Should().Be(false);
         }
     }
 }

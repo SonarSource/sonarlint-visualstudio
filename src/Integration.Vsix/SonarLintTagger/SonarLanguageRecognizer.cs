@@ -61,15 +61,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Languages are for now mainly exclusive but it should possible for the same file to be analyzed by multiple
             // plugins (language plugin).
+            var detectedLanguages = new List<SonarLanguage>();
             if (IsJavascriptDocument(fileExtension, contentTypes))
             {
-                yield return SonarLanguage.Javascript;
+                detectedLanguages.Add(SonarLanguage.Javascript);
             }
 
             if (IsCFamilyDocument(contentTypes))
             {
-                yield return SonarLanguage.CFamily;
+                detectedLanguages.Add(SonarLanguage.CFamily);
             }
+            return detectedLanguages;
         }
 
         private IEnumerable<IContentType> GetExtensionContentTypes(string fileExtension, ITextBuffer buffer)
