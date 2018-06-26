@@ -149,6 +149,9 @@ namespace SonarQube.Client.Tests.Api
                 .Message.Should().Be("Could not find compatible implementation of 'IGetOrganizationsRequest' for SonarQube 6.1.0.0.");
         }
 
+        // The implementation of this request is commented out, for more info see:
+        // https://github.com/SonarSource/sonarlint-visualstudio/issues/446
+        [Ignore]
         [TestMethod]
         public async Task GetOrganizations_V7_00_ExampleFromSonarQube()
         {
