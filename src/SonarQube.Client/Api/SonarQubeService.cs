@@ -192,6 +192,11 @@ namespace SonarQube.Client.Api
             // Consider adding the language filter to the request configuration above and removing this line
             var profilesWithGivenLanguage = qualityProfiles.Where(x => x.Language == language.Key).ToList();
 
+            if (profilesWithGivenLanguage.Count == 0)
+            {
+                throw new InvalidOperationException("SonarC# is not installed on the server.");
+            }
+
             var qualityProfile = profilesWithGivenLanguage.Count > 1
                 ? profilesWithGivenLanguage.Single(x => x.IsDefault)
                 : profilesWithGivenLanguage.Single();

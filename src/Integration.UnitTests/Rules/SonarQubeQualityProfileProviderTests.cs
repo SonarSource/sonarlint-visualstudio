@@ -93,14 +93,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
         public void GetQualityProfile_WhenHasNoQualityProfile_ReturnsNull()
         {
             // Arrange
-            SetupServiceResponses(null, new RoslynExportProfileResponse());
+            serviceMock
+                .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SonarQubeLanguage>(), It.IsAny<CancellationToken>()))
+                .Throws(new InvalidOperationException("SonarC# is not installed on the server."));
+
             var testSubject = new SonarQubeQualityProfileProvider(serviceMock.Object, loggerMock.Object);
 
             // Act
-            var result = testSubject.GetQualityProfile(new BoundSonarQubeProject(), Language.Unknown);
+            var result = testSubject.GetQualityProfile(new BoundSonarQubeProject(), Language.CSharp);
 
             // Assert
             result.Should().BeNull();
+            loggerMock
+                .Verify(x => x.WriteLine("SonarQube request failed: {0} {1}", "SonarC# is not installed on the server.", null), Times.Once);
         }
 
         [TestMethod]

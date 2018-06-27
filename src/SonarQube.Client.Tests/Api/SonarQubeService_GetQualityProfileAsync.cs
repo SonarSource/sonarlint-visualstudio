@@ -420,5 +420,95 @@ namespace SonarQube.Client.Tests.Api
             result.Name.Should().Be("Sonar way");
             result.TimeStamp.Should().Be(DateTime.Parse("2015-02-23T17:58:39+0100"));
         }
+
+        [TestMethod]
+        public async Task GetQualityProfile_New_NoQualityProfile_Eg_NoSonarCSharpInstalled()
+        {
+            await ConnectToSonarQube("6.5.0.0");
+
+            // Only a java Quality Profile is returned
+            SetupRequest("api/qualityprofiles/search?project=my_project&organization=my_organization", @"{
+  ""profiles"": [
+    {
+      ""key"": ""AU-TpxcA-iU5OvuD2FL1"",
+      ""name"": ""My BU Profile"",
+      ""language"": ""java"",
+      ""languageName"": ""Java"",
+      ""isInherited"": true,
+      ""isBuiltIn"": false,
+      ""parentKey"": ""iU5OvuD2FLz"",
+      ""parentName"": ""My Company Profile"",
+      ""activeRuleCount"": 15,
+      ""activeDeprecatedRuleCount"": 5,
+      ""isDefault"": false,
+      ""projectCount"": 7,
+      ""ruleUpdatedAt"": ""2016-12-20T19:10:03+0100"",
+      ""lastUsed"": ""2016-12-21T16:10:03+0100"",
+      ""userUpdatedAt"": ""2016-06-28T21:57:01+0200"",
+      ""actions"": {
+        ""edit"": true,
+        ""setAsDefault"": false,
+        ""copy"": false
+      }
+    }
+  ],
+  ""actions"": {
+    ""create"": false
+  }
+}");
+
+            var action = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
+                CancellationToken.None));
+
+            action.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("SonarC# is not installed on the server.");
+
+            messageHandler.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task GetQualityProfile_Old_NoQualityProfile_Eg_NoSonarCSharpInstalled()
+        {
+            await ConnectToSonarQube();
+
+            // Only a java Quality Profile is returned
+            SetupRequest("api/qualityprofiles/search?projectKey=my_project&organization=my_organization", @"{
+  ""profiles"": [
+    {
+      ""key"": ""AU-TpxcA-iU5OvuD2FL1"",
+      ""name"": ""My BU Profile"",
+      ""language"": ""java"",
+      ""languageName"": ""Java"",
+      ""isInherited"": true,
+      ""isBuiltIn"": false,
+      ""parentKey"": ""iU5OvuD2FLz"",
+      ""parentName"": ""My Company Profile"",
+      ""activeRuleCount"": 15,
+      ""activeDeprecatedRuleCount"": 5,
+      ""isDefault"": false,
+      ""projectCount"": 7,
+      ""ruleUpdatedAt"": ""2016-12-20T19:10:03+0100"",
+      ""lastUsed"": ""2016-12-21T16:10:03+0100"",
+      ""userUpdatedAt"": ""2016-06-28T21:57:01+0200"",
+      ""actions"": {
+        ""edit"": true,
+        ""setAsDefault"": false,
+        ""copy"": false
+      }
+    }
+  ],
+  ""actions"": {
+    ""create"": false
+  }
+}");
+
+            var action = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
+                CancellationToken.None));
+
+            action.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("SonarC# is not installed on the server.");
+
+            messageHandler.VerifyAll();
+        }
     }
 }
