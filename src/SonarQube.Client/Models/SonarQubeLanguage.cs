@@ -22,14 +22,16 @@ namespace SonarQube.Client.Models
 {
     public class SonarQubeLanguage
     {
-        public static readonly SonarQubeLanguage CSharp = new SonarQubeLanguage("cs");
-        public static readonly SonarQubeLanguage VbNet = new SonarQubeLanguage("vbnet");
+        public static readonly SonarQubeLanguage CSharp = new SonarQubeLanguage("cs", "SonarC#");
+        public static readonly SonarQubeLanguage VbNet = new SonarQubeLanguage("vbnet", "SonarVB");
 
         public string Key { get; }
+        public string PluginName { get; }
 
-        private SonarQubeLanguage(string key)
+        private SonarQubeLanguage(string key, string pluginName)
         {
             Key = key;
+            PluginName = pluginName;
         }
     }
 }
