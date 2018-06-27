@@ -76,7 +76,7 @@ namespace SonarQube.Client.Api.V5_10
             new SonarQubeIssue(issue.Path, issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey,
                 ParseResolutionState(issue.Resolution), issue.RuleKey);
 
-        public static SonarQubeIssueResolutionState ParseResolutionState(string resolution)
+        private static SonarQubeIssueResolutionState ParseResolutionState(string resolution)
         {
             switch (resolution)
             {
