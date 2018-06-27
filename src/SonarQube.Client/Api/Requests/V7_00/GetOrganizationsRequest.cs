@@ -22,6 +22,7 @@ namespace SonarQube.Client.Api.Requests.V7_00
 {
     public class GetOrganizationsRequest : V6_20.GetOrganizationsRequest
     {
-        public override bool OnlyUserOrganizations { get; set; }
+        // Uncomment code below for https://github.com/SonarSource/sonarlint-visualstudio/issues/446
+        ////public override bool OnlyUserOrganizations { get; set; }
     }
 }
