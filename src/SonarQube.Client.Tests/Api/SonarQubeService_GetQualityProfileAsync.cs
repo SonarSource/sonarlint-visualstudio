@@ -461,7 +461,7 @@ namespace SonarQube.Client.Tests.Api
                 CancellationToken.None));
 
             action.Should().ThrowExactly<InvalidOperationException>().And
-                .Message.Should().Be("SonarC# is not installed on the server.");
+                .Message.Should().Be("The SonarC# plugin is not installed on the connected SonarQube.");
 
             messageHandler.VerifyAll();
         }
@@ -506,7 +506,7 @@ namespace SonarQube.Client.Tests.Api
                 CancellationToken.None));
 
             action.Should().ThrowExactly<InvalidOperationException>().And
-                .Message.Should().Be("SonarC# is not installed on the server.");
+                .Message.Should().Be("The SonarC# plugin is not installed on the connected SonarQube.");
 
             messageHandler.VerifyAll();
         }

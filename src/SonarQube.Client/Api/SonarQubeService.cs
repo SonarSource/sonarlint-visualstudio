@@ -194,7 +194,7 @@ namespace SonarQube.Client.Api
 
             if (profilesWithGivenLanguage.Count == 0)
             {
-                throw new InvalidOperationException("SonarC# is not installed on the server.");
+                throw new InvalidOperationException($"The {language.PluginName} plugin is not installed on the connected SonarQube.");
             }
 
             var qualityProfile = profilesWithGivenLanguage.Count > 1

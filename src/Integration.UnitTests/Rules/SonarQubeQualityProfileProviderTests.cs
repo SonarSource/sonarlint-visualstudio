@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
             // Arrange
             serviceMock
                 .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SonarQubeLanguage>(), It.IsAny<CancellationToken>()))
-                .Throws(new InvalidOperationException("SonarC# is not installed on the server."));
+                .Throws(new InvalidOperationException("The SonarC# plugin is not installed on the connected SonarQube."));
 
             var testSubject = new SonarQubeQualityProfileProvider(serviceMock.Object, loggerMock.Object);
 
@@ -104,8 +104,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
 
             // Assert
             result.Should().BeNull();
-            loggerMock
-                .Verify(x => x.WriteLine("SonarQube request failed: {0} {1}", "SonarC# is not installed on the server.", null), Times.Once);
+            loggerMock.Verify(
+                x => x.WriteLine("SonarQube request failed: {0} {1}", "The SonarC# plugin is not installed on the connected SonarQube.", null),
+                Times.Once());
         }
 
         [TestMethod]
