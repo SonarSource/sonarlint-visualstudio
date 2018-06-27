@@ -19,25 +19,28 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Notifications;
 using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [ExcludeFromCodeCoverage] // Not easily testable, this class should be kept as simple as possible
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    [ProvideAutoLoad(UIContextGuids.NoSolution)]
-    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
-    public sealed class SonarLintNotificationsPackage : Package
+    [ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
+    public sealed class SonarLintNotificationsPackage : AsyncPackage
     {
         /// <summary>
         /// SonarLintNotifications GUID string.
@@ -46,40 +49,84 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private const string NotificationDataKey = "NotificationEventData";
 
         private readonly IFormatter formatter = new BinaryFormatter();
-        private readonly NotificationIndicator notificationIcon = new NotificationIndicator();
+        private NotificationIndicator notificationIcon;
 
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private ISonarQubeNotificationService notifications;
-        private ILogger sonarLintOutput;
+        private ILogger logger;
         private NotificationData notificationData;
         private bool disposed;
 
-        protected override void Initialize()
+        protected override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            AddOptionKey(NotificationDataKey);
-            base.Initialize();
+            JoinableTaskFactory.RunAsync(Init);
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
 
-            var sonarqubeService = this.GetMefService<ISonarQubeService>();
-            sonarLintOutput = this.GetMefService<ILogger>();
+        private async System.Threading.Tasks.Task Init()
+        {
+            // Working on background thread...
+            Debug.Assert(!ThreadHelper.CheckAccess());
+
+            var sonarqubeService = await this.GetMefServiceAsync<ISonarQubeService>();
+            logger = await this.GetMefServiceAsync<ILogger>();
+            logger.WriteLine(Resources.Strings.Notifications_Initializing);
+
+            AddOptionKey(NotificationDataKey);
 
             notifications = new SonarQubeNotificationService(sonarqubeService,
-                new NotificationIndicatorViewModel(), new TimerWrapper { Interval = 60000 }, sonarLintOutput);
+                new NotificationIndicatorViewModel(), new TimerWrapper { Interval = 60000 }, logger);
 
+            activeSolutionBoundTracker = await this.GetMefServiceAsync<IActiveSolutionBoundTracker>();
+
+            // A bound solution might already have completed loading. If so, we need to
+            // trigger the load of the options from the solution file
+            if (activeSolutionBoundTracker.CurrentConfiguration.Mode != SonarLintMode.Standalone)
+            {
+                var solutionPersistence = (IVsSolutionPersistence)await this.GetServiceAsync(typeof(SVsSolutionPersistence));
+                solutionPersistence.LoadPackageUserOpts(this, NotificationDataKey);
+            }
+
+            // Initialising the UI elements has to be on the main thread
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            SafePerformOpOnUIThread(() =>
+            {
+                PerformUIInitialisation();
+                logger.WriteLine(Resources.Strings.Notifications_InitializationComplete);
+            });
+        }
+        private void PerformUIInitialisation()
+        {
+            notificationIcon = new NotificationIndicator();
             notificationIcon.DataContext = notifications.Model;
 
-            activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
+            // The package is now loaded asynchronously, so a solution might have
+            // finished loading before this package is initialized
+            Refresh(activeSolutionBoundTracker.CurrentConfiguration);
+
+            // Ordering: don't register for solution change notifications
+            // until we've finished setting up everything else
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
         }
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs binding)
         {
-            if (binding.Configuration.Mode != NewConnectedMode.SonarLintMode.Standalone)
+            SafePerformOpOnUIThread(() => Refresh(binding.Configuration));
+        }
+
+        private void Refresh(BindingConfiguration bindingConfiguration)
+        {
+            Debug.Assert(ThreadHelper.CheckAccess());
+
+            if (bindingConfiguration.Mode != NewConnectedMode.SonarLintMode.Standalone)
             {
+                logger.WriteLine(Resources.Strings.Notifications_Connected);
                 VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIcon);
-                notifications.StartAsync(binding.Configuration.Project.ProjectKey, notificationData);
+                notifications.StartAsync(bindingConfiguration.Project.ProjectKey, notificationData);
             }
             else
             {
+                logger.WriteLine(Resources.Strings.Notifications_NotConnected);
                 notifications.Stop();
                 VisualStudioStatusBarHelper.RemoveStatusBarIcon(notificationIcon);
             }
@@ -104,22 +151,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (key == NotificationDataKey)
             {
+                logger.WriteLine(Resources.Strings.Notifications_SavingSettings);
                 formatter.Serialize(stream, notifications.GetNotificationData());
             }
         }
 
         protected override void OnLoadOptions(string key, Stream stream)
         {
+            // Note: when the package is loaded asynchronously, a solution might
+            // already be loaded in which case this method will not be called by VS.
+            // In that case we manually trigger the load using the IVsSolutionPersistence
+            // service.
             if (key == NotificationDataKey)
             {
                 try
                 {
+                    logger.WriteLine(Resources.Strings.Notifications_LoadingSettings);
                     notificationData = formatter.Deserialize(stream) as NotificationData;
                 }
                 catch (Exception ex)
                 {
-                    sonarLintOutput.WriteLine($"Failed to read notification data: {ex.Message}");
+                    logger.WriteLine($"Failed to read notification data: {ex.Message}");
                 }
+            }
+        }
+
+        private void SafePerformOpOnUIThread(Action op)
+        {
+            Debug.Assert(ThreadHelper.CheckAccess());
+
+            try
+            {
+                op();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Resources.Strings.Notifications_ERROR, ex.Message);
             }
         }
     }

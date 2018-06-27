@@ -203,5 +203,68 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
                 return ResourceManager.GetString("InvalidVisualStudioVersion", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connected: checking for notifications.
+        /// </summary>
+        internal static string Notifications_Connected {
+            get {
+                return ResourceManager.GetString("Notifications_Connected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notifications: error occurred: {0}.
+        /// </summary>
+        internal static string Notifications_ERROR {
+            get {
+                return ResourceManager.GetString("Notifications_ERROR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finished initializing the notifications package.
+        /// </summary>
+        internal static string Notifications_InitializationComplete {
+            get {
+                return ResourceManager.GetString("Notifications_InitializationComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initializing the notifications package....
+        /// </summary>
+        internal static string Notifications_Initializing {
+            get {
+                return ResourceManager.GetString("Notifications_Initializing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading notifcations settings....
+        /// </summary>
+        internal static string Notifications_LoadingSettings {
+            get {
+                return ResourceManager.GetString("Notifications_LoadingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not connected: not checking for notifications.
+        /// </summary>
+        internal static string Notifications_NotConnected {
+            get {
+                return ResourceManager.GetString("Notifications_NotConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saving notifcations settings....
+        /// </summary>
+        internal static string Notifications_SavingSettings {
+            get {
+                return ResourceManager.GetString("Notifications_SavingSettings", resourceCulture);
+            }
+        }
     }
 }
