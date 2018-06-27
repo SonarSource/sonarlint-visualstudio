@@ -49,14 +49,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly ITextDocument document;
         private readonly IIssueConverter issueConverter;
+        private readonly string charset;
+        private IssuesSnapshot snapshot;
 
-        internal string FilePath { get; private set; }
-        internal string Charset { get; }
-        internal SnapshotFactory Factory { get; }
+        public string FilePath { get; private set; }
+        public SnapshotFactory Factory { get; }
 
-        internal IssuesSnapshot Snapshot { get; set; }
-
-        internal IssueTagger(DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document,
+        public IssueTagger(DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document,
             IEnumerable<SonarLanguage> detectedLanguages)
             : this(dte, provider, buffer, document, detectedLanguages, new IssueConverter()) { }
 
@@ -74,12 +73,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.document = document;
             this.FilePath = document.FilePath;
             this.ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
-            this.Charset = document.Encoding.WebName;
-            this.Factory = new SnapshotFactory(new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, 0,
+            this.charset = document.Encoding.WebName;
+
+            // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
+            // It's possible to have a ProjectItem that doesn't have a ContainingProject
+            // e.g. files under the "External Dependencies" project folder in the Solution Explorer
+            var projectName = this.ProjectItem?.ContainingProject.Name ?? "{none}";
+            this.Factory = new SnapshotFactory(new IssuesSnapshot(projectName, this.FilePath, 0,
                 new List<IssueMarker>()));
 
             this.Initialize();
-
         }
 
         private void FileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -104,14 +107,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             RequestAnalysis();
         }
 
-        internal void DaemonStarted(object sender, EventArgs e)
+        public void DaemonStarted(object sender, EventArgs e)
         {
             RequestAnalysis();
         }
 
         private void RequestAnalysis()
         {
-            provider.RequestAnalysis(FilePath, Charset, detectedLanguages);
+            provider.RequestAnalysis(FilePath, charset, detectedLanguages);
         }
 
         public void Dispose()
@@ -154,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
         }
 
-        internal void UpdateIssues(IEnumerable<Issue> issues)
+        public void UpdateIssues(IEnumerable<Issue> issues)
         {
             var oldSnapshot = this.Factory.CurrentSnapshot;
             var newMarkers = issues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
@@ -176,12 +179,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             UpdateMarkers(currentSnapshot, snapshot);
 
-            this.Snapshot = snapshot;
+            this.snapshot = snapshot;
         }
 
         private void UpdateMarkers(ITextSnapshot currentSnapshot, IssuesSnapshot snapshot)
         {
-            var oldSnapshot = this.Snapshot;
+            var oldSnapshot = this.snapshot;
 
             var handler = this.TagsChanged;
             if (handler == null)
@@ -215,12 +218,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            if (Snapshot == null)
+            if (snapshot == null)
             {
                 return Enumerable.Empty<ITagSpan<IErrorTag>>();
             }
 
-            return Snapshot.IssueMarkers
+            return snapshot.IssueMarkers
                 .Select(issue => issue.Span)
                 .Where(spans.IntersectsWith)
                 .Select(span => new TagSpan<IErrorTag>(span, new ErrorTag(PredefinedErrorTypeNames.Warning)));
