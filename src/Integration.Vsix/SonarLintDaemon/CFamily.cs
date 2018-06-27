@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -34,24 +35,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
 
-        public static string TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath,
-            out string sqLanguage)
+        public static void ProcessFile(ISonarLintDaemon daemon, IIssueConsumer issueConsumer, ILogger logger,
+            ProjectItem projectItem, string absoluteFilePath, string charset)
         {
             if (IsHeaderFile(absoluteFilePath))
             {
                 // We can't analyze header files currently because we can't get all
                 // of the required configuration information
                 logger.WriteLine($"Cannot analyze header files. File: '{absoluteFilePath}'");
-                sqLanguage = null;
-                return null;
+                return;
             }
 
             if (!IsFileInSolution(projectItem))
             {
                 logger.WriteLine($"Unable to retrieve the configuration for file '{absoluteFilePath}'. Check the file is part of a project in the current solution.");
-                sqLanguage = null;
-                return null;
+                return;
             }
+
+            string sqLanguage;
+            string json = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
+            if (json != null && sqLanguage != null)
+            {
+                daemon.RequestAnalysis(absoluteFilePath, charset, sqLanguage, json, issueConsumer);
+            }
+        }
+
+        internal static string TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath,
+            out string sqLanguage)
+        {
+            Debug.Assert(!IsHeaderFile(absoluteFilePath),
+                $"Not expecting TryGetConfig to be called for header files: {absoluteFilePath}");
+
+            Debug.Assert(IsFileInSolution(projectItem),
+                $"Not expecting to be called for files that are not in the solution: {absoluteFilePath}");
 
             try
             {
@@ -83,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // not actually belong to a real project.
                 var indexOfSingleFileString = projectItem?.ContainingProject?.FullName.IndexOf("SingleFileISense", StringComparison.OrdinalIgnoreCase);
                 return indexOfSingleFileString.HasValue &&
-                    indexOfSingleFileString.Value > 0 &&
+                    indexOfSingleFileString.Value <= 0 &&
                     projectItem.ConfigurationManager != null &&
                     // the next line will throw if the file is not part of a solution
                     projectItem.ConfigurationManager.ActiveConfiguration != null;
