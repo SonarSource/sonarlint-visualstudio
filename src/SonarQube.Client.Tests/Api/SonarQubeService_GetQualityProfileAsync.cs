@@ -510,5 +510,28 @@ namespace SonarQube.Client.Tests.Api
 
             messageHandler.VerifyAll();
         }
+
+        [TestMethod]
+        public async Task GetQualityProfile_Old_NoQualityProfile_Eg_NoSonarVBNETInstalled()
+        {
+            await ConnectToSonarQube();
+
+            // Only a java Quality Profile is returned
+            SetupRequest("api/qualityprofiles/search?projectKey=my_project&organization=my_organization", @"{
+  ""profiles"": [
+  ],
+  ""actions"": {
+    ""create"": false
+  }
+}");
+
+            var action = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.VbNet,
+                CancellationToken.None));
+
+            action.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("The SonarVB plugin is not installed on the connected SonarQube.");
+
+            messageHandler.VerifyAll();
+        }
     }
 }
