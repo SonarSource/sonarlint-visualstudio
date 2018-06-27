@@ -149,17 +149,16 @@ namespace SonarQube.Client.Tests.Api
                 .Message.Should().Be("Could not find compatible implementation of 'IGetOrganizationsRequest' for SonarQube 6.1.0.0.");
         }
 
-        // The implementation of this request is commented out, for more info see:
-        // https://github.com/SonarSource/sonarlint-visualstudio/issues/446
-        [Ignore]
         [TestMethod]
         public async Task GetOrganizations_V7_00_ExampleFromSonarQube()
         {
             await ConnectToSonarQube("7.0.0.0");
 
             // The only differnce between this and the previous version is the "member=true" query string parameter
-            // which when specified, should get only the organizations that the current user is member of
-            SetupRequest("api/organizations/search?member=true&p=1&ps=500",
+            // which when specified, should get only the organizations that the current user is member of.
+            // Currently "member=true" is not sent, it should be added for the implementation of
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/446
+            SetupRequest("api/organizations/search?p=1&ps=500",
                 @"
 {
   ""paging"": {
