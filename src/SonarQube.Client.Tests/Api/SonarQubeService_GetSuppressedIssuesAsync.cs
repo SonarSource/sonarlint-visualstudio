@@ -46,7 +46,7 @@ namespace SonarQube.Client.Tests.Api
             var result = await service.GetSuppressedIssuesAsync("project1", CancellationToken.None);
 
             // TODO: create a protobuf file with more than one issue with different states
-            // the one above does not have suppressed issues
+            // the one above does not have suppressed issues, hence the Count==0
             result.Should().HaveCount(0);
 
             messageHandler.VerifyAll();
@@ -177,7 +177,6 @@ namespace SonarQube.Client.Tests.Api
 
             var result = await service.GetSuppressedIssuesAsync("simplcom", CancellationToken.None);
 
-            // The API example does not have issues for C# or VB.NET
             result.Should().HaveCount(2);
 
             var csharpIssue = result[0];
@@ -261,7 +260,6 @@ namespace SonarQube.Client.Tests.Api
 
             var result = await service.GetSuppressedIssuesAsync("simplcom", CancellationToken.None);
 
-            // The API example does not have issues for C# or VB.NET
             result.Should().HaveCount(1001);
 
             messageHandler.VerifyAll();
