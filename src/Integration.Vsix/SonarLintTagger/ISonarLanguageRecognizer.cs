@@ -19,10 +19,7 @@
  */
 
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

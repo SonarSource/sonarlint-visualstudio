@@ -19,6 +19,7 @@
  */
 
 using System;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -257,19 +258,168 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void ProcessFile_HeaderFile_IsNotProcessed()
+        {
+            // Arrange
+            var daemonMock = new Mock<ISonarLintDaemon>();
+            var issueConsumerMock = new Mock<IIssueConsumer>();
+            var loggerMock = new Mock<ILogger>();
+
+            var projectItemMock = new Mock<ProjectItem>();
+
+            // Act
+            CFamily.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
+                loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", "charset");
+
+            // Assert
+            AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
+            AssertFileNotAnalysed(daemonMock);
+        }
+
+        [TestMethod]
+        public void ProcessFile_FileOutsideSolution_IsNotProcessed()
+        {
+            // Arrange
+            var daemonMock = new Mock<ISonarLintDaemon>();
+            var issueConsumerMock = new Mock<IIssueConsumer>();
+            var loggerMock = new Mock<ILogger>();
+
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+
+            // Act
+            CFamily.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
+                loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", "charset");
+
+            // Assert
+            AssertMessageLogged(loggerMock,
+                "Unable to retrieve the configuration for file 'c:\\dummy\\file.cpp'. Check the file is part of a project in the current solution.");
+            AssertFileNotAnalysed(daemonMock);
+        }
+
+        [TestMethod]
+        public void ProcessFile_ErrorGetting_IsHandled()
+        {
+            // Arrange
+            var daemonMock = new Mock<ISonarLintDaemon>();
+            var issueConsumerMock = new Mock<IIssueConsumer>();
+            var loggerMock = new Mock<ILogger>();
+
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
+
+            // Act
+            CFamily.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
+                loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", "charset");
+
+            // Assert
+            AssertPartialMessageLogged(loggerMock,
+                "Unable to collect C/C++ configuration for c:\\dummy\\file.cpp: ");
+            AssertFileNotAnalysed(daemonMock);
+        }
+
+        [TestMethod]
         public void TryGetConfig_ErrorsAreLogged()
         {
             // Arrange
             var loggerMock = new Mock<ILogger>();
             string sqLanguage;
 
-            // Act - passing a null project item so should error when it is used
-            string json = CFamily.TryGetConfig(loggerMock.Object, null, "c:\\dummy", out sqLanguage);
+            // Act
+            using (new AssertIgnoreScope())
+            {
+                string json = CFamily.TryGetConfig(loggerMock.Object, null, "c:\\dummy", out sqLanguage);
+
+                // Assert
+                AssertPartialMessageLogged(loggerMock,
+                    "Unable to collect C/C++ configuration for c:\\dummy: ");
+                json.Should().BeNull();
+                sqLanguage.Should().BeNull();
+            }
+        }
+
+        [TestMethod]
+        public void IsFileInSolution_NullItem_ReturnsFalse()
+        {
+            // Arrange and Act
+            var result = CFamily.IsFileInSolution(null);
 
             // Assert
-            loggerMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Once);
-            json.Should().BeNull();
-            sqLanguage.Should().BeNull();
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsFileInSolution_SingleFileIntelliSense_ReturnsFalse()
+        {
+            // Arrange
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+
+            // Act
+            var result = CFamily.IsFileInSolution(projectItemMock.Object);
+
+            // Assert
+            result.Should().BeFalse();
+            projectItemMock.Verify(x => x.ContainingProject, Times.Once); // check the test hit the expected path
+        }
+
+        [TestMethod]
+        public void IsFileInSolution_ExceptionThrown_ReturnsFalse()
+        {
+            // Arrange
+            var projectItemMock = new Mock<ProjectItem>();
+            projectItemMock.Setup(i => i.ContainingProject).Throws<System.Runtime.InteropServices.COMException>();
+
+            // Act
+            var result = CFamily.IsFileInSolution(projectItemMock.Object);
+
+            // Assert
+            result.Should().BeFalse();
+            projectItemMock.Verify(x => x.ContainingProject, Times.Once); // check the test hit the expected path
+        }
+
+        [TestMethod]
+        public void IsHeaderFile_DotHExtension_ReturnsTrue()
+        {
+            // Act and Assert
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\file.h").Should().Be(true);
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\FILE.H").Should().Be(true);
+        }
+
+        [TestMethod]
+        public void IsHeaderFile_NotDotHExtension_ReturnsFalse()
+        {
+            // Act and Assert
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\file.hh").Should().Be(false);
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\FILE.cpp").Should().Be(false);
+            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\noextension").Should().Be(false);
+        }
+
+        private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
+        {
+            var projectItemMock = new Mock<ProjectItem>();
+            var projectMock = new ProjectMock(projectName);
+            projectItemMock.Setup(i => i.ContainingProject).Returns(projectMock);
+            projectItemMock.Setup(i => i.ConfigurationManager).Returns(projectMock.ConfigurationManager);
+            projectMock.ConfigurationManager.ActiveConfiguration = new ConfigurationMock("dummy config");
+
+            return projectItemMock;
+        }
+
+        private static void AssertFileNotAnalysed(Mock<ISonarLintDaemon> daemonMock)
+        {
+            daemonMock.Verify(d => d.RequestAnalysis(It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<IIssueConsumer>()),
+                Times.Never);
+        }
+
+        private static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
+        {
+            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
+                s => s.Equals(message))), Times.Once);
+        }
+        private static void AssertPartialMessageLogged(Mock<ILogger> loggerMock, string message)
+        {
+            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
+                s => s.Contains(message))), Times.Once);
         }
     }
 }

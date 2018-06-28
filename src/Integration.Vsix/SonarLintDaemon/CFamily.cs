@@ -20,37 +20,100 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using EnvDTE;
+using Microsoft.VisualStudio;
 using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    static class CFamily
+    internal static class CFamily
     {
+        public const string CPP_LANGUAGE_KEY = "cpp";
+        public const string C_LANGUAGE_KEY = "c";
 
-        internal const string CPP_LANGUAGE_KEY = "cpp";
-        internal const string C_LANGUAGE_KEY = "c";
+        public static void ProcessFile(ISonarLintDaemon daemon, IIssueConsumer issueConsumer, ILogger logger,
+            ProjectItem projectItem, string absoluteFilePath, string charset)
+        {
+            if (IsHeaderFile(absoluteFilePath))
+            {
+                // We can't analyze header files currently because we can't get all
+                // of the required configuration information
+                logger.WriteLine($"Cannot analyze header files. File: '{absoluteFilePath}'");
+                return;
+            }
 
-        public static string TryGetConfig(ILogger logger, EnvDTE.ProjectItem projectItem, string absoluteFilePath,
+            if (!IsFileInSolution(projectItem))
+            {
+                logger.WriteLine($"Unable to retrieve the configuration for file '{absoluteFilePath}'. Check the file is part of a project in the current solution.");
+                return;
+            }
+
+            string sqLanguage;
+            string json = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
+            if (json != null && sqLanguage != null)
+            {
+                daemon.RequestAnalysis(absoluteFilePath, charset, sqLanguage, json, issueConsumer);
+            }
+        }
+
+        internal static string TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath,
             out string sqLanguage)
         {
+            Debug.Assert(!IsHeaderFile(absoluteFilePath),
+                $"Not expecting TryGetConfig to be called for header files: {absoluteFilePath}");
+
+            Debug.Assert(IsFileInSolution(projectItem),
+                $"Not expecting to be called for files that are not in the solution: {absoluteFilePath}");
+
             try
             {
                 return FileConfig.TryGet(projectItem, absoluteFilePath).ToJson(absoluteFilePath, out sqLanguage);
             }
             catch (Exception e)
             {
-                logger.WriteLine("Unable to collect C/C++ configuration: " + e.ToString());
+                logger.WriteLine($"Unable to collect C/C++ configuration for {absoluteFilePath}: {e.ToString()}");
                 sqLanguage = null;
                 return null;
             }
         }
 
+        internal static bool IsHeaderFile(string absoluteFilePath)
+        {
+            var fileInfo = new FileInfo(absoluteFilePath);
+            return fileInfo.Extension.Equals(".h", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static bool IsFileInSolution(ProjectItem projectItem)
+        {
+            try
+            {
+                // Issue 667:  https://github.com/SonarSource/sonarlint-visualstudio/issues/667
+                // If you open a C++ file that is not part of the current solution then
+                // VS will cruft up a temporary vcxproj so that it can provide language
+                // services for the file (e.g. syntax highlighting). This means that
+                // even though we have what looks like a valid project item, it might 
+                // not actually belong to a real project.
+                var indexOfSingleFileString = projectItem?.ContainingProject?.FullName.IndexOf("SingleFileISense", StringComparison.OrdinalIgnoreCase);
+                return indexOfSingleFileString.HasValue &&
+                    indexOfSingleFileString.Value <= 0 &&
+                    projectItem.ConfigurationManager != null &&
+                    // the next line will throw if the file is not part of a solution
+                    projectItem.ConfigurationManager.ActiveConfiguration != null;
+            }
+            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Suppress non-critical exceptions
+            }
+            return false;
+        }
+
         internal class FileConfig
         {
-            public static FileConfig TryGet(EnvDTE.ProjectItem projectItem, string absoluteFilePath)
+            public static FileConfig TryGet(ProjectItem projectItem, string absoluteFilePath)
             {
                 string configurationName = projectItem.ConfigurationManager.ActiveConfiguration.ConfigurationName; // "Debug" or "Release"
                 string platformName = projectItem.ConfigurationManager.ActiveConfiguration.PlatformName; // "Win32" or "x64"
@@ -106,11 +169,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             /// Computes property value taking into account inheritance, property sheets and macros.
             /// </summary>
             /// <param name="propertyName">name of the property (note that name corresponds to xml tag in vcxproj)</param>
-            private static string GetEvaluatedPropertyValue(dynamic fileTool, string propertyName)
+            private static string GetEvaluatedPropertyValue(object fileTool, string propertyName)
             {
                 if (getEvaluatedPropertyValue == null)
                 {
-                    var theType = ((object)fileTool).GetType();
+                    var theType = fileTool.GetType();
                     getEvaluatedPropertyValue = theType.GetMethod(
                         "Microsoft.VisualStudio.VCProjectEngine.IVCRulePropertyStorage.GetEvaluatedPropertyValue",
                         BindingFlags.Instance | BindingFlags.NonPublic

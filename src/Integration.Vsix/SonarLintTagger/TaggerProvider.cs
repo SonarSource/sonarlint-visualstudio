@@ -31,7 +31,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Sonarlint;
-using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -191,30 +190,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages)
         {
             IssueTagger tracker;
-            if (taggers.TryGetValue(path, out tracker))
+            if (!taggers.TryGetValue(path, out tracker))
             {
-                foreach (var language in detectedLanguages)
+                return;
+            }
+
+            bool handled = false;
+            foreach (var language in detectedLanguages)
+            {
+                switch (language)
                 {
-                    switch (language)
-                    {
-                        case SonarLanguage.Javascript:
-                            daemon.RequestAnalysis(path, charset, "js", null, this);
-                            break;
+                    case SonarLanguage.Javascript:
+                        handled = true;
+                        daemon.RequestAnalysis(path, charset, "js", null, this);
+                        break;
 
-                        case SonarLanguage.CFamily:
-                            string sqLanguage;
-                            string json = CFamily.TryGetConfig(logger, tracker.ProjectItem, path, out sqLanguage);
-                            if (json != null && sqLanguage != null)
-                            {
-                                daemon.RequestAnalysis(path, charset, sqLanguage, json, this);
-                            }
-                            break;
+                    case SonarLanguage.CFamily:
+                        handled = true;
+                        CFamily.ProcessFile(daemon, this, logger, tracker.ProjectItem, path, charset);
+                        break;
 
-                        default:
-                            break;
-                    }
+                    default:
+                        break;
                 }
+            }
 
+            if (!handled)
+            {
                 logger.WriteLine($"Unsupported content type for {path}");
             }
         }
