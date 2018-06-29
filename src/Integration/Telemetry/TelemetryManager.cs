@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
@@ -83,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         public bool IsAnonymousDataShared => telemetryRepository.Data.IsAnonymousDataShared;
-
+        
         public void Dispose()
         {
             DisableAllEvents();
@@ -137,17 +138,27 @@ namespace SonarLint.VisualStudio.Integration
 
         private void OnAnalysisRun(object sender, UIContextChangedEventArgs e)
         {
-            if (!e.Activated)
+            if (e.Activated)
             {
-                return;
+                this.Update();
             }
+        }
 
-            var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate;
-            if (!DateTimeOffset.Now.IsSameDay(lastAnalysisDate))
+        public void Update()
+        {
+            try
             {
-                telemetryRepository.Data.LastSavedAnalysisDate = DateTimeOffset.Now;
-                telemetryRepository.Data.NumberOfDaysOfUse++;
-                telemetryRepository.Save();
+                var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate;
+                if (!DateTimeOffset.Now.IsSameDay(lastAnalysisDate))
+                {
+                    telemetryRepository.Data.LastSavedAnalysisDate = DateTimeOffset.Now;
+                    telemetryRepository.Data.NumberOfDaysOfUse++;
+                    telemetryRepository.Save();
+                }
+            }
+            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Suppress non-critical exceptions
             }
         }
 

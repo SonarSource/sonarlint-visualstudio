@@ -266,5 +266,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
                 return ResourceManager.GetString("Notifications_SavingSettings", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telemetry: error occurred: {0}.
+        /// </summary>
+        internal static string Telemetry_ERROR {
+            get {
+                return ResourceManager.GetString("Telemetry_ERROR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finished initializing the telemetry package....
+        /// </summary>
+        internal static string Telemetry_InitializationComplete {
+            get {
+                return ResourceManager.GetString("Telemetry_InitializationComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initializing the telemetry package....
+        /// </summary>
+        internal static string Telemetry_Initializing {
+            get {
+                return ResourceManager.GetString("Telemetry_Initializing", resourceCulture);
+            }
+        }
     }
 }

@@ -25,5 +25,6 @@ namespace SonarLint.VisualStudio.Integration
         bool IsAnonymousDataShared { get; }
         void OptOut();
         void OptIn();
+        void Update();
     }
 }
