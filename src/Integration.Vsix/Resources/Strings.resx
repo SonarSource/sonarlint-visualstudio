@@ -169,4 +169,32 @@
     <value>Invalid VisualStudio version, expecting '14.0' or '15.0' got '{0}'.</value>
     <comment>Error message in output window when the VisualStudio version is not the expected one. {0} Actual VisualStudio version</comment>
   </data>
+  <data name="Notifications_Connected" xml:space="preserve">
+    <value>Connected: checking for notifications</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Notifications_ERROR" xml:space="preserve">
+    <value>Notifications: error occurred: {0}</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Notifications_InitializationComplete" xml:space="preserve">
+    <value>Finished initializing the notifications package</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Notifications_Initializing" xml:space="preserve">
+    <value>Initializing the notifications package...</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Notifications_LoadingSettings" xml:space="preserve">
+    <value>Loading notifcations settings...</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Notifications_NotConnected" xml:space="preserve">
+    <value>Not connected: not checking for notifications</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Notifications_SavingSettings" xml:space="preserve">
+    <value>Saving notifcations settings...</value>
+    <comment>Output window message</comment>
+  </data>
 </root>

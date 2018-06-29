@@ -784,6 +784,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Notifications are not supported on this version of SonarQube.
+        /// </summary>
+        public static string Notifications_NotSupported {
+            get {
+                return ResourceManager.GetString("Notifications_NotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This SonarQube server only supported plugin language ({0}) does not match any of this solution projects&apos; languages..
         /// </summary>
         public static string OnlySupportedPluginHasNoProjectInSolution {

@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Services;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
@@ -31,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     {
         private readonly ITimer timer;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly ILogger sonarLintOutput;
+        private readonly ILogger logger;
 
         private CancellationTokenSource cancellation;
         private DateTimeOffset lastCheckDate;
@@ -47,12 +48,12 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             };
 
         public SonarQubeNotificationService(ISonarQubeService sonarQubeService, INotificationIndicatorViewModel model,
-            ITimer timer, ILogger sonarLintOutput)
+            ITimer timer, ILogger logger)
         {
             this.sonarQubeService = sonarQubeService;
             this.timer = timer;
             this.timer.Elapsed += OnTimerElapsed;
-            this.sonarLintOutput = sonarLintOutput;
+            this.logger = logger;
 
             Model = model;
         }
@@ -97,6 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                 if (events == null)
                 {
                     // Notifications are not supported on SonarQube
+                    logger.WriteLine(Strings.Notifications_NotSupported);
                     Stop();
                     return;
                 }
@@ -117,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
             catch (Exception ex)
             {
-                sonarLintOutput.WriteLine($"Failed to fetch notifications: {ex.Message}");
+                logger.WriteLine($"Failed to fetch notifications: {ex.Message}");
             }
         }
 

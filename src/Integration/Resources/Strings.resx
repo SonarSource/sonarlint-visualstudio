@@ -646,10 +646,6 @@ This is the general format to use when writing errors to output window or when t
     <value>Detecting server plugins</value>
     <comment>Output window message printed before accessing to server plugins.</comment>
   </data>
-  <data name="OnlySupportedPluginHasNoProjectInSolution" xml:space="preserve">
-    <value>This SonarQube server only supported plugin language ({0}) does not match any of this solution projects' languages.</value>
-    <comment>Output window message printed when the only supported plugin has no matching project types in the current solution. {0} the name of the language.</comment>
-  </data>
   <data name="SolutionContainsNoSupportedProject" xml:space="preserve">
     <value>This solution contains no supported project language (C#, VB.Net). Please create at least one project of the supported language and then try to reconnect.</value>
     <comment>Output window message printed when some server plugin are supported but the current solution contains no supported project (based on project type GUID).</comment>
@@ -722,5 +718,13 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="Bind_NuGetAnalyzersNoLongerInstalled" xml:space="preserve">
     <value>INFO: SonarLint connected mode no longer installs the analyzers NuGet packages. The analyzers embedded in the VSIX are used instead.</value>
+  </data>
+  <data name="Notifications_NotSupported" xml:space="preserve">
+    <value>Notifications are not supported on this version of SonarQube</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="OnlySupportedPluginHasNoProjectInSolution" xml:space="preserve">
+    <value>This SonarQube server only supported plugin language ({0}) does not match any of this solution projects' languages.</value>
+    <comment>Output window message printed when the only supported plugin has no matching project types in the current solution. {0} the name of the language.</comment>
   </data>
 </root>
