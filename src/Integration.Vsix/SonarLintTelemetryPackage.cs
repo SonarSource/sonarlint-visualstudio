@@ -83,9 +83,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var solution = await this.GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
             Debug.Assert(solution != null, "Cannot find SVsSolution");
 
-            var hresult = solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out object value);
+            object isLoaded;
+            var hresult = solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
 
-            return ErrorHandler.Succeeded(hresult) && value is bool isOpen && isOpen;
+            if (ErrorHandler.Succeeded(hresult) && isLoaded is Boolean)
+            {
+                return (bool)isLoaded;
+            }
+            return false;
         }
 
         protected override void Dispose(bool disposing)
