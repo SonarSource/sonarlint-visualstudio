@@ -28,10 +28,7 @@ SonarLint is free, open source, and available in the Visual Studio Gallery.
 
 ## Have question or feedback?
 
-To provide feedback (request a feature, report a bug etc.), simply
-[create a GitHub Issue](https://github.com/SonarSource/sonarlint-visualstudio/issues/new).
-Alternatively you can use the [Community Forum](https://community.sonarsource.com/) or
-[StackOverflow](http://stackoverflow.com/questions/tagged/sonarlint-vs) with the tag `sonarlint-vs`.
+The preferred way to discuss about SonarLint is by posting on the [SonarSource Community Forum](https://community.sonarsource.com). Feel free to ask questions, report issues, and give suggestions.
 
 ## How to contribute
 
