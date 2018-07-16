@@ -727,4 +727,12 @@ This is the general format to use when writing errors to output window or when t
     <value>This SonarQube server only supported plugin language ({0}) does not match any of this solution projects' languages.</value>
     <comment>Output window message printed when the only supported plugin has no matching project types in the current solution. {0} the name of the language.</comment>
   </data>
+  <data name="Telemetry_ERROR_Recording" xml:space="preserve">
+    <value>Telemetry: error occurred when recording: {0}</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Telemetry_ERROR_SendingTelemetry" xml:space="preserve">
+    <value>Telemetry: error occurred when sending: {0}</value>
+    <comment>Output window message</comment>
+  </data>
 </root>

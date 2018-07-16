@@ -197,4 +197,16 @@
     <value>Saving notifcations settings...</value>
     <comment>Output window message</comment>
   </data>
+  <data name="Telemetry_ERROR" xml:space="preserve">
+    <value>Telemetry: error occurred: {0}</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Telemetry_InitializationComplete" xml:space="preserve">
+    <value>Finished initializing the telemetry package...</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Telemetry_Initializing" xml:space="preserve">
+    <value>Initializing the telemetry package...</value>
+    <comment>Output window message</comment>
+  </data>
 </root>

@@ -19,28 +19,74 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Threading;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(PackageGuidString)]
-    [ProvideAutoLoad(UIContextGuids.NoSolution)]
+    [ProvideAutoLoad(UIContextGuids.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]
     [ExcludeFromCodeCoverage] // Simple bootstrapper class relying on Visual Studio
-    public sealed class SonarLintTelemetryPackage : Package
+    public sealed class SonarLintTelemetryPackage : AsyncPackage
     {
         public const string PackageGuidString = "4E057B4B-E2B8-490D-95D8-2A1A4E7ACAED";
 
         private ITelemetryManager telemetryManager;
 
-        protected override void Initialize()
+        protected async override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            Debug.Assert(!ThreadHelper.CheckAccess(), "Expecting the packatge to be initialized on the UI thread");
 
-            telemetryManager = this.GetMefService<ITelemetryManager>();
+            await base.InitializeAsync(cancellationToken, progress);
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await InitOnUIThreadAsync();
+        }
+
+        private async System.Threading.Tasks.Task InitOnUIThreadAsync()
+        {
+            Debug.Assert(ThreadHelper.CheckAccess(), "Expecting to be on the UI thread");
+
+            var logger = await this.GetMefServiceAsync<ILogger>();
+
+            // HACK: the telemetry manager has to be imported on the UI thread because
+            // of a complicated chain of transitive dependencies:
+            // TelemetryManager -> IActiveSolutionBoundTracker -> IBindingConfiguration -> IHost.
+            // The host expects to be initialized on the UI thread.
+            // The ui and non-ui parts of the host should be split into separate classes.
+            try
+            {
+                logger.WriteLine(Resources.Strings.Telemetry_Initializing);
+                telemetryManager = await this.GetMefServiceAsync<ITelemetryManager>();
+                logger.WriteLine(Resources.Strings.Telemetry_InitializationComplete);
+
+                if (await IsSolutionFullyOpened())
+                {
+                    telemetryManager.Update();
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Suppress non-critical exceptions
+                logger.WriteLine(Resources.Strings.Telemetry_ERROR, ex.Message);
+            }
+        }
+
+        private async System.Threading.Tasks.Task<bool> IsSolutionFullyOpened()
+        {
+            Debug.Assert(ThreadHelper.CheckAccess(), "Expecting to be called on the UI thread");
+            var solution = await this.GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
+            Debug.Assert(solution != null, "Cannot find SVsSolution");
+
+            object isLoaded;
+            var hresult = solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
+
+            return ErrorHandler.Succeeded(hresult) && (isLoaded as bool?) == true;
         }
 
         protected override void Dispose(bool disposing)

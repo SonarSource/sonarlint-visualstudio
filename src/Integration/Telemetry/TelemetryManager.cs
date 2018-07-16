@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
@@ -29,19 +30,21 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
         private readonly ITelemetryClient telemetryClient;
+        private readonly ILogger logger;
         private readonly ITelemetryTimer telemetryTimer;
         private readonly ITelemetryDataRepository telemetryRepository;
         private readonly IKnownUIContexts knownUIContexts;
 
         [ImportingConstructor]
-        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository)
-            : this(solutionBindingTracker, telemetryRepository, new TelemetryClient(),
-                  new TelemetryTimer(telemetryRepository, new TimerFactory()), new KnownUIContextsWrapper())
+        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
+            ILogger logger)
+            : this(solutionBindingTracker, telemetryRepository, logger,
+                  new TelemetryClient(), new TelemetryTimer(telemetryRepository, new TimerFactory()), new KnownUIContextsWrapper())
         {
         }
 
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
-            ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts)
+            ILogger logger, ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts)
         {
             if (solutionBindingTracker == null)
             {
@@ -50,6 +53,10 @@ namespace SonarLint.VisualStudio.Integration
             if (telemetryRepository == null)
             {
                 throw new ArgumentNullException(nameof(telemetryRepository));
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
             }
             if (telemetryClient == null)
             {
@@ -66,6 +73,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.solutionBindingTracker = solutionBindingTracker;
             this.telemetryClient = telemetryClient;
+            this.logger = logger;
             this.telemetryTimer = telemetryTimer;
             this.telemetryRepository = telemetryRepository;
             this.knownUIContexts = knownUIContexts;
@@ -137,26 +145,45 @@ namespace SonarLint.VisualStudio.Integration
 
         private void OnAnalysisRun(object sender, UIContextChangedEventArgs e)
         {
-            if (!e.Activated)
+            if (e.Activated)
             {
-                return;
+                this.Update();
             }
+        }
 
-            var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate;
-            if (!DateTimeOffset.Now.IsSameDay(lastAnalysisDate))
+        public void Update()
+        {
+            try
             {
-                telemetryRepository.Data.LastSavedAnalysisDate = DateTimeOffset.Now;
-                telemetryRepository.Data.NumberOfDaysOfUse++;
-                telemetryRepository.Save();
+                var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate;
+                if (!DateTimeOffset.Now.IsSameDay(lastAnalysisDate))
+                {
+                    telemetryRepository.Data.LastSavedAnalysisDate = DateTimeOffset.Now;
+                    telemetryRepository.Data.NumberOfDaysOfUse++;
+                    telemetryRepository.Save();
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Suppress non-critical exceptions
+                logger.WriteLine(Resources.Strings.Telemetry_ERROR_Recording, ex.Message);
             }
         }
 
         private async void OnTelemetryTimerElapsed(object sender, TelemetryTimerEventArgs e)
         {
-            telemetryRepository.Data.LastUploadDate = e.SignalTime;
-            telemetryRepository.Save();
+            try
+            {
+                telemetryRepository.Data.LastUploadDate = e.SignalTime;
+                telemetryRepository.Save();
 
-            await telemetryClient.SendPayload(GetPayload(telemetryRepository.Data));
+                await telemetryClient.SendPayload(GetPayload(telemetryRepository.Data));
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Suppress non-critical exceptions
+                logger.WriteLine(Resources.Strings.Telemetry_ERROR_SendingTelemetry, ex.Message);
+            }
         }
     }
 }
