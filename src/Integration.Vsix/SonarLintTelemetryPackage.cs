@@ -86,11 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             object isLoaded;
             var hresult = solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
 
-            if (ErrorHandler.Succeeded(hresult) && isLoaded is Boolean)
-            {
-                return (bool)isLoaded;
-            }
-            return false;
+            return ErrorHandler.Succeeded(hresult) && (isLoaded as bool?) == true;
         }
 
         protected override void Dispose(bool disposing)
