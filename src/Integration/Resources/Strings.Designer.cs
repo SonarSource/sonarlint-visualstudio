@@ -1279,6 +1279,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Telemetry: error occurred when recording: {0}.
+        /// </summary>
+        public static string Telemetry_ERROR_Recording {
+            get {
+                return ResourceManager.GetString("Telemetry_ERROR_Recording", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telemetry: error occurred when sending: {0}.
+        /// </summary>
+        public static string Telemetry_ERROR_SendingTelemetry {
+            get {
+                return ResourceManager.GetString("Telemetry_ERROR_SendingTelemetry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Toggle visibility of unbound projects for this server..
         /// </summary>
         public static string ToggleShowAllProjectsCommandTooltip {

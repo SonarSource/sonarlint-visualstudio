@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     telemetryManager.Update();
                 }
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
                 logger.WriteLine(Resources.Strings.Telemetry_ERROR, ex.Message);
