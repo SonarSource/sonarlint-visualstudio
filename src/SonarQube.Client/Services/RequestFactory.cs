@@ -98,7 +98,7 @@ namespace SonarQube.Client
             SortedList<Version, Func<IRequest>> map;
             if (registrations.TryGetValue(typeof(TRequest), out map))
             {
-                Log($"Looking up implementation of '{typeof(TRequest).Name}' for version '{version}'.");
+                Log($"Looking up implementation of '{typeof(TRequest).Name}' for version '{version}' on thread '{System.Threading.Thread.CurrentThread.ManagedThreadId}'");
 
                 var factory = map
                     .LastOrDefault(entry => version == null || entry.Key <= version)

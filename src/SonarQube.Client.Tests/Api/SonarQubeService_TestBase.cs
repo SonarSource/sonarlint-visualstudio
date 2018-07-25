@@ -24,6 +24,7 @@ using System.Net.Http;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
@@ -77,6 +78,9 @@ namespace SonarQube.Client.Tests.Api
             await service.ConnectAsync(
                 new ConnectionInformation(BasePath, "valeri", new SecureString()),
                 CancellationToken.None);
+
+            // Sanity check
+            service.IsConnected.Should().BeTrue();
         }
     }
 }
