@@ -32,7 +32,7 @@ using SonarQube.Client.Services;
 
 namespace SonarQube.Client.Api
 {
-    public class SonarQubeService : ISonarQubeService
+    public class SonarQubeService : ISonarQubeService, IDisposable
     {
         internal const int MaximumPageSize = 500;
         internal static readonly Version OrganizationsFeatureMinimalVersion = new Version(6, 2);
@@ -136,8 +136,9 @@ namespace SonarQube.Client.Api
 
         public void Disconnect()
         {
+            // Don't dispose the HttpClient when disconnecting. We'll need it if
+            // the caller connects to another server.
             IsConnected = false;
-            httpClient.Dispose();
         }
 
         private void EnsureIsConnected()
@@ -252,5 +253,32 @@ namespace SonarQube.Client.Api
                     request.EventsSince = eventsSince;
                 },
                 token);
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    IsConnected = false;
+                    messageHandler.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+
     }
 }

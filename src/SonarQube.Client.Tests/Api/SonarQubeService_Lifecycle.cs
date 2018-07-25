@@ -23,12 +23,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Moq.Protected;
 using SonarQube.Client.Helpers;
 
 namespace SonarQube.Client.Tests.Api
 {
     [TestClass]
-    public class SonarQubeService_ConnectAsync : SonarQubeService_TestBase
+    public class SonarQubeService_Lifecycle : SonarQubeService_TestBase
     {
         [TestMethod]
         public async Task Connect_To_SonarQube_Valid_Credentials()
@@ -63,6 +65,38 @@ namespace SonarQube.Client.Tests.Api
                 .And.Message.Should().Be("Invalid credentials");
 
             service.IsConnected.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task Disconnect_Does_Not_Dispose_MessageHandler()
+        {
+            // Regression test for #689 - LoggingMessageHandler is disposed on disconnect
+
+            // Arrange
+            messageHandler.Protected().Setup("Dispose", true);
+            await ConnectToSonarQube();
+
+            // Act. Disconnect should not throw
+            service.Disconnect();
+
+            // Assert
+            service.IsConnected.Should().BeFalse();
+            messageHandler.Protected().Verify("Dispose", Times.Never(), true);
+        }
+
+        [TestMethod]
+        public async Task Dispose_Does_Dispose_MessageHandler()
+        {
+            // Arrange
+            messageHandler.Protected().Setup("Dispose", true);
+            await ConnectToSonarQube();
+
+            // Act
+            service.Dispose();
+
+            // Assert
+            service.IsConnected.Should().BeFalse();
+            messageHandler.Protected().Verify("Dispose", Times.Once(), true);
         }
     }
 }
