@@ -278,7 +278,7 @@ namespace SonarQube.Client.Api
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        #endregion
+        #endregion // IDisposable Support
 
     }
 }
