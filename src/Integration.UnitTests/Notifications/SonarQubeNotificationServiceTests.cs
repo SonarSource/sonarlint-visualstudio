@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             await notifications.StartAsync("should-throw", null);
 
             // Assert
-            outputMock.Verify(x => x.WriteLine($"Failed to fetch notifications: test exception"), Times.Once);
+            outputMock.Verify(x => x.WriteLine("Failed to fetch notifications: {0}", "test exception"), Times.Once);
         }
 
         [TestMethod]

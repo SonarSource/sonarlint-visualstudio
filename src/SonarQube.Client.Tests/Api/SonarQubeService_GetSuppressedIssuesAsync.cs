@@ -96,7 +96,6 @@ namespace SonarQube.Client.Tests.Api
         ""endOffset"": 107
     },
     ""flows"": [],
-    ""resolution"": """",
     ""status"": ""OPEN"",
     ""message"": ""Refactor your code not to use hardcoded absolute paths or URIs."",
     ""effort"": ""20min"",

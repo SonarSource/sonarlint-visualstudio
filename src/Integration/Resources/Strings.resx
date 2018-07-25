@@ -735,4 +735,20 @@ This is the general format to use when writing errors to output window or when t
     <value>Telemetry: error occurred when sending: {0}</value>
     <comment>Output window message</comment>
   </data>
+  <data name="Notifications_ERROR_Fetching" xml:space="preserve">
+    <value>Failed to fetch notifications: {0}</value>
+  </data>
+  <data name="Suppressions_ERROR_Fetching" xml:space="preserve">
+    <value>Failed to synchronize suppressions: {0}</value>
+  </data>
+  <data name="Suppressions_NotConnected" xml:space="preserve">
+    <value>Cannot synchronize suppressions - not connected to a SonarQube server</value>
+    <comment>Warning in output window</comment>
+  </data>
+  <data name="Suppression_Checking" xml:space="preserve">
+    <value>Checking for suppressions...</value>
+  </data>
+  <data name="Suppression_FinishedChecking" xml:space="preserve">
+    <value>Number of suppressions found: {0}</value>
+  </data>
 </root>

@@ -784,6 +784,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to fetch notifications: {0}.
+        /// </summary>
+        public static string Notifications_ERROR_Fetching {
+            get {
+                return ResourceManager.GetString("Notifications_ERROR_Fetching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Notifications are not supported on this version of SonarQube.
         /// </summary>
         public static string Notifications_NotSupported {
@@ -1257,6 +1266,42 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string SupportedPluginFoundMessage {
             get {
                 return ResourceManager.GetString("SupportedPluginFoundMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking for suppressions....
+        /// </summary>
+        public static string Suppression_Checking {
+            get {
+                return ResourceManager.GetString("Suppression_Checking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Number of suppressions found: {0}.
+        /// </summary>
+        public static string Suppression_FinishedChecking {
+            get {
+                return ResourceManager.GetString("Suppression_FinishedChecking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to synchronize suppressions: {0}.
+        /// </summary>
+        public static string Suppressions_ERROR_Fetching {
+            get {
+                return ResourceManager.GetString("Suppressions_ERROR_Fetching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot synchronize suppressions - not connected to a SonarQube server.
+        /// </summary>
+        public static string Suppressions_NotConnected {
+            get {
+                return ResourceManager.GetString("Suppressions_NotConnected", resourceCulture);
             }
         }
         
