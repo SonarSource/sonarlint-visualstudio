@@ -53,6 +53,17 @@ namespace SonarQube.Client.Api.Requests.V5_20
             set { /* not supported in this implementation */ }
         }
 
+        /// <summary>
+        /// This property does not exist before SonarQube 6.4 and is deliberately implemented to always return
+        /// the default value in order to prevent it from serialization.
+        /// </summary>
+        [JsonProperty("organization", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue(null)]
+        public virtual string OrganizationKey
+        {
+            get { return null; }
+            set { /* not supported in this implementation */ }
+        }
+
         protected override string Path => "api/qualityprofiles/changelog";
 
         protected override DateTime[] ParseResponse(string response) =>
