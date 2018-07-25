@@ -30,5 +30,10 @@ namespace SonarQube.Client.Api.Requests.V6_50
         public override string QualityProfileName { get; set; }
 
         public override string LanguageName { get; set; }
+
+        // Strictly speaking this parameter was added in v6.4. However,
+        // it is only relevant for SonarCloud which is now on a later version
+        // than v6.5, so there is no point an adding a v6.4 version of this class.
+        public override string OrganizationKey { get; set; }
     }
 }

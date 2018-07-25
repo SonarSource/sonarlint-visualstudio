@@ -323,7 +323,7 @@ namespace SonarQube.Client.Tests.Api
   }
 }");
 
-            SetupRequest("api/qualityprofiles/changelog?qualityProfile=Sonar+way&language=cs&p=1&ps=1", @"{
+            SetupRequest("api/qualityprofiles/changelog?qualityProfile=Sonar+way&language=cs&organization=my_organization&p=1&ps=1", @"{
   ""total"": 3,
   ""ps"": 10,
   ""p"": 1,
@@ -389,7 +389,7 @@ namespace SonarQube.Client.Tests.Api
   }
 }");
 
-            SetupRequest("api/qualityprofiles/changelog?qualityProfile=Sonar+way&language=cs&p=1&ps=1", @"{
+            SetupRequest("api/qualityprofiles/changelog?qualityProfile=Sonar+way&language=cs&organization=my_organization&p=1&ps=1", @"{
   ""total"": 3,
   ""ps"": 10,
   ""p"": 1,

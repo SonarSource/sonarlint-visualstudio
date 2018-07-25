@@ -27,5 +27,6 @@ namespace SonarQube.Client.Api.Requests
         string QualityProfileKey { get; set; }
         string QualityProfileName { get; set; }
         string LanguageName { get; set; }
+        string OrganizationKey { get; set; }
     }
 }

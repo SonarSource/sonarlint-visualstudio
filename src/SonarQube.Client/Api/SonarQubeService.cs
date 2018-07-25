@@ -210,6 +210,7 @@ namespace SonarQube.Client.Api
                     request.QualityProfileKey = qualityProfile.Key;
                     request.QualityProfileName = qualityProfile.Name;
                     request.LanguageName = language.Key;
+                    request.OrganizationKey = organizationKey;
                 },
                 token);
 
