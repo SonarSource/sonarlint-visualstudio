@@ -61,7 +61,7 @@ namespace SonarQube.Client.Api.V7_20
         {
             switch (resolution)
             {
-                // ssues with Status=OPEN will not have a resolution so we're
+                // Issues with Status=OPEN will not have a resolution so we're
                 // expecting null, but we'll be defensive and handle empty too
                 case null:
                 case "": 

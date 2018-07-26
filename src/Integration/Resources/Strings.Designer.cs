@@ -1288,7 +1288,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to synchronize suppressions: {0}.
+        ///   Looks up a localized string similar to Failed to fetch suppressions: {0}.
         /// </summary>
         public static string Suppressions_ERROR_Fetching {
             get {
@@ -1297,7 +1297,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot synchronize suppressions - not connected to a SonarQube server.
+        ///   Looks up a localized string similar to Cannot fetch suppressions - not connected to a SonarQube server.
         /// </summary>
         public static string Suppressions_NotConnected {
             get {
