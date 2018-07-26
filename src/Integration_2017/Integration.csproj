@@ -17,7 +17,7 @@
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
+    <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'" >true</DisableStrongNamer>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -223,7 +223,7 @@
       <Generator>MSBuild:Compile</Generator>
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Page>
-    <Compile Include="..\Integration\Resources\Strings.Designer.cs">
+    <Compile Include="$(ReferencedDirectory)\Resources\Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
