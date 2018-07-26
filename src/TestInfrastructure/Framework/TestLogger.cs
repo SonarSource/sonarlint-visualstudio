@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class TestLogger : ILogger
     {
-        private IList<string> outputStrings = new List<string>();
+        private readonly IList<string> outputStrings = new List<string>();
 
         public void AssertOutputStrings(int expectedOutputMessages)
         {
@@ -48,12 +48,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertNoOutputMessages()
         {
-            outputStrings.Count().Should().Be(0);
+            outputStrings.Should().HaveCount(0);
         }
 
         public void Reset()
         {
-            outputStrings = new List<string>();
+            outputStrings.Clear();
         }
 
         #region ILogger methods
