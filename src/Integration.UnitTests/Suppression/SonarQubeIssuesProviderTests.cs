@@ -400,7 +400,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             matches.Should().BeEmpty();
             VerifyServiceGetIssues(Times.Once());
 
-            testLogger.AssertPartialOutputStrings("dummy error from mock");
+            testLogger.AssertPartialOutputStrings("Checking for suppressions", "dummy error from mock");
         }
 
         [TestMethod]
@@ -419,9 +419,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             var matches = issuesProvider.GetSuppressedIssues("projectId", "folder1/file1");
             VerifyServiceGetIssues(Times.Once());
             matches.Count().Should().Be(1);
+            testLogger.AssertPartialOutputStrings("Checking for suppressions", "1");
 
             // 2. Configure service to throw, then execute the fetch trigger
             int fetchCallCount = 0;
+            testLogger.Reset();
             Func<IList<SonarQubeIssue>> serviceFetchIssuesTask = () =>
             {
                 fetchCallCount++;
@@ -438,7 +440,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             fetchCallCount.Should().Be(1);
 
             VerifyTimerStart(Times.Exactly(1)); // once, on construction
-            testLogger.AssertPartialOutputStrings("dummy error from mock");
+            testLogger.AssertPartialOutputStrings("Checking for suppressions", "dummy error from mock");
         }
 
         #endregion

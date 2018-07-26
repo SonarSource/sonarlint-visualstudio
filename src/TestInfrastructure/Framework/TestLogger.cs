@@ -42,13 +42,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertPartialOutputStrings(params string[] orderedPartialOutputMessages)
         {
-            string[] expected = orderedPartialOutputMessages.Select(o => o + Environment.NewLine).ToArray(); // All messages are postfixed by a newline
-            this.outputStrings.Should().Equal(expected, (actualValue, expectedValue) => actualValue.Contains(expectedValue));
+            this.outputStrings.Should().Equal(orderedPartialOutputMessages, (actualValue, expectedValue) =>
+                actualValue.Contains(expectedValue));
         }
 
         public void AssertNoOutputMessages()
         {
             outputStrings.Count().Should().Be(0);
+        }
+
+        public void Reset()
+        {
+            outputStrings = new List<string>();
         }
 
         #region ILogger methods
