@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
             catch (Exception ex)
             {
-                logger.WriteLine($"Failed to fetch notifications: {ex.Message}");
+                logger.WriteLine(Strings.Notifications_ERROR_Fetching, ex.Message);
             }
         }
 

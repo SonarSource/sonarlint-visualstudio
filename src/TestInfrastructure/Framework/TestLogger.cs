@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class TestLogger : ILogger
     {
-        private IList<string> outputStrings = new List<string>();
+        private readonly IList<string> outputStrings = new List<string>();
 
         public void AssertOutputStrings(int expectedOutputMessages)
         {
@@ -38,6 +38,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             string[] expected = orderedOutputMessages.Select(o => o + Environment.NewLine).ToArray(); // All messages are postfixed by a newline
             this.outputStrings.Should().Equal(expected);
+        }
+
+        public void AssertPartialOutputStrings(params string[] orderedPartialOutputMessages)
+        {
+            this.outputStrings.Should().Equal(orderedPartialOutputMessages, (actualValue, expectedValue) =>
+                actualValue.Contains(expectedValue));
+        }
+
+        public void AssertNoOutputMessages()
+        {
+            outputStrings.Should().HaveCount(0);
+        }
+
+        public void Reset()
+        {
+            outputStrings.Clear();
         }
 
         #region ILogger methods

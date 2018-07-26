@@ -39,13 +39,15 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly ISonarQubeService sonarQubeService;
         private readonly string sonarQubeProjectKey;
         private readonly ITimer refreshTimer;
+        private readonly ILogger logger;
         private readonly CancellationTokenSource initialFetchCancellationTokenSource;
 
         private IList<SonarQubeIssue> cachedSuppressedIssues;
         private bool isDisposed;
         private CancellationTokenSource cancellationTokenSource;
 
-        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey, ITimerFactory timerFactory)
+        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey, ITimerFactory timerFactory,
+            ILogger logger)
         {
             if (sonarQubeService == null)
             {
@@ -59,9 +61,14 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             {
                 throw new ArgumentNullException(nameof(timerFactory));
             }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
 
             this.sonarQubeService = sonarQubeService;
             this.sonarQubeProjectKey = sonarQubeProjectKey;
+            this.logger = logger;
 
             refreshTimer = timerFactory.Create();
             refreshTimer.AutoReset = true;
@@ -140,21 +147,24 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             {
                 if (!this.sonarQubeService.IsConnected)
                 {
-                    // TODO: log to output window
-                    Debug.Fail("Cannot synchronize suppressions - not connected to a SonarQube server");
+
+                    this.logger.WriteLine(Resources.Strings.Suppressions_NotConnected);
                     return;
                 }
-
+                this.logger.WriteLine(Resources.Strings.Suppression_Checking);
                 cancellationTokenSource?.Cancel();
                 cancellationTokenSource = new CancellationTokenSource();
 
                 // TODO: Handle race conditions
                 this.cachedSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(
                     sonarQubeProjectKey, cancellationTokenSource.Token);
+
+                this.logger.WriteLine(Resources.Strings.Suppression_FinishedChecking, this.cachedSuppressedIssues.Count);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Suppress the error - on a background thread so there isn't much else we can do
+                this.logger.WriteLine(Resources.Strings.Suppressions_ERROR_Fetching, ex.Message);
             }
         }
     }
