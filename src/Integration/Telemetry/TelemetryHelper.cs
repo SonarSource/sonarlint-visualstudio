@@ -32,7 +32,11 @@ namespace SonarLint.VisualStudio.Integration
             return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
         }
 
-        public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now, bool isConnected)
+        public static bool IsSonarCloud(Uri sonarqubeUri) =>
+            sonarqubeUri?.ToString().StartsWith("https://sonarcloud.io/", StringComparison.OrdinalIgnoreCase) ?? false;
+
+        public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
+            bool isConnected, bool isSonarCloud)
         {
             return new TelemetryPayload
             {
@@ -42,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration
                 NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
                 IsUsingConnectedMode = isConnected,
+                IsUsingSonarCloud = isSonarCloud,
                 SystemDate = now,
                 InstallDate = telemetryData.InstallationDate,
             };
