@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -33,11 +34,24 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         public static bool IsSonarCloud(Uri sonarqubeUri) =>
-            sonarqubeUri?.ToString().StartsWith("https://sonarcloud.io/", StringComparison.OrdinalIgnoreCase) ?? false;
+            sonarqubeUri?.ToString().Equals("https://sonarcloud.io/", StringComparison.OrdinalIgnoreCase) ?? false;
 
         public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
-            bool isConnected, bool isSonarCloud)
+            BindingConfiguration bindingConfiguration)
         {
+            if (telemetryData == null)
+            {
+                throw new ArgumentNullException(nameof(telemetryData));
+            }
+
+            if (bindingConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(bindingConfiguration));
+            }
+
+            var isConnected = bindingConfiguration?.Mode != NewConnectedMode.SonarLintMode.Standalone;
+            var isSonarCloud = IsSonarCloud(bindingConfiguration?.Project?.ServerUri);
+
             return new TelemetryPayload
             {
                 SonarLintProduct = "SonarLint Visual Studio",
