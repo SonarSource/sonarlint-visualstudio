@@ -173,7 +173,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CheckIsNotSonarCloud("https://myserver/sonarcloud");
             CheckIsNotSonarCloud("http://sonarcloud.io/foo"); // not https
             CheckIsNotSonarCloud("https://sonarcloud.ioX/foo");
-            CheckIsNotSonarCloud("https://sonarcloud.io/"); // not expecting the trailing /
         }
 
         [TestMethod]
