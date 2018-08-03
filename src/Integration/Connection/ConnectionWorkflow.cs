@@ -359,10 +359,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
             return isPluginSupported;
         }
 
-        private static void AbortWorkflow(IProgressController controller, CancellationToken token)
+        private void AbortWorkflow(IProgressController controller, CancellationToken token)
         {
             bool aborted = controller.TryAbort();
             Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
+
+            this.host.SonarQubeService.Disconnect();
         }
 
         #endregion
