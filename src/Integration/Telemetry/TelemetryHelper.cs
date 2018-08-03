@@ -33,8 +33,16 @@ namespace SonarLint.VisualStudio.Integration
             return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
         }
 
-        public static bool IsSonarCloud(Uri sonarqubeUri) =>
-            sonarqubeUri?.ToString().Equals("https://sonarcloud.io/", StringComparison.OrdinalIgnoreCase) ?? false;
+        public static bool IsSonarCloud(Uri sonarqubeUri)
+        {
+            if (sonarqubeUri == null)
+            {
+                return false;
+            }
+
+            return sonarqubeUri.Equals("https://sonarcloud.io/") ||
+                sonarqubeUri.Equals("https://www.sonarcloud.io/");
+        }
 
         public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
             BindingConfiguration bindingConfiguration)

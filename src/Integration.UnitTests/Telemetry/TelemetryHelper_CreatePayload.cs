@@ -34,10 +34,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CreatePayload_InvalidArg_Throws()
         {
             Action action = () => TelemetryHelper.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone);
-            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("telemetryData");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryData");
 
             action = () => TelemetryHelper.CreatePayload(new TelemetryData(), DateTimeOffset.Now, null);
-            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("bindingConfiguration");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfiguration");
         }
 
         [TestMethod]
@@ -182,6 +182,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CheckIsSonarCloud("https://SONARCLOUD.io");
             CheckIsSonarCloud("https://sonarcloud.io/");
             CheckIsSonarCloud("https://SONARCLOUD.io/");
+
+            CheckIsSonarCloud("https://www.sonarcloud.io");
+            CheckIsSonarCloud("https://WWW.SONARCLOUD.io");
+            CheckIsSonarCloud("https://www.sonarcloud.io/");
+            CheckIsSonarCloud("https://www.SONARCLOUD.io/");
         }
 
         private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)
