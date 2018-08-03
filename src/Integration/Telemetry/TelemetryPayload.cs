@@ -48,6 +48,9 @@ namespace SonarLint.VisualStudio.Integration
         [JsonProperty("connected_mode_used")]
         public bool IsUsingConnectedMode { get; set; }
 
+        [JsonProperty("connected_mode_sonarcloud")]
+        public bool IsUsingSonarCloud { get; set; }
+
         [JsonProperty("install_time"), JsonConverter(typeof(ShortIsoDateTimeOffsetConverter))]
         public DateTimeOffset InstallDate { get; set; }
 

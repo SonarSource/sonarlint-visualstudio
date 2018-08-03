@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -32,8 +33,33 @@ namespace SonarLint.VisualStudio.Integration
             return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
         }
 
-        public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now, bool isConnected)
+        public static bool IsSonarCloud(Uri sonarqubeUri)
         {
+            if (sonarqubeUri == null)
+            {
+                return false;
+            }
+
+            return sonarqubeUri.Equals("https://sonarcloud.io/") ||
+                sonarqubeUri.Equals("https://www.sonarcloud.io/");
+        }
+
+        public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
+            BindingConfiguration bindingConfiguration)
+        {
+            if (telemetryData == null)
+            {
+                throw new ArgumentNullException(nameof(telemetryData));
+            }
+
+            if (bindingConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(bindingConfiguration));
+            }
+
+            var isConnected = bindingConfiguration?.Mode != NewConnectedMode.SonarLintMode.Standalone;
+            var isSonarCloud = IsSonarCloud(bindingConfiguration?.Project?.ServerUri);
+
             return new TelemetryPayload
             {
                 SonarLintProduct = "SonarLint Visual Studio",
@@ -42,6 +68,7 @@ namespace SonarLint.VisualStudio.Integration
                 NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
                 IsUsingConnectedMode = isConnected,
+                IsUsingSonarCloud = isSonarCloud,
                 SystemDate = now,
                 InstallDate = telemetryData.InstallationDate,
             };

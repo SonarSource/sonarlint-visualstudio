@@ -22,6 +22,8 @@ using System;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -29,7 +31,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class TelemetryHelper_CreatePayload
     {
         [TestMethod]
-        public void CreatePayload_Creates_Payload()
+        public void CreatePayload_InvalidArg_Throws()
+        {
+            Action action = () => TelemetryHelper.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryData");
+
+            action = () => TelemetryHelper.CreatePayload(new TelemetryData(), DateTimeOffset.Now, null);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfiguration");
+        }
+
+        [TestMethod]
+        public void CreatePayload_Creates_Payload_Using_SonarCloud()
         {
             // Arrange
             var now = new DateTime(2017, 7, 25, 0, 0, 0, DateTimeKind.Local).AddHours(2);
@@ -41,16 +53,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 NumberOfDaysOfUse = 5
             };
 
+            var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
+
             VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
 
             // Act
             var result = TelemetryHelper.CreatePayload(
                 telemetryData,
                 new DateTimeOffset(now),
-                isConnected: true);
+                binding);
 
             // Assert
             result.IsUsingConnectedMode.Should().BeTrue();
+            result.IsUsingSonarCloud.Should().BeTrue();
             result.NumberOfDaysOfUse.Should().Be(5);
             result.NumberOfDaysSinceInstallation.Should().Be(10);
             result.SonarLintProduct.Should().Be("SonarLint Visual Studio");
@@ -59,6 +74,46 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.VisualStudioVersion.Should().Be("1.2.3.4");
             result.InstallDate.Should().Be(new DateTimeOffset(now.AddDays(-10)));
             result.SystemDate.Should().Be(new DateTimeOffset(now));
+        }
+
+        [TestMethod]
+        public void CreatePayload_Connected_But_Not_Using_SonarCloud()
+        {
+            // Arrange
+            var now = new DateTime(2017, 7, 25);
+
+            var telemetryData = new TelemetryData
+            {
+                InstallationDate = now.Subtract(new TimeSpan(10, 0, 0))
+            };
+
+            var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
+
+            // Act
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
+
+            // Assert
+            result.IsUsingConnectedMode.Should().BeTrue();
+            result.IsUsingSonarCloud.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void CreatePayload_NotConnected()
+        {
+            // Arrange
+            var now = new DateTime(2017, 7, 25);
+
+            var telemetryData = new TelemetryData
+            {
+                InstallationDate = now.Subtract(new TimeSpan(10, 0, 0))
+            };
+
+            // Act
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, BindingConfiguration.Standalone);
+
+            // Assert
+            result.IsUsingConnectedMode.Should().BeFalse();
+            result.IsUsingSonarCloud.Should().BeFalse();
         }
 
         [TestMethod]
@@ -71,7 +126,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 InstallationDate = now.Subtract(new TimeSpan(23, 59, 59)) // Less than a day
             };
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, isConnected: true);
+            var binding = CreateConfiguration(SonarLintMode.LegacyConnected, "http://localhost");
+
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
 
             result.NumberOfDaysSinceInstallation.Should().Be(0);
         }
@@ -86,9 +143,66 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 InstallationDate = now.AddDays(-1)
             };
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, isConnected: true);
+            var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
+
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
 
             result.NumberOfDaysSinceInstallation.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void IsSonarCloud_InvalidUri_Null()
+        {
+            TelemetryHelper.IsSonarCloud(null).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsSonarCloud_InvalidUri_Relative()
+        {
+            UriBuilder builder = new UriBuilder();
+            builder.Scheme = "file";
+            builder.Path = "..\\..\\foo\\file.txt";
+            
+            TelemetryHelper.IsSonarCloud(builder.Uri).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsSonarCloud_Valid_NotSonarCloud()
+        {
+            CheckIsNotSonarCloud("http://localhost:9000");
+            CheckIsNotSonarCloud("https://myserver/sonarcloud");
+            CheckIsNotSonarCloud("http://sonarcloud.io/foo"); // not https
+            CheckIsNotSonarCloud("https://sonarcloud.ioX/foo");
+        }
+
+        [TestMethod]
+        public void IsSonarCloud_Valid_Matches_SonarCloud()
+        {
+            CheckIsSonarCloud("https://sonarcloud.io");
+            CheckIsSonarCloud("https://SONARCLOUD.io");
+            CheckIsSonarCloud("https://sonarcloud.io/");
+            CheckIsSonarCloud("https://SONARCLOUD.io/");
+
+            CheckIsSonarCloud("https://www.sonarcloud.io");
+            CheckIsSonarCloud("https://WWW.SONARCLOUD.io");
+            CheckIsSonarCloud("https://www.sonarcloud.io/");
+            CheckIsSonarCloud("https://www.SONARCLOUD.io/");
+        }
+
+        private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)
+        {
+            var project = new BoundSonarQubeProject(new Uri(serverUri), "dummy.project.key");
+            return BindingConfiguration.CreateBoundConfiguration(project, mode == SonarLintMode.LegacyConnected);
+        }
+
+        private static void CheckIsNotSonarCloud(string uri)
+        {
+            TelemetryHelper.IsSonarCloud(new Uri(uri)).Should().BeFalse();
+        }
+
+        private static void CheckIsSonarCloud(string uri)
+        {
+            TelemetryHelper.IsSonarCloud(new Uri(uri)).Should().BeTrue();
         }
     }
 }
