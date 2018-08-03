@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var converter = new ProjectViewModelToBindingArgsConverter();
 
             // Act && Assert
-            converter.Convert(null, typeof(object), null, CultureInfo.CurrentCulture).Should().BeNull();
+            converter.Convert(null, null, null, null).Should().BeNull();
             converter.Convert("a string", typeof(object), null, CultureInfo.CurrentCulture).Should().BeNull();
         }
 
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var converter = new ProjectViewModelToBindingArgsConverter();
 
             // Act
-            var convertedObj = converter.Convert(projectViewModel, typeof(object), null, System.Globalization.CultureInfo.CurrentCulture);
+            var convertedObj = converter.Convert(projectViewModel, null, null, null);
             convertedObj.Should().NotBeNull();
             convertedObj.Should().BeOfType<BindCommandArgs>();
 
