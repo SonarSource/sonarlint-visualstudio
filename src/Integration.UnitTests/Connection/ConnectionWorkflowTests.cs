@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -161,6 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(0);
+            AssertServiceDisconnectNotCalled();
             executionEvents.AssertProgressMessages(
                 connectionMessage,
                 Strings.ConnectionStepValidatinCredentials,
@@ -195,6 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(1);
+            AssertServiceDisconnectCalled();
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),
                 Strings.ConnectionStepValidatinCredentials,
@@ -230,6 +232,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(1);
+            AssertServiceDisconnectCalled();
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),
                 Strings.ConnectionStepValidatinCredentials,
@@ -280,6 +283,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(1);
+            AssertServiceDisconnectCalled();
             executionEvents.AssertProgressMessages(
                 connectionInfo.ServerUri.ToString(),
                 Strings.ConnectionStepValidatinCredentials,
@@ -449,6 +453,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Assert
             progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
             controller.NumberOfAbortRequests.Should().Be(1);
+            AssertServiceDisconnectCalled();
         }
 
         [TestMethod]
@@ -574,6 +579,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private static void AssertIfCalled()
         {
             FluentAssertions.Execution.Execute.Assertion.FailWith("Command not expected to be called");
+        }
+
+        public void AssertServiceDisconnectCalled()
+        {
+            sonarQubeServiceMock.Verify(x => x.Disconnect(), Times.Once);
+        }
+
+        public void AssertServiceDisconnectNotCalled()
+        {
+            sonarQubeServiceMock.Verify(x => x.Disconnect(), Times.Never);
         }
 
         private ConnectionWorkflow SetTestSubjectWithConnectedServer()
