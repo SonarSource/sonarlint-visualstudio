@@ -27,6 +27,7 @@
             <tfconverters:IntToVisibleConverter x:Key="IntToVisibleConverter" />
             <tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter" />
             <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter" />
+            <localWpf:ProjectViewModelToBindingArgsConverter x:Key="ProjectViewModelToBindingArgsConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -138,7 +139,7 @@
                             <Grid.InputBindings>
                                 <MouseBinding Command="{Binding Path=DataContext.BindCommand,
                                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                              CommandParameter="{Binding .}"
+                                              CommandParameter="{Binding ., Converter={StaticResource ProjectViewModelToBindingArgsConverter}}"
                                               MouseAction="LeftDoubleClick" />
                             </Grid.InputBindings>
 
