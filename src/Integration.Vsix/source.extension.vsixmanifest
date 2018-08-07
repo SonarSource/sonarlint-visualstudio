@@ -2,7 +2,7 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
-    <Identity Id="SonarLint.8c442ec8-0208-4840-b83f-acd24f41acf7" Version="4.2.0.0" Language="en-US" Publisher="SonarSource SA" />
+    <Identity Id="SonarLint.8c442ec8-0208-4840-b83f-acd24f41acf7" Version="4.3.0.0" Language="en-US" Publisher="SonarSource SA" />
     <DisplayName>SonarLint for Visual Studio 2015</DisplayName>
     <Description xml:space="preserve">SonarLint is an IDE extension that helps you detect and fix quality issues as you write code. Like a spell checker, SonarLint squiggles flaws so they can be fixed before committing code. You can get it directly from the Visual Studio Marketplace, and it will then detect new bugs and quality issues as you (C#, VB.Net, C, C++ and JavaScript).</Description>
     <MoreInfo>http://www.sonarlint.org</MoreInfo>
