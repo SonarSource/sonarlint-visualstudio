@@ -13,7 +13,30 @@ For reference, the possible headings are:
 * **Notes**
 
 
-## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.1.0.3539...HEAD)
+## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.2.0.3692...HEAD)
+
+## [4.2](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.1.0.3539...4.2.0.3692)
+
+### Bug
+* [#642](https://github.com/SonarSource/sonarlint-visualstudio/issues/642) - New binding: double-clicking on the project in the list does nothing
+* [#647](https://github.com/SonarSource/sonarlint-visualstudio/issues/647) - SonarLint for VS 2017 4.0.0.3479 likely caused 6 seconds of unresponsiveness
+* [#648](https://github.com/SonarSource/sonarlint-visualstudio/issues/648) - Unable to collect C/C++ configuration: System.Reflection.TargetInvocationException
+* [#661](https://github.com/SonarSource/sonarlint-visualstudio/issues/661) - SonarLint crashes VS when opening a legacy-bound solution
+* [#662](https://github.com/SonarSource/sonarlint-visualstudio/issues/662) - Do not throw Linq exception when SonarC# is not installed on SonarQube
+* [#667](https://github.com/SonarSource/sonarlint-visualstudio/issues/667) - Loading a C++ file outside of a project generates an error
+* [#676](https://github.com/SonarSource/sonarlint-visualstudio/issues/676) - [C++] Opening a header file in External Dependencies throws a NullReferenceException
+* [#686](https://github.com/SonarSource/sonarlint-visualstudio/issues/686) - Connection information is ignored
+* [#688](https://github.com/SonarSource/sonarlint-visualstudio/issues/688) - [Client] api/qualityprofiles/changelog needs to provide organisation when fetching custom profile on SonarCloud
+* [#689](https://github.com/SonarSource/sonarlint-visualstudio/issues/689) - [Client] LoggingHttpClientHandler is disposed when a bound solution is closed
+* [#691](https://github.com/SonarSource/sonarlint-visualstudio/issues/691) - [Daemon] "Unsupported content type" message in output pane even for file types that are handled
+
+### Improvement
+* [#274](https://github.com/SonarSource/sonarlint-visualstudio/issues/274) - Update usage of deprecated API
+* [#595](https://github.com/SonarSource/sonarlint-visualstudio/issues/595) - Update SonarQube Client to support new APIs
+* [#666](https://github.com/SonarSource/sonarlint-visualstudio/issues/666) - Use api/issues/search to retrieve suppressed issues for SQ >= 7.2
+* [#679](https://github.com/SonarSource/sonarlint-visualstudio/issues/679) - Convert SonarLintNotificationsPackage to be asynchronous
+* [#681](https://github.com/SonarSource/sonarlint-visualstudio/issues/681) - Convert SonarLintTelemetryPackage to be asynchronous
+* [#704](https://github.com/SonarSource/sonarlint-visualstudio/issues/704) - Embed SonarC#/SonarVB 7.3.1
 
 ## [4.1](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.0.0.3479...4.1.0.3539)
 
