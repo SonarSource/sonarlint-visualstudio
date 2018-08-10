@@ -80,10 +80,10 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            return GetMefServiceAsyncIterator<T>(serviceProvider);
+            return GetMefServiceIteratorAsync<T>(serviceProvider);
         }
 
-        private static async System.Threading.Tasks.Task<T> GetMefServiceAsyncIterator<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
+        private static async System.Threading.Tasks.Task<T> GetMefServiceIteratorAsync<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
             where T : class
         {
             IComponentModel componentModel = await serviceProvider.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;

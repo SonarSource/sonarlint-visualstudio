@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration
 
             DisableAllEvents();
 
-            await telemetryClient.OptOut(GetPayload(telemetryRepository.Data));
+            await telemetryClient.OptOutAsync(GetPayload(telemetryRepository.Data));
         }
 
         private void DisableAllEvents()
@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration
                 telemetryRepository.Data.LastUploadDate = e.SignalTime;
                 telemetryRepository.Save();
 
-                await telemetryClient.SendPayload(GetPayload(telemetryRepository.Data));
+                await telemetryClient.SendPayloadAsync(GetPayload(telemetryRepository.Data));
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

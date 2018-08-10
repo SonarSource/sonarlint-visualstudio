@@ -54,6 +54,16 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarations(Project project)
         {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
+            return GetProjectRuleSetsDeclarationsIterator(project);
+        }
+
+        private IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarationsIterator(Project project)
+        {
             /* This method walks through all of the available configurations (e.g. Debug, Release, Foo) and
              * attempts to fetch the values of a couple of properties from the project (CodeAnalysisRuleSet
              * and CodeAnalysisRuleSetDirectories). The collected data is put into a data object
@@ -67,11 +77,6 @@ namespace SonarLint.VisualStudio.Integration
              * rather than through the DTE (the previous version of this code that used the DTE fails
              * for C# and VB projects that use the new project system).
              */
-
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
 
             bool found = false;
 
@@ -112,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             string solutionRoot = Path.GetDirectoryName(solutionFullPath);
-            string ruleSetDirectoryRoot = Path.Combine(solutionRoot, 
+            string ruleSetDirectoryRoot = Path.Combine(solutionRoot,
                 bindingMode == SonarLintMode.LegacyConnected ?
                 Constants.LegacySonarQubeManagedFolderName :
                 Constants.SonarlintManagedFolderName);

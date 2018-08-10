@@ -138,9 +138,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
         {
-            StepAttributes IndeterminateNonCancellableUIStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable;
-            StepAttributes HiddenIndeterminateNonImpactingNonCancellableUIStep = IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
-            StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
+            const StepAttributes IndeterminateNonCancellableUIStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable;
+            const StepAttributes HiddenIndeterminateNonImpactingNonCancellableUIStep = IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
+            const StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
 
             return new ProgressStepDefinition[]
             {
@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 var serverLanguage = language.ToServerLanguage();
 
-                var qualityProfileInfo = await WebServiceHelper.SafeServiceCall(() =>
+                var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(() =>
                     this.host.SonarQubeService.GetQualityProfileAsync(
                         this.bindingArgs.ProjectKey, this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
                     this.host.Logger);
@@ -272,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
                 this.QualityProfiles[language] = qualityProfileInfo;
 
-                var roslynProfileExporter = await WebServiceHelper.SafeServiceCall(() =>
+                var roslynProfileExporter = await WebServiceHelper.SafeServiceCallAsync(() =>
                     this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
                         this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
                     this.host.Logger);

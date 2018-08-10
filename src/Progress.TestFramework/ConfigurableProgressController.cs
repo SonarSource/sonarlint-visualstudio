@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             using (ManualResetEventSlim signal = new ManualResetEventSlim())
             {
-                ((IProgressController)this).Start().ContinueWith(t => signal.Set());
+                ((IProgressController)this).StartAsync().ContinueWith(t => signal.Set());
 
                 signal.Wait(this.waitForCompletion);
             }

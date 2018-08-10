@@ -23,7 +23,7 @@ using Microsoft.TeamFoundation.Client.CommandTarget;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal abstract class HostedCommandControllerBase : IOleCommandTarget
+    internal class HostedCommandControllerBase : IOleCommandTarget
     {
         protected HostedCommandControllerBase(IServiceProvider serviceProvider)
         {

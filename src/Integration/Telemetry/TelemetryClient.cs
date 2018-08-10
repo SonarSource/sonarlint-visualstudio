@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration
             this.client.Dispose();
         }
 
-        public async Task<bool> OptOut(TelemetryPayload payload)
+        public async Task<bool> OptOutAsync(TelemetryPayload payload)
         {
             return await RetryHelper.RetryOnExceptionAsync(maxRetries, retryTimeout,
                 async () =>
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration
                 });
         }
 
-        public async Task<bool> SendPayload(TelemetryPayload payload)
+        public async Task<bool> SendPayloadAsync(TelemetryPayload payload)
         {
             return await RetryHelper.RetryOnExceptionAsync(maxRetries, retryTimeout,
                 async () =>

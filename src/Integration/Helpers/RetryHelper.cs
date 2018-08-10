@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration
                 }
                 catch (Exception)
                 {
-                    Task.Delay(delay).Wait();
+                    await Task.Delay(delay);
                 }
             }
 

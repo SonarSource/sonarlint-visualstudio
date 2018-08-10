@@ -39,11 +39,11 @@ namespace SonarQube.Client.Api
 
         private readonly HttpMessageHandler messageHandler;
         private readonly RequestFactory requestFactory;
-        public readonly string userAgent;
+        private readonly string userAgent;
 
         private HttpClient httpClient;
 
-        private Version sonarQubeVersion = null;
+        private Version sonarQubeVersion;
 
         public bool HasOrganizationsFeature
         {
@@ -256,7 +256,7 @@ namespace SonarQube.Client.Api
                 token);
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool disposedValue; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {

@@ -67,11 +67,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         protected override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            JoinableTaskFactory.RunAsync(Init);
+            JoinableTaskFactory.RunAsync(InitAsync);
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        private async System.Threading.Tasks.Task Init()
+        private async System.Threading.Tasks.Task InitAsync()
         {
             ILogger logger = null;
 

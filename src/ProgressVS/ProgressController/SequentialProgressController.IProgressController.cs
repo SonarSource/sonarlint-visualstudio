@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
         /// The method is not thread safe but can be called from any thread.
         /// </summary>
         /// <returns>An await-able</returns>
-        public async TPL.Task<ProgressControllerResult> Start()
+        public async TPL.Task<ProgressControllerResult> StartAsync()
         {
             if (this.IsStarted)
             {
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
 
             this.OnStarted();
 
-            ProgressControllerResult controllerResult = await VsThreadingHelper.RunTask<ProgressControllerResult>(this, VsTaskRunContext.BackgroundThread,
+            ProgressControllerResult controllerResult = await VsThreadingHelper.RunTaskAsync<ProgressControllerResult>(this, VsTaskRunContext.BackgroundThread,
                 () =>
                 {
                     ThreadHelper.ThrowIfOnUIThread();
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
                             break;
                         }
 
-                        StepExecutionState stepResult = operation.Run(this.cancellationTokenSource.Token, notifier).Result;
+                        StepExecutionState stepResult = operation.RunAsync(this.cancellationTokenSource.Token, notifier).Result;
 
                         /* Not trying to cancel here intentionally. The reason being
                         in case the step was the last one, there's nothing to cancel really,

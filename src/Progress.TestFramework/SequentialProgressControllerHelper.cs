@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             onFinished = (s, e) =>
             {
                 // Need to register on the UI thread
-                VsThreadingHelper.RunTask(controller, Microsoft.VisualStudio.Shell.VsTaskRunContext.UIThreadNormalPriority, () =>
+                VsThreadingHelper.RunTaskAsync(controller, Microsoft.VisualStudio.Shell.VsTaskRunContext.UIThreadNormalPriority, () =>
                 {
                     controller.Finished -= onFinished;
                 }).Wait();
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             };
 
             // Need to register on the UI thread
-            VsThreadingHelper.RunTask(controller, Microsoft.VisualStudio.Shell.VsTaskRunContext.UIThreadNormalPriority, () =>
+            VsThreadingHelper.RunTaskAsync(controller, Microsoft.VisualStudio.Shell.VsTaskRunContext.UIThreadNormalPriority, () =>
             {
                 controller.Finished += onFinished;
             }).Wait();

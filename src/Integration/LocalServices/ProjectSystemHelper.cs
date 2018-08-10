@@ -383,6 +383,11 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(hierarchy));
             }
 
+            return GetAggregateProjectKindsIterator(hierarchy);
+        }
+
+        private IEnumerable<Guid> GetAggregateProjectKindsIterator(IVsHierarchy hierarchy)
+        {
             // TODO: is this relevant for core projects?
 
             IVsAggregatableProjectCorrected aggregatableProject = hierarchy as IVsAggregatableProjectCorrected;

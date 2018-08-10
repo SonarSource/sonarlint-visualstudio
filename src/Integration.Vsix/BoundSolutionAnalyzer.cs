@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             string solutionDir = Path.GetDirectoryName(fullSolutionPath);
             string[] existingFiles = GetFiles(solutionDir, Constants.LegacySonarQubeManagedFolderName, "*.sqconfig")
                 ?? GetFiles(solutionDir, Constants.SonarlintManagedFolderName, "*.slconfig");
-            
+
             if (existingFiles?.Length > 0)
             {
                 this.serviceProvider.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.BoundSolutionDetected);
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         #region IDisposable Support
-        private bool disposedValue = false;
+        private bool disposedValue;
 
         private void Dispose(bool disposing)
         {

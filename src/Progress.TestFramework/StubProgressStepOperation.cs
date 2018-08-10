@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get { throw new NotImplementedException(); }
         }
 
-        public Task<StepExecutionState> Run(System.Threading.CancellationToken cancellationToken, IProgressStepExecutionEvents executionNotify)
+        public Task<StepExecutionState> RunAsync(System.Threading.CancellationToken cancellationToken, IProgressStepExecutionEvents executionNotify)
         {
             throw new NotImplementedException();
         }

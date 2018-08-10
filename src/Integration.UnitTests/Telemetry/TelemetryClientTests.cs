@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var client = new TelemetryClient(httpHandler, 3, TimeSpan.FromMilliseconds(1));
 
             // Act
-            var result = await client.OptOut(new TelemetryPayload());
+            var result = await client.OptOutAsync(new TelemetryPayload());
 
             // Assert
             result.Should().BeFalse();
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var client = new TelemetryClient(httpHandler);
 
             // Act
-            var result = await client.OptOut(new TelemetryPayload());
+            var result = await client.OptOutAsync(new TelemetryPayload());
 
             // Assert
             result.Should().BeTrue();
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var client = new TelemetryClient(httpHandler, 3, TimeSpan.FromMilliseconds(1));
 
             // Act
-            var result = await client.SendPayload(new TelemetryPayload());
+            var result = await client.SendPayloadAsync(new TelemetryPayload());
 
             // Assert
             result.Should().BeFalse();
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var client = new TelemetryClient(httpHandler);
 
             // Act
-            var result = await client.SendPayload(new TelemetryPayload());
+            var result = await client.SendPayloadAsync(new TelemetryPayload());
 
             // Assert
             result.Should().BeTrue();
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var client = new TelemetryClient(httpHandlerMock.Object);
 
             // Act
-            var result = await client.SendPayload(new TelemetryPayload
+            var result = await client.SendPayloadAsync(new TelemetryPayload
             {
                 // Adding some ticks to ensure that we send just the milliseconds in the serialized payload
                 InstallDate = new DateTimeOffset(2017, 12, 23, 8, 25, 35, 456, TimeSpan.FromHours(1)).AddTicks(123),

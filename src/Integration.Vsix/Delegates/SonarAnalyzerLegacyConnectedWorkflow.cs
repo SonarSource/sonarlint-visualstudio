@@ -117,7 +117,7 @@ SonarQube issues that have been suppressed in SonarQube may still be reported in
         }
 
         #region IDisposable Support
-        private bool disposedValue = false;
+        private bool disposedValue;
         protected override void Dispose(bool disposing)
         {
             if (disposedValue)

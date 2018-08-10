@@ -178,7 +178,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             telemetryTimerMock.Verify(x => x.Stop(), Times.Once);
 
-            telemetryClientMock.Verify(x => x.OptOut(It.IsAny<TelemetryPayload>()), Times.Once);
+            telemetryClientMock.Verify(x => x.OptOutAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
 
         [TestMethod]
@@ -202,7 +202,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             telemetryData.LastUploadDate.Should().Be(now);
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
-            telemetryClientMock.Verify(x => x.SendPayload(It.IsAny<TelemetryPayload>()), Times.Once);
+            telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
 
         [TestMethod]
@@ -226,7 +226,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             telemetryData.LastUploadDate.Should().Be(now);
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
-            telemetryClientMock.Verify(x => x.SendPayload(It.IsAny<TelemetryPayload>()), Times.Once);
+            telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
 
         [TestMethod]

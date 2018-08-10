@@ -137,9 +137,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                             this.logger);
                     }
                     break;
-
-                default:
-                    break;
             }
         }
 
@@ -156,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         #region IDisposable Support
-        private bool disposedValue = false;
+        private bool disposedValue;
         public void Dispose()
         {
             if (disposedValue)

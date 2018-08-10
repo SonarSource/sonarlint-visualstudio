@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                     }
                 }
 
-                var isCompatible = await this.AreSolutionProjectsAndSonarQubePluginsCompatible(controller, notifications,
+                var isCompatible = await this.AreSolutionProjectsAndSonarQubePluginsCompatibleAsync(controller, notifications,
                     cancellationToken);
                 if (!isCompatible)
                 {
@@ -270,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Helpers
 
-        private async Task<bool> AreSolutionProjectsAndSonarQubePluginsCompatible(IProgressController controller,
+        private async Task<bool> AreSolutionProjectsAndSonarQubePluginsCompatibleAsync(IProgressController controller,
             IProgressStepExecutionEvents notifications, CancellationToken cancellationToken)
         {
             notifications.ProgressChanged(Strings.DetectingSonarQubePlugins);
