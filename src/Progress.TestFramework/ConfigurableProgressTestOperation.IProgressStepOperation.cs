@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get { return this; }
         }
 
-        Task<StepExecutionState> IProgressStepOperation.Run(CancellationToken cancellationToken, IProgressStepExecutionEvents executionNotify)
+        Task<StepExecutionState> IProgressStepOperation.RunAsync(CancellationToken cancellationToken, IProgressStepExecutionEvents executionNotify)
         {
             cancellationToken.Should().NotBeNull("cancellationToken is not expected to be null");
             executionNotify.Should().NotBeNull("executionNotify is not expected to be null");

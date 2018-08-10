@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get { return this.ErrorNotificationManager; }
         }
 
-        Task<ProgressControllerResult> IProgressController.Start()
+        Task<ProgressControllerResult> IProgressController.StartAsync()
         {
             return Task.Factory.StartNew(() =>
                 {
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                         try
                         {
                             this.canAbort = op.Step.Cancellable;
-                            StepExecutionState state = op.Run(this.cts.Token, this).Result;
+                            StepExecutionState state = op.RunAsync(this.cts.Token, this).Result;
                             VerificationHelper.CheckState(op.Step, state);
                         }
                         catch (Exception ex)

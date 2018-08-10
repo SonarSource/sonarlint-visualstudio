@@ -72,9 +72,9 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// <param name="context">The <see cref="VsTaskRunContext"/> in which to run the operation</param>
         /// <param name="op">The operation to run</param>
         /// <returns>An await-able object</returns>
-        internal static async TPL.Task RunTask(IServiceProvider serviceProvider, VsTaskRunContext context, Action op)
+        internal static async TPL.Task RunTaskAsync(IServiceProvider serviceProvider, VsTaskRunContext context, Action op)
         {
-            await RunTask(serviceProvider, context, op, CancellationToken.None);
+            await RunTaskAsync(serviceProvider, context, op, CancellationToken.None);
         }
 
         /// <summary>
@@ -85,9 +85,9 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// <param name="op">The operation to run</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>An await-able object</returns>
-        internal static async TPL.Task RunTask(IServiceProvider serviceProvider, VsTaskRunContext context, Action op, CancellationToken token)
+        internal static async TPL.Task RunTaskAsync(IServiceProvider serviceProvider, VsTaskRunContext context, Action op, CancellationToken token)
         {
-            await RunTask<object>(serviceProvider, context, () =>
+            await RunTaskAsync<object>(serviceProvider, context, () =>
             {
                 op();
                 return null;
@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// <param name="op">The operation to run</param>
         /// <param name="token">Option cancellation token <see cref="CancellationToken"/></param>
         /// <returns>An await-able object that returns a result</returns>
-        internal static async TPL.Task<T> RunTask<T>(IServiceProvider serviceProvider, VsTaskRunContext context, Func<T> op, CancellationToken token)
+        internal static async TPL.Task<T> RunTaskAsync<T>(IServiceProvider serviceProvider, VsTaskRunContext context, Func<T> op, CancellationToken token)
         {
             IVsTask task = CreateTask<T>(serviceProvider, context, op, token);
             task.Start();

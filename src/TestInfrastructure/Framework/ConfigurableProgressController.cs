@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-        Task<ProgressControllerResult> IProgressController.Start()
+        Task<ProgressControllerResult> IProgressController.StartAsync()
         {
             throw new NotImplementedException();
         }

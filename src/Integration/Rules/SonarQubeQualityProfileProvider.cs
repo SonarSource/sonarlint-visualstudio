@@ -69,17 +69,17 @@ namespace SonarLint.VisualStudio.Integration.Rules
                 return null;
             }
 
-            return GetSonarQubeQualityProfile(project, language)
+            return GetSonarQubeQualityProfileAsync(project, language)
                 .Result
                 .ToRuleSet()
                 .ToQualityProfile(language);
         }
 
-        private async Task<RoslynExportProfileResponse> GetSonarQubeQualityProfile(BoundSonarQubeProject project, Language language)
+        private async Task<RoslynExportProfileResponse> GetSonarQubeQualityProfileAsync(BoundSonarQubeProject project, Language language)
         {
             var serverLanguage = language.ToServerLanguage();
 
-            var qualityProfileInfo = await WebServiceHelper.SafeServiceCall(
+            var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(
                 () => this.sonarQubeService.GetQualityProfileAsync(project.ProjectKey, project.Organization?.Key, serverLanguage,
                     CancellationToken.None),
                 this.logger);
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Rules
                 return null;
             }
 
-            var roslynProfileExporter = await WebServiceHelper.SafeServiceCall(
+            var roslynProfileExporter = await WebServiceHelper.SafeServiceCallAsync(
                 () => this.sonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name, project.Organization?.Key,
                     serverLanguage, CancellationToken.None),
                 this.logger);

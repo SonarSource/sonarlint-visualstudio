@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
             initialFetchCancellationTokenSource = new CancellationTokenSource();
-            this.initialFetch = Task.Factory.StartNew(DoInitialFetch, initialFetchCancellationTokenSource.Token);
+            this.initialFetch = Task.Factory.StartNew(DoInitialFetchAsync, initialFetchCancellationTokenSource.Token);
             refreshTimer.Start();
         }
 
@@ -120,10 +119,10 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private async void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
         {
-            await SynchronizeSuppressedIssues();
+            await SynchronizeSuppressedIssuesAsync();
         }
 
-        private Task DoInitialFetch()
+        private Task DoInitialFetchAsync()
         {
             // We might not have connected to the server at this point so if necessary
             // wait before trying to fetch the issues
@@ -138,10 +137,10 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 retryCount++;
             }
 
-            return SynchronizeSuppressedIssues();
+            return SynchronizeSuppressedIssuesAsync();
         }
 
-        private async Task SynchronizeSuppressedIssues()
+        private async Task SynchronizeSuppressedIssuesAsync()
         {
             try
             {

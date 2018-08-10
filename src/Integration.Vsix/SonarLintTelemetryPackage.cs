@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 telemetryManager = await this.GetMefServiceAsync<ITelemetryManager>();
                 logger.WriteLine(Resources.Strings.Telemetry_InitializationComplete);
 
-                if (await IsSolutionFullyOpened())
+                if (await IsSolutionFullyOpenedAsync())
                 {
                     telemetryManager.Update();
                 }
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private async System.Threading.Tasks.Task<bool> IsSolutionFullyOpened()
+        private async System.Threading.Tasks.Task<bool> IsSolutionFullyOpenedAsync()
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expecting to be called on the UI thread");
             var solution = await this.GetServiceAsync(typeof(SVsSolution)) as IVsSolution;

@@ -53,9 +53,9 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
         /// either all of the work in workData has been processed, or the operation was canceled.
         /// </returns>
-        public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, IEnumerable<T> workData)
+        public static Task RunOnIdleAsync<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, IEnumerable<T> workData)
         {
-            return @this.RunOnIdle<T>(idleWork, workData, CancellationToken.None);
+            return @this.RunOnIdleAsync<T>(idleWork, workData, CancellationToken.None);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
         /// either all of the work in workData has been processed, or the operation was canceled.
         /// </returns>
-        public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, IEnumerable<T> workData, CancellationToken token)
+        public static Task RunOnIdleAsync<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, IEnumerable<T> workData, CancellationToken token)
         {
             // Check for good data
             if (idleWork == null)
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
             T[] items = workData.ToArray();
             var adapter = new TryGetNextItemEnumerableAdapter<T>(items);
 
-            return @this.RunOnIdle(idleWork, adapter.TryGetNextItem, token);
+            return @this.RunOnIdleAsync(idleWork, adapter.TryGetNextItem, token);
         }
 
         /// <summary>
@@ -105,9 +105,9 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
         /// either all of the work in workQueue has been processed, or the operation was canceled.
         /// </returns>
-        public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, ConcurrentQueue<T> workQueue)
+        public static Task RunOnIdleAsync<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, ConcurrentQueue<T> workQueue)
         {
-            return @this.RunOnIdle<T>(idleWork, workQueue, CancellationToken.None);
+            return @this.RunOnIdleAsync<T>(idleWork, workQueue, CancellationToken.None);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
         /// either all of the work in workQueue has been processed, or the operation was canceled.
         /// </returns>
-        public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, ConcurrentQueue<T> workQueue, CancellationToken token)
+        public static Task RunOnIdleAsync<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, ConcurrentQueue<T> workQueue, CancellationToken token)
         {
             // Check for good data
             if (idleWork == null)
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
                 throw new ArgumentNullException(nameof(workQueue));
             }
 
-            return @this.RunOnIdle(idleWork, workQueue.TryDequeue, token);
+            return @this.RunOnIdleAsync(idleWork, workQueue.TryDequeue, token);
         }
 
         /// <summary>
@@ -154,9 +154,9 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
         /// either all of the work received from tryGetNextItem has been processed, or the operation was canceled.
         /// </returns>
-        public static Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, TryGetNextItem<T> tryGetNextItem)
+        public static Task RunOnIdleAsync<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, TryGetNextItem<T> tryGetNextItem)
         {
-            return @this.RunOnIdle<T>(idleWork, tryGetNextItem, CancellationToken.None);
+            return @this.RunOnIdleAsync<T>(idleWork, tryGetNextItem, CancellationToken.None);
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.Progress.Threading
         /// >A task representing all of the asynchronous work this method is performing.  When the task is marked as completed,
         /// either all of the work received from tryGetNextItem has been processed, or the operation was canceled.
         /// </returns>
-        public static async Task RunOnIdle<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, TryGetNextItem<T> tryGetNextItem, CancellationToken token)
+        public static async Task RunOnIdleAsync<T>(this IVsTaskSchedulerService @this, Action<T> idleWork, TryGetNextItem<T> tryGetNextItem, CancellationToken token)
         {
             // Check for good data
             if (idleWork == null)

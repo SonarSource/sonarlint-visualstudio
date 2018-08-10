@@ -26,8 +26,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Newtonsoft.Json;
-using SonarQube.Client.Models;
 using SonarQube.Client.Messages;
+using SonarQube.Client.Models;
 using SonarQube.Client.Services;
 
 namespace SonarQube.Client.Api.V5_10
@@ -60,7 +60,7 @@ namespace SonarQube.Client.Api.V5_10
 
         protected override SonarQubeIssue[] ParseResponse(string response)
         {
-            throw new NotImplementedException("This method will not be called because we override ReadResponse.");
+            throw new NotSupportedException("This method will not be called because we override ReadResponse.");
         }
 
         private static IEnumerable<T> ReadFromProtobufStream<T>(Stream stream, MessageParser<T> parser)

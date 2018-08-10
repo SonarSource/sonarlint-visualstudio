@@ -41,6 +41,6 @@ namespace SonarLint.VisualStudio.Progress.Controller
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="progressCallback">Allows to update the <see cref="IProgressController"/> with the execution progress and cancellation support. <seealso cref="IProgressEvents"/></param>
         /// <returns>An awaitable task that returns a <see cref="StepExecutionState"/> result</returns>
-        Task<StepExecutionState> Run(CancellationToken cancellationToken, IProgressStepExecutionEvents progressCallback);
+        Task<StepExecutionState> RunAsync(CancellationToken cancellationToken, IProgressStepExecutionEvents progressCallback);
     }
 }

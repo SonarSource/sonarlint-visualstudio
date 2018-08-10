@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
         /// Starts execution
         /// </summary>
         /// <returns>An await-able object with a <see cref="ProgressControllerResult"/> result</returns>
-        Task<ProgressControllerResult> Start();
+        Task<ProgressControllerResult> StartAsync();
 
         /// <summary>
         /// Tries to abort the current execution

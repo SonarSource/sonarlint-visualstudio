@@ -28,7 +28,7 @@ using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Progress.MVVM
 {
-    public abstract class ViewModelBase : INotifyPropertyChanged
+    public class ViewModelBase : INotifyPropertyChanged
     {
         private readonly Dispatcher dispatcher;
 
@@ -178,12 +178,7 @@ namespace SonarLint.VisualStudio.Progress.MVVM
         protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null)
         {
             this.VerifyAccess();
-            PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-
-            if (propertyChanged != null)
-            {
-                propertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         /// <summary>
@@ -207,11 +202,11 @@ namespace SonarLint.VisualStudio.Progress.MVVM
             }
             else if (typeof(T).IsSubclassOf(typeof(Enum)))
             {
-                equal = Enum.Equals(value, propertyDataField);
+                equal = Equals(value, propertyDataField);
             }
             else
             {
-                equal = object.Equals(value, propertyDataField);
+                equal = Equals(value, propertyDataField);
             }
 
             if (!equal)

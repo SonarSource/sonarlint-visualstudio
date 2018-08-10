@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable
     {
-        private bool isDisposed = false;
+        private bool isDisposed;
         private readonly IVsSolution solution;
         private readonly uint cookie;
 

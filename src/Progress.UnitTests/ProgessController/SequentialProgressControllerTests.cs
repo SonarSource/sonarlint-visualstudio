@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             stepOperations = this.testSubject.Steps.ToArray();
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             definitions.Should().HaveCount(expectedOperation, "Executed unexpected number of times");
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.None, this.DoNothing));
 
             // Act
-            var result = await this.testSubject.Start();
+            var result = await this.testSubject.StartAsync();
 
             // Assert
             result.Should().Be(ProgressControllerResult.Succeeded, "Unexpected result");
@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.None, this.DoNothing));
 
             // Act
-            var result = await this.testSubject.Start();
+            var result = await this.testSubject.StartAsync();
 
             // Assert
             result.Should().Be(ProgressControllerResult.Succeeded, "Unexpected result");
@@ -188,8 +188,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                     try
                     {
                         Task.WaitAll(
-                            this.testSubject.Start(),
-                            this.testSubject.Start());
+                            this.testSubject.StartAsync(),
+                            this.testSubject.StartAsync());
                     }
                     catch (AggregateException ex)
                     {
@@ -212,7 +212,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject.IsFinished.Should().BeFalse("Wasn't started yet");
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             this.testSubject.IsStarted.Should().BeTrue("Was started");
             this.testSubject.IsFinished.Should().BeTrue("Was finished");
@@ -250,7 +250,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject.TryAbort().Should().BeFalse("Should not be able to abort before started");
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             IProgressStep[] stepOperations = this.testSubject.Steps.ToArray();
@@ -270,7 +270,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             IProgressStep[] stepOperations = this.testSubject.Steps.ToArray();
@@ -290,7 +290,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             this.testSubject.CanAbort.Should().BeFalse("Should not be abortable any more, since already aborted");
@@ -319,7 +319,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testSubject.Initialize(testFactory, new[] { new StubProgressStepDefinition() });
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             verifier.AssertCorrectExecution(ProgressControllerResult.Cancelled);
@@ -339,7 +339,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             verifier.AssertCorrectExecution(ProgressControllerResult.Succeeded);
@@ -355,7 +355,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.Cancel));
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             verifier.AssertCorrectExecution(ProgressControllerResult.Cancelled);
@@ -371,7 +371,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             ProgressEventsVerifier verifier = this.InitializeTestSubjectWithTestErrorHandling(new ProgressStepDefinition(null, StepAttributes.Hidden, this.Fail));
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             verifier.AssertCorrectExecution(ProgressControllerResult.Failed);
@@ -389,7 +389,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                                                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             verifier.AssertCorrectExecution(ProgressControllerResult.Succeeded);
@@ -409,7 +409,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                                                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             verifier.AssertCorrectExecution(ProgressControllerResult.Cancelled);
@@ -430,7 +430,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
                                                 new ProgressStepDefinition(null, StepAttributes.Hidden, this.DoNothing));
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             verifier.AssertCorrectExecution(ProgressControllerResult.Failed);
@@ -453,7 +453,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.notifyProgressSequence.Add(Tuple.Create((string)null, 1.0));
 
             // Act
-            this.testSubject.Start().Wait();
+            this.testSubject.StartAsync().Wait();
 
             // Assert
             verifier.AssertCorrectExecution(ProgressControllerResult.Succeeded);

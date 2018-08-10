@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             lastCheckDate = GetLastCheckedDate(notificationData);
 
             timer.Start();
-            await UpdateEvents(true);
+            await UpdateEventsAsync(true);
         }
 
         public void Stop()
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             Model.IsIconVisible = false;
         }
 
-        private async Task UpdateEvents(bool isFirstRequest = false)
+        private async Task UpdateEventsAsync(bool isFirstRequest = false)
         {
             // Query server even if notifications are disabled, query the server to know
             // if the icon should be shown (so the notifications can be re-enabled).
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             Debug.Assert(cancellation != null,
                 "Cancellation token should not be null if the timer is active - check StartAsync has been called");
 
-            await UpdateEvents();
+            await UpdateEventsAsync();
         }
 
         public void Dispose()

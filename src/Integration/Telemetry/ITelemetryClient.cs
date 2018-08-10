@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     public interface ITelemetryClient
     {
-        Task<bool> SendPayload(TelemetryPayload payload);
-        Task<bool> OptOut(TelemetryPayload payload);
+        Task<bool> SendPayloadAsync(TelemetryPayload payload);
+        Task<bool> OptOutAsync(TelemetryPayload payload);
     }
 }

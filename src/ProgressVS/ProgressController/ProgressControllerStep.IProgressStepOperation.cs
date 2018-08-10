@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
             }
         }
 
-        async Task<StepExecutionState> IProgressStepOperation.Run(CancellationToken cancellationToken, IProgressStepExecutionEvents progressCallback)
+        async Task<StepExecutionState> IProgressStepOperation.RunAsync(CancellationToken cancellationToken, IProgressStepExecutionEvents progressCallback)
         {
             if (this.ExecutionState != StepExecutionState.NotStarted)
             {
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Progress.Controller
 
             VsTaskRunContext context = GetContext(this.Execution);
 
-            StepExecutionState stepState = await VsThreadingHelper.RunTask<StepExecutionState>(this.controller, context,
+            StepExecutionState stepState = await VsThreadingHelper.RunTaskAsync<StepExecutionState>(this.controller, context,
                 () =>
                 {
                     DoStatefulExecution(progressCallback, cancellationToken);

@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Progress
         }
 
         #region IDisposable Support
-        private bool disposedValue = false;
+        private bool disposedValue;
 
         private void Dispose(bool disposing)
         {

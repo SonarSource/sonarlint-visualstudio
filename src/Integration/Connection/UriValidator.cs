@@ -127,8 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             Uri uri;
 
             // creatable
-            UriKind kind = UriKind.Absolute;
-            if (!Uri.TryCreate(uriString, kind, out uri))
+            if (!Uri.TryCreate(uriString, UriKind.Absolute, out uri))
             {
                 return false;
             }

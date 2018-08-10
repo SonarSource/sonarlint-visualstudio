@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal static class WebServiceHelper
     {
-        public static async Task<T> SafeServiceCall<T>(Func<Task<T>> call, ILogger logger)
+        public static async Task<T> SafeServiceCallAsync<T>(Func<Task<T>> call, ILogger logger)
         {
             try
             {
@@ -53,9 +53,9 @@ namespace SonarLint.VisualStudio.Integration
             return default(T);
         }
 
-        public static async Task SafeServiceCall(Func<Task> call, ILogger logger)
+        public static async Task SafeServiceCallAsync(Func<Task> call, ILogger logger)
         {
-            await SafeServiceCall(async () => { await call(); return 0; }, logger);
+            await SafeServiceCallAsync(async () => { await call(); return 0; }, logger);
         }
     }
 }

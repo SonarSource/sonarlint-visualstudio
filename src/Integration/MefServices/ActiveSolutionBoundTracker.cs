@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration
             // An exception here will crash VS
             try
             {
-                await UpdateConnection();
+                await UpdateConnectionAsync();
 
                 this.RaiseAnalyzersChangedIfBindingChanged();
                 this.errorListInfoBarController.Refresh();
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private async Task UpdateConnection()
+        private async Task UpdateConnectionAsync()
         {
             ISonarQubeService sonarQubeService = this.extensionHost.SonarQubeService;
 
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration
             if (boundProject != null)
             {
                 var connectionInformation = boundProject.CreateConnectionInformation();
-                await WebServiceHelper.SafeServiceCall(() => sonarQubeService.ConnectAsync(connectionInformation,
+                await WebServiceHelper.SafeServiceCallAsync(() => sonarQubeService.ConnectAsync(connectionInformation,
                     CancellationToken.None), this.logger);
             }
 
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public async void OnImportsSatisfied()
         {
-            await UpdateConnection();
+            await UpdateConnectionAsync();
         }
 
         #endregion

@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Progress
             Observe(controller, host);
             controller.RunOnFinished(r => observedControllersMap.Remove(controller));
 #pragma warning disable 4014 // We do want to start and forget. All the errors will be forwarded via the error notification manager
-            controller.Start();
+            controller.StartAsync();
 #pragma warning restore 4014
 
             return controller;
