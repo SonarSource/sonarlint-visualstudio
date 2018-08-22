@@ -73,9 +73,9 @@
     <None Include="packages.SonarAnalyzerEmbedder.VisualBasic.config" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.3.1.5982\analyzers\Google.Protobuf.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.3.1.5982\analyzers\SonarAnalyzer.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.3.1.5982\analyzers\SonarAnalyzer.VisualBasic.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.4.0.6452\analyzers\Google.Protobuf.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.4.0.6452\analyzers\SonarAnalyzer.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.4.0.6452\analyzers\SonarAnalyzer.VisualBasic.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>
