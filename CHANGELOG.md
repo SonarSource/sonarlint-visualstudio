@@ -13,11 +13,18 @@ For reference, the possible headings are:
 * **Notes**
 
 
-## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.2.0.3692...HEAD)
+## [Unreleased](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.3.0.3718...HEAD)
+
+
+## [4.3](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.2.0.3692...4.3.0.3718)
+
+### Improvements
+* [#656](https://github.com/SonarSource/sonarlint-visualstudio/issues/711) - Update SonarAnalyzer to 7.4 
+
 
 ## [4.2](https://github.com/SonarSource/sonarlint-visualstudio/compare/4.1.0.3539...4.2.0.3692)
 
-### Bug
+### Bug fixes
 * [#642](https://github.com/SonarSource/sonarlint-visualstudio/issues/642) - New binding: double-clicking on the project in the list does nothing
 * [#647](https://github.com/SonarSource/sonarlint-visualstudio/issues/647) - SonarLint for VS 2017 4.0.0.3479 likely caused 6 seconds of unresponsiveness
 * [#648](https://github.com/SonarSource/sonarlint-visualstudio/issues/648) - Unable to collect C/C++ configuration: System.Reflection.TargetInvocationException
@@ -30,7 +37,7 @@ For reference, the possible headings are:
 * [#689](https://github.com/SonarSource/sonarlint-visualstudio/issues/689) - [Client] LoggingHttpClientHandler is disposed when a bound solution is closed
 * [#691](https://github.com/SonarSource/sonarlint-visualstudio/issues/691) - [Daemon] "Unsupported content type" message in output pane even for file types that are handled
 
-### Improvement
+### Improvements
 * [#274](https://github.com/SonarSource/sonarlint-visualstudio/issues/274) - Update usage of deprecated API
 * [#595](https://github.com/SonarSource/sonarlint-visualstudio/issues/595) - Update SonarQube Client to support new APIs
 * [#666](https://github.com/SonarSource/sonarlint-visualstudio/issues/666) - Use api/issues/search to retrieve suppressed issues for SQ >= 7.2
