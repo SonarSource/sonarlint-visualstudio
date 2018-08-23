@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Loading notifcations settings....
+        ///   Looks up a localized string similar to Loading notifications settings....
         /// </summary>
         internal static string Notifications_LoadingSettings {
             get {
@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Saving notifcations settings....
+        ///   Looks up a localized string similar to Saving notifications settings....
         /// </summary>
         internal static string Notifications_SavingSettings {
             get {

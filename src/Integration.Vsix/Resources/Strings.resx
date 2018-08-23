@@ -186,7 +186,7 @@
     <comment>Output window message</comment>
   </data>
   <data name="Notifications_LoadingSettings" xml:space="preserve">
-    <value>Loading notifcations settings...</value>
+    <value>Loading notifications settings...</value>
     <comment>Output window message</comment>
   </data>
   <data name="Notifications_NotConnected" xml:space="preserve">
@@ -194,7 +194,7 @@
     <comment>Output window message</comment>
   </data>
   <data name="Notifications_SavingSettings" xml:space="preserve">
-    <value>Saving notifcations settings...</value>
+    <value>Saving notifications settings...</value>
     <comment>Output window message</comment>
   </data>
   <data name="Telemetry_ERROR" xml:space="preserve">
