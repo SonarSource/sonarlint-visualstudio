@@ -9,6 +9,7 @@ pipeline {
     MAVEN_TOOL = 'Maven 3.3.x'
     PFX_PASSWORD = credentials('pfx-passphrase')
     GITHUB_TOKEN = credentials('sonartech-github-token')
+    SONAR_TOKEN = credentials('SONAR_TOKEN')
     ARTIFACTS_TO_DOWNLOAD = 'org.sonarsource.dotnet:SonarLint.VSIX:vsix:2015,org.sonarsource.dotnet:SonarLint.VSIX:vsix:2017'
   }
   stages{
