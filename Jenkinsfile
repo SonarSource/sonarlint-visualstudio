@@ -1,10 +1,8 @@
 #!/bin/groovy
-@Library('SonarSource@1.9') _
+@Library('SonarSource@2.1') _
 
 pipeline {
-  agent { 
-    label 'linux' 
-  }
+  agent none
   environment {         
     MAVEN_TOOL = 'Maven 3.3.x'
     PFX_PASSWORD = credentials('pfx-passphrase')
@@ -59,7 +57,10 @@ pipeline {
           environment name: 'GITHUB_BRANCH', value: 'master'
           environment name: 'IS_PULLREQUEST', value: 'true'
         }
-      }     
+      }
+      agent {
+        label 'linux'
+      }
       environment {         
         ARTIFACTORY_DEPLOY_REPO="sonarsource-public-qa"
         REPOX_DEPLOYER=credentials('repox-deploy')
@@ -96,7 +97,7 @@ pipeline {
           environment name: 'GITHUB_BRANCH', value: 'master'
           environment name: 'IS_PULLREQUEST', value: 'true'
         }
-      } 
+      }
       steps{
         //at the moment no QA is executed for sonarlint-visualstudio
         sendAllNotificationQaStarted()
