@@ -29,7 +29,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using Grpc.Core;
-using Microsoft.VisualStudio;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
@@ -41,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
 
-        public const string daemonVersion = "3.4.0.1536";
+        public const string daemonVersion = "3.9.0.1892";
         private const string uriFormat = "http://repo1.maven.org/maven2/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
 
         private readonly ConcurrentDictionary<string, List<Issue>> fileIssues = new ConcurrentDictionary<string, List<Issue>>();
