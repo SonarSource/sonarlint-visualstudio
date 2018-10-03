@@ -66,7 +66,6 @@ pipeline {
         REPOX_DEPLOYER=credentials('repox-deploy')
         ARTIFACTORY_DEPLOY_USERNAME="$REPOX_DEPLOYER_USR"
         ARTIFACTORY_DEPLOY_PASSWORD="$REPOX_DEPLOYER_PSW"
-        PROJECT_VERSION="${version}"
         BUILD_ID="${env.BUILD_NUMBER}"
       }
       steps{
@@ -80,7 +79,9 @@ pipeline {
         dir('build/poms') {
           withMaven(maven: MAVEN_TOOL) {
             sh "mvn -B versions:set -DgenerateBackupPoms=false -DnewVersion=${version}"
-            sh "mvn deploy -Pdeploy-sonarsource -B -e -V"            
+            withEnv(["PROJECT_VERSION=${version}"]) {
+              sh "mvn deploy -Pdeploy-sonarsource -B -e -V"
+            }
           }
         }             
       }       
