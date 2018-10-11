@@ -45,13 +45,20 @@ namespace SonarQube.Client.Api.V7_20
                 hash: issue.Hash,
                 line: issue.Line,
                 message: issue.Message,
-                moduleKey: issue.SubProject,
+                moduleKey: ComputeModuleKey(issue),
                 resolutionState: ParseResolutionState(issue.Resolution),
                 ruleId: GetRuleKey(issue.CompositeRuleKey));
 
         private static string ComputePath(ServerIssue issue) =>
             // Component is "{SubProject}:Path"
-            issue.Component.Substring(issue.SubProject.Length + 1);
+            issue.SubProject != null 
+                ? issue.Component.Substring(issue.SubProject.Length + 1)
+                : string.Empty;
+
+        private static string ComputeModuleKey(ServerIssue issue) =>
+            issue.SubProject != null
+                ? issue.SubProject
+                : issue.Component;
 
         private static string GetRuleKey(string compositeRuleKey) =>
             // ruleKey is "csharpsqid:S1234" or "vbnet:S1234" but we need S1234
