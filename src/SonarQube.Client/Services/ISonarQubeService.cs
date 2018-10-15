@@ -56,5 +56,7 @@ namespace SonarQube.Client.Services
 
         Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
             DateTimeOffset eventsSince, CancellationToken token);
+
+        Task<IList<SonarQubeModule>> GetAllModulesAsync(string projectKey, CancellationToken token);
     }
 }
