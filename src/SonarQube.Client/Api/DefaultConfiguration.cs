@@ -34,6 +34,7 @@ namespace SonarQube.Client.Api.Requests
                 .RegisterRequest<IGetQualityProfileChangeLogRequest, V5_20.GetQualityProfileChangeLogRequest>("5.2")
                 .RegisterRequest<IGetQualityProfilesRequest, V5_20.GetQualityProfilesRequest>("5.2")
                 .RegisterRequest<IGetRoslynExportProfileRequest, V5_20.GetRoslynExportProfileRequest>("5.2")
+                .RegisterRequest<IGetModulesRequest, V5_40.GetModulesRequest>("5.4")
                 .RegisterRequest<IGetOrganizationsRequest, V6_20.GetOrganizationsRequest>("6.2")
                 .RegisterRequest<IGetProjectsRequest, V6_20.GetProjectsRequest>("6.2")
                 .RegisterRequest<IGetPluginsRequest, V6_30.GetPluginsRequest>("6.3")

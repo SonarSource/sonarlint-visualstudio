@@ -255,6 +255,14 @@ namespace SonarQube.Client.Api
                 },
                 token);
 
+        public async Task<IList<SonarQubeModule>> GetAllModulesAsync(string projectKey, CancellationToken token) =>
+            await InvokeRequestAsync<IGetModulesRequest, SonarQubeModule[]>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                },
+                token);
+
         #region IDisposable Support
         private bool disposedValue; // To detect redundant calls
 
