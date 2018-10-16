@@ -86,22 +86,20 @@ namespace SonarQube.Client.Api.V7_20
 
         private class ServerIssue
         {
-            [JsonProperty("key")]
-            public string Key { get; set; }
+            [JsonProperty("rule")]
+            public string CompositeRuleKey { get; set; }
             [JsonProperty("component")]
             public string Component { get; set; }
+            [JsonProperty("subProject")]
+            public string SubProject { get; set; }
             [JsonProperty("hash")]
             public string Hash { get; set; }
             [JsonProperty("line")]
-            public int Line { get; set; }
+            public int? Line { get; set; }
             [JsonProperty("message")]
-            public string Message { get; set; }
-            [JsonProperty("subProject")]
-            public string SubProject { get; set; }
+            public string Message { get; set; }            
             [JsonProperty("resolution")]
-            public string Resolution { get; set; }
-            [JsonProperty("rule")]
-            public string CompositeRuleKey { get; set; }
+            public string Resolution { get; set; }            
         }
     }
 }

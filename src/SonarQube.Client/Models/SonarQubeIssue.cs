@@ -22,10 +22,10 @@ namespace SonarQube.Client.Models
 {
     public class SonarQubeIssue
     {
-        public SonarQubeIssue(string filePath, string hash, int line, string message, string moduleKey,
+        public SonarQubeIssue(string filePath, string hash, int? line, string message, string moduleKey,
             SonarQubeIssueResolutionState resolutionState, string ruleId)
         {
-            FilePath = filePath;
+            FilePath = filePath?.Trim('/', '\\');
             Hash = hash;
             Line = line;
             Message = message;
@@ -36,7 +36,7 @@ namespace SonarQube.Client.Models
 
         public string FilePath { get; }
         public string Hash { get; }
-        public int Line { get; }
+        public int? Line { get; }
         public string Message { get; }
         public string ModuleKey { get; }
         public SonarQubeIssueResolutionState ResolutionState { get; }

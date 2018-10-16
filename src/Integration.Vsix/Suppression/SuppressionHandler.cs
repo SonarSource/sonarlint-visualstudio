@@ -64,19 +64,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             // 1. Same component, same file, same error code, same line hash        // tolerant to line number changing
             // 2. Same component, same file, same error code, same line             // tolerant to code on the line changing e.g. var rename
 
-            // As a minimum, the project, file and rule id must match
-            var issuesInFile = serverIssuesProvider.GetSuppressedIssues(liveIssue.ProjectGuid, liveIssue.IssueFilePath);
-            if (issuesInFile == null)
-            {
-                return true;
-            }
+            // Retrieve all issues relating to this file (file level or precise location) or project (for module level issues)
+            var potentialMatchingIssues = serverIssuesProvider.GetSuppressedIssues(liveIssue.ProjectGuid, liveIssue.FilePath);
 
-            // TODO: rule repository?
-            issuesInFile = issuesInFile.Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleId));
+            // Try to find an issue with the same ID and either the same line number or some line hash
+            bool matchFound = potentialMatchingIssues
+                .Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleId))
+                .Any(i => liveIssue.StartLine == i.Line || StringComparer.Ordinal.Equals(liveIssue.LineHash, i.Hash));
 
-            bool matchFound = issuesInFile.Any(i =>
-                    liveIssue.StartLine == i.Line ||
-                    StringComparer.Ordinal.Equals(liveIssue.LineHash, i.Hash));
             return !matchFound;
         }
     }

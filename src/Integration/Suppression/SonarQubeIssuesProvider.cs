@@ -20,6 +20,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,7 +43,10 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly ILogger logger;
         private readonly CancellationTokenSource initialFetchCancellationTokenSource;
 
-        private IList<SonarQubeIssue> cachedSuppressedIssues;
+        private Dictionary<string, List<SonarQubeIssue>> suppressedModuleIssues;
+        private List<IGrouping<string, SonarQubeIssue>> suppressedFileIssues;
+        private bool hasModules;
+
         private bool isDisposed;
         private CancellationTokenSource cancellationTokenSource;
 
@@ -88,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             refreshTimer.Dispose();
             initialFetchCancellationTokenSource.Cancel();
-            cachedSuppressedIssues = null;
+            suppressedFileIssues = null;
             this.isDisposed = true;
         }
 
@@ -101,20 +106,42 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             // We'll try to fetch the issues again when the timer elapses.
             this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
 
-            if (this.cachedSuppressedIssues == null || this.isDisposed)
+            if (this.suppressedFileIssues == null ||
+                this.isDisposed)
             {
                 return Enumerable.Empty<SonarQubeIssue>();
             }
 
-            string moduleKey = BuildModuleKey(projectGuid);
-            return this.cachedSuppressedIssues.Where(x =>
-                x.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase) &&
-                x.ModuleKey.Equals(moduleKey, StringComparison.OrdinalIgnoreCase));
+            if (filePath == null) // we want a match for a module level issue
+            {
+                string moduleKey = BuildModuleKey(projectGuid);
+
+                List<SonarQubeIssue> suppressedIssues;
+                this.suppressedModuleIssues.TryGetValue(moduleKey, out suppressedIssues);
+
+                return suppressedIssues ?? Enumerable.Empty<SonarQubeIssue>();
+            }
+
+            // we want a match for a file level issue (line level location or not)
+            Debug.Assert(Path.IsPathRooted(filePath) && !filePath.Contains("/"), 
+                $"Expecting an absolute path with only back-slashes delimiters but got '{filePath}'.");
+
+            return this.suppressedFileIssues.FirstOrDefault(x => filePath.EndsWith(x.Key, StringComparison.OrdinalIgnoreCase))
+                ?? Enumerable.Empty<SonarQubeIssue>();
         }
 
         private string BuildModuleKey(string projectGuid)
         {
-            return $"{sonarQubeProjectKey}:{sonarQubeProjectKey}:{projectGuid}";
+            if (hasModules)
+            {
+                // We know that the analyzer is never reporting issues on the root module as the root
+                // is not associated to any msbuild project so that's why we always build a sub-module
+                // key.
+                return $"{sonarQubeProjectKey}:{sonarQubeProjectKey}:{projectGuid}";
+            }
+
+            // We expect the server to have moved all sub-modules issues to the root.
+            return sonarQubeProjectKey;
         }
 
         private async void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
@@ -150,21 +177,65 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                     this.logger.WriteLine(Resources.Strings.Suppressions_NotConnected);
                     return;
                 }
+
                 this.logger.WriteLine(Resources.Strings.Suppression_Checking);
                 cancellationTokenSource?.Cancel();
                 cancellationTokenSource = new CancellationTokenSource();
 
                 // TODO: Handle race conditions
-                this.cachedSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(
-                    sonarQubeProjectKey, cancellationTokenSource.Token);
+                var moduleKeyToRelativePathToRoot = (await this.sonarQubeService.GetAllModulesAsync(sonarQubeProjectKey,
+                        cancellationTokenSource.Token))
+                    .ToDictionary(x => x.Key, x => NormalizeSonarQubePath(x.RelativePathToRoot));
+                this.hasModules = moduleKeyToRelativePathToRoot.Keys.Count > 1;
 
-                this.logger.WriteLine(Resources.Strings.Suppression_FinishedChecking, this.cachedSuppressedIssues.Count);
+                var allSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(sonarQubeProjectKey,
+                    cancellationTokenSource.Token);
+
+                this.suppressedModuleIssues = allSuppressedIssues.Where(x => string.IsNullOrEmpty(x.FilePath))
+                    .GroupBy(x => x.ModuleKey)
+                    .ToDictionary(x => x.Key, x => x.ToList());
+
+                this.suppressedFileIssues = allSuppressedIssues.Where(x => !string.IsNullOrEmpty(x.FilePath))
+                    .Select(x => new { Key = ProcessKey(moduleKeyToRelativePathToRoot, x), Issue = x })
+                    .GroupBy(x => x.Key.ToUpperInvariant(), x => x.Issue)
+                    .OrderByDescending(x => x.Key.Length) // We want to have the longest match first
+                    .ToList();
+
+                this.logger.WriteLine(Resources.Strings.Suppression_FinishedChecking, this.suppressedFileIssues.Count);
             }
             catch (Exception ex)
             {
                 // Suppress the error - on a background thread so there isn't much else we can do
                 this.logger.WriteLine(Resources.Strings.Suppressions_ERROR_Fetching, ex.Message);
             }
+        }
+
+        private string ProcessKey(Dictionary<string, string> keyToPath, SonarQubeIssue issue)
+        {
+            // File-level issues have a file path which is relative to their modules.
+            // Note that relative paths coming from SonarQube/SonarCloud always use '/' as path delimiter
+            // so we need to normalize them to '\' in order to match the implementation of LiveIssue.cs
+
+            // 1 - Find the relative path of the module to the root
+            string moduleToRootRelativePath;
+            keyToPath.TryGetValue(issue.ModuleKey, out moduleToRootRelativePath);
+
+            // 2 - Append the file relative path and normalize delimiters
+            var filePathRelativeToRoot = moduleToRootRelativePath != null
+                ? moduleToRootRelativePath + "\\"
+                : string.Empty;
+            filePathRelativeToRoot += NormalizeSonarQubePath(issue.FilePath);
+
+            return filePathRelativeToRoot;
+        }
+
+        private string NormalizeSonarQubePath(string path)
+        {
+            Debug.Assert(!path.Contains("\\"), 
+                $"Expecting sonarqube relative path delimiters to be forward-slash but got '{path}'.");
+
+            return path?.Trim('/').Replace('/', '\\')
+                ?? string.Empty;
         }
     }
 }

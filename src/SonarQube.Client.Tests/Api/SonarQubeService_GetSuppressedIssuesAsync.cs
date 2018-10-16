@@ -214,12 +214,8 @@ namespace SonarQube.Client.Tests.Api
   ""issues"": [{
     ""key"": ""AWQYvwc4pbnviuOCCX4g"",
     ""rule"": ""csharpsquid:S1116"",
-    ""severity"": ""MINOR"",
     ""component"": ""simplcom:simplcom:13367B7A-E91C-47EE-BA5E-C50664D65767"",
-    ""project"": ""simplcom"",
     ""subProject"": null,
-    ""line"": 136,
-    ""hash"": ""065c8f8dd412a96eb30c22dfdf68b63f"",
     ""textRange"": {
         ""startLine"": 136,
         ""endLine"": 136,
@@ -230,18 +226,6 @@ namespace SonarQube.Client.Tests.Api
     ""resolution"": ""WONTFIX"",
     ""status"": ""RESOLVED"",
     ""message"": ""Remove this empty statement."",
-    ""effort"": ""2min"",
-    ""debt"": ""2min"",
-    ""author"": ""nlqthien@gmail.com"",
-    ""tags"": [
-        ""cert"",
-        ""misra"",
-        ""unused""
-    ],
-    ""creationDate"": ""2018-05-08T19:06:01+0200"",
-    ""updateDate"": ""2018-06-27T12:02:40+0200"",
-    ""type"": ""CODE_SMELL"",
-    ""organization"": ""default-organization""
   }]
 }
 ");
@@ -251,9 +235,9 @@ namespace SonarQube.Client.Tests.Api
             result.Should().HaveCount(1);
 
             var csharpIssue = result[0];
-            csharpIssue.FilePath.Should().Be(string.Empty); // Module level issue
-            csharpIssue.Hash.Should().Be("065c8f8dd412a96eb30c22dfdf68b63f");
-            csharpIssue.Line.Should().Be(136);
+            csharpIssue.FilePath.Should().Be(string.Empty); // Module level issue (component doesn't end with a relative path)
+            csharpIssue.Hash.Should().BeNull(); // No line hash as it's a module level issue
+            csharpIssue.Line.Should().BeNull(); // No line as it's a module level issue
             csharpIssue.Message.Should().Be("Remove this empty statement.");
             csharpIssue.ModuleKey.Should().Be("simplcom:simplcom:13367B7A-E91C-47EE-BA5E-C50664D65767");
             csharpIssue.ResolutionState.Should().Be(SonarQubeIssueResolutionState.WontFix);

@@ -24,6 +24,7 @@ namespace SonarQube.Client.Api.Requests
 {
     public interface IGetModulesRequest : IPagedRequest<SonarQubeModule>
     {
-        string ProjectKey { get; set; }        
+        string ProjectKey { get; set; }
+        string Qualifiers { get; set; }
     }
 }

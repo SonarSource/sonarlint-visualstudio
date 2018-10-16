@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -29,22 +30,28 @@ namespace SonarQube.Client.Api.Requests.V5_40
     {
         protected override string Path => "api/components/tree";
 
-        [JsonProperty("qualifiers")]
-        public string Qualifiers
-        {
-            get { return "BRC"; } // Sub-projects
-            set { /* not supported in this implementation */ }
-        }
-
         [JsonProperty("component")]
         public string ProjectKey { get; set; }
+
+        [JsonProperty("qualifiers")]
+        public string Qualifiers { get; set; }
 
         protected override SonarQubeModule[] ParseResponse(string response)
         {
             var jsonParse = JObject.Parse(response);
 
-            return new[] { jsonParse["baseComponent"].ToObject<ModuleResponse>() }
-                .Concat(jsonParse["components"].ToObject<ModuleResponse[]>())
+            var baseComponent = jsonParse["baseComponent"]?.ToObject<ModuleResponse>();
+            var components = jsonParse["components"]?.ToObject<ModuleResponse[]>();
+
+            if (baseComponent == null ||
+                components == null)
+            {
+                return Array.Empty<SonarQubeModule>();
+            }
+
+            return new[] { baseComponent }
+                .Concat(components)
+                .Where(x => x != null)
                 .Select(ToSonarQubeModule)
                 .ToArray();
         }
