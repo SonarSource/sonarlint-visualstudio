@@ -131,11 +131,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange
             SetupSolutionBinding(isConnected: true, issues: new List<SonarQubeIssue>());
-            
+
             // Act
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "keyXXX",
                 mockTimerFactory.Object, testLogger);
-            WaitForInitialFetchTaskToStart();            
+            WaitForInitialFetchTaskToStart();
 
             // Assert - issues are fetched and timer is started
             VerifyTimerStart(Times.Once());
@@ -205,95 +205,166 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void GetIssues_IssuesExists_FiltersByFileAndProject()
+        public void GetSuppressedIssues_WhenIssueIsModuleLevelAndIsFound_ReturnsExpectedIssue()
         {
-            var issue1 = new SonarQubeIssue("folder1/file1", "hash1", 0, "message", "sqkey:sqkey:projectID1",
+            // Arrange
+            var sonarQubeIssue = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S101");
-            var issue2 = new SonarQubeIssue("folder1/file1", "hash2", 0, "message", "sqkey:sqkey:projectID2",
-                SonarQubeIssueResolutionState.WontFix, "S102");
-            var issue3 = new SonarQubeIssue("folder1/file1", "hash3", 0, "message", "sqkey:sqkey:projectID2",
-                SonarQubeIssueResolutionState.Fixed, "S103");
-            var issue4 = new SonarQubeIssue("folder1/file1", "hash4", 0, "message", "sqkey:sqkey: projectID2",
-                SonarQubeIssueResolutionState.WontFix, "S104");
-            var issue5 = new SonarQubeIssue("folder1/file1", "hash5", 0, "message", "sqkey:XXX:projectID2",
-                SonarQubeIssueResolutionState.FalsePositive, "S105");
 
-            var issue6 = new SonarQubeIssue("folder1/file2", "hash6", 0, "message", "sqkey:sqkey:projectID1",
-                SonarQubeIssueResolutionState.Unresolved, "S106");
-            var issue7 = new SonarQubeIssue("folder2/file1", "hash7", 0, "message", "sqkey:sqkey:projectID1",
-                SonarQubeIssueResolutionState.Fixed, "S107");
+            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue });
 
-            var issue8 = new SonarQubeIssue("file1", "hash8", 0, "message", "sqkey:sqkey:projectID1",
-                SonarQubeIssueResolutionState.FalsePositive, "S108");
-            var issue9 = new SonarQubeIssue("file1", "hash9", 0, "message", "sqkey:sqkey:projectID1xxx",
-                SonarQubeIssueResolutionState.WontFix, "S109");
-            var issue10 = new SonarQubeIssue("file1", "hash10", 0, "message", "sqkey:sqkey:projectID",
-                SonarQubeIssueResolutionState.Unresolved, "S110");
-
-            SetupSolutionBinding(isConnected: true,
-                issues: new List<SonarQubeIssue> { issue1, issue2, issue3, issue4, issue5, issue6, issue7, issue8, issue9, issue1 });
-
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey",
-                mockTimerFactory.Object, testLogger);
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
-            // 1. Project id doesn't match -> no issues
-            var matches = issuesProvider.GetSuppressedIssues("unrecognisedProjectId", "folder1/file1");
-            matches.Should().BeEmpty();
-            VerifyServiceGetIssues(Times.Exactly(1), "sqKey"); // cached issues should be used
+            // Act
+            var matches = issuesProvider.GetSuppressedIssues("projectId", "C:\\foo\\bar.csproj");
 
-            // 2. File id doesn't match -> no issues
-            matches = issuesProvider.GetSuppressedIssues("projectID1", "folder1/filexxx");
-            matches.Should().BeEmpty();
-
-            // 3. File id and guid match -> issues returned
-            matches = issuesProvider.GetSuppressedIssues("projectID1", "file1");
-            matches.Count().Should().Be(1);
-            CheckExpectedIssueReturned("hash8", matches);
-
-            // 4. File id and guid match, case-insensitive -> issues returned
-            matches = issuesProvider.GetSuppressedIssues("PROJECTID2", "FOLDER1/FILE1");
-            matches.Count().Should().Be(2);
-            CheckExpectedIssueReturned("hash2", matches);
-            CheckExpectedIssueReturned("hash3", matches);
-
-            VerifyServiceGetIssues(Times.Exactly(1));
+            // Assert
+            matches.Should().HaveCount(1);
         }
 
         [TestMethod]
-        public void GetIssues_IssuesExists_DifferentSQProjectKey_NoMatches()
+        public void GetSuppressedIssues_WhenIssueIsModuleLevelAndIsNotFound_ReturnsNoIssue()
         {
-            var issue1 = new SonarQubeIssue("file1", "hash1", 0, "message", "otherkey:otherkey:projectID1",
+            // Arrange
+            var sonarQubeIssue = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S101");
-            var issue2 = new SonarQubeIssue("folder1/file1", "hash2", 0, "message", "otherkey:otherkey:projectID2",
-                SonarQubeIssueResolutionState.FalsePositive, "S102");
 
-            SetupSolutionBinding(isConnected: true,
-                issues: new List<SonarQubeIssue> { issue1, issue2});
+            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue });
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey",
-                mockTimerFactory.Object, testLogger);
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
-            // 1. SonarQube project key doesn't match -> no issues
-            var matches = issuesProvider.GetSuppressedIssues("projectID1", "file1");
-            matches.Should().BeEmpty();
+            // Act
+            var matches = issuesProvider.GetSuppressedIssues("FOOBAR", "C:\\foo\\bar.csproj");
 
-            // 2. SonarQube project key doesn't match -> no issues
-            matches = issuesProvider.GetSuppressedIssues("PROJECTID2", "folder1/file1");
+            // Assert
             matches.Should().BeEmpty();
-
-            VerifyServiceGetIssues(Times.Exactly(1)); // cached issues should be used
         }
+
+        [TestMethod]
+        public void GetSuppressedIssues_WhenIssueIsFileLevelOnSubModuleAndIsFound_ReturnsExpectedIssue()
+        {
+            // Arrange
+            var sonarQubeIssue1 = new SonarQubeIssue("\\foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue("/foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
+            var sonarQubeIssue3 = new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S3");
+            var sonarQubeIssue4 = new SonarQubeIssue("foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S4");
+
+            SetupSolutionBinding(true, 
+                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4 },
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
+
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            WaitForInitialFetchTaskToStart();
+
+            VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
+
+            // Act
+            var matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
+
+            // Assert
+            matches.Should().HaveCount(4);
+        }
+
+        [TestMethod]
+        public void GetSuppressedIssues_WhenIssueIsFileLevelOnSubModuleAndIsNotFound_ReturnsNoIssue()
+        {
+            // Arrange
+            var sonarQubeIssue1 = new SonarQubeIssue("\\foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue("/foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
+            var sonarQubeIssue3 = new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S3");
+            var sonarQubeIssue4 = new SonarQubeIssue("foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S4");
+
+            SetupSolutionBinding(true,
+                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4 },
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
+
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            WaitForInitialFetchTaskToStart();
+
+            VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
+
+            // Act / Assert - #1 - file extension is not right
+            var matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo\\foo.vb");
+            matches.Should().BeEmpty();
+
+            // Act / Assert - #2 - path is not normalized
+            matches = issuesProvider.GetSuppressedIssues("", "C:/AwesomeProject/src/bar/foo/foo.cs");
+            matches.Should().BeEmpty();
+
+            // Act / Assert - #3 - current file is one level up compared to remote file
+            matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo.cs");
+            matches.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void GetSuppressedIssues_WhenIssueIsFileLevel_MatchOnFilePathNotOnlyName()
+        {
+            // Arrange
+            var sonarQubeIssue1 = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue("/foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
+
+            SetupSolutionBinding(true,
+                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
+
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            WaitForInitialFetchTaskToStart();
+
+            VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
+
+            // Act / Assert - #1 - Longest path is retrieved first
+            var matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
+            matches.Should().HaveCount(1);
+
+            // Act / Assert - #2 - Shortest path
+            matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo.cs");
+            matches.Should().HaveCount(1);
+        }
+
+        [TestMethod]
+        public void GetSuppressedIssues_WhenIssueIsOnAFile_LimitationWhenAttachedToRoot()
+        {
+            // Arrange
+            var sonarQubeIssue1 = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey",
+                SonarQubeIssueResolutionState.FalsePositive, "S1");
+
+            SetupSolutionBinding(true,
+                new List<SonarQubeIssue> { sonarQubeIssue1 },
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", "") });
+
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            WaitForInitialFetchTaskToStart();
+
+            VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
+
+            // Act / Assert - same file name exists at multiple levels in the hierarchy
+            var matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
+            matches.Should().HaveCount(1);
+
+            matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo.cs");
+            matches.Should().HaveCount(1);
+        }        
 
         [TestMethod]
         public void GetIssues_IssuesNotYetFetch_WaitsForIssuesToBeFetched()
         {
-            var issue1 = new SonarQubeIssue("folder1/file1", "hash1", 0, "message", "sqkey:sqkey:projectID1",
+            var issue1 = new SonarQubeIssue("folder1/file1", "hash1", 0, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S101");
 
             int callbackCount = 0;
@@ -318,7 +389,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             WaitForInitialFetchTaskToStart();
 
             // 2. Now request the issues - should wait until the issues have been retrieved
-            var matches = issuesProvider.GetSuppressedIssues("projectid1", "folder1/file1");
+            var matches = issuesProvider.GetSuppressedIssues("projectId", "folder1\\file1");
 
             VerifyServiceGetIssues(Times.Once(), "sqKey");
             callbackCount.Should().Be(1);
@@ -327,7 +398,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             CheckExpectedIssueReturned("hash1", matches);
 
             // 3. Now fetch again - should not wait again
-            matches = issuesProvider.GetSuppressedIssues("folder1/file1", "projectid1");
+            matches = issuesProvider.GetSuppressedIssues("projectId", "folder1\\file1");
 
             VerifyServiceGetIssues(Times.Once());
             callbackCount.Should().Be(1);
@@ -344,7 +415,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // This time we want the test to pause until IsConnected is called by the inital fetch task
             mockSqService.Setup(x => x.IsConnected)
                 .Returns(false)
-                .Callback(() => {  InitialFetchWaitHandle.Set(); callCount++; }) // signal so the test can continue
+                .Callback(() => { InitialFetchWaitHandle.Set(); callCount++; }) // signal so the test can continue
                 .Verifiable();
 
             // 1. Initialise the class
@@ -409,14 +480,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Tests that the timer trigger that causes the data to be refetched won't propagate errors
             // if the GetIssues call throws.
 
-            var issue1 = new SonarQubeIssue("folder1/file1", "hash1", 0, "message", "sqkey:sqkey:projectId",
+            var issue1 = new SonarQubeIssue("C:\\folder1\\file1.cs", "hash1", 0, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S101");
             SetupSolutionBinding(isConnected: true, issues: new List<SonarQubeIssue> { issue1 });
 
             // 1. Create the issue provider and call GetIssues to make sure the issues are cached
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey",
                 mockTimerFactory.Object, testLogger);
-            var matches = issuesProvider.GetSuppressedIssues("projectId", "folder1/file1");
+            var matches = issuesProvider.GetSuppressedIssues("projectId", "C:\\folder1\\file1.cs");
             VerifyServiceGetIssues(Times.Once());
             matches.Count().Should().Be(1);
             testLogger.AssertPartialOutputStrings("Checking for suppressions", "1");
@@ -434,7 +505,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             RaiseTimerElapsed(DateTime.UtcNow);
 
             // 3. Fetch issues again - should used cached issues
-            matches = issuesProvider.GetSuppressedIssues("projectId", "folder1/file1");
+            matches = issuesProvider.GetSuppressedIssues("projectId", "C:\\folder1\\file1.cs");
             VerifyServiceGetIssues(Times.Exactly(2));
             matches.Count().Should().Be(1);
             fetchCallCount.Should().Be(1);
@@ -448,7 +519,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         /// <summary>
         /// Configures the mock service to return the specified values
         /// </summary>
-        private void SetupSolutionBinding(bool isConnected, IList<SonarQubeIssue> issues)
+        private void SetupSolutionBinding(bool isConnected, IList<SonarQubeIssue> issues, IList<SonarQubeModule> modules = null)
         {
             Func<IList<SonarQubeIssue>> serviceFetchIssuesTask = () =>
             {
@@ -456,14 +527,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 return issues;
             };
 
-            SetupSolutionBinding(isConnected, serviceFetchIssuesTask);
+            SetupSolutionBinding(isConnected, serviceFetchIssuesTask, modules);
         }
 
         /// <summary>
         /// Configures the service to execute the supplied function when
         /// GetSuppressed issues is called
         /// </summary>
-        private void SetupSolutionBinding(bool isConnected, Func<IList<SonarQubeIssue>> serviceFetchIssuesTask)
+        private void SetupSolutionBinding(bool isConnected, Func<IList<SonarQubeIssue>> serviceFetchIssuesTask,
+            IList<SonarQubeModule> modules = null)
         {
             // Note: if the solution is set up disconnected then the initial fetch background
             // task will run in a loop - make sure the calling test takes account of this
@@ -471,6 +543,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             mockSqService.Setup(x => x.IsConnected).Returns(isConnected).Verifiable();
 
             InitialFetchWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+
+            mockSqService.Setup(x => x.GetAllModulesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(modules ?? new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "") })
+                .Verifiable();
 
             mockSqService.Setup(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(serviceFetchIssuesTask)

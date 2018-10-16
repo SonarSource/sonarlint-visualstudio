@@ -24,7 +24,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 /* To map from a diagnostic to a SonarQube issue we need to work out the SQ moduleId
  * corresponding to the MSBuild project.
@@ -98,7 +97,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             }
 
             var lineSpan = diagnostic.Location.GetLineSpan();
-            var relativeFilePath = FileUtilities.GetRelativePath(projectFilePath, lineSpan.Path);
 
             var isFileLevelIssue = lineSpan.StartLinePosition.Line == 0 &&
                 lineSpan.StartLinePosition.Character == 0 &&
@@ -107,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             if (isFileLevelIssue) // File-level issue
             {
-                return new LiveIssue(diagnostic, projectGuid, issueFilePath: relativeFilePath);
+                return new LiveIssue(diagnostic, projectGuid, issueFilePath: lineSpan.Path);
             }
 
             var startLine = lineSpan.StartLinePosition.Line;
@@ -116,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             var sonarQubeLineNumber = lineSpan.StartLinePosition.Line + 1; // Roslyn lines are 0-based, SonarQube lines are 1-based
 
             return new LiveIssue(diagnostic, projectGuid,
-                issueFilePath: relativeFilePath,
+                issueFilePath: lineSpan.Path,
                 startLine: sonarQubeLineNumber,
                 wholeLineText: lineText); // Line-level issue
         }

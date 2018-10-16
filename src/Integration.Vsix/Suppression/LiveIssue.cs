@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Integration.Suppression;
 
@@ -33,7 +34,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             string wholeLineText = "")
         {
             Diagnostic = diagnostic;
-            IssueFilePath = issueFilePath;
+            IssueFilePath = issueFilePath != string.Empty 
+                ? Path.GetFullPath(issueFilePath)
+                : string.Empty; 
             ProjectGuid = projectGuid;
             StartLine = startLine;
             WholeLineText = wholeLineText;
