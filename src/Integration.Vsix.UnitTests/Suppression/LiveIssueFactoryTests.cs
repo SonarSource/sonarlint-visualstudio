@@ -210,21 +210,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void Create_WhenIssueIsProjectLevel_ReturnsExpectedIssue()
+        public void Create_WhenIssueIsModuleLevel_ReturnsExpectedIssue()
         {
             // Arrange & Act
             var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
                 DiagnosticSeverity.Hidden, true), Location.None);
-            var result = SetupAndCreate(diagnostic, filePath: "Project1");
+            var result = SetupAndCreate(diagnostic, filePath: "C:\\Project1.csproj");
 
             // Assert
             result.Should().NotBeNull();
             result.Diagnostic.Should().Be(diagnostic);
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
-            result.IssueFilePath.Should().Be("");
-            result.StartLine.Should().Be(0);
-            result.WholeLineText.Should().Be("");
-            result.LineHash.Should().Be("");
+            result.FilePath.Should().BeNull();
+            result.StartLine.Should().BeNull();
+            result.WholeLineText.Should().BeNull();
+            result.LineHash.Should().BeNull();
         }
 
         [TestMethod]
@@ -232,17 +232,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange & Act
             var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
-                DiagnosticSeverity.Hidden, true), Location.Create("MySource.cs", new TextSpan(0, 0), new LinePositionSpan()));
-            var result = SetupAndCreate(diagnostic, filePath: "Project1");
+                DiagnosticSeverity.Hidden, true), Location.Create("C:\\MySource.cs", new TextSpan(0, 0), new LinePositionSpan()));
+            var result = SetupAndCreate(diagnostic, filePath: "C:\\Project1.csproj");
 
             // Assert
             result.Should().NotBeNull();
             result.Diagnostic.Should().Be(diagnostic);
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
-            result.IssueFilePath.Should().Be("MySource.cs");
-            result.StartLine.Should().Be(0);
-            result.WholeLineText.Should().Be("");
-            result.LineHash.Should().Be("");
+            result.FilePath.Should().Be("C:\\MySource.cs");
+            result.StartLine.Should().BeNull();
+            result.WholeLineText.Should().BeNull();
+            result.LineHash.Should().BeNull();
         }
 
         [TestMethod]
@@ -251,16 +251,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange & Act
             var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
                 DiagnosticSeverity.Hidden, true),
-                Location.Create("MySource.cs",
+                Location.Create("C:\\MySource.cs",
                     new TextSpan(1, 1),
                     new LinePositionSpan(new LinePosition(1, 1), new LinePosition(1, 2))));
-            var result = SetupAndCreate(diagnostic, filePath: "Project1");
+            var result = SetupAndCreate(diagnostic, filePath: "C:\\Project1.csproj");
 
             // Assert
             result.Should().NotBeNull();
             result.Diagnostic.Should().Be(diagnostic);
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
-            result.IssueFilePath.Should().Be("MySource.cs");
+            result.FilePath.Should().Be("C:\\MySource.cs");
             result.StartLine.Should().Be(2);
             result.WholeLineText.Should().Be("    class Foo");
             result.LineHash.Should().Be("e1b4eea6db405a204a21bd5251c5385d");
@@ -270,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange
             var vsSolutionMock = SetupSolutionMocks(
-                new KeyValuePair<string, string>("Project1", "{31D0DAAC-8606-40FE-8DF0-01784706EA3E}"));
+                new KeyValuePair<string, string>("C:\\Project1.csproj", "{31D0DAAC-8606-40FE-8DF0-01784706EA3E}"));
 
             var projectId = ProjectId.CreateNewId();
             var workspace = new AdhocWorkspace();

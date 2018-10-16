@@ -260,6 +260,7 @@ namespace SonarQube.Client.Api
                 request =>
                 {
                     request.ProjectKey = projectKey;
+                    request.Qualifiers = "BRC"; // Returns root module (TRK) + sub modules
                 },
                 token);
 

@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
@@ -106,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange
             Diagnostic diag = CreateDiagnostic("dummy rule id", CreateSourceLocation());
             SetLiveIssue(diag, startLine: 1, wholeLineText: "text");
-            SetServerIssues(null);
+            SetServerIssues(Array.Empty<SonarQubeIssue>());
 
             SuppressionHandler handler = new SuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
 
@@ -276,7 +277,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         private void SetLiveIssue(Diagnostic diagnostic, int startLine, string wholeLineText)
         {
             LiveIssue liveIssue = new LiveIssue(diagnostic, Guid.NewGuid().ToString(),
-                issueFilePath: "dummy file path",
+                filePath: "dummy file path",
                 startLine: startLine,
                 wholeLineText: wholeLineText);
 

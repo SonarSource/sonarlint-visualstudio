@@ -33,7 +33,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/components/tree?qualifiers=BRC&component=myProject&p=1&ps=500", @"
+            SetupRequest("api/components/tree?component=myProject&qualifiers=BRC&p=1&ps=500", @"
 {
   ""paging"": {
     ""pageIndex"": 1,
@@ -85,7 +85,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/components/tree?qualifiers=BRC&component=myProject&p=1&ps=500", @"
+            SetupRequest("api/components/tree?component=myProject&qualifiers=BRC&p=1&ps=500", @"
 {
   ""paging"": {
     ""pageIndex"": 1,
@@ -122,11 +122,11 @@ namespace SonarQube.Client.Tests.Api
         }
 
         [TestMethod]
-        public async Task GetModules_ExpectedNewSonarQubeApi()
+        public async Task GetModules_ProjectContainsOnlyRootModule()
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/components/tree?qualifiers=BRC&component=myProject&p=1&ps=500", @"
+            SetupRequest("api/components/tree?component=myProject&qualifiers=BRC&p=1&ps=500", @"
 {
   ""paging"": {
     ""pageIndex"": 1,
@@ -150,6 +150,27 @@ namespace SonarQube.Client.Tests.Api
             result[0].Key.Should().Be("sq-project-key");
             result[0].Name.Should().Be("SonarQube Project Name");
             result[0].RelativePathToRoot.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task GetModules_ProjectKeyDoesNotExist()
+        {
+            await ConnectToSonarQube();
+
+            SetupRequest("api/components/tree?component=myProject&qualifiers=BRC&p=1&ps=500", @"
+{
+  ""errors"": [
+    {
+      ""msg"": ""Component key 'myProject' not found""
+    }
+  ]
+}");
+
+            var result = await service.GetAllModulesAsync("myProject", CancellationToken.None);
+
+            messageHandler.VerifyAll();
+
+            result.Should().BeEmpty();
         }
     }
 }
