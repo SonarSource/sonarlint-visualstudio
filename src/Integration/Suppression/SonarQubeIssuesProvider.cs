@@ -20,8 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly CancellationTokenSource initialFetchCancellationTokenSource;
 
         private Dictionary<string, List<SonarQubeIssue>> suppressedModuleIssues;
-        private Dictionary<string, List<SonarQubeIssue>> suppressedFileIssues;
+        private List<IGrouping<string, SonarQubeIssue>> suppressedFileIssues;
         private bool hasModules;
 
         private bool isDisposed;
@@ -122,10 +120,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 return suppressedIssues ?? Enumerable.Empty<SonarQubeIssue>();
             }
 
-            Debug.Assert(Path.IsPathRooted(filePath), "Expecting an absolute path.");
-
-            // file level issue            
-            return this.suppressedFileIssues.FirstOrDefault(x => filePath.EndsWith(x.Key, StringComparison.OrdinalIgnoreCase)).Value
+            // file level issue
+            return this.suppressedFileIssues.FirstOrDefault(x => filePath.EndsWith(x.Key, StringComparison.OrdinalIgnoreCase))
                 ?? Enumerable.Empty<SonarQubeIssue>();
         }
 
@@ -184,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 // TODO: Handle race conditions
                 var moduleKeyToRelativePathToRoot = (await this.sonarQubeService.GetAllModulesAsync(sonarQubeProjectKey,
                         cancellationTokenSource.Token))
-                    .ToDictionary(x => x.Key, x => x.RelativePathToRoot?.Trim('\\', '/').Replace('/', '\\') ?? string.Empty);
+                    .ToDictionary(x => x.Key, x => NormalizeSonarQubePath(x.RelativePathToRoot));
                 this.hasModules = moduleKeyToRelativePathToRoot.Keys.Count > 1;
 
                 var allSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(sonarQubeProjectKey,
@@ -198,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                     .Select(x => new { Key = ProcessKey(moduleKeyToRelativePathToRoot, x), Issue = x })
                     .GroupBy(x => x.Key, x => x.Issue)
                     .OrderByDescending(x => x.Key.Length) // We want to have the longest match first
-                    .ToDictionary(x => x.Key, x => x.ToList());
+                    .ToList();
 
                 this.logger.WriteLine(Resources.Strings.Suppression_FinishedChecking, this.suppressedFileIssues.Count);
             }
@@ -211,8 +207,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private string ProcessKey(Dictionary<string, string> keyToPath, SonarQubeIssue issue)
         {
-            // File-level issues have a file path which is relative to their modules. 
-            // Note that relative paths coming from SonarQube/SonarCloud always use '/' as path delimiter 
+            // File-level issues have a file path which is relative to their modules.
+            // Note that relative paths coming from SonarQube/SonarCloud always use '/' as path delimiter
             // so we need to normalize them to '\' in order to match the implementation of LiveIssue.cs
 
             // 1 - Find the relative path of the module to the root
@@ -223,9 +219,15 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             var filePathRelativeToRoot = moduleToRootRelativePath != null
                 ? moduleToRootRelativePath + "\\"
                 : string.Empty;
-            filePathRelativeToRoot += issue.FilePath.Trim('\\', '/').Replace('/', '\\');
+            filePathRelativeToRoot += NormalizeSonarQubePath(issue.FilePath);
 
             return filePathRelativeToRoot;
+        }
+
+        private string NormalizeSonarQubePath(string path)
+        {
+            return path?.Trim('/').Replace('/', '\\')
+                ?? string.Empty;
         }
     }
 }
