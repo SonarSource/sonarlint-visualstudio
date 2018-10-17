@@ -210,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void Create_WhenIssueIsProjectLevel_ReturnsExpectedIssue()
+        public void Create_WhenIssueIsModuleLevel_ReturnsExpectedIssue()
         {
             // Arrange & Act
             var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
@@ -221,10 +221,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.Should().NotBeNull();
             result.Diagnostic.Should().Be(diagnostic);
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
-            result.IssueFilePath.Should().Be("");
-            result.StartLine.Should().Be(0);
-            result.WholeLineText.Should().Be("");
-            result.LineHash.Should().Be("");
+            result.FilePath.Should().BeNull();
+            result.StartLine.Should().BeNull();
+            result.WholeLineText.Should().BeNull();
+            result.LineHash.Should().BeNull();
         }
 
         [TestMethod]
@@ -239,10 +239,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.Should().NotBeNull();
             result.Diagnostic.Should().Be(diagnostic);
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
-            result.IssueFilePath.Should().Be("C:\\MySource.cs");
-            result.StartLine.Should().Be(0);
-            result.WholeLineText.Should().Be("");
-            result.LineHash.Should().Be("");
+            result.FilePath.Should().Be("C:\\MySource.cs");
+            result.StartLine.Should().BeNull();
+            result.WholeLineText.Should().BeNull();
+            result.LineHash.Should().BeNull();
         }
 
         [TestMethod]
@@ -260,7 +260,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.Should().NotBeNull();
             result.Diagnostic.Should().Be(diagnostic);
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
-            result.IssueFilePath.Should().Be("C:\\MySource.cs");
+            result.FilePath.Should().Be("C:\\MySource.cs");
             result.StartLine.Should().Be(2);
             result.WholeLineText.Should().Be("    class Foo");
             result.LineHash.Should().Be("e1b4eea6db405a204a21bd5251c5385d");

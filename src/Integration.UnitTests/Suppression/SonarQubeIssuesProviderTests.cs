@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             mockTimer.SetupSet(t => t.AutoReset = true).Verifiable();
 
             // 1. Construction -> timer initialised
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object,
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object,
                 testLogger);
 
             // Assert
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange
             SetupSolutionBinding(isConnected: true, issues: null);
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey",
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey",
                 mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange
             SetupSolutionBinding(isConnected: true, issues: new List<SonarQubeIssue>());
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey",
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey",
                 mockTimerFactory.Object, testLogger);
 
             // Act
@@ -188,11 +188,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SetupSolutionBinding(isConnected: true, issues: null);
 
             // 1. Created -> issues fetch in background
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey",
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey",
                 mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
-            VerifyServiceGetIssues(Times.Exactly(1), "sqKey");
+            VerifyServiceGetIssues(Times.Exactly(1), "sqkey");
 
             // 2. SonarQube project key doesn't match -> no issues
             var matches = issuesProvider.GetSuppressedIssues("any project", "any file");
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenIssueIsModuleLevelAndIsFound_ReturnsExpectedIssue()
+        public void GetSuppressedIssues_WhenIssueIsModuleLevelWithMultiModulesProjectAndIsFound_ReturnsExpectedIssue()
         {
             // Arrange
             var sonarQubeIssue = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId",
@@ -213,13 +213,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue });
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
             // Act
-            var matches = issuesProvider.GetSuppressedIssues("projectId", "C:\\foo\\bar.csproj");
+            var matches = issuesProvider.GetSuppressedIssues("projectId", null);
+
+            // Assert
+            matches.Should().HaveCount(1);
+        }
+
+        [TestMethod]
+        public void GetSuppressedIssues_WhenIssueIsModuleLevelWithNoModuleProjectAndIsFound_ReturnsExpectedIssue()
+        {
+            // Arrange
+            var sonarQubeIssue = new SonarQubeIssue(null, null, null, "message", "sqkey",
+                SonarQubeIssueResolutionState.FalsePositive, "S101");
+
+            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue },
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", "") });
+
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
+            WaitForInitialFetchTaskToStart();
+
+            VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
+
+            // Act
+            var matches = issuesProvider.GetSuppressedIssues("projectId", null);
 
             // Assert
             matches.Should().HaveCount(1);
@@ -234,13 +256,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue });
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
             // Act
-            var matches = issuesProvider.GetSuppressedIssues("FOOBAR", "C:\\foo\\bar.csproj");
+            var matches = issuesProvider.GetSuppressedIssues("FOOBAR", null);
 
             // Assert
             matches.Should().BeEmpty();
@@ -263,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
@@ -292,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
@@ -323,7 +345,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
@@ -348,7 +370,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 new List<SonarQubeIssue> { sonarQubeIssue1 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", "") });
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey", mockTimerFactory.Object, testLogger);
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
@@ -384,21 +406,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // 1. Create the issue provider
             // The initial fetch should be triggered, but not yet completed
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey",
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey",
                 mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
 
             // 2. Now request the issues - should wait until the issues have been retrieved
-            var matches = issuesProvider.GetSuppressedIssues("projectId", "folder1\\file1");
+            var matches = issuesProvider.GetSuppressedIssues("projectId", "C:\\folder1\\file1");
 
-            VerifyServiceGetIssues(Times.Once(), "sqKey");
+            VerifyServiceGetIssues(Times.Once(), "sqkey");
             callbackCount.Should().Be(1);
             callbackCompleted.Should().BeTrue();
             matches.Count().Should().Be(1);
             CheckExpectedIssueReturned("hash1", matches);
 
             // 3. Now fetch again - should not wait again
-            matches = issuesProvider.GetSuppressedIssues("projectId", "folder1\\file1");
+            matches = issuesProvider.GetSuppressedIssues("projectId", "C:\\folder1\\file1");
 
             VerifyServiceGetIssues(Times.Once());
             callbackCount.Should().Be(1);
@@ -419,7 +441,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Verifiable();
 
             // 1. Initialise the class
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqKey",
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey",
                 mockTimerFactory.Object, testLogger);
 
             WaitForInitialFetchTaskToStart();
@@ -480,7 +502,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Tests that the timer trigger that causes the data to be refetched won't propagate errors
             // if the GetIssues call throws.
 
-            var issue1 = new SonarQubeIssue("C:\\folder1\\file1.cs", "hash1", 0, "message", "sqkey:sqkey:projectId",
+            var issue1 = new SonarQubeIssue("/folder1/file1.cs", "hash1", 0, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S101");
             SetupSolutionBinding(isConnected: true, issues: new List<SonarQubeIssue> { issue1 });
 
@@ -545,7 +567,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             InitialFetchWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
 
             mockSqService.Setup(x => x.GetAllModulesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(modules ?? new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "") })
+                .ReturnsAsync(modules 
+                    ?? new List<SonarQubeModule>
+                    {
+                        new SonarQubeModule("sqkey", "", ""),
+                        new SonarQubeModule("sqkey:sqkey:projectId", "", "")
+                    })
                 .Verifiable();
 
             mockSqService.Setup(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))

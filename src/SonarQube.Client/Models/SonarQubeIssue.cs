@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics;
+using System.IO;
+
 namespace SonarQube.Client.Models
 {
     public class SonarQubeIssue
@@ -25,7 +28,9 @@ namespace SonarQube.Client.Models
         public SonarQubeIssue(string filePath, string hash, int? line, string message, string moduleKey,
             SonarQubeIssueResolutionState resolutionState, string ruleId)
         {
-            FilePath = filePath;
+            FilePath = filePath?.Trim('/', '\\');
+            Debug.Assert(filePath == null || !Path.IsPathRooted(FilePath), "Expecting a relative path.");
+
             Hash = hash;
             Line = line;
             Message = message;

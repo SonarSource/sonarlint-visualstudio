@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             if (isFileLevelIssue) // File-level issue
             {
-                return new LiveIssue(diagnostic, projectGuid, issueFilePath: lineSpan.Path);
+                return new LiveIssue(diagnostic, projectGuid, lineSpan.Path);
             }
 
             var startLine = lineSpan.StartLinePosition.Line;
@@ -113,10 +113,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             var lineText = syntaxTree.GetText().Lines[startLine + additionalLineCount].ToString();
             var sonarQubeLineNumber = lineSpan.StartLinePosition.Line + 1; // Roslyn lines are 0-based, SonarQube lines are 1-based
 
-            return new LiveIssue(diagnostic, projectGuid,
-                issueFilePath: lineSpan.Path,
-                startLine: sonarQubeLineNumber,
-                wholeLineText: lineText); // Line-level issue
+            return new LiveIssue(diagnostic, projectGuid, lineSpan.Path, sonarQubeLineNumber, lineText); // Line-level issue
         }
 
         internal /* for testing */ static IDictionary<string, string> BuildProjectPathToIdMap(IVsSolution solution)

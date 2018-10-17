@@ -30,28 +30,43 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// </summary>
     public class LiveIssue
     {
-        public LiveIssue(Diagnostic diagnostic, string projectGuid, string issueFilePath = "", int startLine = 0,
+        // module level issue
+        public LiveIssue(Diagnostic diagnostic, string projectGuid)
+            : this(diagnostic, projectGuid, null)
+        {
+        }
+
+        // file level issue
+        public LiveIssue(Diagnostic diagnostic, string projectGuid, string filePath)
+            : this(diagnostic, projectGuid, filePath, null, null)
+        {
+        }
+
+        // line(s) level issue
+        public LiveIssue(Diagnostic diagnostic, string projectGuid, string filePath, int? startLine,
             string wholeLineText = "")
         {
             Diagnostic = diagnostic;
-            IssueFilePath = !string.IsNullOrEmpty(issueFilePath)
-                ? Path.GetFullPath(issueFilePath)
-                : string.Empty; 
             ProjectGuid = projectGuid;
-            StartLine = startLine;
-            WholeLineText = wholeLineText;
 
-            // SonarQube doesn't calculate hash for file-level issues
-            LineHash = wholeLineText != string.Empty 
-                ? ChecksumCalculator.Calculate(WholeLineText) 
-                : string.Empty;
+            if (filePath != null)
+            {
+                FilePath = Path.GetFullPath(filePath);
+            }
+
+            if (startLine != null)
+            {
+                StartLine = startLine;
+                WholeLineText = wholeLineText;                
+                LineHash = ChecksumCalculator.Calculate(WholeLineText);
+            }            
         }
 
         public Diagnostic Diagnostic { get; }
-        public string IssueFilePath { get; }
+        public string FilePath { get; }
         public string LineHash { get; }
         public string ProjectGuid { get; }
-        public int StartLine { get; }
+        public int? StartLine { get; }
         public string WholeLineText { get; }
     }
 }
