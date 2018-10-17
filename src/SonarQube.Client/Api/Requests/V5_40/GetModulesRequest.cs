@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -33,7 +34,7 @@ namespace SonarQube.Client.Api.Requests.V5_40
         public string Qualifiers
         {
             get { return "BRC"; } // Sub-projects
-            set { /* not supported in this implementation */ }
+            set { throw new NotSupportedException("Current implementation does not support setting the qualifier."); }
         }
 
         [JsonProperty("component")]
@@ -43,8 +44,18 @@ namespace SonarQube.Client.Api.Requests.V5_40
         {
             var jsonParse = JObject.Parse(response);
 
-            return new[] { jsonParse["baseComponent"].ToObject<ModuleResponse>() }
-                .Concat(jsonParse["components"].ToObject<ModuleResponse[]>())
+            var baseComponent = jsonParse["baseComponent"]?.ToObject<ModuleResponse>();
+            var components = jsonParse["components"]?.ToObject<ModuleResponse[]>();
+
+            if (baseComponent == null ||
+                components == null)
+            {
+                return Array.Empty<SonarQubeModule>();
+            }
+
+            return new[] { baseComponent }
+                .Concat(components)
+                .Where(x => x != null)
                 .Select(ToSonarQubeModule)
                 .ToArray();
         }
