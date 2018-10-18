@@ -30,15 +30,11 @@ namespace SonarQube.Client.Api.Requests.V5_40
     {
         protected override string Path => "api/components/tree";
 
-        [JsonProperty("qualifiers")]
-        public string Qualifiers
-        {
-            get { return "BRC"; } // Sub-projects
-            set { throw new NotSupportedException("Current implementation does not support setting the qualifier."); }
-        }
-
         [JsonProperty("component")]
         public string ProjectKey { get; set; }
+
+        [JsonProperty("qualifiers")]
+        public string Qualifiers { get; set; }
 
         protected override SonarQubeModule[] ParseResponse(string response)
         {

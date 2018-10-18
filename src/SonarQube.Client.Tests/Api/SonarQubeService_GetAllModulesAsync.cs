@@ -33,7 +33,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/components/tree?qualifiers=BRC&component=myProject&p=1&ps=500", @"
+            SetupRequest("api/components/tree?component=myProject&qualifiers=BRC&p=1&ps=500", @"
 {
   ""paging"": {
     ""pageIndex"": 1,
@@ -85,7 +85,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/components/tree?qualifiers=BRC&component=myProject&p=1&ps=500", @"
+            SetupRequest("api/components/tree?component=myProject&qualifiers=BRC&p=1&ps=500", @"
 {
   ""paging"": {
     ""pageIndex"": 1,
@@ -126,7 +126,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/components/tree?qualifiers=BRC&component=myProject&p=1&ps=500", @"
+            SetupRequest("api/components/tree?component=myProject&qualifiers=BRC&p=1&ps=500", @"
 {
   ""paging"": {
     ""pageIndex"": 1,
@@ -157,7 +157,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/components/tree?qualifiers=BRC&component=myProject&p=1&ps=500", @"
+            SetupRequest("api/components/tree?component=myProject&qualifiers=BRC&p=1&ps=500", @"
 {
   ""errors"": [
     {
