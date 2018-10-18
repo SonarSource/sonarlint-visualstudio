@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -31,6 +30,9 @@ namespace SonarQube.Client.Api.V7_20
         [JsonProperty("projects")]
         public virtual string ProjectKey { get; set; }
 
+        [JsonProperty("statuses")]
+        public string Statuses { get; set; }
+
         protected override string Path => "api/issues/search";
 
         protected override SonarQubeIssue[] ParseResponse(string response) =>
@@ -40,18 +42,12 @@ namespace SonarQube.Client.Api.V7_20
                 .ToArray();
 
         private static SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(
-                filePath: ComputePath(issue),
-                hash: issue.Hash,
-                line: issue.Line,
-                message: issue.Message,
-                moduleKey: ComputeModuleKey(issue),
-                resolutionState: ParseResolutionState(issue.Resolution),
-                ruleId: GetRuleKey(issue.CompositeRuleKey));
+            new SonarQubeIssue(ComputePath(issue), issue.Hash, issue.Line, issue.Message, ComputeModuleKey(issue), 
+                GetRuleKey(issue.CompositeRuleKey), issue.Status);
 
         private static string ComputePath(ServerIssue issue) =>
             // Component is "{SubProject}:Path"
-            issue.SubProject != null 
+            issue.SubProject != null
                 ? issue.Component.Substring(issue.SubProject.Length + 1)
                 : string.Empty;
 
@@ -63,26 +59,6 @@ namespace SonarQube.Client.Api.V7_20
         private static string GetRuleKey(string compositeRuleKey) =>
             // ruleKey is "csharpsqid:S1234" or "vbnet:S1234" but we need S1234
             compositeRuleKey.Replace("vbnet:", string.Empty).Replace("csharpsquid:", string.Empty);
-
-        private static SonarQubeIssueResolutionState ParseResolutionState(string resolution)
-        {
-            switch (resolution)
-            {
-                // Issues with Status=OPEN will not have a resolution so we're
-                // expecting null, but we'll be defensive and handle empty too
-                case null:
-                case "": 
-                    return SonarQubeIssueResolutionState.Unresolved;
-                case "WONTFIX":
-                    return SonarQubeIssueResolutionState.WontFix;
-                case "FALSE-POSITIVE":
-                    return SonarQubeIssueResolutionState.FalsePositive;
-                case "FIXED":
-                    return SonarQubeIssueResolutionState.Fixed;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(resolution));
-            }
-        }
 
         private class ServerIssue
         {
@@ -97,9 +73,9 @@ namespace SonarQube.Client.Api.V7_20
             [JsonProperty("line")]
             public int? Line { get; set; }
             [JsonProperty("message")]
-            public string Message { get; set; }            
-            [JsonProperty("resolution")]
-            public string Resolution { get; set; }            
+            public string Message { get; set; }
+            [JsonProperty("status")]
+            public string Status { get; set; }
         }
     }
 }

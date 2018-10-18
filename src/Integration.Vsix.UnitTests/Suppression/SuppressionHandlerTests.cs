@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
@@ -269,8 +268,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 line: line,
                 message: "irrelevant message",
                 moduleKey: "irrelevant module key",
-                resolutionState: SonarQubeIssueResolutionState.FalsePositive,
-                ruleId: ruleId
+                ruleId: ruleId,
+                status: "RESOLVED"
                 );
         }
 
