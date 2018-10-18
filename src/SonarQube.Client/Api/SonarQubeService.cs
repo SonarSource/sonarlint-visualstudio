@@ -233,16 +233,16 @@ namespace SonarQube.Client.Api
 
         public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, CancellationToken token)
         {
+            const string statusResolved = "RESOLVED";
             var result = await InvokeRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
+                    request.Statuses = statusResolved;
                 },
                 token);
 
-            return result
-                .Where(x => x.ResolutionState != SonarQubeIssueResolutionState.Unresolved)
-                .ToList();
+            return result.Where(x => x.IsResolved).ToList(); // Post-filter for old API
         }
 
         public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey, DateTimeOffset eventsSince,

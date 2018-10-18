@@ -25,5 +25,6 @@ namespace SonarQube.Client.Api
     interface IGetIssuesRequest : IRequest<SonarQubeIssue[]>
     {
         string ProjectKey { get; set; }
+        string Statuses { get; set; }
     }
 }

@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -36,6 +37,13 @@ namespace SonarQube.Client.Api.V5_10
     {
         [JsonProperty("key")]
         public virtual string ProjectKey { get; set; }
+
+        [JsonProperty("statuses", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue(null)]
+        public string Statuses
+        {
+            get { return null; }
+            set { /* not supported in this implementation */ }
+        }
 
         protected override string Path => "batch/issues";
 
@@ -73,24 +81,7 @@ namespace SonarQube.Client.Api.V5_10
         }
 
         private static SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(issue.Path, issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey,
-                ParseResolutionState(issue.Resolution), issue.RuleKey);
-
-        private static SonarQubeIssueResolutionState ParseResolutionState(string resolution)
-        {
-            switch (resolution)
-            {
-                case "":
-                    return SonarQubeIssueResolutionState.Unresolved;
-                case "WONTFIX":
-                    return SonarQubeIssueResolutionState.WontFix;
-                case "FALSE-POSITIVE":
-                    return SonarQubeIssueResolutionState.FalsePositive;
-                case "FIXED":
-                    return SonarQubeIssueResolutionState.Fixed;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(resolution));
-            }
-        }
+            new SonarQubeIssue(issue.Path, issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey, issue.RuleKey, 
+                issue.Status == "RESOLVED");
     }
 }
