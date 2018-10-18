@@ -20,6 +20,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -110,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 return Enumerable.Empty<SonarQubeIssue>();
             }
 
-            if (filePath == null) // module level issue
+            if (filePath == null) // we want a match for a module level issue
             {
                 string moduleKey = BuildModuleKey(projectGuid);
 
@@ -120,7 +122,10 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 return suppressedIssues ?? Enumerable.Empty<SonarQubeIssue>();
             }
 
-            // file level issue
+            // we want a match for a file level issue (line level location or not)
+            Debug.Assert(Path.IsPathRooted(filePath) && !filePath.Contains("/"), 
+                $"Expecting an absolute path with only back-slashes delimiters but got '{filePath}'.");
+
             return this.suppressedFileIssues.FirstOrDefault(x => filePath.EndsWith(x.Key, StringComparison.OrdinalIgnoreCase))
                 ?? Enumerable.Empty<SonarQubeIssue>();
         }
@@ -226,6 +231,9 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private string NormalizeSonarQubePath(string path)
         {
+            Debug.Assert(!path.Contains("\\"), 
+                $"Expecting sonarqube relative path delimiters to be forward-slash but got '{path}'.");
+
             return path?.Trim('/').Replace('/', '\\')
                 ?? string.Empty;
         }

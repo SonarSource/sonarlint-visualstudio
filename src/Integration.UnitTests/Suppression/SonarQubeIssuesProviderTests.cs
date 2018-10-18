@@ -205,13 +205,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenProjectHasModules_WhenIssueIsModuleLevelFound_ReturnsExpectedIssue()
+        public void GetSuppressedIssues_WhenProjectHasModulesAndIssueIsModuleLevelFound_ReturnsExpectedIssue()
         {
             // Arrange
-            var sonarQubeIssue = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId",
-                SonarQubeIssueResolutionState.FalsePositive, "S101");
+            var sonarQubeIssue1 = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId2",
+                SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
+            var sonarQubeIssue3 = new SonarQubeIssue("/foo/bar.cs", "hash", 12, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S3");
 
-            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue });
+            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3 });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
@@ -223,16 +227,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // Assert
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S2");
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenProjectHasNoModules_WhenIssueIsModuleLevelAndFound_ReturnsExpectedIssue()
+        public void GetSuppressedIssues_WhenProjectHasNoModulesAndIssueIsModuleLevelAndFound_ReturnsExpectedIssue()
         {
             // Arrange
-            var sonarQubeIssue = new SonarQubeIssue(null, null, null, "message", "sqkey",
-                SonarQubeIssueResolutionState.FalsePositive, "S101");
+            var sonarQubeIssue1 = new SonarQubeIssue(null, null, null, "message", "sqkey",
+                SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue("/foo/bar.cs", "hash", 12, "message", "sqkey",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
 
-            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue },
+            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue1 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", "") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
@@ -245,16 +252,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // Assert
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S1");
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenIssueIsModuleLevelAndIsNotFound_ReturnsNoIssue()
+        public void GetSuppressedIssues_WhenProjectHasModulesAndIssueIsModuleLevelAndIsNotFound_ReturnsNoIssue()
         {
             // Arrange
-            var sonarQubeIssue = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId",
-                SonarQubeIssueResolutionState.FalsePositive, "S101");
+            var sonarQubeIssue1 = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId2",
+                SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
+            var sonarQubeIssue3 = new SonarQubeIssue("/foo/bar.cs", "hash", 12, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S3");
 
-            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue });
+            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3 });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
@@ -269,7 +281,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenProjectHasModules_WhenIssueIsFileLevelAndFound_ReturnsExpectedIssue()
+        public void GetSuppressedIssues_WhenProjectHasModulesAndIssueIsFileLevelAndIsFound_ReturnsExpectedIssue()
         {
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue("\\foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId",
@@ -280,9 +292,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 SonarQubeIssueResolutionState.FalsePositive, "S3");
             var sonarQubeIssue4 = new SonarQubeIssue("foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S4");
+            var sonarQubeIssue5 = new SonarQubeIssue("bar/bar.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S5");
 
             SetupSolutionBinding(true, 
-                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4 },
+                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4, sonarQubeIssue5 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
@@ -291,14 +305,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
             // Act
-            var matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
+            var matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
 
             // Assert
             matches.Should().HaveCount(4);
+            matches.Should().OnlyContain(x => x.RuleId != "S5");
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenProjectHasModules_WhenIssueIsFileLevelIsNotFound_ReturnsNoIssue()
+        public void GetSuppressedIssues_WhenProjectHasModulesAndIssueIsFileLevelAndIsNotFound_ReturnsNoIssue()
         {
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue("\\foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId",
@@ -309,9 +324,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 SonarQubeIssueResolutionState.FalsePositive, "S3");
             var sonarQubeIssue4 = new SonarQubeIssue("foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S4");
+            var sonarQubeIssue5 = new SonarQubeIssue("bar/bar.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S5");
 
             SetupSolutionBinding(true,
-                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4 },
+                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4, sonarQubeIssue5 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
@@ -320,20 +337,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
             // Act / Assert - #1 - file extension is not right
-            var matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo\\foo.vb");
+            var matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo\\foo.vb");
             matches.Should().BeEmpty();
 
-            // Act / Assert - #2 - path is not normalized
-            matches = issuesProvider.GetSuppressedIssues("", "C:/AwesomeProject/src/bar/foo/foo.cs");
+            // Act / Assert - #2 - path is not normalized while comparison is strict for delimiters
+            matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:/AwesomeProject/src/bar/foo/foo.cs");
             matches.Should().BeEmpty();
 
             // Act / Assert - #3 - current file is one level up compared to remote file
-            matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo.cs");
+            matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo.cs");
             matches.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenIssueIsFileLevel_MatchOnFilePathNotOnlyName()
+        public void GetSuppressedIssues_WhenIssueIsFileLevel_ShouldMatchOnLongestPath()
         {
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey:sqkey:projectId",
@@ -353,14 +370,42 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Act / Assert - #1 - Longest path is retrieved first
             var matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S2");
 
             // Act / Assert - #2 - Shortest path
             matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo.cs");
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S1");
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenProjectHasNoModule_WhenIssueIsOnAFileAtRootLevelWithNoModules_FalseMatch()
+        public void GetSuppressedIssues_WhenIssueIsFileLevel_ShouldMatchUsingCasingInsensitiveComparison()
+        {
+            // Arrange
+            var sonarQubeIssue1 = new SonarQubeIssue("foo.CS", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue("/foo/FOO.cs", null, null, "message", "sqkey:sqkey:projectId",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
+
+            SetupSolutionBinding(true,
+                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
+
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
+            WaitForInitialFetchTaskToStart();
+
+            VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
+
+            // Act
+            var matches = issuesProvider.GetSuppressedIssues("", "C:\\AWESOMEProject\\SRC\\bar\\FOO\\foo.cS");
+
+            // Assert
+            matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S2");            
+        }
+
+        [TestMethod]
+        public void GetSuppressedIssues_WhenProjectHasNoModuleAndIssueIsOnAFileAtRootLevelWithNoModules_FalseMatch()
         {
             // On this test we are in an unlikely situation of having an issue suppressed only on a file(1) which is associated
             // with the root module and whose name also exists deeper in the file system hierarchy.
@@ -368,11 +413,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             //     test from the longest matching to the shortest.
 
             // Arrange
-            var sonarQubeIssue = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey",
+            var sonarQubeIssue1 = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey",
                 SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue("toto/foo.cs", null, null, "message", "sqkey",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
 
             SetupSolutionBinding(true,
-                new List<SonarQubeIssue> { sonarQubeIssue },
+                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", "") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
@@ -381,24 +428,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
             // Act / Assert - same file name exists at multiple levels in the hierarchy
+
+            // This is the False Match...
             var matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S1");
 
+            // ... and this is the correct one
             matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo.cs");
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S1");
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenProjectHasModules_WhenIssueIsOnAFileAtRootLevel_FalseMatch()
+        public void GetSuppressedIssues_WhenProjectHasModulesAndIssueIsOnAFileAtRootLevel_FalseMatch()
         {
             // Same as previous test except that the SonarQube Project contains multiple modules
 
             // Arrange
             var sonarQubeIssue = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey",
                 SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue("toto/foo.cs", null, null, "message", "sqkey",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
 
             SetupSolutionBinding(true,
-                new List<SonarQubeIssue> { sonarQubeIssue },
+                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:guid", "", "") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
@@ -407,22 +461,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
             // Act / Assert - same file name exists at multiple levels in the hierarchy
+
+            // This is the False Match...
             var matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S1");
 
+            // ... and this is the correct one
             matches = issuesProvider.GetSuppressedIssues("", "C:\\AwesomeProject\\src\\bar\\foo.cs");
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S1");
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_WhenProjectHasNoModules_WhenIssueIsOnAFileWhoseRelativePathExistsMultipleTimes_FalseMatch()
+        public void GetSuppressedIssues_WhenProjectHasNoModulesAndIssueIsOnAFileWhoseRelativePathExistsMultipleTimes_FalseMatch()
         {
             // Arrange
-            var sonarQubeIssue = new SonarQubeIssue("aaa/foo.cs", null, null, "message", "sqkey",
+            var sonarQubeIssue1 = new SonarQubeIssue("aaa/foo.cs", null, null, "message", "sqkey",
                 SonarQubeIssueResolutionState.FalsePositive, "S1");
+            var sonarQubeIssue2 = new SonarQubeIssue("toto/foo.cs", null, null, "message", "sqkey",
+                SonarQubeIssueResolutionState.FalsePositive, "S2");
 
             SetupSolutionBinding(true,
-                new List<SonarQubeIssue> { sonarQubeIssue },
+                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", "") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
@@ -435,10 +496,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // #1 - matches the correct file...
             var matches = issuesProvider.GetSuppressedIssues("", "C:\\aaa\\foo.cs");
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S1");
 
             // #2 - ...but also matches a wrong file deeper in the hierarchy with the same suffix...
             matches = issuesProvider.GetSuppressedIssues("", "C:\\bar\\bar2\\aaa\\foo.cs");
             matches.Should().HaveCount(1);
+            matches.First().RuleId.Should().Be("S1");
 
             // #3 - ... but no match for files upper in the hierarchy.
             matches = issuesProvider.GetSuppressedIssues("", "C:\\foo.cs");
