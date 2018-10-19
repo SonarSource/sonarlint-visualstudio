@@ -261,9 +261,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId2",
                 SonarQubeIssueResolutionState.FalsePositive, "S1");
-            var sonarQubeIssue2 = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId",
+            var sonarQubeIssue2 = new SonarQubeIssue("/foo/bar.cs", "hash", 123, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S2");
-            var sonarQubeIssue3 = new SonarQubeIssue("/foo/bar.cs", "hash", 12, "message", "sqkey:sqkey:projectId",
+            var sonarQubeIssue3 = new SonarQubeIssue("/foo/bar.cs", "hash", 12, "message", "FOOBAR",
                 SonarQubeIssueResolutionState.FalsePositive, "S3");
 
             SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3 });
@@ -288,9 +288,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 SonarQubeIssueResolutionState.FalsePositive, "S1");
             var sonarQubeIssue2 = new SonarQubeIssue("/foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S2");
-            var sonarQubeIssue3 = new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+            var sonarQubeIssue3 = new SonarQubeIssue("foo\\FOO.cs", null, null, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S3");
-            var sonarQubeIssue4 = new SonarQubeIssue("foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
+            var sonarQubeIssue4 = new SonarQubeIssue("FOO/foo.cs", null, null, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S4");
             var sonarQubeIssue5 = new SonarQubeIssue("bar/bar.cs", null, null, "message", "sqkey:sqkey:projectId",
                 SonarQubeIssueResolutionState.FalsePositive, "S5");
@@ -305,7 +305,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
             // Act
-            var matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
+            IEnumerable<SonarQubeIssue> matches;
+            // We're deliberately faking SonarQube returning paths with \ instead of / which
+            // the code should handle, but with an assertion since it means the format returned
+            // by SonarQube has changed.
+            using (new AssertIgnoreScope())
+            {
+                matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
+            }
 
             // Assert
             matches.Should().HaveCount(4);
@@ -336,17 +343,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
 
-            // Act / Assert - #1 - file extension is not right
-            var matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo\\foo.vb");
-            matches.Should().BeEmpty();
+            // We're deliberately faking SonarQube returning paths with \ instead of / which
+            // the code should handle, but with an assertion since it means the format returned
+            // by SonarQube has changed.
+            using (new AssertIgnoreScope())
+            {
+                // Act / Assert - #1 - file extension is not right
+                var matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo\\foo.vb");
+                matches.Should().BeEmpty();
 
-            // Act / Assert - #2 - path is not normalized while comparison is strict for delimiters
-            matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:/AwesomeProject/src/bar/foo/foo.cs");
-            matches.Should().BeEmpty();
+                // Act / Assert - #2 - path is not normalized while comparison is strict for delimiters
+                matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:/AwesomeProject/src/bar/foo/foo.cs");
+                matches.Should().BeEmpty();
 
-            // Act / Assert - #3 - current file is one level up compared to remote file
-            matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo.cs");
-            matches.Should().BeEmpty();
+                // Act / Assert - #3 - current file is one level up compared to remote file
+                matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo.cs");
+                matches.Should().BeEmpty();
+            }
         }
 
         [TestMethod]
@@ -446,14 +459,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Same as previous test except that the SonarQube Project contains multiple modules
 
             // Arrange
-            var sonarQubeIssue = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey",
+            var sonarQubeIssue1 = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey",
                 SonarQubeIssueResolutionState.FalsePositive, "S1");
             var sonarQubeIssue2 = new SonarQubeIssue("toto/foo.cs", null, null, "message", "sqkey",
                 SonarQubeIssueResolutionState.FalsePositive, "S2");
 
             SetupSolutionBinding(true,
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
-                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:guid", "", "") });
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:guid", "", "src/bar/foo") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();

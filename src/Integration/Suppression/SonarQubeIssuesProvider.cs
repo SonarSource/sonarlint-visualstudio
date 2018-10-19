@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
                 this.suppressedFileIssues = allSuppressedIssues.Where(x => !string.IsNullOrEmpty(x.FilePath))
                     .Select(x => new { Key = ProcessKey(moduleKeyToRelativePathToRoot, x), Issue = x })
-                    .GroupBy(x => x.Key, x => x.Issue)
+                    .GroupBy(x => x.Key.ToUpperInvariant(), x => x.Issue)
                     .OrderByDescending(x => x.Key.Length) // We want to have the longest match first
                     .ToList();
 
