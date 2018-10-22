@@ -387,6 +387,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     default:
                         throw new ArgumentException($"Unsupported RuntimeLibrary: {value}", nameof(value));
+                    case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+                        return "";
                     case "MultiThreaded":
                         return "/MT"; // defines macro "_MT"
                     case "MultiThreadedDebug":
@@ -407,6 +409,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     default:
                         throw new ArgumentException($"Unsupported EnableEnhancedInstructionSet: {value}", nameof(value));
                     case "NotSet":
+                    case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
                         return "";
                     case "AdvancedVectorExtensions":
                         return "/arch:AVX";
@@ -427,6 +430,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     default:
                         throw new ArgumentException($"Unsupported ExceptionHandling: {value}", nameof(value));
+                    case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
                     case "false":
                         return "";
                     // all options below define macro "_CPPUNWIND":
@@ -445,6 +449,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     default:
                         throw new ArgumentException($"Unsupported BasicRuntimeChecks: {value}", nameof(value));
+                    case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
                     case "Default":
                         return "";
                     // all options below define macro "__MSVC_RUNTIME_CHECKS":

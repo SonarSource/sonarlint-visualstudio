@@ -205,6 +205,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void RuntimeLibrary()
         {
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+            CFamily.FileConfig.ConvertRuntimeLibrary("").Should().Be("");
+
             CFamily.FileConfig.ConvertRuntimeLibrary("MultiThreaded").Should().Be("/MT");
 
             CFamily.FileConfig.ConvertRuntimeLibrary("MultiThreadedDebug").Should().Be("/MTd");
@@ -222,6 +225,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ExceptionHandling()
         {
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+            CFamily.FileConfig.ConvertExceptionHandling("").Should().Be("");
             CFamily.FileConfig.ConvertExceptionHandling("false").Should().Be("");
             CFamily.FileConfig.ConvertExceptionHandling("Async").Should().Be("/EHa");
             CFamily.FileConfig.ConvertExceptionHandling("Sync").Should().Be("/EHsc");
@@ -234,6 +239,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void EnhancedInstructionSet()
         {
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+            CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("").Should().Be("");
             CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("NotSet").Should().Be("");
             CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions").Should().Be("/arch:AVX");
             CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions2").Should().Be("/arch:AVX2");
@@ -248,6 +255,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void BasicRuntimeChecks()
         {
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+            CFamily.FileConfig.ConvertBasicRuntimeChecks("").Should().Be("");
             CFamily.FileConfig.ConvertBasicRuntimeChecks("Default").Should().Be("");
             CFamily.FileConfig.ConvertBasicRuntimeChecks("StackFrameRuntimeCheck").Should().Be("/RTCs");
             CFamily.FileConfig.ConvertBasicRuntimeChecks("UninitializedLocalUsageCheck").Should().Be("/RTCu");
