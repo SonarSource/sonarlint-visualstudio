@@ -172,6 +172,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConvertCompileAsAndGetSqLanguage()
         {
             string sqLanguage;
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+            CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("", FileName, out sqLanguage).Should().Be("");
+            sqLanguage.Should().Be("cpp");
             CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", FileName, out sqLanguage).Should().Be("");
             sqLanguage.Should().Be("cpp");
             CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.cc", out sqLanguage).Should().Be("");

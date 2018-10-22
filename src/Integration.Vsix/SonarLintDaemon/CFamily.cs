@@ -339,6 +339,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     default:
                         throw new ArgumentException($"Unsupported CompileAs: {value}", nameof(value));
+                    case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
                     case "Default":
                         // Compile files with extensions ".cpp", ".cxx" and ".cc" as Cpp and files with extension ".c" as C
                         if (path.ToLowerInvariant().EndsWith(".cpp") || path.ToLowerInvariant().EndsWith(".cxx") || path.ToLowerInvariant().EndsWith(".cc"))
