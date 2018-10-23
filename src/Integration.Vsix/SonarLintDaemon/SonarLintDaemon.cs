@@ -43,8 +43,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string daemonVersion = "3.9.0.1892";
         private const string uriFormat = "http://repo1.maven.org/maven2/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
 
-        private readonly ConcurrentDictionary<string, List<Issue>> fileIssues = new ConcurrentDictionary<string, List<Issue>>();
-
         private readonly ISonarLintSettings settings;
         private readonly ILogger logger;
         private readonly string version;
@@ -417,14 +415,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             WritelnToPane($"Found {issueCount} issue(s)");
 
-            fileIssues.AddOrUpdate(path, issues, (key, value) => issues);
-
             consumer.Accept(path, issues);
-        }
-
-        public IEnumerable<Issue> GetIssues(string filePath)
-        {
-            return fileIssues.GetOrAdd(filePath, key => new List<Issue>());
         }
     }
 }
