@@ -114,11 +114,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 lock (taggers)
                 {
-                    if (!taggers.ExistsForFile(textDocument.FilePath))
+                    IssueTagger tagger = null;
+                    // Always return the same tagger for a given document.
+                    // If we don't, then we won't automatically get support for tooltips for issues.
+                    if (!taggers.TryGetValue(textDocument.FilePath, out tagger))
                     {
-                        return new IssueTagger(dte, this, buffer, textDocument, detectedLanguages)
-                            as ITagger<T>;
+                        tagger = new IssueTagger(dte, this, buffer, textDocument, detectedLanguages);
                     }
+                    return tagger as ITagger<T>;
                 }
             }
 
@@ -146,12 +149,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private class TrackerManager
         {
             private readonly IDictionary<string, IssueTagger> trackers = new Dictionary<string, IssueTagger>();
-
-            public bool ExistsForFile(string path)
-            {
-                var key = Key(path);
-                return trackers.ContainsKey(key);
-            }
 
             public void Add(IssueTagger tracker)
             {

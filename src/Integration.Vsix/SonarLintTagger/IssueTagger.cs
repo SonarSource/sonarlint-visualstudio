@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Text;
@@ -54,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public string FilePath { get; private set; }
         public SnapshotFactory Factory { get; }
+        private bool isDisposed;
 
         public IssueTagger(DTE dte, TaggerProvider provider, ITextBuffer buffer, ITextDocument document,
             IEnumerable<SonarLanguage> detectedLanguages)
@@ -119,6 +121,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void Dispose()
         {
+            // The same tagger might have been handed out to multiple callers, all of
+            // which will call Dispose when the document is finally closed.
+            // Currently this is ok as all of the callers seem to be disposed only when
+            // the document is closed. If that is not the case (i.e. some of the callers
+            // are disposed earlier and call Dispose on this tagger), we will need to
+            // refactor the tagging code more along the lines of the implementation in
+            // the VS SDK error list example at
+            // https://github.com/Microsoft/VSSDK-Extensibility-Samples/blob/master/ErrorList/C%23/SpellCheckerTagger.cs.
+            // i.e. there is a shared per-document component that stores the list of issues
+            // and interacts with the daemon, with each tagger being a separately-disposable
+            // wrapper around the the per-document component. The per-document component
+            // would need to reference count and only dispose when all taggers have been
+            // disposed.
+
+            if (isDisposed)
+            {
+                return;
+            }
+
+            isDisposed = true;
+
             document.FileActionOccurred -= FileActionOccurred;
             textBuffer.ChangedLowPriority -= OnBufferChange;
             provider.RemoveIssueTagger(this);
@@ -218,15 +241,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
+            Debug.Assert(!isDisposed, "Not expecting GetTags to be called after the tagger has been disposed");
+
             if (snapshot == null)
             {
                 return Enumerable.Empty<ITagSpan<IErrorTag>>();
             }
 
             return snapshot.IssueMarkers
-                .Select(issue => issue.Span)
-                .Where(spans.IntersectsWith)
-                .Select(span => new TagSpan<IErrorTag>(span, new ErrorTag(PredefinedErrorTypeNames.Warning)));
+                .Where(marker => spans.IntersectsWith(marker.Span))
+                .Select(marker => new TagSpan<IErrorTag>(marker.Span, new ErrorTag(PredefinedErrorTypeNames.Warning, marker.Issue.Message)));
         }
     }
 }
