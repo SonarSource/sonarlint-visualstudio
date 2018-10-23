@@ -73,7 +73,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=simplcom&p=1&ps=500", @"
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=1&ps=500", @"
 {
   ""paging"": {
     ""pageIndex"": 1,
@@ -184,7 +184,7 @@ namespace SonarQube.Client.Tests.Api
             csharpIssue.Line.Should().Be(136);
             csharpIssue.Message.Should().Be("Remove this empty statement.");
             csharpIssue.ModuleKey.Should().Be("simplcom:simplcom:13367B7A-E91C-47EE-BA5E-C50664D65767");
-            csharpIssue.ResolutionState.Should().Be(SonarQubeIssueResolutionState.WontFix);
+            csharpIssue.IsResolved.Should().BeTrue();
             csharpIssue.RuleId.Should().Be("S1116");
 
             var vbnetIssue = result[1];
@@ -193,7 +193,7 @@ namespace SonarQube.Client.Tests.Api
             vbnetIssue.Line.Should().Be(17);
             vbnetIssue.Message.Should().Be("Add a nested comment explaining why this method is empty, throw a 'NotSupportedException' or complete the implementation.");
             vbnetIssue.ModuleKey.Should().Be("simplcom:simplcom:B8ABFD73-AEAF-4689-BA2C-BC38B64F6FAE");
-            vbnetIssue.ResolutionState.Should().Be(SonarQubeIssueResolutionState.FalsePositive);
+            vbnetIssue.IsResolved.Should().BeTrue();
             vbnetIssue.RuleId.Should().Be("S1186");
 
             messageHandler.VerifyAll();
@@ -204,7 +204,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=simplcom&p=1&ps=500", @"
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=1&ps=500", @"
 {
   ""paging"": {
     ""pageIndex"": 1,
@@ -240,7 +240,7 @@ namespace SonarQube.Client.Tests.Api
             csharpIssue.Line.Should().BeNull(); // No line as it's a module level issue
             csharpIssue.Message.Should().Be("Remove this empty statement.");
             csharpIssue.ModuleKey.Should().Be("simplcom:simplcom:13367B7A-E91C-47EE-BA5E-C50664D65767");
-            csharpIssue.ResolutionState.Should().Be(SonarQubeIssueResolutionState.WontFix);
+            csharpIssue.IsResolved.Should().BeTrue();
             csharpIssue.RuleId.Should().Be("S1116");
                         
             messageHandler.VerifyAll();
@@ -251,7 +251,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=project1&p=1&ps=500", "", HttpStatusCode.NotFound);
+            SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&p=1&ps=500", "", HttpStatusCode.NotFound);
 
             Func<Task<IList<SonarQubeIssue>>> func = async () =>
                 await service.GetSuppressedIssuesAsync("project1", CancellationToken.None);
@@ -267,7 +267,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=simplcom&p=1&ps=500", $@"
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=1&ps=500", $@"
 {{
   ""paging"": {{
     ""pageIndex"": 1,
@@ -279,7 +279,7 @@ namespace SonarQube.Client.Tests.Api
   ]
 }}");
 
-            SetupRequest("api/issues/search?projects=simplcom&p=2&ps=500", $@"
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=2&ps=500", $@"
 {{
   ""paging"": {{
     ""pageIndex"": 2,
@@ -291,7 +291,7 @@ namespace SonarQube.Client.Tests.Api
   ]
 }}");
 
-            SetupRequest("api/issues/search?projects=simplcom&p=3&ps=500", $@"
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=3&ps=500", $@"
 {{
   ""paging"": {{
     ""pageIndex"": 3,
@@ -320,7 +320,7 @@ namespace SonarQube.Client.Tests.Api
             "\"subProject\": \"simplcom:simplcom:91A9DD1C-08F3-4F85-8728-BB30F55FDACB\", " +
             "\"line\": 36, " +
             "\"hash\": \"0dcbf3b077bacc9fdbd898ff3b587085\", " +
-            "\"resolution\": \"WONTFIX\", " +
+            "\"status\": \"RESOLVED\", " +
             "\"message\": \"Refactor your code not to use hardcoded absolute paths or URIs.\" " +
             "}";
     }
