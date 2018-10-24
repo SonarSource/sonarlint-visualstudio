@@ -37,16 +37,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal sealed class IssueTagger : ITagger<IErrorTag>, IDisposable
     {
-        private readonly TextBufferIssueTracker issueHandler;
         private IssuesSnapshot issues;
         private bool isDisposed;
+        internal /* for testing */ TextBufferIssueTracker IssueTracker { get; }
 
-        public IssueTagger(TextBufferIssueTracker issueHandler)
+        public IssueTagger(TextBufferIssueTracker issueTracker)
         {
-            this.issueHandler = issueHandler;
-            this.issues = issueHandler.LastIssues;
+            this.IssueTracker = issueTracker;
+            this.issues = issueTracker.LastIssues;
 
-            issueHandler.AddTagger(this);
+            issueTracker.AddTagger(this);
         }
 
         public void UpdateMarkers(IssuesSnapshot newIssues, SnapshotSpan? affectedSpan)
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (!isDisposed)
             {
                 // Called when the tagger is no longer needed (generally when the ITextView is closed).
-                this.issueHandler.RemoveTagger(this);
+                this.IssueTracker.RemoveTagger(this);
 
                 this.isDisposed = true;
             }

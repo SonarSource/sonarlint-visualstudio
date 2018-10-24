@@ -39,10 +39,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal class TextBufferIssueTracker : IIssueConsumer
+    internal sealed class TextBufferIssueTracker : IIssueConsumer
     {
         private readonly DTE dte;
-        private readonly TaggerProvider provider;
+        internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
         private readonly IEnumerable<SonarLanguage> detectedLanguages;
 
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             this.dte = dte;
 
-            this.provider = provider;
+            this.Provider = provider;
             this.textBuffer = document.TextBuffer;
             this.currentSnapshot = document.TextBuffer.CurrentSnapshot;
 
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 this.dirtySpans = new NormalizedSnapshotSpanCollection(new SnapshotSpan(currentSnapshot, 0, currentSnapshot.Length));
 
-                provider.AddIssueTracker(this);
+                Provider.AddIssueTracker(this);
 
                 RequestAnalysis();
             }
@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 document.FileActionOccurred -= FileActionOccurred;
                 textBuffer.ChangedLowPriority -= OnBufferChange;
                 textBuffer.Properties.RemoveProperty(typeof(TextBufferIssueTracker));
-                provider.RemoveIssueTracker(this);
+                Provider.RemoveIssueTracker(this);
             }
         }
 
@@ -186,7 +186,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Tell the provider to mark all the sinks dirty (so, as a side-effect, they will start an update pass that will get the new snapshot
             // from the factory).
-            provider.UpdateAllSinks();
+            Provider.UpdateAllSinks();
 
             // Work out which part of the document has been affected by the changes, and tell
             // the taggers about the changes
@@ -234,7 +234,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void RequestAnalysis()
         {
-            provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem);
+            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem);
         }
 
         void IIssueConsumer.Accept(string path, IEnumerable<Issue> issues)

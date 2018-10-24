@@ -31,7 +31,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
-using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -44,12 +43,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ISonarLintSettings> mockISonarLintSettings;
         private Mock<ILogger> mockLogger;
 
-        private string filename = "foo.js";
-        private Mock<ITextDocument> mockTextDocument;
-
         private TaggerProvider provider;
 
         private IContentType jsContentType;
+
+        private DummyTextDocumentFactoryService dummyDocumentFactoryService;
 
         [TestInitialize]
         public void SetUp()
@@ -64,9 +62,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockTableManagerProvider.Setup(t => t.GetTableManager(StandardTables.ErrorsTable))
                 .Returns(new Mock<ITableManager>().Object);
             var tableManagerProvider = mockTableManagerProvider.Object;
-
-            var mockTextDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
-            var textDocumentFactoryService = mockTextDocumentFactoryService.Object;
 
             var mockContentTypeRegistryService = new Mock<IContentTypeRegistryService>();
             mockContentTypeRegistryService.Setup(c => c.ContentTypes).Returns(Enumerable.Empty<IContentType>());
@@ -101,24 +96,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.jsContentType = mockJsContentType.Object;
 
 
-            this.mockTextDocument = new Mock<ITextDocument>();
-            mockTextDocument.Setup(d => d.FilePath).Returns(filename);
-            mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
-            var textDocument = mockTextDocument.Object;
-
             mockISonarLintSettings = new Mock<ISonarLintSettings>();
             mockISonarLintSettings.Setup(s => s.IsActivateMoreEnabled).Returns(true);
             var sonarLintSettings = mockISonarLintSettings.Object;
 
-            mockTextDocumentFactoryService
-                .Setup(t => t.TryGetTextDocument(It.IsAny<ITextBuffer>(), out textDocument))
-                .Returns(true);
+            dummyDocumentFactoryService = new DummyTextDocumentFactoryService();
 
             mockLogger = new Mock<ILogger>();
 
             var sonarLanguageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryService, fileExtensionRegistryService);
 
-            this.provider = new TaggerProvider(tableManagerProvider, textDocumentFactoryService, daemon, serviceProvider,
+            this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, daemon, serviceProvider,
                 sonarLintSettings, sonarLanguageRecognizer, mockLogger.Object);
         }
 
@@ -139,77 +127,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreateTagger_should_return_null_for_not_js()
         {
-            SetMockDocumentFilename(filename + ".java");
+            var doc = CreateMockedDocument("foo.java");
 
-            CreateTagger().Should().BeNull();
+            CreateTaggerForDocument(doc).Should().BeNull();
         }
 
         [TestMethod]
-        public void CreateTagger_should_return_null_for_already_tracked_file()
+        public void CreateTagger_should_return_new_tagger_for_already_tracked_file()
         {
-            CreateTagger(jsContentType).Should().NotBeNull();
-            CreateTagger(jsContentType).Should().BeNull();
-        }
+            var doc1 = CreateMockedDocument("doc1.js", jsContentType);
 
-        [TestMethod]
-        public void CreateTagger_should_return_null_for_already_tracked_renamed_file()
-        {
-            CreateTagger(jsContentType).Should().NotBeNull();
+            var tagger1 = CreateTaggerForDocument(doc1);
+            tagger1.Should().NotBeNull();
 
-            var newName = "bar-" + filename;
-            provider.Rename(filename, newName);
-            SetMockDocumentFilename(newName);
-
-            CreateTagger(jsContentType).Should().BeNull();
-        }
-
-        [TestMethod]
-        public void CreateTagger_should_track_again_after_reopen()
-        {
-            var tracker = CreateTagger(jsContentType) as IssueTagger;
-
-            CreateTagger(jsContentType).Should().BeNull();
-
-            tracker.Dispose();
-
-            CreateTagger(jsContentType).Should().NotBeNull();
-        }
-
-        [TestMethod]
-        public void CreateTagger_should_track_by_case_insensitive_name()
-        {
-            var lower = "foo.js";
-            SetMockDocumentFilename(lower);
-            CreateTagger(jsContentType).Should().NotBeNull();
-
-            SetMockDocumentFilename(lower.ToUpperInvariant());
-            CreateTagger(jsContentType).Should().BeNull();
-
-            var upper = "BAR.JS";
-            SetMockDocumentFilename(upper);
-            CreateTagger(jsContentType).Should().NotBeNull();
-
-            SetMockDocumentFilename(upper.ToLowerInvariant());
-            CreateTagger(jsContentType).Should().BeNull();
-        }
-
-        [TestMethod]
-        public void CreateTagger_should_be_distinct_per_file()
-        {
-            var tagger1 = CreateTagger(jsContentType);
-
-            SetMockDocumentFilename("bar-" + filename);
-
-            var tagger2 = CreateTagger(jsContentType);
+            var tagger2 = CreateTaggerForDocument(doc1);
             tagger2.Should().NotBeNull();
-            tagger1.Should().NotBe(tagger2);
+
+            // Taggers should be different but tracker should be the same
+            tagger1.Should().NotBeSameAs(tagger2);
+            tagger1.IssueTracker.Should().BeSameAs(tagger2.IssueTracker);
         }
 
         [TestMethod]
-        public void Should_not_crash_on_issues_in_untracked_files()
+        public void CreateTagger_close_last_tagger_should_unregister_tracker()
         {
-            var issues = new List<Issue> { new Issue() };
-            provider.Accept("nonexistent.js", issues);
+            var doc1 = CreateMockedDocument("doc1.js", jsContentType);
+
+            var tracker1 = CreateTaggerForDocument(doc1);
+            provider.ActiveTrackersForTesting.Count().Should().Be(1);
+
+            var tracker2 = CreateTaggerForDocument(doc1);
+            provider.ActiveTrackersForTesting.Count().Should().Be(1);
+
+            // Remove one tagger -> tracker should still be registered
+            tracker1.Dispose();
+            provider.ActiveTrackersForTesting.Count().Should().Be(1);
+
+            // Remove the last tagger -> tracker should be unregistered
+            tracker2.Dispose();
+            provider.ActiveTrackersForTesting.Count().Should().Be(0);
+        }
+
+        [TestMethod]
+        public void CreateTagger_tracker_should_be_distinct_per_file()
+        {
+            var doc1 = CreateMockedDocument("foo.js", jsContentType);
+            var tagger1 = CreateTaggerForDocument(doc1);
+            tagger1.Should().NotBeNull();
+
+            var doc2 = CreateMockedDocument("bar.js", jsContentType);
+            var tagger2 = CreateTaggerForDocument(doc2);
+            tagger2.Should().NotBeNull();
+
+            tagger1.IssueTracker.Should().NotBeSameAs(tagger2.IssueTracker);
+            tagger1.Should().NotBe(tagger2);
         }
 
         [TestMethod]
@@ -221,11 +192,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var mockTableDataSink2 = new Mock<ITableDataSink>();
             provider.Subscribe(mockTableDataSink2.Object);
 
-            var tracker = CreateTagger(jsContentType) as IssueTagger;
-
+            CreateTagger(jsContentType);
+            var trackers = provider.ActiveTrackersForTesting.ToArray();
+            trackers.Count().Should().Be(1); // sanity check
+            
             // factory of new tracker is propagated to all existing sink managers
-            mockTableDataSink1.Verify(s => s.AddFactory(tracker.Factory, false));
-            mockTableDataSink2.Verify(s => s.AddFactory(tracker.Factory, false));
+            mockTableDataSink1.Verify(s => s.AddFactory(trackers[0].Factory, false));
+            mockTableDataSink2.Verify(s => s.AddFactory(trackers[0].Factory, false));
         }
 
         [TestMethod]
@@ -239,49 +212,150 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             sinkManager.Dispose();
 
-            var tracker = CreateTagger(jsContentType) as IssueTagger;
+            CreateTagger(jsContentType);
+
+            var trackers = provider.ActiveTrackersForTesting.ToArray();
+            trackers.Count().Should().Be(1); // sanity check
 
             // factory of new tracker is propagated to all existing sink managers
-            mockTableDataSink1.Verify(s => s.AddFactory(tracker.Factory, false));
+            mockTableDataSink1.Verify(s => s.AddFactory(trackers[0].Factory, false));
         }
 
         [TestMethod]
         public void Should_propagate_existing_tracker_factories_to_new_sink_managers()
         {
-            SetMockDocumentFilename("foo.js");
-            var tracker1 = CreateTagger(jsContentType) as IssueTagger;
+            var doc1 = CreateMockedDocument("foo.js", jsContentType);
+            CreateTaggerForDocument(doc1);
 
-            SetMockDocumentFilename("bar.js");
-            var tracker2 = CreateTagger(jsContentType) as IssueTagger;
+            var doc2 = CreateMockedDocument("bar.js", jsContentType);
+            CreateTaggerForDocument(doc2);
+
+            var trackers = provider.ActiveTrackersForTesting.ToArray();
+            trackers.Count().Should().Be(2); // sanity check
 
             var mockTableDataSink = new Mock<ITableDataSink>();
             provider.Subscribe(mockTableDataSink.Object);
 
             // factories of existing trackers are propagated to new sink manager
-            mockTableDataSink.Verify(s => s.AddFactory(tracker1.Factory, false));
-            mockTableDataSink.Verify(s => s.AddFactory(tracker2.Factory, false));
+            mockTableDataSink.Verify(s => s.AddFactory(trackers[0].Factory, false));
+            mockTableDataSink.Verify(s => s.AddFactory(trackers[1].Factory, false));
         }
 
-        private ITagger<IErrorTag> CreateTagger(IContentType bufferContentType = null)
+        private IssueTagger CreateTagger(IContentType bufferContentType = null)
         {
+            var doc = CreateMockedDocument("anyname", bufferContentType);
+            return CreateTaggerForDocument(doc);
+        }
+
+        private IssueTagger CreateTaggerForDocument(ITextDocument document)
+        {
+            var mockTextDataModel = new Mock<ITextDataModel>();
+            mockTextDataModel.Setup(x => x.DocumentBuffer).Returns(document.TextBuffer);
+            var textDataModel = mockTextDataModel.Object;
+
+            var mockTextView = new Mock<ITextView>();
+            mockTextView.Setup(t => t.TextBuffer).Returns(document.TextBuffer);
+            mockTextView.Setup(t => t.TextDataModel).Returns(textDataModel);
+
+            ITextView textView = mockTextView.Object;
+
+            return provider.CreateTagger<IErrorTag>(textView, document.TextBuffer) as IssueTagger;
+        }
+
+        private ITextDocument CreateMockedDocument(string fileName, IContentType bufferContentType = null)
+        {
+            // Text buffer with a properties collection and current snapshot
             var mockTextBuffer = new Mock<ITextBuffer>();
             mockTextBuffer.Setup(b => b.ContentType).Returns(bufferContentType);
             ITextBuffer textBuffer = mockTextBuffer.Object;
 
-            var mockTextDataModel = new Mock<ITextDataModel>();
-            var textDataModel = mockTextDataModel.Object;
+            var dummyProperties = new PropertyCollection();
+            mockTextBuffer.Setup(p => p.Properties).Returns(dummyProperties);
 
-            var mockTextView = new Mock<ITextView>();
-            mockTextView.Setup(t => t.TextBuffer).Returns(textBuffer);
-            mockTextView.Setup(t => t.TextDataModel).Returns(textDataModel);
-            ITextView textView = mockTextView.Object;
+            var mockSnapshot = new Mock<ITextSnapshot>();
+            mockSnapshot.Setup(x => x.Length).Returns(0);
+            mockTextBuffer.Setup(x => x.CurrentSnapshot).Returns(mockSnapshot.Object);
 
-            return provider.CreateTagger<IErrorTag>(textView, textBuffer);
+            // Create the document and associate the buffer with the it
+            var mockTextDocument = new Mock<ITextDocument>();
+            mockTextDocument.Setup(d => d.FilePath).Returns(fileName);
+            mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
+
+            mockTextDocument.Setup(x => x.TextBuffer).Returns(textBuffer);
+
+            // Register the buffer-to-doc mapping for the factory service
+            dummyDocumentFactoryService.RegisterDocument(mockTextDocument.Object);
+
+            return mockTextDocument.Object;
         }
 
-        private void SetMockDocumentFilename(string filename)
+        private class DummyTextDocumentFactoryService : ITextDocumentFactoryService
         {
-            mockTextDocument.Setup(d => d.FilePath).Returns(filename);
+            private Dictionary<ITextBuffer, ITextDocument> bufferToDocMapping = new Dictionary<ITextBuffer, ITextDocument>();
+
+            public void RegisterDocument(ITextDocument document)
+            {
+                bufferToDocMapping.Add(document.TextBuffer, document);
+            }
+
+            #region Implemented interface methods
+
+            bool ITextDocumentFactoryService.TryGetTextDocument(ITextBuffer textBuffer, out ITextDocument textDocument)
+            {
+                return bufferToDocMapping.TryGetValue(textBuffer, out textDocument);
+            }
+
+            #endregion
+
+            #region Not implemented interface methods
+
+            event EventHandler<TextDocumentEventArgs> ITextDocumentFactoryService.TextDocumentCreated
+            {
+                add
+                {
+                    throw new NotImplementedException();
+                }
+
+                remove
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            event EventHandler<TextDocumentEventArgs> ITextDocumentFactoryService.TextDocumentDisposed
+            {
+                add
+                {
+                    throw new NotImplementedException();
+                }
+
+                remove
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType)
+            {
+                throw new NotImplementedException();
+            }
+
+            ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType, Encoding encoding, out bool characterSubstitutionsOccurred)
+            {
+                throw new NotImplementedException();
+            }
+
+            ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType, bool attemptUtf8Detection, out bool characterSubstitutionsOccurred)
+            {
+                throw new NotImplementedException();
+            }
+
+            ITextDocument ITextDocumentFactoryService.CreateTextDocument(ITextBuffer textBuffer, string filePath)
+            {
+                throw new NotImplementedException();
+            }
+
+            #endregion
         }
     }
 }

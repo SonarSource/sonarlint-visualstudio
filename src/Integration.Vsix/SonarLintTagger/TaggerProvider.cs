@@ -86,6 +86,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.logger = logger;
         }
 
+        internal IEnumerable<TextBufferIssueTracker> ActiveTrackersForTesting { get { return this.issueTrackers; } }
+
         /// <summary>
         /// Create a tagger that will track SonarLint issues on the view/buffer combination.
         /// </summary>
@@ -224,6 +226,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 }
             }
         }
-
     }
 }
