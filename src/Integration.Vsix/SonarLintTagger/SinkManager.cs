@@ -24,8 +24,16 @@ using Microsoft.VisualStudio.Shell.TableManager;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     /// <summary>
+    /// Error list plumbing
+    /// </summary>
+    /// <remarks>
+    /// <para>
     /// Every consumer of data from an <see cref="ITableDataSource"/> provides an <see cref="ITableDataSink"/> to record the changes. We give the consumer
     /// an IDisposable (this object) that they hang on to as long as they are interested in our data (and they Dispose() of it when they are done).
+    /// </para>
+    /// <para>
+    /// See the README.md in this folder for more information
+    /// </para>
     /// </summary>
     internal sealed class SinkManager : IDisposable
     {
@@ -45,17 +53,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             taggerProvider.RemoveSinkManager(this);
         }
 
-        internal void AddFactory(SnapshotFactory factory)
+        public void AddFactory(SnapshotFactory factory)
         {
             sink.AddFactory(factory);
         }
 
-        internal void RemoveFactory(SnapshotFactory factory)
+        public void RemoveFactory(SnapshotFactory factory)
         {
             sink.RemoveFactory(factory);
         }
 
-        internal void UpdateSink()
+        public void UpdateSink()
         {
             sink.FactorySnapshotChanged(null);
         }

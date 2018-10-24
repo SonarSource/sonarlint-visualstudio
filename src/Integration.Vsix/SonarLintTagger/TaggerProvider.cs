@@ -30,27 +30,29 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     /// <summary>
     /// Factory for the <see cref="ITagger{T}"/>. There will be one instance of this class/VS session.
     ///
-    /// It is also the <see cref="ITableDataSource"/> that reports Sonar errors.
+    /// It is also the <see cref="ITableDataSource"/> that reports Sonar errors to the Error List
     /// </summary>
+    /// <remarks>
+    /// See the README.md in this folder for more information
+    /// </remarks>
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class TaggerProvider : IViewTaggerProvider, ITableDataSource, IIssueConsumer
+    internal sealed class TaggerProvider : IViewTaggerProvider, ITableDataSource
     {
         internal readonly ITableManager errorTableManager;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
         internal readonly DTE dte;
 
-        private readonly List<SinkManager> managers = new List<SinkManager>();
-        private readonly TrackerManager taggers = new TrackerManager();
+        private readonly ISet<SinkManager> managers = new HashSet<SinkManager>();
+        private readonly ISet<TextBufferIssueTracker> issueTrackers = new HashSet<TextBufferIssueTracker>();
 
         private readonly ISonarLintDaemon daemon;
         private readonly ISonarLintSettings settings;
@@ -95,7 +97,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             // Only attempt to track the view's edit buffer.
-            // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
             if (buffer != textView.TextBuffer ||
                 typeof(T) != typeof(IErrorTag))
             {
@@ -112,25 +113,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (detectedLanguages.Any())
             {
-                lock (taggers)
-                {
-                    IssueTagger tagger = null;
-                    // Always return the same tagger for a given document.
-                    // If we don't, then we won't automatically get support for tooltips for issues.
-                    if (!taggers.TryGetValue(textDocument.FilePath, out tagger))
-                    {
-                        tagger = new IssueTagger(dte, this, buffer, textDocument, detectedLanguages);
-                    }
-                    return tagger as ITagger<T>;
-                }
+                // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
+                var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(TextBufferIssueTracker),
+                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages));
+
+                // Always create a new tagger for each request
+                return new IssueTagger(issueTracker) as ITagger<T>;
             }
 
             return null;
-        }
-
-        internal void Rename(string oldPath, string newPath)
-        {
-            taggers.Rename(oldPath, newPath);
         }
 
         #region ITableDataSource members
@@ -146,52 +137,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion
 
-        private class TrackerManager
+        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem)
         {
-            private readonly IDictionary<string, IssueTagger> trackers = new Dictionary<string, IssueTagger>();
-
-            public void Add(IssueTagger tracker)
-            {
-                trackers.Add(Key(tracker.FilePath), tracker);
-            }
-
-            public void Remove(IssueTagger tracker)
-            {
-                trackers.Remove(Key(tracker.FilePath));
-            }
-
-            public bool TryGetValue(string path, out IssueTagger tracker)
-            {
-                return trackers.TryGetValue(Key(path), out tracker);
-            }
-
-            public IEnumerable<IssueTagger> Values => trackers.Values;
-
-            private string Key(string path)
-            {
-                return path.ToLowerInvariant();
-            }
-
-            internal void Rename(string oldPath, string newPath)
-            {
-                string oldKey = Key(oldPath);
-                IssueTagger tracker;
-                if (trackers.TryGetValue(oldKey, out tracker))
-                {
-                    trackers.Add(Key(newPath), tracker);
-                    trackers.Remove(oldKey);
-                }
-            }
-        }
-
-        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages)
-        {
-            IssueTagger tracker;
-            if (!taggers.TryGetValue(path, out tracker))
-            {
-                return;
-            }
-
             bool handled = false;
             foreach (var language in detectedLanguages)
             {
@@ -199,12 +146,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     case SonarLanguage.Javascript:
                         handled = true;
-                        daemon.RequestAnalysis(path, charset, "js", null, this);
+                        daemon.RequestAnalysis(path, charset, "js", null, issueConsumer);
                         break;
 
                     case SonarLanguage.CFamily:
                         handled = true;
-                        CFamily.ProcessFile(daemon, this, logger, tracker.ProjectItem, path, charset);
+                        CFamily.ProcessFile(daemon, issueConsumer, logger, projectItem, path, charset);
                         break;
 
                     default:
@@ -218,29 +165,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void Accept(string path, IEnumerable<Issue> issues)
-        {
-            UpdateIssues(path, issues);
-        }
-
-        private void UpdateIssues(string path, IEnumerable<Issue> issues)
-        {
-            IssueTagger tagger;
-            if (taggers.TryGetValue(path, out tagger))
-            {
-                tagger.UpdateIssues(issues);
-            }
-        }
-
         public void AddSinkManager(SinkManager manager)
         {
             lock (managers)
             {
                 managers.Add(manager);
 
-                foreach (var tagger in taggers.Values)
+                foreach (var issueTracker in issueTrackers)
                 {
-                    manager.AddFactory(tagger.Factory);
+                    manager.AddFactory(issueTracker.Factory);
                 }
             }
         }
@@ -253,30 +186,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void AddIssueTagger(IssueTagger tagger)
+        public void AddIssueTracker(TextBufferIssueTracker bufferHandler)
         {
             lock (managers)
             {
-                taggers.Add(tagger);
-                daemon.Ready += tagger.DaemonStarted;
+                issueTrackers.Add(bufferHandler);
+                daemon.Ready += bufferHandler.DaemonStarted;
 
                 foreach (var manager in managers)
                 {
-                    manager.AddFactory(tagger.Factory);
+                    manager.AddFactory(bufferHandler.Factory);
                 }
             }
         }
 
-        public void RemoveIssueTagger(IssueTagger tagger)
+        public void RemoveIssueTracker(TextBufferIssueTracker bufferHandler)
         {
             lock (managers)
             {
-                taggers.Remove(tagger);
-                daemon.Ready -= tagger.DaemonStarted;
+                issueTrackers.Remove(bufferHandler);
+                daemon.Ready -= bufferHandler.DaemonStarted;
 
                 foreach (var manager in managers)
                 {
-                    manager.RemoveFactory(tagger.Factory);
+                    manager.RemoveFactory(bufferHandler.Factory);
                 }
             }
         }
@@ -291,5 +224,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 }
             }
         }
+
     }
 }

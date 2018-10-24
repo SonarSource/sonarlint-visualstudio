@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    interface ISonarLanguageRecognizer
+    internal interface ISonarLanguageRecognizer
     {
         IEnumerable<SonarLanguage> Detect(ITextDocument textDocument, ITextBuffer buffer);
     }

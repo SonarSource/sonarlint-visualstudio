@@ -27,6 +27,14 @@ using Sonarlint;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    /// <summary>
+    /// ErrorList plumbing. Contains the issues data for a single analyzed file,
+    /// and overrides methods called by the Error List to populate rows with
+    /// that data.
+    /// </summary>
+    /// <remarks>
+    /// See the README.md in this folder for more information
+    /// </remarks>
     internal class IssuesSnapshot : WpfTableEntriesSnapshotBase
     {
         private readonly string projectName;
