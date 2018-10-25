@@ -22,6 +22,12 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    /// <summary>
+    /// Plumbing for passing data items to the ErrorList
+    /// </summary>
+    /// <remarks>
+    /// See the README.md in this folder for more information
+    /// </remarks>
     internal class SnapshotFactory : TableEntriesSnapshotFactoryBase
     {
         public IssuesSnapshot CurrentSnapshot { get; private set; }
@@ -31,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.CurrentSnapshot = snapshot;
         }
 
-        internal void UpdateMarkers(IssuesSnapshot snapshot)
+        public void UpdateSnapshot(IssuesSnapshot snapshot)
         {
             this.CurrentSnapshot = snapshot;
         }
