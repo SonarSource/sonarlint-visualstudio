@@ -201,6 +201,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get;
             private set;
         }
+        public ICommand ReconnectCommand { get; private set; }
 
         public ICommand<ConnectionInformation> RefreshCommand
         {
@@ -259,6 +260,12 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
             this.BrowseToUrlCommand = new RelayCommand<string>(this.ExecBrowseToUrl, this.CanExecBrowseToUrl);
             this.BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(this.ExecBrowseToProjectDashboard, this.CanExecBrowseToProjectDashboard);
+            this.ReconnectCommand = new RelayCommand(() =>
+                {
+                    this.Disconnect();
+                    this.ConnectCommand.Execute(null);
+                },
+                this.CanDisconnect);
         }
 
         private void CleanProvidedCommands()

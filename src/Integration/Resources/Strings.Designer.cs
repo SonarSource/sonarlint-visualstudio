@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Bound project with key &apos;{0}&apos; was not found on the connected server. Select a new SonarQube project and bind to it..
+        ///   Looks up a localized string similar to Bound project with key &apos;{0}&apos; was not found on the connected server. Select a new SonarQube project and bind to it, or [use different login]() that has access to the desired project..
         /// </summary>
         public static string BoundProjectNotFound {
             get {
