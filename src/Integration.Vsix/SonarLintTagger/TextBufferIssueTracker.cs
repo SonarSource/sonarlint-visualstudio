@@ -89,6 +89,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var projectName = this.ProjectItem?.ContainingProject.Name ?? "{none}";
             this.Factory = new SnapshotFactory(new IssuesSnapshot(projectName, this.FilePath, 0,
                 new List<IssueMarker>()));
+
+            document.FileActionOccurred += FileActionOccurred;
         }
 
         public void AddTagger(IssueTagger tagger)
@@ -99,7 +101,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (activeTaggers.Count == 1)
             {
                 // First tagger created... start doing stuff
-                document.FileActionOccurred += FileActionOccurred;
 
                 textBuffer.ChangedLowPriority += OnBufferChange;
 
@@ -133,8 +134,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 FilePath = e.FilePath;
                 ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
+
+                // Update and publish a new snapshow with the existing issues so 
+                // that the name change propagates to items in the error list
+                RefreshIssues();
             }
-            else if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
+            else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
+                && activeTaggers.Count > 0)
             {
                 RequestAnalysis();
             }
@@ -211,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 end = oldIssues.IssueMarkers.Select(i => i.Span.End.TranslateTo(currentSnapshot, PointTrackingMode.Positive)).Max();
             }
 
-            if (newIssues.Count > 0)
+            if (newIssues != null && newIssues.Count > 0)
             {
                 start = Math.Min(start, newIssues.IssueMarkers.Select(i => i.Span.Start.Position).Min());
                 end = Math.Max(end, newIssues.IssueMarkers.Select(i => i.Span.End.Position).Max());
@@ -245,14 +251,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Debug.Fail("Issues returned for an unexpected file path");
                 return;
             }
-            UpdateIssues(issues);
+
+            var newMarkers = issues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
+            UpdateIssues(newMarkers);
         }
 
-        private void UpdateIssues(IEnumerable<Issue> issues)
+        private void RefreshIssues()
+        {
+            UpdateIssues(this.Factory.CurrentSnapshot.IssueMarkers ?? Enumerable.Empty<IssueMarker>());
+        }
+
+        private void UpdateIssues(IEnumerable<IssueMarker> issueMarkers)
         {
             var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newMarkers = issues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
-            var newSnapshot = new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
+            var newSnapshot = new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, issueMarkers);
             SnapToNewSnapshot(newSnapshot);
         }
 
