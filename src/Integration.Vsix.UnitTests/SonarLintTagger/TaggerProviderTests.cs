@@ -35,6 +35,12 @@ using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
+    /*
+     * Note: the TextBufferIssueTracker and TaggerProvider are tightly coupled so it isn't possible
+     * to test them completely independently without substantial refactoring.
+     * These unit tests are dependent on both classes behaving correctly.
+     */
+
     [TestClass]
     public class TaggerProviderTests
     {
