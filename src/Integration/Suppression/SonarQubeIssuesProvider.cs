@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                     .OrderByDescending(x => x.Key.Length) // We want to have the longest match first
                     .ToList();
 
-                this.logger.WriteLine(Resources.Strings.Suppression_FinishedChecking, this.suppressedFileIssues.Count);
+                this.logger.WriteLine(Resources.Strings.Suppression_FinishedChecking, allSuppressedIssues.Count);
             }
             catch (Exception ex)
             {
