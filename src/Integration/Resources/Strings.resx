@@ -312,7 +312,7 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <comment>Exception message</comment>
   </data>
   <data name="BoundProjectNotFound" xml:space="preserve">
-    <value>Bound project with key '{0}' was not found on the connected server. Select a new SonarQube project and bind to it, or [use different login]() that has access to the desired project.</value>
+    <value>Bound project with key '{0}' was not found on the connected server. Select a different SonarQube project, or use [a different login]() that has access to the desired project.</value>
     <comment>Team explorer error message when a persisted bound project is not found. {0} - SonarQube project key.</comment>
   </data>
   <data name="ConnectingToSonarQubePrefixMessageFormat" xml:space="preserve">
