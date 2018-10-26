@@ -236,6 +236,46 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         }
 
         [TestMethod]
+        public void SectionController_ReconnectCommand()
+        {
+            // Arrange
+            var sectionController = this.CreateTestSubject();
+            var connection = new ConnectionInformation(new Uri("http://connected"));
+            int setProjectsCalled = 0;
+            this.host.TestStateManager.SetProjectsAction = (conn, projects) =>
+            {
+                setProjectsCalled++;
+                conn.Should().Be(connection);
+                projects.Should().BeNull("Expecting the project to be reset to null");
+            };
+
+            // The commands under test work only on fully loaded solution
+            var projectSystemHelper = (ConfigurableVsProjectSystemHelper)this.serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystemHelper.SetIsSolutionFullyOpened(true);
+
+            // Case 1: No connection
+            // Act + Assert CanExecute
+            sectionController.DisconnectCommand.CanExecute(null).Should().BeFalse();
+            sectionController.ReconnectCommand.CanExecute(null).Should().BeFalse(); // Same as DisconnectCommand
+            setProjectsCalled.Should().Be(0);
+
+            // Case 2: Connected
+            this.host.TestStateManager.ConnectedServers.Add(connection);
+
+            // Act + Assert CanExecute
+            sectionController.DisconnectCommand.CanExecute(null).Should().BeTrue();
+            sectionController.ReconnectCommand.CanExecute(null).Should().BeTrue(); // Same as DisconnectCommand
+            setProjectsCalled.Should().Be(0);
+
+            // Act + Assert Execute
+            // Reconnect command cannot be tested without significant refactoring
+            // because the executed code that shows UI cannot be mocked or replaced.
+            ////sectionController.ReconnectCommand.Execute(null);
+            ////setProjectsCalled.Should().Be(1);
+            ////sonarQubeServiceMock.Verify(x => x.Disconnect(), Times.Once);
+        }
+
+        [TestMethod]
         public void SectionController_ToggleShowAllProjectsCommand()
         {
             // Arrange

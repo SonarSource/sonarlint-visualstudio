@@ -51,6 +51,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         }
 
         [TestMethod]
+        public void StateManager_SetProjectsUIThread_With_BoundProjectKey()
+        {
+            // Arrange
+            var section = ConfigurableSectionController.CreateDefault();
+            ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
+            ConfigurableHost host = new ConfigurableHost();
+            StateManager testSubject = this.CreateTestSubject(host);
+            host.VisualStateManager = testSubject;
+            section.ViewModel.State = testSubject.ManagedState;
+            host.SetActiveSection(section);
+
+            var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
+            var projects = new[] { new SonarQubeProject("project1", ""), new SonarQubeProject("project2", "") };
+
+            // Case 1 - projects does not contain BoundProjectKey
+            testSubject.BoundProjectKey = "missing_project";
+            testSubject.SetProjects(connection1, projects);
+
+            // Assert
+            var message = notifications.AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId);
+            message.Should().MatchRegex("\\[.+\\]\\(\\)"); // Contains the hyperlink syntax [text]()
+            notifications.AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId, section.ReconnectCommand);
+
+            // Case 2 - projects contains BoundProjectKey
+            testSubject.BoundProjectKey = "project1";
+            testSubject.SetProjects(connection1, projects);
+
+            // Assert
+            notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
+        }
+
+        [TestMethod]
         public void StateManager_SetProjectsUIThread()
         {
             // Arrange
