@@ -55,6 +55,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         ICommand ConnectCommand { get; }
 
+        ICommand ReconnectCommand { get; }
+
         ICommand<BindCommandArgs> BindCommand { get; }
 
         ICommand<string> BrowseToUrlCommand { get; }

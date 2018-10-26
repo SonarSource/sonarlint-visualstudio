@@ -49,6 +49,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
+        public ICommand ReconnectCommand
+        {
+            get;
+            set;
+        }
+
         public IProgressControlHost ProgressHost
         {
             get;
@@ -111,6 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             section.BindCommand = new RelayCommand<BindCommandArgs>(args => { });
             section.ConnectCommand = new RelayCommand(() => { });
             section.DisconnectCommand = new RelayCommand(() => { });
+            section.ReconnectCommand = new RelayCommand(() => { });
             section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => { });
             section.BrowseToUrlCommand = new RelayCommand<string>(url => { });
             section.BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { });

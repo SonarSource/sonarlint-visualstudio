@@ -239,7 +239,10 @@ namespace SonarLint.VisualStudio.Integration.State
             {
                 // Defensive coding: invoked asynchronous and it's safer to assume that value could be null
                 // and just not do anything since if they are null it means that there's no solution open.
-                this.Host.ActiveSection?.UserNotifications?.ShowNotificationError(string.Format(CultureInfo.CurrentCulture, Strings.BoundProjectNotFound, this.BoundProjectKey), NotificationIds.FailedToFindBoundProjectKeyId, null);
+                this.Host.ActiveSection?.UserNotifications?.ShowNotificationError(
+                    string.Format(CultureInfo.CurrentCulture, Strings.BoundProjectNotFound, this.BoundProjectKey),
+                    NotificationIds.FailedToFindBoundProjectKeyId,
+                    Host.ActiveSection?.ReconnectCommand);
             }
             else
             {

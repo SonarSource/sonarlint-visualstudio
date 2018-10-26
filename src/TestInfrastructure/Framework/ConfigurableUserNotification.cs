@@ -35,10 +35,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public string Message { get; }
 
-            public Notification(NotificationType type, string message)
+            public ICommand AssociatedCommand { get; }
+
+            public Notification(NotificationType type, string message, ICommand associatedCommand)
             {
                 this.Type = type;
                 this.Message = message;
+                this.AssociatedCommand = associatedCommand;
             }
         }
 
@@ -54,12 +57,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         void IUserNotification.ShowNotificationError(string message, Guid notificationId, ICommand associatedCommand)
         {
-            this.notifications[notificationId] = new Notification(NotificationType.Error, message);
+            this.notifications[notificationId] = new Notification(NotificationType.Error, message, associatedCommand);
         }
 
         void IUserNotification.ShowNotificationWarning(string message, Guid notificationId, ICommand associatedCommand)
         {
-            this.notifications[notificationId] = new Notification(NotificationType.Warning, message);
+            this.notifications[notificationId] = new Notification(NotificationType.Warning, message, associatedCommand);
         }
 
         #endregion IUserNotification
@@ -81,6 +84,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             string message = this.AssertNotification(notificationId);
             message.Should().Be(expected, "Unexpected message");
+        }
+
+        public void AssertNotification(Guid notificationId, ICommand expectedCommand)
+        {
+            Notification notification;
+            this.notifications.TryGetValue(notificationId, out notification).Should().BeTrue("Unexpected notificationId: {0}", notificationId);
+            notification.AssociatedCommand.Should().Be(expectedCommand, "Unexpected message");
         }
 
         public string AssertNotification(Guid notificationId)
