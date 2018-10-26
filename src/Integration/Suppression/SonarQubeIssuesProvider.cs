@@ -231,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private string NormalizeSonarQubePath(string path)
         {
-            Debug.Assert(!path.Contains("\\"), 
+            Debug.Assert(path == null || !path.Contains("\\"), 
                 $"Expecting sonarqube relative path delimiters to be forward-slash but got '{path}'.");
 
             return path?.Trim('/').Replace('/', '\\')
