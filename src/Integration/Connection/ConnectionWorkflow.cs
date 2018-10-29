@@ -161,15 +161,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
                     }
                 }
 
-                var isCompatible = await this.AreSolutionProjectsAndSonarQubePluginsCompatibleAsync(controller, notifications,
-                    cancellationToken);
-                if (!isCompatible)
-                {
-                    return; // Message is already displayed by the method
-                }
-
-                this.ConnectedServer = connection;
-
                 // Persist the credentials on successful connection to SonarQube, unless
                 // the connection is anonymous
                 if (!string.IsNullOrEmpty(connection.UserName) &&
@@ -179,6 +170,15 @@ namespace SonarLint.VisualStudio.Integration.Connection
                         connection.ServerUri,
                         new Credential(connection.UserName, connection.Password.ToUnsecureString()));
                 }
+
+                var isCompatible = await this.AreSolutionProjectsAndSonarQubePluginsCompatibleAsync(controller, notifications,
+                    cancellationToken);
+                if (!isCompatible)
+                {
+                    return; // Message is already displayed by the method
+                }
+
+                this.ConnectedServer = connection;
 
                 notifications.ProgressChanged(Strings.ConnectionStepRetrievingProjects);
                 var projects = await this.host.SonarQubeService.GetAllProjectsAsync(connection.Organization?.Key,
