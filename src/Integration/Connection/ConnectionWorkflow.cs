@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private readonly IHost host;
         private readonly ICommand parentCommand;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly ICredentialStore credentialStore;
+        private readonly ICredentialStoreService credentialStore;
 
         public ConnectionWorkflow(IHost host, ICommand parentCommand)
         {
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.parentCommand = parentCommand;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
-            this.credentialStore = this.host.GetService<ICredentialStore>();
+            this.credentialStore = this.host.GetService<ICredentialStoreService>();
         }
 
         internal /*for testing purposes*/ ConnectionInformation ConnectedServer

@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableProjectSystemFilter filter;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
-        private Mock<ICredentialStore> credentialStoreMock;
+        private Mock<ICredentialStoreService> credentialStoreMock;
 
         [TestInitialize]
         public void TestInit()
@@ -85,8 +85,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
-            this.credentialStoreMock = new Mock<ICredentialStore>();
-            this.serviceProvider.RegisterService(typeof(ICredentialStore), this.credentialStoreMock.Object);
+            this.credentialStoreMock = new Mock<ICredentialStoreService>();
+            this.serviceProvider.RegisterService(typeof(ICredentialStoreService), this.credentialStoreMock.Object);
         }
 
         #region Tests

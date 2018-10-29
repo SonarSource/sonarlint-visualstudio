@@ -18,34 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using Microsoft.Alm.Authentication;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    /// <summary>
-    /// Simple wrapper around SecretStore to allow it to be registered as a ILocalService
-    /// </summary>
-    public class CredentialStore : ICredentialStoreService
+    public interface ICredentialStoreService : ILocalService
     {
-        private readonly SecretStore store;
-
-        public CredentialStore(SecretStore store)
-        {
-            if (store == null)
-            {
-                throw new ArgumentNullException(nameof(store));
-            }
-            this.store = store;
-        }
-
-        public void DeleteCredentials(TargetUri targetUri) =>
-            store.DeleteCredentials(targetUri);
-
-        public Credential ReadCredentials(TargetUri targetUri) =>
-            store.ReadCredentials(targetUri);
-
-        public void WriteCredentials(TargetUri targetUri, Credential credentials) =>
-            store.WriteCredentials(targetUri, credentials);
+        void DeleteCredentials(TargetUri targetUri);
+        Credential ReadCredentials(TargetUri targetUri);
+        void WriteCredentials(TargetUri targetUri, Credential credentials);
     }
 }

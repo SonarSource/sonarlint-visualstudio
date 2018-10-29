@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         public ConfigurationSerializer(
             IVsSolution solution,
             ISourceControlledFileSystem sccFileSystem,
-            ICredentialStore store,
+            ICredentialStoreService store,
             ILogger logger)
             :this(solution, sccFileSystem, store, logger, new FileWrapper())
         {
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         internal /* for testing */ ConfigurationSerializer(
             IVsSolution solution,
             ISourceControlledFileSystem sccFileSystem,
-            ICredentialStore store,
+            ICredentialStoreService store,
             ILogger logger,
             IFile fileWrapper)
             :base(sccFileSystem, store, logger, fileWrapper)

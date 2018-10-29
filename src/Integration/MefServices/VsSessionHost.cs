@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IProjectSystemFilter),
                 typeof(IErrorListInfoBarController),
                 typeof(IConfigurationProvider),
-                typeof(ICredentialStore)
+                typeof(ICredentialStoreService)
         };
 
         private readonly IServiceProvider serviceProvider;
@@ -304,11 +304,11 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(this)));
-            this.localServices.Add(typeof(ICredentialStore), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore(SolutionBindingSerializer.StoreNamespace))));
+            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore(SolutionBindingSerializer.StoreNamespace))));
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(() =>
             {
                 var solution = this.GetService<SVsSolution, IVsSolution>();
-                var store = this.GetService<ICredentialStore>();
+                var store = this.GetService<ICredentialStoreService>();
                 var legacySerializer = new SolutionBindingSerializer(this);
                 var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
                 var newConfigSerializer = new ConfigurationSerializer(solution, sccFileSystem, store, Logger);

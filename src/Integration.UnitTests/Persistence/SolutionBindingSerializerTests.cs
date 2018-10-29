@@ -60,6 +60,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.store = new ConfigurableCredentialStore();
+            this.serviceProvider.RegisterService(typeof(ICredentialStoreService), this.store);
+
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.projectSystemHelper.SolutionItemsProject = this.dte.Solution.AddOrGetProject("Solution Items");
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);

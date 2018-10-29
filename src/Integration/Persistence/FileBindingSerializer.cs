@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         protected readonly ISourceControlledFileSystem sccFileSystem;
         protected readonly ILogger logger;
 
-        protected FileBindingSerializer(ISourceControlledFileSystem sccFileSystem, ICredentialStore store,
+        protected FileBindingSerializer(ISourceControlledFileSystem sccFileSystem, ICredentialStoreService store,
             ILogger logger, IFile fileWrapper)
         {
             if (sccFileSystem == null)
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return true;
         }
 
-        internal ICredentialStore Store { get; }
+        internal ICredentialStoreService Store { get; }
 
         public BoundSonarQubeProject ReadSolutionBinding()
         {

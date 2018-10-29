@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -24,7 +24,7 @@ using Microsoft.Alm.Authentication;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal class ConfigurableCredentialStore : ICredentialStore
+    internal class ConfigurableCredentialStore : ICredentialStoreService
     {
         internal readonly Dictionary<Uri, Credential> data =
             new Dictionary<Uri, Credential>();
@@ -47,18 +47,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region ICredentialStore
 
-        void ICredentialStore.DeleteCredentials(TargetUri targetUri)
+        void ICredentialStoreService.DeleteCredentials(TargetUri targetUri)
         {
             this.data.Remove(targetUri);
         }
 
-        Credential ICredentialStore.ReadCredentials(TargetUri targetUri)
+        Credential ICredentialStoreService.ReadCredentials(TargetUri targetUri)
         {
             Credential credentials;
             return this.data.TryGetValue(targetUri, out credentials) ? credentials : null;
         }
 
-        void ICredentialStore.WriteCredentials(TargetUri targetUri, Credential credentials)
+        void ICredentialStoreService.WriteCredentials(TargetUri targetUri, Credential credentials)
         {
             this.data[targetUri] = credentials;
         }

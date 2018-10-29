@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public SolutionBindingSerializer(IServiceProvider serviceProvider)
             : this(serviceProvider,
                   serviceProvider?.GetService<ISourceControlledFileSystem>(),
-                  new SecretStore(StoreNamespace),
+                  serviceProvider?.GetService<ICredentialStoreService>(),
                   serviceProvider?.GetMefService<ILogger>(),
                   new FileWrapper())
         {
@@ -49,8 +49,9 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         internal /*for testing purposes*/ SolutionBindingSerializer(
             IServiceProvider serviceProvider,
             ISourceControlledFileSystem sccFileSystem,
-            ICredentialStore store,
-            ILogger logger, IFile fileWrapper)
+            ICredentialStoreService store,
+            ILogger logger,
+            IFile fileWrapper)
             : base(sccFileSystem, store, logger, fileWrapper)
         {
             if (serviceProvider == null)

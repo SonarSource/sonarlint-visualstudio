@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private Mock<IVsSolution> solutionMock;
         private ConfigurableSourceControlledFileSystem configurableSccFileSystem;
-        private ICredentialStore configurableStore;
+        private ICredentialStoreService configurableStore;
         private Mock<ILogger> loggerMock;
         private Mock<IFile> fileMock;
         private ConfigurationSerializer testSubject;
