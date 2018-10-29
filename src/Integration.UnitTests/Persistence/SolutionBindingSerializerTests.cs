@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new SolutionBindingSerializer(this.serviceProvider);
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var projectKey = "MyProject Key";
-            testSubject.Store.DeleteCredentials(serverUri);
+            this.store.DeleteCredentials(serverUri);
 
             // Case 1: has credentials
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             finally
             {
-                testSubject.Store.DeleteCredentials(serverUri);
+                this.store.DeleteCredentials(serverUri);
             }
 
             // Assert
@@ -220,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             finally
             {
-                testSubject.Store.DeleteCredentials(serverUri);
+                this.store.DeleteCredentials(serverUri);
             }
 
             // Assert

@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
     internal abstract class FileBindingSerializer : ISolutionBindingSerializer
     {
         private readonly IFile fileWrapper;
+        private readonly ICredentialStoreService store;
 
         protected readonly ISourceControlledFileSystem sccFileSystem;
         protected readonly ILogger logger;
@@ -66,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             }
 
             this.sccFileSystem = sccFileSystem;
-            this.Store = store;
+            this.store = store;
             this.logger = logger;
             this.fileWrapper = fileWrapper;
         }
@@ -78,8 +79,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             // Default implementation is a no-op
             return true;
         }
-
-        internal ICredentialStoreService Store { get; }
 
         public BoundSonarQubeProject ReadSolutionBinding()
         {
@@ -123,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             BoundSonarQubeProject bound = this.SafeDeserializeConfigFile(configFile);
             if (bound?.ServerUri != null)
             {
-                var credentials = this.Store.ReadCredentials(bound.ServerUri);
+                var credentials = this.store.ReadCredentials(bound.ServerUri);
                 if (credentials != null)
                 {
                     bound.Credentials = new BasicAuthCredentials(credentials.Username,
@@ -150,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                     Debug.Assert(credentials.Password != null, "Password name is not expected to be null");
 
                     var creds = new Credential(credentials.UserName, credentials.Password.ToUnsecureString());
-                    this.Store.WriteCredentials(binding.ServerUri, creds);
+                    this.store.WriteCredentials(binding.ServerUri, creds);
                 }
                 return true;
             }

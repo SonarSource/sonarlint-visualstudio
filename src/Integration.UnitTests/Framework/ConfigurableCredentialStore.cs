@@ -29,40 +29,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         internal readonly Dictionary<Uri, Credential> data =
             new Dictionary<Uri, Credential>();
 
-        public string Namespace
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public Secret.UriNameConversion UriNameConversion
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        #region ICredentialStore
-
-        void ICredentialStoreService.DeleteCredentials(TargetUri targetUri)
+        public void DeleteCredentials(TargetUri targetUri)
         {
             this.data.Remove(targetUri);
         }
 
-        Credential ICredentialStoreService.ReadCredentials(TargetUri targetUri)
+        public Credential ReadCredentials(TargetUri targetUri)
         {
             Credential credentials;
             return this.data.TryGetValue(targetUri, out credentials) ? credentials : null;
         }
 
-        void ICredentialStoreService.WriteCredentials(TargetUri targetUri, Credential credentials)
+        public void WriteCredentials(TargetUri targetUri, Credential credentials)
         {
             this.data[targetUri] = credentials;
         }
-
-        #endregion ICredentialStore
     }
 }
