@@ -19,30 +19,33 @@
  */
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Alm.Authentication;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration
 {
-    internal class ConfigurableCredentialStore : ICredentialStoreService
+    /// <summary>
+    /// Simple wrapper around SecretStore to allow it to be registered as a ILocalService
+    /// </summary>
+    public class CredentialStore : ICredentialStoreService
     {
-        internal readonly Dictionary<Uri, Credential> data =
-            new Dictionary<Uri, Credential>();
+        private readonly SecretStore store;
 
-        public void DeleteCredentials(TargetUri targetUri)
+        public CredentialStore(SecretStore store)
         {
-            this.data.Remove(targetUri);
+            if (store == null)
+            {
+                throw new ArgumentNullException(nameof(store));
+            }
+            this.store = store;
         }
 
-        public Credential ReadCredentials(TargetUri targetUri)
-        {
-            Credential credentials;
-            return this.data.TryGetValue(targetUri, out credentials) ? credentials : null;
-        }
+        public void DeleteCredentials(TargetUri targetUri) =>
+            store.DeleteCredentials(targetUri);
 
-        public void WriteCredentials(TargetUri targetUri, Credential credentials)
-        {
-            this.data[targetUri] = credentials;
-        }
+        public Credential ReadCredentials(TargetUri targetUri) =>
+            store.ReadCredentials(targetUri);
+
+        public void WriteCredentials(TargetUri targetUri, Credential credentials) =>
+            store.WriteCredentials(targetUri, credentials);
     }
 }

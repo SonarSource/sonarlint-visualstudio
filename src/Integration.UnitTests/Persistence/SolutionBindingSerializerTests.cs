@@ -60,6 +60,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.store = new ConfigurableCredentialStore();
+            this.serviceProvider.RegisterService(typeof(ICredentialStoreService), this.store);
+
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.projectSystemHelper.SolutionItemsProject = this.dte.Solution.AddOrGetProject("Solution Items");
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
@@ -178,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new SolutionBindingSerializer(this.serviceProvider);
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var projectKey = "MyProject Key";
-            testSubject.Store.DeleteCredentials(serverUri);
+            this.store.DeleteCredentials(serverUri);
 
             // Case 1: has credentials
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -194,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             finally
             {
-                testSubject.Store.DeleteCredentials(serverUri);
+                this.store.DeleteCredentials(serverUri);
             }
 
             // Assert
@@ -218,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             finally
             {
-                testSubject.Store.DeleteCredentials(serverUri);
+                this.store.DeleteCredentials(serverUri);
             }
 
             // Assert

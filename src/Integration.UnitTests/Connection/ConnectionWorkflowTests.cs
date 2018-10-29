@@ -27,6 +27,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using FluentAssertions;
+using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -36,6 +37,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Services;
 
@@ -51,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableProjectSystemFilter filter;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
+        private Mock<ICredentialStoreService> credentialStoreMock;
 
         [TestInitialize]
         public void TestInit()
@@ -81,6 +84,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
+
+            this.credentialStoreMock = new Mock<ICredentialStoreService>();
+            this.serviceProvider.RegisterService(typeof(ICredentialStoreService), this.credentialStoreMock.Object);
         }
 
         #region Tests
@@ -136,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private async Task ConnectionWorkflow_ConnectionStep_WhenXPluginAndAnyXProject_SuccessfulConnection(string projectName, string projectKind)
         {
             // Arrange
-            var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"), "user", "pass".ToSecureString());
             var projects = new List<SonarQubeProject> { new SonarQubeProject("project1", "") };
             this.sonarQubeServiceMock.Setup(x => x.ConnectAsync(connectionInfo, It.IsAny<CancellationToken>()))
                 .Returns(Task.Delay(0));
@@ -174,6 +180,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectedServer.Should().Be(connectionInfo);
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
+
+            AssertCredentialsStored(connectionInfo);
+        }
+
+        [TestMethod]
+        public async Task ConnectionWorkflow_ConnectionStep_Credentials_Invalid()
+        {
+            // Arrange
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"), "user", "pass".ToSecureString());
+            this.sonarQubeServiceMock.Setup(x => x.ConnectAsync(connectionInfo, It.IsAny<CancellationToken>()))
+                .Throws(new Exception());
+
+            var controller = new ConfigurableProgressController();
+            var executionEvents = new ConfigurableProgressStepExecutionEvents();
+            string connectionMessage = connectionInfo.ServerUri.ToString();
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+
+            // Act
+            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
+
+            // Assert
+            controller.NumberOfAbortRequests.Should().Be(1);
+            AssertServiceDisconnectCalled();
+            executionEvents.AssertProgressMessages(
+                connectionMessage,
+                Strings.ConnectionStepValidatinCredentials,
+                Strings.ConnectionResultFailure);
+
+            this.sonarQubeServiceMock.Verify(
+                x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>()),
+                Times.Once());
+
+            testSubject.ConnectedServer.Should().Be(null);
+
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId);
+
+            AssertCredentialsNotStored(); // Connection was rejected by SonarQube
         }
 
         [TestMethod]
@@ -203,6 +247,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionResultFailure);
             notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, Strings.ServerHasNoSupportedPluginVersion);
+
+            AssertCredentialsNotStored(); // Username and password are null
         }
 
         [TestMethod]
@@ -240,6 +286,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
             notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, Strings.SolutionContainsNoSupportedProject);
+
+            AssertCredentialsNotStored(); // Username and password are null
         }
 
         [TestMethod]
@@ -291,6 +339,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
             notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, minimumSupportedSonarQubePlugin.Language.Name));
+
+            AssertCredentialsNotStored(); // Username and password are null
         }
 
         [TestMethod]
@@ -369,6 +419,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 It.IsAny<CancellationToken>()), Times.Exactly(3));
             this.host.VisualStateManager.IsConnected.Should().BeFalse();
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
+
+            AssertCredentialsNotStored(); // Username and password are null
         }
 
         [TestMethod]
@@ -597,6 +649,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
             testSubject.ConnectedServer = connectionInfo;
             return testSubject;
+        }
+
+        private void AssertCredentialsStored(ConnectionInformation connectionInfo)
+        {
+            this.credentialStoreMock.Verify(
+                x => x.WriteCredentials(
+                    It.Is<TargetUri>(uri => uri == connectionInfo.ServerUri),
+                    It.Is<Credential>(credential =>
+                        credential.Username == connectionInfo.UserName &&
+                        credential.Password == connectionInfo.Password.ToUnsecureString())),
+                Times.Once());
+        }
+
+        private void AssertCredentialsNotStored()
+        {
+            this.credentialStoreMock.Verify(
+                x => x.WriteCredentials(It.IsAny<TargetUri>(), It.IsAny<Credential>()),
+                Times.Never());
         }
 
         #endregion Helpers

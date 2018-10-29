@@ -29,13 +29,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.Integration.Connection.UI;
+using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection
@@ -48,6 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private readonly IHost host;
         private readonly ICommand parentCommand;
         private readonly IProjectSystemHelper projectSystem;
+        private readonly ICredentialStoreService credentialStore;
 
         public ConnectionWorkflow(IHost host, ICommand parentCommand)
         {
@@ -65,6 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.parentCommand = parentCommand;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
+            this.credentialStore = this.host.GetService<ICredentialStoreService>();
         }
 
         internal /*for testing purposes*/ ConnectionInformation ConnectedServer
@@ -154,6 +159,16 @@ namespace SonarLint.VisualStudio.Integration.Connection
                         }
 
                     }
+                }
+
+                // Persist the credentials on successful connection to SonarQube, unless
+                // the connection is anonymous
+                if (!string.IsNullOrEmpty(connection.UserName) &&
+                    !string.IsNullOrEmpty(connection.Password.ToUnsecureString()))
+                {
+                    this.credentialStore.WriteCredentials(
+                        connection.ServerUri,
+                        new Credential(connection.UserName, connection.Password.ToUnsecureString()));
                 }
 
                 var isCompatible = await this.AreSolutionProjectsAndSonarQubePluginsCompatibleAsync(controller, notifications,
