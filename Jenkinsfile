@@ -1,5 +1,5 @@
 #!/bin/groovy
-@Library('SonarSource@2.1') _
+@Library('SonarSource@2.1.1') _
 
 pipeline {
   agent none
