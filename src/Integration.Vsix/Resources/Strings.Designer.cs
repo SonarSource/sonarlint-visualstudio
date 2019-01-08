@@ -61,6 +61,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Connected mode detected..
+        /// </summary>
+        internal static string AnalyzerManager_InConnectedMode {
+            get {
+                return ResourceManager.GetString("AnalyzerManager_InConnectedMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standalone mode detected..
+        /// </summary>
+        internal static string AnalyzerManager_InStandaloneMode {
+            get {
+                return ResourceManager.GetString("AnalyzerManager_InStandaloneMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot find tool window with the specified guid: {0}.
         /// </summary>
         internal static string CannotFindToolWindow {

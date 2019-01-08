@@ -117,6 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AnalyzerManager_InConnectedMode" xml:space="preserve">
+    <value>Connected mode detected.</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="AnalyzerManager_InStandaloneMode" xml:space="preserve">
+    <value>Standalone mode detected.</value>
+    <comment>Output window message</comment>
+  </data>
   <data name="CannotFindToolWindow" xml:space="preserve">
     <value>Cannot find tool window with the specified guid: {0}</value>
     <comment>Exception message, {0} guid</comment>
