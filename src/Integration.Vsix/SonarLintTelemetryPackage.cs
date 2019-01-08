@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         protected async override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            Debug.Assert(!ThreadHelper.CheckAccess(), "Expecting the packatge to be initialized on the UI thread");
+            Debug.Assert(!ThreadHelper.CheckAccess(), "Not expecting the package to be initialized on the UI thread");
 
             await base.InitializeAsync(cancellationToken, progress);
             await JoinableTaskFactory.SwitchToMainThreadAsync();

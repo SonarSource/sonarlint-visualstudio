@@ -197,6 +197,18 @@
     <value>Saving notifications settings...</value>
     <comment>Output window message</comment>
   </data>
+  <data name="SL_ERROR" xml:space="preserve">
+    <value>SonarLint package: error occurred: {0}</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="SL_InitializationComplete" xml:space="preserve">
+    <value>Finishing initializing the SonarLint package</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="SL_Initializing" xml:space="preserve">
+    <value>Initializing the SonarLint package...</value>
+    <comment>Output window message</comment>
+  </data>
   <data name="Telemetry_ERROR" xml:space="preserve">
     <value>Telemetry: error occurred: {0}</value>
     <comment>Output window message</comment>
