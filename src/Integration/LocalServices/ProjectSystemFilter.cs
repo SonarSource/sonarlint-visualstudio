@@ -71,6 +71,11 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
 
+            if (IsSharedProject(project))
+            {
+                return false;
+            }
+
             if (IsExcludedViaProjectProperty(project))
             {
                 return false;
@@ -138,6 +143,14 @@ namespace SonarLint.VisualStudio.Integration
             bool? sonarExclude = this.propertyManager.GetBooleanProperty(dteProject, Constants.SonarQubeExcludeBuildPropertyKey);
             return sonarExclude.HasValue && sonarExclude.Value;
         }
+
+        private static bool IsSharedProject(DteProject project) =>
+            // Note: VB and C# shared projects don't have a project property that identifies them as a shared project.
+            // They do have common imports that we could search for, but we'll rely on the fact that they both have
+            // ".shproj" file extensions.
+            // C++ shared projects use a different file extension, but we don't currently support C++ projects in
+            // connected mode.
+            System.IO.Path.GetExtension(project.FileName).Equals(".shproj", StringComparison.OrdinalIgnoreCase);
 
         #endregion
     }

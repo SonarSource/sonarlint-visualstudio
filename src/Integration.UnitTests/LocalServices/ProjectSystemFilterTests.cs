@@ -336,6 +336,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Exceptions.Expect<ArgumentNullException>(() => testSubject.SetTestRegex(null));
         }
 
+        [TestMethod]
+        public void ProjectSystemFilter_IsAccepted_UnrecognisedProjectType_ReturnsFalse()
+        {
+            // Arrange
+            var project = new ProjectMock("unsupported.vcxproj");
+            project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "False"); // Should not matter
+
+            // Act and Assert
+            CheckProjectIsNotAccepted(project);
+        }
+
+        [TestMethod]
+        public void ProjectSystemFilter_IsAccepted_SharedProject_ReturnsFalse()
+        {
+            var project = new ProjectMock("shared1.shproj");
+            project.SetCSProjectKind();
+            CheckProjectIsNotAccepted(project);
+
+            project = new ProjectMock("shared1.SHPROJ");
+            project.SetCSProjectKind();
+            CheckProjectIsNotAccepted(project);
+        }
+
         #endregion Tests
 
         #region Helpers
@@ -344,6 +367,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             return new ProjectSystemFilter(host);
+        }
+
+        private void CheckProjectIsNotAccepted(ProjectMock project)
+        {
+            var testSubject = this.CreateTestSubject();
+
+            var result = testSubject.IsAccepted(project);
+
+            result.Should().BeFalse();
         }
 
         #endregion Helpers
