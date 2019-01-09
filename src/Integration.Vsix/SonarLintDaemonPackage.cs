@@ -80,31 +80,35 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger = await this.GetMefServiceAsync<ILogger>();
                 logger.WriteLine(Resources.Strings.Daemon_Initializing);
 
-                this.daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
+                daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
+
                 var settings = await this.GetMefServiceAsync<ISonarLintSettings>();
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 
-                if (settings.IsActivateMoreEnabled && daemon.IsInstalled)
+                if (daemon.IsInstalled)
                 {
-                    if (!daemon.IsRunning)
+                    if (settings.IsActivateMoreEnabled && !daemon.IsRunning)
                     {
                         daemon.Start();
                     }
                 }
-                else if (settings.IsActivateMoreEnabled)
+                else
                 {
-                    // User already agreed to have the daemon installed, so directly start download
-                    await JoinableTaskFactory.SwitchToMainThreadAsync();
-                    new SonarLintDaemonInstaller(settings, daemon, logger).Show();
-                }
-                else if (!settings.SkipActivateMoreDialog)
-                {
-                    await JoinableTaskFactory.SwitchToMainThreadAsync();
-                    var result = new SonarLintDaemonSplashscreen(settings).ShowDialog();
-                    if (result == true)
+                    if (settings.IsActivateMoreEnabled)
                     {
+                        // User already agreed to have the daemon installed, so directly start download
+                        await JoinableTaskFactory.SwitchToMainThreadAsync();
                         new SonarLintDaemonInstaller(settings, daemon, logger).Show();
+                    }
+                    else if (!settings.SkipActivateMoreDialog)
+                    {
+                        await JoinableTaskFactory.SwitchToMainThreadAsync();
+                        var result = new SonarLintDaemonSplashscreen(settings).ShowDialog();
+                        if (result == true)
+                        {
+                            new SonarLintDaemonInstaller(settings, daemon, logger).Show();
+                        }
                     }
                 }
             }
