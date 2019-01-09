@@ -22,8 +22,8 @@ using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -34,11 +34,11 @@ using SonarQube.Client.Services;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     // Register this class as a VS package.
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(CommonGuids.Package)]
     [ProvideBindingPath]
     // Specify when to load the extension (GUID can be found in Microsoft.VisualStudio.VSConstants.UICONTEXT)
-    [ProvideAutoLoad(CommonGuids.PackageActivation)]
+    [ProvideAutoLoad(CommonGuids.PackageActivation, PackageAutoLoadFlags.BackgroundLoad)]
     // Register the information needed to show the package in the Help/About dialog of VS.
     // NB: The version is automatically updated by the ChangeVersion.proj
     [InstalledProductRegistration("#110", "#112", "4.7.0.0", IconResourceID = 400)]
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Integration.Vsix.SonarLintIntegrationPackage")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public partial class SonarLintIntegrationPackage : Package
+    public partial class SonarLintIntegrationPackage : AsyncPackage
     {
         private BoundSolutionAnalyzer usageAnalyzer;
         private PackageCommandManager commandManager;
@@ -65,31 +65,52 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private DeprecationManager deprecationManager;
 
         private ILogger logger;
-        
-        protected override void Initialize()
+
+        protected async override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
-            this.InitializeSqm();
+            await base.InitializeAsync(cancellationToken, progress);
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await InitOnUIThreadAsync();
+        }
 
-            IServiceProvider serviceProvider = this;
+        private async System.Threading.Tasks.Task InitOnUIThreadAsync()
+        {
+            Debug.Assert(ThreadHelper.CheckAccess(), "SonarLint package - expecteding to be called in the UI thread");
 
-            var activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
-            var sonarQubeService = this.GetMefService<ISonarQubeService>();
-            var workspace = this.GetMefService<VisualStudioWorkspace>();
-            logger = this.GetMefService<ILogger>();
-            Debug.Assert(logger != null, "MEF composition error - failed to retrieve a logger");
+            try
+            {
+                logger = await this.GetMefServiceAsync<ILogger>();
+                Debug.Assert(logger != null, "MEF composition error - failed to retrieve a logger");
+                logger.WriteLine(Resources.Strings.SL_Initializing);
 
-            var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
-            this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeService, workspace,
-                vsSolution, logger);
+                this.InitializeSqm();
 
-            this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
+                IServiceProvider serviceProvider = this;
 
-            this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
-            this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
-                serviceProvider.GetMefService<IProjectPropertyManager>());
+                var activeSolutionBoundTracker = await this.GetMefServiceAsync<IActiveSolutionBoundTracker>();
+                var sonarQubeService = await this.GetMefServiceAsync<ISonarQubeService>();
+                var workspace = await this.GetMefServiceAsync<VisualStudioWorkspace>();
 
-            this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(), logger);
+
+                var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
+                this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeService, workspace,
+                    vsSolution, logger);
+
+                this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
+
+                this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
+                this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
+                    serviceProvider.GetMefService<IProjectPropertyManager>());
+
+                this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(), logger);
+
+                logger.WriteLine(Resources.Strings.SL_InitializationComplete);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Suppress non-critical exceptions
+                logger.WriteLine(Resources.Strings.SL_ERROR, ex.Message);
+            }
         }
 
         protected override void Dispose(bool disposing)

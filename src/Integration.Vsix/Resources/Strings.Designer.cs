@@ -61,6 +61,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Connected mode detected..
+        /// </summary>
+        internal static string AnalyzerManager_InConnectedMode {
+            get {
+                return ResourceManager.GetString("AnalyzerManager_InConnectedMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standalone mode detected..
+        /// </summary>
+        internal static string AnalyzerManager_InStandaloneMode {
+            get {
+                return ResourceManager.GetString("AnalyzerManager_InStandaloneMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot find tool window with the specified guid: {0}.
         /// </summary>
         internal static string CannotFindToolWindow {
@@ -264,6 +282,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         internal static string Notifications_SavingSettings {
             get {
                 return ResourceManager.GetString("Notifications_SavingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint package: error occurred: {0}.
+        /// </summary>
+        internal static string SL_ERROR {
+            get {
+                return ResourceManager.GetString("SL_ERROR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finishing initializing the SonarLint package.
+        /// </summary>
+        internal static string SL_InitializationComplete {
+            get {
+                return ResourceManager.GetString("SL_InitializationComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initializing the SonarLint package....
+        /// </summary>
+        internal static string SL_Initializing {
+            get {
+                return ResourceManager.GetString("SL_Initializing", resourceCulture);
             }
         }
         

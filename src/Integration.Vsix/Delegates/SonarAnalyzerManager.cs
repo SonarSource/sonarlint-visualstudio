@@ -116,11 +116,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             switch (configuration?.Mode)
             {
                 case SonarLintMode.Standalone:
+                    this.logger.WriteLine(Resources.Strings.AnalyzerManager_InStandaloneMode);
                     this.currentWorklow = new SonarAnalyzerStandaloneWorkflow(this.workspace);
                     break;
 
                 case SonarLintMode.LegacyConnected:
                 case SonarLintMode.Connected:
+                    this.logger.WriteLine(Resources.Strings.AnalyzerManager_InConnectedMode);
                     var sonarQubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, configuration.Project.ProjectKey,
                         new TimerFactory(), this.logger);
                     this.disposableObjects.Add(sonarQubeIssueProvider);
