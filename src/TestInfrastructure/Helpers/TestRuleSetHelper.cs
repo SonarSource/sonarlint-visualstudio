@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -43,6 +43,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 ruleSet.Rules.Add(new RuleReference("MyAnalzerId", "MyNamespace", "AWESOME" + i, RuleAction.Warning));
             }
+
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    ruleSet.RuleSetIncludes.Add(new RuleSetInclude(include, RuleAction.Default));
+                }
+            }
+
+            return ruleSet;
+        }
+
+        public static RuleSet CreateTestRuleSetWithIncludes(string fullPath, params string[] includes)
+        {
+            var ruleSet = new RuleSet(Constants.RuleSetName) { FilePath = fullPath };
 
             if (includes != null)
             {

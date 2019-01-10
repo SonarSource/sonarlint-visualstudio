@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration
     internal class SolutionBindingInformationProvider : ISolutionBindingInformationProvider
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
 
         public SolutionBindingInformationProvider(IServiceProvider serviceProvider)
         {
@@ -40,6 +41,9 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             this.serviceProvider = serviceProvider;
+
+            ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
+            ruleSetInfoProvider.AssertLocalServiceIsNotNull();
         }
 
         #region ISolutionBindingInformationProvider
@@ -71,78 +75,58 @@ namespace SonarLint.VisualStudio.Integration
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
+            var rulesetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
+            rulesetSerializer.AssertLocalServiceIsNotNull();
+
             // Projects will be using the same solution ruleset in most of the cases,
             // projects could have multiple configurations all of which using the same rule set,
             // we want to minimize the number of disk operations since the
             // method can be called from the UI thread, hence this short-lived cache
-            Dictionary<string, RuleSet> cache = new Dictionary<string, RuleSet>(StringComparer.OrdinalIgnoreCase);
+            var cachingSerializer = new CachingRulesetSerializer(rulesetSerializer);
 
             // Note: we will still may end up analyzing the same project rule set
             // but that should in marginal since it will be already loaded into memory
 
             // Reuse the binding information passed in to avoid reading it more than once
             return projectSystem.GetFilteredSolutionProjects()
-                .Where(p => !this.IsFullyBoundProject(cache, binding, p));
+                .Where(p => !this.IsFullyBoundProject(cachingSerializer, binding, p));
         }
 
-        private bool IsFullyBoundProject(Dictionary<string, RuleSet> cache, BindingConfiguration binding, Project project)
+        private bool IsFullyBoundProject(IRuleSetSerializer ruleSetSerializer, BindingConfiguration binding, Project project)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
 
             // If solution is not bound/has a missing ruleset, no need to go further
-            RuleSet sonarQubeRuleSet = this.FindSonarQubeSolutionRuleSet(cache, binding, project);
+            RuleSet sonarQubeRuleSet = this.FindSonarQubeSolutionRuleSet(ruleSetSerializer, binding, project);
             if (sonarQubeRuleSet == null)
             {
                 return false;
             }
 
-            var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            ruleSetInfoProvider.AssertLocalServiceIsNotNull();
-
             RuleSetDeclaration[] declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
             return declarations.Length > 0 // Need at least one
-                && declarations.All(declaration => this.IsRuleSetBound(cache, project, declaration, sonarQubeRuleSet));
+                && declarations.All(declaration => this.IsRuleSetBound(ruleSetSerializer, project, declaration, sonarQubeRuleSet));
         }
 
-        private bool IsRuleSetBound(Dictionary<string, RuleSet> cache, Project project, RuleSetDeclaration declaration, RuleSet sonarQubeRuleSet)
+        private bool IsRuleSetBound(IRuleSetSerializer ruleSetSerializer, Project project, RuleSetDeclaration declaration, RuleSet sonarQubeRuleSet)
         {
-            RuleSet projectRuleSet = this.FindDeclarationRuleSet(cache, project, declaration);
-
-            return (projectRuleSet != null && RuleSetHelper.FindInclude(projectRuleSet, sonarQubeRuleSet) != null);
+            RuleSet projectRuleSet = this.FindDeclarationRuleSet(ruleSetSerializer, project, declaration);
+            return (projectRuleSet != null && RuleSetIncludeChecker.HasInclude(projectRuleSet, sonarQubeRuleSet));
         }
-
-        private RuleSet FindSonarQubeSolutionRuleSet(Dictionary<string, RuleSet> cache, BindingConfiguration binding, Project project)
+        
+        private RuleSet FindSonarQubeSolutionRuleSet(IRuleSetSerializer ruleSetSerializer, BindingConfiguration binding, Project project)
         {
-            var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            ruleSetInfoProvider.AssertLocalServiceIsNotNull();
-
             string expectedSolutionRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                          binding.Project.ProjectKey,
                          Language.ForProject(project),
                          binding.Mode);
 
-            RuleSet solutionRuleSet;
-            if (!cache.TryGetValue(expectedSolutionRuleSet, out solutionRuleSet))
-            {
-                var ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
-                ruleSetSerializer.AssertLocalServiceIsNotNull();
-
-                solutionRuleSet = ruleSetSerializer.LoadRuleSet(expectedSolutionRuleSet);
-                cache[expectedSolutionRuleSet] = solutionRuleSet;
-            }
-
-            return solutionRuleSet;
+            return ruleSetSerializer.LoadRuleSet(expectedSolutionRuleSet);
         }
 
-        private RuleSet FindDeclarationRuleSet(Dictionary<string, RuleSet> cache, Project project, RuleSetDeclaration declaration)
+        private RuleSet FindDeclarationRuleSet(IRuleSetSerializer ruleSetSerializer, Project project, RuleSetDeclaration declaration)
         {
-            var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            ruleSetInfoProvider.AssertLocalServiceIsNotNull();
-
-            var ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
-            ruleSetSerializer.AssertLocalServiceIsNotNull();
-
             string ruleSetFilePath;
 
             // Check if project rule set is found (we treat missing/erroneous rule set settings as not found)
@@ -151,15 +135,37 @@ namespace SonarLint.VisualStudio.Integration
                 return null;
             }
 
-            RuleSet projectRuleSet;
-            if (!cache.TryGetValue(ruleSetFilePath, out projectRuleSet))
+            return ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
+        }
+
+        private class CachingRulesetSerializer : IRuleSetSerializer
+        {
+            private readonly IRuleSetSerializer serializer;
+            private readonly Dictionary<string, RuleSet> pathToRulesetMap = new Dictionary<string, RuleSet>(StringComparer.OrdinalIgnoreCase);
+
+            public CachingRulesetSerializer(IRuleSetSerializer ruleSetSerializer)
             {
-                // We treat corrupted rulesets as not found
-                projectRuleSet = ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
-                cache[ruleSetFilePath] = projectRuleSet;
+                Debug.Assert(ruleSetSerializer != null);
+                serializer = ruleSetSerializer;
             }
 
-            return projectRuleSet;
+            public RuleSet LoadRuleSet(string path)
+            {
+                Debug.Assert(System.IO.Path.IsPathRooted(path));
+
+                RuleSet locatedRuleset;
+                if (!pathToRulesetMap.TryGetValue(path, out locatedRuleset))
+                {
+                    locatedRuleset = serializer.LoadRuleSet(path);
+                    pathToRulesetMap[path] = locatedRuleset;
+                }
+                return locatedRuleset;
+            }
+
+            public void WriteRuleSetFile(RuleSet ruleSet, string path)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         #endregion

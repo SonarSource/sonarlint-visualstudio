@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -60,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration
         /// Find all the <see cref="RuleSetInclude"/>, for a <paramref name="ruleSet"/>,
         /// which are referencing rule sets under <paramref name="rootDirectory"/>
         /// </summary>
-        public static IEnumerable<RuleSetInclude> FindAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)
+        internal /* for testing */ static IEnumerable<RuleSetInclude> FindAllIncludesUnderRoot(RuleSet ruleSet, string rootDirectory)
         {
             Debug.Assert(ruleSet != null);
             Debug.Assert(!string.IsNullOrWhiteSpace(rootDirectory));
@@ -73,48 +72,6 @@ namespace SonarLint.VisualStudio.Integration
                                                 string fullIncludePath = PathHelper.ResolveRelativePath(include.FilePath, ruleSetRoot);
                                                 return PathHelper.IsPathRootedUnderRoot(fullIncludePath, rootDirectory);
                                             });
-        }
-
-        /// <summary>
-        /// Return a non-nested include from source to target
-        /// </summary>
-        /// <param name="source">Required</param>
-        /// <param name="target">Required</param>
-        /// <returns><see cref="RuleSetInclude"/> or null if not found</returns>
-        public static RuleSetInclude FindInclude(RuleSet source, RuleSet target)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (target == null)
-            {
-                throw new ArgumentNullException(nameof(target));
-            }
-
-            string relativeTargetFilePath = PathHelper.CalculateRelativePath(source.FilePath, target.FilePath);
-
-            var matchingRuleSetIncludes = source.RuleSetIncludes.Where(i =>
-                StringComparer.OrdinalIgnoreCase.Equals(i.FilePath, relativeTargetFilePath)
-                || StringComparer.OrdinalIgnoreCase.Equals(i.FilePath, target.FilePath))
-                .ToList();
-
-            if (matchingRuleSetIncludes.Count == 0)
-            {
-                return null;
-            }
-            else if (matchingRuleSetIncludes.Count == 1)
-            {
-                return matchingRuleSetIncludes[0];
-            }
-            else
-            {
-                // Only caller use this result decide whether or not we are bound so finding more than one hit should still
-                // return the element to say we are bound.
-                Debug.Fail("Not expecting to find multiple RuleSetInclude matching the filter");
-                return matchingRuleSetIncludes[0];
-            }
         }
 
         /// <summary>
