@@ -78,29 +78,31 @@ namespace SonarLint.VisualStudio.Integration
              * for C# and VB projects that use the new project system).
              */
 
-            bool found = false;
+            var declarations = new List<RuleSetDeclaration>();
 
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
 
             var ruleSetProperties = VsShellUtils.GetProjectProperties(project, Constants.CodeAnalysisRuleSetPropertyKey);
             Debug.Assert(ruleSetProperties != null);
             Debug.Assert(ruleSetProperties.All(p => p != null), "Not expecting nulls in the list of properties");
+
+            if (!ruleSetProperties.Any())
+            {
+                logger.WriteLine(Strings.CouldNotFindCodeAnalysisRuleSetPropertyOnProject, project.UniqueName);
+            }
+
             foreach (Property ruleSetProperty in ruleSetProperties)
             {
-                found = true;
-
                 string activationContext = TryGetPropertyConfiguration(ruleSetProperty)?.ConfigurationName ?? string.Empty;
                 string ruleSetDirectoriesValue = projectSystem.GetProjectProperty(project, Constants.CodeAnalysisRuleSetDirectoriesPropertyKey, activationContext);
                 string[] ruleSetDirectories = ruleSetDirectoriesValue?.Split(new[] { RuleSetDirectoriesValueSpliter }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
                 string ruleSetValue = ruleSetProperty.Value as string;
 
-                yield return new RuleSetDeclaration(project, ruleSetProperty, ruleSetValue, activationContext, ruleSetDirectories);
+                var declaration = new RuleSetDeclaration(project, ruleSetProperty, ruleSetValue, activationContext, ruleSetDirectories);
+                declarations.Add(declaration);
             }
 
-            if (!found)
-            {
-                logger.WriteLine(Strings.CouldNotFindCodeAnalysisRuleSetPropertyOnProject, project.UniqueName);
-            }
+            return declarations;
         }
 
         public string GetSolutionSonarQubeRulesFolder(SonarLintMode bindingMode)
