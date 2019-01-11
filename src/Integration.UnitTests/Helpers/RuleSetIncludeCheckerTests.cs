@@ -126,9 +126,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var ruleSet = TestRuleSetHelper.CreateTestRuleSet(@"c:\Solution\SomeFolder\fullFilePath.ruleset");
+            var unreferencedRuleset = TestRuleSetHelper.CreateTestRuleSet(@"c:\unreferenced.ruleset");
 
             // Act No includes at all
-            var include = RuleSetIncludeChecker.HasInclude(ruleSet, ruleSet);
+            var include = RuleSetIncludeChecker.HasInclude(ruleSet, unreferencedRuleset);
 
             // Assert
             include.Should().BeFalse();
