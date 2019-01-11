@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal static class RuleSetHelper
+    internal static class RuleSetUpdater
     {
         /// <summary>
         /// Updates the <paramref name="ruleSet"/> by deleting all the previously included rule sets
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration
 
             // Remove all solution level inclusions
             string solutionRuleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(solutionRuleSetPath));
-            RuleSetHelper.RemoveAllIncludesUnderRoot(ruleSet, solutionRuleSetRoot);
+            RuleSetUpdater.RemoveAllIncludesUnderRoot(ruleSet, solutionRuleSetRoot);
 
             // Add correct inclusion
             string expectedIncludePath = PathHelper.CalculateRelativePath(projectRuleSetPath, solutionRuleSetPath);
