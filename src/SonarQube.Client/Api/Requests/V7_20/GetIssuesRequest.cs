@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -35,26 +36,41 @@ namespace SonarQube.Client.Api.V7_20
 
         protected override string Path => "api/issues/search";
 
-        protected override SonarQubeIssue[] ParseResponse(string response) =>
-            JObject.Parse(response)["issues"]
-                .ToObject<ServerIssue[]>()
-                .Select(ToSonarQubeIssue)
-                .ToArray();
+        protected override SonarQubeIssue[] ParseResponse(string response)
+        {
+            var root = JObject.Parse(response);
 
-        private static SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(ComputePath(issue), issue.Hash, issue.Line, issue.Message, ComputeModuleKey(issue), 
+            // Lookup component key -> path for files. Each response contains normalized data, containing
+            // issues and components, where each issue's "component" property points to a component with
+            // the same "key". We obtain the FilePath of each issue from its corresponding component.
+            var componentKeyPathLookup = GetComponentKeyPathLookup(root);
+
+            return root["issues"]
+                .ToObject<ServerIssue[]>()
+                .Select(issue => ToSonarQubeIssue(issue, componentKeyPathLookup))
+                .ToArray();
+        }
+
+        private static ILookup<string, string> GetComponentKeyPathLookup(JObject root)
+        {
+            var components = root["components"] == null
+                ? Array.Empty<ServerComponent>()
+                : root["components"].ToObject<ServerComponent[]>();
+
+            return components
+                .Where(c => c.IsFile)
+                .ToLookup(c => c.Key, c => c.Path); // Using a Lookup because it does not throw, unlike the Dictionary
+        }
+
+        private static SonarQubeIssue ToSonarQubeIssue(ServerIssue issue, ILookup<string, string> componentKeyPathLookup) =>
+            new SonarQubeIssue(ComputePath(issue, componentKeyPathLookup), issue.Hash, issue.Line, issue.Message, ComputeModuleKey(issue),
                 GetRuleKey(issue.CompositeRuleKey), issue.Status == "RESOLVED");
 
-        private static string ComputePath(ServerIssue issue) =>
-            // Component is "{SubProject}:Path"
-            issue.SubProject != null
-                ? issue.Component.Substring(issue.SubProject.Length + 1)
-                : string.Empty;
+        private static string ComputePath(ServerIssue issue, ILookup<string, string> componentKeyPathLookup) =>
+            componentKeyPathLookup[issue.Component].FirstOrDefault() ?? string.Empty;
 
         private static string ComputeModuleKey(ServerIssue issue) =>
-            issue.SubProject != null
-                ? issue.SubProject
-                : issue.Component;
+            issue.SubProject ?? issue.Component;
 
         private static string GetRuleKey(string compositeRuleKey) =>
             // ruleKey is "csharpsqid:S1234" or "vbnet:S1234" but we need S1234
@@ -76,6 +92,21 @@ namespace SonarQube.Client.Api.V7_20
             public string Message { get; set; }
             [JsonProperty("status")]
             public string Status { get; set; }
+        }
+
+        private class ServerComponent
+        {
+            [JsonProperty("key")]
+            public string Key { get; set; }
+            [JsonProperty("qualifier")]
+            public string Qualifier { get; set; }
+            [JsonProperty("path")]
+            public string Path { get; set; }
+
+            public bool IsFile
+            {
+                get { return Qualifier == "FIL"; }
+            }
         }
     }
 }
