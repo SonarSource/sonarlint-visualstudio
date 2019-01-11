@@ -135,6 +135,10 @@
   <data name="Daemon_Downloading" xml:space="preserve">
     <value>Downloading the daemon...</value>
   </data>
+  <data name="Daemon_Editor_ERROR" xml:space="preserve">
+    <value>Daemon error occurred in editor integration: {0}</value>
+    <comment>Output window message</comment>
+  </data>
   <data name="Daemon_InitializationComplete" xml:space="preserve">
     <value>Finished initializing the daemon package.</value>
   </data>

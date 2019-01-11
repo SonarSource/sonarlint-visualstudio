@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(TextBufferIssueTracker),
-                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages));
+                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, logger));
 
                 // Always create a new tagger for each request
                 return new IssueTagger(issueTracker) as ITagger<T>;
