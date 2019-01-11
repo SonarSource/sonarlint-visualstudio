@@ -106,6 +106,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Daemon error occurred in editor integration: {0}.
+        /// </summary>
+        internal static string Daemon_Editor_ERROR {
+            get {
+                return ResourceManager.GetString("Daemon_Editor_ERROR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finished initializing the daemon package..
         /// </summary>
         internal static string Daemon_InitializationComplete {

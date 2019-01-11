@@ -23,9 +23,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Text;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -53,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ITextDocument document;
         private readonly IIssueConverter issueConverter;
         private readonly string charset;
+        private readonly ILogger logger;
 
         public string FilePath { get; private set; }
         public SnapshotFactory Factory { get; }
@@ -60,13 +63,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public IssuesSnapshot LastIssues { get; private set; }
 
         private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
-
+        
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<SonarLanguage> detectedLanguages)
-            : this(dte, provider, document, detectedLanguages, new IssueConverter()) { }
+            IEnumerable<SonarLanguage> detectedLanguages, ILogger logger)
+            : this(dte, provider, document, detectedLanguages, new IssueConverter(), logger) { }
 
         internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<SonarLanguage> detectedLanguages, IIssueConverter issueConverter)
+            IEnumerable<SonarLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger)
         {
             this.dte = dte;
 
@@ -76,7 +79,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.detectedLanguages = detectedLanguages;
             this.issueConverter = issueConverter;
-            
+            this.logger = logger;
+
             this.document = document;
             this.FilePath = document.FilePath;
 
@@ -90,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.Factory = new SnapshotFactory(new IssuesSnapshot(projectName, this.FilePath, 0,
                 new List<IssueMarker>()));
 
-            document.FileActionOccurred += FileActionOccurred;
+            document.FileActionOccurred += SafeOnFileActionOccurred;
         }
 
         public void AddTagger(IssueTagger tagger)
@@ -102,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 // First tagger created... start doing stuff
 
-                textBuffer.ChangedLowPriority += OnBufferChange;
+                textBuffer.ChangedLowPriority += SafeOnBufferChange;
 
                 this.dirtySpans = new NormalizedSnapshotSpanCollection(new SnapshotSpan(currentSnapshot, 0, currentSnapshot.Length));
 
@@ -121,38 +125,56 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 // Last tagger was disposed of. This is means there are no longer any open views on the buffer so we can safely shut down
                 // issue tracking for that buffer.
-                document.FileActionOccurred -= FileActionOccurred;
-                textBuffer.ChangedLowPriority -= OnBufferChange;
+                document.FileActionOccurred -= SafeOnFileActionOccurred;
+                textBuffer.ChangedLowPriority -= SafeOnBufferChange;
                 textBuffer.Properties.RemoveProperty(typeof(TextBufferIssueTracker));
                 Provider.RemoveIssueTracker(this);
             }
         }
 
-        private void FileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
+        private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
         {
-            if (e.FileActionType == FileActionTypes.DocumentRenamed)
+            // Handles callback from VS. Suppress non-critical errors to prevent them
+            // propagating to VS, which would display a dialogue and disable the extension.
+            try
             {
-                FilePath = e.FilePath;
-                ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
+                if (e.FileActionType == FileActionTypes.DocumentRenamed)
+                {
+                    FilePath = e.FilePath;
+                    ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
 
-                // Update and publish a new snapshow with the existing issues so 
-                // that the name change propagates to items in the error list
-                RefreshIssues();
+                    // Update and publish a new snapshow with the existing issues so 
+                    // that the name change propagates to items in the error list
+                    RefreshIssues();
+                }
+                else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
+                    && activeTaggers.Count > 0)
+                {
+                    RequestAnalysis();
+                }
             }
-            else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
-                && activeTaggers.Count > 0)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                RequestAnalysis();
+                logger.WriteLine(Strings.Daemon_Editor_ERROR, ex);
             }
         }
 
-        private void OnBufferChange(object sender, TextContentChangedEventArgs e)
+        private void SafeOnBufferChange(object sender, TextContentChangedEventArgs e)
         {
-            UpdateDirtySpans(e);
+            // Handles callback from VS. Suppress non-critical errors to prevent them
+            // propagating to VS, which would display a dialogue and disable the extension.
+            try
+            {
+                UpdateDirtySpans(e);
 
-            var newMarkers = TranslateMarkerSpans();
+                var newMarkers = TranslateMarkerSpans();
 
-            SnapToNewSnapshot(newMarkers);
+                SnapToNewSnapshot(newMarkers);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Strings.Daemon_Editor_ERROR, ex);
+            }
         }
 
         private void UpdateDirtySpans(TextContentChangedEventArgs e)
