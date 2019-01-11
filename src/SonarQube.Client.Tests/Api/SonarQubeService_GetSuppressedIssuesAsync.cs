@@ -73,176 +73,258 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=1&ps=500", @"
+            SetupRequest("api/issues/search?projects=com.github.kevinsawicki:http-request&statuses=RESOLVED&p=1&ps=500", @"
 {
+  ""total"": 5,
+  ""p"": 1,
+  ""ps"": 100,
   ""paging"": {
     ""pageIndex"": 1,
     ""pageSize"": 100,
-    ""total"": 1
+    ""total"": 5
   },
-  ""issues"": [{
-    ""key"": ""AWQYvw-4pbnviuOCCX9e"",
-    ""rule"": ""csharpsquid:S1075"",
-    ""severity"": ""MINOR"",
-    ""component"": ""simplcom:simplcom:91A9DD1C-08F3-4F85-8728-BB30F55FDACB:Controllers/ThemeApiController.cs"",
-    ""project"": ""simplcom"",
-    ""subProject"": ""simplcom:simplcom:91A9DD1C-08F3-4F85-8728-BB30F55FDACB"",
-    ""line"": 36,
-    ""hash"": ""0dcbf3b077bacc9fdbd898ff3b587085"",
-    ""textRange"": {
-        ""startLine"": 36,
-        ""endLine"": 36,
-        ""startOffset"": 49,
-        ""endOffset"": 107
+  ""issues"": [
+    {
+      ""key"": ""AWg8bjekFPFMeKWzHZ_6"",
+      ""rule"": ""csharpsquid:S3990"",
+      ""severity"": ""MAJOR"",
+      ""component"": ""shared:shared:D111C902-E7B1-4665-927E-A52E1443B8C1"",
+      ""project"": ""shared"",
+      ""flows"": [],
+      ""status"": ""OPEN"",
+      ""message"": ""Mark this assembly with 'System.CLSCompliantAttribute'"",
+      ""effort"": ""1min"",
+      ""debt"": ""1min"",
+      ""author"": """",
+      ""tags"": [
+        ""api-design""
+      ],
+      ""creationDate"": ""2019-01-11T11:21:20+0100"",
+      ""updateDate"": ""2019-01-11T11:21:20+0100"",
+      ""type"": ""CODE_SMELL"",
+      ""organization"": ""default-organization""
     },
-    ""flows"": [],
-    ""status"": ""OPEN"",
-    ""message"": ""Refactor your code not to use hardcoded absolute paths or URIs."",
-    ""effort"": ""20min"",
-    ""debt"": ""20min"",
-    ""author"": ""nlqthien@gmail.com"",
-    ""tags"": [
-        ""cert""
-    ],
-    ""creationDate"": ""2018-05-09T21:45:14+0200"",
-    ""updateDate"": ""2018-06-27T12:02:40+0200"",
-    ""type"": ""CODE_SMELL"",
-    ""organization"": ""default-organization""
-  },
-  {
-    ""key"": ""AWQYvwc4pbnviuOCCX4g"",
-    ""rule"": ""csharpsquid:S1116"",
-    ""severity"": ""MINOR"",
-    ""component"": ""simplcom:simplcom:13367B7A-E91C-47EE-BA5E-C50664D65767:Extensions/ServiceCollectionExtensions.cs"",
-    ""project"": ""simplcom"",
-    ""subProject"": ""simplcom:simplcom:13367B7A-E91C-47EE-BA5E-C50664D65767"",
-    ""line"": 136,
-    ""hash"": ""065c8f8dd412a96eb30c22dfdf68b63f"",
-    ""textRange"": {
-        ""startLine"": 136,
-        ""endLine"": 136,
-        ""startOffset"": 76,
-        ""endOffset"": 77
+    {
+      ""key"": ""AWg8bjfdFPFMeKWzHZ_7"",
+      ""rule"": ""csharpsquid:S3990"",
+      ""severity"": ""MAJOR"",
+      ""component"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082"",
+      ""project"": ""shared"",
+      ""flows"": [],
+      ""resolution"": ""WONTFIX"",
+      ""status"": ""RESOLVED"",
+      ""message"": ""Mark this assembly with 'System.CLSCompliantAttribute'"",
+      ""effort"": ""1min"",
+      ""debt"": ""1min"",
+      ""author"": """",
+      ""tags"": [
+        ""api-design""
+      ],
+      ""creationDate"": ""2019-01-11T11:21:20+0100"",
+      ""updateDate"": ""2019-01-11T11:28:22+0100"",
+      ""type"": ""CODE_SMELL"",
+      ""organization"": ""default-organization""
     },
-    ""flows"": [],
-    ""resolution"": ""WONTFIX"",
-    ""status"": ""RESOLVED"",
-    ""message"": ""Remove this empty statement."",
-    ""effort"": ""2min"",
-    ""debt"": ""2min"",
-    ""author"": ""nlqthien@gmail.com"",
-    ""tags"": [
-        ""cert"",
-        ""misra"",
-        ""unused""
-    ],
-    ""creationDate"": ""2018-05-08T19:06:01+0200"",
-    ""updateDate"": ""2018-06-27T12:02:40+0200"",
-    ""type"": ""CODE_SMELL"",
-    ""organization"": ""default-organization""
-  },
-  {
-    ""key"": ""AWQYvwYapbnviuOCCX4D"",
-    ""rule"": ""vbnet:S1186"",
-    ""severity"": ""CRITICAL"",
-    ""component"": ""simplcom:simplcom:B8ABFD73-AEAF-4689-BA2C-BC38B64F6FAE:ModuleInitializer.vb"",
-    ""project"": ""simplcom"",
-    ""subProject"": ""simplcom:simplcom:B8ABFD73-AEAF-4689-BA2C-BC38B64F6FAE"",
-    ""line"": 17,
-    ""hash"": ""c1c4472d365c673ec78eee5a2ef90831"",
-    ""textRange"": {
-        ""startLine"": 17,
-        ""endLine"": 17,
-        ""startOffset"": 20,
-        ""endOffset"": 29
+    {
+      ""key"": ""AWg8adcV_JurIR2zdSvR"",
+      ""rule"": ""csharpsquid:S1118"",
+      ""severity"": ""MAJOR"",
+      ""component"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082:Program.cs"",
+      ""project"": ""shared"",
+      ""subProject"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082"",
+      ""line"": 6,
+      ""hash"": ""0afa1b5e62aa3cfaf1cd9a4e63571cb5"",
+      ""textRange"": {
+        ""startLine"": 6,
+        ""endLine"": 6,
+        ""startOffset"": 10,
+        ""endOffset"": 17
+      },
+      ""flows"": [],
+      ""resolution"": ""WONTFIX"",
+      ""status"": ""RESOLVED"",
+      ""message"": ""Add a 'protected' constructor or the 'static' keyword to the class declaration."",
+      ""effort"": ""10min"",
+      ""debt"": ""10min"",
+      ""author"": """",
+      ""tags"": [
+        ""design""
+      ],
+      ""creationDate"": ""2019-01-11T11:16:30+0100"",
+      ""updateDate"": ""2019-01-11T11:26:39+0100"",
+      ""type"": ""CODE_SMELL"",
+      ""organization"": ""default-organization""
     },
-    ""flows"": [],
-    ""resolution"": ""FALSE-POSITIVE"",
-    ""status"": ""RESOLVED"",
-    ""message"": ""Add a nested comment explaining why this method is empty, throw a 'NotSupportedException' or complete the implementation."",
-    ""effort"": ""5min"",
-    ""debt"": ""5min"",
-    ""author"": ""nlqthien@gmail.com"",
-    ""tags"": [
-        ""suspicious""
-    ],
-    ""creationDate"": ""2018-05-08T19:06:01+0200"",
-    ""updateDate"": ""2018-06-27T12:02:40+0200"",
-    ""type"": ""CODE_SMELL"",
-    ""organization"": ""default-organization""
-  }]
+    {
+      ""key"": ""AWg8adc9_JurIR2zdSvS"",
+      ""rule"": ""csharpsquid:S1118"",
+      ""severity"": ""MAJOR"",
+      ""component"": ""shared:SharedProject1/SharedClass1.cs"",
+      ""project"": ""shared"",
+      ""line"": 3,
+      ""hash"": ""b19753e3bb1df2c64cb2fe930a8a16a9"",
+      ""textRange"": {
+        ""startLine"": 3,
+        ""endLine"": 3,
+        ""startOffset"": 10,
+        ""endOffset"": 22
+      },
+      ""flows"": [],
+      ""status"": ""OPEN"",
+      ""message"": ""Add a 'protected' constructor or the 'static' keyword to the class declaration."",
+      ""effort"": ""10min"",
+      ""debt"": ""10min"",
+      ""author"": """",
+      ""tags"": [
+        ""design""
+      ],
+      ""creationDate"": ""2019-01-11T11:16:30+0100"",
+      ""updateDate"": ""2019-01-11T11:16:30+0100"",
+      ""type"": ""CODE_SMELL"",
+      ""organization"": ""default-organization""
+    },
+    {
+      ""key"": ""AWg9DV27DpKqrfA7luen"",
+      ""rule"": ""csharpsquid:S1451"",
+      ""severity"": ""BLOCKER"",
+      ""component"": ""shared:SharedProject1/SharedClass1.cs"",
+      ""project"": ""shared"",
+      ""flows"": [],
+      ""resolution"": ""WONTFIX"",
+      ""status"": ""RESOLVED"",
+      ""message"": ""Add or update the header of this file."",
+      ""effort"": ""5min"",
+      ""debt"": ""5min"",
+      ""author"": """",
+      ""tags"": [],
+      ""creationDate"": ""2019-01-11T13:18:25+0100"",
+      ""updateDate"": ""2019-01-11T14:15:53+0100"",
+      ""type"": ""CODE_SMELL"",
+      ""organization"": ""default-organization"",
+      ""fromHotspot"": false
+    },
+    {
+      ""key"": ""AWg8adc9_JurIR2zdSvT"",
+      ""rule"": ""csharpsquid:S3400"",
+      ""severity"": ""MINOR"",
+      ""component"": ""shared:SharedProject1/SharedClass1.cs"",
+      ""project"": ""shared"",
+      ""line"": 5,
+      ""hash"": ""be411c6cf1ae5ba7d7c5d6da7355afa1"",
+      ""textRange"": {
+        ""startLine"": 5,
+        ""endLine"": 5,
+        ""startOffset"": 27,
+        ""endOffset"": 30
+      },
+      ""flows"": [],
+      ""resolution"": ""WONTFIX"",
+      ""status"": ""RESOLVED"",
+      ""message"": ""Remove this method and declare a constant for this value."",
+      ""effort"": ""5min"",
+      ""debt"": ""5min"",
+      ""author"": """",
+      ""tags"": [
+        ""confusing""
+      ],
+      ""creationDate"": ""2019-01-11T11:16:30+0100"",
+      ""updateDate"": ""2019-01-11T11:26:55+0100"",
+      ""type"": ""CODE_SMELL"",
+      ""organization"": ""default-organization""
+    }
+  ],
+  ""components"": [
+    {
+      ""organization"": ""default-organization"",
+      ""key"": ""shared:SharedProject1/SharedClass1.cs"",
+      ""uuid"": ""AWg8adNl_JurIR2zdSvQ"",
+      ""enabled"": true,
+      ""qualifier"": ""FIL"",
+      ""name"": ""SharedClass1.cs"",
+      ""longName"": ""SharedProject1/SharedClass1.cs"",
+      ""path"": ""SharedProject1/SharedClass1.cs""
+    },
+    {
+      ""organization"": ""default-organization"",
+      ""key"": ""shared:shared:D111C902-E7B1-4665-927E-A52E1443B8C1"",
+      ""uuid"": ""AWg8adNi_JurIR2zdSvH"",
+      ""enabled"": true,
+      ""qualifier"": ""BRC"",
+      ""name"": ""ClassLibrary1"",
+      ""longName"": ""ClassLibrary1"",
+      ""path"": ""ClassLibrary1""
+    },
+    {
+      ""organization"": ""default-organization"",
+      ""key"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082:Program.cs"",
+      ""uuid"": ""AWg8adNk_JurIR2zdSvM"",
+      ""enabled"": true,
+      ""qualifier"": ""FIL"",
+      ""name"": ""Program.cs"",
+      ""longName"": ""Program.cs"",
+      ""path"": ""Program.cs""
+    },
+    {
+      ""organization"": ""default-organization"",
+      ""key"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082"",
+      ""uuid"": ""AWg8adNk_JurIR2zdSvK"",
+      ""enabled"": true,
+      ""qualifier"": ""BRC"",
+      ""name"": ""ConsoleApp1"",
+      ""longName"": ""ConsoleApp1"",
+      ""path"": ""ConsoleApp1""
+    },
+    {
+      ""organization"": ""default-organization"",
+      ""key"": ""shared"",
+      ""uuid"": ""AWg8aLQfhQTYUbm7ZplB"",
+      ""enabled"": true,
+      ""qualifier"": ""TRK"",
+      ""name"": ""shared"",
+      ""longName"": ""shared""
+    }
+  ]
 }
 ");
 
-            var result = await service.GetSuppressedIssuesAsync("simplcom", CancellationToken.None);
+            var result = await service.GetSuppressedIssuesAsync("com.github.kevinsawicki:http-request", CancellationToken.None);
 
-            result.Should().HaveCount(2);
+            result.Should().HaveCount(4);
 
-            var csharpIssue = result[0];
-            csharpIssue.FilePath.Should().Be("Extensions/ServiceCollectionExtensions.cs");
-            csharpIssue.Hash.Should().Be("065c8f8dd412a96eb30c22dfdf68b63f");
-            csharpIssue.Line.Should().Be(136);
-            csharpIssue.Message.Should().Be("Remove this empty statement.");
-            csharpIssue.ModuleKey.Should().Be("simplcom:simplcom:13367B7A-E91C-47EE-BA5E-C50664D65767");
-            csharpIssue.IsResolved.Should().BeTrue();
-            csharpIssue.RuleId.Should().Be("S1116");
+            // Module level issues don't have FilePath, hash and line
+            result[0].FilePath.Should().Be(string.Empty);
+            result[0].Hash.Should().BeNull();
+            result[0].Line.Should().BeNull();
+            result[0].Message.Should().Be("Mark this assembly with 'System.CLSCompliantAttribute'");
+            result[0].ModuleKey.Should().Be("shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082");
+            result[0].IsResolved.Should().BeTrue();
+            result[0].RuleId.Should().Be("S3990");
 
-            var vbnetIssue = result[1];
-            vbnetIssue.FilePath.Should().Be("ModuleInitializer.vb");
-            vbnetIssue.Hash.Should().Be("c1c4472d365c673ec78eee5a2ef90831");
-            vbnetIssue.Line.Should().Be(17);
-            vbnetIssue.Message.Should().Be("Add a nested comment explaining why this method is empty, throw a 'NotSupportedException' or complete the implementation.");
-            vbnetIssue.ModuleKey.Should().Be("simplcom:simplcom:B8ABFD73-AEAF-4689-BA2C-BC38B64F6FAE");
-            vbnetIssue.IsResolved.Should().BeTrue();
-            vbnetIssue.RuleId.Should().Be("S1186");
+            result[1].FilePath.Should().Be("Program.cs");
+            result[1].Hash.Should().Be("0afa1b5e62aa3cfaf1cd9a4e63571cb5");
+            result[1].Line.Should().Be(6);
+            result[1].Message.Should().Be("Add a 'protected' constructor or the 'static' keyword to the class declaration.");
+            result[1].ModuleKey.Should().Be("shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082");
+            result[1].IsResolved.Should().BeTrue();
+            result[1].RuleId.Should().Be("S1118");
 
-            messageHandler.VerifyAll();
-        }
+            // File level issues don't have hash and line
+            result[2].FilePath.Should().Be("SharedProject1/SharedClass1.cs");
+            result[2].Hash.Should().BeNull();
+            result[2].Line.Should().BeNull();
+            result[2].Message.Should().Be("Add or update the header of this file.");
+            result[2].ModuleKey.Should().Be("shared:SharedProject1/SharedClass1.cs");
+            result[2].IsResolved.Should().BeTrue();
+            result[2].RuleId.Should().Be("S1451");
 
-        [TestMethod]
-        public async Task GetSuppressedIssuesAsync_From_7_20_ModuleLevelIssue()
-        {
-            await ConnectToSonarQube("7.2.0.0");
+            result[3].FilePath.Should().Be("SharedProject1/SharedClass1.cs");
+            result[3].Hash.Should().Be("be411c6cf1ae5ba7d7c5d6da7355afa1");
+            result[3].Line.Should().Be(5);
+            result[3].Message.Should().Be("Remove this method and declare a constant for this value.");
+            result[3].ModuleKey.Should().Be("shared:SharedProject1/SharedClass1.cs");
+            result[3].IsResolved.Should().BeTrue();
+            result[3].RuleId.Should().Be("S3400");
 
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=1&ps=500", @"
-{
-  ""paging"": {
-    ""pageIndex"": 1,
-    ""pageSize"": 100,
-    ""total"": 1
-  },
-  ""issues"": [{
-    ""key"": ""AWQYvwc4pbnviuOCCX4g"",
-    ""rule"": ""csharpsquid:S1116"",
-    ""component"": ""simplcom:simplcom:13367B7A-E91C-47EE-BA5E-C50664D65767"",
-    ""subProject"": null,
-    ""textRange"": {
-        ""startLine"": 136,
-        ""endLine"": 136,
-        ""startOffset"": 76,
-        ""endOffset"": 77
-    },
-    ""flows"": [],
-    ""resolution"": ""WONTFIX"",
-    ""status"": ""RESOLVED"",
-    ""message"": ""Remove this empty statement."",
-  }]
-}
-");
-
-            var result = await service.GetSuppressedIssuesAsync("simplcom", CancellationToken.None);
-
-            result.Should().HaveCount(1);
-
-            var csharpIssue = result[0];
-            csharpIssue.FilePath.Should().Be(string.Empty); // Module level issue (component doesn't end with a relative path)
-            csharpIssue.Hash.Should().BeNull(); // No line hash as it's a module level issue
-            csharpIssue.Line.Should().BeNull(); // No line as it's a module level issue
-            csharpIssue.Message.Should().Be("Remove this empty statement.");
-            csharpIssue.ModuleKey.Should().Be("simplcom:simplcom:13367B7A-E91C-47EE-BA5E-C50664D65767");
-            csharpIssue.IsResolved.Should().BeTrue();
-            csharpIssue.RuleId.Should().Be("S1116");
-                        
             messageHandler.VerifyAll();
         }
 
@@ -276,6 +358,9 @@ namespace SonarQube.Client.Tests.Api
   }},
   ""issues"": [
     {string.Join(",\n", Enumerable.Range(1, 500).Select(CreateIssueJson))}
+  ],
+  ""components"": [
+    {CreateComponentJson()}
   ]
 }}");
 
@@ -288,6 +373,9 @@ namespace SonarQube.Client.Tests.Api
   }},
   ""issues"": [
     {string.Join(",\n", Enumerable.Range(501, 500).Select(CreateIssueJson))}
+  ],
+  ""components"": [
+    {CreateComponentJson()}
   ]
 }}");
 
@@ -300,6 +388,9 @@ namespace SonarQube.Client.Tests.Api
   }},
   ""issues"": [
     {string.Join(",\n", Enumerable.Range(1001, 1).Select(CreateIssueJson))}
+  ],
+  ""components"": [
+    {CreateComponentJson()}
   ]
 }}");
 
@@ -307,6 +398,7 @@ namespace SonarQube.Client.Tests.Api
             var result = await service.GetSuppressedIssuesAsync("simplcom", CancellationToken.None);
 
             result.Should().HaveCount(1001);
+            result.Select(i => i.FilePath).Should().Match(paths => paths.All(p => p == "Program.cs"));
 
             messageHandler.VerifyAll();
         }
@@ -315,13 +407,27 @@ namespace SonarQube.Client.Tests.Api
             "{ " +
             $"\"key\": \"{number}\", " +
             "\"rule\": \"csharpsquid:S1075\", " +
-            "\"component\": \"simplcom:simplcom:91A9DD1C-08F3-4F85-8728-BB30F55FDACB:Controllers/ThemeApiController.cs\", " +
-            "\"project\": \"simplcom\", " +
-            "\"subProject\": \"simplcom:simplcom:91A9DD1C-08F3-4F85-8728-BB30F55FDACB\", " +
+            "\"component\": \"shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082:Program.cs\", " +
+            "\"project\": \"shared\", " +
+            "\"subProject\": \"shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082\", " +
             "\"line\": 36, " +
             "\"hash\": \"0dcbf3b077bacc9fdbd898ff3b587085\", " +
             "\"status\": \"RESOLVED\", " +
             "\"message\": \"Refactor your code not to use hardcoded absolute paths or URIs.\" " +
             "}";
+
+        private static string CreateComponentJson() =>
+            // "key" should be the same as the "component" field in the issues from CreateIssueJson()
+            @"
+{
+    ""organization"": ""default-organization"",
+    ""key"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082:Program.cs"",
+    ""uuid"": ""AWg8adNk_JurIR2zdSvM"",
+    ""enabled"": true,
+    ""qualifier"": ""FIL"",
+    ""name"": ""Program.cs"",
+    ""longName"": ""Program.cs"",
+    ""path"": ""Program.cs""
+}";
     }
 }
