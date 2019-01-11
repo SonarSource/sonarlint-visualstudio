@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(PackageGuidString)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public sealed class SonarLintDaemonPackage : AsyncPackage
     {
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
