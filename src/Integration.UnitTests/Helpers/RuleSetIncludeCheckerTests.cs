@@ -149,5 +149,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             include.Should().BeFalse();
         }
+
+        [TestMethod]
+        public void HasInclude_SourceIsTarget_ReturnsTrue()
+        {
+            // Covers the case where the ruleset is included directly in the project, rather
+            // than indirectly as a RuleSetInclude in another ruleset.
+
+            // Arrange
+            var source = TestRuleSetHelper.CreateTestRuleSet(@"c:\Solution\SomeFolder\fullFilePath.ruleset");
+            var target = TestRuleSetHelper.CreateTestRuleSet(@"C:/SOLUTION\./SomeFolder\fullFilePath.ruleset");
+
+            // Act
+            var include = RuleSetIncludeChecker.HasInclude(source, target);
+
+            // Assert
+            include.Should().BeTrue();
+        }
     }
 }

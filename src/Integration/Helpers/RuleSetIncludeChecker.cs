@@ -55,6 +55,12 @@ namespace SonarLint.VisualStudio.Integration
             var sourceDirectory = Path.GetDirectoryName(source.FilePath);
             var canonicalTargetFilePath = Path.GetFullPath(target.FilePath);
 
+            // Special case: the target ruleset is the one we are looking for
+            if (IsMatchingPath(source.FilePath, canonicalTargetFilePath, sourceDirectory))
+            {
+                return true;
+            }
+
             var matchingRuleSetIncludes = source.RuleSetIncludes
                 .Where(i => IsMatchingPath(i.FilePath, canonicalTargetFilePath, sourceDirectory))
                 .ToList();
