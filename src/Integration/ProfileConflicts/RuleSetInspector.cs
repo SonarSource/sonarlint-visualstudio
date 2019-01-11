@@ -220,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             Debug.Assert(!string.IsNullOrWhiteSpace(baselineRuleSet.FilePath));
             Debug.Assert(!string.IsNullOrWhiteSpace(targetRuleSet.FilePath));
 
-            RuleSetHelper.UpdateExistingProjectRuleSet(targetRuleSet, baselineRuleSet.FilePath);
+            RuleSetUpdater.UpdateExistingProjectRuleSet(targetRuleSet, baselineRuleSet.FilePath);
             RuleConflictInfo conflicts1stAttempt = this.FindConflictsCore(baselineRuleSet, targetRuleSet);
             return !conflicts1stAttempt.HasConflicts;
         }

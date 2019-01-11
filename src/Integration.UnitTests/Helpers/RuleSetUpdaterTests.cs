@@ -28,12 +28,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class RuleSetHelperTests
+    public class RuleSetUpdaterTests
     {
         #region Tests
 
         [TestMethod]
-        public void RuleSetHelper_RemoveAllIncludesUnderRoot()
+        public void RuleSetUpdater_RemoveAllIncludesUnderRoot()
         {
             // Arrange
             const string slnRoot = @"X:\SolutionDir\";
@@ -66,14 +66,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             AddRuleSetInclusion(expectedRuleSet, commonRs2, useRelativePath: false);
 
             // Act
-            RuleSetHelper.RemoveAllIncludesUnderRoot(inputRuleSet, sonarRoot);
+            RuleSetUpdater.RemoveAllIncludesUnderRoot(inputRuleSet, sonarRoot);
 
             // Assert
             RuleSetAssert.AreEqual(expectedRuleSet, inputRuleSet);
         }
 
         [TestMethod]
-        public void RuleSetHelper_FindAllIncludesUnderRoot()
+        public void RuleSetUpdater_FindAllIncludesUnderRoot()
         {
             // Arrange
             const string slnRoot = @"X:\SolutionDir\";
@@ -101,14 +101,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var expected2 = AddRuleSetInclusion(inputRuleSet, sonarRs2, useRelativePath: false);
 
             // Act
-            RuleSetInclude[] actual = RuleSetHelper.FindAllIncludesUnderRoot(inputRuleSet, sonarRoot).ToArray();
+            RuleSetInclude[] actual = RuleSetUpdater.FindAllIncludesUnderRoot(inputRuleSet, sonarRoot).ToArray();
 
             // Assert
             CollectionAssert.AreEquivalent(new[] { expected1, expected2 }, actual);
         }
 
         [TestMethod]
-        public void RuleSetHelper_UpdateExistingProjectRuleSet()
+        public void RuleSetUpdater_UpdateExistingProjectRuleSet()
         {
             // Arrange
             const string existingProjectRuleSetPath = @"X:\MySolution\ProjectOne\proj1.ruleset";
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(expectedInclude, RuleAction.Default));
 
             // Act
-            RuleSetHelper.UpdateExistingProjectRuleSet(existingProjectRuleSet, newSolutionRuleSetPath);
+            RuleSetUpdater.UpdateExistingProjectRuleSet(existingProjectRuleSet, newSolutionRuleSetPath);
 
             // Assert
             RuleSetAssert.AreEqual(expectedRuleSet, existingProjectRuleSet, "Update should delete previous solution rulesets, and replace them with a new one provide");
