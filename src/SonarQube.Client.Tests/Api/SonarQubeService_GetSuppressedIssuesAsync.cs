@@ -184,6 +184,26 @@ namespace SonarQube.Client.Tests.Api
       ""organization"": ""default-organization""
     },
     {
+      ""key"": ""AWg9DV27DpKqrfA7luen"",
+      ""rule"": ""csharpsquid:S1451"",
+      ""severity"": ""BLOCKER"",
+      ""component"": ""shared:SharedProject1/SharedClass1.cs"",
+      ""project"": ""shared"",
+      ""flows"": [],
+      ""resolution"": ""WONTFIX"",
+      ""status"": ""RESOLVED"",
+      ""message"": ""Add or update the header of this file."",
+      ""effort"": ""5min"",
+      ""debt"": ""5min"",
+      ""author"": """",
+      ""tags"": [],
+      ""creationDate"": ""2019-01-11T13:18:25+0100"",
+      ""updateDate"": ""2019-01-11T14:15:53+0100"",
+      ""type"": ""CODE_SMELL"",
+      ""organization"": ""default-organization"",
+      ""fromHotspot"": false
+    },
+    {
       ""key"": ""AWg8adc9_JurIR2zdSvT"",
       ""rule"": ""csharpsquid:S3400"",
       ""severity"": ""MINOR"",
@@ -269,7 +289,7 @@ namespace SonarQube.Client.Tests.Api
 
             var result = await service.GetSuppressedIssuesAsync("com.github.kevinsawicki:http-request", CancellationToken.None);
 
-            result.Should().HaveCount(3);
+            result.Should().HaveCount(4);
 
             // Module level issues don't have FilePath, hash and line
             result[0].FilePath.Should().Be(string.Empty);
@@ -288,13 +308,22 @@ namespace SonarQube.Client.Tests.Api
             result[1].IsResolved.Should().BeTrue();
             result[1].RuleId.Should().Be("S1118");
 
+            // File level issues don't have hash and line
             result[2].FilePath.Should().Be("SharedProject1/SharedClass1.cs");
-            result[2].Hash.Should().Be("be411c6cf1ae5ba7d7c5d6da7355afa1");
-            result[2].Line.Should().Be(5);
-            result[2].Message.Should().Be("Remove this method and declare a constant for this value.");
+            result[2].Hash.Should().BeNull();
+            result[2].Line.Should().BeNull();
+            result[2].Message.Should().Be("Add or update the header of this file.");
             result[2].ModuleKey.Should().Be("shared:SharedProject1/SharedClass1.cs");
             result[2].IsResolved.Should().BeTrue();
-            result[2].RuleId.Should().Be("S3400");
+            result[2].RuleId.Should().Be("S1451");
+
+            result[3].FilePath.Should().Be("SharedProject1/SharedClass1.cs");
+            result[3].Hash.Should().Be("be411c6cf1ae5ba7d7c5d6da7355afa1");
+            result[3].Line.Should().Be(5);
+            result[3].Message.Should().Be("Remove this method and declare a constant for this value.");
+            result[3].ModuleKey.Should().Be("shared:SharedProject1/SharedClass1.cs");
+            result[3].IsResolved.Should().BeTrue();
+            result[3].RuleId.Should().Be("S3400");
 
             messageHandler.VerifyAll();
         }
