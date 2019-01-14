@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
 
-        public const string daemonVersion = "3.9.0.1892";
+        public const string daemonVersion = "4.0.2.2142";
         private const string uriFormat = "http://repo1.maven.org/maven2/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip";
 
         private readonly ISonarLintSettings settings;
