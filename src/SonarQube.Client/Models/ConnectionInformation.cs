@@ -39,7 +39,7 @@ namespace SonarQube.Client.Models
                 throw new ArgumentNullException(nameof(serverUri));
             }
 
-            this.ServerUri = serverUri.EnsureTrailingSlash();
+            this.ServerUri = FixSonarCloudUri(serverUri).EnsureTrailingSlash();
             this.UserName = userName;
             this.Password = password?.CopyAsReadOnly();
             this.Authentication = AuthenticationType.Basic; // Only one supported at this point
@@ -83,6 +83,17 @@ namespace SonarQube.Client.Models
         {
             return this.Clone();
         }
+
+        /// <summary>
+        /// When the provided serverUri contains 'sonarcloud.io' returns 'https://sonarcloud.io', otherwise
+        /// returns serverUri. This method tries to prevent slightly incorrect SonarCloud URIs (e.g. with
+        /// http instead of https, or www.sonarcloud.io instead of sonarcloud.io) from redirecting to the
+        /// correct scheme and url. See https://github.com/SonarSource/sonarlint-visualstudio/issues/796
+        /// </summary>
+        private static Uri FixSonarCloudUri(Uri serverUri) =>
+            serverUri.Host.IndexOf("sonarcloud.io", StringComparison.OrdinalIgnoreCase) < 0
+                ? serverUri
+                : new Uri("https://sonarcloud.io/");
 
         #region IDisposable Support
 
