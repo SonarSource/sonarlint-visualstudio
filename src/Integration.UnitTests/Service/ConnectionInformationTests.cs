@@ -96,6 +96,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void ConnectionInformation_Ctor_FixesSonarCloudUri()
+        {
+            new ConnectionInformation(new Uri("http://my-server.com")).ServerUri.ToString().Should().Be("http://my-server.com/");
+            new ConnectionInformation(new Uri("http://sonarcloud.io")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
+            new ConnectionInformation(new Uri("http://www.sonarcloud.io")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
+            new ConnectionInformation(new Uri("https://www.sonarcloud.io")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
+            new ConnectionInformation(new Uri("https://WWW.SONARCLOUD.IO")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
+        }
+
+        [TestMethod]
         public void ConnectionInformation_Ctor_ArgChecks()
         {
             Exceptions.Expect<ArgumentNullException>(() => new ConnectionInformation(null));
