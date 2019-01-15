@@ -35,14 +35,16 @@ namespace SonarQube.Client.Api.Requests.V5_10
 {
     public class GetIssuesRequest : RequestBase<SonarQubeIssue[]>, IGetIssuesRequest
     {
+        private HashSet<string> statuses = new HashSet<string>(); // Prevent null reference exceptions when Statuses is never set
+
         [JsonProperty("key")]
         public virtual string ProjectKey { get; set; }
 
         [JsonProperty("statuses", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue(null)]
         public string Statuses
         {
-            get { return null; }
-            set { /* not supported in this implementation */ }
+            get { return null; } // Always return null to prevent this value from serialization
+            set { statuses = new HashSet<string>(value.Split(',')); }
         }
 
         protected override string Path => "batch/issues";
@@ -61,8 +63,12 @@ namespace SonarQube.Client.Api.Requests.V5_10
             // Note we might want to use FileStream instead to avoid intensive memory usage.
             using (var stream = new MemoryStream(byteArray))
             {
-                return new Result<SonarQubeIssue[]>(httpResponse,
-                    ReadFromProtobufStream(stream, ServerIssue.Parser).Select(ToSonarQubeIssue).ToArray());
+                var result = ReadFromProtobufStream(stream, ServerIssue.Parser)
+                    // This Web API does not support server-side filtering, so we do it on the client
+                    .Where(issue => statuses.Contains(issue.Status))
+                    .Select(ToSonarQubeIssue)
+                    .ToArray();
+                return new Result<SonarQubeIssue[]>(httpResponse, result);
             }
         }
 
