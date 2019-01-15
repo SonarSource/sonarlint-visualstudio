@@ -73,7 +73,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=com.github.kevinsawicki:http-request&statuses=RESOLVED&p=1&ps=500", @"
+            SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&p=1&ps=500", @"
 {
   ""total"": 5,
   ""p"": 1,
@@ -84,26 +84,6 @@ namespace SonarQube.Client.Tests.Api
     ""total"": 5
   },
   ""issues"": [
-    {
-      ""key"": ""AWg8bjekFPFMeKWzHZ_6"",
-      ""rule"": ""csharpsquid:S3990"",
-      ""severity"": ""MAJOR"",
-      ""component"": ""shared:shared:D111C902-E7B1-4665-927E-A52E1443B8C1"",
-      ""project"": ""shared"",
-      ""flows"": [],
-      ""status"": ""OPEN"",
-      ""message"": ""Mark this assembly with 'System.CLSCompliantAttribute'"",
-      ""effort"": ""1min"",
-      ""debt"": ""1min"",
-      ""author"": """",
-      ""tags"": [
-        ""api-design""
-      ],
-      ""creationDate"": ""2019-01-11T11:21:20+0100"",
-      ""updateDate"": ""2019-01-11T11:21:20+0100"",
-      ""type"": ""CODE_SMELL"",
-      ""organization"": ""default-organization""
-    },
     {
       ""key"": ""AWg8bjfdFPFMeKWzHZ_7"",
       ""rule"": ""csharpsquid:S3990"",
@@ -152,34 +132,6 @@ namespace SonarQube.Client.Tests.Api
       ],
       ""creationDate"": ""2019-01-11T11:16:30+0100"",
       ""updateDate"": ""2019-01-11T11:26:39+0100"",
-      ""type"": ""CODE_SMELL"",
-      ""organization"": ""default-organization""
-    },
-    {
-      ""key"": ""AWg8adc9_JurIR2zdSvS"",
-      ""rule"": ""csharpsquid:S1118"",
-      ""severity"": ""MAJOR"",
-      ""component"": ""shared:SharedProject1/SharedClass1.cs"",
-      ""project"": ""shared"",
-      ""line"": 3,
-      ""hash"": ""b19753e3bb1df2c64cb2fe930a8a16a9"",
-      ""textRange"": {
-        ""startLine"": 3,
-        ""endLine"": 3,
-        ""startOffset"": 10,
-        ""endOffset"": 22
-      },
-      ""flows"": [],
-      ""status"": ""OPEN"",
-      ""message"": ""Add a 'protected' constructor or the 'static' keyword to the class declaration."",
-      ""effort"": ""10min"",
-      ""debt"": ""10min"",
-      ""author"": """",
-      ""tags"": [
-        ""design""
-      ],
-      ""creationDate"": ""2019-01-11T11:16:30+0100"",
-      ""updateDate"": ""2019-01-11T11:16:30+0100"",
       ""type"": ""CODE_SMELL"",
       ""organization"": ""default-organization""
     },
@@ -246,16 +198,6 @@ namespace SonarQube.Client.Tests.Api
     },
     {
       ""organization"": ""default-organization"",
-      ""key"": ""shared:shared:D111C902-E7B1-4665-927E-A52E1443B8C1"",
-      ""uuid"": ""AWg8adNi_JurIR2zdSvH"",
-      ""enabled"": true,
-      ""qualifier"": ""BRC"",
-      ""name"": ""ClassLibrary1"",
-      ""longName"": ""ClassLibrary1"",
-      ""path"": ""ClassLibrary1""
-    },
-    {
-      ""organization"": ""default-organization"",
       ""key"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082:Program.cs"",
       ""uuid"": ""AWg8adNk_JurIR2zdSvM"",
       ""enabled"": true,
@@ -263,31 +205,12 @@ namespace SonarQube.Client.Tests.Api
       ""name"": ""Program.cs"",
       ""longName"": ""Program.cs"",
       ""path"": ""Program.cs""
-    },
-    {
-      ""organization"": ""default-organization"",
-      ""key"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082"",
-      ""uuid"": ""AWg8adNk_JurIR2zdSvK"",
-      ""enabled"": true,
-      ""qualifier"": ""BRC"",
-      ""name"": ""ConsoleApp1"",
-      ""longName"": ""ConsoleApp1"",
-      ""path"": ""ConsoleApp1""
-    },
-    {
-      ""organization"": ""default-organization"",
-      ""key"": ""shared"",
-      ""uuid"": ""AWg8aLQfhQTYUbm7ZplB"",
-      ""enabled"": true,
-      ""qualifier"": ""TRK"",
-      ""name"": ""shared"",
-      ""longName"": ""shared""
     }
   ]
 }
 ");
 
-            var result = await service.GetSuppressedIssuesAsync("com.github.kevinsawicki:http-request", CancellationToken.None);
+            var result = await service.GetSuppressedIssuesAsync("shared", CancellationToken.None);
 
             result.Should().HaveCount(4);
 

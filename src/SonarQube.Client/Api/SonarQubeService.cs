@@ -251,19 +251,14 @@ namespace SonarQube.Client.Api
                 },
                 token);
 
-        public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, CancellationToken token)
-        {
-            const string statusResolved = "RESOLVED";
-            var result = await InvokeRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
+        public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, CancellationToken token) =>
+            await InvokeRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
-                    request.Statuses = statusResolved;
+                    request.Statuses = "RESOLVED"; // Resolved issues will be hidden in SLVS
                 },
                 token);
-
-            return result.Where(x => x.IsResolved).ToList(); // Post-filter for old API
-        }
 
         public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey, DateTimeOffset eventsSince,
             CancellationToken token) =>
