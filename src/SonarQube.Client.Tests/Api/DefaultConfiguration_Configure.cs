@@ -56,7 +56,7 @@ namespace SonarQube.Client.Tests.Api
                     "Registered SonarQube.Client.Api.Requests.V6_60.GetNotificationsRequest for 6.6",
                     "Registered SonarQube.Client.Api.Requests.V6_60.GetRoslynExportProfileRequest for 6.6",
                     "Registered SonarQube.Client.Api.Requests.V7_00.GetOrganizationsRequest for 7.0",
-                    "Registered SonarQube.Client.Api.Requests.V7_20.GetIssuesRequest for 7.2",
+                    "Registered SonarQube.Client.Api.Requests.V7_20.GetIssuesRequestWrapper for 7.2",
                 });
         }
     }

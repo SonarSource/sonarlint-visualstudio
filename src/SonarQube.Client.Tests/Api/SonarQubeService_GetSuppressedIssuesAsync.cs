@@ -73,7 +73,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&p=1&ps=500", @"
+            SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=CODE_SMELL&p=1&ps=500", @"
 {
   ""total"": 5,
   ""p"": 1,
@@ -104,7 +104,22 @@ namespace SonarQube.Client.Tests.Api
       ""updateDate"": ""2019-01-11T11:28:22+0100"",
       ""type"": ""CODE_SMELL"",
       ""organization"": ""default-organization""
-    },
+    }
+  ],
+  ""components"": [ ]
+}
+");
+            SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=BUG&p=1&ps=500", @"
+{
+  ""total"": 5,
+  ""p"": 1,
+  ""ps"": 100,
+  ""paging"": {
+    ""pageIndex"": 1,
+    ""pageSize"": 100,
+    ""total"": 5
+  },
+  ""issues"": [
     {
       ""key"": ""AWg8adcV_JurIR2zdSvR"",
       ""rule"": ""csharpsquid:S1118"",
@@ -132,9 +147,36 @@ namespace SonarQube.Client.Tests.Api
       ],
       ""creationDate"": ""2019-01-11T11:16:30+0100"",
       ""updateDate"": ""2019-01-11T11:26:39+0100"",
-      ""type"": ""CODE_SMELL"",
+      ""type"": ""BUG"",
       ""organization"": ""default-organization""
-    },
+    }
+  ],
+  ""components"": [
+    {
+      ""organization"": ""default-organization"",
+      ""key"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082:Program.cs"",
+      ""uuid"": ""AWg8adNk_JurIR2zdSvM"",
+      ""enabled"": true,
+      ""qualifier"": ""FIL"",
+      ""name"": ""Program.cs"",
+      ""longName"": ""Program.cs"",
+      ""path"": ""Program.cs""
+    }
+  ]
+}
+");
+
+            SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=VULNERABILITY&p=1&ps=500", @"
+{
+  ""total"": 5,
+  ""p"": 1,
+  ""ps"": 100,
+  ""paging"": {
+    ""pageIndex"": 1,
+    ""pageSize"": 100,
+    ""total"": 5
+  },
+  ""issues"": [
     {
       ""key"": ""AWg9DV27DpKqrfA7luen"",
       ""rule"": ""csharpsquid:S1451"",
@@ -151,7 +193,7 @@ namespace SonarQube.Client.Tests.Api
       ""tags"": [],
       ""creationDate"": ""2019-01-11T13:18:25+0100"",
       ""updateDate"": ""2019-01-11T14:15:53+0100"",
-      ""type"": ""CODE_SMELL"",
+      ""type"": ""VULNERABILITY"",
       ""organization"": ""default-organization"",
       ""fromHotspot"": false
     },
@@ -181,7 +223,7 @@ namespace SonarQube.Client.Tests.Api
       ],
       ""creationDate"": ""2019-01-11T11:16:30+0100"",
       ""updateDate"": ""2019-01-11T11:26:55+0100"",
-      ""type"": ""CODE_SMELL"",
+      ""type"": ""VULNERABILITY"",
       ""organization"": ""default-organization""
     }
   ],
@@ -195,16 +237,6 @@ namespace SonarQube.Client.Tests.Api
       ""name"": ""SharedClass1.cs"",
       ""longName"": ""SharedProject1/SharedClass1.cs"",
       ""path"": ""SharedProject1/SharedClass1.cs""
-    },
-    {
-      ""organization"": ""default-organization"",
-      ""key"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082:Program.cs"",
-      ""uuid"": ""AWg8adNk_JurIR2zdSvM"",
-      ""enabled"": true,
-      ""qualifier"": ""FIL"",
-      ""name"": ""Program.cs"",
-      ""longName"": ""Program.cs"",
-      ""path"": ""Program.cs""
     }
   ]
 }
@@ -256,7 +288,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&p=1&ps=500", "", HttpStatusCode.NotFound);
+            SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&types=CODE_SMELL&p=1&ps=500", "", HttpStatusCode.NotFound);
 
             Func<Task<IList<SonarQubeIssue>>> func = async () =>
                 await service.GetSuppressedIssuesAsync("project1", CancellationToken.None);
@@ -272,7 +304,7 @@ namespace SonarQube.Client.Tests.Api
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=1&ps=500", $@"
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=CODE_SMELL&p=1&ps=500", $@"
 {{
   ""paging"": {{
     ""pageIndex"": 1,
@@ -287,7 +319,7 @@ namespace SonarQube.Client.Tests.Api
   ]
 }}");
 
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=2&ps=500", $@"
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=CODE_SMELL&p=2&ps=500", $@"
 {{
   ""paging"": {{
     ""pageIndex"": 2,
@@ -302,7 +334,7 @@ namespace SonarQube.Client.Tests.Api
   ]
 }}");
 
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&p=3&ps=500", $@"
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=CODE_SMELL&p=3&ps=500", $@"
 {{
   ""paging"": {{
     ""pageIndex"": 3,
@@ -317,6 +349,27 @@ namespace SonarQube.Client.Tests.Api
   ]
 }}");
 
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=BUG&p=1&ps=500", $@"
+{{
+  ""paging"": {{
+    ""pageIndex"": 1,
+    ""pageSize"": 500,
+    ""total"": 3
+  }},
+  ""issues"": [ ],
+  ""components"": [ ]
+}}");
+
+            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=VULNERABILITY&p=1&ps=500", $@"
+{{
+  ""paging"": {{
+    ""pageIndex"": 1,
+    ""pageSize"": 500,
+    ""total"": 3
+  }},
+  ""issues"": [ ],
+  ""components"": [ ]
+}}");
 
             var result = await service.GetSuppressedIssuesAsync("simplcom", CancellationToken.None);
 

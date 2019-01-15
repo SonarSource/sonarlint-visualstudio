@@ -34,6 +34,11 @@ namespace SonarQube.Client.Api.Requests.V7_20
         [JsonProperty("statuses")]
         public string Statuses { get; set; }
 
+        // This property is not present in the IGetIssuesRequest interface, it is meant to be
+        // set by the GetIssuesRequestWrapper to add additional parameters to the API calls.
+        [JsonProperty("types")]
+        public string Types { get; set; }
+
         protected override string Path => "api/issues/search";
 
         protected override SonarQubeIssue[] ParseResponse(string response)
