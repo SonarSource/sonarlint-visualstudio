@@ -928,6 +928,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to check out files for editing. Error flags: {0}.
+        /// </summary>
+        public static string SCCFS_FailedToCheckOutFilesForEditing {
+            get {
+                return ResourceManager.GetString("SCCFS_FailedToCheckOutFilesForEditing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to check out files for saving. Error code: {0}.
+        /// </summary>
+        public static string SCCFS_FailedToCheckOutFilesForSave {
+            get {
+                return ResourceManager.GetString("SCCFS_FailedToCheckOutFilesForSave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select a SonarQube project and bind it to the current solution..
         /// </summary>
         public static string SelectProjectInstruction {

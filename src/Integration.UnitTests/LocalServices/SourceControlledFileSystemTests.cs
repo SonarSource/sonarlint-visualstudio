@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsQueryEditQuerySave2 queryEditAndSave;
         private ConfigurableFileSystem fileSystem;
+        private TestLogger logger;
 
         [TestInitialize]
         public void TestInitialize()
@@ -43,19 +44,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.queryEditAndSave = new ConfigurableVsQueryEditQuerySave2();
             this.serviceProvider.RegisterService(typeof(SVsQueryEditQuerySave), this.queryEditAndSave);
             this.fileSystem = new ConfigurableFileSystem();
+            this.logger = new TestLogger();
         }
 
         [TestMethod]
         public void SourceControlledFileSystem_ArgCheck()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SourceControlledFileSystem(null));
+            Exceptions.Expect<ArgumentNullException>(() => new SourceControlledFileSystem(null, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new SourceControlledFileSystem(this.serviceProvider, null));
+
         }
 
         [TestMethod]
         public void SourceControlledFileSystem_FileExistOrQueuedToBeWritten()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file = @"Z:\Y\XXX \n.lll";
 
             // Case 1: file exists
@@ -82,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_QueueFileWrite_QueryNewFile()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file = @"Z:\Y\XXX \n.lll";
             bool pendExecuted = false;
 
@@ -100,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_QueueFileWrite_QueryEditFile()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file = @"Z:\Y\XXX \n.lll";
             this.fileSystem.RegisterFile(file);
             bool pendExecuted = false;
@@ -119,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_QueueFileWrite_WriteQueuedFiles_ExecutionOrder()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
             string file3 = @"Z:\Y\XXX \2.lll";
@@ -142,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_CheckoutFileWhenWhenDebugging()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             this.fileSystem.RegisterFile(file1);
             this.queryEditAndSave.VerifyQueryEditFlags |= (uint)VsQueryEditFlags.NoReload;
@@ -160,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_CheckoutFileWhenBuilding()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             this.fileSystem.RegisterFile(file1);
             this.queryEditAndSave.VerifyQueryEditFlags |= (uint)VsQueryEditFlags.NoReload;
@@ -178,10 +182,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_QueryEditFilesFailed()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             this.fileSystem.RegisterFile(file1);
             this.queryEditAndSave.QueryEditFilesVerdict = tagVSQueryEditResult.QER_EditNotOK;
+            this.queryEditAndSave.QueryEditFilesMoreInfo = tagVSQueryEditResultFlags.QER_EditNotPossible | tagVSQueryEditResultFlags.QER_NoisyPromptRequired;
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
@@ -189,13 +194,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             this.queryEditAndSave.AssertEditRequested(file1);
+            this.logger.AssertPartialOutputStrings("QER_NoisyPromptRequired, QER_EditNotPossible"); // expecting a logged message containing the "more info" code
         }
 
         [TestMethod]
         public void SourceControlledFileSystem_WriteQueuedFiles_NoisyPromptForCreateOperationIsRequired()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             this.queryEditAndSave.QuerySaveFilesVerification = flags =>
             {
@@ -220,10 +226,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void SourceControlledFileSystem_WriteQueuedFiles_Failed()
+        {
+            // Arrange
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            string file1 = @"Z:\Y\XXX \1.lll";
+            this.queryEditAndSave.QuerySaveFilesVerification = flags =>
+            {
+                return tagVSQuerySaveResult.QSR_NoSave_UserCanceled;
+            };
+            testSubject.QueueFileWrite(file1, () => true);
+
+            // Act
+            testSubject.WriteQueuedFiles().Should().BeFalse("Should not have attempted to write the files");
+
+            // Assert
+            this.queryEditAndSave.AssertCreateRequested(file1);
+            this.logger.AssertPartialOutputStrings(tagVSQuerySaveResult.QSR_NoSave_UserCanceled.ToString()); // expecting the result code in the output message
+        }
+
+        [TestMethod]
         public void SourceControlledFileSystem_WriteQueuedFiles_Batching()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
             string file3 = @"Z:\Y\XXX \2.lll";
@@ -259,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_FailureInWriteOperation()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.fileSystem);
+            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
 

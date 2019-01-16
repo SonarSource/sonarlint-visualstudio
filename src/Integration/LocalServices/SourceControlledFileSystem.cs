@@ -36,25 +36,31 @@ namespace SonarLint.VisualStudio.Integration
     internal class SourceControlledFileSystem : ISourceControlledFileSystem
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly ILogger logger;
         private readonly IFileSystem fileSystemWrapper;
         private readonly HashSet<string> filesEdit = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> filesCreate = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Queue<Func<bool>> fileWriteOperations = new Queue<Func<bool>>();
         private IVsQueryEditQuerySave2 queryFileOperation;
 
-        public SourceControlledFileSystem(IServiceProvider serviceProvider)
-            : this(serviceProvider, null)
+        public SourceControlledFileSystem(IServiceProvider serviceProvider, ILogger logger)
+            : this(serviceProvider, logger, null)
         {
         }
 
-        internal /*for testing purposes*/ SourceControlledFileSystem(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        internal /*for testing purposes*/ SourceControlledFileSystem(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
 
             this.serviceProvider = serviceProvider;
+            this.logger = logger;
             this.fileSystemWrapper = fileSystem ?? this;
         }
 
@@ -158,7 +164,12 @@ namespace SonarLint.VisualStudio.Integration
             uint moreInfo;
             ErrorHandler.ThrowOnFailure(this.QueryFileOperation.QueryEditFiles((uint)flags, fileNames.Length, fileNames, null, null, out verdict, out moreInfo));
 
-            return tagVSQueryEditResult.QER_EditOK == (tagVSQueryEditResult)verdict;
+            var success = (tagVSQueryEditResult.QER_EditOK == (tagVSQueryEditResult)verdict);
+            if (!success)
+            {
+                this.logger.WriteLine(Resources.Strings.SCCFS_FailedToCheckOutFilesForEditing, (tagVSQueryEditResultFlags)moreInfo);
+            }
+            return success;
         }
 
         private bool CheckoutForSave(params string[] fileNames)
@@ -175,7 +186,13 @@ namespace SonarLint.VisualStudio.Integration
                 saveResult = (tagVSQuerySaveResult)result;
             }
 
-            return tagVSQuerySaveResult.QSR_SaveOK == saveResult;
+            var success = (tagVSQuerySaveResult.QSR_SaveOK == saveResult);
+            if (!success)
+            {
+                this.logger.WriteLine(Resources.Strings.SCCFS_FailedToCheckOutFilesForSave, saveResult);
+            }
+            return success;
+
         }
         #endregion
     }
