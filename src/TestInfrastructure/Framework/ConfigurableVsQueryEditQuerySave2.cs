@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public tagVSQueryEditResultFlags QueryEditFilesMoreInfo { get; set; }
 
-        public uint VerifyQueryEditFlags { get; set; } = (uint)(VsQueryEditFlags.SilentMode | VsQueryEditFlags.DetectAnyChangedFile);
+        public uint VerifyQueryEditFlags { get; set; } = (uint)(VsQueryEditFlags.SilentMode | VsQueryEditFlags.DetectAnyChangedFile | VsQueryEditFlags.ForceEdit_NoPrompting);
 
         public void AssertEditRequested(params string[] expectedFiles)
         {

@@ -152,7 +152,10 @@ namespace SonarLint.VisualStudio.Integration
         #region Helpers
         private bool CheckoutForEdit(params string[] fileNames)
         {
-            VsQueryEditFlags flags = VsQueryEditFlags.SilentMode | VsQueryEditFlags.DetectAnyChangedFile;
+            VsQueryEditFlags flags = VsQueryEditFlags.SilentMode | VsQueryEditFlags.DetectAnyChangedFile |
+                // Force no prompting here to fix SLVS#801 (otherwise TFS would prompt about the slconfig
+                // and generated ruleset files in new connected mode that are not in the solution)
+                VsQueryEditFlags.ForceEdit_NoPrompting;
 
             if (KnownUIContexts.DebuggingContext.IsActive || KnownUIContexts.SolutionBuildingContext.IsActive)
             {
