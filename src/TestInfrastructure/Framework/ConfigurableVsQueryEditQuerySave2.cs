@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             this.editRequested.AddRange(rgpszMkDocuments);
             pfEditVerdict = (uint)this.QueryEditFilesVerdict;
-            prgfMoreInfo = this.QueryEditFilesMoreInfo;
+            prgfMoreInfo = (uint)this.QueryEditFilesMoreInfo;
 
             rgfQueryEdit.Should().Be(this.VerifyQueryEditFlags, "Unexpected flags: " + ((VsQueryEditFlags)rgfQueryEdit).ToString());
 
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public tagVSQueryEditResult QueryEditFilesVerdict { get; set; } = tagVSQueryEditResult.QER_EditOK;
 
-        public uint QueryEditFilesMoreInfo { get; set; }
+        public tagVSQueryEditResultFlags QueryEditFilesMoreInfo { get; set; }
 
         public uint VerifyQueryEditFlags { get; set; } = (uint)(VsQueryEditFlags.SilentMode | VsQueryEditFlags.DetectAnyChangedFile);
 

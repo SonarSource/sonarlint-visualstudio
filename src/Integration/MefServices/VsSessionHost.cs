@@ -321,7 +321,7 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, new SolutionBindingInformationProvider(this))));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
-            var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this));
+            var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));
             this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
             this.localServices.Add(typeof(IFileSystem), sccFs);
 

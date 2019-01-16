@@ -751,4 +751,12 @@ This is the general format to use when writing errors to output window or when t
   <data name="Suppression_FinishedChecking" xml:space="preserve">
     <value>Number of suppressions found: {0}</value>
   </data>
+  <data name="SCCFS_FailedToCheckOutFilesForEditing" xml:space="preserve">
+    <value>Failed to check out files for editing. Error flags: {0}</value>
+    <comment>Output window message showing the tagVSQueryEditResultFlags enum value(s)</comment>
+  </data>
+  <data name="SCCFS_FailedToCheckOutFilesForSave" xml:space="preserve">
+    <value>Failed to check out files for saving. Error code: {0}</value>
+    <comment>Output window message showing the tagVSQuerySaveResult enum value</comment>
+  </data>
 </root>
