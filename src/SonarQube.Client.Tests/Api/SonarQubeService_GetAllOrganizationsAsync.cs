@@ -191,5 +191,20 @@ namespace SonarQube.Client.Tests.Api
             result.Select(x => x.Key).Should().BeEquivalentTo(new[] { "foo-company", "bar-company" });
             result.Select(x => x.Name).Should().BeEquivalentTo(new[] { "Foo Company", "Bar Company" });
         }
+
+        [TestMethod]
+        public void GetAllOrganizationsAsync_NotConnected()
+        {
+            // No calls to Connect
+            // No need to setup request, the operation should fail
+
+            Func<Task<IList<Models.SonarQubeOrganization>>> func = async () =>
+                await service.GetAllOrganizationsAsync(CancellationToken.None);
+
+            func.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("This operation expects the service to be connected.");
+
+            logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
+        }
     }
 }

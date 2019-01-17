@@ -40,9 +40,9 @@ namespace SonarQube.Client.Api
         private readonly HttpMessageHandler messageHandler;
         private readonly RequestFactory requestFactory;
         private readonly string userAgent;
+        private readonly ILogger logger;
 
         private HttpClient httpClient;
-
         private Version sonarQubeVersion;
 
         public bool HasOrganizationsFeature
@@ -57,7 +57,7 @@ namespace SonarQube.Client.Api
 
         public bool IsConnected { get; private set; }
 
-        public SonarQubeService(HttpMessageHandler messageHandler, RequestFactory requestFactory, string userAgent)
+        public SonarQubeService(HttpMessageHandler messageHandler, RequestFactory requestFactory, string userAgent, ILogger logger)
         {
             if (messageHandler == null)
             {
@@ -71,9 +71,14 @@ namespace SonarQube.Client.Api
             {
                 throw new ArgumentNullException(nameof(userAgent));
             }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
             this.messageHandler = messageHandler;
             this.requestFactory = requestFactory;
             this.userAgent = userAgent;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -109,6 +114,9 @@ namespace SonarQube.Client.Api
 
         public async Task ConnectAsync(ConnectionInformation connection, CancellationToken token)
         {
+            logger.Info($"Connecting to '{connection.ServerUri}'.");
+            logger.Debug($"IsConnected is {IsConnected}.");
+
             httpClient = new HttpClient(messageHandler)
             {
                 BaseAddress = connection.ServerUri,
@@ -123,8 +131,14 @@ namespace SonarQube.Client.Api
 
             IsConnected = true;
 
+            logger.Debug($"Getting the version of SonarQube...");
+
             var versionResponse = await InvokeRequestAsync<IGetVersionRequest, string>(token);
             sonarQubeVersion = Version.Parse(versionResponse);
+
+            logger.Info($"Connected to SonarQube '{sonarQubeVersion}'.");
+
+            logger.Debug($"Validating the credentials...");
 
             var credentialResponse = await InvokeRequestAsync<IValidateCredentialsRequest, bool>(token);
             if (!credentialResponse)
@@ -132,10 +146,15 @@ namespace SonarQube.Client.Api
                 IsConnected = false;
                 throw new InvalidOperationException("Invalid credentials");
             }
+
+            logger.Debug($"Credentials accepted.");
         }
 
         public void Disconnect()
         {
+            logger.Info($"Disconnecting...");
+            logger.Debug($"Current state before disconnecting is '{(IsConnected ? "Connected" : "Disconnected")}'.");
+
             // Don't dispose the HttpClient when disconnecting. We'll need it if
             // the caller connects to another server.
             IsConnected = false;
@@ -145,6 +164,7 @@ namespace SonarQube.Client.Api
         {
             if (!IsConnected)
             {
+                logger.Error("The service is expected to be connected.");
                 throw new InvalidOperationException("This operation expects the service to be connected.");
             }
         }
@@ -269,8 +289,10 @@ namespace SonarQube.Client.Api
 
         protected virtual void Dispose(bool disposing)
         {
+            logger.Debug("Disposing SonarQubeService...");
             if (!disposedValue)
             {
+                logger.Debug("SonarQubeService was not disposed, continuing with dispose...");
                 if (disposing)
                 {
                     IsConnected = false;

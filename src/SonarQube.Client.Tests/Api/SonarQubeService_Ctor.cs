@@ -35,14 +35,19 @@ namespace SonarQube.Client.Tests.Api
         {
             Action action;
 
-            action = () => new SonarQubeService(null, new RequestFactory(), string.Empty);
+            var logger = new TestLogger();
+
+            action = () => new SonarQubeService(null, new RequestFactory(logger), string.Empty, logger);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("messageHandler");
 
-            action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, null, string.Empty);
+            action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, null, string.Empty, logger);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("requestFactory");
 
-            action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, new RequestFactory(), null);
+            action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, new RequestFactory(logger), null, logger);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userAgent");
+
+            action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, new RequestFactory(logger), string.Empty, null);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
     }
 }

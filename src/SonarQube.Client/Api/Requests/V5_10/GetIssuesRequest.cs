@@ -31,7 +31,7 @@ using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 using SonarQube.Client.Services;
 
-namespace SonarQube.Client.Api.V5_10
+namespace SonarQube.Client.Api.Requests.V5_10
 {
     public class GetIssuesRequest : RequestBase<SonarQubeIssue[]>, IGetIssuesRequest
     {
@@ -81,7 +81,7 @@ namespace SonarQube.Client.Api.V5_10
         }
 
         private static SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(issue.Path, issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey, issue.RuleKey, 
+            new SonarQubeIssue(issue.Path, issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey, issue.RuleKey,
                 issue.Status == "RESOLVED");
     }
 }

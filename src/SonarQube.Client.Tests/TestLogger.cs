@@ -18,27 +18,36 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using SonarQube.Client.Helpers;
 
-namespace SonarQube.Client
+namespace SonarQube.Client.Tests
 {
-    /// <summary>
-    /// Base request interface, do not directly implement.
-    /// </summary>
-    public interface IRequest
+    public class TestLogger : ILogger
     {
-        ILogger Logger { get; set; }
-    }
+        public List<string> DebugMessages { get; } = new List<string>();
+        public List<string> ErrorMessages { get; } = new List<string>();
+        public List<string> InfoMessages { get; } = new List<string>();
+        public List<string> WarningMessages { get; } = new List<string>();
 
-    /// <summary>
-    /// Implement this interface on SonarQube request classes.
-    /// </summary>
-    /// <typeparam name="TResponse">The type of the request result.</typeparam>
-    public interface IRequest<TResponse> : IRequest
-    {
-        Task<TResponse> InvokeAsync(HttpClient httpClient, CancellationToken token);
+        public void Debug(string message)
+        {
+            DebugMessages.Add(message);
+        }
+
+        public void Error(string message)
+        {
+            ErrorMessages.Add(message);
+        }
+
+        public void Info(string message)
+        {
+            InfoMessages.Add(message);
+        }
+
+        public void Warning(string message)
+        {
+            WarningMessages.Add(message);
+        }
     }
 }

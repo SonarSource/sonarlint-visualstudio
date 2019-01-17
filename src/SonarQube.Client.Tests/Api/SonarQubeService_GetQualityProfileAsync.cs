@@ -525,13 +525,28 @@ namespace SonarQube.Client.Tests.Api
   }
 }");
 
-            var action = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.VbNet,
+            var func = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.VbNet,
                 CancellationToken.None));
 
-            action.Should().ThrowExactly<InvalidOperationException>().And
+            func.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().Be("The SonarVB plugin is not installed on the connected SonarQube.");
 
             messageHandler.VerifyAll();
+        }
+
+        [TestMethod]
+        public void GetQualityProfile_NotConnected()
+        {
+            // No calls to Connect
+            // No need to setup request, the operation should fail
+
+            var func = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.VbNet,
+                CancellationToken.None));
+
+            func.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("This operation expects the service to be connected.");
+
+            logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
     }
 }

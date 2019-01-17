@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -100,6 +101,12 @@ namespace SonarQube.Client.Tests.Api
             result.Should().BeNull();
 
             messageHandler.VerifyAll();
+
+            logger.DebugMessages.Should().Contain(
+                new[]
+                {
+                    "Notifications not enabled on SonarQube. This feature requires Developer Edition or higher.",
+                });
         }
 
         [TestMethod]
@@ -117,6 +124,12 @@ namespace SonarQube.Client.Tests.Api
             result.Should().BeEmpty();
 
             messageHandler.VerifyAll();
+
+            logger.DebugMessages.Should().Contain(
+                new[]
+                {
+                    $"Unexpected HttpStatusCode {HttpStatusCode.InternalServerError}.",
+                });
         }
 
         [TestMethod]
@@ -129,6 +142,21 @@ namespace SonarQube.Client.Tests.Api
 
             action.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().Be("Could not find compatible implementation of 'IGetNotificationsRequest' for SonarQube 6.5.0.0.");
+        }
+
+        [TestMethod]
+        public void GetNotifications_NotConnected()
+        {
+            // No calls to Connect
+            // No need to setup request, the operation should fail
+
+            Func<Task<IList<Models.SonarQubeNotification>>> func = async () =>
+                await service.GetNotificationEventsAsync("my_project", new DateTimeOffset(), CancellationToken.None);
+
+            func.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("This operation expects the service to be connected.");
+
+            logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
     }
 }

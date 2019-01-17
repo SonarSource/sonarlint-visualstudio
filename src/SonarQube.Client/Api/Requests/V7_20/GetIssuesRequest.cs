@@ -24,7 +24,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Models;
 
-namespace SonarQube.Client.Api.V7_20
+namespace SonarQube.Client.Api.Requests.V7_20
 {
     public class GetIssuesRequest : PagedRequestBase<SonarQubeIssue>, IGetIssuesRequest
     {

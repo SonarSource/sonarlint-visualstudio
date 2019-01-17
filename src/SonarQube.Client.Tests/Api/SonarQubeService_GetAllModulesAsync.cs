@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -118,7 +120,7 @@ namespace SonarQube.Client.Tests.Api
 
             result[1].Key.Should().Be("sq-project-key:sq-project-key:50934C7A-2751-4675-91C4-CFD37C8BF57C");
             result[1].Name.Should().Be("Project1");
-            result[1].RelativePathToRoot.Should().BeNull();            
+            result[1].RelativePathToRoot.Should().BeNull();
         }
 
         [TestMethod]
@@ -171,6 +173,21 @@ namespace SonarQube.Client.Tests.Api
             messageHandler.VerifyAll();
 
             result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void GetModules_NotConnected()
+        {
+            // No calls to Connect
+            // No need to setup request, the operation should fail
+
+            Func<Task<IList<Models.SonarQubeModule>>> func = async () =>
+                await service.GetAllModulesAsync("myProject", CancellationToken.None);
+
+            func.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("This operation expects the service to be connected.");
+
+            logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
     }
 }

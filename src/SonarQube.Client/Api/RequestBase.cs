@@ -47,6 +47,9 @@ namespace SonarQube.Client
         [JsonIgnore]
         protected virtual HttpMethod HttpMethod => HttpMethod.Get;
 
+        [JsonIgnore]
+        public ILogger Logger { get; set; }
+
         /// <summary>
         /// Override this method to deserialize the returned string response.
         /// </summary>
@@ -77,14 +80,20 @@ namespace SonarQube.Client
         /// <returns>Result instance that contains the HttpStatusCode and the deserialized request response.</returns>
         protected async Task<Result<TResponse>> InvokeUncheckedAsync(HttpClient httpClient, CancellationToken token)
         {
+            Logger.Debug("Sending Http request:");
+
             string query = QueryStringSerializer.ToQueryString(this);
 
             var pathAndQuery = string.IsNullOrEmpty(query) ? Path : $"{Path}?{query}";
 
             var httpRequest = new HttpRequestMessage(HttpMethod, new Uri(pathAndQuery, UriKind.Relative));
 
+            Logger.Debug(httpRequest.ToString());
+
             var httpResponse = await httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, token)
                 .ConfigureAwait(false);
+
+            Logger.Debug($"Response with HTTP status code '{httpResponse.StatusCode}' received.");
 
             return await ReadResponseAsync(httpResponse);
         }
@@ -104,6 +113,8 @@ namespace SonarQube.Client
 
             var responseString = await httpResponse.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
+
+            Logger.Debug(responseString);
 
             return new Result<TResponse>(httpResponse, ParseResponse(responseString));
         }

@@ -182,5 +182,20 @@ namespace SonarQube.Client.Tests.Api
                     null,
                 });
         }
+
+        [TestMethod]
+        public void GetProperties_NotConnected()
+        {
+            // No calls to Connect
+            // No need to setup request, the operation should fail
+
+            Func<Task<IList<Models.SonarQubeProperty>>> func = async () =>
+                await service.GetAllPropertiesAsync(CancellationToken.None);
+
+            func.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("This operation expects the service to be connected.");
+
+            logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
+        }
     }
 }
