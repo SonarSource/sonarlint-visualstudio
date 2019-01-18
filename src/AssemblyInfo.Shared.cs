@@ -22,12 +22,12 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 // Note: keep the version numbers in sync with the VSIX (source.extension.manifest)
-[assembly: AssemblyVersion("4.7.0")]
-[assembly: AssemblyFileVersion("4.7.0.0")] // This should exactly match the VSIX version
-[assembly: AssemblyInformationalVersion("Version:4.7.0.0 Branch:not-set Sha1:not-set")]
+[assembly: AssemblyVersion("4.7.28408")]
+[assembly: AssemblyFileVersion("4.7.28408.50")] // This should exactly match the VSIX version
+[assembly: AssemblyInformationalVersion("Version:4.7.28408.50 Branch:not-set Sha1:not-set")]
 [assembly: AssemblyConfiguration("")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyProduct("SonarLint for Visual Studio")]
+[assembly: AssemblyProduct("SonarLint for Visual Studio - VS2019 Preview")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCulture("")]
 [assembly: AssemblyCompany("SonarSource")]
