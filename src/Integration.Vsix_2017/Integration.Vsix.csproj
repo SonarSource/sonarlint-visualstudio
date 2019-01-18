@@ -1,9 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <MinimumVisualStudioVersion>16.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <TargetFrameworkProfile />
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>14.0</OldToolsVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -86,13 +91,13 @@
     <Compile Include="$(ReferencedDirectory)\Settings\SonarLintSettings.cs">
       <Link>Settings\SonarLintSettings.cs</Link>
     </Compile>
-    <Compile Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmCommandFacade.cs">
+    <Compile Include="..\Integration.Vsix\Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SqmCommandFacade.tt</DependentUpon>
       <Link>Telemetry\GeneratedCode\SqmCommandFacade.cs</Link>
     </Compile>
-    <Compile Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmOleCommandTarget.cs">
+    <Compile Include="..\Integration.Vsix\Telemetry\GeneratedCode\SqmOleCommandTarget.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SqmOleCommandTarget.tt</DependentUpon>
@@ -101,7 +106,7 @@
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="$(ReferencedDirectory)\Resources\Strings.Designer.cs">
+    <Compile Include="..\Integration.Vsix\Resources\Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
@@ -216,7 +221,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <Link>Resources\sonarlint_32.png</Link>
     </Content>
-    <Content Include="$(ReferencedDirectory)\Telemetry\GeneratedCode\SqmVsCommands.vsct">
+    <Content Include="..\Integration.Vsix\Telemetry\GeneratedCode\SqmVsCommands.vsct">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SqmVsCommands.tt</DependentUpon>
