@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SonarQube.Client.Helpers;
 
 namespace SonarQube.Client
 {
@@ -35,11 +36,15 @@ namespace SonarQube.Client
         private readonly Dictionary<Type, SortedList<Version, Func<IRequest>>> registrations =
             new Dictionary<Type, SortedList<Version, Func<IRequest>>>();
 
-        private Action<string> Log { get; }
+        private readonly ILogger logger;
 
-        public RequestFactory(Action<string> log = null)
+        public RequestFactory(ILogger logger)
         {
-            Log = log ?? (s => { });
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+            this.logger = logger;
         }
 
         /// <summary>
@@ -74,11 +79,13 @@ namespace SonarQube.Client
             }
             else if (versionRequestMap.ContainsKey(parsedVersion))
             {
+                logger.Error($"Registration for {typeof(TRequest).Name} with version {version} already exists.");
                 throw new InvalidOperationException(
                     $"Registration for {typeof(TRequest).Name} with version {version} already exists.");
             }
 
             versionRequestMap[parsedVersion] = () => factory();
+            logger.Debug($"Registered {typeof(TRequestImpl).FullName} for {parsedVersion}");
 
             return this;
         }
@@ -98,7 +105,7 @@ namespace SonarQube.Client
             SortedList<Version, Func<IRequest>> map;
             if (registrations.TryGetValue(typeof(TRequest), out map))
             {
-                Log($"Looking up implementation of '{typeof(TRequest).Name}' for version '{version}' on thread '{System.Threading.Thread.CurrentThread.ManagedThreadId}'");
+                logger.Debug($"Looking up implementation of '{typeof(TRequest).Name}' for version '{version}' on thread '{System.Threading.Thread.CurrentThread.ManagedThreadId}'");
 
                 var factory = map
                     .LastOrDefault(entry => version == null || entry.Key <= version)
@@ -107,15 +114,18 @@ namespace SonarQube.Client
                 if (factory != null)
                 {
                     var request = (TRequest)factory();
+                    request.Logger = logger;
 
-                    Log($"Created request of type '{request.GetType().FullName}'.");
+                    logger.Debug($"Created request of type '{request.GetType().FullName}'.");
 
                     return request;
                 }
 
+                logger.Error($"Could not find compatible implementation of '{typeof(TRequest).Name}' for SonarQube {version}.");
                 throw new InvalidOperationException($"Could not find compatible implementation of '{typeof(TRequest).Name}' for SonarQube {version}.");
             }
 
+            logger.Error($"Could not find factory for '{typeof(TRequest).Name}'.");
             throw new InvalidOperationException($"Could not find factory for '{typeof(TRequest).Name}'.");
         }
     }

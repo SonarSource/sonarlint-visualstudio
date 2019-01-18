@@ -55,6 +55,8 @@ namespace SonarQube.Client.Api
 
                 result.AddRange(pageResult.Value);
 
+                Logger.Debug($"Received {pageResult.Value.Length} items.");
+
                 Page++;
             }
             while (pageResult.Value.Length >= MaximumPageSize);

@@ -49,6 +49,8 @@ namespace SonarQube.Client.Api.Requests.V5_20
 
             if (result.StatusCode == HttpStatusCode.NotFound)
             {
+                Logger.Info("This project has no quality profile. Downloading the default quality profile.");
+
                 // The project has not been scanned yet, get default quality profile
                 ProjectKey = null;
 

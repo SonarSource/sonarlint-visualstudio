@@ -38,6 +38,8 @@ namespace SonarQube.Client.Tests.Api
     {
         protected Mock<HttpMessageHandler> messageHandler;
         protected SonarQubeService service;
+        protected TestLogger logger;
+
         private RequestFactory requestFactory;
 
         private static readonly Uri BasePath = new Uri("http://localhost");
@@ -47,12 +49,14 @@ namespace SonarQube.Client.Tests.Api
         [TestInitialize]
         public void TestInitialize()
         {
+            logger = new TestLogger();
+
             messageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
 
-            requestFactory = new RequestFactory();
+            requestFactory = new RequestFactory(logger);
             DefaultConfiguration.Configure(requestFactory);
 
-            service = new SonarQubeService(messageHandler.Object, requestFactory, UserAgent);
+            service = new SonarQubeService(messageHandler.Object, requestFactory, UserAgent, logger);
         }
 
         protected void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK)
@@ -79,8 +83,14 @@ namespace SonarQube.Client.Tests.Api
                 new ConnectionInformation(BasePath, "valeri", new SecureString()),
                 CancellationToken.None);
 
-            // Sanity check
+            // Sanity checks
             service.IsConnected.Should().BeTrue();
+            logger.InfoMessages.Should().Contain(
+                new[]
+                {
+                    "Connecting to 'http://localhost/'.",
+                    $"Connected to SonarQube '{version}'.",
+                });
         }
     }
 }

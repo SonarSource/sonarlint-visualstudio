@@ -403,6 +403,21 @@ namespace SonarQube.Client.Tests.Api
             messageHandler.VerifyAll();
         }
 
+        [TestMethod]
+        public void GetSuppressedIssuesAsync_NotConnected()
+        {
+            // No calls to Connect
+            // No need to setup request, the operation should fail
+
+            Func<Task<IList<Models.SonarQubeIssue>>> func = async () =>
+                await service.GetSuppressedIssuesAsync("simplcom", CancellationToken.None);
+
+            func.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("This operation expects the service to be connected.");
+
+            logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
+        }
+
         private static string CreateIssueJson(int number) =>
             "{ " +
             $"\"key\": \"{number}\", " +

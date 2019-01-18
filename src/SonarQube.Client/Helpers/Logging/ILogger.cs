@@ -1,5 +1,5 @@
 ﻿/*
- * SonarLint for Visual Studio
+ * SonarQube Client
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -18,26 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace SonarLint.VisualStudio.Integration.Helpers
+namespace SonarQube.Client.Helpers
 {
-    public class LoggingHttpClientHandler : HttpClientHandler
+    /// <summary>
+    /// This interface is here to avoid adding dependencies to SonarQube.Client. Create an adapter
+    /// for your actual logger where SonarQube.Client is used.
+    /// </summary>
+    public interface ILogger
     {
-        public LoggingHttpClientHandler(ILogger logger)
-        {
-            Logger = logger;
-        }
-
-        public ILogger Logger { get; }
-
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            Logger.LogDebug(request.ToString());
-
-            return base.SendAsync(request, cancellationToken);
-        }
+        void Error(string message);
+        void Warning(string message);
+        void Info(string message);
+        void Debug(string message);
     }
 }

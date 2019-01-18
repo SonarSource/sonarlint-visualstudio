@@ -51,10 +51,12 @@ namespace SonarQube.Client.Api.Requests.V6_60
                     return result.Value;
 
                 case HttpStatusCode.NotFound:
+                    Logger.Debug("Notifications not enabled on SonarQube. This feature requires Developer Edition or higher.");
                     return null; // Feature is not enabled, null will stop future checks
 
                 default:
-                    return new SonarQubeNotification[0];
+                    Logger.Debug($"Unexpected HttpStatusCode {result.StatusCode}.");
+                    return new SonarQubeNotification[0]; // Swallow the error and continue to check for notifications
             }
         }
 

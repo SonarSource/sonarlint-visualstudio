@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarQube.Client;
@@ -30,8 +31,8 @@ using SonarQube.Client.Services;
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
     /// <summary>
-    ///     This class only purposes is to avoid bringing MEF composition to the SonarQube.Client assembly which
-    ///     can be used in contexts where it is not required.
+    /// This class only purposes is to avoid bringing MEF composition to the SonarQube.Client assembly which
+    /// can be used in contexts where it is not required.
     /// </summary>
     [Export(typeof(ISonarQubeService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
@@ -40,10 +41,34 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     {
         [ImportingConstructor]
         public MefSonarQubeService(ILogger logger)
-            : base(new LoggingHttpClientHandler(logger),
-                DefaultConfiguration.Configure(new RequestFactory(s => logger.LogDebug(s))),
-                userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}")
+            : base(new HttpClientHandler(),
+                requestFactory: DefaultConfiguration.Configure(new RequestFactory(new LoggerAdapter(logger))),
+                userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
+                logger: new LoggerAdapter(logger))
         {
+        }
+
+        private class LoggerAdapter : SonarQube.Client.Helpers.ILogger
+        {
+            private readonly ILogger logger;
+
+            public LoggerAdapter(ILogger logger)
+            {
+                this.logger = logger;
+            }
+
+            public void Debug(string message) =>
+                // This will be executed only on DEBUG build.
+                logger.LogDebug($"DEBUG: {message}");
+
+            public void Error(string message) =>
+                logger.WriteLine($"ERROR: {message}");
+
+            public void Info(string message) =>
+                logger.WriteLine($"{message}");
+
+            public void Warning(string message) =>
+                logger.WriteLine($"WARNING: {message}");
         }
     }
 }

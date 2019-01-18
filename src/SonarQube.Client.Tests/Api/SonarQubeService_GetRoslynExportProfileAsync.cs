@@ -147,5 +147,21 @@ namespace SonarQube.Client.Tests.Api
             result.Deployment.NuGetPackages.Select(x => x.Id).Should().BeEquivalentTo(new[] { "SonarAnalyzer.CSharp" });
             result.Deployment.NuGetPackages.Select(x => x.Version).Should().BeEquivalentTo(new[] { "6.4.0.3322" });
         }
+
+        [TestMethod]
+        public void GetRoslynQualityProfile_NotConnected()
+        {
+            // No calls to Connect
+            // No need to setup request, the operation should fail
+
+            Func<Task<RoslynExportProfileResponse>> func = async () =>
+                await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
+                CancellationToken.None);
+
+            func.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("This operation expects the service to be connected.");
+
+            logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
+        }
     }
 }
