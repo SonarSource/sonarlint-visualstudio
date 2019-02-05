@@ -1,0 +1,6 @@
+sonarlint-visualstudio
+Copyright (C) 2016-2019 SonarSource SA
+mailto:info AT sonarsource DOT com
+
+This product includes software developed at
+SonarSource (http://www.sonarsource.com/).
