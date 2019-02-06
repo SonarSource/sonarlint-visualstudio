@@ -285,6 +285,15 @@ namespace SonarQube.Client
                 },
                 token);
 
+        public async Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey, CancellationToken token) =>
+            await InvokeRequestAsync<IGetRulesRequest, SonarQubeRule[]>(
+                request =>
+                {
+                    request.IsActive = isActive;
+                    request.QualityProfileKey = qualityProfileKey;
+                },
+                token);
+
         #region IDisposable Support
         private bool disposedValue; // To detect redundant calls
 
