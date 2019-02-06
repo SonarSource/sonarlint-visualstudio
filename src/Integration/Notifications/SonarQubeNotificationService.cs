@@ -23,7 +23,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
 namespace SonarLint.VisualStudio.Integration.Notifications

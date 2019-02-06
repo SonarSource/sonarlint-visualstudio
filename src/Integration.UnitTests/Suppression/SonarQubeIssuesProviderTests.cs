@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Suppression;
 using SonarQube.Client.Models;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
@@ -282,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             var sonarQubeIssue4 = new SonarQubeIssue("FOO/foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S4", true);
             var sonarQubeIssue5 = new SonarQubeIssue("bar/bar.cs", null, null, "message", "sqkey:sqkey:projectId", "S5", true);
 
-            SetupSolutionBinding(true, 
+            SetupSolutionBinding(true,
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4, sonarQubeIssue5 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
 
@@ -392,7 +392,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // Assert
             matches.Should().HaveCount(1);
-            matches.First().RuleId.Should().Be("S2");            
+            matches.First().RuleId.Should().Be("S2");
         }
 
         [TestMethod]
@@ -400,7 +400,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // On this test we are in an unlikely situation of having an issue suppressed only on a file(1) which is associated
             // with the root module and whose name also exists deeper in the file system hierarchy.
-            // (1) If some issue was suppressed for the file deeper in the hierarchy it wouldn't find the wrong match as we 
+            // (1) If some issue was suppressed for the file deeper in the hierarchy it wouldn't find the wrong match as we
             //     test from the longest matching to the shortest.
 
             // Arrange

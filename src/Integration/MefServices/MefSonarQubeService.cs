@@ -24,9 +24,6 @@ using System.Net.Http;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarQube.Client;
-using SonarQube.Client.Api;
-using SonarQube.Client.Api.Requests;
-using SonarQube.Client.Services;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
@@ -42,13 +39,12 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         [ImportingConstructor]
         public MefSonarQubeService(ILogger logger)
             : base(new HttpClientHandler(),
-                requestFactory: DefaultConfiguration.Configure(new RequestFactory(new LoggerAdapter(logger))),
                 userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
                 logger: new LoggerAdapter(logger))
         {
         }
 
-        private class LoggerAdapter : SonarQube.Client.Helpers.ILogger
+        private class LoggerAdapter : SonarQube.Client.Logging.ILogger
         {
             private readonly ILogger logger;
 

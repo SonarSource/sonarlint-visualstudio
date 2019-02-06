@@ -24,7 +24,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.Rules
 {

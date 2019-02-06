@@ -1,0 +1,3 @@
+[submodule "sonarqube-webclient"]
+	path = sonarqube-webclient
+	url = https://github.com/sonarsource/sonarqube-webclient-dotnet

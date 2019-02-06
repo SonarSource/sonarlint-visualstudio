@@ -353,6 +353,10 @@
     </AdditionalFiles>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj">
+      <Project>{2f23206b-7e17-41f8-8a50-ebb89a583bb0}</Project>
+      <Name>SonarQube.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Integration.Vsix_2017\Integration.Vsix.csproj">
       <Project>{ff2ad819-28f4-493a-8e9b-1d3f16bd4689}</Project>
       <Name>Integration.Vsix</Name>
