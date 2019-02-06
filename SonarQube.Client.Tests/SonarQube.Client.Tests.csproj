@@ -37,9 +37,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="**\obj\**\*" />
-    <!-- Conditionally include shared assembly info and signing in case they are not where we expect them to be -->
-    <Compile Condition="Exists('..\..\AssemblyInfo.Shared.cs')" Include="..\..\AssemblyInfo.Shared.cs" Link="Properties\AssemblyInfo.Shared.cs" />
-    <Compile Condition="Exists('..\..\Signing.cs')" Include="..\..\Signing.cs" Link="Properties\Signing.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
@@ -55,8 +52,12 @@
     </None>
   </ItemGroup>
   <PropertyGroup>
-    <PackagesRootDir Condition="Exists('../../packages')">../../packages</PackagesRootDir>
-    <PackagesRootDir Condition="!Exists('../../packages')">../packages</PackagesRootDir>
+    <!--
+    This project could be used as a submodule and that's why the packages directory
+    could be in a different location as when it is used in it's own repository.
+    -->
+    <PackagesRootDir Condition="!Exists('../packages')">../../packages</PackagesRootDir>
+    <PackagesRootDir Condition="Exists('../packages')">../packages</PackagesRootDir>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
