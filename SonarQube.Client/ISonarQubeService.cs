@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarQube.Client.Messages;
@@ -42,6 +43,8 @@ namespace SonarQube.Client
             CancellationToken token);
 
         Task<IList<SonarQubeLanguage>> GetAllLanguagesAsync(CancellationToken token);
+
+        Task<Stream> DownloadStaticFileAsync(string pluginKey, string fileName, CancellationToken token);
 
         Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token);
 

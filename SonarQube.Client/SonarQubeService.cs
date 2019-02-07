@@ -30,6 +30,7 @@ using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Api;
+using System.IO;
 
 namespace SonarQube.Client
 {
@@ -185,6 +186,15 @@ namespace SonarQube.Client
 
         public async Task<IList<SonarQubeLanguage>> GetAllLanguagesAsync(CancellationToken token) =>
            await InvokeRequestAsync<IGetLanguagesRequest, SonarQubeLanguage[]>(token);
+
+        public async Task<Stream> DownloadStaticFileAsync(string pluginKey, string fileName, CancellationToken token) =>
+            await InvokeRequestAsync<IDownloadStaticFile, Stream>(
+                request =>
+                {
+                    request.PluginKey = pluginKey;
+                    request.FileName = fileName;
+                },
+                token);
 
         public async Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token) =>
            await InvokeRequestAsync<IGetPluginsRequest, SonarQubePlugin[]>(token);
