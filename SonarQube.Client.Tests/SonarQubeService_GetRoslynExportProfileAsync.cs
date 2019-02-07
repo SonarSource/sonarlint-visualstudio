@@ -94,8 +94,8 @@ namespace SonarQube.Client.Tests
                 await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
                     CancellationToken.None);
 
-            func.Should().ThrowExactly<HttpRequestException>().And
-                .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
+            func.Should().ThrowExactly<HttpResponseException>().And
+                .StatusCode.Should().Be(HttpStatusCode.NotFound);
 
             messageHandler.VerifyAll();
         }

@@ -61,8 +61,8 @@ namespace SonarQube.Client.Tests
             Func<Task<Stream>> func = async () =>
                 await service.DownloadStaticFileAsync("csharp", "file1.txt", CancellationToken.None);
 
-            func.Should().ThrowExactly<HttpRequestException>().And
-                .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
+            func.Should().ThrowExactly<HttpResponseException>().And
+                .StatusCode.Should().Be(HttpStatusCode.NotFound);
 
             messageHandler.VerifyAll();
         }
