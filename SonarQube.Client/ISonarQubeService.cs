@@ -41,6 +41,8 @@ namespace SonarQube.Client
         Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey,
             CancellationToken token);
 
+        Task<IList<SonarQubeLanguage>> GetAllLanguagesAsync(CancellationToken token);
+
         Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token);
 
         Task<IList<SonarQubeProject>> GetAllProjectsAsync(string organizationKey, CancellationToken token);
