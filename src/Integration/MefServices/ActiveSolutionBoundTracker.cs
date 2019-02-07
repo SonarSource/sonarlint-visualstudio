@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.State;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration
 {

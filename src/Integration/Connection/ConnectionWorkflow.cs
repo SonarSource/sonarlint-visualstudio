@@ -31,7 +31,6 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.Integration.Connection.UI;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Service;

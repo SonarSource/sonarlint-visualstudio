@@ -32,7 +32,7 @@ using Moq;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Models;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

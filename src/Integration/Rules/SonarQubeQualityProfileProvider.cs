@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Messages;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.Rules
 {

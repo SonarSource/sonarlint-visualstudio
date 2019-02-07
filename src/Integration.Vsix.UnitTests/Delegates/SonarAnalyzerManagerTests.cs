@@ -30,7 +30,7 @@ using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Vsix;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Suppression;
 using SonarQube.Client.Models;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {

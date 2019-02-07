@@ -22,7 +22,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using EnvDTE;
-using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
