@@ -18,29 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Models
+using SonarQube.Client.Models;
+using SonarQube.Client.Requests;
+
+namespace SonarQube.Client.Api
 {
-    public class SonarQubeLanguage
+    public interface IGetLanguagesRequest : IRequest<SonarQubeLanguage[]>
     {
-        public static readonly SonarQubeLanguage CSharp = new SonarQubeLanguage("cs", "C#", "SonarC#");
-        public static readonly SonarQubeLanguage VbNet = new SonarQubeLanguage("vbnet", "VB.NET", "SonarVB");
-
-        public string Key { get; }
-
-        public string Name { get; }
-
-        public string PluginName { get; }
-
-        public SonarQubeLanguage(string key, string name)
-            : this(key, name, string.Empty)
-        {
-        }
-
-        private SonarQubeLanguage(string key, string name, string pluginName)
-        {
-            Key = key;
-            Name = name;
-            PluginName = pluginName;
-        }
     }
 }
