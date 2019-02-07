@@ -19,6 +19,10 @@
  */
 
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Models;
@@ -28,6 +32,9 @@ namespace SonarQube.Client.Api.V6_30
 {
     public class GetPropertiesRequest : RequestBase<SonarQubeProperty[]>, IGetPropertiesRequest
     {
+        [JsonProperty("component")]
+        public string ProjectKey { get; set; }
+
         protected override string Path => "api/settings/values";
 
         protected override SonarQubeProperty[] ParseResponse(string response) =>
@@ -35,6 +42,24 @@ namespace SonarQube.Client.Api.V6_30
                 .ToObject<PropertyResponse[]>()
                 .Select(ToProperty)
                 .ToArray();
+
+        public override async Task<SonarQubeProperty[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
+        {
+            var result = await InvokeUncheckedAsync(httpClient, token);
+
+            if (result.StatusCode == HttpStatusCode.NotFound)
+            {
+                Logger.Info($"Project with key '{ProjectKey}' does not exist. Downloading the default properties.");
+
+                ProjectKey = null;
+
+                result = await InvokeUncheckedAsync(httpClient, token);
+            }
+
+            result.EnsureSuccess();
+
+            return result.Value;
+        }
 
         private SonarQubeProperty ToProperty(PropertyResponse arg) =>
             new SonarQubeProperty(arg.Key, arg.Value);

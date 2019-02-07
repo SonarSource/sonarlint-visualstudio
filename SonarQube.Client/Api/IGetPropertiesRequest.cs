@@ -25,5 +25,6 @@ namespace SonarQube.Client.Api
 {
     public interface IGetPropertiesRequest : IRequest<SonarQubeProperty[]>
     {
+        string ProjectKey { get; set; }
     }
 }

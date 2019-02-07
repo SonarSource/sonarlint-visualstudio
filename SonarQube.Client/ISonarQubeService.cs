@@ -45,7 +45,11 @@ namespace SonarQube.Client
 
         Task<IList<SonarQubeProject>> GetAllProjectsAsync(string organizationKey, CancellationToken token);
 
-        Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(CancellationToken token);
+        /// <summary>
+        /// Returns all properties for the project with the specified projectKey. If a project with such
+        /// key does not exist, returns the default property values for the connected SonarQube server.
+        /// </summary>
+        Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(string projectKey, CancellationToken token);
 
         Uri GetProjectDashboardUrl(string projectKey);
 
