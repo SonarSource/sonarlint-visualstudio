@@ -183,6 +183,9 @@ namespace SonarQube.Client
                 },
                 token);
 
+        public async Task<IList<SonarQubeLanguage>> GetAllLanguagesAsync(CancellationToken token) =>
+           await InvokeRequestAsync<IGetLanguagesRequest, SonarQubeLanguage[]>(token);
+
         public async Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token) =>
            await InvokeRequestAsync<IGetPluginsRequest, SonarQubePlugin[]>(token);
 
