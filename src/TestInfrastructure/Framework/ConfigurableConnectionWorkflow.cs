@@ -24,7 +24,7 @@ using System.Threading;
 using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarQube.Client.Models;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

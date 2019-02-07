@@ -20,7 +20,6 @@
 
 using System;
 using System.IO;
-using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Persistence;

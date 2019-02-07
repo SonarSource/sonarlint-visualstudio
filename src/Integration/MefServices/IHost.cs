@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Windows.Threading;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarQube.Client.Services;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration
 {
