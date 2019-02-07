@@ -41,9 +41,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{
 		src\SonarLint.xml = src\SonarLint.xml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client", "src\SonarQube.Client\SonarQube.Client.csproj", "{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client", "sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj", "{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client.Tests", "src\SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client.Tests", "sonarqube-webclient\SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
