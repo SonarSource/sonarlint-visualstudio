@@ -18,36 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Net;
-using System.Net.Http;
 
-namespace SonarQube.Client.Requests
+namespace SonarQube.Client
 {
-    public struct Result<TValue>
+    public class HttpResponseException : Exception
     {
-        private readonly HttpResponseMessage response;
+        public HttpResponseException(HttpStatusCode statusCode, string reasonPhrase)
+            : this(statusCode, reasonPhrase, null)
+        {
+        }
 
-        public TValue Value { get; }
+        public HttpResponseException(HttpStatusCode statusCode, string reasonPhrase, Exception inner)
+            : base(reasonPhrase, inner)
+        {
+            StatusCode = statusCode;
+        }
+
         public HttpStatusCode StatusCode { get; }
-        public bool IsSuccess { get; }
-
-        public Result(HttpResponseMessage response, TValue value)
-        {
-            this.response = response;
-            IsSuccess = response.IsSuccessStatusCode;
-            StatusCode = response.StatusCode;
-            Value = value;
-        }
-
-        public void EnsureSuccess()
-        {
-            // The following throws HttpRequestException which does not contain HttpStatus code
-            // and is not suitable for error handling.
-            ////response.EnsureSuccessStatusCode();
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new HttpResponseException(response.StatusCode, response.ReasonPhrase);
-            }
-        }
     }
 }
