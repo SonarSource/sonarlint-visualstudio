@@ -28,6 +28,9 @@ namespace SonarQube.Client.Api.V2_60
 {
     public class GetPropertiesRequest : RequestBase<SonarQubeProperty[]>, IGetPropertiesRequest
     {
+        [JsonProperty("resource")]
+        public string ProjectKey { get; set; }
+
         protected override string Path => "api/properties";
 
         protected override SonarQubeProperty[] ParseResponse(string response) =>

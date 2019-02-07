@@ -184,7 +184,7 @@ namespace SonarQube.Client
                 token);
 
         public async Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token) =>
-            await InvokeRequestAsync<IGetPluginsRequest, SonarQubePlugin[]>(token);
+           await InvokeRequestAsync<IGetPluginsRequest, SonarQubePlugin[]>(token);
 
         public async Task<IList<SonarQubeProject>> GetAllProjectsAsync(string organizationKey, CancellationToken token) =>
             await InvokeRequestAsync<IGetProjectsRequest, SonarQubeProject[]>(
@@ -194,8 +194,13 @@ namespace SonarQube.Client
                 },
                 token);
 
-        public async Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(CancellationToken token) =>
-            await InvokeRequestAsync<IGetPropertiesRequest, SonarQubeProperty[]>(token);
+        public async Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(string projectKey, CancellationToken token) =>
+            await InvokeRequestAsync<IGetPropertiesRequest, SonarQubeProperty[]>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                },
+                token);
 
         public Uri GetProjectDashboardUrl(string projectKey)
         {
