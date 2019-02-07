@@ -45,7 +45,8 @@ namespace SonarQube.Client
         private readonly ILogger logger;
 
         private HttpClient httpClient;
-        private Version sonarQubeVersion;
+
+        public Version SonarQubeVersion { get; private set; }
 
         public bool HasOrganizationsFeature
         {
@@ -53,7 +54,7 @@ namespace SonarQube.Client
             {
                 EnsureIsConnected();
 
-                return sonarQubeVersion >= OrganizationsFeatureMinimalVersion;
+                return SonarQubeVersion >= OrganizationsFeatureMinimalVersion;
             }
         }
 
@@ -111,7 +112,7 @@ namespace SonarQube.Client
         {
             EnsureIsConnected();
 
-            var request = requestFactory.Create<TRequest>(sonarQubeVersion);
+            var request = requestFactory.Create<TRequest>(SonarQubeVersion);
             configure(request);
 
             var result = await request.InvokeAsync(httpClient, token);
@@ -141,9 +142,9 @@ namespace SonarQube.Client
             logger.Debug($"Getting the version of SonarQube...");
 
             var versionResponse = await InvokeRequestAsync<IGetVersionRequest, string>(token);
-            sonarQubeVersion = Version.Parse(versionResponse);
+            SonarQubeVersion = Version.Parse(versionResponse);
 
-            logger.Info($"Connected to SonarQube '{sonarQubeVersion}'.");
+            logger.Info($"Connected to SonarQube '{SonarQubeVersion}'.");
 
             logger.Debug($"Validating the credentials...");
 
@@ -151,6 +152,7 @@ namespace SonarQube.Client
             if (!credentialResponse)
             {
                 IsConnected = false;
+                SonarQubeVersion = null;
                 throw new InvalidOperationException("Invalid credentials");
             }
 
@@ -165,6 +167,7 @@ namespace SonarQube.Client
             // Don't dispose the HttpClient when disconnecting. We'll need it if
             // the caller connects to another server.
             IsConnected = false;
+            SonarQubeVersion = null;
         }
 
         private void EnsureIsConnected()
@@ -324,6 +327,7 @@ namespace SonarQube.Client
                 if (disposing)
                 {
                     IsConnected = false;
+                    SonarQubeVersion = null;
                     messageHandler.Dispose();
                 }
 

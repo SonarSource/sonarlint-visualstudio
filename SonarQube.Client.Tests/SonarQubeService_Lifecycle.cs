@@ -40,12 +40,14 @@ namespace SonarQube.Client.Tests
             SetupRequest("api/authentication/validate", "{ \"valid\": true }");
 
             service.IsConnected.Should().BeFalse();
+            service.SonarQubeVersion.Should().BeNull();
 
             await service.ConnectAsync(
                 new Models.ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
                 CancellationToken.None);
 
             service.IsConnected.Should().BeTrue();
+            service.SonarQubeVersion.Should().Be(new Version("3.3.0.0"));
         }
 
         [TestMethod]
@@ -56,6 +58,7 @@ namespace SonarQube.Client.Tests
             SetupRequest("api/authentication/validate", "{ \"valid\": false }");
 
             service.IsConnected.Should().BeFalse();
+            service.SonarQubeVersion.Should().BeNull();
 
             Func<Task> action = async () => await service.ConnectAsync(
                 new Models.ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
@@ -65,6 +68,7 @@ namespace SonarQube.Client.Tests
                 .And.Message.Should().Be("Invalid credentials");
 
             service.IsConnected.Should().BeFalse();
+            service.SonarQubeVersion.Should().BeNull();
         }
 
         [TestMethod]
@@ -81,6 +85,7 @@ namespace SonarQube.Client.Tests
 
             // Assert
             service.IsConnected.Should().BeFalse();
+            service.SonarQubeVersion.Should().BeNull();
             messageHandler.Protected().Verify("Dispose", Times.Never(), true);
         }
 
@@ -96,6 +101,7 @@ namespace SonarQube.Client.Tests
 
             // Assert
             service.IsConnected.Should().BeFalse();
+            service.SonarQubeVersion.Should().BeNull();
             messageHandler.Protected().Verify("Dispose", Times.Once(), true);
         }
     }

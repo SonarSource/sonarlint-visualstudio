@@ -85,6 +85,7 @@ namespace SonarQube.Client.Tests
 
             // Sanity checks
             service.IsConnected.Should().BeTrue();
+            service.SonarQubeVersion.Should().Be(new Version(version));
             logger.InfoMessages.Should().Contain(
                 new[]
                 {
