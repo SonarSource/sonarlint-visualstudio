@@ -30,7 +30,10 @@ namespace SonarQube.Client
 {
     public interface ISonarQubeService
     {
+        Version SonarQubeVersion { get; }
+
         bool HasOrganizationsFeature { get; }
+
         bool IsConnected { get; }
 
         Task ConnectAsync(ConnectionInformation connection, CancellationToken token);
