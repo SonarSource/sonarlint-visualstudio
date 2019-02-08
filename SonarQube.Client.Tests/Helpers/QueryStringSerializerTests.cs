@@ -48,7 +48,7 @@ namespace SonarQube.Client.Helpers
                     e = 20.6F,
                     f = 30.7M,
                     g = true
-                }).Should().Be("a=5&b=x+y+z&c=2017-10-20T14%3a39%3a25.0000000Z&d=10.5&e=20.6&f=30.7&g=true");
+                }).Should().Be("a=5&b=x+y+z&c=2017-10-20T14%3A39%3A25.0000000Z&d=10.5&e=20.6&f=30.7&g=true");
         }
 
         [TestMethod]

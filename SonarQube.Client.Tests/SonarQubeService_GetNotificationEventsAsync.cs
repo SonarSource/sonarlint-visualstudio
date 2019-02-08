@@ -38,8 +38,7 @@ namespace SonarQube.Client.Tests
             var now = new DateTimeOffset(2017, 10, 19, 13, 0, 0, TimeSpan.FromHours(2));
 
             await ConnectToSonarQube("6.6.0.0");
-
-            SetupRequest("api/developers/search_events?projects=my_project&from=2017-10-19T13:00:00%2b0200",
+            SetupRequest("api/developers/search_events?projects=my_project&from=2017-10-19T13:00:00%2B0200",
                 @"{
   ""events"": [
     {
@@ -92,7 +91,7 @@ namespace SonarQube.Client.Tests
 
             await ConnectToSonarQube("6.6.0.0");
 
-            SetupRequest("api/developers/search_events?projects=my_project&from=2017-10-19T13:00:00%2b0200", "",
+            SetupRequest("api/developers/search_events?projects=my_project&from=2017-10-19T13:00:00%2B0200", "",
                 HttpStatusCode.NotFound);
 
             var result = await service.GetNotificationEventsAsync("my_project", now, CancellationToken.None);
@@ -115,7 +114,7 @@ namespace SonarQube.Client.Tests
 
             await ConnectToSonarQube("6.6.0.0");
 
-            SetupRequest("api/developers/search_events?projects=my_project&from=2017-10-19T13:00:00%2b0200", "",
+            SetupRequest("api/developers/search_events?projects=my_project&from=2017-10-19T13:00:00%2B0200", "",
                 HttpStatusCode.InternalServerError);
 
             var result = await service.GetNotificationEventsAsync("my_project", now, CancellationToken.None);
