@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Web;
+using System.Net;
 using Newtonsoft.Json.Linq;
 
 namespace SonarQube.Client.Helpers
@@ -47,7 +47,7 @@ namespace SonarQube.Client.Helpers
         {
             return GetValues(property.Value)
                 .Select(SerializeValue)
-                .Select(HttpUtility.UrlEncode)
+                .Select(WebUtility.UrlEncode)
                 .Select(value => $"{property.Name}={value}");
         }
 
