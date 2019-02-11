@@ -25,6 +25,11 @@ namespace SonarQube.Client.Models
 {
     public class SonarQubeRule
     {
+        public SonarQubeRule(string key, string repositoryKey, bool isActive)
+            : this(key, repositoryKey, isActive, new Dictionary<string, string>())
+        {
+        }
+
         public SonarQubeRule(string key, string repositoryKey, bool isActive, IDictionary<string, string> parameters)
         {
             Key = key;
