@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -40,7 +41,7 @@ namespace SonarQube.Client.Api.V6_30
         protected override SonarQubeProperty[] ParseResponse(string response) =>
             JObject.Parse(response)["settings"]
                 .ToObject<PropertyResponse[]>()
-                .Select(ToProperty)
+                .SelectMany(ToProperties)
                 .ToArray();
 
         public override async Task<SonarQubeProperty[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
@@ -61,8 +62,28 @@ namespace SonarQube.Client.Api.V6_30
             return result.Value;
         }
 
-        private SonarQubeProperty ToProperty(PropertyResponse arg) =>
-            new SonarQubeProperty(arg.Key, arg.Value);
+        private IEnumerable<SonarQubeProperty> ToProperties(PropertyResponse arg)
+        {
+            if (arg.FieldValues != null)
+            {
+                for (int i = 0; i < arg.FieldValues.Length; i++)
+                {
+                    var fieldValue = arg.FieldValues[i];
+                    foreach (var item in fieldValue)
+                    {
+                        yield return new SonarQubeProperty($"{arg.Key}.{i + 1}.{item.Key}", item.Value);
+                    }
+                }
+            }
+            else if (arg.Values != null)
+            {
+                yield return new SonarQubeProperty(arg.Key, string.Join(",", arg.Values));
+            }
+            else
+            {
+                yield return new SonarQubeProperty(arg.Key, arg.Value);
+            }
+        }
 
         private class PropertyResponse
         {
@@ -71,6 +92,12 @@ namespace SonarQube.Client.Api.V6_30
 
             [JsonProperty("value")]
             public string Value { get; set; }
+
+            [JsonProperty("values")]
+            public string[] Values { get; set; }
+
+            [JsonProperty("fieldValues")]
+            public Dictionary<string, string>[] FieldValues { get; set; }
         }
     }
 }
