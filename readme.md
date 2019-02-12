@@ -71,6 +71,13 @@ The service will throw `WebException` when it receives a response that cannot be
 
 
 
+# Errors and Error Handling
+
+When an unexpected HTTP status code is returned the service will throw a custom exception of type `HttpResponseException`, which contains the actual status code. If needed, additional properties could be added to the exception.
+
+NOTE: Some requests handle status codes differently and do not throw this exception (for example `IGetNotificationsRequest`).
+
+
 
 # Tips and Tricks
 
