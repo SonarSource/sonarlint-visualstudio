@@ -41,13 +41,7 @@ namespace SonarQube.Client.Requests
 
         public void EnsureSuccess()
         {
-            // The following throws HttpRequestException which does not contain HttpStatus code
-            // and is not suitable for error handling.
-            ////response.EnsureSuccessStatusCode();
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new HttpResponseException(response.StatusCode, response.ReasonPhrase);
-            }
+            response.EnsureSuccessStatusCode();
         }
     }
 }

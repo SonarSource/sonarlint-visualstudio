@@ -68,8 +68,8 @@ namespace SonarQube.Client.Tests
             Func<Task<IList<SonarQubeIssue>>> func = async () =>
                 await service.GetSuppressedIssuesAsync("project1", CancellationToken.None);
 
-            func.Should().ThrowExactly<HttpResponseException>().And
-                .StatusCode.Should().Be(HttpStatusCode.NotFound);
+            func.Should().ThrowExactly<HttpRequestException>().And
+                .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
             messageHandler.VerifyAll();
         }
@@ -294,14 +294,13 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&types=CODE_SMELL&p=1&ps=500",
-                "", HttpStatusCode.NotFound);
+            SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&types=CODE_SMELL&p=1&ps=500", "", HttpStatusCode.NotFound);
 
             Func<Task<IList<SonarQubeIssue>>> func = async () =>
                 await service.GetSuppressedIssuesAsync("project1", CancellationToken.None);
 
-            func.Should().ThrowExactly<HttpResponseException>().And
-                .StatusCode.Should().Be(HttpStatusCode.NotFound);
+            func.Should().ThrowExactly<HttpRequestException>().And
+                .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
             messageHandler.VerifyAll();
         }

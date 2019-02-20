@@ -95,8 +95,8 @@ namespace SonarQube.Client.Tests
             Func<Task<IList<SonarQubeProject>>> func = async () =>
                 await service.GetAllProjectsAsync("myorganization", CancellationToken.None);
 
-            func.Should().ThrowExactly<HttpResponseException>().And
-                .StatusCode.Should().Be(HttpStatusCode.NotFound);
+            func.Should().ThrowExactly<HttpRequestException>().And
+                .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
             messageHandler.VerifyAll();
         }
@@ -266,8 +266,8 @@ namespace SonarQube.Client.Tests
             Func<Task<IList<SonarQubeProject>>> func = async () =>
                 await service.GetAllProjectsAsync("myorganization", CancellationToken.None);
 
-            func.Should().ThrowExactly<HttpResponseException>().And
-                .StatusCode.Should().Be(HttpStatusCode.NotFound);
+            func.Should().ThrowExactly<HttpRequestException>().And
+                .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
             messageHandler.VerifyAll();
         }

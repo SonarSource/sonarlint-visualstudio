@@ -148,8 +148,8 @@ namespace SonarQube.Client.Tests
             Func<Task<IList<SonarQubePlugin>>> func = async () =>
                 await service.GetAllPluginsAsync(CancellationToken.None);
 
-            func.Should().ThrowExactly<HttpResponseException>().And
-                .StatusCode.Should().Be(HttpStatusCode.NotFound);
+            func.Should().ThrowExactly<HttpRequestException>().And
+                .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
             messageHandler.VerifyAll();
         }

@@ -67,17 +67,17 @@ var something = await service.GetSomethingAsync(param1, param2, token);
 service.Disconnect();
 ```
 
-The service will throw `WebException` when it receives a response that cannot be handled. Make sure those exceptions are caught and correctly handled.
+The service will throw `HttpWebException` when it receives a response that cannot be handled. Make sure those exceptions are caught and correctly handled.
 
 
 
 # Errors and Error Handling
 
-When an unexpected HTTP status code is returned the service will throw a custom exception of type `HttpResponseException`, which contains the actual status code. If needed, additional properties could be added to the exception.
+When an unexpected HTTP status code is returned the service will throw an exception of type `HttpRequestException`, which contains a `WebException` as `InnerException`. When the `WebException` is `HttpWebException`, its `Response` property could be cast to `HttpWebResponse` and examined for various data such as `HttpStatusCode`, etc.
 
 Why exception and not status code? Here is a [nice list](https://stackoverflow.com/questions/4670987/why-is-it-better-to-throw-an-exception-rather-than-return-an-error-code) of pros and cons.
 
-NOTE: Some requests handle HTTP status codes differently and do not throw this exception (for example `IGetNotificationsRequest`).
+NOTE: Some requests handle HTTP status codes differently and do not always throw exception (for example see `IGetNotificationsRequest`).
 
 
 # Tips and Tricks
