@@ -3,7 +3,7 @@
     <Metadata>
         <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
         <Identity Id="SonarLint.36871a7b-4853-481f-bb52-1835a874e81b" Version="4.7.28608.199" Language="en-US" Publisher="SonarSource SA" />
-        <DisplayName>SonarLint for Visual Studio 2019 Preview</DisplayName>
+        <DisplayName>SonarLint for Visual Studio 2019 Preview 3.0</DisplayName>
         <Description xml:space="preserve">Roslyn based static code analysis: Find and instantly fix nasty bugs and code smells in C#, VB.Net, C, C++ and JS.</Description>
         <MoreInfo>http://vs.sonarlint.org</MoreInfo>
         <License>LICENSE</License>
@@ -13,7 +13,7 @@
         <Tags>SonarLint, SonarQube, Analysis, Roslyn, CodeAnalysis, Analyzer, Code analysis, Sonar, Debt, Technical, Tech, Quality</Tags>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0,16.0.28408.50]" />
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0,17.0)" />
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />
