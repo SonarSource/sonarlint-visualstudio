@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <MainVersion>4.7.28408</MainVersion>
-    <BuildNumber>50</BuildNumber>
+    <MainVersion>4.7.28608</MainVersion>
+    <BuildNumber>199</BuildNumber>
     <Sha1>not-set</Sha1>
     <BranchName>not-set</BranchName>
     <FullVersion>$(MainVersion).$(BuildNumber)</FullVersion>
