@@ -83,6 +83,7 @@ try {
         Write-Host "Pull request '${githubPullRequest}'"
 
         Write-Host "PR: ${githubPullRequest}"
+        Write-Host "PR Sha1: ${githubSha1}"
         Write-Host "PR source: ${githubPRBaseBranch}"
         Write-Host "PR target: ${githubPRTargetBranch}"
 
