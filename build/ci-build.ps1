@@ -7,9 +7,13 @@ param (
 
     [string]$githubRepo,
     [string]$githubToken,
-    [string]$githubPullRequest,
+    [string]$githubSha1 = $env:GIT_SHA1,
 
+    # GitHub PR related parameters
+    [string]$githubPullRequest,
     [string]$isPullRequest,
+    [string]$githubPRBaseBranch = $env:GITHUB_BASE_BRANCH,
+    [string]$githubPRTargetBranch = $env:GITHUB_TARGET_BRANCH,
 
     [string]$sonarQubeProjectName = "SonarLint for Visual Studio",
     [string]$sonarQubeProjectKey = "sonarlint-visualstudio",
@@ -23,7 +27,7 @@ param (
     [string]$pfxPassword,
 
     [parameter(ValueFromRemainingArguments = $true)] $badArgs)
-
+    
 $ErrorActionPreference = "Stop"
 
 function Get-VsixSignTool() {
@@ -78,13 +82,21 @@ try {
     if ($analyze -And $isPullRequest -Eq "true") {
         Write-Host "Pull request '${githubPullRequest}'"
 
+        Write-Host "PR: ${githubPullRequest}"
+        Write-Host "PR Sha1: ${githubSha1}"
+        Write-Host "PR source: ${githubPRBaseBranch}"
+        Write-Host "PR target: ${githubPRTargetBranch}"
+
         Begin-Analysis $sonarQubeUrl $sonarQubeToken $sonarQubeProjectKey $sonarQubeProjectName `
-            /d:sonar.github.pullRequest=$githubPullRequest `
-            /d:sonar.github.repository=$githubRepo `
-            /d:sonar.github.oauth=$githubToken `
-            /d:sonar.analysis.mode="issues" `
-            /d:sonar.scanAllFiles="true" `
+            /d:sonar.analysis.prNumber=$githubPullRequest `
+            /d:sonar.analysis.sha1=$githubSha1 `
+            /d:sonar.pullrequest.key=$githubPullRequest `
+            /d:sonar.pullrequest.branch=$githubPRBaseBranch `
+            /d:sonar.pullrequest.base=$githubPRTargetBranch `
+            /d:sonar.pullrequest.provider=github `
+            /d:sonar.pullrequest.github.repository=$githubRepo `
             /v:"latest"
+
     }
     elseif ($analyze -And $isMaster) {
         Write-Host "Is master '${isMaster}'"
