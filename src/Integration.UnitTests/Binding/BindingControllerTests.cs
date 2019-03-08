@@ -23,7 +23,7 @@ using System.Linq;
 using System.Windows.Threading;
 using EnvDTE;
 using FluentAssertions;
-using Microsoft.TeamFoundation.Client.CommandTarget;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;

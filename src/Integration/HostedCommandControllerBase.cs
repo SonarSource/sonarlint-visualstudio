@@ -19,13 +19,15 @@
  */
 
 using System;
-using Microsoft.TeamFoundation.Client.CommandTarget;
+using Microsoft.VisualStudio.OLE.Interop;
 
 namespace SonarLint.VisualStudio.Integration
 {
     internal class HostedCommandControllerBase : IOleCommandTarget
     {
-        protected HostedCommandControllerBase(IServiceProvider serviceProvider)
+        private const int CommandNotHandled = (int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP;
+
+        protected HostedCommandControllerBase(System.IServiceProvider serviceProvider)
         {
             if (serviceProvider == null)
             {
@@ -35,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration
             this.ServiceProvider = serviceProvider;
         }
 
-        public IServiceProvider ServiceProvider { get; }
+        public System.IServiceProvider ServiceProvider { get; }
 
         #region IOleCommandTarget
         int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
@@ -55,8 +57,7 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         protected virtual int OnQueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
-            return (int)OleConstants.OLECMDERR_E_UNKNOWNGROUP;
-
+            return CommandNotHandled;
         }
 
         /// <summary>
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         protected virtual int OnExec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            return (int)OleConstants.OLECMDERR_E_UNKNOWNGROUP;
+            return CommandNotHandled;
         }
         #endregion
     }
