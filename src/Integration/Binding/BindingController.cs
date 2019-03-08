@@ -21,7 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.TeamFoundation.Client.CommandTarget;
+using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
