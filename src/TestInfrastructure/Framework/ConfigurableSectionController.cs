@@ -79,13 +79,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
-        public ConnectSectionViewModel ViewModel
+        public IConnectSectionViewModel ViewModel
         {
             get;
             set;
         }
 
-        public ConnectSectionView View
+        public IConnectSectionView View
         {
             get;
             set;

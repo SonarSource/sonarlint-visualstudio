@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -40,12 +40,12 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         /// <summary>
         /// <see cref="ConnectSectionView"/>
         /// </summary>
-        ConnectSectionView View { get; }
+        IConnectSectionView View { get; }
 
         /// <summary>
         /// <see cref="ConnectSectionViewModel"/>
         /// </summary>
-        ConnectSectionViewModel ViewModel { get; }
+        IConnectSectionViewModel ViewModel { get; }
 
         /// <summary>
         /// The notifications service to use

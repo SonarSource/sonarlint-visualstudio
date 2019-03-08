@@ -579,7 +579,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             commands.Should().HaveCount(expectedCount, "Unexpected commands. All command: {0}", string.Join(", ", commands.Select(c => c.DisplayText)));
         }
 
-        private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasProjects(ConnectSectionViewModel vm, ConnectionInformation connection, SonarQubeProject[] projects)
+        private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasProjects(IConnectSectionViewModel vm, ConnectionInformation connection, SonarQubeProject[] projects)
         {
             ServerViewModel serverVM = VerifyConnectSectionViewModelIsConnected(vm, connection);
             CollectionAssert.AreEquivalent(projects, serverVM.Projects.Select(p => p.Project).ToArray(), "Unexpected projects for server {0}", connection.ServerUri);
@@ -587,7 +587,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             return serverVM;
         }
 
-        private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(ConnectSectionViewModel vm, ConnectionInformation connection)
+        private static ServerViewModel VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(IConnectSectionViewModel vm, ConnectionInformation connection)
         {
             ServerViewModel serverVM = VerifyConnectSectionViewModelIsConnected(vm, connection);
             serverVM.Projects.Should().BeEmpty("Unexpected number of projects");
@@ -595,13 +595,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             return serverVM;
         }
 
-        private static void VerifyConnectSectionViewModelIsNotConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
+        private static void VerifyConnectSectionViewModelIsNotConnected(IConnectSectionViewModel vm, ConnectionInformation connection)
         {
             ServerViewModel serverVM = vm.State?.ConnectedServers?.SingleOrDefault(s => s.Url == connection.ServerUri);
             serverVM.Should().BeNull("Should not find server view model for {0}", connection.ServerUri);
         }
 
-        private static ServerViewModel VerifyConnectSectionViewModelIsConnected(ConnectSectionViewModel vm, ConnectionInformation connection)
+        private static ServerViewModel VerifyConnectSectionViewModelIsConnected(IConnectSectionViewModel vm, ConnectionInformation connection)
         {
             ServerViewModel serverVM = vm.State?.ConnectedServers?.SingleOrDefault(s => s.Url == connection.ServerUri);
             serverVM.Should().NotBeNull("Could not find server view model for {0}", connection.ServerUri);
@@ -609,7 +609,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             return serverVM;
         }
 
-        private static void VerifyConnectSectionViewModelHasNoBoundProjects(ConnectSectionViewModel vm)
+        private static void VerifyConnectSectionViewModelHasNoBoundProjects(IConnectSectionViewModel vm)
         {
             vm.State.HasBoundProject.Should().BeFalse("View model should not have any bound projects");
         }
