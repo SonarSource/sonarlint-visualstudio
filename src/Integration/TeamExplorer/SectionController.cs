@@ -24,13 +24,16 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
-using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
+
+using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
+using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
+using IVSOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -45,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         public const string SectionId = "25AB05EF-8132-453E-A990-55587C0C5CD3";
         public const int Priority = 300;
 
-        internal const int CommandNotHandled = (int)OleConstants.OLECMDERR_E_UNKNOWNGROUP;
+        internal const int CommandNotHandled = (int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP;
 
         private readonly IWebBrowser webBrowser;
 
@@ -66,10 +69,10 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.webBrowser = webBrowser;
         }
 
-        internal /*for testing purposes*/ List<IOleCommandTarget> CommandTargets
+        internal /*for testing purposes*/ List<IVSOleCommandTarget> CommandTargets
         {
             get;
-        } = new List<IOleCommandTarget>();
+        } = new List<IVSOleCommandTarget>();
 
         protected IHost Host
         {
@@ -150,16 +153,20 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                 this.RefreshCommand.Execute(null);
             }
         }
-
+        
         /// <summary>
         /// Delegate QueryStatus to commands
         /// </summary>
-        protected override int IOleCommandTargetQueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        protected override int IOleCommandTargetQueryStatus(ref Guid pguidCmdGroup, uint cCmds,  
+            TF_OLECMD[] prgCmds, IntPtr pCmdText)
         {
-            int result = CommandNotHandled;
-            foreach (IOleCommandTarget commandTarget in this.CommandTargets)
+            var result = CommandNotHandled;
+
+            var vsPrgCmds = GetVsPrgCmds(prgCmds);
+
+            foreach (var commandTarget in this.CommandTargets)
             {
-                result = commandTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+                result = commandTarget.QueryStatus(ref pguidCmdGroup, cCmds, vsPrgCmds, pCmdText);
 
                 // If handed, stop the loop
                 if (result != CommandNotHandled)
@@ -352,7 +359,28 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.webBrowser.NavigateTo(url.ToString());
         }
 
-        #endregion
+        #endregion Commands
 
+        #region VS IOleCommandTarget conversion
+
+        /*
+         * The TeamFoundation client defines an IOleCommandTarget interface that is identical to the
+         * VS IOleComandTarget. We want to limit our references to the TF-specific assemblies, so we
+         * define our commands using the VS version.
+         * This means we need to convert from the TF OLECMD structure to the equivalent VS OLECMD
+         * when we are forwarding calls from this class to our VS OLE commands.
+         */
+
+        private static VS_OLECMD[] GetVsPrgCmds(TF_OLECMD[] prgCmds) =>
+            prgCmds?.Select(ConvertTFtoVSOleCmd).ToArray();
+
+        private static VS_OLECMD ConvertTFtoVSOleCmd(TF_OLECMD cmd) =>
+            new VS_OLECMD
+            {
+                cmdf = cmd.cmdf,
+                cmdID = cmd.cmdID
+            };
+
+        #endregion VS IOleCommandTarget conversion
     }
 }
