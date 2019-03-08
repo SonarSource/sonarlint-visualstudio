@@ -18,29 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Controls;
-using SonarLint.VisualStudio.Integration.Progress;
+using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.State;
+using SonarLint.VisualStudio.Integration.WPF;
+using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
     /// <summary>
-    /// Interaction logic for ConnectSectionView.xaml
+    /// Representation of the connect section
     /// </summary>
-    public partial class ConnectSectionView : UserControl, IConnectSectionView, IProgressControlHost
+    internal interface IConnectSectionViewModel
     {
-        public ConnectSectionView()
-        {
-            InitializeComponent();
-        }
+        TransferableVisualState State { get; set; }
 
-        void IProgressControlHost.Host(ProgressControl progressControl)
-        {
-            this.HostProgressControl(progressControl);
-        }
+        bool IsBusy { get; set; }
 
-        protected virtual void HostProgressControl(ProgressControl control)
-        {
-            this.progressPlacePlaceholder.Content = control;
-        }
+        ICommand ConnectCommand { get; set; }
+
+        ICommand<BindCommandArgs> BindCommand { get; set; }
+
+        ICommand<string> BrowseToUrlCommand { get; set; }
+
     }
 }

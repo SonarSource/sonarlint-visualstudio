@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Integration.WPF;
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
     internal class ConnectSectionViewModel : TeamExplorerSectionViewModelBase,
+                                        IConnectSectionViewModel,
                                         IUserNotification /* Most of it implemented by TeamExplorerSectionViewModelBase */
     {
         private TransferableVisualState state;

@@ -18,29 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Controls;
-using SonarLint.VisualStudio.Integration.Progress;
-
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
-    /// <summary>
-    /// Interaction logic for ConnectSectionView.xaml
-    /// </summary>
-    public partial class ConnectSectionView : UserControl, IConnectSectionView, IProgressControlHost
+    internal interface IConnectSectionView
     {
-        public ConnectSectionView()
-        {
-            InitializeComponent();
-        }
-
-        void IProgressControlHost.Host(ProgressControl progressControl)
-        {
-            this.HostProgressControl(progressControl);
-        }
-
-        protected virtual void HostProgressControl(ProgressControl control)
-        {
-            this.progressPlacePlaceholder.Content = control;
-        }
     }
 }

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -30,7 +30,6 @@ using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
-
 using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
 using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
 using IVSOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
@@ -85,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get { return (IProgressControlHost)this.View; }
         }
 
-        ConnectSectionView ISectionController.View
+        IConnectSectionView ISectionController.View
         {
             get { return (ConnectSectionView)this.View; }
         }
@@ -95,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             Justification = "The base class is not defined by us, so we can't force the type to be something else",
             Scope = "member",
             Target = "~P:SonarLint.VisualStudio.Integration.TeamExplorer.SectionController.SonarLint#VisualStudio#Integration#TeamExplorer#IConnectSection#ViewModel")]
-        ConnectSectionViewModel ISectionController.ViewModel
+        IConnectSectionViewModel ISectionController.ViewModel
         {
             get { return (ConnectSectionViewModel)this.ViewModel; }
         }
