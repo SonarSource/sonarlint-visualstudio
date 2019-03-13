@@ -110,8 +110,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public static ConfigurableSectionController CreateDefault()
         {
             var section = new ConfigurableSectionController();
-            section.ViewModel = new ConnectSectionViewModel();
-            section.View = new ConnectSectionView();
+            section.ViewModel = new ConfigurableConnectSectionViewModel();
+            section.View = new ConfigurableConnectSectionView();
             section.ProgressHost = new ConfigurableProgressControlHost();
             section.UserNotifications = new ConfigurableUserNotification();
             section.BindCommand = new RelayCommand<BindCommandArgs>(args => { });

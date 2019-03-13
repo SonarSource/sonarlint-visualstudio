@@ -22,13 +22,19 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Input;
 using FluentAssertions;
-using Microsoft.TeamFoundation.Controls;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableUserNotification : IUserNotification
     {
+        private enum NotificationType
+        {
+            Information = 0,
+            Warning = 1,
+            Error = 2
+        }
+
         private class Notification
         {
             public NotificationType Type { get; }

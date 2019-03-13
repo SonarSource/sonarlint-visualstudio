@@ -25,6 +25,10 @@ using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Observation;
 
+/* Note: these tests are in this assembly because they have an indirect dependency on
+ * the TeamFoundation.Controls assembly - they create instances of the ProgressControl,
+ * which imports resources from the TF assembly.
+ */
 namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
 {
     [TestClass]
