@@ -24,7 +24,7 @@
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <ReferencedDirectory>..\Integration.Vsix</ReferencedDirectory>
-    <VsCommonIdeDirectory>$(VSAPPIDDIR)</VsCommonIdeDirectory>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)\devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>

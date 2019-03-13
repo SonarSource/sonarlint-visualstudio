@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ReferencedDirectory>..\Integration</ReferencedDirectory>
-    <VsCommonIdeDirectory>$(VSAPPIDDIR)</VsCommonIdeDirectory>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>

@@ -18,7 +18,7 @@
     <TestProjectType>UnitTest</TestProjectType>
     <TargetFrameworkProfile />
     <ReferencedDirectory>..\Integration.UnitTests</ReferencedDirectory>
-    <VsCommonIdeDirectory>$(VSAPPIDDIR)</VsCommonIdeDirectory>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
