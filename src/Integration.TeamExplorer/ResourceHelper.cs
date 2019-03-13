@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             {
                 if (sharedResourcesCache == null)
                 {
-                    Uri resourceUri = new Uri("/SonarLint.VisualStudio.Integration;component/TeamExplorer/CommonStyles.xaml", UriKind.RelativeOrAbsolute);
+                    Uri resourceUri = new Uri("/SonarLint.VisualStudio.Integration.TeamExplorer;component/CommonStyles.xaml", UriKind.RelativeOrAbsolute);
                     sharedResourcesCache = (ResourceDictionary)Application.LoadComponent(resourceUri);
                 }
                 return sharedResourcesCache;
