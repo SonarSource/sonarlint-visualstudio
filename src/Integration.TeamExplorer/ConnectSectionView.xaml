@@ -4,10 +4,11 @@
              xmlns:componentmodel="clr-namespace:System.ComponentModel;assembly=PresentationFramework"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.TeamExplorer"
-             xmlns:localWpf="clr-namespace:SonarLint.VisualStudio.Integration.WPF"
+             xmlns:sonarlintWpf="clr-namespace:SonarLint.VisualStudio.Integration.WPF;assembly=SonarLint.VisualStudio.Integration"
+             xmlns:sonarlintTE="clr-namespace:SonarLint.VisualStudio.Integration.TeamExplorer;assembly=SonarLint.VisualStudio.Integration"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
-             xmlns:root="clr-namespace:SonarLint.VisualStudio.Integration"
+             xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.TeamExplorer"
+             xmlns:root="clr-namespace:SonarLint.VisualStudio.Integration;assembly=SonarLint.VisualStudio.Integration"
              xmlns:tecontrols="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;assembly=Microsoft.TeamFoundation.Controls"
              xmlns:tfconverters="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.Converters;assembly=Microsoft.TeamFoundation.Controls"
              xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
@@ -27,7 +28,7 @@
             <tfconverters:IntToVisibleConverter x:Key="IntToVisibleConverter" />
             <tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter" />
             <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter" />
-            <localWpf:ProjectViewModelToBindingArgsConverter x:Key="ProjectViewModelToBindingArgsConverter" />
+            <sonarlintWpf:ProjectViewModelToBindingArgsConverter x:Key="ProjectViewModelToBindingArgsConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -45,13 +46,13 @@
                        SnapsToDevicePixels="True"
                        Source="{StaticResource SonarQubeServerIcon}" />
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Style="{StaticResource EmphasizedText}" Text="{x:Static resx:Strings.SonarQubeName}" />
-                    <TextBlock Style="{StaticResource SubduedText}" Text="{x:Static resx:Strings.ProductAuthors}" />
+                    <TextBlock Style="{StaticResource EmphasizedText}" Text="{x:Static resx:UIStrings.SonarQubeName}" />
+                    <TextBlock Style="{StaticResource SubduedText}" Text="{x:Static resx:UIStrings.ProductAuthors}" />
                 </StackPanel>
             </Grid>
             <TextBlock Grid.Row="1"
                        Margin="0,0,0,6"
-                       Text="{x:Static resx:Strings.SonarQubeDescription}"
+                       Text="{x:Static resx:UIStrings.SonarQubeDescription}"
                        TextWrapping="Wrap" />
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -63,11 +64,11 @@
                                      Grid.Column="0"
                                      Command="{Binding ConnectCommand}"
                                      CommandParameter="{Binding ElementName=progressPlacePlaceholder}"
-                                     Text="{x:Static resx:Strings.ConnectLinkText}" />
+                                     Text="{x:Static resx:UIStrings.ConnectLinkText}" />
                 <tecontrols:TextLink Grid.Column="2"
                                      Command="{Binding BrowseToUrlCommand}"
                                      CommandParameter="{x:Static root:Constants.SonarQubeHomeWebUrl}"
-                                     Text="{x:Static resx:Strings.MoreInfoLinkText}" />
+                                     Text="{x:Static resx:UIStrings.MoreInfoLinkText}" />
             </Grid>
         </StackPanel>
 
@@ -80,7 +81,7 @@
             <TextBlock Margin="6,0"
                        KeyboardNavigation.IsTabStop="False"
                        Style="{StaticResource SQStaticTextStyle}"
-                       Text="{x:Static resx:Strings.SelectProjectInstruction}"
+                       Text="{x:Static resx:UIStrings.SelectProjectInstruction}"
                        TextWrapping="Wrap"
                        Visibility="{Binding State.HasBoundProject,
                                             Converter={StaticResource TrueToVisibleConverter},
@@ -92,7 +93,7 @@
                       ItemsSource="{Binding State.ConnectedServers}"
                       Style="{StaticResource SQTreeViewStyle}">
                 <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type local:ServerViewModel}"
+                    <HierarchicalDataTemplate DataType="{x:Type sonarlintTE:ServerViewModel}"
                                               ItemContainerStyle="{StaticResource SQProjectTreeViewItemStyle}"
                                               ItemsSource="{Binding Projects}">
                         <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
@@ -126,14 +127,14 @@
                             </TextBlock>
                             <TextBlock Margin="6,0,0,0"
                                        Style="{StaticResource SubduedText}"
-                                       Text="{x:Static resx:Strings.ServerNoProjectsInlineText}"
+                                       Text="{x:Static resx:UIStrings.ServerNoProjectsInlineText}"
                                        Visibility="{Binding Projects.Count,
                                                             Converter={StaticResource IntToVisibleConverter},
                                                             ConverterParameter=Invert}" />
                         </StackPanel>
                     </HierarchicalDataTemplate>
 
-                    <DataTemplate DataType="{x:Type local:ProjectViewModel}">
+                    <DataTemplate DataType="{x:Type sonarlintTE:ProjectViewModel}">
                         <Grid vstheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}" Tag="{Binding ElementName=UserControlRoot, Path=DataContext}">
 
                             <Grid.InputBindings>

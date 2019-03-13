@@ -226,18 +226,6 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup Label="NonGac">
-    <Reference Include="Microsoft.TeamFoundation.Client">
-      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.TeamFoundation.Controls">
-      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.TeamFoundation.Common">
-      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Common.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
       <HintPath>$(VsCommonIdeDirectory)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
       <Private>True</Private>

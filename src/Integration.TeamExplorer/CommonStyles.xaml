@@ -1,14 +1,11 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
-        xmlns:componentmodel="clr-namespace:System.ComponentModel;assembly=PresentationFramework"
-        xmlns:localWpf="clr-namespace:SonarLint.VisualStudio.Integration.WPF"
-        xmlns:tecontrols="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;assembly=Microsoft.TeamFoundation.Controls"
-        xmlns:tfcontrols="clr-namespace:Microsoft.TeamFoundation.Controls.WPF;assembly=Microsoft.TeamFoundation.Controls"
+        xmlns:sonarlintWpf="clr-namespace:SonarLint.VisualStudio.Integration.WPF;assembly=SonarLint.VisualStudio.Integration"
         xmlns:tfconverters="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.Converters;assembly=Microsoft.TeamFoundation.Controls"
         xmlns:vstheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
         xmlns:vsutilities="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
-        xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources">
+        xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources;assembly=SonarLint.VisualStudio.Integration">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/Microsoft.TeamFoundation.Controls;component/WPF/SharedResources.xaml"/>
@@ -20,7 +17,7 @@
     <tfconverters:IntToBoolConverter x:Key="IntToBoolConverter"/>
     <tfconverters:IsNullConverter x:Key="IsNullConverter"/>
     <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter"/>
-    <localWpf:ProjectViewModelVisibilityConverter x:Key="ProjectViewModelVisibilityConverter" />
+    <sonarlintWpf:ProjectViewModelVisibilityConverter x:Key="ProjectViewModelVisibilityConverter" />
 
     <!-- Special style for contextual commands menu-->
     <Style x:Key="SQContextMenuStyle" TargetType="ContextMenu" >
@@ -37,7 +34,7 @@
             <Setter.Value>
                 <!-- Use a data template rather than set the Header in item container style
                      to get the right width, otherwise the menu item could be clipped -->
-                <DataTemplate DataType="{x:Type localWpf:ContextualCommandViewModel}">
+                <DataTemplate DataType="{x:Type sonarlintWpf:ContextualCommandViewModel}">
                     <TextBlock Text="{Binding DisplayText}" />
                 </DataTemplate>
             </Setter.Value>
