@@ -14,7 +14,7 @@
     <TargetFrameworkProfile />
     <SonarQubeTestProject>true</SonarQubeTestProject>
     <ReferencedDirectory>..\TestInfrastructure</ReferencedDirectory>
-    <VsCommonIdeDirectory>$(VSAPPIDDIR)</VsCommonIdeDirectory>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

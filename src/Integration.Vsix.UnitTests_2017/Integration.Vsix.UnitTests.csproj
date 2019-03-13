@@ -18,7 +18,7 @@
     <TestProjectType>UnitTest</TestProjectType>
     <TargetFrameworkProfile />
     <ReferencedDirectory>..\Integration.Vsix.UnitTests</ReferencedDirectory>
-    <VsCommonIdeDirectory>$(VSAPPIDDIR)</VsCommonIdeDirectory>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

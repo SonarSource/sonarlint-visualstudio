@@ -23,7 +23,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
-    <VsCommonIdeDirectory>$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)\devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
