@@ -82,6 +82,10 @@
       <HintPath>..\..\Packages\Microsoft.Owin.Testing.3.0.1\lib\net45\Microsoft.Owin.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.VisualStudio.ComponentModelHost.14.0.25424\lib\net45\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Imaging, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.VisualStudio.Imaging.14.3.25407\lib\net45\Microsoft.VisualStudio.Imaging.dll</HintPath>
       <Private>True</Private>
@@ -311,10 +315,6 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup Label="NonGac">
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <HintPath>$(VsCommonIdeDirectory)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.CodeAnalysis">
       <HintPath>$(VsCommonIdeDirectory)..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
       <Private>False</Private>
