@@ -1,6 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  
+  <PropertyGroup>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
+    <!-- Work round an issue with a build slave - if DevEnvDir is used the slave uses v12 of the TF assemblies -->
+    <VsCommonIdeDirectory Condition="$(VisualStudioVersion)=='14.0'" >$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='14.0'">2015</VersionSpecificSuffix>
+    <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
+  </PropertyGroup>
+
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -11,14 +23,13 @@
     <AssemblyName>SonarLint.VisualStudio.Integration.TeamExplorer</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
     <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Debug\VS$(VersionSpecificSuffix)\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -26,7 +37,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Release\VS$(VersionSpecificSuffix)\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -116,7 +127,8 @@
     </Compile>
     <Compile Include="TeamExplorerController.cs" />
   </ItemGroup>
-  <ItemGroup Label="NonGac">
+
+  <ItemGroup Label="Version-specific non-NuGet assemblies">
     <Reference Include="Microsoft.TeamFoundation.Client">
       <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
       <Private>False</Private>
@@ -125,12 +137,13 @@
       <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
       <Private>False</Private>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\..\packages\Microsoft.VisualStudio.Shell.14.0.14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll</HintPath>
       <Private>True</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj">
       <Project>{5e513fc3-bda7-40f2-8b6a-1bb9372acb99}</Project>
       <Name>SonarQube.Client</Name>
