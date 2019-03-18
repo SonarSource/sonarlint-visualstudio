@@ -2,6 +2,11 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
+    <!-- Work round an issue with a build slave - if DevEnvDir is used the slave uses v12 of the TF assemblies -->
+    <VsCommonIdeDirectory Condition="$(VisualStudioVersion)=='14.0'" >$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
+  </PropertyGroup>
+  <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}</ProjectGuid>
@@ -12,7 +17,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <VsCommonIdeDirectory>$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>

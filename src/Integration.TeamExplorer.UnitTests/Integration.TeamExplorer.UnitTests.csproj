@@ -1,6 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
+    <!-- Work round an issue with a build slave - if DevEnvDir is used the slave uses v12 of the TF assemblies -->
+    <VsCommonIdeDirectory Condition="$(VisualStudioVersion)=='14.0'" >$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
+  </PropertyGroup>
+  <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{115CC746-5181-485C-8707-346E8D55B1E5}</ProjectGuid>
@@ -16,7 +21,6 @@
     <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
-    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
