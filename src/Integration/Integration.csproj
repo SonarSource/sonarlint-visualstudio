@@ -12,7 +12,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
+    <VsCommonIdeDirectory>$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
