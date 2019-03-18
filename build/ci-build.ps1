@@ -99,6 +99,8 @@ try {
     $solutionRelativePath = "${solutionName}"
     if ($vsTargetVersion -Eq "vs2017") {
         Write-Host "VS target version: 2017"
+        $skippedAnalysis = $true # We only want to analyze one of the VS2015 / VS2017 builds, not both, so we skip analyzing VS2017
+        Write-Host "  NB: this build will not be analyzed. Check the VS2015 build for analysis results"
         Restore-Packages "15.0" $solutionRelativePath
         Start-Process "build/vs2017.bat" -NoNewWindow -Wait
     }
@@ -111,7 +113,7 @@ try {
             Write-Host "PR source: ${githubPRBaseBranch}"
             Write-Host "PR target: ${githubPRTargetBranch}"
 
-            Invoke-SonarBeginAnalysis $sonarQubeUrl $sonarQubeToken $sonarQubeProjectKey $sonarQubeProjectName `
+            Invoke-SonarBeginAnalysis `
                 /v:$leakPeriodVersion `
                 /d:sonar.analysis.prNumber=$githubPullRequest `
                 /d:sonar.pullrequest.key=$githubPullRequest `
@@ -122,8 +124,8 @@ try {
         elseif ($isMaster) {
             Write-Host "Build kind: master"
 
-            Invoke-SonarBeginAnalysis $sonarQubeUrl $sonarQubeToken $sonarQubeProjectKey $sonarQubeProjectName `
-            /v:$leakPeriodVersion `
+            Invoke-SonarBeginAnalysis `
+                /v:$leakPeriodVersion `
                 /d:sonar.analysis.buildNumber=$buildNumber `
                 /d:sonar.analysis.pipeline=$buildNumber
         }
@@ -143,6 +145,7 @@ try {
         }
         else {
             Write-Host "Build kind: branch"
+            Write-Host "  Skipping analysis - branch builds are not analyzed"
 
             $skippedAnalysis = $true
         }
@@ -165,7 +168,7 @@ try {
     Invoke-CodeCoverage
 
     if (-Not $skippedAnalysis) {
-        End-Analysis $sonarQubeToken
+        Invoke-SonarEndAnalysis
     }
 
     ConvertTo-SignedExtension
