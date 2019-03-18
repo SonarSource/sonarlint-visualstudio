@@ -25,7 +25,7 @@ using System.Windows.Data;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
-    internal sealed class ProjectViewModelVisibilityConverter : IMultiValueConverter
+    public sealed class ProjectViewModelVisibilityConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {

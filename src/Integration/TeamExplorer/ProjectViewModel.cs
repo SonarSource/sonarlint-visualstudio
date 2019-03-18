@@ -26,7 +26,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
-    internal class ProjectViewModel : ViewModelBase
+    public class ProjectViewModel : ViewModelBase
     {
         private readonly ContextualCommandsCollection commands = new ContextualCommandsCollection();
         private bool isBound;
