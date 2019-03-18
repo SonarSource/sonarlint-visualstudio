@@ -1,34 +1,45 @@
 [CmdletBinding(PositionalBinding = $false)]
 param (
-    [switch]$analyze = $false,
-    [switch]$test = $false,
-    [switch]$coverage = $false,
-    [switch]$debugBuild = $false,
+    [ValidateSet("vs2015", "vs2017")]
+    [string]$vsTargetVersion = "vs2017",
 
-    [string]$githubRepo,
-    [string]$githubToken,
+    # GitHub related parameters
+    [string]$githubRepo = $env:GITHUB_REPO,
+    [string]$githubToken = $env:GITHUB_TOKEN,
     [string]$githubSha1 = $env:GIT_SHA1,
-
     # GitHub PR related parameters
-    [string]$githubPullRequest,
-    [string]$isPullRequest,
+    [string]$githubPullRequest = $env:PULL_REQUEST,
+    [string]$githubIsPullRequest = $env:IS_PULLREQUEST,
     [string]$githubPRBaseBranch = $env:GITHUB_BASE_BRANCH,
     [string]$githubPRTargetBranch = $env:GITHUB_TARGET_BRANCH,
 
-    [string]$sonarQubeProjectName = "SonarLint for Visual Studio",
-    [string]$sonarQubeProjectKey = "sonarlint-visualstudio",
-    [string]$sonarQubeUrl = "http://localhost:9000",
-    [string]$sonarQubeToken = $null,
+    # SonarCloud related parameters
+    [string]$sonarCloudUrl = $env:SONARCLOUD_HOST_URL,
+    [string]$sonarCloudToken = $env:SONARCLOUD_TOKEN,
 
-    [string]$solutionName = "SonarLint.VisualStudio.Integration.sln",
-    [string]$snkCertificatePath,
+    # Others
+    [string]$snkCertificatePath = $env:CERT_PATH,
+    [string]$pfxCertificatePath = $env:PFX_PATH,
+    [string]$pfxPassword = $env:PFX_PASSWORD,
 
-    [string]$pfxCertificatePath,
-    [string]$pfxPassword,
+    [parameter(ValueFromRemainingArguments = $true)] $badArgs
+)
 
-    [parameter(ValueFromRemainingArguments = $true)] $badArgs)
-    
+Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
+
+if ($PSBoundParameters['Verbose'] -Or $PSBoundParameters['Debug']) {
+    $global:DebugPreference = "Continue"
+}
+
+function Get-LeakPeriodVersion() {
+    [xml]$versionProps = Get-Content "${PSScriptRoot}\Version.props"
+    $mainVersion = $versionProps.Project.PropertyGroup.MainVersion
+
+    Write-Debug "Leak period version is '${mainVersion}'"
+
+    return $mainVersion
+}
 
 function Get-VsixSignTool() {
     $vsixSignTool = Get-ChildItem (Resolve-RepoPath "packages") -Recurse -Include "vsixsigntool.exe" | Select-Object -First 1
@@ -72,77 +83,98 @@ try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
     $branchName = Get-BranchName
-    $isMaster = $branchName -Eq "master"
+    $isMaster = $branchName -eq "master"
+    # See https://xtranet.sonarsource.com/display/DEV/Release+Procedures for info about maintenance branches
+    $isMaintenanceBranch = $branchName -like 'branch-*'
+    $isFeatureBranch = $branchName -like 'feature/*'
+    $isPullRequest = $githubIsPullRequest -eq "true"
+    $solutionName = "SonarLint.VisualStudio.Integration.sln"
 
-    Write-Header "Temporary info Analyze=${analyze} Branch=${branchName} PR=${isPullRequest}"
+    Write-Host "Branch: ${branchName}"
 
     Set-Version
 
     $skippedAnalysis = $false
-    if ($analyze -And $isPullRequest -Eq "true") {
-        Write-Host "Pull request '${githubPullRequest}'"
-
-        Write-Host "PR: ${githubPullRequest}"
-        Write-Host "PR Sha1: ${githubSha1}"
-        Write-Host "PR source: ${githubPRBaseBranch}"
-        Write-Host "PR target: ${githubPRTargetBranch}"
-
-        Begin-Analysis $sonarQubeUrl $sonarQubeToken $sonarQubeProjectKey $sonarQubeProjectName `
-            /d:sonar.analysis.prNumber=$githubPullRequest `
-            /d:sonar.analysis.sha1=$githubSha1 `
-            /d:sonar.pullrequest.key=$githubPullRequest `
-            /d:sonar.pullrequest.branch=$githubPRBaseBranch `
-            /d:sonar.pullrequest.base=$githubPRTargetBranch `
-            /d:sonar.pullrequest.provider=github `
-            /d:sonar.pullrequest.github.repository=$githubRepo `
-            /v:"latest"
-
-    }
-    elseif ($analyze -And $isMaster) {
-        Write-Host "Is master '${isMaster}'"
-
-        $buildNumber = Get-BuildNumber
-        $sha1 = Get-Sha1
-
-        $testResultsPath = Resolve-RepoPath ""
-        Write-Host "Looking for reports in: ${testResultsPath}"
-
-        Begin-Analysis $sonarQubeUrl $sonarQubeToken $sonarQubeProjectKey $sonarQubeProjectName `
-            /d:sonar.analysis.buildNumber=$buildNumber `
-            /d:sonar.analysis.pipeline=$buildNumber `
-            /d:sonar.analysis.sha1=$sha1 `
-            /d:sonar.analysis.repository=$githubRepo `
-            /v:"master" `
-            /d:sonar.cs.vstest.reportsPaths="${testResultsPath}\**\*.trx" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="${testResultsPath}\**\*.coveragexml"
-    }
-    else {
-        $skippedAnalysis = $true
-    }
 
     $solutionRelativePath = "${solutionName}"
-    if ($solutionRelativePath.Contains("2017")) {
-        Restore-Packages $solutionRelativePath
+    if ($vsTargetVersion -Eq "vs2017") {
+        Write-Host "VS target version: 2017"
+        Restore-Packages "15.0" $solutionRelativePath
         Start-Process "build/vs2017.bat" -NoNewWindow -Wait
-    } else {
-        if ($debugBuild) {
-            Build-Solution (Resolve-RepoPath $solutionRelativePath)
+    }
+    else {
+        $leakPeriodVersion = Get-LeakPeriodVersion
+
+        if ($isPullRequest) {
+            Write-Host "Build kind: PR"
+            Write-Host "PR: ${githubPullRequest}"
+            Write-Host "PR source: ${githubPRBaseBranch}"
+            Write-Host "PR target: ${githubPRTargetBranch}"
+
+            Invoke-SonarBeginAnalysis $sonarQubeUrl $sonarQubeToken $sonarQubeProjectKey $sonarQubeProjectName `
+                /v:$leakPeriodVersion `
+                /d:sonar.analysis.prNumber=$githubPullRequest `
+                /d:sonar.pullrequest.key=$githubPullRequest `
+                /d:sonar.pullrequest.branch=$githubPRBaseBranch `
+                /d:sonar.pullrequest.base=$githubPRTargetBranch `
+                /d:sonar.pullrequest.provider=github
+        }
+        elseif ($isMaster) {
+            Write-Host "Build kind: master"
+
+            Invoke-SonarBeginAnalysis $sonarQubeUrl $sonarQubeToken $sonarQubeProjectKey $sonarQubeProjectName `
+            /v:$leakPeriodVersion `
+                /d:sonar.analysis.buildNumber=$buildNumber `
+                /d:sonar.analysis.pipeline=$buildNumber
+        }
+        elseif ($isMaintenanceBranch -or $isFeatureBranch) {
+            if ($isMaintenanceBranch) {
+                Write-Host "Build kind: maintenance branch"
+            }
+            else {
+                Write-Host "Build kind: feature branch"
+            }
+
+            Invoke-SonarBeginAnalysis `
+                /v:$leakPeriodVersion `
+                /d:sonar.analysis.buildNumber=$buildNumber `
+                /d:sonar.analysis.pipeline=$buildNumber `
+                /d:sonar.branch.name=$branchName
         }
         else {
-            Build-ReleaseSolution (Resolve-RepoPath $solutionRelativePath) $snkCertificatePath
+            Write-Host "Build kind: branch"
+
+            $skippedAnalysis = $true
         }
+
+        Write-Host "VS target version: 2015"
+
+        Restore-Packages "14.0" $solutionRelativePath
+        Invoke-MSBuild "14.0" $solutionRelativePath `
+            /consoleloggerparameters:Summary `
+            /m `
+            /p:configuration="Release" `
+            /p:DeployExtension=false `
+            /p:ZipPackageCompressionLevel=normal `
+            /p:defineConstants="SignAssembly" `
+            /p:SignAssembly=true `
+            /p:AssemblyOriginatorKeyFile=$snkCertificatePath
     }
 
-    if ($test) {
-        Run-Tests $coverage
-    }
+    Invoke-UnitTests
+    Invoke-CodeCoverage
 
     if (-Not $skippedAnalysis) {
         End-Analysis $sonarQubeToken
     }
 
     ConvertTo-SignedExtension
+
+    Write-Host -ForegroundColor Green "SUCCESS: BUILD job was successful!"
+    exit 0
 } catch {
-    Write-Host $_
+    Write-Host -ForegroundColor Red $_
+    Write-Host $_.Exception
+    Write-Host $_.ScriptStackTrace
     exit 1
 }

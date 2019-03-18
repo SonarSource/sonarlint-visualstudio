@@ -7,6 +7,10 @@ function Resolve-RepoPath([string]$relativePath) {
     return (Join-Path (Resolve-Path (Join-Path $PSScriptRoot "..")) $relativePath)
 }
 
+function Test-Debug() {
+    return $DebugPreference -ne "SilentlyContinue"
+}
+
 # Original: http://jameskovacs.com/2010/02/25/the-exec-problem
 function Exec ([scriptblock]$command, [string]$errorMessage = "Error executing command: " + $command) {
     $output = & $command
@@ -94,8 +98,36 @@ function Get-NuGetPath {
     return Get-ExecutablePath -name "nuget.exe" -envVar "NUGET_PATH"
 }
 
-function Get-MsBuildPath {
-    return Get-ExecutablePath -name "msbuild.exe" -envVar "MSBUILD_PATH"
+function Get-MsBuildPath([ValidateSet("14.0", "15.0")][string]$msbuildVersion) {
+    if ($msbuildVersion -eq "14.0") {
+        return Get-ExecutablePath -name "msbuild.exe" -envVar "MSBUILD_PATH"
+    }
+
+    Write-Host "Trying to find 'msbuild.exe 15' using 'MSBUILD_PATH' environment variable"
+    $msbuild15Env = "MSBUILD_PATH"
+    $msbuild15Path = [environment]::GetEnvironmentVariable($msbuild15Env, "Process")
+
+    if (!$msbuild15Path) {
+        Write-Host "Environment variable not found"
+        Write-Host "Trying to find path using 'vswhere.exe'"
+
+        # Sets the path to MSBuild 15 into an the MSBUILD_PATH environment variable
+        # All subsequent builds after this command will use MSBuild 15!
+        # Test if vswhere.exe is in your path. Download from: https://github.com/Microsoft/vswhere/releases
+        $path = Exec { & (Get-VsWherePath) -version "[15.0, 16.0)" -products * -requires Microsoft.Component.MSBuild `
+            -property installationPath } | Select-Object -First 1
+        if ($path) {
+            $msbuild15Path = Join-Path $path "MSBuild\15.0\Bin\MSBuild.exe"
+            [environment]::SetEnvironmentVariable($msbuild15Env, $msbuild15Path)
+        }
+    }
+
+    if (Test-Path $msbuild15Path) {
+        Write-Debug "Found 'msbuild.exe 15' at '${msbuild15Path}'"
+        return $msbuild15Path
+    }
+
+    throw "'msbuild.exe 15' located at '${msbuild15Path}' doesn't exist"
 }
 
 function Get-VsTestPath {
@@ -117,32 +149,43 @@ function Expand-ZIPFile($source, $destination) {
     }
 }
 
-function Get-SonarQubeRunnerPath {
-    $sonarqube_runner_exe = (Resolve-RepoPath "MSBuild.SonarQube.Runner.exe")
+function Get-ScannerMsBuildPath() {
+    $currentDir = (Resolve-Path .\).Path
+    $scannerMsbuild = Join-Path $currentDir "SonarScanner.MSBuild.exe"
 
-    if (Test-Path $sonarqube_runner_exe) {
-        return $sonarqube_runner_exe
+    if (-Not (Test-Path $scannerMsbuild)) {
+        Write-Host "Scanner for MSBuild not found, downloading it"
+
+        if ($env:ARTIFACTORY_URL)
+        {
+            Write-Host "Environment variable ARTIFACTORY_URL = $env:ARTIFACTORY_URL"
+        }
+        else
+        {
+            # We want this to be a terminating error so we throw
+            Throw "Environment variable ARTIFACTORY_URL is not set"
+        }
+
+        # This links always redirect to the latest released scanner
+        $downloadLink = "$env:ARTIFACTORY_URL/sonarsource-public-releases/org/sonarsource/scanner/msbuild/" +
+            "sonar-scanner-msbuild/%5BRELEASE%5D/sonar-scanner-msbuild-%5BRELEASE%5D-net46.zip"
+        $scannerMsbuildZip = Join-Path $currentDir "\SonarScanner.MSBuild.zip"
+
+        Write-Host "Scanner for MSBuild not found, downloading it" "Downloading scanner from '${downloadLink}' at '${currentDir}'"
+
+        # NB: the WebClient class defaults to TLS v1, which is no longer supported by GitHub/Artifactory online
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+        (New-Object System.Net.WebClient).DownloadFile($downloadLink, $scannerMsbuildZip)
+
+        # perhaps we could use other folder, not the repository root
+        Expand-ZIPFile $scannerMsbuildZip $currentDir
+
+        Write-Host "Deleting downloaded zip"
+        Remove-Item $scannerMsbuildZip -Force
     }
 
-    $downloadLink = "https://github.com/SonarSource/sonar-msbuild-runner/releases/download/${sonarqube_runner_version}/sonar-scanner-msbuild-${sonarqube_runner_version}.zip"
-    $sonarqube_runner_zip = (Resolve-RepoPath "MSBuild.SonarQube.Runner.zip")
-
-    # NB: the WebClient class defaults to TLS v1, which is no longer supported by GitHub
-    # See https://githubengineering.com/crypto-removal-notice/
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-    Write-Debug "Current security protocol: $([System.Net.ServicePointManager]::SecurityProtocol)"
-    Write-Host "Attempting to download Scanner for MSBuild from ${downloadLink}"
-    (New-Object System.Net.WebClient).DownloadFile($downloadLink, $sonarqube_runner_zip)
-
-    # perhaps we could use other folder, not the repository root
-    Expand-ZIPFile $sonarqube_runner_zip (Resolve-RepoPath "")
-    # PS v5.0 -> Expand-Archive $sonarqube_runner_zip (Resolve-RepoPath "") -Force
-
-    Remove-Item $sonarqube_runner_zip -Force
-
-    Write-Debug "Found MSBuild.SonarQube.Runner.exe at ${sonarqube_runner_exe}"
-
-    return $sonarqube_runner_exe
+    Write-Host "Scanner for MSBuild found at '$scannerMsbuild'"
+    return $scannerMsbuild
 }
 
 function Set-Version {
@@ -175,95 +218,112 @@ function Get-Version {
     return $versionProps.Project.PropertyGroup.MainVersion + "." + $versionProps.Project.PropertyGroup.BuildNumber
 }
 
-function Restore-Packages ([string]$solutionPath) {
-    Write-Header "Restoring NuGet packages..."
-    $nuget_exe = Get-NuGetPath
-    & $nuget_exe restore $solutionPath
-    Test-ExitCode "ERROR: Restoring NuGet packages FAILED."
+function Restore-Packages (
+    [Parameter(Mandatory = $true, Position = 0)][ValidateSet("14.0", "15.0")][string]$msbuildVersion,
+    [Parameter(Mandatory = $true, Position = 1)][string]$solutionPath) {
+
+    $solutionName = Split-Path $solutionPath -Leaf
+    Write-Header "Restoring NuGet packages for ${solutionName}"
+
+    $msbuildBinDir = Split-Path -Parent (Get-MsBuildPath $msbuildVersion)
+
+    if (Test-Debug) {
+        Exec { & (Get-NuGetPath) restore $solutionPath -MSBuildPath $msbuildBinDir -Verbosity detailed `
+        } -errorMessage "ERROR: Restoring NuGet packages FAILED."
+    }
+    else {
+        Exec { & (Get-NuGetPath) restore $solutionPath -MSBuildPath $msbuildBinDir `
+        } -errorMessage "ERROR: Restoring NuGet packages FAILED."
+    }
 }
 
-function Begin-Analysis(
-    [string]$sonarQubeUrl,
-    [string]$sonarQubeToken,
-    [string]$sonarQubeProjectKey,
-    [string]$sonarQubeProjectName,
-    [array][parameter(ValueFromRemainingArguments = $true)] $remainingArgs) {
+function Invoke-SonarBeginAnalysis([array][parameter(ValueFromRemainingArguments = $true)] $remainingArgs) {
+    Write-Header "Running SonarCloud Analysis begin step"
 
-    Write-Header "Running SonarQube Analysis begin step..."
+    if (Test-Debug) {
+        $remainingArgs += "/d:sonar.verbose=true"
+    }
 
-    $sonarqube_runner_exe = Get-SonarQubeRunnerPath
-
-    & $sonarqube_runner_exe begin `
-        /k:$sonarQubeProjectKey `
-        /n:$sonarQubeProjectName `
-        /d:sonar.host.url=$sonarQubeUrl `
-        /d:sonar.login=$sonarQubeToken `
-        $remainingArgs
-    Test-ExitCode "ERROR: SonarQube Analysis begin step FAILED."
+    Exec { & (Get-ScannerMsBuildPath) begin `
+        /k:sonarlint-visualstudio `
+        /n:"SonarLint for Visual Studio" `
+        /d:sonar.host.url=${sonarCloudUrl} `
+        /d:sonar.login=$sonarCloudToken `
+        /o:sonarsource `
+        /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
+        /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
+        /d:sonar.analysis.sha1=$githubSha1 `
+        /d:sonar.analysis.repository=$githubRepo `
+        $remainingArgs `
+    } -errorMessage "ERROR: SonarCloud Analysis begin step FAILED."
 }
 
-function End-Analysis([string]$sonarQubeToken) {
-    Write-Header "Running SonarQube Analysis end step..."
+function Invoke-SonarEndAnalysis() {
+    Write-Header "Running SonarCloud Analysis end step"
 
-    $sonarqube_runner_exe = Get-SonarQubeRunnerPath
-
-    & $sonarqube_runner_exe end /d:sonar.login=$sonarQubeToken
-    Test-ExitCode "ERROR: SonarQube Analysis end step FAILED."
+    Exec { & (Get-ScannerMsBuildPath) end `
+        /d:sonar.login=$sonarCloudToken `
+    } -errorMessage "ERROR: SonarCloud Analysis end step FAILED."
 }
 
-function Build-Solution (
-    [string][Parameter(Mandatory = $true, Position = 0)]$solutionPath,
-    [array][parameter(ValueFromRemainingArguments = $true)] $remainingArgs) {
+function Invoke-MSBuild (
+    [Parameter(Mandatory = $true, Position = 0)][ValidateSet("14.0", "15.0")][string]$msbuildVersion,
+    [Parameter(Mandatory = $true, Position = 1)][string]$solutionPath,
+    [parameter(ValueFromRemainingArguments = $true)][array]$remainingArgs) {
 
-    Write-Header "Building solution ${solutionPath}..."
+    $solutionName = Split-Path $solutionPath -leaf
+    Write-Header "Building solution ${solutionName}"
 
-    Restore-Packages $solutionPath
+    if (Test-Debug) {
+        $remainingArgs += "/v:detailed"
+    }
+    else {
+        $remainingArgs += "/v:quiet"
+    }
+    
+    $remainingArgs += "/t:rebuild"
 
-    $msbuild_exe = Get-MsBuildPath
-
-    & $msbuild_exe $solutionPath $remainingArgs
-    Test-ExitCode "ERROR: Build FAILED."
+    $msbuildExe = Get-MsBuildPath $msbuildVersion
+    Exec { & $msbuildExe $solutionPath $remainingArgs `
+    } -errorMessage "ERROR: Build FAILED."
 }
 
-function Build-ReleaseSolution(
-    [string][Parameter(Mandatory = $true, Position = 0)]$solutionPath,
-    [string][Parameter(Mandatory = $true, Position = 1)]$certificatePath,
-    [array][parameter(ValueFromRemainingArguments = $true)] $remainingArgs) {
+function Invoke-UnitTests() {
+    Write-Header "Running unit tests"
 
-    Build-Solution $solutionPath `
-        /v:m `
-        /p:configuration=Release `
-        /p:DeployExtension=false `
-        /p:ZipPackageCompressionLevel=normal `
-        /p:defineConstants=SignAssembly `
-        /p:SignAssembly=true `
-        /p:AssemblyOriginatorKeyFile=$certificatePath `
-        $remainingArgs
-}
-
-function Run-Tests([bool]$runCoverage=$false) {
-    Write-Header "Starting test execution..."
-    Write-Host "Is running code coverage: ${runCoverage}"
-
+    Write-Debug "Running unit tests for"
     $testFiles = @()
+    $testDirs = @()
     Get-ChildItem (Resolve-RepoPath "src") -Recurse -Include @("*.UnitTests.dll", "*.Tests.dll") `
         | Where-Object { $_.DirectoryName -Match "bin" } `
-        | ForEach-Object { $testFiles += $_ }
-
-    Write-Host "Running unit tests for: ${testFiles}"
-
-    $vstest_exe = Get-VsTestPath
-    & $vstest_exe $testFiles /InIsolation /Enablecodecoverage /UseVsixExtensions:true /Logger:trx /Diag:vstest.log
-    Test-ExitCode "ERROR: Unit Tests execution FAILED."
-
-    if ($runCoverage) {
-        $codeCoverage_exe = Get-CodeCoveragePath
-        Write-Host "Generating code coverage reports:"
-        Get-ChildItem (Resolve-RepoPath "") -Recurse -Include "*.coverage" | ForEach-Object {
-            $filePathWithNewExtension = $_.FullName + "xml"
-            Write-Host "  ${filePathWithNewExtension}"
-            & $codeCoverage_exe analyze /output:$filePathWithNewExtension $_.FullName
-            Test-ExitCode "ERROR: Code coverage reports generation FAILED."
+        | ForEach-Object {
+            $currentFile = $_
+            Write-Debug "   - ${currentFile}"
+            $testFiles += $currentFile
+            $testDirs += $currentFile.Directory
         }
+    $testDirs = $testDirs | Select-Object -Uniq
+
+    & (Get-VsTestPath) $testFiles /Parallel /Enablecodecoverage /InIsolation /Logger:trx /UseVsixExtensions:true
+    Test-ExitCode "ERROR: Unit Tests execution FAILED."
+}
+
+function Invoke-CodeCoverage() {
+    Write-Header "Creating coverage report"
+
+    $codeCoverageExe = Get-CodeCoveragePath
+
+    Write-Host "Generating code coverage reports for"
+    Get-ChildItem "TestResults" -Recurse -Include "*.coverage" | ForEach-Object {
+        Write-Host "    -" $_.FullName
+
+        $filePathWithNewExtension = $_.FullName + "xml"
+        if (Test-Path $filePathWithNewExtension) {
+            Write-Debug "Coveragexml report already exists, removing it"
+            Remove-Item -Force $filePathWithNewExtension
+        }
+
+        Exec { & $codeCoverageExe analyze /output:$filePathWithNewExtension $_.FullName `
+        } -errorMessage "ERROR: Code coverage reports generation FAILED."
     }
 }
