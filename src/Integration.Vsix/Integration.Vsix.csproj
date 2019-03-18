@@ -1,24 +1,52 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
 
+  <!-- Executive summary:
+       * to build the VS2015 visx, build from the VS2015 command prompt/from inside VS2015.
+       * to build the VS2017 visx, build from the VS2017 command prompt/from inside VS2017.
+
+       Background:
+       We want to be able to use the same set of projects to develop in multiple versions of VS (currently VS2015
+       and VS2017, soon to include VS2019).
+
+       To achieve this, this project file has the following features:
+       * we can't use the new SDK-style project format since VS2015 doesn't understand it.
+
+       * there's a minor hack to prevent VS2017 from auto-upgrading the project - see the PropertyGroup below.
+         (The changes made by the auto-upgrade are not required and prevent the project from opening in VS2015).
+
+       * wherever possible, VS assemblies are referenced using NuGet packages. We're targeting the package version
+         supported by the oldest version of VS we want to support, and we're relying on the VS backward-compatibility
+         mechanisms to make it newer versions of VS.
+
+       * the TeamFoundation assemblies specific to a particular version of VS, and are not available as NuGet packages.
+         This only affects the Integration.TeamExplorer project. However, it does mean we need to build two versions
+         of that assembly, which in turns we need to build separate VSIX packages.
+         To achieve this, this project conditionally imports different VSIX manifests based on the version of VS being
+         used to build the project/solution.
+  -->
+
+  <PropertyGroup>
+    <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
+    <MinimumVisualStudioVersion Condition="$(DevEnvDir.Contains('2015'))">14.0</MinimumVisualStudioVersion>
+    <MinimumVisualStudioVersion Condition="$(DevEnvDir.Contains('2017'))">15.0</MinimumVisualStudioVersion>
+
+    <VersionSpecificSuffix>UNKNOWN_VS_VERSION</VersionSpecificSuffix>
+    <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='14.0'">2015</VersionSpecificSuffix>
+    <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
+  </PropertyGroup>
   <ItemGroup>
     <None Condition="$(VisualStudioVersion)=='14.0'" Include="Manifests\VS2015\source.extension.vsixmanifest" />
     <None Condition="$(VisualStudioVersion)=='15.0'" Include="Manifests\VS2017\source.extension.vsixmanifest" />
   </ItemGroup>
 
   <PropertyGroup>
-    <VersionSpecificSuffix>UNKNOWN_VS_VERSION</VersionSpecificSuffix>
-    <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='14.0'">2015</VersionSpecificSuffix>
-    <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
+    <MinimumVisualStudioVersion Condition="$(VisualStudioVersion)=='14.0'">14.0</MinimumVisualStudioVersion>
+    <MinimumVisualStudioVersion Condition="$(VisualStudioVersion)=='15.0'">15.0</MinimumVisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <TargetFrameworkProfile />
   </PropertyGroup>
-
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
