@@ -2,7 +2,7 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
         <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
-        <Identity Id="SonarLint.36871a7b-4853-481f-bb52-1835a874e81b" Version="4.8.0.0" Language="en-US" Publisher="SonarSource SA" />
+        <Identity Id="SonarLint.36871a7b-4853-481f-bb52-1835a874e81b" Version="4.9.0.0" Language="en-US" Publisher="SonarSource SA" />
         <DisplayName>SonarLint for Visual Studio 2017</DisplayName>
         <Description xml:space="preserve">Roslyn based static code analysis: Find and instantly fix nasty bugs and code smells in C#, VB.Net, C, C++ and JS.</Description>
         <MoreInfo>http://vs.sonarlint.org</MoreInfo>
