@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -30,10 +30,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MicrosoftVisualStudioCodeAnalysis_EnsureCorrectVersion()
         {
-            var visualStudioVersion = Environment.GetEnvironmentVariable("VisualStudioVersion");
             var assemblyVersion = typeof(Microsoft.FxCop.Sdk.INodes.IArrayTypeNode).Assembly.GetName().Version;
+            var callingAssembly = Assembly.GetCallingAssembly().GetName().Version;
 
-            assemblyVersion.ToString().Should().StartWith(visualStudioVersion);
+            callingAssembly.Should().NotBeNull();
+            assemblyVersion.Should().NotBeNull();
+            assemblyVersion.Major.Should().Be(callingAssembly.Major);
         }
     }
 }
