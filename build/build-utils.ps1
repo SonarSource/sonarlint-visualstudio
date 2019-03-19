@@ -1,7 +1,5 @@
 Add-Type -AssemblyName "System.IO.Compression.FileSystem"
 
-$sonarqube_runner_version = "3.0.0.629"
-
 # Resolves the given relative to the repository path to absolute.
 function Resolve-RepoPath([string]$relativePath) {
     return (Join-Path (Resolve-Path (Join-Path $PSScriptRoot "..")) $relativePath)
@@ -98,36 +96,64 @@ function Get-NuGetPath {
     return Get-ExecutablePath -name "nuget.exe" -envVar "NUGET_PATH"
 }
 
-function Get-MsBuildPath([ValidateSet("14.0", "15.0")][string]$msbuildVersion) {
+function Get-MsBuildPath([ValidateSet("14.0", "15.0", "16.0")][string]$msbuildVersion) {
     if ($msbuildVersion -eq "14.0") {
         return Get-ExecutablePath -name "msbuild.exe" -envVar "MSBUILD_PATH"
     }
+    elseif ($msbuildVersion -eq "15.0") {
+        Write-Host "Trying to find 'msbuild.exe 15' using 'MSBUILD_PATH' environment variable"
+        $msbuild15Env = "MSBUILD_PATH"
+        $msbuild15Path = [environment]::GetEnvironmentVariable($msbuild15Env, "Process")
 
-    Write-Host "Trying to find 'msbuild.exe 15' using 'MSBUILD_PATH' environment variable"
-    $msbuild15Env = "MSBUILD_PATH"
-    $msbuild15Path = [environment]::GetEnvironmentVariable($msbuild15Env, "Process")
+        if (!$msbuild15Path) {
+            Write-Host "Environment variable not found"
+            Write-Host "Trying to find path using 'vswhere.exe'"
 
-    if (!$msbuild15Path) {
-        Write-Host "Environment variable not found"
-        Write-Host "Trying to find path using 'vswhere.exe'"
-
-        # Sets the path to MSBuild 15 into an the MSBUILD_PATH environment variable
-        # All subsequent builds after this command will use MSBuild 15!
-        # Test if vswhere.exe is in your path. Download from: https://github.com/Microsoft/vswhere/releases
-        $path = Exec { & (Get-VsWherePath) -version "[15.0, 16.0)" -products * -requires Microsoft.Component.MSBuild `
-            -property installationPath } | Select-Object -First 1
-        if ($path) {
-            $msbuild15Path = Join-Path $path "MSBuild\15.0\Bin\MSBuild.exe"
-            [environment]::SetEnvironmentVariable($msbuild15Env, $msbuild15Path)
+            # Sets the path to MSBuild 15 into an the MSBUILD_PATH environment variable
+            # All subsequent builds after this command will use MSBuild 15!
+            # Test if vswhere.exe is in your path. Download from: https://github.com/Microsoft/vswhere/releases
+            $path = Exec { & (Get-VsWherePath) -version "[15.0, 16.0)" -products * -requires Microsoft.Component.MSBuild `
+                -property installationPath } | Select-Object -First 1
+            if ($path) {
+                $msbuild15Path = Join-Path $path "MSBuild\15.0\Bin\MSBuild.exe"
+                [environment]::SetEnvironmentVariable($msbuild15Env, $msbuild15Path)
+            }
         }
-    }
 
-    if (Test-Path $msbuild15Path) {
-        Write-Debug "Found 'msbuild.exe 15' at '${msbuild15Path}'"
-        return $msbuild15Path
-    }
+        if (Test-Path $msbuild15Path) {
+            Write-Debug "Found 'msbuild.exe 15' at '${msbuild15Path}'"
+            return $msbuild15Path
+        }
 
-    throw "'msbuild.exe 15' located at '${msbuild15Path}' doesn't exist"
+        throw "'msbuild.exe 15' located at '${msbuild15Path}' doesn't exist"
+    }
+    else {
+        Write-Host "Trying to find 'msbuild.exe 16' using 'MSBUILD_PATH' environment variable"
+        $msbuild16Env = "MSBUILD_PATH"
+        $msbuild16Path = [environment]::GetEnvironmentVariable($msbuild16Env, "Process")
+
+        if (!$msbuild16Path) {
+            Write-Host "Environment variable not found"
+            Write-Host "Trying to find path using 'vswhere.exe'"
+
+            # Sets the path to MSBuild 16 into an the MSBUILD_PATH environment variable
+            # All subsequent builds after this command will use MSBuild 15!
+            # Test if vswhere.exe is in your path. Download from: https://github.com/Microsoft/vswhere/releases
+            $path = Exec { & (Get-VsWherePath) -version "[16.0, 17.0)" -products * -requires Microsoft.Component.MSBuild `
+                -property installationPath } | Select-Object -First 1
+            if ($path) {
+                $msbuild16Path = Join-Path $path "MSBuild\16.0\Bin\MSBuild.exe"
+                [environment]::SetEnvironmentVariable($msbuild16Env, $msbuild16Path)
+            }
+        }
+
+        if (Test-Path $msbuild16Path) {
+            Write-Debug "Found 'msbuild.exe 16' at '${msbuild16Path}'"
+            return $msbuild16Path
+        }
+
+        throw "'msbuild.exe 16' located at '${msbuild16Path}' doesn't exist"
+    }
 }
 
 function Get-VsTestPath {
@@ -219,7 +245,7 @@ function Get-Version {
 }
 
 function Restore-Packages (
-    [Parameter(Mandatory = $true, Position = 0)][ValidateSet("14.0", "15.0")][string]$msbuildVersion,
+    [Parameter(Mandatory = $true, Position = 0)][ValidateSet("14.0", "15.0", "16.0")][string]$msbuildVersion,
     [Parameter(Mandatory = $true, Position = 1)][string]$solutionPath) {
 
     $solutionName = Split-Path $solutionPath -Leaf
@@ -267,7 +293,7 @@ function Invoke-SonarEndAnalysis() {
 }
 
 function Invoke-MSBuild (
-    [Parameter(Mandatory = $true, Position = 0)][ValidateSet("14.0", "15.0")][string]$msbuildVersion,
+    [Parameter(Mandatory = $true, Position = 0)][ValidateSet("14.0", "15.0", "16.0")][string]$msbuildVersion,
     [Parameter(Mandatory = $true, Position = 1)][string]$solutionPath,
     [parameter(ValueFromRemainingArguments = $true)][array]$remainingArgs) {
 
@@ -280,7 +306,7 @@ function Invoke-MSBuild (
     else {
         $remainingArgs += "/v:quiet"
     }
-    
+
     $remainingArgs += "/t:rebuild"
 
     $msbuildExe = Get-MsBuildPath $msbuildVersion
