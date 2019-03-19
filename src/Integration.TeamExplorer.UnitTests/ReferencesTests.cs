@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,23 +31,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MicrosoftTeamFoundationClient_EnsureCorrectVersion()
         {
-            var assemblyVersion = typeof(Microsoft.TeamFoundation.PluginCatalog).Assembly.GetName().Version;
+            var tfClientAssemblyVersion = typeof(Language)
+                .Assembly
+                .GetReferencedAssemblies()
+                .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Client.dll")
+                ?.Version;
             var callingAssembly = Assembly.GetCallingAssembly().GetName().Version;
 
             callingAssembly.Should().NotBeNull();
-            assemblyVersion.Should().NotBeNull();
-            assemblyVersion.Major.Should().Be(callingAssembly.Major);
+            tfClientAssemblyVersion.Should().NotBeNull();
+
+            // We assume that the version of the test execution engine is matching the version
+            // of the target version of VS.
+            tfClientAssemblyVersion.Major.Should().Be(callingAssembly.Major);
         }
 
         [TestMethod]
         public void MicrosoftTeamFoundationControls_EnsureCorrectVersion()
         {
-            var assemblyVersion = typeof(Microsoft.TeamFoundation.Controls.ITeamExplorer).Assembly.GetName().Version;
+            var tfControlsAssemblyVersion = typeof(Language)
+                .Assembly
+                .GetReferencedAssemblies()
+                .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Controls.dll")
+                ?.Version;
             var callingAssembly = Assembly.GetCallingAssembly().GetName().Version;
 
             callingAssembly.Should().NotBeNull();
-            assemblyVersion.Should().NotBeNull();
-            assemblyVersion.Major.Should().Be(callingAssembly.Major);
+            tfControlsAssemblyVersion.Should().NotBeNull();
+
+            // We assume that the version of the test execution engine is matching the version
+            // of the target version of VS.
+            tfControlsAssemblyVersion.Major.Should().Be(callingAssembly.Major);
         }
     }
 }
