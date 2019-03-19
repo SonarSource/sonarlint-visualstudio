@@ -18,6 +18,7 @@ param (
     [string]$sonarCloudToken = $env:SONARCLOUD_TOKEN,
 
     # Others
+    [string]$buildNumber = $env:BUILD_NUMBER,
     [string]$snkCertificatePath = $env:CERT_PATH,
     [string]$pfxCertificatePath = $env:PFX_PATH,
     [string]$pfxPassword = $env:PFX_PASSWORD,
@@ -90,7 +91,16 @@ try {
     $isPullRequest = $githubIsPullRequest -eq "true"
     $solutionName = "SonarLint.VisualStudio.Integration.sln"
 
+    Write-Header "Build parameters:"
     Write-Host "Branch: ${branchName}"
+    Write-Host "Build number: ${buildNumber}"
+    
+    if ($isPullRequest) {
+      Write-Host "Build kind: PR"
+      Write-Host "PR: ${githubPullRequest}"
+      Write-Host "PR source: ${githubPRBaseBranch}"
+      Write-Host "PR target: ${githubPRTargetBranch}"
+    }
 
     Set-Version
 
@@ -108,10 +118,6 @@ try {
         $leakPeriodVersion = Get-LeakPeriodVersion
 
         if ($isPullRequest) {
-            Write-Host "Build kind: PR"
-            Write-Host "PR: ${githubPullRequest}"
-            Write-Host "PR source: ${githubPRBaseBranch}"
-            Write-Host "PR target: ${githubPRTargetBranch}"
 
             Invoke-SonarBeginAnalysis `
                 /v:$leakPeriodVersion `
