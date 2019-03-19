@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- This file contains references to version-specific VS assemblies that cannot be referenced as NuGet packages.
+       
+       Usage:
+       In the consuming MSBuild project file...
+       
+       1. Set the properties indicating which set of assemblies are required e.g.
+            <RequiresTeamFoundation>true</RequiresTeamFoundation>
+            
+       2. If the project is a test project, set the following property:
+            <IsTestProject>true</IsTestProject>
+            
+            This is so the assemblies get copied locally when building the test projects so the tests can find them when they execute.
+
+        3. Import this file
+         -->
+  
+  <PropertyGroup>
+    <!-- By default, we don't want to copy the assemblies locally for product projects, otherwise they will be
+         included in the VSIX. However, we do need them to be copied locally for test projects so the tests
+         can find them when they execute. -->
+    <CopyVsAssembliesToOutput>$(IsTestProject)</CopyVsAssembliesToOutput>
+    <CopyVsAssembliesToOutput Condition="$(CopyVsAssembliesToOutput)==''" >false</CopyVsAssembliesToOutput>
+  </PropertyGroup>
+
+  <!-- Work out the location of VS in a version-agnostic way. This needs to work in both MSBuild and when
+       building inside VS. -->
+  <PropertyGroup>
+    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
+    <!-- Work round an issue with a build slave - if DevEnvDir is used the slave uses v12 of the TF assemblies -->
+    <VsCommonIdeDirectory Condition="$(VisualStudioVersion)=='14.0'" >$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
+  </PropertyGroup>
+
+  <!-- ******************************************************************************* -->
+  <!-- Legacy VS static analysis ruleset -->
+  <!-- ******************************************************************************* -->
+
+  <ItemGroup Label="Legacy VS CodeAnalysis" Condition=" $(RequiresRuleset)=='true' " >
+    <Reference Include="Microsoft.VisualStudio.CodeAnalysis">
+      <HintPath>$(VsCommonIdeDirectory)..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ******************************************************************************* -->
+  <!-- Team foundation assemblies -->
+  <!-- ******************************************************************************* -->
+  <!-- If we don't specify the version explicitly then the build agents pick up v12 of the assemblies 
+       from somewhere. This means we need different includes for VS2015 and VS2017. -->
+  <ItemGroup Label="TeamFoundation14" Condition="$(RequiresTeamFoundation)=='true' AND $(VisualStudioVersion)=='14.0'">
+    <Reference Include="Microsoft.TeamFoundation.Client, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Controls, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Label="TeamFoundation15" Condition="$(RequiresTeamFoundation)=='true' AND $(VisualStudioVersion)=='15.0'">
+    <Reference Include="Microsoft.TeamFoundation.Client, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Controls, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ******************************************************************************* -->
+
+</Project>
