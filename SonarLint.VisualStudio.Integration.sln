@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.489
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.Vsix", "src\Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
 EndProject
@@ -36,8 +36,6 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SonarAnalyzerEmbedder.Visua
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{71E68181-C534-4C18-84AA-42A8C273414E}"
 	ProjectSection(SolutionItems) = preProject
-		src\SonarQube\SolutionBinding.sqconfig = src\SonarQube\SolutionBinding.sqconfig
-		src\SonarQube\sonarlint-visualstudioCSharp.ruleset = src\SonarQube\sonarlint-visualstudioCSharp.ruleset
 		src\SonarLint.xml = src\SonarLint.xml
 	EndProjectSection
 EndProject
@@ -129,5 +127,8 @@ Global
 		{112698A2-85C3-4357-AAA5-7658D29D27A1} = {244A2265-326C-40AE-8906-02CC250867AA}
 		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6} = {9CF012C2-0303-4643-A5E2-0A45AFE4DBD5}
 		{115CC746-5181-485C-8707-346E8D55B1E5} = {9CF012C2-0303-4643-A5E2-0A45AFE4DBD5}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6C515861-BB3B-4FDB-A462-16D61CE2B8F4}
 	EndGlobalSection
 EndGlobal

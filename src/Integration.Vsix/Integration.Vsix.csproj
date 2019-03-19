@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
   <!-- Executive summary:
        * to build the VS2015 visx, build from the VS2015 command prompt/from inside VS2015.
        * to build the VS2017 visx, build from the VS2017 command prompt/from inside VS2017.
@@ -25,21 +24,19 @@
          To achieve this, this project conditionally imports different VSIX manifests based on the version of VS being
          used to build the project/solution.
   -->
-
   <PropertyGroup>
     <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
     <MinimumVisualStudioVersion Condition="$(DevEnvDir.Contains('2015'))">14.0</MinimumVisualStudioVersion>
     <MinimumVisualStudioVersion Condition="$(DevEnvDir.Contains('2017'))">15.0</MinimumVisualStudioVersion>
-
     <VersionSpecificSuffix>UNKNOWN_VS_VERSION</VersionSpecificSuffix>
     <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='14.0'">2015</VersionSpecificSuffix>
     <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="Integration.Vsix.ruleset" />
     <None Condition="$(VisualStudioVersion)=='14.0'" Include="Manifests\VS2015\source.extension.vsixmanifest" />
     <None Condition="$(VisualStudioVersion)=='15.0'" Include="Manifests\VS2017\source.extension.vsixmanifest" />
   </ItemGroup>
-
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="$(VisualStudioVersion)=='14.0'">14.0</MinimumVisualStudioVersion>
     <MinimumVisualStudioVersion Condition="$(VisualStudioVersion)=='15.0'">15.0</MinimumVisualStudioVersion>
@@ -129,7 +126,6 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Integration.Vsix.ruleset" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
