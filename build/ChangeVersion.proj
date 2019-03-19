@@ -23,12 +23,7 @@
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </AssemblyInformationalVersion>
 
-    <VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS2015\source.extension.vsixmanifest">
-      <Find>(?&lt;=Identity.*Version=")([^"]*)</Find>
-      <ReplaceWith>$(VsixVersion)</ReplaceWith>
-      <ExpectedMatchCount>1</ExpectedMatchCount>
-    </VsixVersion>
-    <VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS2017\source.extension.vsixmanifest">
+    <VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS201*\source.extension.vsixmanifest">
       <Find>(?&lt;=Identity.*Version=")([^"]*)</Find>
       <ReplaceWith>$(VsixVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
