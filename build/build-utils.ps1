@@ -280,7 +280,7 @@ function Invoke-MSBuild (
     else {
         $remainingArgs += "/v:quiet"
     }
-    
+
     $remainingArgs += "/t:rebuild"
 
     $msbuildExe = Get-MsBuildPath $msbuildVersion

@@ -94,12 +94,24 @@ try {
     Write-Header "Build parameters:"
     Write-Host "Branch: ${branchName}"
     Write-Host "Build number: ${buildNumber}"
-    
-    if ($isPullRequest) {
-      Write-Host "Build kind: PR"
-      Write-Host "PR: ${githubPullRequest}"
-      Write-Host "PR source: ${githubPRBaseBranch}"
-      Write-Host "PR target: ${githubPRTargetBranch}"
+
+    if ($isMaster) {
+        Write-Host "Build kind: master"
+    }
+    elseif ($isPullRequest) {
+        Write-Host "Build kind: PR"
+        Write-Host "PR: ${githubPullRequest}"
+        Write-Host "PR source: ${githubPRBaseBranch}"
+        Write-Host "PR target: ${githubPRTargetBranch}"
+    }
+    elseif ($isMaintenanceBranch) {
+        Write-Host "Build kind: maintenance branch"
+    }
+    elseif ($isFeatureBranch) {
+        Write-Host "Build kind: feature branch"
+    }
+    else {
+        Write-Host "Build kind: branch"
     }
 
     Set-Version
@@ -118,7 +130,6 @@ try {
         $leakPeriodVersion = Get-LeakPeriodVersion
 
         if ($isPullRequest) {
-
             Invoke-SonarBeginAnalysis `
                 /v:$leakPeriodVersion `
                 /d:sonar.analysis.prNumber=$githubPullRequest `
@@ -128,21 +139,12 @@ try {
                 /d:sonar.pullrequest.provider=github
         }
         elseif ($isMaster) {
-            Write-Host "Build kind: master"
-
             Invoke-SonarBeginAnalysis `
                 /v:$leakPeriodVersion `
                 /d:sonar.analysis.buildNumber=$buildNumber `
                 /d:sonar.analysis.pipeline=$buildNumber
         }
         elseif ($isMaintenanceBranch -or $isFeatureBranch) {
-            if ($isMaintenanceBranch) {
-                Write-Host "Build kind: maintenance branch"
-            }
-            else {
-                Write-Host "Build kind: feature branch"
-            }
-
             Invoke-SonarBeginAnalysis `
                 /v:$leakPeriodVersion `
                 /d:sonar.analysis.buildNumber=$buildNumber `
@@ -150,9 +152,7 @@ try {
                 /d:sonar.branch.name=$branchName
         }
         else {
-            Write-Host "Build kind: branch"
             Write-Host "  Skipping analysis - branch builds are not analyzed"
-
             $skippedAnalysis = $true
         }
 
