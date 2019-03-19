@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var tfClientAssemblyVersion = typeof(Language)
                 .Assembly
                 .GetReferencedAssemblies()
-                .FirstOrDefault(ra => ra.Name == "Microsoft.VisualStudio.CodeAnalysis.dll")
+                .FirstOrDefault(ra => ra.Name == "Microsoft.VisualStudio.CodeAnalysis")
                 ?.Version;
             var callingAssembly = Assembly.GetCallingAssembly().GetName().Version;
 

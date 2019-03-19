@@ -22,6 +22,7 @@ using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -31,10 +32,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MicrosoftTeamFoundationClient_EnsureCorrectVersion()
         {
-            var tfClientAssemblyVersion = typeof(Language)
+            var tfClientAssemblyVersion = typeof(TeamExplorerController)
                 .Assembly
                 .GetReferencedAssemblies()
-                .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Client.dll")
+                .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Client")
                 ?.Version;
             var callingAssembly = Assembly.GetCallingAssembly().GetName().Version;
 
@@ -49,10 +50,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MicrosoftTeamFoundationControls_EnsureCorrectVersion()
         {
-            var tfControlsAssemblyVersion = typeof(Language)
+            var tfControlsAssemblyVersion = typeof(TeamExplorerController)
                 .Assembly
                 .GetReferencedAssemblies()
-                .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Controls.dll")
+                .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Controls")
                 ?.Version;
             var callingAssembly = Assembly.GetCallingAssembly().GetName().Version;
 
