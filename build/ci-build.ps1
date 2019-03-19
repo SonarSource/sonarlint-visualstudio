@@ -1,6 +1,6 @@
 [CmdletBinding(PositionalBinding = $false)]
 param (
-    [ValidateSet("vs2015", "vs2017")]
+    [ValidateSet("vs2015", "vs2017", "vs2019")]
     [string]$vsTargetVersion = "vs2017",
 
     # GitHub related parameters
@@ -94,7 +94,7 @@ try {
     Write-Header "Build parameters:"
     Write-Host "Branch: ${branchName}"
     Write-Host "Build number: ${buildNumber}"
-    
+
     if ($isPullRequest) {
       Write-Host "Build kind: PR"
       Write-Host "PR: ${githubPullRequest}"
@@ -109,10 +109,17 @@ try {
     $solutionRelativePath = "${solutionName}"
     if ($vsTargetVersion -Eq "vs2017") {
         Write-Host "VS target version: 2017"
-        $skippedAnalysis = $true # We only want to analyze one of the VS2015 / VS2017 builds, not both, so we skip analyzing VS2017
+        $skippedAnalysis = $true # We only want to analyze one of the builds, not both, so we skip analyzing VS2017
         Write-Host "  NB: this build will not be analyzed. Check the VS2015 build for analysis results"
         Restore-Packages "15.0" $solutionRelativePath
         Start-Process "build/vs2017.bat" -NoNewWindow -Wait
+    }
+    elseif ($vsTargetVersion -Eq "vs2019") {
+        Write-Host "VS target version: 2019"
+        $skippedAnalysis = $true # We only want to analyze one of the builds, not both, so we skip analyzing VS2019
+        Write-Host "  NB: this build will not be analyzed. Check the VS2015 build for analysis results"
+        Restore-Packages "16.0" $solutionRelativePath
+        Start-Process "build/vs2019.bat" -NoNewWindow -Wait
     }
     else {
         $leakPeriodVersion = Get-LeakPeriodVersion
