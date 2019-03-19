@@ -1,10 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
-    <!-- Work round an issue with a build slave - if DevEnvDir is used the slave uses v12 of the TF assemblies -->
-    <VsCommonIdeDirectory Condition="$(VisualStudioVersion)=='14.0'" >$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
+    <IsTestProject>true</IsTestProject>
+    <RequiresTeamFoundation>true</RequiresTeamFoundation>
+    <RequiresRuleset>true</RequiresRuleset>
   </PropertyGroup>
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
+
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -230,20 +232,6 @@
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-  </ItemGroup>
-  <ItemGroup Label="NonGac">
-    <Reference Include="Microsoft.TeamFoundation.Client">
-      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.TeamFoundation.Controls">
-      <HintPath>$(VsCommonIdeDirectory)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Controls.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.CodeAnalysis">
-      <HintPath>$(VsCommonIdeDirectory)..\..\Team Tools\Static Analysis Tools\FxCop\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectSectionViewModelTests.cs" />
