@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
+using static SonarLint.VisualStudio.Integration.UnitTests.Helpers.MoqExtensions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
@@ -165,12 +166,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Returns(VSConstants.S_OK);
             var fileNames = new string[fileCount];
             vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, fileCount, fileNames, out fileCount))
-                .OutCallback((uint x, uint y, string[] paths, out uint z) =>
+                .Callback(new OutAction<uint, uint, string[], uint>((uint x, uint y, string[] paths, out uint z) =>
                 {
                     z = 0;
                     paths[0] = "Project1";
                     paths[1] = "Project2";
-                });
+                }));
             vsSolutionMock.As<IVsSolution5>().Setup(x => x.GetGuidOfProjectFile(It.IsAny<string>()))
                 .Returns(Guid.Empty);
             var liveIssueFactory = new LiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
@@ -307,7 +308,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // Calls with the number of items get the array containing those items
             vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, fileCount, It.IsAny<string[]>(), out fileCount))
-                .OutCallback((uint x, uint y, string[] names, out uint z) =>
+                .Callback(new OutAction<uint, uint, string[], uint>((uint x, uint y, string[] names, out uint z) =>
                 {
                     y.Should().Be(fileCount);
 
@@ -316,7 +317,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                     {
                         names[i] = pathToGuidMapping[i].Key;
                     }
-                });
+                }));
 
             // Return the guid matching the path
             vsSolutionMock.As<IVsSolution5>().Setup(x => x.GetGuidOfProjectFile(It.IsAny<string>()))

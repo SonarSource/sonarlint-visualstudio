@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
         {
             // Arrange - initialise in a connected state, then disconnect
             var testSubject = CreateTestSubjectWithInitialFetchCompleted();
-            serviceMock.ResetCalls();
+            serviceMock.Invocations.Clear();
             wrappedProvider.ResetCalls();
 
             SetServiceConnectionStatus(isConnected: false);
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
         {
             // Arrange - initialise in a connected state, then disconnect
             var testSubject = CreateTestSubjectWithInitialFetchCompleted();
-            serviceMock.ResetCalls();
+            serviceMock.Invocations.Clear();
             wrappedProvider.ResetCalls();
 
             serviceMock.Setup(x => x.IsConnected).Throws<InvalidOperationException>();
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
             wrappedProvider.ProfilesToReturnByLanguage[Language.CSharp] = csProfile;
 
             var testSubject = CreateTestSubjectWithInitialFetchCompleted();
-            serviceMock.ResetCalls();
+            serviceMock.Invocations.Clear();
             wrappedProvider.ResetCalls();
 
             // Act & Assert - profile for language exists

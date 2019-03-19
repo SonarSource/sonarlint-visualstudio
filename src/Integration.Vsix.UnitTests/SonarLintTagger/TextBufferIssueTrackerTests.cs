@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             testSubject.FilePath.Should().Be("newPath.js");
-            
+
             // Check the snapshot was updated and the error list notified
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(1);
             CheckSinkNotified(errorListSink, 1);
@@ -125,14 +125,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // 2. Add a tagger and raise -> analysis requested
             var tagger = new IssueTagger(testSubject);
-            daemonMock.ResetCalls();
+            daemonMock.Invocations.Clear();
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
             daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", null, testSubject), Times.Once);
 
             // 3. Unregister tagger and raise -> analysis not requested
             tagger.Dispose();
-            daemonMock.ResetCalls();
+            daemonMock.Invocations.Clear();
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
             CheckAnalysisWasNotRequested();
@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
 
             var tagger = new IssueTagger(testSubject);
-            daemonMock.ResetCalls();
+            daemonMock.Invocations.Clear();
 
             // Act
             RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Add a couple of error list listeners
             var errorListSinkMock1 = RegisterNewErrorListSink();
             var errorListSinkMock2 = RegisterNewErrorListSink();
-            
+
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
             var tagger = new IssueTagger(testSubject);
@@ -237,7 +237,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, issues);
 
             // Assert
-            // We can't check that the editors listeners are notified: we can't mock 
+            // We can't check that the editors listeners are notified: we can't mock
             // SnapshotSpan well enough for the product code to work -> affected span
             // is always null so the taggers don't notify their listeners.
             CheckSinkNotified(errorListSinkMock1, 1);
@@ -328,7 +328,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Returns(new Mock<ITextSnapshotLine>().Object);
 
             mockTextBuffer.Setup(x => x.CurrentSnapshot).Returns(mockSnapshot.Object);
-            
+
             // Create the document and associate the buffer with the it
             var mockTextDocument = new Mock<ITextDocument>();
             mockTextDocument.Setup(d => d.FilePath).Returns(fileName);
