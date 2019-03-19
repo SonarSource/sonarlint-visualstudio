@@ -70,14 +70,12 @@
     <Compile Include="Empty.vb" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.SonarAnalyzerEmbedder.VisualBasic.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="packages.SonarAnalyzerEmbedder.VisualBasic.config" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.10.0.7896\analyzers\Google.Protobuf.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.10.0.7896\analyzers\SonarAnalyzer.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.10.0.7896\analyzers\SonarAnalyzer.VisualBasic.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.11.0.8083\analyzers\Google.Protobuf.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.11.0.8083\analyzers\SonarAnalyzer.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.VisualBasic.7.11.0.8083\analyzers\SonarAnalyzer.VisualBasic.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>
