@@ -25,14 +25,6 @@
     <CopyVsAssembliesToOutput Condition="$(CopyVsAssembliesToOutput)==''" >false</CopyVsAssembliesToOutput>
   </PropertyGroup>
 
-  <!-- Work out the location of VS in a version-agnostic way. This needs to work in both MSBuild and when
-       building inside VS. -->
-  <PropertyGroup>
-    <VsCommonIdeDirectory>$(DevEnvDir)</VsCommonIdeDirectory>
-    <!-- Work round an issue with a build slave - if DevEnvDir is used the slave uses v12 of the TF assemblies -->
-    <VsCommonIdeDirectory Condition="$(VisualStudioVersion)=='14.0'" >$(VS140COMNTOOLS)..\IDE\</VsCommonIdeDirectory>
-  </PropertyGroup>
-
   <PropertyGroup>
     <ThirdPartyPath Condition="$(VisualStudioVersion)=='14.0'">$(MSBuildThisFileDirectory)\..\third-parties\VS2015</ThirdPartyPath>
     <ThirdPartyPath Condition="$(VisualStudioVersion)=='15.0'">$(MSBuildThisFileDirectory)\..\third-parties\VS2017</ThirdPartyPath>

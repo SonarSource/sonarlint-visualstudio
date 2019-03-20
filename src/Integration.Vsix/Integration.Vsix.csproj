@@ -29,20 +29,13 @@
 
   <PropertyGroup>
     <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
-    <MinimumVisualStudioVersion Condition="$(DevEnvDir.Contains('2015'))">14.0</MinimumVisualStudioVersion>
-    <MinimumVisualStudioVersion Condition="$(DevEnvDir.Contains('2017'))">15.0</MinimumVisualStudioVersion>
-    <MinimumVisualStudioVersion Condition="$(DevEnvDir.Contains('2019'))">16.0</MinimumVisualStudioVersion>
+    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
 
     <VersionSpecificSuffix>UNKNOWN_VS_VERSION</VersionSpecificSuffix>
     <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='14.0'">2015</VersionSpecificSuffix>
     <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
     <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='16.0'">2019</VersionSpecificSuffix>
   </PropertyGroup>
-  <ItemGroup>
-    <None Condition="$(VisualStudioVersion)=='14.0'" Include="Manifests\VS2015\source.extension.vsixmanifest" />
-    <None Condition="$(VisualStudioVersion)=='15.0'" Include="Manifests\VS2017\source.extension.vsixmanifest" />
-    <None Condition="$(VisualStudioVersion)=='16.0'" Include="Manifests\VS2019\source.extension.vsixmanifest" />
-  </ItemGroup>
 
   <PropertyGroup>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
@@ -524,6 +517,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="Resources\sonarlint_32px.ico" />
+    <None Include="Manifests\VS$(VersionSpecificSuffix)\source.extension.vsixmanifest" />
     <Content Include="Resources\sonarlint_wave_128px.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
