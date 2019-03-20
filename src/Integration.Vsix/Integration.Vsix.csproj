@@ -30,12 +30,9 @@
   <PropertyGroup>
     <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-
-    <VersionSpecificSuffix>UNKNOWN_VS_VERSION</VersionSpecificSuffix>
-    <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='14.0'">2015</VersionSpecificSuffix>
-    <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
-    <VersionSpecificSuffix Condition="$(VisualStudioVersion)=='16.0'">2019</VersionSpecificSuffix>
   </PropertyGroup>
+
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>

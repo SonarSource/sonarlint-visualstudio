@@ -3,7 +3,8 @@
 
   <!-- This file contains references to version-specific VS assemblies that cannot be referenced as NuGet packages.
 
-       Usage:
+       Project setup
+       =============
        In the consuming MSBuild project file...
 
        1. Set the properties indicating which set of assemblies are required e.g.
@@ -15,7 +16,60 @@
             This is so the assemblies get copied locally when building the test projects so the tests can find them when they execute.
 
         3. Import this file
-         -->
+
+
+       Building from the command line
+       ==============================
+       When building from the command line you must specify the version of VS to target e.g.
+
+         msbuild.exe SonarLint.VisualStudio.Integration.sln /p:VsTargetVersion=2017   
+
+       The allowed values for VsTargetVersion are 2015, 2017 and 2019.
+
+
+       Command line build limitations
+       ==============================
+       MSBuild 14 must be used to build the VS2015 vsix, and it can only build that version.
+       MSBuild 15 and 16 can be used to build both VS2017 and VS2019 versions.
+       This limitation is due to a change the vsix manifest format after VS2015.
+ 
+
+       Building inside VS
+       ==================
+       The targets will automatically set the target VS version to the version of VS being used.
+
+  -->
+  
+  <PropertyGroup>
+    <!-- VsTargetVersion should be set when building from the command line to specify the version.
+         Expected value: 2015, 2017, 2019 -->
+    <VersionSpecificSuffix>$(VsTargetVersion)</VersionSpecificSuffix>
+
+    <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='14.0'">2015</VersionSpecificSuffix>
+    <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
+    <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='16.0'">2019</VersionSpecificSuffix>
+  </PropertyGroup>
+
+  <!-- Sanity check to fail the build if VsTargetVersion isn't used correctly -->
+  <Target Name="CheckVsTargetVersionSetting" BeforeTargets="PrepareForBuild">
+    <Error 
+      Condition=" $(BuildingInsideVisualStudio) != 'true' AND $(VsTargetVersion) == '' "
+      Text="Must set VsTargetVersion build property when building outside Visual Studio. Expected values: 2015, 2017, 2019"/>
+
+    <Error
+      Condition=" $(BuildingInsideVisualStudio) != 'true' AND $(VsTargetVersion) != '2015' AND $(VsTargetVersion) != '2017' AND $(VsTargetVersion) != '2019' "
+      Text="Invalid value for VsTargetVersion. Expected values: 2015, 2017, 2019. Actual value: $(VsTargetVersion)"/>
+    
+    <!-- Check build constraints -->
+    <Error
+      Condition=" $(VisualStudioVersion) == '14.0' AND $(VersionSpecificSuffix) != '2015' "
+      Text="MSBuild 14.0/VS2015 can only build the VS2015 VSIX. Target version specified: X$(VsTargetVersion)X   Y$(VersionSpecificSuffix)Y"/>
+
+    <Error
+      Condition=" $(VisualStudioVersion) != '14.0' AND $(VersionSpecificSuffix) == '2015' "
+      Text="Only MSBuild 14.0 / VS2015 can build the VS2105 VSIX. Current VS version: $(VisualStudioVersion)"/>
+
+  </Target>
 
   <PropertyGroup>
     <!-- By default, we don't want to copy the assemblies locally for product projects, otherwise they will be
@@ -26,9 +80,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ThirdPartyPath Condition="$(VisualStudioVersion)=='14.0'">$(MSBuildThisFileDirectory)\..\third-parties\VS2015</ThirdPartyPath>
-    <ThirdPartyPath Condition="$(VisualStudioVersion)=='15.0'">$(MSBuildThisFileDirectory)\..\third-parties\VS2017</ThirdPartyPath>
-    <ThirdPartyPath Condition="$(VisualStudioVersion)=='16.0'">$(MSBuildThisFileDirectory)\..\third-parties\VS2019</ThirdPartyPath>
+    <ThirdPartyPath>$(MSBuildThisFileDirectory)\..\third-parties\VS$(VersionSpecificSuffix)</ThirdPartyPath>
+
+    <VsTargetMajorMinorVersion>Unknown VS target version - should never happen because of the validation target above</VsTargetMajorMinorVersion>
+    <VsTargetMajorMinorVersion Condition="$(VersionSpecificSuffix) == '2015' ">14.0</VsTargetMajorMinorVersion>
+    <VsTargetMajorMinorVersion Condition="$(VersionSpecificSuffix) == '2017' ">15.0</VsTargetMajorMinorVersion>
+    <VsTargetMajorMinorVersion Condition="$(VersionSpecificSuffix) == '2019' ">16.0</VsTargetMajorMinorVersion>
   </PropertyGroup>
 
   <!-- ******************************************************************************* -->
@@ -48,11 +105,11 @@
   <!-- If we don't specify the version explicitly then the build agents pick up v12 of the assemblies
        from somewhere. This means we need different includes for VS2015 and VS2017. -->
   <ItemGroup Label="TeamFoundation" Condition="$(RequiresTeamFoundation)=='true'">
-    <Reference Include="Microsoft.TeamFoundation.Client, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.TeamFoundation.Client, Version=$(VsTargetMajorMinorVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Client.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
-    <Reference Include="Microsoft.TeamFoundation.Controls, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.TeamFoundation.Controls, Version=$(VsTargetMajorMinorVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Controls.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
@@ -60,11 +117,11 @@
 
   <!-- The following dependencies are required by the test projects at runtime but are not required for compile time -->
   <ItemGroup Label="TeamFoundation" Condition="$(RequiresTeamFoundation)=='true' AND $(IsTestProject) == 'true'">
-    <Reference Include="Microsoft.TeamFoundation.Common, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.TeamFoundation.Common, Version=$(VsTargetMajorMinorVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Common.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Services.Common, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.VisualStudio.Services.Common, Version=$(VsTargetMajorMinorVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(ThirdPartyPath)\Microsoft.VisualStudio.Services.Common.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
