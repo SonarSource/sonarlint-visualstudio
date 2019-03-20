@@ -37,14 +37,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .GetReferencedAssemblies()
                 .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Client")
                 ?.Version;
-            var callingAssembly = Assembly.GetCallingAssembly().GetName().Version;
 
-            callingAssembly.Should().NotBeNull();
-            tfClientAssemblyVersion.Should().NotBeNull();
-
-            // We assume that the version of the test execution engine is matching the version
-            // of the target version of VS.
-            tfClientAssemblyVersion.Major.Should().Be(callingAssembly.Major);
+            AssertIsCorrectMajorVersion(tfClientAssemblyVersion.Major);
         }
 
         [TestMethod]
@@ -55,14 +49,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .GetReferencedAssemblies()
                 .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Controls")
                 ?.Version;
-            var callingAssembly = Assembly.GetCallingAssembly().GetName().Version;
 
-            callingAssembly.Should().NotBeNull();
-            tfControlsAssemblyVersion.Should().NotBeNull();
+            AssertIsCorrectMajorVersion(tfControlsAssemblyVersion.Major);
+        }
 
-            // We assume that the version of the test execution engine is matching the version
-            // of the target version of VS.
-            tfControlsAssemblyVersion.Major.Should().Be(callingAssembly.Major);
+        private void AssertIsCorrectMajorVersion(int dllMajorVersion)
+        {
+            var executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
+            executingAssemblyLocation.Should().NotBeNull();
+
+            if (executingAssemblyLocation.Contains("\\VS2015\\"))
+            {
+                dllMajorVersion.Should().Be(14);
+            }
+            else if (executingAssemblyLocation.Contains("\\VS2017\\"))
+            {
+                dllMajorVersion.Should().Be(15);
+            }
+            else if (executingAssemblyLocation.Contains("\\VS2019\\"))
+            {
+                dllMajorVersion.Should().Be(16);
+            }
+            else
+            {
+                Assert.Fail("Expecting the path to contain one of 'VS2015', 'VS2017' or 'VS2019'.");
+            }
         }
     }
 }
