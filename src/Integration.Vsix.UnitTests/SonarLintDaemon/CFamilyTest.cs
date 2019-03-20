@@ -148,24 +148,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void PlatformToolset()
         {
-            CFamily.FileConfig.ConvertPlatformToolset("v141").Should().Be("19.10.00");
-            CFamily.FileConfig.ConvertPlatformToolset("v141_xp").Should().Be("19.10.00");
+            CFamily.FileConfig.ConvertPlatformToolset("v90").Should().Be("15.00.00");
 
-            CFamily.FileConfig.ConvertPlatformToolset("v140").Should().Be("19.00.00");
-            CFamily.FileConfig.ConvertPlatformToolset("v140_xp").Should().Be("19.00.00");
-
-            CFamily.FileConfig.ConvertPlatformToolset("v120").Should().Be("18.00.00");
-            CFamily.FileConfig.ConvertPlatformToolset("v120_xp").Should().Be("18.00.00");
+            CFamily.FileConfig.ConvertPlatformToolset("v100").Should().Be("16.00.00");
 
             CFamily.FileConfig.ConvertPlatformToolset("v110").Should().Be("17.00.00");
             CFamily.FileConfig.ConvertPlatformToolset("v110_xp").Should().Be("17.00.00");
 
-            CFamily.FileConfig.ConvertPlatformToolset("v100").Should().Be("16.00.00");
+            CFamily.FileConfig.ConvertPlatformToolset("v120").Should().Be("18.00.00");
+            CFamily.FileConfig.ConvertPlatformToolset("v120_xp").Should().Be("18.00.00");
 
-            CFamily.FileConfig.ConvertPlatformToolset("v90").Should().Be("15.00.00");
+            CFamily.FileConfig.ConvertPlatformToolset("v140").Should().Be("19.00.00");
+            CFamily.FileConfig.ConvertPlatformToolset("v140_xp").Should().Be("19.00.00");
 
-            Action action = () => CFamily.FileConfig.ConvertPlatformToolset("v142");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformToolset: v142");
+            CFamily.FileConfig.ConvertPlatformToolset("v141").Should().Be("19.10.00");
+            CFamily.FileConfig.ConvertPlatformToolset("v141_xp").Should().Be("19.10.00");
+
+            CFamily.FileConfig.ConvertPlatformToolset("v142").Should().Be("19.20.00");
+
+            Action action = () => CFamily.FileConfig.ConvertPlatformToolset("v143");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformToolset: v143");
         }
 
         [TestMethod]

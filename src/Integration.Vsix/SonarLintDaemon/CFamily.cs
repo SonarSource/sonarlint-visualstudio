@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // If you open a C++ file that is not part of the current solution then
                 // VS will cruft up a temporary vcxproj so that it can provide language
                 // services for the file (e.g. syntax highlighting). This means that
-                // even though we have what looks like a valid project item, it might 
+                // even though we have what looks like a valid project item, it might
                 // not actually belong to a real project.
                 var indexOfSingleFileString = projectItem?.ContainingProject?.FullName.IndexOf("SingleFileISense", StringComparison.OrdinalIgnoreCase);
                 return indexOfSingleFileString.HasValue &&
@@ -314,6 +314,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     default:
                         throw new ArgumentException($"Unsupported PlatformToolset: {platformToolset}", nameof(platformToolset));
+                    case "v142":
+                        return "19.20.00";
                     case "v141":
                     case "v141_xp":
                         return "19.10.00";
