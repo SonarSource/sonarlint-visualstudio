@@ -36,6 +36,11 @@
                   <type>vsix</type>
                   <classifier>2017</classifier>
                 </artifact>
+                <artifact>
+                  <file>${env.WORKSPACE}/binaries/SonarLint.2019.vsix</file>
+                  <type>vsix</type>
+                  <classifier>2019</classifier>
+                </artifact>
               </artifacts>
             </configuration>
           </execution>
