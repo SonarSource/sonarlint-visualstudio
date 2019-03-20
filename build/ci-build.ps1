@@ -1,7 +1,7 @@
 [CmdletBinding(PositionalBinding = $false)]
 param (
-    [ValidateSet("vs2015", "vs2017", "vs2019")]
-    [string]$vsTargetVersion = "vs2017",
+    [ValidateSet("VS2015", "VS2017", "VS2019")]
+    [string]$vsTargetVersion,
 
     # GitHub related parameters
     [string]$githubRepo = $env:GITHUB_REPO,
@@ -107,19 +107,15 @@ try {
     $skippedAnalysis = $false
 
     $solutionRelativePath = "${solutionName}"
-    if ($vsTargetVersion -Eq "vs2017") {
-        Write-Host "VS target version: 2017"
-        $skippedAnalysis = $true # We only want to analyze one of the builds, not both, so we skip analyzing VS2017
+    if ($vsTargetVersion -Eq "VS2017" -Or $vsTargetVersion -Eq "VS2019") {
+        Write-Host "VS target version: " $vsTargetVersion
         Write-Host "  NB: this build will not be analyzed. Check the VS2015 build for analysis results"
+        $skippedAnalysis = $true # We only want to analyze one of the builds, not both, so we skip analyzing VS2017 or VS2019
+
         Restore-Packages "15.0" $solutionRelativePath
+
+        $env:VsTargetVersion = $vsTargetVersion.Substring(2)
         Start-Process "build/vs2017.bat" -NoNewWindow -Wait
-    }
-    elseif ($vsTargetVersion -Eq "vs2019") {
-        Write-Host "VS target version: 2019"
-        $skippedAnalysis = $true # We only want to analyze one of the builds, not both, so we skip analyzing VS2019
-        Write-Host "  NB: this build will not be analyzed. Check the VS2015 build for analysis results"
-        Restore-Packages "16.0" $solutionRelativePath
-        Start-Process "build/vs2019.bat" -NoNewWindow -Wait
     }
     else {
         $leakPeriodVersion = Get-LeakPeriodVersion
@@ -174,7 +170,8 @@ try {
             /p:ZipPackageCompressionLevel=normal `
             /p:defineConstants="SignAssembly" `
             /p:SignAssembly=true `
-            /p:AssemblyOriginatorKeyFile=$snkCertificatePath
+            /p:AssemblyOriginatorKeyFile=$snkCertificatePath `
+            /p:VsTargetVersion="2015"
     }
 
     Invoke-UnitTests
