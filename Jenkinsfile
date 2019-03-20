@@ -8,7 +8,7 @@ pipeline {
     PFX_PASSWORD = credentials('pfx-passphrase')
     GITHUB_TOKEN = credentials('sonartech-github-token')
     SONARCLOUD_TOKEN = credentials('SONARCLOUD_TOKEN')
-    ARTIFACTS_TO_DOWNLOAD = 'org.sonarsource.dotnet:SonarLint.VSIX:vsix:2015,org.sonarsource.dotnet:SonarLint.VSIX:vsix:2017'
+    ARTIFACTS_TO_DOWNLOAD = 'org.sonarsource.dotnet:SonarLint.VSIX:vsix:2015,org.sonarsource.dotnet:SonarLint.VSIX:vsix:2017,org.sonarsource.dotnet:SonarLint.VSIX:vsix:2019'
   }
   stages{
     stage('NotifyStart')  {
@@ -27,7 +27,7 @@ pipeline {
           }
           steps{
             bat script: 'ci-build.cmd'
-            stash includes: 'binaries/*.vsix', name: "vsix-vs2015"
+            stash includes: 'binaries/SonarLint.2015.vsix', name: "vsix-vs2015"
           }
         }
         stage('vs2017') {
@@ -39,7 +39,8 @@ pipeline {
           }
           steps{
             bat script: 'ci-build.cmd'
-            stash includes: 'binaries/*.vsix', name: "vsix-vs2017"
+            stash includes: 'binaries/SonarLint.2017.vsix', name: "vsix-vs2017"
+            stash includes: 'binaries/SonarLint.2019.vsix', name: "vsix-vs2019"
           }
         }
       }
@@ -71,6 +72,7 @@ pipeline {
       steps{
         unstash 'vsix-vs2015'
         unstash 'vsix-vs2017'
+        unstash 'vsix-vs2019'
         script {
           version = sh returnStdout: true, script: 'cat build/Version.props | grep MainVersion\\> | cut -d \\> -f 2 | cut --complement -d \\< -f 2'
           version = version.trim() + ".${env.BUILD_NUMBER}"

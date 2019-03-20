@@ -56,7 +56,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void AssertIsCorrectMajorVersion(int dllMajorVersion)
         {
             var executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
-            executingAssemblyLocation.Should().NotBeNull();
+            executingAssemblyLocation.Should()
+                .NotBeNull()
+                .And.EndWith("Integration.TeamExplorer.UnitTests.dll");
 
             if (executingAssemblyLocation.Contains("\\VS2015\\"))
             {
@@ -72,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             else
             {
-                Assert.Fail("Expecting the path to contain one of 'VS2015', 'VS2017' or 'VS2019'.");
+                Assert.Fail("Test setup error: Expecting the path to the test dll to contain one of 'VS2015', 'VS2017' or 'VS2019'.");
             }
         }
     }
