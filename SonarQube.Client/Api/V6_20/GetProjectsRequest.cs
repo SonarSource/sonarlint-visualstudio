@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -41,6 +42,19 @@ namespace SonarQube.Client.Api.V6_20
                 .ToObject<ComponentResponse[]>()
                 .Select(ToProject)
                 .ToArray();
+
+        protected override void ValidateResult(Result<SonarQubeProject[]> pageResult, List<SonarQubeProject> allResponseItems)
+        {
+            // We want to swallow the 10K error
+            if (!pageResult.IsSuccess &&
+                pageResult.StatusCode == System.Net.HttpStatusCode.BadRequest &&
+                allResponseItems.Count == 10000)
+            {
+                return;
+            }
+
+            pageResult.EnsureSuccess();
+        }
 
         private SonarQubeProject ToProject(ComponentResponse response) =>
             new SonarQubeProject(response.Key, response.Name);
