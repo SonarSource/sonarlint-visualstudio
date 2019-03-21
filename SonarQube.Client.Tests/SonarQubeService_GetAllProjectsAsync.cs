@@ -286,5 +286,46 @@ namespace SonarQube.Client.Tests
 
             logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
+
+        [TestMethod]
+        public async Task GetProjects_10K_Limit()
+        {
+            const int numberOfItemsBeforeCrash = 10000;
+            const int pageSize = 500; // 500 is the hardcoded page size
+            const int numberOfPagesBeforeCrash = numberOfItemsBeforeCrash / pageSize;
+
+            await ConnectToSonarQube("6.2.0.0");
+
+            for (var currentPage = 1; currentPage <= numberOfPagesBeforeCrash; currentPage++)
+            {
+                var currentPageProjects = string.Join(",\n", Enumerable.Range(((currentPage - 1) * pageSize) + 1, pageSize)
+                    .Select(i => $@"{{
+      ""organization"": ""myorganization"",
+      ""id"": ""{i}"",
+      ""key"": ""{i}"",
+      ""name"": ""Project{i}"" }}"));
+
+                SetupRequest($"api/components/search_projects?organization=myorganization&asc=true&p={currentPage}&ps={pageSize}",
+                $@"{{
+  ""paging"": {{
+    ""pageIndex"": {currentPage},
+    ""pageSize"": {pageSize},
+    ""total"": {numberOfItemsBeforeCrash + pageSize}
+  }},
+  ""components"": [ {currentPageProjects} ],
+  ""facets"": []
+}}");
+            }
+
+            SetupRequest($"api/components/search_projects?organization=myorganization&asc=true&p={numberOfPagesBeforeCrash + 1}&ps={pageSize}",
+                $"Can return only the first {numberOfItemsBeforeCrash} results. {numberOfItemsBeforeCrash + pageSize}th result asked.",
+                HttpStatusCode.BadRequest);
+
+            var result = await service.GetAllProjectsAsync("myorganization", CancellationToken.None);
+
+            messageHandler.VerifyAll();
+
+            result.Should().HaveCount(10000);
+        }
     }
 }

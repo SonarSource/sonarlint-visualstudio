@@ -44,23 +44,29 @@ namespace SonarQube.Client.Requests
 
         public async override Task<TResponseItem[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
-            var result = new List<TResponseItem>();
+            var allResponseItems = new List<TResponseItem>();
 
             Result<TResponseItem[]> pageResult;
             do
             {
                 pageResult = await InvokeUncheckedAsync(httpClient, token);
-                pageResult.EnsureSuccess();
+                ValidateResult(pageResult, allResponseItems);
 
-                result.AddRange(pageResult.Value);
-
-                Logger.Debug($"Received {pageResult.Value.Length} items.");
+                if (pageResult.Value != null)
+                {
+                    allResponseItems.AddRange(pageResult.Value);
+                    Logger.Debug($"Received {pageResult.Value.Length} items.");
+                }
 
                 Page++;
             }
-            while (pageResult.Value.Length >= MaximumPageSize);
+            while (pageResult.Value != null &&
+                pageResult.Value.Length >= MaximumPageSize);
 
-            return result.ToArray();
+            return allResponseItems.ToArray();
         }
+
+        protected virtual void ValidateResult(Result<TResponseItem[]> pageResult, List<TResponseItem> allResponseItems) =>
+            pageResult.EnsureSuccess();
     }
 }

@@ -36,7 +36,6 @@ namespace SonarQube.Client
 {
     public class SonarQubeService : ISonarQubeService, IDisposable
     {
-        internal const int MaximumPageSize = 500;
         internal static readonly Version OrganizationsFeatureMinimalVersion = new Version(6, 2);
 
         private readonly HttpMessageHandler messageHandler;
