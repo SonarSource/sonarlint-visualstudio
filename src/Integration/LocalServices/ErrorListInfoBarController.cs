@@ -114,7 +114,9 @@ namespace SonarLint.VisualStudio.Integration
         // possible use #if DEBUG instead.
         private void AssertOnUIThread()
         {
-            Debug.Assert(this.host.UIDispatcher.CheckAccess(), "The controller needs to run on the UI thread");
+            // Note: "this.host.UIDispatcher.CheckAccess()" does not return the correct result when 
+            // VS is shutting down. However, ThreadHelper.CheckAccess() does.
+            Debug.Assert(ThreadHelper.CheckAccess(), "The controller needs to run on the UI thread");
         }
 
         private bool IsActiveSolutionBound
