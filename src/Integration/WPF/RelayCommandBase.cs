@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
         {
             if (System.Windows.Application.Current != null)
             {
-                Debug.Assert(System.Windows.Application.Current.Dispatcher.CheckAccess(), "RequeryCanExecute should be called from the UI thread");
+                Debug.Assert(Microsoft.VisualStudio.Shell.ThreadHelper.CheckAccess(), "RequeryCanExecute should be called from the UI thread");
             }
 
             this.canExecuteChanged?.Invoke(this, EventArgs.Empty);

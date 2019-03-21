@@ -336,7 +336,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void InitializeSolutionBindingOnUIThread(IProgressStepExecutionEvents notificationEvents)
         {
-            Debug.Assert(System.Windows.Application.Current?.Dispatcher.CheckAccess() ?? false, "Expected to run on UI thread");
+            Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
 
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage);
 
@@ -351,7 +351,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void FinishSolutionBindingOnUIThread(IProgressController controller, CancellationToken token)
         {
-            Debug.Assert(System.Windows.Application.Current?.Dispatcher.CheckAccess() ?? false, "Expected to run on UI thread");
+            Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
 
             if (!this.solutionBindingOperation.CommitSolutionBinding())
             {
