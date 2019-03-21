@@ -76,21 +76,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             notifications = new SonarQubeNotificationService(sonarqubeService,
                 new NotificationIndicatorViewModel(), new TimerWrapper { Interval = 60000 }, logger);
-
-            activeSolutionBoundTracker = await this.GetMefServiceAsync<IActiveSolutionBoundTracker>();
-
-            // A bound solution might already have completed loading. If so, we need to
-            // trigger the load of the options from the solution file
-            if (activeSolutionBoundTracker.CurrentConfiguration.Mode != SonarLintMode.Standalone)
-            {
-                var solutionPersistence = (IVsSolutionPersistence)await this.GetServiceAsync(typeof(SVsSolutionPersistence));
-                solutionPersistence.LoadPackageUserOpts(this, NotificationDataKey);
-            }
-
+            
             // Initialising the UI elements has to be on the main thread
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             SafePerformOpOnUIThread(() =>
             {
+                // Creating the tracker might indirectly cause UI-related MEF components to be
+                // created, so this needs to be done on the UI thread just in case.
+                activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
+
+                // A bound solution might already have completed loading. If so, we need to
+                // trigger the load of the options from the solution file
+                if (activeSolutionBoundTracker.CurrentConfiguration.Mode != SonarLintMode.Standalone)
+                {
+                    var solutionPersistence = (IVsSolutionPersistence)this.GetService(typeof(SVsSolutionPersistence));
+                    solutionPersistence.LoadPackageUserOpts(this, NotificationDataKey);
+                }
+
                 PerformUIInitialisation();
                 logger.WriteLine(Resources.Strings.Notifications_InitializationComplete);
             });
