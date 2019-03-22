@@ -191,8 +191,11 @@ namespace SonarLint.VisualStudio.Integration.Connection
                     projects.Count == 10000 &&
                     !projects.Any(p => p.Key == this.host.VisualStateManager.BoundProjectKey))
                 {
-                    this.host.Logger.WriteLine("Cannot find the project key you are bound to in the fist 10,000 projects. Automatically adding it as a workaround.");
+                    this.host.Logger.WriteLine($"The project with key '{this.host.VisualStateManager.BoundProjectKey}' is not part of the first ten thousand projects. The binding process will continue assuming it was found.");
+                    this.host.Logger.WriteLine("Note that if the project key does not actually exist on the server the binding will fail at a later stage.");
 
+                    // We have to create a new list because the collection returned by the service as a fixed size
+                    projects = new List<SonarQubeProject>(projects);
                     // Let's put the new item first in the collection to ease finding it.
                     projects.Insert(0, new SonarQubeProject(this.host.VisualStateManager.BoundProjectKey,
                         this.host.VisualStateManager.BoundProjectName ?? this.host.VisualStateManager.BoundProjectKey));
