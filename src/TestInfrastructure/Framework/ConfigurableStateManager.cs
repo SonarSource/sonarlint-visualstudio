@@ -49,6 +49,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             set;
         }
 
+        public string BoundProjectName
+        {
+            get;
+            set;
+        }
+
         public bool IsBusy
         {
             get;

@@ -211,7 +211,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
-        
+
         [TestMethod]
         public void ErrorListInfoBarController_Refresh_ActiveSolutionBecameUnboundAfterRefresh()
         {
@@ -349,7 +349,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Change binding
-            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey");
+            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey", "projectName");
 
             // Act
             infoBar.SimulateButtonClickEvent();
@@ -893,7 +893,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void SetBindingMode(SonarLintMode mode)
         {
             this.configProvider.ModeToReturn = mode;
-            this.configProvider.ProjectToReturn = mode == SonarLintMode.Standalone ? null : new Persistence.BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey");
+            this.configProvider.ProjectToReturn = mode == SonarLintMode.Standalone ? null : new Persistence.BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey", "projectName");
         }
 
         /// <summary>

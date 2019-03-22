@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CreateConnectionInformation_NoCredentials()
         {
             // Arrange
-            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey",
+            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName",
                 organization: new SonarQubeOrganization("org_key", "org_name"));
 
             // Act
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
-            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", creds,
+            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName", creds,
                 new SonarQubeOrganization("org_key", "org_name"));
 
             // Act
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CreateConnectionInformation_NoOrganizationNoAuth()
         {
             // Arrange
-            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey");
+            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName");
 
             // Act
             ConnectionInformation conn = input.CreateConnectionInformation();

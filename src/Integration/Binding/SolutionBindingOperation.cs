@@ -47,10 +47,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly Dictionary<Language, RuleSetInformation> ruleSetsInformationMap = new Dictionary<Language, RuleSetInformation>();
         private Dictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
-        private readonly string ProjectKey;
+        private readonly string projectKey;
+        private readonly string projectName;
         private readonly SonarLintMode bindingMode;
 
-        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string ProjectKey, SonarLintMode bindingMode)
+        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string projectKey, string projectName, SonarLintMode bindingMode)
         {
             if (serviceProvider == null)
             {
@@ -62,16 +63,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(connection));
             }
 
-            if (string.IsNullOrWhiteSpace(ProjectKey))
+            if (string.IsNullOrWhiteSpace(projectKey))
             {
-                throw new ArgumentNullException(nameof(ProjectKey));
+                throw new ArgumentNullException(nameof(projectKey));
             }
 
             bindingMode.ThrowIfNotConnected();
 
             this.serviceProvider = serviceProvider;
             this.connection = connection;
-            this.ProjectKey = ProjectKey;
+            this.projectKey = projectKey;
+            this.projectName = projectName;
 
             this.projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
@@ -116,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 Debug.Assert(!this.ruleSetsInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
 
-                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.ProjectKey, keyValue.Key, this.bindingMode);
+                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.projectKey, keyValue.Key, this.bindingMode);
                 this.ruleSetsInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
             }
         }
@@ -254,8 +256,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 };
             }
 
-            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.ProjectKey, credentials,
-                connInfo.Organization);
+            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.projectKey, this.projectName,
+                credentials, connInfo.Organization);
             bound.Profiles = map;
 
             var config = new BindingConfiguration(bound, this.bindingMode);

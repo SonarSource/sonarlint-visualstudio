@@ -105,6 +105,7 @@ namespace SonarLint.VisualStudio.Integration.State
         }
 
         public string BoundProjectKey { get; set; }
+        public string BoundProjectName { get; set; }
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects)
         {

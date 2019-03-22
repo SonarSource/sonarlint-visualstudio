@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -281,7 +281,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
-            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), "bla"), SonarLintMode.LegacyConnected);
+            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), "bla", "projectName"), SonarLintMode.LegacyConnected);
             this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
 
             // Sanity
@@ -316,7 +316,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             this.stateManager.SetBoundProject(new Uri("http://bound"), "org1", "bla");
-            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), "bla"), SonarLintMode.LegacyConnected);
+            SetConfiguration(new Persistence.BoundSonarQubeProject(new Uri("http://bound"), "bla", "projectName"), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
             section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
@@ -344,7 +344,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = this.CreateTestSubject(tracker);
 
             this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
-            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), "bla"), SonarLintMode.LegacyConnected);
+            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), "bla", "projectName"), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             testSubject.SetActiveSection(section);
 

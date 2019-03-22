@@ -668,14 +668,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private BindingWorkflow CreateTestSubject(string projectKey = "anykey", string projectName = "anyname", 
+        private BindingWorkflow CreateTestSubject(string projectKey = "anykey", string projectName = "anyname",
             INuGetBindingOperation nuGetBindingOperation = null)
         {
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
 
             var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
 
-            var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, SonarLintMode.LegacyConnected);
+            var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected);
 
             if (nuGetBindingOperation == null)
             {

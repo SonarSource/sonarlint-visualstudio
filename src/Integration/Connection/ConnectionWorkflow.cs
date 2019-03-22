@@ -183,6 +183,24 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 var projects = await this.host.SonarQubeService.GetAllProjectsAsync(connection.Organization?.Key,
                     cancellationToken);
 
+                // The SonarQube client will limit the number of returned projects to 10K (hard limit on SonarQube side)
+                // but will no longer fail when trying to retrieve more. In the case where the project we want to bind to
+                // is not in the list and the binding was already done and the key is not null then we manually
+                // forge and add a new project to the list.
+                if (!string.IsNullOrWhiteSpace(this.host.VisualStateManager.BoundProjectKey) &&
+                    projects.Count == 10000 &&
+                    !projects.Any(p => p.Key == this.host.VisualStateManager.BoundProjectKey))
+                {
+                    this.host.Logger.WriteLine($"The project with key '{this.host.VisualStateManager.BoundProjectKey}' is not part of the first ten thousand projects. The binding process will continue assuming it was found.");
+                    this.host.Logger.WriteLine("Note that if the project key does not actually exist on the server the binding will fail at a later stage.");
+
+                    // We have to create a new list because the collection returned by the service as a fixed size
+                    projects = new List<SonarQubeProject>(projects);
+                    // Let's put the new item first in the collection to ease finding it.
+                    projects.Insert(0, new SonarQubeProject(this.host.VisualStateManager.BoundProjectKey,
+                        this.host.VisualStateManager.BoundProjectName ?? this.host.VisualStateManager.BoundProjectKey));
+                }
+
                 this.OnProjectsChanged(connection, projects);
                 notifications.ProgressChanged(Strings.ConnectionResultSuccess);
             }
@@ -243,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage);
 
-            var properties = await this.host.SonarQubeService.GetAllPropertiesAsync(token);
+            var properties = await this.host.SonarQubeService.GetAllPropertiesAsync(this.host.VisualStateManager.BoundProjectKey, token);
             if (token.IsCancellationRequested)
             {
                 AbortWorkflow(controller, token);
