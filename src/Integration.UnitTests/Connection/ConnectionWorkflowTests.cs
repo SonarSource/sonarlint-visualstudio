@@ -427,7 +427,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public async Task ConnectionWorkflow_DownloadServiceParameters_RegexPropertyNotSet_SetsFilterWithDefaultExpression()
         {
             // Arrange
-            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<CancellationToken>()))
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<SonarQubeProperty> { new SonarQubeProperty(SonarQubeProperty.TestProjectRegexKey,
                     SonarQubeProperty.TestProjectRegexDefaultValue) });
             var controller = new ConfigurableProgressController();
@@ -451,7 +451,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
             var expectedExpression = ".*spoon.*";
-            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<CancellationToken>()))
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<SonarQubeProperty> { new SonarQubeProperty(SonarQubeProperty.TestProjectRegexKey, expectedExpression) });
 
             ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
@@ -473,7 +473,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             var badExpression = "*-gf/d*-b/try\\*-/r-*yeb/\\";
             var expectedExpression = SonarQubeProperty.TestProjectRegexDefaultValue;
-            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<CancellationToken>()))
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<SonarQubeProperty> { new SonarQubeProperty(SonarQubeProperty.TestProjectRegexKey, badExpression) });
 
             ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
@@ -515,7 +515,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
-            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<CancellationToken>()))
+            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<SonarQubeProperty> { });
 
             ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();

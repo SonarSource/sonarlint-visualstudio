@@ -258,7 +258,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage);
 
-            var properties = await this.host.SonarQubeService.GetAllPropertiesAsync(token);
+            var properties = await this.host.SonarQubeService.GetAllPropertiesAsync(this.host.VisualStateManager.BoundProjectKey, token);
             if (token.IsCancellationRequested)
             {
                 AbortWorkflow(controller, token);

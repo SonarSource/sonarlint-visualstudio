@@ -248,9 +248,9 @@
     </AdditionalFiles>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj">
-      <Project>{5e513fc3-bda7-40f2-8b6a-1bb9372acb99}</Project>
-      <Name>SonarQube.Client</Name>
+    <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.2015.csproj">
+      <Project>{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}</Project>
+      <Name>SonarQube.Client.2015</Name>
     </ProjectReference>
     <ProjectReference Include="..\Progress\Progress.csproj">
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
