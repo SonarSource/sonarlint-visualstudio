@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     currentConfiguration.Mode == SonarLintMode.Standalone ?
                         Strings.Bind_FirstTimeBinding :
                         Strings.Bind_UpdatingNewStyleBinding);
-                
+
                 modeToBind = SonarLintMode.Connected;
                 nugetBindingOp = new NoOpNuGetBindingOperation(host.Logger);
             }
@@ -156,6 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 host,
                 bindingArgs.Connection,
                 bindingArgs.ProjectKey,
+                bindingArgs.ProjectName,
                 modeToBind);
 
             return new BindingWorkflow(host, bindingArgs, solutionBindingOp, nugetBindingOp);

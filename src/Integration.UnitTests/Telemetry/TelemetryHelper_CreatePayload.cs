@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             UriBuilder builder = new UriBuilder();
             builder.Scheme = "file";
             builder.Path = "..\\..\\foo\\file.txt";
-            
+
             TelemetryHelper.IsSonarCloud(builder.Uri).Should().BeFalse();
         }
 
@@ -191,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)
         {
-            var project = new BoundSonarQubeProject(new Uri(serverUri), "dummy.project.key");
+            var project = new BoundSonarQubeProject(new Uri(serverUri), "dummy.project.key", "dummy.projectName");
             return BindingConfiguration.CreateBoundConfiguration(project, mode == SonarLintMode.LegacyConnected);
         }
 
