@@ -185,17 +185,15 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
                 // The SonarQube client will limit the number of returned projects to 10K (hard limit on SonarQube side)
                 // but will no longer fail when trying to retrieve more. In the case where the project we want to bind to
-                // is not in the list AND the binding was already done (the .slconfig was manually created) then we are
-                // going to pretend we managed to retrieve this project from the list.
-                if (string.IsNullOrEmpty(connection.Password.ToUnsecureString()) &&
+                // is not in the list and the binding was already done and the key is not null then we manually
+                // forge and add a new project to the list.
+                if (!string.IsNullOrWhiteSpace(this.host.VisualStateManager.BoundProjectKey) &&
                     projects.Count == 10000 &&
                     !projects.Any(p => p.Key == this.host.VisualStateManager.BoundProjectKey))
                 {
-                    projects = new List<SonarQubeProject>
-                    {
-                        new SonarQubeProject(this.host.VisualStateManager.BoundProjectKey,
-                            this.host.VisualStateManager.BoundProjectName ?? this.host.VisualStateManager.BoundProjectKey)
-                    };
+                    // Let's put the new item first in the collection to ease finding it.
+                    projects.Insert(0, new SonarQubeProject(this.host.VisualStateManager.BoundProjectKey,
+                        this.host.VisualStateManager.BoundProjectName ?? this.host.VisualStateManager.BoundProjectKey));
                 }
 
                 this.OnProjectsChanged(connection, projects);
