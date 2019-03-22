@@ -191,6 +191,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
                     projects.Count == 10000 &&
                     !projects.Any(p => p.Key == this.host.VisualStateManager.BoundProjectKey))
                 {
+                    this.host.Logger.WriteLine("Cannot find the project key you are bound to in the fist 10,000 projects. Automatically adding it as a workaround.");
+
                     // Let's put the new item first in the collection to ease finding it.
                     projects.Insert(0, new SonarQubeProject(this.host.VisualStateManager.BoundProjectKey,
                         this.host.VisualStateManager.BoundProjectName ?? this.host.VisualStateManager.BoundProjectKey));
