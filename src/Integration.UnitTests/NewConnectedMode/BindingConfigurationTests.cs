@@ -77,9 +77,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Equals_NullOrg_AreEqual()
         {
             // Arrange
-            var projectAAA1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
-            var projectAAA2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
-            var projectAAA3 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
+            var projectAAA1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName", organization: null);
+            var projectAAA2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName", organization: null);
+            var projectAAA3 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName", organization: null);
 
             var config1 = BindingConfiguration.CreateBoundConfiguration(projectAAA1, isLegacy: true);
             var config2 = BindingConfiguration.CreateBoundConfiguration(projectAAA2, isLegacy: true);
@@ -104,11 +104,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Equals_NonNullOrg_AreEqual()
         {
             // Arrange
-            var projectAAA1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+            var projectAAA1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("org1", "111"));
-            var projectAAA2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+            var projectAAA2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("org1", "222222222222222"));
-            var projectAAA3 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+            var projectAAA3 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("org1", "333333333333333333"));
 
             var config1 = BindingConfiguration.CreateBoundConfiguration(projectAAA1, isLegacy: false);
@@ -134,8 +134,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Equals_DifferentProjects_AreNotEqual()
         {
             // Arrange
-            var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
-            var project2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectBBB", organization: null);
+            var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName", organization: null);
+            var project2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectBBB", "projectName", organization: null);
 
             var standalone = BindingConfiguration.Standalone;
             var config1 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: true);
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Equals_DifferentModes_AreNotEqual()
         {
             // Arrange
-            var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", organization: null);
+            var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName", organization: null);
 
             var standalone = BindingConfiguration.Standalone;
             var config1 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: true);
@@ -168,9 +168,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Equals_DifferentOrganisation_AreNotEqual()
         {
             // Arrange
-            var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+            var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("org1", "any"));
-            var project2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA",
+            var project2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("ORG1", "any")); // different in case only
 
             var config1 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: true);
@@ -185,9 +185,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Equals_DifferentServer_AreNotEqual()
         {
             // Arrange
-            var project1 = new BoundSonarQubeProject(new Uri("http://localhost1"), "projectAAA",
+            var project1 = new BoundSonarQubeProject(new Uri("http://localhost1"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("org1", "any"));
-            var project2 = new BoundSonarQubeProject(new Uri("http://localhost2"), "projectAAA",
+            var project2 = new BoundSonarQubeProject(new Uri("http://localhost2"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("org1", "any"));
 
             var config1 = BindingConfiguration.CreateBoundConfiguration(project1, isLegacy: true);

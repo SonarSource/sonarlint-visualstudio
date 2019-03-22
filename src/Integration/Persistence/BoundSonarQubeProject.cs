@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -31,8 +31,8 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         {
         }
 
-        internal BoundSonarQubeProject(Uri serverUri, string projectKey, ICredentials credentials = null,
-            SonarQubeOrganization organization = null)
+        internal BoundSonarQubeProject(Uri serverUri, string projectKey, string projectName,
+            ICredentials credentials = null, SonarQubeOrganization organization = null)
             : this()
         {
             if (serverUri == null)
@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             this.ServerUri = serverUri;
             this.Organization = organization;
             this.ProjectKey = projectKey;
+            this.ProjectName = projectName;
             this.Credentials = credentials;
         }
 
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public SonarQubeOrganization Organization { get; set; }
 
         public string ProjectKey { get; set; }
-
+        public string ProjectName { get; set; }
         public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 
         [JsonIgnore]

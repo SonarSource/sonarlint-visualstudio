@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableVsOutputWindowPane outputWindowPane;
 
-        private readonly BoundSonarQubeProject ValidProject = new BoundSonarQubeProject(new Uri("http://any"), "projectKey");
+        private readonly BoundSonarQubeProject ValidProject = new BoundSonarQubeProject(new Uri("http://any"), "projectKey", "Project Name");
         private readonly BindCommandArgs ValidBindingArgs = new BindCommandArgs("any key", "any name", new ConnectionInformation(new Uri("http://anyXXX")));
 
         [TestInitialize]

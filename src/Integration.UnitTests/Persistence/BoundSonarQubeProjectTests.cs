@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var serverUri = new Uri("https://finding-nemo.org");
             var projectKey = "MyProject Key";
-            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, new BasicAuthCredentials("used", "pwd".ToSecureString()));
+            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, "projectName", new BasicAuthCredentials("used", "pwd".ToSecureString()));
 
             // Act (serialize + de-serialize)
             string data = JsonHelper.Serialize(testSubject);

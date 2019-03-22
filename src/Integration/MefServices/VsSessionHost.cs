@@ -254,6 +254,7 @@ namespace SonarLint.VisualStudio.Integration
         private void ClearCurrentBinding()
         {
             this.VisualStateManager.BoundProjectKey = null;
+            this.VisualStateManager.BoundProjectName = null;
 
             this.VisualStateManager.ClearBoundProject();
         }
@@ -262,6 +263,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             // Set the project key that should become bound once the connection workflow has completed
             this.VisualStateManager.BoundProjectKey = bindingConfig.Project.ProjectKey;
+            this.VisualStateManager.BoundProjectName = bindingConfig.Project.ProjectName;
 
             Debug.Assert(this.ActiveSection != null, "Expected ActiveSection to be set");
             Debug.Assert(this.ActiveSection?.RefreshCommand != null, "Refresh command is not set");
