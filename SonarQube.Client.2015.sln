@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.329
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client.2015", "SonarQube.Client\SonarQube.Client.2015.csproj", "{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client.Tests.2015", "SonarQube.Client.Tests\SonarQube.Client.Tests.2015.csproj", "{BA771DF7-9F99-4DE3-B85B-3E5DB742A55D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA771DF7-9F99-4DE3-B85B-3E5DB742A55D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA771DF7-9F99-4DE3-B85B-3E5DB742A55D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA771DF7-9F99-4DE3-B85B-3E5DB742A55D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA771DF7-9F99-4DE3-B85B-3E5DB742A55D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
