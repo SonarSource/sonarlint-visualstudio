@@ -317,21 +317,27 @@ function Invoke-MSBuild (
 function Invoke-UnitTests() {
     Write-Header "Running unit tests"
 
-    Write-Debug "Running unit tests for"
     $testFiles = @()
-    $testDirs = @()
-    Get-ChildItem (Resolve-RepoPath "src") -Recurse -Include @("*.UnitTests.dll", "*.Tests.dll") `
-        | Where-Object { $_.DirectoryName -Match "bin" } `
-        | ForEach-Object {
-            $currentFile = $_
-            Write-Debug "   - ${currentFile}"
-            $testFiles += $currentFile
-            $testDirs += $currentFile.Directory
-        }
-    $testDirs = $testDirs | Select-Object -Uniq
+    $testFiles += Collect-UnitTestAssemblies("sonarqube-webclient")
+    $testFiles += Collect-UnitTestAssemblies("src")
 
     & (Get-VsTestPath) $testFiles /Parallel /Enablecodecoverage /InIsolation /Logger:trx /UseVsixExtensions:true
     Test-ExitCode "ERROR: Unit Tests execution FAILED."
+}
+
+function Collect-UnitTestAssemblies([string] $rootSearchDirectory) {
+    Write-Host "Collecting unit test assemblies under ${rootSearchDirectory}..."
+
+    $testFiles = @()    
+    Get-ChildItem (Resolve-RepoPath $rootSearchDirectory) -Recurse -Include @("*.UnitTests.dll", "*.Tests.dll") `
+        | Where-Object { $_.DirectoryName -Match "bin" } `
+        | ForEach-Object {
+            $currentFile = $_
+            Write-Host "   - ${currentFile}"
+            $testFiles += $currentFile
+        }
+
+    return $testFiles
 }
 
 function Invoke-CodeCoverage() {
