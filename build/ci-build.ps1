@@ -107,15 +107,11 @@ try {
     $skippedAnalysis = $false
 
     $solutionRelativePath = "${solutionName}"
+    Write-Host "VS target version: " $vsTargetVersion
+
     if ($vsTargetVersion -Eq "VS2017" -Or $vsTargetVersion -Eq "VS2019") {
-        Write-Host "VS target version: " $vsTargetVersion
         Write-Host "  NB: this build will not be analyzed. Check the VS2015 build for analysis results"
         $skippedAnalysis = $true # We only want to analyze one of the builds, not both, so we skip analyzing VS2017 or VS2019
-
-        Restore-Packages "15.0" $solutionRelativePath
-
-        $env:VsTargetVersion = $vsTargetVersion.Substring(2)
-        Start-Process "build/vs2017.bat" -NoNewWindow -Wait
     }
     else {
         $leakPeriodVersion = Get-LeakPeriodVersion
@@ -158,21 +154,21 @@ try {
 
             $skippedAnalysis = $true
         }
-
-        Write-Host "VS target version: 2015"
-
-        Restore-Packages "14.0" $solutionRelativePath
-        Invoke-MSBuild "14.0" $solutionRelativePath `
-            /consoleloggerparameters:Summary `
-            /m `
-            /p:configuration="Release" `
-            /p:DeployExtension=false `
-            /p:ZipPackageCompressionLevel=normal `
-            /p:defineConstants="SignAssembly" `
-            /p:SignAssembly=true `
-            /p:AssemblyOriginatorKeyFile=$snkCertificatePath `
-            /p:VsTargetVersion="2015"
     }
+
+    Restore-Packages "15.0" $solutionRelativePath
+
+    $vsTargetVersionNumber = $vsTargetVersion.Substring(2)
+    Invoke-MSBuild "15.0" $solutionRelativePath `
+        /consoleloggerparameters:Summary `
+        /m `
+        /p:configuration="Release" `
+        /p:DeployExtension=false `
+        /p:ZipPackageCompressionLevel=normal `
+        /p:defineConstants="SignAssembly" `
+        /p:SignAssembly=true `
+        /p:AssemblyOriginatorKeyFile=$snkCertificatePath `
+        /p:VsTargetVersion=$vsTargetVersionNumber
 
     Invoke-UnitTests
     Invoke-CodeCoverage
