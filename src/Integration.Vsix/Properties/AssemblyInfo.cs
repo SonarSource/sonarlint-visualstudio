@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -22,7 +22,3 @@ using System.Reflection;
 using Microsoft.VisualStudio.Shell;
 
 [assembly: AssemblyTitle("SonarLint.VisualStudio.Integration.Vsix")]
-[assembly: ProvideBindingRedirection(AssemblyName = "System.Interactive.Async", NewVersion = "3.0.3000.0",
-    OldVersionLowerBound = "0.0.0.0", OldVersionUpperBound = "3.0.3000.0")]
-[assembly: ProvideBindingRedirection(AssemblyName = "Google.Protobuf", NewVersion = "3.6.1.0",
-    OldVersionLowerBound = "0.0.0.0", OldVersionUpperBound = "3.6.1.0")]
