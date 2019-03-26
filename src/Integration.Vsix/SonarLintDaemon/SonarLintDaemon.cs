@@ -31,6 +31,7 @@ using System.Net;
 using Grpc.Core;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using Microsoft.VisualStudio;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -134,8 +135,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     if (data.Contains("Server started"))
                     {
-                        CreateChannelAndStreamLogs();
-                        Ready?.Invoke(this, EventArgs.Empty);
+                        try
+                        {
+                            CreateChannelAndStreamLogs();
+                            Ready?.Invoke(this, EventArgs.Empty);
+                        }
+                        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                        {
+                            logger.WriteLine($"Daemon error: {ex.ToString()}");
+                        }
                     }
                     if (IsVerbose())
                     {
