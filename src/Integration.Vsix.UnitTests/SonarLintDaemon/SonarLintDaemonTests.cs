@@ -93,6 +93,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             daemon.IsRunning.Should().BeFalse();
         }
 
+        [TestMethod]
+        public void SystemInteractiveAsync_EnsureCorrectVersion()
+        {
+            // Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/850
+
+            // We're just checking for the expected hard-coded assembly versions. This test will need
+            // to be updated if the version of Grpc.Core being used changes.
+
+            var grpcCoreAsm = AssemblyHelper.GetVersionOfReferencedAssembly(typeof(VSIX.SonarLintDaemon), "Grpc.Core");
+            grpcCoreAsm.Should().NotBeNull("Cannot locate the Grpc.Core assembly referenced by SonarLint");
+            grpcCoreAsm.Should().Be(new Version(1, 0, 0, 0),
+                "SonarLint not referencing the expected version of Grpc.Core. Does this test need to be updated?");
+
+            var siaAsm = AssemblyHelper.GetVersionOfReferencedAssembly(typeof(VSIX.SonarLintDaemon), "System.Interactive.Async");
+            siaAsm.Should().Be(new Version("3.0.1000.0"),
+                "SonarLint is not using the version of System.Interactive.Async expected by Grpc.Core. This will cause a runtime error.");
+        }
+
         [TestCleanup]
         public void CleanUp()
         {

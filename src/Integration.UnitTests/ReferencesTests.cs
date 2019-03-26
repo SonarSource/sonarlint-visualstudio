@@ -31,11 +31,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MicrosoftVisualStudioCodeAnalysis_EnsureCorrectVersion()
         {
-            var codeAnalysisAssemblyVersion = typeof(Language)
-                .Assembly
-                .GetReferencedAssemblies()
-                .FirstOrDefault(ra => ra.Name == "Microsoft.VisualStudio.CodeAnalysis")
-                ?.Version;
+            var codeAnalysisAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
+                    typeof(Language), "Microsoft.VisualStudio.CodeAnalysis");
 
             AssertIsCorrectMajorVersion(codeAnalysisAssemblyVersion.Major);
         }

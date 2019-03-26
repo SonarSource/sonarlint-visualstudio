@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2018 SonarSource SA
+ * Copyright (C) 2016-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,7 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
-using Microsoft.VisualStudio.Shell;
+using System;
+using System.Linq;
 
-[assembly: AssemblyTitle("SonarLint.VisualStudio.Integration.Vsix")]
+namespace SonarLint.VisualStudio.Integration.UnitTests
+{
+    public static class AssemblyHelper
+    {
+        public static Version GetVersionOfReferencedAssembly(Type typeInSourceAssembly, string targetAssemblyName)
+        {
+            return typeInSourceAssembly
+                .Assembly
+                .GetReferencedAssemblies()
+                .FirstOrDefault(ra => ra.Name == targetAssemblyName)
+                ?.Version;
+        }
+    }
+}

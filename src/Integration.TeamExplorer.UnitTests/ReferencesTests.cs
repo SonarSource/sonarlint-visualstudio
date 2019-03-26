@@ -32,11 +32,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MicrosoftTeamFoundationClient_EnsureCorrectVersion()
         {
-            var tfClientAssemblyVersion = typeof(TeamExplorerController)
-                .Assembly
-                .GetReferencedAssemblies()
-                .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Client")
-                ?.Version;
+            var tfClientAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
+                    typeof(TeamExplorerController), "Microsoft.TeamFoundation.Client");
 
             AssertIsCorrectMajorVersion(tfClientAssemblyVersion.Major);
         }
@@ -44,11 +41,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MicrosoftTeamFoundationControls_EnsureCorrectVersion()
         {
-            var tfControlsAssemblyVersion = typeof(TeamExplorerController)
-                .Assembly
-                .GetReferencedAssemblies()
-                .FirstOrDefault(ra => ra.Name == "Microsoft.TeamFoundation.Controls")
-                ?.Version;
+            var tfControlsAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
+                    typeof(TeamExplorerController), "Microsoft.TeamFoundation.Controls");
 
             AssertIsCorrectMajorVersion(tfControlsAssemblyVersion.Major);
         }

@@ -365,8 +365,16 @@
       <HintPath>..\..\packages\System.IO.Compression.ZipFile.4.3.0\lib\net46\System.IO.Compression.ZipFile.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Interactive.Async, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Interactive.Async.3.1.1\lib\net46\System.Interactive.Async.dll</HintPath>
+    <!-- NOTE: Grpc.Core v1.4.1 depends on System.Interactive.Async.dll.
+         However, the Grpc.Core NuGet only targets two frameworks, net45 and netstandard1.5, whereas 
+         System.Interactive.Asynx targets net45, net46, netstandard1.0 and netstandard1.3.
+         We need to reference the version of System.Interactive.Async that is used by Grpc.Core, which
+         is 3.0.1000.0. This is in the System.Interactive.Async net45 directory.
+         By default, VS picks the version in the net46 directory (v3.0.3000.0) which is not the one we
+         want. We've manually edited this file to reference the correct version. -->
+    <Reference Include="System.Interactive.Async, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Interactive.Async.3.1.1\lib\net45\System.Interactive.Async.dll</HintPath>
+      <!-- We want to ship this dll in the VSIX so mark it as private -->
       <Private>True</Private>
     </Reference>
     <Reference Include="System.IO.FileSystem, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
