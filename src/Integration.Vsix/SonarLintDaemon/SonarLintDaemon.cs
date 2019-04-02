@@ -130,24 +130,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             process.OutputDataReceived += (sender, args) =>
             {
                 string data = args.Data;
-                if (data != null && data.Contains("Server started"))
+                if (data != null)
                 {
                     if (IsVerbose())
                     {
                         WritelnToPane(data);
                     }
 
-                    bool succeeded = false;
-                    SafeOperation(() =>
-                        {
-                            CreateChannelAndStreamLogs();
-                            Ready?.Invoke(this, EventArgs.Empty);
-                            succeeded = true;
-                        });
-
-                    if (!succeeded)
+                    if (data.Contains("Server started"))
                     {
-                        SafeOperation(() => this.Stop());
+                        bool succeeded = false;
+                        SafeOperation(() =>
+                            {
+                                CreateChannelAndStreamLogs();
+                                Ready?.Invoke(this, EventArgs.Empty);
+                                succeeded = true;
+                            });
+
+                        if (!succeeded)
+                        {
+                            SafeOperation(() => this.Stop());
+                        }
                     }
                 }
             };
