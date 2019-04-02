@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -29,9 +28,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using Grpc.Core;
+using Microsoft.VisualStudio;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using Microsoft.VisualStudio;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -131,23 +130,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             process.OutputDataReceived += (sender, args) =>
             {
                 string data = args.Data;
-                if (data != null)
+                if (data != null && data.Contains("Server started"))
                 {
-                    if (data.Contains("Server started"))
-                    {
-                        try
-                        {
-                            CreateChannelAndStreamLogs();
-                            Ready?.Invoke(this, EventArgs.Empty);
-                        }
-                        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                        {
-                            logger.WriteLine($"Daemon error: {ex.ToString()}");
-                        }
-                    }
                     if (IsVerbose())
                     {
                         WritelnToPane(data);
+                    }
+
+                    bool succeeded = false;
+                    SafeOperation(() =>
+                        {
+                            CreateChannelAndStreamLogs();
+                            Ready?.Invoke(this, EventArgs.Empty);
+                            succeeded = true;
+                        });
+
+                    if (!succeeded)
+                    {
+                        SafeOperation(() => this.Stop());
                     }
                 }
             };
@@ -170,10 +170,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 process.BeginErrorReadLine();
                 logger.WriteLine(Strings.Daemon_Started);
             }
-            catch (Exception e)
+            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
             {
                 Debug.WriteLine("Unable to start SonarLint daemon: {0}", e);
                 WritelnToPane($"Unable to start SonarLint daemon {e.Message}");
+                SafeOperation(() => this.Stop());
             }
         }
 
@@ -424,6 +425,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             WritelnToPane($"Found {issueCount} issue(s)");
 
             consumer.Accept(path, issues);
+        }
+
+        internal void SafeOperation(Action op)
+        {
+            try
+            {
+                op();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine($"Daemon error: {ex.ToString()}");
+            }
         }
     }
 }

@@ -34,18 +34,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private string tempPath;
         private string storagePath;
         private VSIX.SonarLintDaemon daemon;
+        private TestLogger logger;
 
         [TestInitialize]
         public void SetUp()
         {
             ISonarLintSettings settings = new Mock<ISonarLintSettings>().Object;
-            ILogger output = new Mock<ILogger>().Object;
+            logger = new TestLogger();
 
             tempPath = Path.Combine(Path.GetRandomFileName());
             storagePath = Path.Combine(Path.GetRandomFileName());
             Directory.CreateDirectory(tempPath);
             Directory.CreateDirectory(storagePath);
-            daemon = new VSIX.SonarLintDaemon(settings, output, VSIX.SonarLintDaemon.daemonVersion, storagePath, tempPath);
+            daemon = new VSIX.SonarLintDaemon(settings, logger, VSIX.SonarLintDaemon.daemonVersion, storagePath, tempPath);
         }
 
         [TestMethod]
@@ -109,6 +110,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var siaAsm = AssemblyHelper.GetVersionOfReferencedAssembly(typeof(VSIX.SonarLintDaemon), "System.Interactive.Async");
             siaAsm.Should().Be(new Version("3.0.1000.0"),
                 "SonarLint is not using the version of System.Interactive.Async expected by Grpc.Core. This will cause a runtime error.");
+        }
+
+        [TestMethod]
+        public void SafeOperation_NonCriticalException()
+        {
+            // Act
+            daemon.SafeOperation(() => throw new InvalidCastException("YYY"));
+
+            // Assert
+            logger.AssertPartialOutputStringExists("System.InvalidCastException", "YYY");
+        }
+
+        [TestMethod]
+        public void SafeOperation_CriticalExceptionsAreNotCaught()
+        {
+            // Arrange
+            Action op = () =>
+            {
+                daemon.SafeOperation(() => throw new StackOverflowException());
+            };
+
+            // Act and assert
+            op.Should().ThrowExactly<StackOverflowException>();
+            logger.AssertNoOutputMessages();
         }
 
         [TestCleanup]

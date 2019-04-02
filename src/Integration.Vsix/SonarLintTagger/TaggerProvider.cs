@@ -141,6 +141,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem)
         {
+            // Called on the UI thread -> unhandled exceptions will crash VS
+            try
+            {
+                UnsafeRequestAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem);
+            }
+            catch (System.IO.FileNotFoundException fnf)
+            {
+                logger.WriteLine($"Daemon error: {fnf.ToString()}{Environment.NewLine}  Fusion log: {fnf.FusionLog}");
+            }
+            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine($"Daemon error: {ex.ToString()}");
+            }
+        }
+
+        private void UnsafeRequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem)
+        {
             bool handled = false;
             foreach (var language in detectedLanguages)
             {
