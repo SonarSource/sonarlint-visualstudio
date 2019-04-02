@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SafeOperation_NonCriticalException()
         {
             // Act
-            daemon.SafeOperation(() => throw new InvalidCastException("YYY"));
+            daemon.SafeOperation(() => { throw new InvalidCastException("YYY"); } );
 
             // Assert
             logger.AssertPartialOutputStringExists("System.InvalidCastException", "YYY");
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             Action op = () =>
             {
-                daemon.SafeOperation(() => throw new StackOverflowException());
+                daemon.SafeOperation(() => { throw new StackOverflowException(); });
             };
 
             // Act and assert
