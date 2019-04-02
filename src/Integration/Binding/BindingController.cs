@@ -116,23 +116,28 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
-            var workflow = CreateBindingWorkflow(bindingArgs);
+            var workflow = CreateBindingWorkflow(host, bindingArgs);
 
             IProgressEvents progressEvents = workflow.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
             this.SetBindingInProgress(progressEvents, bindingArgs);
         }
 
-        internal /* for testing purposes */ IBindingWorkflow CreateBindingWorkflow(BindCommandArgs bindingArgs)
+        internal static /* for testing purposes */ IBindingWorkflow CreateBindingWorkflow(IHost host, BindCommandArgs bindingArgs)
         {
             //Choose the type of binding
-            var configProvider = this.host.GetService<IConfigurationProvider>();
+            var configProvider = host.GetService<IConfigurationProvider>();
             configProvider.AssertLocalServiceIsNotNull();
 
             var currentConfiguration = configProvider.GetConfiguration();
 
             SonarLintMode modeToBind;
             INuGetBindingOperation nugetBindingOp;
+
+            // If we are currently in standalone then the project is being bound for the first time.
+            // Otherwise, we are updating an existing binding
+            var isFirstBinding = currentConfiguration.Mode == SonarLintMode.Standalone;
+
             if (currentConfiguration.Mode == SonarLintMode.LegacyConnected)
             {
                 host.Logger.WriteLine(Strings.Bind_UpdatingLegacyBinding);
@@ -141,10 +146,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
             else
             {
-                // If we are currently in standalone then the project is being bound for the first time.
-                // If we are in connected mode then the binding is being updated.
                 host.Logger.WriteLine(
-                    currentConfiguration.Mode == SonarLintMode.Standalone ?
+                    isFirstBinding ?
                         Strings.Bind_FirstTimeBinding :
                         Strings.Bind_UpdatingNewStyleBinding);
 
@@ -159,7 +162,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 bindingArgs.ProjectName,
                 modeToBind);
 
-            return new BindingWorkflow(host, bindingArgs, solutionBindingOp, nugetBindingOp);
+            var bindingInformationProvider = new SolutionBindingInformationProvider(host);
+
+            return new BindingWorkflow(host, bindingArgs, solutionBindingOp, nugetBindingOp, bindingInformationProvider, isFirstBinding);
         }
 
         internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, BindCommandArgs bindingArgs)

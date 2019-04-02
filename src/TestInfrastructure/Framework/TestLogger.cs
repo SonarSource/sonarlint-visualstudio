@@ -46,6 +46,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 actualValue.Contains(expectedValue));
         }
 
+        public void AssertOutputStringExists(string expected)
+        {
+            this.outputStrings.Should().Contain(expected + Environment.NewLine); // All messages are postfixed by a newline
+        }
+
+        public void AssertPartialOutputStringExists(params string[] expected)
+        {
+            this.outputStrings.Should()
+                .Contain(msg => expected.All(partial => msg.Contains(partial)));
+        }
+
         public void AssertNoOutputMessages()
         {
             outputStrings.Should().HaveCount(0);
