@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -120,6 +120,33 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string Bind_NuGetAnalyzersNoLongerInstalled {
             get {
                 return ResourceManager.GetString("Bind_NuGetAnalyzersNoLongerInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ruleset binding: all projects need to be updated reference the generated ruleset..
+        /// </summary>
+        public static string Bind_Ruleset_AllProjectsNeedToBeUpdated {
+            get {
+                return ResourceManager.GetString("Bind_Ruleset_AllProjectsNeedToBeUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ruleset binding: initial binding. All projects need to be updated to reference the generated ruleset..
+        /// </summary>
+        public static string Bind_Ruleset_InitialBinding {
+            get {
+                return ResourceManager.GetString("Bind_Ruleset_InitialBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ruleset binding: the following projects already reference the generated ruleset:.
+        /// </summary>
+        public static string Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated {
+            get {
+                return ResourceManager.GetString("Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated", resourceCulture);
             }
         }
         

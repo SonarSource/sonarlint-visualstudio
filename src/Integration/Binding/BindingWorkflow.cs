@@ -49,11 +49,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly BindCommandArgs bindingArgs;
         private readonly IProjectSystemHelper projectSystem;
         private readonly ISolutionBindingOperation solutionBindingOperation;
+        private readonly ISolutionBindingInformationProvider bindingInformationProvider;
 
         public BindingWorkflow(IHost host,
             BindCommandArgs bindingArgs,
             ISolutionBindingOperation solutionBindingOperation,
-            INuGetBindingOperation nugetBindingOperation)
+            INuGetBindingOperation nugetBindingOperation,
+            ISolutionBindingInformationProvider bindingInformationProvider,
+            bool isFirstBinding = false)
         {
             if (host == null)
             {
@@ -78,6 +81,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(nugetBindingOperation));
             }
 
+            if (bindingInformationProvider == null)
+            {
+                throw new ArgumentNullException(nameof(bindingInformationProvider));
+            }
+
             this.host = host;
             this.bindingArgs = bindingArgs;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
@@ -85,9 +93,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.solutionBindingOperation = solutionBindingOperation;
             this.NuGetBindingOperation = nugetBindingOperation;
+            this.bindingInformationProvider = bindingInformationProvider;
+            this.IsFirstBinding = isFirstBinding;
         }
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; private set;}
+
+        internal /*for testing*/ bool IsFirstBinding { get; private set; }
 
         #region Workflow state
 
@@ -341,7 +353,44 @@ namespace SonarLint.VisualStudio.Integration.Binding
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage);
 
             this.solutionBindingOperation.RegisterKnownRuleSets(this.Rulesets);
-            this.solutionBindingOperation.Initialize(this.BindingProjects, this.QualityProfiles);
+
+            var projectsToUpdate = GetProjectsForRulesetBinding(this.IsFirstBinding, this.BindingProjects.ToArray(), 
+                this.bindingInformationProvider, this.host.Logger);
+
+            this.solutionBindingOperation.Initialize(projectsToUpdate, this.QualityProfiles);
+        }
+
+        internal /* for testing purposes */ static Project[] GetProjectsForRulesetBinding(bool isFirstBinding,
+            Project[] allSupportedProjects,
+            ISolutionBindingInformationProvider bindingInformationProvider,
+            ILogger logger)
+        {
+            // If we are already bound we don't need to update/create rulesets in projects
+            // that already have the ruleset information configured
+            var projectsToUpdate = allSupportedProjects;
+
+            if (isFirstBinding)
+            {
+                logger.WriteLine(Strings.Bind_Ruleset_InitialBinding);
+            }
+            else
+            {
+                var unboundProjects = bindingInformationProvider.GetUnboundProjects()?.ToArray() ?? new Project[] { };
+                projectsToUpdate = projectsToUpdate.Intersect(unboundProjects).ToArray();
+
+                var upToDateProjects = allSupportedProjects.Except(unboundProjects);
+                if (upToDateProjects.Any())
+                {
+                    logger.WriteLine(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
+                    var projectList = string.Join(", ", upToDateProjects.Select(p => p.Name));
+                    logger.WriteLine($"  {projectList}");
+                }
+                else
+                {
+                    logger.WriteLine(Strings.Bind_Ruleset_AllProjectsNeedToBeUpdated);
+                }
+            }
+            return projectsToUpdate;
         }
 
         private void PrepareSolutionBinding(CancellationToken token)

@@ -56,6 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableRuleSetConflictsController conflictsController;
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableVsOutputWindowPane outputWindowPane;
+        private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
 
         private readonly BoundSonarQubeProject ValidProject = new BoundSonarQubeProject(new Uri("http://any"), "projectKey", "Project Name");
         private readonly BindCommandArgs ValidBindingArgs = new BindCommandArgs("any key", "any name", new ConnectionInformation(new Uri("http://anyXXX")));
@@ -74,9 +75,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.conflictsController = new ConfigurableRuleSetConflictsController();
             this.configProvider = new ConfigurableConfigurationProvider();
+            this.ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
             this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
+            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetsInformationProvider);
 
             var outputWindow = new ConfigurableVsOutputWindow();
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
@@ -380,14 +383,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             configProvider.ProjectToReturn = ValidProject;
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
 
-            var testSubject = this.CreateBindingController();
-
             // Act
-            var actual = testSubject.CreateBindingWorkflow(ValidBindingArgs);
+            var actual = BindingController.CreateBindingWorkflow(host, ValidBindingArgs);
 
             // Assert
             actual.Should().BeOfType<BindingWorkflow>();
             outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingLegacyBinding);
+            ((BindingWorkflow)actual).IsFirstBinding.Should().BeFalse();
         }
 
         [TestMethod]
@@ -398,16 +400,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             configProvider.ProjectToReturn = ValidProject;
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
 
-            var testSubject = this.CreateBindingController();
-
             // Act
-            var actual = testSubject.CreateBindingWorkflow(ValidBindingArgs);
+            var actual = BindingController.CreateBindingWorkflow(host, ValidBindingArgs);
 
             // Assert
             actual.Should().BeOfType<BindingWorkflow>();
             var bindingWorkFlow = (BindingWorkflow)actual;
             bindingWorkFlow.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
             outputWindowPane.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
+            bindingWorkFlow.IsFirstBinding.Should().BeTrue();
         }
 
         [TestMethod]
@@ -418,15 +419,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             configProvider.ProjectToReturn = ValidProject;
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
 
-            var testSubject = this.CreateBindingController();
-
             // Act
-            var actual = testSubject.CreateBindingWorkflow(ValidBindingArgs);
+            var actual = BindingController.CreateBindingWorkflow(host, ValidBindingArgs);
 
             // Assert
             actual.Should().BeOfType<BindingWorkflow>();
             var bindingWorkFlow = (BindingWorkflow)actual;
             bindingWorkFlow.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
+            bindingWorkFlow.IsFirstBinding.Should().BeFalse();
             outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
         }
 

@@ -759,4 +759,13 @@ This is the general format to use when writing errors to output window or when t
     <value>Failed to check out files for saving. Error code: {0}</value>
     <comment>Output window message showing the tagVSQuerySaveResult enum value</comment>
   </data>
+  <data name="Bind_Ruleset_InitialBinding" xml:space="preserve">
+    <value>Ruleset binding: initial binding. All projects need to be updated to reference the generated ruleset.</value>
+  </data>
+  <data name="Bind_Ruleset_AllProjectsNeedToBeUpdated" xml:space="preserve">
+    <value>Ruleset binding: all projects need to be updated reference the generated ruleset.</value>
+  </data>
+  <data name="Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated" xml:space="preserve">
+    <value>Ruleset binding: the following projects already reference the generated ruleset:</value>
+  </data>
 </root>

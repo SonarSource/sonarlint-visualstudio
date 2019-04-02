@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
+        private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
         private ConfigurableHost host;
 
         [TestInitialize]
@@ -68,10 +69,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var sccFileSystem = new ConfigurableSourceControlledFileSystem();
             var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem);
+            this.ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
 
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), ruleSerializer);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
+            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetsInformationProvider);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
         }
@@ -85,22 +88,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = new BindCommandArgs("key", "name", new ConnectionInformation(new Uri("http://server")));
             var slnBindOp = new Mock<ISolutionBindingOperation>().Object;
             var nuGetOp = new Mock<INuGetBindingOperation>().Object;
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
 
             // 1. Null host
-            Action act = () => new BindingWorkflow(null, bindingArgs, slnBindOp, nuGetOp);
+            Action act = () => new BindingWorkflow(null, bindingArgs, slnBindOp, nuGetOp, bindingInfoProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
 
             // 2. Null binding args
-            act = () => new BindingWorkflow(validHost, null, slnBindOp, nuGetOp);
+            act = () => new BindingWorkflow(validHost, null, slnBindOp, nuGetOp, bindingInfoProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
-            // 4. Null solution binding operation
-            act = () => new BindingWorkflow(validHost, bindingArgs, null, nuGetOp);
+            // 3. Null solution binding operation
+            act = () => new BindingWorkflow(validHost, bindingArgs, null, nuGetOp, bindingInfoProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingOperation");
 
-            // 3. Null NuGet operation
-            act = () => new BindingWorkflow(validHost, bindingArgs, slnBindOp, null);
+            // 4. Null NuGet operation
+            act = () => new BindingWorkflow(validHost, bindingArgs, slnBindOp, null, bindingInfoProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("nugetBindingOperation");
+
+            // 5. Null binding info provider
+            act = () => new BindingWorkflow(validHost, bindingArgs, slnBindOp, nuGetOp, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingInformationProvider");
         }
 
         [TestMethod]
@@ -336,8 +344,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 It.IsAny<IProgressController>(),
                 It.IsAny<IProgressStepExecutionEvents>(),
                 It.IsAny<CancellationToken>())).Returns(true);
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
 
-            var testSubject = new BindingWorkflow(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object);
+            var testSubject = new BindingWorkflow(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.BindingProjects.Clear();
@@ -367,8 +376,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 It.IsAny<IProgressController>(),
                 It.IsAny<IProgressStepExecutionEvents>(),
                 It.IsAny<CancellationToken>())).Returns(false);
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
 
-            var testSubject = new BindingWorkflow(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object);
+            var testSubject = new BindingWorkflow(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.BindingProjects.Clear();
@@ -664,6 +674,109 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             controller.NumberOfAbortRequests.Should().Be(1);
         }
 
+        [TestMethod]
+        public void BindingWorkflow_GetProjectsForRulesetBinding_FirstBinding_AllProjectsBound()
+        {
+            // Arrange
+            var allProjects = new Project[]
+            {
+                new ProjectMock("cs1.csproj"),
+                new ProjectMock("cs2.csproj"),
+                new ProjectMock("cs3.csproj")
+            };
+
+            var logger = new TestLogger();
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            bindingInfoProvider.UnboundProjects = allProjects;
+
+            // Act
+            var result = BindingWorkflow.GetProjectsForRulesetBinding(true, allProjects, bindingInfoProvider, logger);
+
+            // Assert
+            result.Should().BeEquivalentTo(allProjects);
+            logger.AssertOutputStringExists(Strings.Bind_Ruleset_InitialBinding);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_GetProjectsForRulesetBinding_NoProjectsUpToDate()
+        {
+            // Arrange
+            var allProjects = new Project[]
+            {
+                new ProjectMock("cs1.csproj"),
+                new ProjectMock("cs2.csproj"),
+                new ProjectMock("cs3.csproj")
+            };
+
+            var logger = new TestLogger();
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            bindingInfoProvider.UnboundProjects = allProjects;
+
+            // Act
+            var result = BindingWorkflow.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
+
+            // Assert
+            result.Should().BeEquivalentTo(allProjects);
+            logger.AssertOutputStringExists(Strings.Bind_Ruleset_AllProjectsNeedToBeUpdated);
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_InitializeSolutionBinding_Update_NotAllUpToDate_SomeProjectsUpdated()
+        {
+            // Arrange
+            var allProjects = new Project[]
+            {
+                new ProjectMock("csA.csproj"),
+                new ProjectMock("csB.csproj"),
+                new ProjectMock("csC.csproj"),
+                new ProjectMock("csD.csproj")
+            };
+
+            var unboundProjects = new Project[]
+            {
+                new ProjectMock("XXX.csproj"),
+                allProjects[1],
+                allProjects[3]
+            };
+
+            var logger = new TestLogger();
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            bindingInfoProvider.UnboundProjects = unboundProjects;
+
+            // Act
+            var result = BindingWorkflow.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
+
+            // Assert
+            result.Should().BeEquivalentTo(allProjects[1], allProjects[3]);
+            logger.AssertOutputStringExists(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
+            logger.AssertPartialOutputStringExists("csA.csproj", "csC.csproj");
+        }
+
+        [TestMethod]
+        public void BindingWorkflow_InitializeSolutionBinding_Update_AllUpToDate_NoProjectsUpdated()
+        {
+            // Arrange
+            var allProjects = new Project[]
+            {
+                new ProjectMock("cs1.csproj"),
+                new ProjectMock("cs2.csproj"),
+                new ProjectMock("cs3.csproj"),
+                new ProjectMock("cs4.csproj")
+            };
+
+            var logger = new TestLogger();
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            bindingInfoProvider.UnboundProjects = null;
+
+            // Act
+            var result = BindingWorkflow.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
+
+            // Assert
+            result.Should().BeEmpty();
+            logger.AssertOutputStringExists(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
+            logger.AssertPartialOutputStringExists("cs1.csproj", "cs2.csproj", "cs3.csproj", "cs4.csproj");
+        }
+
         #endregion Tests
 
         #region Helpers
@@ -676,12 +789,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
 
             var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected);
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
 
             if (nuGetBindingOperation == null)
             {
-                return new BindingWorkflow(this.host, bindingArgs, slnBindOperation, new NoOpNuGetBindingOperation(this.host.Logger));
+                return new BindingWorkflow(this.host, bindingArgs, slnBindOperation, new NoOpNuGetBindingOperation(this.host.Logger), bindingInfoProvider);
             }
-            return new BindingWorkflow(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation);
+            return new BindingWorkflow(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, bindingInfoProvider);
         }
 
         private SonarQubeQualityProfile ConfigureProfileExport(RoslynExportProfileResponse export, Language language, string profileName)
@@ -709,6 +823,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actualPackages.Should().BeEquivalentTo(expectedPackages);
             actualPackages.Should().HaveSameCount(expectedPackages, "Different number of packages.");
             actualPackages.Select(x => x.ToString()).Should().Equal(expectedPackages.Select(x => x.ToString()));
+        }
+
+        private static ProjectMock CreateCsProject(string projectName)
+        {
+            var project = new ProjectMock(projectName);
+            project.SetCSProjectKind();
+            return project;
         }
 
         #endregion Helpers
