@@ -99,14 +99,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testableDaemon.Port.Should().Be(0);
 
             // Fake the installation i.e. create the directory and file to execute.
-            testableDaemon.SetUpDummyInstallation("test1.bat",
+            testableDaemon.SetUpDummyInstallation("testStartSucceeds.bat",
 @"@echo Hello world
 @echo write to error stream... 1>&2
 ");
 
             // Act
             testableDaemon.Start();
-            bool processFinished = testableDaemon.process.WaitForExit(1000);
+            bool processFinished = testableDaemon.process.WaitForExit(4000); // Give any asynchronous events the chance to complete
             processFinished.Should().BeTrue("Test execution error: timed out waiting for the dummy process to exit");
 
             // Assert
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Run_With_Install_StartFails_ErrorsLogged()
         {
             // Fake the installation i.e. create the directory and file to execute.
-            testableDaemon.SetUpDummyInstallation("test1.bat", "echo hello world");
+            testableDaemon.SetUpDummyInstallation("testStartFails.bat", "echo hello world");
 
             // Act
             // Lock the file so the daemon can't start the process -> should fail immediately

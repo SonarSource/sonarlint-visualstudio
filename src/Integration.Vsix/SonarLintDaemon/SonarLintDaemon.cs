@@ -104,6 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 StartInfo = new ProcessStartInfo
                 {
                     UseShellExecute = false,
+                    ErrorDialog = false, // don't display UI to user
                     FileName = ExePath,
                     Arguments = GetCmdArgs(Port),
                     CreateNoWindow = true,
