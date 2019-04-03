@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string version;
         private readonly string tmpPath;
         private readonly string storagePath;
-        private Process process;
+        internal /* for testing */ Process process;
 
         internal /* for testing */  string WorkingDirectory { get; }
 
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 Debug.WriteLine("Unable to start SonarLint daemon: {0}", e);
                 WritelnToPane($"Unable to start SonarLint daemon {e.Message}");
-                SafeOperation(() => this.Stop());
+                this.SafeInternalStop();
             }
         }
     
@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 if (!succeeded)
                 {
-                    SafeOperation(() => this.Stop());
+                    this.SafeInternalStop();
                 }
             }
         }
@@ -242,8 +242,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             logger.WriteLine(msg);
         }
 
-        // Need to be able to stub this method out for testing 
-        public virtual /* for testing */ void Stop()
+        public void Stop()
         {
             if (!IsRunning)
             {
@@ -251,19 +250,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // throw exception?
             }
 
+            this.SafeInternalStop();
+        }
+
+        // Need to be able to stub this method out for testing 
+        protected virtual void SafeInternalStop()
+        {
+            // Note: we're not checking IsRunning here as that check can fail if the
+            // process wasn't started correctly.
             logger.WriteLine(Strings.Daemon_Stopping);
-            daemonClient = null;
-            channel?.ShutdownAsync().Wait();
-            channel = null;
-            process?.Kill();
-            process?.WaitForExit();
-            process = null;
+
+            SafeOperation(() =>
+            {
+                daemonClient = null;
+                channel?.ShutdownAsync().Wait();
+                channel = null;
+
+                // Will throw an InvalidOperationException if the process isn't valid
+                process?.Kill();
+                process?.WaitForExit();
+                process = null;
+            });
+
             logger.WriteLine(Strings.Daemon_Stopped);
         }
 
         public int Port { get; private set; }
 
-        public bool IsInstalled => Directory.Exists(InstallationPath) && File.Exists(ExePath);
+        public bool IsInstalled => File.Exists(ExePath);
 
         private void Download()
         {
@@ -301,7 +315,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private string ZipFilePath => Path.Combine(tmpPath, $"sonarlint-daemon-{version}-windows.zip");
 
-        private string ExePath => Path.Combine(InstallationPath, "jre", "bin", "java.exe");
+        internal virtual /* for testing */string ExePath => Path.Combine(InstallationPath, "jre", "bin", "java.exe");
 
         private string GetCmdArgs(int port)
         {
@@ -450,10 +464,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                         Directory.Delete(WorkingDirectory, true);
                     }
 
-                    if (IsRunning)
-                    {
-                        Stop();
-                    }
+                    SafeInternalStop();
                 }
 
                 disposedValue = true;

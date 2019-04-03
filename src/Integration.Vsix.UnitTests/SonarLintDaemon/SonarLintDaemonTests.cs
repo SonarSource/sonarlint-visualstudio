@@ -58,16 +58,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestCleanup]
         public void CleanUp()
         {
+            testableDaemon.Dispose();
             ForceDeleteDirectory(tempPath);
             ForceDeleteDirectory(storagePath);
         }
 
+        [TestMethod]
+        public void IsRunning_NotRunningOnCreation()
+        {
+            testableDaemon.IsRunning.Should().BeFalse();
+        }
 
         [TestMethod]
-        public void Not_Installed()
+        public void IsInstalled()
         {
+            // Sanity check - not expecting the exe directory to exist to start with
+            var exeDirectory = Path.GetDirectoryName(testableDaemon.ExePath);
+            Directory.Exists(exeDirectory).Should().BeFalse();
+
+            // 1. No directory or file -> false
             testableDaemon.IsInstalled.Should().BeFalse();
-            testableDaemon.IsRunning.Should().BeFalse();
+
+            // 2. Directory and file exist -> true
+            Directory.CreateDirectory(exeDirectory);
+            File.WriteAllText(testableDaemon.ExePath, "junk");
+            testableDaemon.IsInstalled.Should().BeTrue();
         }
 
         [TestMethod]
@@ -75,7 +90,54 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             Action op = () => testableDaemon.Start();
 
-            op.Should().ThrowExactly<InvalidOperationException>();
+            op.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Be("Daemon is not installed");
+        }
+
+        [TestMethod]
+        public void Run_With_Install_Succeeds()
+        {
+            testableDaemon.Port.Should().Be(0);
+
+            // Fake the installation i.e. create the directory and file to execute.
+            testableDaemon.SetUpDummyInstallation("test1.bat",
+@"@echo Hello world
+xxx yyy
+");
+
+            // Act
+            testableDaemon.Start();
+            bool timedOut = testableDaemon.process.WaitForExit(1000);
+            timedOut.Should().BeTrue("Test execution error: timed out waiting for the dummy process to exit");
+
+            // Assert
+            testableDaemon.Port.Should().NotBe(0);
+
+            logger.AssertOutputStringExists(VSIX.Resources.Strings.Daemon_Starting);
+            logger.AssertPartialOutputStringExists("Hello world"); // standard output should have been captured
+            logger.AssertPartialOutputStringExists("'xxx' is not recognized as an internal or external command,"); // error output should have been captured
+            logger.AssertOutputStringExists(VSIX.Resources.Strings.Daemon_Started);
+
+            testableDaemon.WasSafeInternalStopCalled.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Run_With_Install_StartFails_ErrorsLogged()
+        {
+            // Fake the installation i.e. create the directory and file to execute.
+            testableDaemon.SetUpDummyInstallation("test1.bat", "echo hello world");
+
+            // Act
+            // Lock the file so the daemon can't start the process -> should fail immediately
+            using (var lockingStream = File.Open(testableDaemon.ExePath, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                testableDaemon.Start();
+            }
+
+            // Assert
+            logger.AssertOutputStringExists(VSIX.Resources.Strings.Daemon_Starting);
+            logger.AssertPartialOutputStringExists("Unable to start SonarLint daemon");
+
+            testableDaemon.WasSafeInternalStopCalled.Should().BeTrue();
         }
 
         [TestMethod]
@@ -84,6 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testableDaemon.IsRunning.Should().BeFalse(); // Sanity test
             testableDaemon.Stop();
             testableDaemon.IsRunning.Should().BeFalse();
+            testableDaemon.WasSafeInternalStopCalled.Should().BeFalse();
         }
 
         [TestMethod]
@@ -173,7 +236,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger.AssertOutputStringExists("XXXServer startedyyyy");
             testableDaemon.CreateChannelCallCount.Should().Be(1);
             testableDaemon.WasReadyEventInvoked.Should().BeTrue();
-            testableDaemon.WasStopCalled.Should().BeFalse();
+            testableDaemon.WasSafeInternalStopCalled.Should().BeFalse();
         }
 
         [TestMethod]
@@ -190,7 +253,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testableDaemon.CreateChannelCallCount.Should().Be(1);
             testableDaemon.WasReadyEventInvoked.Should().BeFalse();
             logger.AssertPartialOutputStringExists("System.InvalidCastException");
-            testableDaemon.WasStopCalled.Should().BeTrue();
+            testableDaemon.WasSafeInternalStopCalled.Should().BeTrue();
         }
 
         [TestMethod]
@@ -211,7 +274,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // We should not do any further processing for a critical exception
             // -> not expecting the daemon to have been stopped
-            testableDaemon.WasStopCalled.Should().BeFalse();
+            testableDaemon.WasSafeInternalStopCalled.Should().BeFalse();
         }
 
         [TestMethod]
@@ -256,12 +319,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testableDaemon.Dispose();
         }
 
-        [TestMethod]
-        public void Analyze()
-        {
-
-        }
-
         private static void ForceDeleteDirectory(string path)
         {
             try
@@ -277,6 +334,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class TestableSonarLintDaemon : VSIX.SonarLintDaemon
         {
+            private string nameOfSubstituteExeFile;
+
             public TestableSonarLintDaemon(ISonarLintSettings settings, ILogger logger, string version, string storagePath, string tmpPath)
                 : base(settings, logger, version, storagePath, tmpPath)
             {
@@ -285,11 +344,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public bool WasReadyEventInvoked { get; private set; }
 
-            public bool WasStopCalled { get; private set; }
+            public bool WasSafeInternalStopCalled { get; private set; }
 
             public Action CreateChannelAndStreamLogsOp { get; set; }
 
             public int CreateChannelCallCount { get; private set; }
+
+
+            public void SetUpDummyInstallation(string batFileName, string batFileContents)
+            {
+                // The real daemon launches a Java exe. To make things simple, we'll launch
+                // a batch file instead.
+
+                // This method creates the necessary directories and batch file to be executed
+                // that will be called by the daemon and overrides the behaviour of ExePath
+                // to return the dummy batch file
+                Directory.CreateDirectory(Path.GetDirectoryName(base.ExePath));
+                nameOfSubstituteExeFile = batFileName;
+
+                File.WriteAllText(this.ExePath, batFileContents);
+            }
+
+            #region Overrides
 
             protected override void CreateChannelAndStreamLogs()
             {
@@ -297,11 +373,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 CreateChannelAndStreamLogsOp?.Invoke();
             }
 
-            public override void Stop()
+            internal override string ExePath
             {
-                WasStopCalled = true;
-                base.Stop();
+                get
+                {
+                    if (nameOfSubstituteExeFile == null)
+                    {
+                        return base.ExePath;
+                    }
+
+                    var baseDir = Path.GetDirectoryName(base.ExePath);
+                    return Path.Combine(baseDir, nameOfSubstituteExeFile);
+                }
             }
+
+            protected override void SafeInternalStop()
+            {
+                WasSafeInternalStopCalled = true;
+                base.SafeInternalStop();
+            }
+
+            #endregion Overrides
         }
     }
 }
