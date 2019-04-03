@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose
             };
-            logger = new TestLogger();
+            logger = new TestLogger(logToConsole: true);
 
             tempPath = Path.Combine(TestContext.DeploymentDirectory, Path.GetRandomFileName());
             storagePath = Path.Combine(TestContext.DeploymentDirectory, Path.GetRandomFileName());
