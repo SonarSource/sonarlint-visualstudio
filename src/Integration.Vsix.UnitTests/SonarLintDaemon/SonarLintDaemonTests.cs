@@ -23,7 +23,6 @@ using System.IO;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using VSIX = SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -33,65 +32,81 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private string tempPath;
         private string storagePath;
-        private VSIX.SonarLintDaemon daemon;
+        private TestableSonarLintDaemon testableDaemon;
         private TestLogger logger;
+        private ConfigurableSonarLintSettings settings;
+
+        public TestContext TestContext { get; set; }
 
         [TestInitialize]
         public void SetUp()
         {
-            ISonarLintSettings settings = new Mock<ISonarLintSettings>().Object;
+            settings = new ConfigurableSonarLintSettings
+            {
+                DaemonLogLevel = DaemonLogLevel.Verbose
+            };
             logger = new TestLogger();
 
-            tempPath = Path.Combine(Path.GetRandomFileName());
-            storagePath = Path.Combine(Path.GetRandomFileName());
+            tempPath = Path.Combine(TestContext.DeploymentDirectory, Path.GetRandomFileName());
+            storagePath = Path.Combine(TestContext.DeploymentDirectory, Path.GetRandomFileName());
             Directory.CreateDirectory(tempPath);
             Directory.CreateDirectory(storagePath);
-            daemon = new VSIX.SonarLintDaemon(settings, logger, VSIX.SonarLintDaemon.daemonVersion, storagePath, tempPath);
+            testableDaemon = new TestableSonarLintDaemon(settings, logger, VSIX.SonarLintDaemon.daemonVersion, storagePath, tempPath);
+            
         }
+
+        [TestCleanup]
+        public void CleanUp()
+        {
+            ForceDeleteDirectory(tempPath);
+            ForceDeleteDirectory(storagePath);
+        }
+
 
         [TestMethod]
         public void Not_Installed()
         {
-            daemon.IsInstalled.Should().BeFalse();
-            daemon.IsRunning.Should().BeFalse();
+            testableDaemon.IsInstalled.Should().BeFalse();
+            testableDaemon.IsRunning.Should().BeFalse();
         }
 
         [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
         public void Run_Without_Install()
         {
-            daemon.Start();
+            Action op = () => testableDaemon.Start();
+
+            op.Should().ThrowExactly<InvalidOperationException>();
         }
 
         [TestMethod]
         public void Stop_Without_Start_Has_No_Effect()
         {
-            daemon.IsRunning.Should().BeFalse(); // Sanity test
-            daemon.Stop();
-            daemon.IsRunning.Should().BeFalse();
+            testableDaemon.IsRunning.Should().BeFalse(); // Sanity test
+            testableDaemon.Stop();
+            testableDaemon.IsRunning.Should().BeFalse();
         }
 
         [TestMethod]
         [Ignore]
         public void Install_Reinstall_Run()
         {
-            daemon.Install();
+            testableDaemon.Install();
             Directory.GetFiles(tempPath).Length.Should().Be(1);
             Directory.GetDirectories(storagePath).Length.Should().Be(1);
-            Assert.IsTrue(daemon.IsInstalled);
-            Assert.IsFalse(daemon.IsRunning);
+            Assert.IsTrue(testableDaemon.IsInstalled);
+            Assert.IsFalse(testableDaemon.IsRunning);
 
-            daemon.Install();
+            testableDaemon.Install();
             Directory.GetFiles(tempPath).Length.Should().Be(1);
             Directory.GetDirectories(storagePath).Length.Should().Be(1);
-            daemon.IsInstalled.Should().BeTrue();
-            daemon.IsRunning.Should().BeFalse();
+            testableDaemon.IsInstalled.Should().BeTrue();
+            testableDaemon.IsRunning.Should().BeFalse();
 
-            daemon.Start();
-            daemon.IsInstalled.Should().BeTrue();
-            daemon.IsRunning.Should().BeTrue();
-            daemon.Stop();
-            daemon.IsRunning.Should().BeFalse();
+            testableDaemon.Start();
+            testableDaemon.IsInstalled.Should().BeTrue();
+            testableDaemon.IsRunning.Should().BeTrue();
+            testableDaemon.Stop();
+            testableDaemon.IsRunning.Should().BeFalse();
         }
 
         [TestMethod]
@@ -116,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SafeOperation_NonCriticalException()
         {
             // Act
-            daemon.SafeOperation(() => { throw new InvalidCastException("YYY"); } );
+            testableDaemon.SafeOperation(() => { throw new InvalidCastException("YYY"); } );
 
             // Assert
             logger.AssertPartialOutputStringExists("System.InvalidCastException", "YYY");
@@ -128,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             Action op = () =>
             {
-                daemon.SafeOperation(() => { throw new StackOverflowException(); });
+                testableDaemon.SafeOperation(() => { throw new StackOverflowException(); });
             };
 
             // Act and assert
@@ -136,11 +151,138 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger.AssertNoOutputMessages();
         }
 
-        [TestCleanup]
-        public void CleanUp()
+        [TestMethod]
+        public void HandleOutputDataReceived_NoData_NoError()
         {
-            ForceDeleteDirectory(tempPath);
-            ForceDeleteDirectory(storagePath);
+            // Act
+            testableDaemon.HandleOutputDataReceived(null);
+
+            // Assert
+            logger.AssertNoOutputMessages();
+            testableDaemon.CreateChannelCallCount.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void HandleOutputDataReceived_Data_NotServerStarted_Verbose_LoggedButCreateChannelIsNotCalled()
+        {
+            // Act
+            settings.DaemonLogLevel = DaemonLogLevel.Verbose;
+            testableDaemon.HandleOutputDataReceived("Something happened...");
+
+            // Assert
+            logger.AssertOutputStringExists("Something happened...");
+            testableDaemon.CreateChannelCallCount.Should().Be(0);
+            testableDaemon.WasReadyEventInvoked.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void HandleOutputDataReceived_Data_NotServerStarted_NotVerbose_NotLogged()
+        {
+            // Act
+            settings.DaemonLogLevel = DaemonLogLevel.Info;
+            testableDaemon.HandleOutputDataReceived("Data should only be logger for logging level is verbose");
+
+            // Assert
+            logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void HandleOutputDataReceived_Data_ServerStarted_CreateChannelIsCalled()
+        {
+            // Act
+            testableDaemon.HandleOutputDataReceived("XXXServer startedyyyy");
+
+            // Assert
+            logger.AssertOutputStringExists("XXXServer startedyyyy");
+            testableDaemon.CreateChannelCallCount.Should().Be(1);
+            testableDaemon.WasReadyEventInvoked.Should().BeTrue();
+            testableDaemon.WasStopCalled.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void HandleOutputDataReceived_Data_ServerStarted_NonCriticalException_StopIsCalled()
+        {            
+            // Throw a non-critical exception when 
+            testableDaemon.CreateChannelAndStreamLogsOp = () => { throw new InvalidCastException(); };
+
+            // Act
+            testableDaemon.HandleOutputDataReceived("Server started");
+
+            // Assert
+            logger.AssertOutputStringExists("Server started");
+            testableDaemon.CreateChannelCallCount.Should().Be(1);
+            testableDaemon.WasReadyEventInvoked.Should().BeFalse();
+            logger.AssertPartialOutputStringExists("System.InvalidCastException");
+            testableDaemon.WasStopCalled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void HandleOutputDataReceived_Data_ServerStarted_CriticalException_StopIsCalled()
+        {
+            // Throw a critical exception when 
+            testableDaemon.CreateChannelAndStreamLogsOp = () => { throw new StackOverflowException(); };
+
+            Action op = () => testableDaemon.HandleOutputDataReceived("Server started");
+
+            // Act
+            op.Should().ThrowExactly<StackOverflowException>();
+
+            // Assert
+            logger.AssertOutputStringExists("Server started");
+            testableDaemon.CreateChannelCallCount.Should().Be(1);
+            testableDaemon.WasReadyEventInvoked.Should().BeFalse();
+
+            // We should not do any further processing for a critical exception
+            // -> not expecting the daemon to have been stopped
+            testableDaemon.WasStopCalled.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void HandleErrorDataReceived_NoData_NoError()
+        {
+            // Act
+            testableDaemon.HandleErrorDataReceived(null);
+
+            // Assert
+            logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void HandleErrorDataReceived_HasData_IsLogged()
+        {
+            // 1. Verbose logging
+            settings.DaemonLogLevel = DaemonLogLevel.Verbose;
+            testableDaemon.HandleErrorDataReceived("error - verbose");
+
+            logger.AssertOutputStringExists("error - verbose");
+
+
+            // 2. Minimal logging - errors still logged
+            settings.DaemonLogLevel = DaemonLogLevel.Minimal;
+            testableDaemon.HandleErrorDataReceived("error - minimal");
+
+            logger.AssertOutputStringExists("error - minimal");
+        }
+
+        [TestMethod]
+        public void Dispose_WorkingDirectoryDeleted()
+        {
+            // Sanity check
+            testableDaemon.WorkingDirectory.Should().NotBeNull();
+            Directory.Exists(testableDaemon.WorkingDirectory).Should().BeTrue();
+
+            // 1. Dispose -> directory cleared
+            testableDaemon.Dispose();
+            Directory.Exists(testableDaemon.WorkingDirectory).Should().BeFalse();
+
+            // 2. Multiple dispose should not error
+            testableDaemon.Dispose();
+        }
+
+        [TestMethod]
+        public void Analyze()
+        {
+
         }
 
         private static void ForceDeleteDirectory(string path)
@@ -153,6 +295,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 Thread.Sleep(1);
                 Directory.Delete(path, true);
+            }
+        }
+
+        private class TestableSonarLintDaemon : VSIX.SonarLintDaemon
+        {
+            public TestableSonarLintDaemon(ISonarLintSettings settings, ILogger logger, string version, string storagePath, string tmpPath)
+                : base(settings, logger, version, storagePath, tmpPath)
+            {
+                this.Ready += (s, a) => WasReadyEventInvoked = true;
+            }
+
+            public bool WasReadyEventInvoked { get; private set; }
+
+            public bool WasStopCalled { get; private set; }
+
+            public Action CreateChannelAndStreamLogsOp { get; set; }
+
+            public int CreateChannelCallCount { get; private set; }
+
+            protected override void CreateChannelAndStreamLogs()
+            {
+                CreateChannelCallCount++;
+                CreateChannelAndStreamLogsOp?.Invoke();
+            }
+
+            public override void Stop()
+            {
+                WasStopCalled = true;
+                base.Stop();
             }
         }
     }
