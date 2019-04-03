@@ -106,8 +106,8 @@ xxx yyy
 
             // Act
             testableDaemon.Start();
-            bool timedOut = testableDaemon.process.WaitForExit(1000);
-            timedOut.Should().BeTrue("Test execution error: timed out waiting for the dummy process to exit");
+            bool processFinished = testableDaemon.process.WaitForExit(1000);
+            processFinished.Should().BeTrue("Test execution error: timed out waiting for the dummy process to exit");
 
             // Assert
             testableDaemon.Port.Should().NotBe(0);
