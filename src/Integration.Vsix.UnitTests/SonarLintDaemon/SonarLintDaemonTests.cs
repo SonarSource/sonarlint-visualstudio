@@ -52,15 +52,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Directory.CreateDirectory(tempPath);
             Directory.CreateDirectory(storagePath);
             testableDaemon = new TestableSonarLintDaemon(settings, logger, VSIX.SonarLintDaemon.daemonVersion, storagePath, tempPath);
-            
         }
 
         [TestCleanup]
-        public void CleanUp()
+        public void Cleanup()
         {
-            testableDaemon.Dispose();
-            ForceDeleteDirectory(tempPath);
-            ForceDeleteDirectory(storagePath);
+            CleanupProcess();
+
+            try
+            {
+                testableDaemon.Dispose();
+
+                ForceDeleteDirectory(tempPath);
+                ForceDeleteDirectory(storagePath);
+            }
+            catch(Exception ex)
+            {
+                TestContext.WriteLine($"Error during test cleanup: {ex.ToString()}");
+            }
+        }
+
+        private void CleanupProcess()
+        {
+            try
+            {
+                if (testableDaemon.process != null && !testableDaemon.process.HasExited)
+                {
+                    testableDaemon.process.Kill();
+                }
+            }
+            catch(InvalidOperationException)
+            {
+                // Expected if the process hasn't been started, which it won't have for
+                // most of the tests
+            }
+            catch (Exception ex)
+            {
+                TestContext.WriteLine($"Error during process cleanup: {ex.ToString()}");
+            }
         }
 
         [TestMethod]
@@ -106,8 +135,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act
             testableDaemon.Start();
-            bool processFinished = testableDaemon.process.WaitForExit(4000); // Give any asynchronous events the chance to complete
+            bool processFinished = testableDaemon.process.WaitForExit(5000); // Give any asynchronous events the chance to complete
             processFinished.Should().BeTrue("Test execution error: timed out waiting for the dummy process to exit");
+            TestContext.WriteLine($"Test: process.HasExited={testableDaemon.process.HasExited}");
 
             // Assert
             testableDaemon.Port.Should().NotBe(0);
