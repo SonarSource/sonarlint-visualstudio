@@ -69,7 +69,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void AssertPartialOutputStringExists(params string[] expected)
         {
             this.outputStrings.Should()
-                .Contain(msg => expected.All(partial => msg.Contains(partial)));
+                .Contain(msg => expected.All(partial => msg.Contains(partial)),
+                because: $"MISSING TEXT: {string.Join(",", expected)}");
         }
 
         public void AssertNoOutputMessages()
