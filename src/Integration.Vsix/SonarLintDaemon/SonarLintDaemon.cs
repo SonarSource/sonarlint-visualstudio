@@ -35,7 +35,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Resources;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarLintDaemon))]
-    internal sealed class SonarLintDaemon : ISonarLintDaemon
+    internal class SonarLintDaemon : ISonarLintDaemon
     {
         private static readonly string DAEMON_HOST = "localhost";
         private static readonly int DEFAULT_DAEMON_PORT = 8050;
@@ -48,11 +48,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string version;
         private readonly string tmpPath;
         private readonly string storagePath;
-        private int port;
-
         private Process process;
 
-        private readonly string workingDirectory;
+        internal /* for testing */  string WorkingDirectory { get; }
 
         public event DownloadProgressChangedEventHandler DownloadProgressChanged;
         public event AsyncCompletedEventHandler DownloadCompleted;
@@ -77,20 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.version = version;
             this.tmpPath = tmpPath;
             this.storagePath = storagePath;
-            this.workingDirectory = CreateTempDirectory();
-        }
-
-        public void Dispose()
-        {
-            if (Directory.Exists(workingDirectory))
-            {
-                Directory.Delete(workingDirectory, true);
-            }
-
-            if (IsRunning)
-            {
-                Stop();
-            }
+            this.WorkingDirectory = CreateTempDirectory();
         }
 
         public void Install()
@@ -113,59 +98,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             logger.WriteLine(Strings.Daemon_Starting);
 
-            port = TcpUtil.FindFreePort(DEFAULT_DAEMON_PORT);
+            Port = TcpUtil.FindFreePort(DEFAULT_DAEMON_PORT);
             process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
                     UseShellExecute = false,
                     FileName = ExePath,
-                    Arguments = GetCmdArgs(port),
+                    Arguments = GetCmdArgs(Port),
                     CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true
                 }
             };
-            process.OutputDataReceived += (sender, args) =>
-            {
-                string data = args.Data;
-                if (data != null)
-                {
-                    if (IsVerbose())
-                    {
-                        WritelnToPane(data);
-                    }
 
-                    if (data.Contains("Server started"))
-                    {
-                        bool succeeded = false;
-                        SafeOperation(() =>
-                            {
-                                CreateChannelAndStreamLogs();
-                                Ready?.Invoke(this, EventArgs.Empty);
-                                succeeded = true;
-                            });
+            process.OutputDataReceived += (sender, args) => HandleOutputDataReceived(args?.Data);
+            process.ErrorDataReceived += (sender, args) => HandleErrorDataReceived(args?.Data);
 
-                        if (!succeeded)
-                        {
-                            SafeOperation(() => this.Stop());
-                        }
-                    }
-                }
-            };
-            process.ErrorDataReceived += (sender, args) =>
-            {
-                string data = args.Data;
-                if (data != null)
-                {
-                    WritelnToPane(data);
-                }
-            };
             if (IsVerbose())
             {
                 WritelnToPane($"Running {ExePath}");
             }
+
             try
             {
                 process.Start();
@@ -180,10 +135,48 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 SafeOperation(() => this.Stop());
             }
         }
-
-        private void CreateChannelAndStreamLogs()
+    
+        internal /* for testing */ void HandleOutputDataReceived(string data)
         {
-            channel = new Channel($"{DAEMON_HOST}:{port}", ChannelCredentials.Insecure);
+            if (data == null)
+            {
+                return;
+            }
+
+            if (IsVerbose())
+            {
+                WritelnToPane(data);
+            }
+
+            if (data.Contains("Server started"))
+            {
+                bool succeeded = false;
+                SafeOperation(() =>
+                {
+                    CreateChannelAndStreamLogs();
+                    Ready?.Invoke(this, EventArgs.Empty);
+                    succeeded = true;
+                });
+
+                if (!succeeded)
+                {
+                    SafeOperation(() => this.Stop());
+                }
+            }
+        }
+
+        internal /* for testing */ void HandleErrorDataReceived(string data)
+        {
+            if (data != null)
+            {
+                WritelnToPane(data);
+            }
+        }
+
+        // Need to be able to stub this method out for testing
+        protected virtual /* for testing */ void CreateChannelAndStreamLogs()
+        {
+            channel = new Channel($"{DAEMON_HOST}:{Port}", ChannelCredentials.Insecure);
             daemonClient = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
             ListenForLogs();
             StartHeartBeat();
@@ -249,7 +242,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             logger.WriteLine(msg);
         }
 
-        public void Stop()
+        // Need to be able to stub this method out for testing 
+        public virtual /* for testing */ void Stop()
         {
             if (!IsRunning)
             {
@@ -267,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             logger.WriteLine(Strings.Daemon_Stopped);
         }
 
-        public int Port => port;
+        public int Port { get; private set; }
 
         public bool IsInstalled => Directory.Exists(InstallationPath) && File.Exists(ExePath);
 
@@ -352,7 +346,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var request = new AnalysisReq
             {
                 BaseDir = path,
-                WorkDir = workingDirectory,
+                WorkDir = WorkingDirectory,
             };
             request.File.Add(new InputFile
             {
@@ -362,7 +356,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             });
 
             // Concurrent requests should not use same directory:
-            var buildWrapperOutDir = CreateTempDirectory(workingDirectory);
+            var buildWrapperOutDir = CreateTempDirectory(WorkingDirectory);
 
             if (sqLanguage == CFamily.C_LANGUAGE_KEY || sqLanguage == CFamily.CPP_LANGUAGE_KEY)
             {
@@ -441,5 +435,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine($"Daemon error: {ex.ToString()}");
             }
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if (Directory.Exists(WorkingDirectory))
+                    {
+                        Directory.Delete(WorkingDirectory, true);
+                    }
+
+                    if (IsRunning)
+                    {
+                        Stop();
+                    }
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+
+            // We don't add a finalizer, but child classes might
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }
+
