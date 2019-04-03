@@ -107,6 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testableDaemon.IsRunning.Should().BeTrue();
             testableDaemon.Stop();
             testableDaemon.IsRunning.Should().BeFalse();
+            testableDaemon.IsInstalled.Should().BeTrue();
         }
 
         [TestMethod]
@@ -217,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void HandleOutputDataReceived_Data_ServerStarted_CriticalException_StopIsCalled()
+        public void HandleOutputDataReceived_Data_ServerStarted_CriticalException_StopIsNotCalled()
         {
             // Throw a critical exception when 
             testableDaemon.CreateChannelAndStreamLogsOp = () => { throw new StackOverflowException(); };

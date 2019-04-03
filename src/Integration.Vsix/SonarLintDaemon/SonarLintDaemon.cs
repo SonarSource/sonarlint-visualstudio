@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string storagePath;
         private Process process;
 
-        public string WorkingDirectory { get; }
+        internal /* for testing */  string WorkingDirectory { get; }
 
         public event DownloadProgressChangedEventHandler DownloadProgressChanged;
         public event AsyncCompletedEventHandler DownloadCompleted;
