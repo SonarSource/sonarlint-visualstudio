@@ -87,30 +87,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        [Ignore]
-        public void Install_Reinstall_Run()
-        {
-            testableDaemon.Install();
-            Directory.GetFiles(tempPath).Length.Should().Be(1);
-            Directory.GetDirectories(storagePath).Length.Should().Be(1);
-            Assert.IsTrue(testableDaemon.IsInstalled);
-            Assert.IsFalse(testableDaemon.IsRunning);
-
-            testableDaemon.Install();
-            Directory.GetFiles(tempPath).Length.Should().Be(1);
-            Directory.GetDirectories(storagePath).Length.Should().Be(1);
-            testableDaemon.IsInstalled.Should().BeTrue();
-            testableDaemon.IsRunning.Should().BeFalse();
-
-            testableDaemon.Start();
-            testableDaemon.IsInstalled.Should().BeTrue();
-            testableDaemon.IsRunning.Should().BeTrue();
-            testableDaemon.Stop();
-            testableDaemon.IsRunning.Should().BeFalse();
-            testableDaemon.IsInstalled.Should().BeTrue();
-        }
-
-        [TestMethod]
         public void SystemInteractiveAsync_EnsureCorrectVersion()
         {
             // Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/850
