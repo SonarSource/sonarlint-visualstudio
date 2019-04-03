@@ -29,6 +29,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private readonly IList<string> outputStrings = new List<string>();
 
+        private readonly bool logToConsole;
+
+        public TestLogger()
+            : this(false)
+        {
+        }
+
+        public TestLogger(bool logToConsole)
+        {
+            // When executing tests in VS, the console output will automatically be captured by
+            // the test runner. The Properties window for the test result will have an "Output"
+            // link to show the output.
+            this.logToConsole = logToConsole;
+        }
+
         public void AssertOutputStrings(int expectedOutputMessages)
         {
             this.outputStrings.Should().HaveCount(expectedOutputMessages);
@@ -54,7 +69,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void AssertPartialOutputStringExists(params string[] expected)
         {
             this.outputStrings.Should()
-                .Contain(msg => expected.All(partial => msg.Contains(partial)));
+                .Contain(msg => expected.All(partial => msg.Contains(partial)),
+                because: $"MISSING TEXT: {string.Join(",", expected)}");
         }
 
         public void AssertNoOutputMessages()
@@ -72,11 +88,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void WriteLine(string message)
         {
             outputStrings.Add(message + Environment.NewLine);
+            if (logToConsole)
+            {
+                Console.WriteLine(message);
+            }
         }
 
         public void WriteLine(string messageFormat, params object[] args)
         {
-            outputStrings.Add(string.Format(System.Globalization.CultureInfo.CurrentCulture, messageFormat, args) + Environment.NewLine);
+            WriteLine(string.Format(System.Globalization.CultureInfo.CurrentCulture, messageFormat, args));
         }
 
         #endregion
