@@ -267,8 +267,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 channel = null;
 
                 // Will throw an InvalidOperationException if the process isn't valid
-                process?.Kill();
-                process?.WaitForExit();
+                if (!process?.HasExited ?? false)
+                {
+                    process?.Kill();
+                    process?.WaitForExit();
+                }
                 process = null;
             });
 

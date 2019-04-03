@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Fake the installation i.e. create the directory and file to execute.
             testableDaemon.SetUpDummyInstallation("test1.bat",
 @"@echo Hello world
-xxx yyy
+@echo write to error stream... 1>&2
 ");
 
             // Act
@@ -114,7 +114,7 @@ xxx yyy
 
             logger.AssertOutputStringExists(VSIX.Resources.Strings.Daemon_Starting);
             logger.AssertPartialOutputStringExists("Hello world"); // standard output should have been captured
-            logger.AssertPartialOutputStringExists("'xxx' is not recognized as an internal or external command,"); // error output should have been captured
+            logger.AssertPartialOutputStringExists("write to error stream..."); // error output should have been captured
             logger.AssertOutputStringExists(VSIX.Resources.Strings.Daemon_Started);
 
             testableDaemon.WasSafeInternalStopCalled.Should().BeFalse();
