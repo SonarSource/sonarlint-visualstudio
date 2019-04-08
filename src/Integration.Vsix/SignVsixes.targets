@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="SignVsixesIfPfxSupplied" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Targets to handle signing one or more VSIXes using a pfx certificate.
+  
+       Prerequisites:
+       The calling project should import a version of the NuGet package "Microsoft.VSSDK.Vsixsigntool"
+  
+       Usage:
+       The following properties should be set by the caller:
+       * $(pfxCertificatePath)  : full path to the pfx file
+       * $(pfxPassword)         : password to the certificate file
+       * $(pfxSha1)             : the sha1 for the certificate file
+       * @(VSIXesToSign)        : the list of VSIXes to sign
+       * $(PackagesFolder)      : the folder containing the packages. Defaults to $(SolutionDir)packages/ if not set.
+  -->
+  
+  <PropertyGroup>
+    <PackagesFolder Condition=" $(SolutionDir) != ''">$(SolutionDir)packages/</PackagesFolder>
+  </PropertyGroup>
+  
+  <Target Name="SignVsixesIfPfxSupplied">
+    <Message Importance="high" Text="YYYY @(VSIXesToSign)" />
+    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="ValidateVsixSigningInputs;LocateVsixSignToolAndBinaries;SignVsixes" />
+    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing VSIXes - pfx certificate path has not been set." />
+  </Target>
+
+  <Target Name="ValidateVsixSigningInputs">
+    <Error Condition=" $(pfxCertificatePath) == '' " Text="pfxCertificatePath has not been set" />
+    <Error Condition=" $(pfxPassword) == '' " Text="pfxPassword has not been set" />
+    <Error Condition=" $(pfxSha1) == '' " Text="pfxSha1 has not been set" />
+    <Error Condition=" !Exists($(pfxCertificatePath)) " Text="The specified pfx file does not exist: $(pfxCertificatePath)" />
+    
+    <Error Condition=" @(VSIXesToSign) == '' " Text="The list of VSIXes to sign is empty." />
+    <Message Importance="high" Text="VSIXes to sign: @(VSIXesToSign)" />
+  </Target>
+
+  <!-- The vsixsigntool is shipped in a NuGet package. We need to locate the exe file. -->
+  <Target Name="LocateVsixSignToolAndBinaries" >
+    <Message Importance="high" Text="Locating VSIX sign tool..." />
+
+    <!-- There could be multiple versions of the NuGet package on the machine. We'll select all
+	       of the matching exes, and then just pick one. -->
+    <ItemGroup>
+	    <VsixSignToolsList Include="$(PackagesFolder)/Microsoft.VSSDK.Vsixsigntool*/tools/vssdk/vsixsigntool.exe" />
+	  </ItemGroup>
+    <PropertyGroup>
+      <VsixSignToolPath>%(VsixSignToolsList.Identity)</VsixSignToolPath>	
+	  </PropertyGroup>
+
+    <Error Condition=" $(VsixSignToolPath) == '' " Text="Unable to locate vsixsigntool.exe. Check that the Microsoft.VSSDK.Vsixsigntool NuGet package is installed." />
+    <Message Importance="high" Text="VSIX signing tool located at $(VsixSignToolPath)" />
+  </Target>
+
+  <Target Name="SignVsixes">
+    <Error Condition=" $(pfxCertificatePath) == '' " Text="pfxCertificatePath has not been set" />
+    <Error Condition=" $(pfxPassword) == '' " Text="pfxPassword has not been set" />
+    <Exec Command="$(VsixSignToolPath) sign /f $(pfxCertificatePath) /p $(pfxPassword) /sha1 $(pfxSha1) %(VSIXesToSign.Identity)" />
+  </Target>
+
+</Project>
