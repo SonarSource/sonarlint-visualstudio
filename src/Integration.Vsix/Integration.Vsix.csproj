@@ -2,9 +2,15 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- Executive summary:
-       * to build the VS2015 visx, build from the VS2015 command prompt/from inside VS2015.
-       * to build the VS2017 visx, build from the VS2017 command prompt/from inside VS2017.
-       * to build the VS2019 visx, build from the VS2019 command prompt/from inside VS2019.
+       * to build the VS2015 vsix, build from inside VS2015.
+       * to build the VS2017 vsix, build from inside VS2017.
+       * to build the VS2019 vsix, build from inside VS2019.
+       
+       or
+       
+       * build from a VS2017/2019 command line, and specify the version of VS to target by
+         setting the vsTargetVersion property to 2015, 2017 or 2019 e.g.
+           /p:vsTargetVersion=2017
 
        Background:
        We want to be able to use the same set of projects to develop in multiple versions of VS (currently VS2015
@@ -522,7 +528,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="Resources\sonarlint_32px.ico" />
-    <None Include="Manifests\VS$(VersionSpecificSuffix)\source.extension.vsixmanifest" />
     <Content Include="Resources\sonarlint_wave_128px.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -537,6 +542,22 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
+
+  <!-- ***************************************** -->
+  <!-- Select the manifest to use -->
+  <!-- In most cases we can just select the folder using the $(VersionSpecificSuffic) property.
+         The one special case is if we are targetting VS2015 but not building in VS2015. In that case,
+         we need to use the v3 version of the manifest (used by VS2017+), otherwise the VSSDK build
+         targets will complain. -->
+  <PropertyGroup>
+    <ManifestFolder>Manifests\VS$(VersionSpecificSuffix)\</ManifestFolder>
+    <ManifestFolder Condition=" $(VSTargetVersion) == '2015' AND $(VisualStudioVersion) != '14.0' " >Manifests\VS2015_v3Manifest\</ManifestFolder>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(ManifestFolder)source.extension.vsixmanifest" />
+  </ItemGroup>
+  <!-- ***************************************** -->
+  
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>

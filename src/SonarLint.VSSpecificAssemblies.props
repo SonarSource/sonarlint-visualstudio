@@ -63,11 +63,7 @@
     <!-- Check build constraints -->
     <Error
       Condition=" $(VisualStudioVersion) == '14.0' AND $(VersionSpecificSuffix) != '2015' "
-      Text="MSBuild 14.0/VS2015 can only build the VS2015 VSIX. Target version specified: X$(VsTargetVersion)X   Y$(VersionSpecificSuffix)Y"/>
-
-    <Error
-      Condition=" $(VisualStudioVersion) != '14.0' AND $(VersionSpecificSuffix) == '2015' "
-      Text="Only MSBuild 14.0 / VS2015 can build the VS2105 VSIX. Current VS version: $(VisualStudioVersion)"/>
+      Text="MSBuild 14.0/VS2015 can only build the VS2015 VSIX. Target version specified: '$(VsTargetVersion)', Version specific suffix: '$(VersionSpecificSuffix)'"/>
 
   </Target>
 

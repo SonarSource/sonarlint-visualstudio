@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-  <!-- This file is exactly the same as the one in the ..\VS2015_v3Manifest\ folder, except that this folder does not
-       have a Prerequisites element.
-       This version can only be build with VS2015.
+  <!-- This file is exactly the same as the one in the ..\VS2015\ folder, except for the addition of the Prerequisites
+       element, required make the file valid with version 3 of the VSIX manifest (yes, this is a version 3-format file,
+       even though the version number in the root element is still 2.0.0).
+       This version cannot be built with VS2015.
   -->
   <Metadata>
     <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
@@ -34,4 +35,7 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="Google.Protobuf.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration.TeamExplorer" Path="|Integration.TeamExplorer|" />
   </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[14.0.25420.00,15.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
 </PackageManifest>
