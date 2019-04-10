@@ -112,5 +112,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Dispose(true);
         }
         #endregion
+
+        public void Unused()
+        {
+        }
+
+
+// TODO: Commented out code....
+
+//        public void Dispose()
+//        {
+//            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+//            Dispose(true);
+//        }
+
     }
 }
