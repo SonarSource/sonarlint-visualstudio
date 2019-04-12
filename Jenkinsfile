@@ -10,13 +10,23 @@ pipeline {
     SONARCLOUD_TOKEN = credentials('SONARCLOUD_TOKEN')
     ARTIFACTS_TO_DOWNLOAD = 'org.sonarsource.dotnet:SonarLint.VSIX:vsix:2015,org.sonarsource.dotnet:SonarLint.VSIX:vsix:2017,org.sonarsource.dotnet:SonarLint.VSIX:vsix:2019'
   }
-  stages{
+  stages {
     stage('NotifyStart')  {
+      when { 
+        not { 
+          environment name: 'IS_PULLREQUEST', value: 'true' 
+        }
+      } 
       steps{
         sendAllNotificationBuildStarted()
       }
     }
     stage('Build') {
+      when { 
+        not { 
+          environment name: 'IS_PULLREQUEST', value: 'true' 
+        }
+      }
       parallel {
         stage('vs2015'){
           agent { 
@@ -53,11 +63,8 @@ pipeline {
       
     stage('Deploy') {   
       //'master'.equals(env.GITHUB_BRANCH) || 'refs/heads/master'.equals(env.GITHUB_BRANCH) || 'true'.equals(env.IS_PULLREQUEST)
-      when{
-        anyOf {
-          environment name: 'GITHUB_BRANCH', value: 'master'
-          environment name: 'IS_PULLREQUEST', value: 'true'
-        }
+      when { 
+        environment name: 'GITHUB_BRANCH', value: 'master'
       }
       agent {
         label 'linux'
@@ -95,11 +102,8 @@ pipeline {
     }
 
     stage('QA')  {
-      when{
-        anyOf {
-          environment name: 'GITHUB_BRANCH', value: 'master'
-          environment name: 'IS_PULLREQUEST', value: 'true'
-        }
+      when {
+        environment name: 'GITHUB_BRANCH', value: 'master'
       }
       steps{
         //at the moment no QA is executed for sonarlint-visualstudio
@@ -113,11 +117,8 @@ pipeline {
     } 
 
     stage('Promote') {
-      when{
-        anyOf {
-          environment name: 'GITHUB_BRANCH', value: 'master'
-          environment name: 'IS_PULLREQUEST', value: 'true'
-        }
+      when {
+        environment name: 'GITHUB_BRANCH', value: 'master'
       } 
       steps {
         repoxPromoteBuild()
