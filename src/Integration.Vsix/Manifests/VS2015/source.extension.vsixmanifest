@@ -29,9 +29,13 @@
     <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Progress" Path="|Progress|" AssemblyName="|Progress;AssemblyName|" />
     <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="ProgressVS" Path="|ProgressVS|" AssemblyName="|ProgressVS;AssemblyName|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.CSharp.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.CSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.VisualBasic.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.VisualBasic.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="Google.Protobuf.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="Google.Protobuf.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration.TeamExplorer" Path="|Integration.TeamExplorer|" />
   </Assets>
 </PackageManifest>
