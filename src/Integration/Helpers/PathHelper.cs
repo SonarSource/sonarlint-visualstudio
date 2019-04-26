@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -29,6 +29,14 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal static class PathHelper
     {
+        // TODO
+
+        private static int unusedField;
+        private static void UnusedMethod()
+        {
+
+        }
+
         /// <summary>
         /// Replace all invalid file path characters with the underscore ("_").
         /// </summary>
