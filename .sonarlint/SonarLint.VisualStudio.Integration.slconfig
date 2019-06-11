@@ -1,0 +1,15 @@
+{
+  "ServerUri": "https://sonarcloud.io/",
+  "Organization": {
+    "Key": "sonarsource",
+    "Name": "SonarSource"
+  },
+  "ProjectKey": "sonarlint-visualstudio",
+  "ProjectName": "SonarLint for Visual Studio",
+  "Profiles": {
+    "CSharp": {
+      "ProfileKey": "AVxYKDdrFTbgxqUNcakm",
+      "ProfileTimestamp": "2019-05-07T16:01:40+01:00"
+    }
+  }
+}
