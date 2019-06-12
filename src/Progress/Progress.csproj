@@ -92,7 +92,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Progress.ruleset" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="..\SonarLint.xml">

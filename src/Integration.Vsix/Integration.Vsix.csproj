@@ -127,7 +127,6 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Integration.Vsix.ruleset" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
