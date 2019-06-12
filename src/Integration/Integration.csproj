@@ -222,7 +222,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="ArchetectureOverview.dgml" />
-    <None Include="Integration.ruleset" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
