@@ -8,11 +8,10 @@ REM pull requests as a required check. As it's a required check we need it to se
 REM code to GitHub otherwise PR completion is blocked. However, we don't want the cix PR 
 REM build to do any work so we'll early out as soon as possible.
 
-echo IsPullRequest environment variable: %IS_PULLREQUEST%
-IF "%IS_PULLREQUEST%"=="True" (
+echo IS_PULLREQUEST environment variable: %IS_PULLREQUEST%
+IF "%IS_PULLREQUEST%"=="true" (
     @echo Skipping build step on CIX for pull requests. The PR analysis is now handled by the Azure DevOps build job:
     @echo   https://sonarsource.visualstudio.com/DotNetTeam%20Project/_build?definitionId=47
-pause
     exit 0
 )
 
