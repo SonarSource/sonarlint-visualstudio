@@ -1,6 +1,8 @@
 @echo off
 setlocal ENABLEDELAYEDEXPANSION
 
+@echo Environment variables:
+set
 
 REM We're now using Azure DevOps for the PR analysis.
 REM However, there is a GitHub trigger at organization level that fires off a cix build for
@@ -14,7 +16,6 @@ IF "%IS_PULLREQUEST%"=="true" (
     @echo   https://sonarsource.visualstudio.com/DotNetTeam%20Project/_build?definitionId=47
     exit 0
 )
-
 
 IF NOT "%NODE_LABELS%"=="%NODE_LABELS:vs2015=%" (
 	PowerShell -NonInteractive -NoProfile -ExecutionPolicy Unrestricted -Command ".\build\ci-build.ps1 -vsTargetVersion VS2015"
