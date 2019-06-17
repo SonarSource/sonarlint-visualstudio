@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private readonly IServiceProvider serviceProvider;
         private bool isSolutionFullyOpened;
+        private bool isLegacyProjectSystem = true; // assume is legacy by default
 
         public ConfigurableVsProjectSystemHelper(IServiceProvider serviceProvider)
         {
@@ -185,6 +186,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.isSolutionFullyOpened;
         }
 
+        public bool IsLegacyProjectSystem(Project dteProject)
+        {
+            return this.isLegacyProjectSystem;
+        }
+
         #endregion IVsProjectSystemHelper
 
         #region Test helpers
@@ -206,6 +212,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SetIsSolutionFullyOpened(bool isFullyOpened)
         {
             this.isSolutionFullyOpened = isFullyOpened;
+        }
+
+        public void SetIsLegacyProjectSystem(bool isLegacyProjectSystem)
+        {
+            this.isLegacyProjectSystem = isLegacyProjectSystem;
         }
 
         #endregion Test helpers

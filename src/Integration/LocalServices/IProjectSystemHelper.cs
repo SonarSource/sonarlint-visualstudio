@@ -132,5 +132,12 @@ namespace SonarLint.VisualStudio.Integration
         /// Returns a flag indicating whether there is fully-opened solution or not.
         /// </summary>
         bool IsSolutionFullyOpened();
+
+        /// <summary>
+        /// Returns true if the project is implemented by the old C#/VB project system, otherwise false
+        /// </summary>
+        /// <returns>There are occasions when we need to code round differences between the old and new
+        /// project systems.</returns>
+        bool IsLegacyProjectSystem(Project dteProject);
     }
 }
