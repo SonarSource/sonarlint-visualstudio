@@ -172,10 +172,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
         {
-            ProjectMock dteProject = hierarchy as ProjectMock;
+            LegacyProjectMock dteProject = hierarchy as LegacyProjectMock;
             if (dteProject == null)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)} type");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(LegacyProjectMock)} type");
             }
 
             return dteProject.GetAggregateProjectTypeGuids();
