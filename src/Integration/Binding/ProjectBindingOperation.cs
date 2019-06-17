@@ -172,7 +172,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
-            if (!projectSystem.IsFileInProject(project, fullFilePath))
+            // Workaround for bug https://github.com/SonarSource/sonarlint-visualstudio/issues/881
+            // #881: hang when binding in VS2019
+            if (projectSystem.IsLegacyProjectSystem(project) &&
+                !projectSystem.IsFileInProject(project, fullFilePath))
             {
                 projectSystem.AddFileToProject(project, fullFilePath);
             }

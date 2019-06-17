@@ -24,16 +24,14 @@ using System.IO;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Flavor;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class ProjectMock : VsUIHierarchyMock, IVsProject, Project, IVsBuildPropertyStorage, IVsAggregatableProjectCorrected
+    public class ProjectMock : VsUIHierarchyMock, IVsProject, Project, IVsBuildPropertyStorage
     {
         private readonly Dictionary<string, uint> files = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
         private readonly IDictionary<string, string> buildProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private string aggregateProjectTypeGuids = string.Empty;
 
         public DTE DTE { get; set; }
 
@@ -356,37 +354,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #endregion IVsBuildPropertyStorage
 
-        #region IVsAggregatableProjectCorrected
-
-        int IVsAggregatableProjectCorrected.SetInnerProject(IntPtr punkInnerIUnknown)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsAggregatableProjectCorrected.InitializeForOuter(string pszFilename, string pszLocation, string pszName, uint grfCreateFlags, ref Guid iidProject, out IntPtr ppvProject, out int pfCanceled)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsAggregatableProjectCorrected.OnAggregationComplete()
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsAggregatableProjectCorrected.GetAggregateProjectTypeGuids(out string pbstrProjTypeGuids)
-        {
-            pbstrProjTypeGuids = this.aggregateProjectTypeGuids;
-            return VSConstants.S_OK;
-        }
-
-        int IVsAggregatableProjectCorrected.SetAggregateProjectTypeGuids(string lpstrProjTypeGuids)
-        {
-            this.aggregateProjectTypeGuids = lpstrProjTypeGuids;
-            return VSConstants.S_OK;
-        }
-
-        #endregion IVsAggregatableProjectCorrected
-
         public uint AddOrGetFile(string filePath)
         {
             uint fileId;
@@ -433,32 +400,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ClearBuildProperty(string propertyName, string configuration = "")
         {
             ((IVsBuildPropertyStorage)this).RemoveProperty(propertyName, configuration, (uint)_PersistStorageType.PST_PROJECT_FILE);
-        }
-
-        public void SetAggregateProjectTypeString(string str)
-        {
-            this.aggregateProjectTypeGuids = str;
-        }
-
-        public void SetAggregateProjectTypeGuids(params Guid[] guids)
-        {
-            this.aggregateProjectTypeGuids = string.Join(";", guids.Select(x => x.ToString("N"))) ?? string.Empty;
-        }
-
-        public IEnumerable<Guid> GetAggregateProjectTypeGuids()
-        {
-            return this.aggregateProjectTypeGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries)
-                                                 .Select(Guid.Parse);
-        }
-
-        public void SetTestProject()
-        {
-            this.SetAggregateProjectTypeGuids(ProjectSystemHelper.TestProjectKindGuid);
-        }
-
-        public void ClearProjectKind()
-        {
-            this.aggregateProjectTypeGuids = string.Empty;
         }
     }
 }

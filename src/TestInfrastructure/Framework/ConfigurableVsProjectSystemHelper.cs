@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private readonly IServiceProvider serviceProvider;
         private bool isSolutionFullyOpened;
+        private bool isLegacyProjectSystem = true; // assume is legacy by default
 
         public ConfigurableVsProjectSystemHelper(IServiceProvider serviceProvider)
         {
@@ -171,10 +172,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public IEnumerable<Guid> GetAggregateProjectKinds(IVsHierarchy hierarchy)
         {
-            ProjectMock dteProject = hierarchy as ProjectMock;
+            LegacyProjectMock dteProject = hierarchy as LegacyProjectMock;
             if (dteProject == null)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)} type");
+                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(LegacyProjectMock)} type");
             }
 
             return dteProject.GetAggregateProjectTypeGuids();
@@ -183,6 +184,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public bool IsSolutionFullyOpened()
         {
             return this.isSolutionFullyOpened;
+        }
+
+        public bool IsLegacyProjectSystem(Project dteProject)
+        {
+            return this.isLegacyProjectSystem;
         }
 
         #endregion IVsProjectSystemHelper
@@ -206,6 +212,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SetIsSolutionFullyOpened(bool isFullyOpened)
         {
             this.isSolutionFullyOpened = isFullyOpened;
+        }
+
+        public void SetIsLegacyProjectSystem(bool isLegacyProjectSystem)
+        {
+            this.isLegacyProjectSystem = isLegacyProjectSystem;
         }
 
         #endregion Test helpers
