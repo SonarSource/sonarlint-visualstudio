@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -515,12 +515,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        public ProjectMock AddOrGetProject(string projectFile, bool isLoaded = true)
+        public ProjectMock AddOrGetProject(string projectFile, bool isLoaded = true, bool isLegacy = true)
         {
             ProjectMock prj;
             if (!this.projects.TryGetValue(projectFile, out prj))
             {
-                projects[projectFile] = prj = new ProjectMock(projectFile);
+                projects[projectFile] = prj = 
+                    (isLegacy) ?
+                    new LegacyProjectMock(projectFile) :
+                    new ProjectMock(projectFile);
                 prj.DTE = this.dte;
                 this.SimulateProjectOpen(prj);
 

@@ -548,7 +548,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ProjectSystemHelper_GetAggregateProjectKinds_NoGuids_ReturnsEmpty()
         {
             // Arrange
-            var project = new ProjectMock("my.project");
+            var project = new LegacyProjectMock("my.project");
             project.SetAggregateProjectTypeString(string.Empty);
 
             // Act
@@ -569,7 +569,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 new Guid("0BA323B301614B1C80D74607B7EB7F5A"),
             };
 
-            var project = new ProjectMock("my.project");
+            var project = new LegacyProjectMock("my.project");
             project.SetAggregateProjectTypeString(guidString);
 
             // Act
@@ -616,6 +616,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_IsLegacyProject_NotLegacy_ReturnsFalse()
+        {
+            // Arrange
+            var mockProject = this.solutionMock.AddOrGetProject("dummy.proj", isLegacy: false);
+
+            // Act
+            var result = this.testSubject.IsLegacyProjectSystem(mockProject);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_IsLegacyProject_Legacy_ReturnsTrue()
+        {
+            // Arrange
+            var mockProject  = this.solutionMock.AddOrGetProject("dummy.proj", isLegacy: true);
+
+            // Act
+            var result = this.testSubject.IsLegacyProjectSystem(mockProject);
+
+            // Assert
+            result.Should().BeTrue();
         }
 
         #endregion Tests

@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         public void IProjectSystemHelperExtensions_IsKnownTestProject_IsTestProject_ReturnsTrue()
         {
             // Arrange
-            var vsProject = new ProjectMock("myproject.proj");
+            var vsProject = new LegacyProjectMock("myproject.proj");
             vsProject.SetAggregateProjectTypeGuids(ProjectSystemHelper.TestProjectKindGuid);
 
             // Act + Assert
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         public void IProjectSystemHelperExtensions_IsKnownTestProject_IsNotTestProject_ReturnsFalse()
         {
             // Arrange
-            var vsProject = new ProjectMock("myproject.proj");
+            var vsProject = new LegacyProjectMock("myproject.proj");
 
             // Act + Assert
             IProjectSystemHelperExtensions.IsKnownTestProject(this.projectSystem, vsProject).Should().BeFalse("Expected project without test project kind NOT to be known test project");

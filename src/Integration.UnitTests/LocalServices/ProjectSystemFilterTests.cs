@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             var testSubject = this.CreateTestSubject();
 
-            var project = new ProjectMock("supported" + projectExtension);
+            var project = new LegacyProjectMock("supported" + projectExtension);
             project.SetCSProjectKind();
             project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, "false"); // Should evaluate test projects even if false
 
@@ -226,7 +226,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             var testSubject = this.CreateTestSubject();
 
-            var project = new ProjectMock("knownproject" + projectExtension);
+            var project = new LegacyProjectMock("knownproject" + projectExtension);
             project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, "false"); // Should evaluate test projects even if false
             project.SetCSProjectKind();
 
@@ -285,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             var testSubject = this.CreateTestSubject();
-            var project = new ProjectMock("foobarfoobar" + projectExtension);
+            var project = new LegacyProjectMock("foobarfoobar" + projectExtension);
             project.SetCSProjectKind();
 
             // Case 1: Regex match
