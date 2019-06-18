@@ -33,3 +33,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("SonarSource")]
 [assembly: AssemblyCopyright("Copyright © SonarSource SA 2016-2018")]
 [assembly: AssemblyTrademark("")]
+
+// Dummy change
