@@ -23,7 +23,7 @@ pipeline {
         environment name: 'IS_PULLREQUEST', value: 'true' 
       } 
       steps{
-        sendAllNotificationBuildResult()
+        githubNotifyBuildResult()
       }
     }
     stage('NotifyStart')  {
