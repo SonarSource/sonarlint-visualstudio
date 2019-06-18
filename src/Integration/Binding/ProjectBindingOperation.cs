@@ -172,7 +172,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
-            if (!projectSystem.IsFileInProject(project, fullFilePath))
+            // Workaround for bug https://github.com/SonarSource/sonarlint-visualstudio/issues/881: Hang when binding in VS2019
+            // To avoid the hang we simply don't add the ruleset file to the new SDK-style projects. However,
+            // it won't make much difference in practice as the SDK-style projects use file globs so they
+            // will generally include the file anyway, so the file will still appear in the Solution Explorer even
+            // though it is not explicitly listed in the project file.
+            if (projectSystem.IsLegacyProjectSystem(project) &&
+                !projectSystem.IsFileInProject(project, fullFilePath))
             {
                 projectSystem.AddFileToProject(project, fullFilePath);
             }

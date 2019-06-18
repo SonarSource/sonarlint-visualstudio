@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal class ProjectSystemHelper : IProjectSystemHelper
     {
+        // See https://github.com/dotnet/project-system/blob/master/docs/opening-with-new-project-system.md
         internal const string VbProjectKind = "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}";
         internal const string CSharpProjectKind = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
         internal const string VbCoreProjectKind = "{778DAE3C-4631-46EA-AA77-85C1314464D9}";
@@ -449,6 +450,26 @@ namespace SonarLint.VisualStudio.Integration
                 return (bool)isLoaded;
             }
             return false;
+        }
+
+        public bool IsLegacyProjectSystem(Project dteProject)
+        {
+            // We can't rely on the project type guid to differentiate between the old
+            // and C#/VB project systems as they can both return the legacy guids: see
+            // https://github.com/dotnet/project-system/blob/master/docs/opening-with-new-project-system.md.
+
+            // There doesn't seem to be a documented way to determine which project system
+            // is being used, and I couldn't find a suitable property or capability.
+
+            // Instead, we'll look for an interface we know is implemented by the old
+            // project system but not the new project system. This isn't perfect, but
+            // it's very unlikely that the new project system will ever implement this
+            // interface since the interface-based project aggregation mechanism has
+            // been replaced by a newer MEF-based/capability extensibility mechanism.
+
+            var hierarchy = GetIVsHierarchy(dteProject);
+
+            return hierarchy != null && hierarchy is IVsAggregatableProjectCorrected;
         }
     }
 }
