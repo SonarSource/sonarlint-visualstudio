@@ -292,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_Commit_NewProjectSystem_AddsFile()
+        public void ProjectBindingOperation_Commit_NewProjectSystem_DoesNotAddFile()
         {
             // Arrange
             ProjectBindingOperation testSubject = this.CreateTestSubject();
@@ -317,7 +317,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_Commit_LegacyProjectSystem_DoesNotAddFile()
+        public void ProjectBindingOperation_Commit_LegacyProjectSystem_DoesAddFile()
         {
             // Arrange
             ProjectBindingOperation testSubject = this.CreateTestSubject();

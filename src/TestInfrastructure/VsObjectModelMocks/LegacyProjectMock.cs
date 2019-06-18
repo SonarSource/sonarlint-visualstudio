@@ -29,7 +29,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// <summary>
     /// Mock for managed projects that use the legacy C#/VB project system
     /// </summary>
-    public class LegacyProjectMock : ProjectMock, IVsAggregatableProjectCorrected
+    public class LegacyProjectMock : ProjectMock,
+        IVsAggregatableProjectCorrected // we use this interface as a marker to differentiate between legacy and new projects (because
+            // the interface is not implemented by the new project system).
     {
         private string aggregateProjectTypeGuids = string.Empty;
 

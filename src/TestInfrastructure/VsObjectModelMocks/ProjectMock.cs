@@ -28,6 +28,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
+    // Note: this mock is for new-style project system i.e. https://github.com/dotnet/project-system
+    // See the separate LegacyProjectMock class for the old-style mock.
     public class ProjectMock : VsUIHierarchyMock, IVsProject, Project, IVsBuildPropertyStorage
     {
         private readonly Dictionary<string, uint> files = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);

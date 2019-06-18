@@ -134,10 +134,12 @@ namespace SonarLint.VisualStudio.Integration
         bool IsSolutionFullyOpened();
 
         /// <summary>
-        /// Returns true if the project is implemented by the old C#/VB project system, otherwise false
+        /// Returns true if the project is implemented by the legacy C#/VB project system, otherwise false
         /// </summary>
-        /// <returns>There are occasions when we need to code round differences between the old and new
-        /// project systems.</returns>
+        /// <returns>There are occasions when we need to code around differences between the legacy and new
+        /// project systems. The new project system is the one from https://github.com/dotnet/project-system
+        /// that handles MSBuild SDK-style projects; the legacy project system is the closed-source one that
+        /// preceeded it that only handles old-style MSBuild projects.</returns>
         bool IsLegacyProjectSystem(Project dteProject);
     }
 }
