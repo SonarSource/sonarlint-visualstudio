@@ -26,8 +26,8 @@ pipeline {
         githubNotifyBuildResult()
       }
     }
-	
-	stage('dummy build')  {
+    
+    stage('dummy build')  {
       when { 
         not { 
           environment name: 'IS_PULLREQUEST', value: 'true' 
@@ -43,6 +43,3 @@ pipeline {
     
   }  
 }
-
-
-
