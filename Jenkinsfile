@@ -20,7 +20,7 @@ pipeline {
         environment name: 'IS_PULLREQUEST', value: 'true' 
       } 
       steps{
-        echo 'This is a dummy build. The real build is performed using Azure DevOps'
+        echo 'This is a dummy build. The real build is performed using Azure DevOps.'
         echo 'See https://sonarsource.visualstudio.com/DotNetTeam%20Project/_apps/hub/ms.vss-ciworkflow.build-ci-hub?_a=edit-build-definition&id=47'
 	  
         githubNotifyBuildResult()
@@ -34,7 +34,7 @@ pipeline {
         }
       } 
       steps{
-        echo 'This is a dummy build. The real build is performed using Azure DevOps'
+        echo 'This is a dummy build. The real build is performed using Azure DevOps.'
         echo 'See https://sonarsource.visualstudio.com/DotNetTeam%20Project/_apps/hub/ms.vss-ciworkflow.build-ci-hub?_a=edit-build-definition&id=47'
 		
 		// Don't send notifications anywhere
