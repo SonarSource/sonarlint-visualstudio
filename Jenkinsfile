@@ -19,29 +19,24 @@ pipeline {
       when { 
         environment name: 'IS_PULLREQUEST', value: 'true' 
       } 
-      steps{
-        echo 'This is a dummy build. The real build is performed using Azure DevOps.'
-        echo 'See https://sonarsource.visualstudio.com/DotNetTeam%20Project/_apps/hub/ms.vss-ciworkflow.build-ci-hub?_a=edit-build-definition&id=47'
-	  
+      steps{	  
         githubNotifyBuildResult()
-
-        // Send a build notification to burgr so there is at least a link in
-        // the burgr UI to the dummy build on CIX.
-        burgrNotifyBuildStarted()
-        burgrNotifyBuildResult()
       }
     }
     
     stage('dummy build')  {
-      when { 
-        not { 
-          environment name: 'IS_PULLREQUEST', value: 'true' 
-        }
-      } 
       steps{
+        // Add some explanatory output for the CIX build
+        echo
+        echo
+        echo '***********************************************************************'
+        echo '***********************************************************************'
         echo 'This is a dummy build. The real build is performed using Azure DevOps.'
         echo 'See https://sonarsource.visualstudio.com/DotNetTeam%20Project/_apps/hub/ms.vss-ciworkflow.build-ci-hub?_a=edit-build-definition&id=47'
-		
+        echo '***********************************************************************'
+        echo '***********************************************************************'
+        echo
+        echo
 		// Send a build notification to burgr so there is at least a link in
 		// the burgr UI to the dummy build on CIX.
 		burgrNotifyBuildStarted()
