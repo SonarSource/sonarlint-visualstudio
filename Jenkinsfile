@@ -37,7 +37,10 @@ pipeline {
         echo 'This is a dummy build. The real build is performed using Azure DevOps.'
         echo 'See https://sonarsource.visualstudio.com/DotNetTeam%20Project/_apps/hub/ms.vss-ciworkflow.build-ci-hub?_a=edit-build-definition&id=47'
 		
-		// Don't send notifications anywhere
+		// Send a build notification to burgr so there is at least a link in
+		// the burgr UI to the dummy build on CIX.
+		burgrNotifyBuildStarted()
+		burgrNotifyBuildResult()
       }
     }
     
