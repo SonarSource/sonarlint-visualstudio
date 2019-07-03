@@ -200,6 +200,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (!isLegacyProjectSystem)
             {
                 this.logger.WriteLine($"DEBUG: new project system -> skipping adding file to proejct");
+                return;
             }
 
             // HACK: temporary tweak to control adding/not adding the file to a project
