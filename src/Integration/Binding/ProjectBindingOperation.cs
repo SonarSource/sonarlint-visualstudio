@@ -84,12 +84,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region IBindingOperation
         public void Initialize()
         {
+            this.logger.WriteLine($"DEBUG: project binding operation. Project: {this.initializedProject.FullName} - initializing...");
+
             this.CaptureProject();
             this.CalculateRuleSetInformation();
+
+            this.logger.WriteLine("DEBUG: project binding operation - finished initializing.");
         }
 
         public void Prepare(CancellationToken token)
         {
+            this.logger.WriteLine($"DEBUG: project binding operation. Project: {this.initializedProject.FullName} - preparing...");
+
             var solutionRuleSet = this.ruleStore.GetRuleSetInformation(this.ProjectLanguage);
 
             // We want to limit the number of rulesets so for this we use the previously calculated TargetRuleSetFileName
@@ -112,10 +118,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     info.NewRuleSetFilePath = newRuleSetFilePath;
                 }
             }
+
+            this.logger.WriteLine("DEBUG: project binding operation - finished preparing.");
         }
 
         public void Commit()
         {
+            this.logger.WriteLine("DEBUG: project binding operation. Project: {this.initializedProject.FullName} - committing...");
+            
             foreach (var keyValue in this.propertyInformationMap)
             {
                 Property property = keyValue.Key;
@@ -129,6 +139,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 this.AddFileToProject(this.initializedProject, ruleSetFullFilePath);
             }
+
+            this.logger.WriteLine("DEBUG: project binding operation - finished committing.");
         }
         #endregion
 
@@ -171,6 +183,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void AddFileToProject(Project project, string fullFilePath)
         {
+            this.logger.WriteLine($"DEBUG: in AddFileToProject. Project: {project.FullName}, file: {fullFilePath}");
+
             Debug.Assert(Path.IsPathRooted(fullFilePath) && File.Exists(fullFilePath), "Expecting a rooted path to existing file");
 
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
@@ -181,10 +195,35 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // it won't make much difference in practice as the SDK-style projects use file globs so they
             // will generally include the file anyway, so the file will still appear in the Solution Explorer even
             // though it is not explicitly listed in the project file.
-            if (projectSystem.IsLegacyProjectSystem(project) &&
-                !projectSystem.IsFileInProject(project, fullFilePath))
+            var isLegacyProjectSystem = projectSystem.IsLegacyProjectSystem(project);
+            this.logger.WriteLine($"DEBUG: IsLegacyProjectSystem = {isLegacyProjectSystem}");
+            if (!isLegacyProjectSystem)
             {
+                this.logger.WriteLine($"DEBUG: new project system -> skipping adding file to proejct");
+            }
+
+            // HACK: temporary tweak to control adding/not adding the file to a project
+            // to allow experimentation on end user machines
+            const string EnvVarName = "SONAR_ADDFILETOPROJECT";
+            this.logger.WriteLine($"DEBUG: checking environment variable {EnvVarName}");
+            var doAddFile = System.Environment.GetEnvironmentVariable(EnvVarName);
+            this.logger.WriteLine($"DEBUG: {EnvVarName} = {doAddFile}");
+
+            if (string.IsNullOrWhiteSpace(doAddFile))
+            {
+                this.logger.WriteLine($"DEBUG: {EnvVarName} does not have a value -> skipping adding file to project");
+                return;
+            }
+
+            this.logger.WriteLine($"DEBUG: {EnvVarName} has a value -> checking whether the file is in the project");
+            var isFileInProject = projectSystem.IsFileInProject(project, fullFilePath);
+            this.logger.WriteLine($"DEBUG: is file in project = {isFileInProject}");
+
+            if (!isFileInProject)
+            {
+                this.logger.WriteLine($"DEBUG: calling AddFileToProject...");
                 projectSystem.AddFileToProject(project, fullFilePath);
+                this.logger.WriteLine($"DEBUG: returned from call to AddFileToProject.");
             }
         }
 

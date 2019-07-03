@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration

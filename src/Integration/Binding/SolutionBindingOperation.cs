@@ -158,6 +158,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(profilesMap));
             }
 
+            this.logger.WriteLine($"DEBUG: initializing solution binding operation");
+
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
 
             this.qualityProfileMap = new Dictionary<Language, SonarQubeQualityProfile>(profilesMap);
@@ -168,10 +170,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 binder.Initialize();
                 this.childBinder.Add(binder);
             }
+
+            this.logger.WriteLine($"DEBUG: finished initializing solution binding operation");
         }
 
         public void Prepare(CancellationToken token)
         {
+            this.logger.WriteLine($"DEBUG: preparing solution binding operation...");
+
             Debug.Assert(this.SolutionFullPath != null, "Expected to be initialized");
 
             var ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
@@ -211,10 +217,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 binder.Prepare(token);
             }
+
+            this.logger.WriteLine($"DEBUG: finished preparing solution binding operation");
         }
 
         public bool CommitSolutionBinding()
         {
+            this.logger.WriteLine($"DEBUG: committing solution binding operation...");
+
             this.PendBindingInformation(this.connection); // This is the last pend, so will be executed last
 
             if (this.sourceControlledFileSystem.WriteQueuedFiles())
@@ -228,9 +238,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     UpdateSolutionFile();
                 }
 
+                this.logger.WriteLine($"DEBUG: finished committing solution binding operation");
+
                 return true;
             }
 
+            this.logger.WriteLine($"DEBUG: finished committing solution binding operation (WriteQueuedFiles = false)");
             return false;
         }
 
@@ -271,12 +284,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void UpdateSolutionFile()
         {
+            this.logger.WriteLine($"DEBUG: updating solution file...");
+
             foreach (RuleSetInformation info in ruleSetsInformationMap.Values)
             {
+
+                this.logger.WriteLine($"DEBUG: processing file: {info.NewRuleSetFilePath}");
                 Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
                 this.AddFileToSolutionItems(info.NewRuleSetFilePath);
                 this.RemoveFileFromSolutionItems(info.NewRuleSetFilePath);
             }
+            this.logger.WriteLine($"DEBUG: finished solution file");
         }
 
         private void AddFileToSolutionItems(string fullFilePath)

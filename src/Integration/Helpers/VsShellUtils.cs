@@ -221,6 +221,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private static void WriteLineToPane(IVsOutputWindowPane pane, string message)
         {
+            Debug.WriteLine(message);
+
             int hr = pane.OutputStringThreadSafe(message + Environment.NewLine);
             Debug.Assert(ErrorHandler.Succeeded(hr), "Failed in OutputStringThreadSafe: " + hr.ToString());
         }

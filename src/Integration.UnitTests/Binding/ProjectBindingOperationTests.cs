@@ -319,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_Commit_LegacyProjectSystem_DoesAddFile()
+        public void ProjectBindingOperation_Commit_LegacyProjectSystem_SONAR_ADDFILETOPROJECT_IsSet_DoesAddFile()
         {
             // Arrange
             ProjectBindingOperation testSubject = this.CreateTestSubject();
@@ -334,13 +334,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Act
             using (new AssertIgnoreScope()) // Ignore that the file is not on disk
             {
-                testSubject.Commit();
+                // HACK 
+                var oldValue = Environment.GetEnvironmentVariable("SONAR_ADDFILETOPROJECT");
+                Environment.SetEnvironmentVariable("SONAR_ADDFILETOPROJECT", "xxx");
+                try
+                {
+
+                    testSubject.Commit();
+                }
+                finally
+                {
+                    Environment.SetEnvironmentVariable("SONAR_ADDFILETOPROJECT", oldValue);
+                }
             }
 
             // Assert
             string projectFile = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
             prop.Value.ToString().Should().Be(Path.GetFileName(projectFile), "Should update the property value");
             this.projectMock.Files.ContainsKey(projectFile).Should().BeTrue("Should add the file to the project for the legacy project system");
+        }
+
+        [TestMethod]
+        public void ProjectBindingOperation_Commit_LegacyProjectSystem_SONAR_ADDFILETOPROJECT_IsNotSet_DoesNotAddFile()
+        {
+            // Arrange
+            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            this.projectMock.SetCSProjectKind();
+            this.ruleStore.RegisterRuleSetPath(Language.CSharp, @"c:\Solution\sln.ruleset");
+            PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
+            testSubject.Initialize();
+            testSubject.Prepare(CancellationToken.None);
+
+            this.projectSystemHelper.SetIsLegacyProjectSystem(true);
+
+            // Act
+            using (new AssertIgnoreScope()) // Ignore that the file is not on disk
+            {
+                // HACK 
+                var oldValue = Environment.GetEnvironmentVariable("SONAR_ADDFILETOPROJECT");
+                Environment.SetEnvironmentVariable("SONAR_ADDFILETOPROJECT", null);
+                try
+                {
+
+                    testSubject.Commit();
+                }
+                finally
+                {
+                    Environment.SetEnvironmentVariable("SONAR_ADDFILETOPROJECT", oldValue);
+                }
+            }
+
+            // Assert
+            string projectFile = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
+            prop.Value.ToString().Should().Be(Path.GetFileName(projectFile), "Should update the property value");
+            this.projectMock.Files.ContainsKey(projectFile).Should().BeFalse("Should not add the file to the project for the new project system");
         }
 
         #endregion Tests
