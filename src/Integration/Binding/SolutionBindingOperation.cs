@@ -50,22 +50,26 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly string projectKey;
         private readonly string projectName;
         private readonly SonarLintMode bindingMode;
+        private readonly ILogger logger;
 
-        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string projectKey, string projectName, SonarLintMode bindingMode)
+        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string projectKey, string projectName, SonarLintMode bindingMode,
+            ILogger logger)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
-
             if (connection == null)
             {
                 throw new ArgumentNullException(nameof(connection));
             }
-
             if (string.IsNullOrWhiteSpace(projectKey))
             {
                 throw new ArgumentNullException(nameof(projectKey));
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
             }
 
             bindingMode.ThrowIfNotConnected();
@@ -82,6 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
 
             this.bindingMode = bindingMode;
+            this.logger = logger;
         }
 
         #region State
@@ -159,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (Project project in projects)
             {
-                var binder = new ProjectBindingOperation(serviceProvider, project, this);
+                var binder = new ProjectBindingOperation(serviceProvider, project, this, this.logger);
                 binder.Initialize();
                 this.childBinder.Add(binder);
             }

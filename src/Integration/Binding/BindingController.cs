@@ -160,7 +160,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 bindingArgs.Connection,
                 bindingArgs.ProjectKey,
                 bindingArgs.ProjectName,
-                modeToBind);
+                modeToBind,
+                host.Logger);
 
             var bindingInformationProvider = new SolutionBindingInformationProvider(host);
 

@@ -788,7 +788,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
 
-            var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected);
+            var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected, this.host.Logger);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
 
             if (nuGetBindingOperation == null)

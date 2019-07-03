@@ -80,14 +80,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_ArgChecks()
         {
             var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key", "name", SonarLintMode.LegacyConnected));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key", "name", SonarLintMode.LegacyConnected));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, "name", SonarLintMode.LegacyConnected));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty, "name", SonarLintMode.LegacyConnected));
+            var logger = new TestLogger();
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key", "name", SonarLintMode.LegacyConnected, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, "name", SonarLintMode.LegacyConnected, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty, "name", SonarLintMode.LegacyConnected, logger));
 
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.LegacyConnected, null));
 
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key", "name", SonarLintMode.LegacyConnected);
+            var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger);
             testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
         }
 
@@ -385,13 +387,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private SolutionBindingOperation CreateTestSubject(string projectKey,
             ConnectionInformation connection = null,
-            SonarLintMode bindingMode = SonarLintMode.LegacyConnected)
+            SonarLintMode bindingMode = SonarLintMode.LegacyConnected,
+            ILogger logger = null)
         {
             return new SolutionBindingOperation(this.serviceProvider,
                 connection ?? new ConnectionInformation(new Uri("http://host")),
                 projectKey,
                 projectKey,
-                bindingMode);
+                bindingMode,
+                logger ?? new TestLogger());
         }
 
         private static Dictionary<Language, SonarQubeQualityProfile> GetQualityProfiles()
