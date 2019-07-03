@@ -40,22 +40,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
+        private readonly ILogger logger;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionRuleStore ruleStore)
+        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionRuleStore ruleStore, ILogger logger)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
-
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
-
             if (ruleStore == null)
             {
                 throw new ArgumentNullException(nameof(ruleStore));
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
             }
 
             this.serviceProvider = serviceProvider;
@@ -67,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
             this.ruleSetSerializer.AssertLocalServiceIsNotNull();
+            this.logger = logger;
         }
 
         #region State

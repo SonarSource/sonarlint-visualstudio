@@ -70,9 +70,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void ProjectBindingOperation_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.ruleStore));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.ruleStore));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, null));
+            var logger = new TestLogger();
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.ruleStore, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.ruleStore, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, null, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.ruleStore, null));
 
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             testSubject.Should().NotBeNull("Suppress warning that not used");
@@ -361,7 +363,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private ProjectBindingOperation CreateTestSubject()
         {
-            return new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.ruleStore);
+            return new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.ruleStore, new TestLogger());
         }
 
         #endregion Helpers
