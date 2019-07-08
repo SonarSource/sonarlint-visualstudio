@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
@@ -88,6 +88,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Daemon download url: {0}.
+        /// </summary>
+        internal static string Daemon_Download_Url {
+            get {
+                return ResourceManager.GetString("Daemon_Download_Url", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finished downloading the daemon..
         /// </summary>
         internal static string Daemon_Downloaded {
@@ -151,6 +160,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The daemon file name supplied in {0} environment variable is invalid (&apos;{1}&apos;). Using the default download URL..
+        /// </summary>
+        internal static string Daemon_InvalidFileNameInDownloadEnvVar {
+            get {
+                return ResourceManager.GetString("Daemon_InvalidFileNameInDownloadEnvVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download URL supplied in {0} environment variable is invalid (&apos;{1}&apos;). Using default download URL..
+        /// </summary>
+        internal static string Daemon_InvalidUrlInDownloadEnvVar {
+            get {
+                return ResourceManager.GetString("Daemon_InvalidUrlInDownloadEnvVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Daemon started successfully..
         /// </summary>
         internal static string Daemon_Started {
@@ -183,6 +210,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         internal static string Daemon_Stopping {
             get {
                 return ResourceManager.GetString("Daemon_Stopping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using default daemon download URL.
+        /// </summary>
+        internal static string Daemon_UsingDefaultDownloadLocation {
+            get {
+                return ResourceManager.GetString("Daemon_UsingDefaultDownloadLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using daemon download url from {0} environment variable.
+        /// </summary>
+        internal static string Daemon_UsingDownloadUrlFromEnvVar {
+            get {
+                return ResourceManager.GetString("Daemon_UsingDownloadUrlFromEnvVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Daemon version: {0}.
+        /// </summary>
+        internal static string Daemon_Version {
+            get {
+                return ResourceManager.GetString("Daemon_Version", resourceCulture);
             }
         }
         

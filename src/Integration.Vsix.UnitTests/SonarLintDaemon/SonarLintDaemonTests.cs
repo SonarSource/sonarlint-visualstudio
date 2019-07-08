@@ -51,7 +51,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             storagePath = Path.Combine(TestContext.DeploymentDirectory, Path.GetRandomFileName());
             Directory.CreateDirectory(tempPath);
             Directory.CreateDirectory(storagePath);
-            testableDaemon = new TestableSonarLintDaemon(settings, logger, VSIX.SonarLintDaemon.daemonVersion, storagePath, tempPath);
+            testableDaemon = new TestableSonarLintDaemon(settings, logger, storagePath, tempPath);
+
+            logger.Reset(); // clear any messages logged during construction
         }
 
         [TestCleanup]
@@ -352,6 +354,73 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testableDaemon.Dispose();
         }
 
+        [TestMethod]
+        public void DefaultVersionAndDownloadUrl()
+        {
+            // Arrange and Act
+            var daemon = new TestableSonarLintDaemon(settings, logger, "c:\\storage", "d:\\temp");
+
+            // Assert
+            daemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultMavenUrl);
+            daemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
+            daemon.InstallationPath.Should().Be($"c:\\storage\\sonarlint-daemon-{VSIX.SonarLintDaemon.DefaultDaemonVersion}-windows");
+            daemon.ZipFilePath.Should().Be($"d:\\temp\\sonarlint-daemon-{VSIX.SonarLintDaemon.DefaultDaemonVersion}-windows.zip");
+        }
+
+        [TestMethod]
+        public void DownloadUrlInEnvironmentVar_InvalidUrl_UseDefault()
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                // Arrange
+                scope.SetVariable(VSIX.SonarLintDaemon.SonarLint_DownloadUrl_EnvVar, "invalid uri");
+
+                // Act
+                var realDaemon = new VSIX.SonarLintDaemon(settings, logger);
+
+                // Assert
+                realDaemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultMavenUrl);
+                realDaemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
+            }
+        }
+
+        [TestMethod]
+        public void DownloadUrlInEnvironmentVar_InvalidVersion_UseDefault()
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                // Arrange
+                scope.SetVariable(VSIX.SonarLintDaemon.SonarLint_DownloadUrl_EnvVar, "http://somewhere/sonarlint-daemon.zip");
+
+                // Act
+                var realDaemon = new VSIX.SonarLintDaemon(settings, logger);
+
+                // Assert
+                realDaemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultMavenUrl);
+                realDaemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
+            }
+        }
+
+        [TestMethod]
+        public void DownloadUrlInEnvironmentVar_Valid_UseSupplied()
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                // Arrange
+                scope.SetVariable(VSIX.SonarLintDaemon.SonarLint_DownloadUrl_EnvVar,
+                    "https://repox.jfrog.io/repox/sonarsource/org/sonarsource/sonarlint/core/sonarlint-daemon/4.3.0.2450/sonarlint-daemon-4.3.0.2450-windows.zip");
+
+                // Act
+                var daemon = new TestableSonarLintDaemon(settings, logger, "c:\\storagePath\\", "d:\\tempPath\\");
+
+                // Assert
+                daemon.DownloadUrl.Should().Be("https://repox.jfrog.io/repox/sonarsource/org/sonarsource/sonarlint/core/sonarlint-daemon/4.3.0.2450/sonarlint-daemon-4.3.0.2450-windows.zip");
+                daemon.DaemonVersion.Should().Be("4.3.0.2450");
+                daemon.InstallationPath.Should().Be("c:\\storagePath\\sonarlint-daemon-4.3.0.2450-windows");
+                daemon.ZipFilePath.Should().Be("d:\\tempPath\\sonarlint-daemon-4.3.0.2450-windows.zip");
+            }
+        }
+
         private static void ForceDeleteDirectory(string path)
         {
             try
@@ -369,8 +438,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             private string nameOfSubstituteExeFile;
 
-            public TestableSonarLintDaemon(ISonarLintSettings settings, ILogger logger, string version, string storagePath, string tmpPath)
-                : base(settings, logger, version, storagePath, tmpPath)
+            public TestableSonarLintDaemon(ISonarLintSettings settings, ILogger logger, string storagePath, string tmpPath)
+                : base(settings, logger, storagePath, tmpPath)
             {
                 this.Ready += (s, a) => WasReadyEventInvoked = true;
             }
