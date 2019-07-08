@@ -135,6 +135,10 @@
   <data name="Daemon_Downloading" xml:space="preserve">
     <value>Downloading the daemon...</value>
   </data>
+  <data name="Daemon_Download_Url" xml:space="preserve">
+    <value>Daemon download url: {0}</value>
+    <comment>Output window message</comment>
+  </data>
   <data name="Daemon_Editor_ERROR" xml:space="preserve">
     <value>Daemon error occurred in editor integration: {0}</value>
     <comment>Output window message</comment>
@@ -151,6 +155,14 @@
   <data name="Daemon_Installing" xml:space="preserve">
     <value>Installing the daemon...</value>
   </data>
+  <data name="Daemon_InvalidFileNameInDownloadEnvVar" xml:space="preserve">
+    <value>The daemon file name supplied in {0} environment variable is invalid ('{1}'). Using the default download URL.</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Daemon_InvalidUrlInDownloadEnvVar" xml:space="preserve">
+    <value>Download URL supplied in {0} environment variable is invalid ('{1}'). Using default download URL.</value>
+    <comment>Output window message</comment>
+  </data>
   <data name="Daemon_Started" xml:space="preserve">
     <value>Daemon started successfully.</value>
   </data>
@@ -162,6 +174,18 @@
   </data>
   <data name="Daemon_Stopping" xml:space="preserve">
     <value>Stopping the daemon...</value>
+  </data>
+  <data name="Daemon_UsingDefaultDownloadLocation" xml:space="preserve">
+    <value>Using default daemon download URL</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Daemon_UsingDownloadUrlFromEnvVar" xml:space="preserve">
+    <value>Using daemon download url from {0} environment variable</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="Daemon_Version" xml:space="preserve">
+    <value>Daemon version: {0}</value>
+    <comment>Output window message</comment>
   </data>
   <data name="ERROR_ConfiguringDaemon" xml:space="preserve">
     <value>Error occurred configuring the daemon: {0}</value>
