@@ -38,12 +38,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Export(typeof(ISonarLintDaemon))]
     internal class SonarLintDaemon : ISonarLintDaemon
     {
-        private static readonly string DAEMON_HOST = "localhost";
-        private static readonly int DEFAULT_DAEMON_PORT = 8050;
+        private const string DaemonHost = "localhost";
+        private const int DefaultDaemonPort = 8050;
 
-        public const string DefaultDaemonVersion = "4.0.2.2142";
-        public const string SonarLint_DownloadUrl_EnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
-        public static readonly string DefaultMavenUrl = string.Format("http://repo1.maven.org/maven2/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip",
+        internal /* for testing */ const string DefaultDaemonVersion = "4.0.2.2142";
+        internal /* for testing */ const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
+        internal /* for testing */ static readonly string DefaultDownloadUrl = string.Format("http://repo1.maven.org/maven2/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip",
             DefaultDaemonVersion);
 
         private readonly ISonarLintSettings settings;
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             logger.WriteLine(Strings.Daemon_Starting);
 
-            Port = TcpUtil.FindFreePort(DEFAULT_DAEMON_PORT);
+            Port = TcpUtil.FindFreePort(DefaultDaemonPort);
             process = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         // Need to be able to stub this method out for testing
         protected virtual /* for testing */ void CreateChannelAndStreamLogs()
         {
-            channel = new Channel($"{DAEMON_HOST}:{Port}", ChannelCredentials.Insecure);
+            channel = new Channel($"{DaemonHost}:{Port}", ChannelCredentials.Insecure);
             daemonClient = new StandaloneSonarLint.StandaloneSonarLintClient(channel);
             ListenForLogs();
             StartHeartBeat();
@@ -308,22 +308,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private string GetDownloadUrl()
         {
-            var actualUrl = System.Environment.GetEnvironmentVariable(SonarLint_DownloadUrl_EnvVar);
+            var actualUrl = System.Environment.GetEnvironmentVariable(SonarLintDownloadUrlEnvVar);
 
             if (string.IsNullOrWhiteSpace(actualUrl))
             {
                 logger.WriteLine(Strings.Daemon_UsingDefaultDownloadLocation);
-                actualUrl = DefaultMavenUrl;
+                actualUrl = DefaultDownloadUrl;
             }
             else
             {
                 if (IsValidUrl(actualUrl))
                 {
-                    logger.WriteLine(Strings.Daemon_UsingDownloadUrlFromEnvVar, SonarLint_DownloadUrl_EnvVar);
+                    logger.WriteLine(Strings.Daemon_UsingDownloadUrlFromEnvVar, SonarLintDownloadUrlEnvVar);
                 }
                 else
                 {
-                    actualUrl = DefaultMavenUrl;
+                    actualUrl = DefaultDownloadUrl;
                 }
             }
 
@@ -335,13 +335,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Uri dummyResult;
             if (!Uri.TryCreate(url, UriKind.Absolute, out dummyResult))
             {
-                logger.WriteLine(Strings.Daemon_InvalidUrlInDownloadEnvVar, SonarLint_DownloadUrl_EnvVar, url);
+                logger.WriteLine(Strings.Daemon_InvalidUrlInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
                 return false;
             }
 
             if (ExtractVersionStringFromUrl(url) == null)
             {
-                logger.WriteLine(Strings.Daemon_InvalidFileNameInDownloadEnvVar, SonarLint_DownloadUrl_EnvVar, url);
+                logger.WriteLine(Strings.Daemon_InvalidFileNameInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
                 return false;
             }
 

@@ -355,16 +355,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void DefaultVersionAndDownloadUrl()
+        public void DownloadUrlInEnvironmentVar_NotSet_DefaultUsed()
         {
-            // Arrange and Act
-            var daemon = new TestableSonarLintDaemon(settings, logger, "c:\\storage", "d:\\temp");
+            using (var scope = new EnvironmentVariableScope())
+            {
+                // Arrange - make sure the variable is not set
+                scope.SetVariable(VSIX.SonarLintDaemon.SonarLintDownloadUrlEnvVar, "");
 
-            // Assert
-            daemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultMavenUrl);
-            daemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
-            daemon.InstallationPath.Should().Be($"c:\\storage\\sonarlint-daemon-{VSIX.SonarLintDaemon.DefaultDaemonVersion}-windows");
-            daemon.ZipFilePath.Should().Be($"d:\\temp\\sonarlint-daemon-{VSIX.SonarLintDaemon.DefaultDaemonVersion}-windows.zip");
+                // Act
+                var daemon = new TestableSonarLintDaemon(settings, logger, "c:\\storage", "d:\\temp");
+
+                // Assert
+                daemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultDownloadUrl);
+                daemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
+                daemon.InstallationPath.Should().Be($"c:\\storage\\sonarlint-daemon-{VSIX.SonarLintDaemon.DefaultDaemonVersion}-windows");
+                daemon.ZipFilePath.Should().Be($"d:\\temp\\sonarlint-daemon-{VSIX.SonarLintDaemon.DefaultDaemonVersion}-windows.zip");
+            }
         }
 
         [TestMethod]
@@ -373,13 +379,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (var scope = new EnvironmentVariableScope())
             {
                 // Arrange
-                scope.SetVariable(VSIX.SonarLintDaemon.SonarLint_DownloadUrl_EnvVar, "invalid uri");
+                scope.SetVariable(VSIX.SonarLintDaemon.SonarLintDownloadUrlEnvVar, "invalid uri");
 
                 // Act
                 var realDaemon = new VSIX.SonarLintDaemon(settings, logger);
 
                 // Assert
-                realDaemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultMavenUrl);
+                realDaemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultDownloadUrl);
                 realDaemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
             }
         }
@@ -390,13 +396,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (var scope = new EnvironmentVariableScope())
             {
                 // Arrange
-                scope.SetVariable(VSIX.SonarLintDaemon.SonarLint_DownloadUrl_EnvVar, "http://somewhere/sonarlint-daemon.zip");
+                scope.SetVariable(VSIX.SonarLintDaemon.SonarLintDownloadUrlEnvVar, "http://somewhere/sonarlint-daemon.zip");
 
                 // Act
                 var realDaemon = new VSIX.SonarLintDaemon(settings, logger);
 
                 // Assert
-                realDaemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultMavenUrl);
+                realDaemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultDownloadUrl);
                 realDaemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
             }
         }
@@ -407,7 +413,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (var scope = new EnvironmentVariableScope())
             {
                 // Arrange
-                scope.SetVariable(VSIX.SonarLintDaemon.SonarLint_DownloadUrl_EnvVar,
+                scope.SetVariable(VSIX.SonarLintDaemon.SonarLintDownloadUrlEnvVar,
                     "https://repox.jfrog.io/repox/sonarsource/org/sonarsource/sonarlint/core/sonarlint-daemon/4.3.0.2450/sonarlint-daemon-4.3.0.2450-windows.zip");
 
                 // Act
