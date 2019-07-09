@@ -27,6 +27,7 @@ using System.Text;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -123,10 +124,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 dynamic config = project.Configurations.Item(pattern); // Microsoft.VisualStudio.VCProjectEngine.VCConfiguration
 
                 dynamic file = projectItem.Object; // Microsoft.VisualStudio.VCProjectEngine.VCFile
-                dynamic fileConfig = file.FileConfigurations.Item(configurationName); // Microsoft.VisualStudio.VCProjectEngine.VCFileConfiguration
-                dynamic fileTool = fileConfig.Tool; // Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool
+                dynamic fileConfigurations = file.FileConfigurations.Item(configurationName); // Microsoft.VisualStudio.VCProjectEngine.VCFileConfiguration
+                dynamic fileTool = fileConfigurations.Tool; // Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool
 
-                return new FileConfig()
+                var fileConfig = new FileConfig()
                 {
                     AbsoluteFilePath = absoluteFilePath,
 
@@ -161,6 +162,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                     AdditionalOptions = GetEvaluatedPropertyValue(fileTool, "AdditionalOptions"),
                 };
+                return fileConfig;
             }
 
             private static MethodInfo getEvaluatedPropertyValue;
@@ -314,6 +316,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     default:
                         throw new ArgumentException($"Unsupported PlatformToolset: {platformToolset}", nameof(platformToolset));
+                    case "": // Bug https://github.com/SonarSource/sonarlint-visualstudio/issues/804
+                        throw new ArgumentException(Strings.Daemon_PlatformToolsetNotSpecified);
                     case "v142":
                         return "19.20.00";
                     case "v141":

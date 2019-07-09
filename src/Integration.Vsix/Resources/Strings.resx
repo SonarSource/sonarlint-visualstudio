@@ -270,4 +270,8 @@ See the SonarLint output window for more detail.</value>
   <data name="Daemon_Download_ErrorLogMessage" xml:space="preserve">
     <value>Download error:</value>
   </data>
+  <data name="Daemon_PlatformToolsetNotSpecified" xml:space="preserve">
+    <value>The file cannot be analyzed because the platform toolset has not been specified. Set the Platform Toolset property through the Visual Studio project property page.</value>
+    <comment>Output window message</comment>
+  </data>
 </root>
