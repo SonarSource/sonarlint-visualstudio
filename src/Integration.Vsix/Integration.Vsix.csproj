@@ -105,6 +105,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
+    <Compile Include="Resources\DaemonStrings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DaemonStrings.resx</DependentUpon>
+    </Compile>
     <Compile Include="Settings\OtherOptionsDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -495,7 +500,7 @@
     <EmbeddedResource Include="Resources\DaemonStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DaemonStrings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    </EmbeddedResource>	
     <None Include="Telemetry\GeneratedCode\SqmCommandFacade.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SqmCommandFacade.cs</LastGenOutput>
