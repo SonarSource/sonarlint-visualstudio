@@ -168,6 +168,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             Action action = () => CFamily.FileConfig.ConvertPlatformToolset("v143");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformToolset: v143");
+
+            action = () => CFamily.FileConfig.ConvertPlatformToolset("");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith
+                ("The file cannot be analyzed because the platform toolset has not been specified.");
         }
 
         [TestMethod]

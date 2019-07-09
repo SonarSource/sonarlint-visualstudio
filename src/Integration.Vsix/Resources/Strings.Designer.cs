@@ -207,6 +207,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The file cannot be analyzed because the platform toolset has not been specified. Set the Platform Toolset property through the Visual Studio project property page..
+        /// </summary>
+        internal static string Daemon_PlatformToolsetNotSpecified {
+            get {
+                return ResourceManager.GetString("Daemon_PlatformToolsetNotSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Daemon started successfully..
         /// </summary>
         internal static string Daemon_Started {
