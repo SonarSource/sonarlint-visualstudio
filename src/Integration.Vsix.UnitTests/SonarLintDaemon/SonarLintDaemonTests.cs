@@ -144,9 +144,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             testableDaemon.Port.Should().NotBe(0);
 
-            logger.AssertOutputStringExists(VSIX.Resources.Strings.Daemon_Starting);
+            logger.AssertOutputStringExists(VSIX.Resources.DaemonStrings.Starting);
             logger.AssertPartialOutputStringExists(testableDaemon.ExePath);
-            logger.AssertOutputStringExists(VSIX.Resources.Strings.Daemon_Started);
+            logger.AssertOutputStringExists(VSIX.Resources.DaemonStrings.Started);
 
             // TODO: output streams are not being captured on CI builds (cix or Azure DevOps)
             //logger.AssertPartialOutputStringExists("Hello world"); // standard output should have been captured
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             // Assert
-            logger.AssertOutputStringExists(VSIX.Resources.Strings.Daemon_Starting);
+            logger.AssertOutputStringExists(VSIX.Resources.DaemonStrings.Starting);
             logger.AssertPartialOutputStringExists("Unable to start SonarLint daemon");
 
             testableDaemon.WasSafeInternalStopCalled.Should().BeTrue();

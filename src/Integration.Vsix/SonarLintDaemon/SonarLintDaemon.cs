@@ -84,8 +84,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.DaemonVersion = ExtractVersionStringFromUrl(this.DownloadUrl);
             Debug.Assert(this.DaemonVersion != null, "Daemon version should not be null - check the hard-coded download URL is valid");
 
-            logger.WriteLine(Strings.Daemon_Version, this.DaemonVersion);
-            logger.WriteLine(Strings.Daemon_Download_Url, this.DownloadUrl);
+            logger.WriteLine(DaemonStrings.Version, this.DaemonVersion);
+            logger.WriteLine(DaemonStrings.Download_Url, this.DownloadUrl);
         }
 
         public void Install()
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 throw new InvalidOperationException("Daemon is not installed");
             }
 
-            logger.WriteLine(Strings.Daemon_Starting);
+            logger.WriteLine(DaemonStrings.Starting);
 
             Port = TcpUtil.FindFreePort(DefaultDaemonPort);
             process = new Process
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 process.Start();
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
-                logger.WriteLine(Strings.Daemon_Started);
+                logger.WriteLine(DaemonStrings.Started);
             }
             catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
             {
@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             // Note: we're not checking IsRunning here as that check can fail if the
             // process wasn't started correctly.
-            logger.WriteLine(Strings.Daemon_Stopping);
+            logger.WriteLine(DaemonStrings.Stopping);
 
             SafeOperation(() =>
             {
@@ -286,7 +286,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 process = null;
             });
 
-            logger.WriteLine(Strings.Daemon_Stopped);
+            logger.WriteLine(DaemonStrings.Stopped);
         }
 
         public int Port { get; private set; }
@@ -312,14 +312,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (string.IsNullOrWhiteSpace(actualUrl))
             {
-                logger.WriteLine(Strings.Daemon_UsingDefaultDownloadLocation);
+                logger.WriteLine(DaemonStrings.UsingDefaultDownloadLocation);
                 actualUrl = DefaultDownloadUrl;
             }
             else
             {
                 if (IsValidUrl(actualUrl))
                 {
-                    logger.WriteLine(Strings.Daemon_UsingDownloadUrlFromEnvVar, SonarLintDownloadUrlEnvVar);
+                    logger.WriteLine(DaemonStrings.UsingDownloadUrlFromEnvVar, SonarLintDownloadUrlEnvVar);
                 }
                 else
                 {
@@ -335,13 +335,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Uri dummyResult;
             if (!Uri.TryCreate(url, UriKind.Absolute, out dummyResult))
             {
-                logger.WriteLine(Strings.Daemon_InvalidUrlInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
+                logger.WriteLine(DaemonStrings.InvalidUrlInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
                 return false;
             }
 
             if (ExtractVersionStringFromUrl(url) == null)
             {
-                logger.WriteLine(Strings.Daemon_InvalidFileNameInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
+                logger.WriteLine(DaemonStrings.InvalidFileNameInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
                 return false;
             }
 
@@ -350,7 +350,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Download()
         {
-            this.logger.WriteLine(Strings.Daemon_Downloading);
+            this.logger.WriteLine(DaemonStrings.Downloading);
 
             Uri uri = new Uri(DownloadUrl);
 
@@ -360,7 +360,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 client.DownloadFileCompleted += Unzip;
                 client.DownloadFileCompleted += (sender, args) =>
                     {
-                        this.logger.WriteLine(Strings.Daemon_Downloaded);
+                        this.logger.WriteLine(DaemonStrings.Downloaded);
                         DownloadCompleted?.Invoke(sender, args);
                     };
                 client.DownloadFileAsync(uri, ZipFilePath);

@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.ERROR_InstallingDaemon, ex);
+                logger.WriteLine(DaemonStrings.ERROR_InstallingDaemon, ex);
             }
         }
 
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.ERROR_InstallingDaemon, ex);
+                logger.WriteLine(DaemonStrings.ERROR_InstallingDaemon, ex);
             }
         }
 
@@ -106,9 +106,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 if (e.Error != null)
                 {
                     var ex = e.Error;
-                    var message = string.Format(Strings.Daemon_Download_ERROR, ex.Message);
-                    MessageBox.Show(message, Strings.Daemon_Download_ErrorDlgTitle, MessageBoxButton.OK);
-                    logger.WriteLine(Strings.Daemon_Download_ErrorLogMessage);
+                    var message = string.Format(DaemonStrings.Download_ERROR, ex.Message);
+                    MessageBox.Show(message, DaemonStrings.Download_ErrorDlgTitle, MessageBoxButton.OK);
+                    logger.WriteLine(DaemonStrings.Download_ErrorLogMessage);
                     logger.WriteLine(ex.ToString());
                     Close();
                     return;
@@ -129,16 +129,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.ERROR_InstallingDaemon, ex);
+                logger.WriteLine(DaemonStrings.ERROR_InstallingDaemon, ex);
             }
         }
 
         internal void Show(Action callback)
         {
-            this.logger.WriteLine(Strings.Daemon_Installing);
+            this.logger.WriteLine(DaemonStrings.Installing);
             this.callback = callback;
             Show();
-            this.logger.WriteLine(Strings.Daemon_Installed);
+            this.logger.WriteLine(DaemonStrings.Installed);
         }
 
         protected override void OnClosing(CancelEventArgs e)

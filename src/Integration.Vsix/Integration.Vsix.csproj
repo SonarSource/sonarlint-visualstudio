@@ -492,6 +492,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Resources\DaemonStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>DaemonStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <None Include="Telemetry\GeneratedCode\SqmCommandFacade.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SqmCommandFacade.cs</LastGenOutput>

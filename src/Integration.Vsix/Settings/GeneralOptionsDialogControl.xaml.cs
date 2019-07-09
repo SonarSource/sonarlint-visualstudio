@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.ERROR_ConfiguringDaemon, ex);
+                logger.WriteLine(DaemonStrings.ERROR_ConfiguringDaemon, ex);
             }
         }
 
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.ERROR_ConfiguringDaemon, ex);
+                logger.WriteLine(DaemonStrings.ERROR_ConfiguringDaemon, ex);
             }
         }
 
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.ERROR_ConfiguringDaemon, ex);
+                logger.WriteLine(DaemonStrings.ERROR_ConfiguringDaemon, ex);
             }
         }
     }

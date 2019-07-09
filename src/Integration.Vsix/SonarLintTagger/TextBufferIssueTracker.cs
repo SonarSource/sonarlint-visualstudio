@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.Daemon_Editor_ERROR, ex);
+                logger.WriteLine(DaemonStrings.Editor_ERROR, ex);
             }
         }
 
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.Daemon_Editor_ERROR, ex);
+                logger.WriteLine(DaemonStrings.Editor_ERROR, ex);
             }
         }
 

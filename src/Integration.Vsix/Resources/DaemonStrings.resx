@@ -117,76 +117,85 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AnalyzerManager_InConnectedMode" xml:space="preserve">
-    <value>Connected mode detected.</value>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Finished downloading the daemon.</value>
+  </data>
+  <data name="Downloading" xml:space="preserve">
+    <value>Downloading the daemon...</value>
+  </data>
+  <data name="Download_Url" xml:space="preserve">
+    <value>Daemon download url: {0}</value>
     <comment>Output window message</comment>
   </data>
-  <data name="AnalyzerManager_InStandaloneMode" xml:space="preserve">
-    <value>Standalone mode detected.</value>
+  <data name="Editor_ERROR" xml:space="preserve">
+    <value>Daemon error occurred in editor integration: {0}</value>
     <comment>Output window message</comment>
   </data>
-  <data name="CannotFindToolWindow" xml:space="preserve">
-    <value>Cannot find tool window with the specified guid: {0}</value>
-    <comment>Exception message, {0} guid</comment>
+  <data name="InitializationComplete" xml:space="preserve">
+    <value>Finished initializing the daemon package.</value>
   </data>
-  <data name="InvalidInfoBarInstance" xml:space="preserve">
-    <value>The specified argument is of a valid type.</value>
-    <comment>Exception message</comment>
+  <data name="Initializing" xml:space="preserve">
+    <value>Initializing the daemon package...</value>
   </data>
-  <data name="InvalidVisualStudioVersion" xml:space="preserve">
-    <value>Invalid VisualStudio version, expecting '14.0' or '15.0' got '{0}'.</value>
-    <comment>Error message in output window when the VisualStudio version is not the expected one. {0} Actual VisualStudio version</comment>
+  <data name="Installed" xml:space="preserve">
+    <value>Finished installing the daemon.</value>
   </data>
-  <data name="Notifications_Connected" xml:space="preserve">
-    <value>Connected: checking for notifications</value>
+  <data name="Installing" xml:space="preserve">
+    <value>Installing the daemon...</value>
+  </data>
+  <data name="InvalidFileNameInDownloadEnvVar" xml:space="preserve">
+    <value>The daemon file name supplied in {0} environment variable is invalid ('{1}'). Using the default download URL.</value>
     <comment>Output window message</comment>
   </data>
-  <data name="Notifications_ERROR" xml:space="preserve">
-    <value>Notifications: error occurred: {0}</value>
+  <data name="InvalidUrlInDownloadEnvVar" xml:space="preserve">
+    <value>Download URL supplied in {0} environment variable is invalid ('{1}'). Using default download URL.</value>
     <comment>Output window message</comment>
   </data>
-  <data name="Notifications_InitializationComplete" xml:space="preserve">
-    <value>Finished initializing the notifications package</value>
+  <data name="Started" xml:space="preserve">
+    <value>Daemon started successfully.</value>
+  </data>
+  <data name="Starting" xml:space="preserve">
+    <value>Starting the daemon...</value>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>Daemon stopped successfully.</value>
+  </data>
+  <data name="Stopping" xml:space="preserve">
+    <value>Stopping the daemon...</value>
+  </data>
+  <data name="UsingDefaultDownloadLocation" xml:space="preserve">
+    <value>Using default daemon download URL</value>
     <comment>Output window message</comment>
   </data>
-  <data name="Notifications_Initializing" xml:space="preserve">
-    <value>Initializing the notifications package...</value>
+  <data name="UsingDownloadUrlFromEnvVar" xml:space="preserve">
+    <value>Using daemon download url from {0} environment variable</value>
     <comment>Output window message</comment>
   </data>
-  <data name="Notifications_LoadingSettings" xml:space="preserve">
-    <value>Loading notifications settings...</value>
+  <data name="Version" xml:space="preserve">
+    <value>Daemon version: {0}</value>
     <comment>Output window message</comment>
   </data>
-  <data name="Notifications_NotConnected" xml:space="preserve">
-    <value>Not connected: not checking for notifications</value>
-    <comment>Output window message</comment>
+  <data name="Download_ERROR" xml:space="preserve">
+    <value>Failed to activate support of additional languages: {0}
+
+See the SonarLint output window for more detail.</value>
+    <comment>Modal error dialog message</comment>
   </data>
-  <data name="Notifications_SavingSettings" xml:space="preserve">
-    <value>Saving notifications settings...</value>
-    <comment>Output window message</comment>
+  <data name="Download_ErrorDlgTitle" xml:space="preserve">
+    <value>SonarLint - download error</value>
+    <comment>Title for modal error dialogue box</comment>
   </data>
-  <data name="SL_ERROR" xml:space="preserve">
-    <value>SonarLint package: error occurred: {0}</value>
-    <comment>Output window message</comment>
+  <data name="Download_ErrorLogMessage" xml:space="preserve">
+    <value>Download error:</value>
   </data>
-  <data name="SL_InitializationComplete" xml:space="preserve">
-    <value>Finishing initializing the SonarLint package</value>
-    <comment>Output window message</comment>
+  <data name="ERROR_ConfiguringDaemon" xml:space="preserve">
+    <value>Error occurred configuring the daemon: {0}</value>
   </data>
-  <data name="SL_Initializing" xml:space="preserve">
-    <value>Initializing the SonarLint package...</value>
-    <comment>Output window message</comment>
+  <data name="ERROR_InitializingDaemon" xml:space="preserve">
+    <value>Error occurred initializing the daemon package: {0}</value>
+    <comment>Error message in output window when an exception thrown during async daemon initialization</comment>
   </data>
-  <data name="Telemetry_ERROR" xml:space="preserve">
-    <value>Telemetry: error occurred: {0}</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="Telemetry_InitializationComplete" xml:space="preserve">
-    <value>Finished initializing the telemetry package...</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="Telemetry_Initializing" xml:space="preserve">
-    <value>Initializing the telemetry package...</value>
-    <comment>Output window message</comment>
+  <data name="ERROR_InstallingDaemon" xml:space="preserve">
+    <value>Error occurred installing the daemon: {0}</value>
   </data>
 </root>
