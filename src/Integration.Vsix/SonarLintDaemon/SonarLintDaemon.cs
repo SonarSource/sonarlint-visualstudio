@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* for testing */ const string DefaultDaemonVersion = "4.0.2.2142";
         internal /* for testing */ const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
-        internal /* for testing */ static readonly string DefaultDownloadUrl = string.Format("http://repo1.maven.org/maven2/org/sonarsource/sonarlint/core/sonarlint-daemon/{0}/sonarlint-daemon-{0}-windows.zip",
+        internal /* for testing */ static readonly string DefaultDownloadUrl = string.Format("https://binaries.sonarsource.com/Distribution/sonarlint-daemon/sonarlint-daemon-{0}-windows.zip",
             DefaultDaemonVersion);
 
         private readonly ISonarLintSettings settings;
