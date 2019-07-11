@@ -154,11 +154,9 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube("7.0.0.0");
 
-            // The only differnce between this and the previous version is the "member=true" query string parameter
+            // The only difference between this and the previous version is the "member=true" query string parameter
             // which when specified, should get only the organizations that the current user is member of.
-            // Currently "member=true" is not sent, it should be added for the implementation of
-            // https://github.com/SonarSource/sonarlint-visualstudio/issues/446
-            SetupRequest("api/organizations/search?p=1&ps=500",
+            SetupRequest("api/organizations/search?member=true&p=1&ps=500",
                 @"
 {
   ""paging"": {
