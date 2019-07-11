@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
@@ -32,6 +33,8 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
     [ExcludeFromCodeCoverage] // Rely on Visual Studio elements that cannot be rendered under test
     public partial class OrganizationSelectionWindow
     {
+        public SonarQubeOrganization Organization { get; private set; }
+
         internal OrganizationSelectionWindow(IEnumerable<SonarQubeOrganization> organizations)
         {
             InitializeComponent();
@@ -40,15 +43,29 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
             OrganizationComboBox.ItemsSource = sortedOrganizations;
         }
 
-        private void OnOkButtonClick(object sender, RoutedEventArgs e)
+        private void OnOwnOkButtonClick(object sender, RoutedEventArgs e)
         {
+            Organization = OrganizationComboBox?.SelectedItem as SonarQubeOrganization;
+            Debug.Assert(Organization != null,
+                "Not expecting organization to be null: user should not have been able to click ok with an invalid selection");
+
             // Close dialog in the affirmative
             this.DialogResult = true;
         }
 
-        internal SonarQubeOrganization GetSelectedOrganization()
+        private void OnOtherOrgOkButtonClick(object sender, RoutedEventArgs e)
         {
-            return OrganizationComboBox?.SelectedItem as SonarQubeOrganization;
+            var orgKey = IsValidOrganisationKeyConverter.GetTrimmedKey(OrganizationKeyTextBox.Text);
+
+            Debug.Assert(!string.IsNullOrWhiteSpace(orgKey),
+                "Not expecting orgKey to be null: user should not have been able to click ok with an invalid orgKey");
+
+            // We don't know the name of the organization at this point so we'll just use the key.
+            // It will be displayed in our UI in the Team Explorer, but that's ok for now.
+            Organization = new SonarQubeOrganization(orgKey, orgKey);
+
+            // Close dialog in the affirmative
+            this.DialogResult = true;
         }
     }
 }
