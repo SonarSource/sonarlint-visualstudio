@@ -31,6 +31,7 @@ using Moq.Protected;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Models;
 using SonarQube.Client.Api;
+using System.Globalization;
 
 namespace SonarQube.Client.Tests
 {
@@ -49,6 +50,10 @@ namespace SonarQube.Client.Tests
         [TestInitialize]
         public void TestInitialize()
         {
+            // Ensure exception messages are not platform dependent to not break assertions on non english platforms
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+
             logger = new TestLogger();
 
             messageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
