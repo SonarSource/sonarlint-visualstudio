@@ -7,7 +7,7 @@
                    xmlns:models="clr-namespace:SonarQube.Client.Models;assembly=SonarQube.Client"
                    xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
                    xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
-                   Title="Select the organization"
+                   Title="Select an organization on SonarCloud"
                    MaxWidth="400"
                    FocusManager.FocusedElement="{Binding ElementName=OrganizationComboBox}"
                    ResizeMode="NoResize"
@@ -19,6 +19,7 @@
     <vsui:DialogWindow.Resources>
         <!--  Converters  -->
         <vsui:NotNullConverter x:Key="NotNullConverter" />
+        <local:IsValidOrganisationKeyConverter x:Key="IsValidOrgKeyConverter" />
 
         <!--  Styles  -->
         <Style x:Key="DialogContent" TargetType="{x:Type StackPanel}">
@@ -41,46 +42,98 @@
     </vsui:DialogWindow.Resources>
 
     <!--  Design  -->
-    <StackPanel Style="{StaticResource DialogContent}">
-        <TextBlock Margin="0,0,0,8"
-                   FontStyle="Italic" Text="Please select the organization you want to bind to." TextWrapping="Wrap" />
+    <!-- Note: we're using grids inside the TabItem with IsSharedSizeScope to make sure the tabs are the same size
+         (otherwise they will be different and the dialogue box will resize when the user switches tabs) -->
+    <TabControl Grid.IsSharedSizeScope="True" >
+        <TabItem Header="Your organizations">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition SharedSizeGroup="tabItemSize" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition SharedSizeGroup="tabItemHeight" />
+                </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal">
-            <TextBlock VerticalAlignment="Center" Text="Organizations" />
-            <ComboBox x:Name="OrganizationComboBox"
-                      Width="250" Margin="12,0,0,0"
-                      HorizontalContentAlignment="Stretch"
-                      IsEditable="True" IsTextSearchCaseSensitive="False" IsTextSearchEnabled="True"
-                      TextSearch.TextPath="Name">
-                <ComboBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel />
-                    </ItemsPanelTemplate>
-                </ComboBox.ItemsPanel>
-                <ComboBox.ItemContainerStyle>
-                    <Style TargetType="{x:Type ComboBoxItem}">
-                        <Setter Property="Width" Value="230" />
-                    </Style>
-                </ComboBox.ItemContainerStyle>
-                <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:SonarQubeOrganization}">
-                        <TextBlock TextTrimming="CharacterEllipsis">
-                            <Run Text="{Binding Name, Mode=OneWay}" />
-                            <Run Text="(" /><Run Text="{Binding Key, Mode=OneWay}" /><Run Text=")" />
-                        </TextBlock>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-        </StackPanel>
+                <StackPanel 
+                    Style="{StaticResource DialogContent}">
+                    <TextBlock Margin="0,0,0,8"
+                FontStyle="Italic" Text="Please select the organization you want to bind to." TextWrapping="Wrap" />
 
-        <Separator Style="{StaticResource DialogSeparator}" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="Organizations" />
+                        <ComboBox x:Name="OrganizationComboBox"
+                    Width="250" Margin="12,0,0,0"
+                    HorizontalContentAlignment="Stretch"
+                    IsEditable="True" IsTextSearchCaseSensitive="False" IsTextSearchEnabled="True"
+                    TextSearch.TextPath="Name">
+                            <ComboBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel />
+                                </ItemsPanelTemplate>
+                            </ComboBox.ItemsPanel>
+                            <ComboBox.ItemContainerStyle>
+                                <Style TargetType="{x:Type ComboBoxItem}">
+                                    <Setter Property="Width" Value="230" />
+                                </Style>
+                            </ComboBox.ItemContainerStyle>
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type models:SonarQubeOrganization}">
+                                    <TextBlock TextTrimming="CharacterEllipsis">
+                        <Run Text="{Binding Name, Mode=OneWay}" />
+                        <Run Text="(" /><Run Text="{Binding Key, Mode=OneWay}" /><Run Text=")" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
 
-        <StackPanel VerticalAlignment="Center" Style="{StaticResource DialogButtonsPanel}">
-            <vsui:DialogButton Click="OnOkButtonClick" Content="OK" IsDefault="True"
-                               IsEnabled="{Binding ElementName=OrganizationComboBox,
-                                                   Path=SelectedItem,
-                                                   Converter={StaticResource NotNullConverter}}" />
-            <vsui:DialogButton Content="Cancel" IsCancel="True" />
-        </StackPanel>
-    </StackPanel>
+                    <Separator Style="{StaticResource DialogSeparator}" />
+
+                    <StackPanel VerticalAlignment="Center" Style="{StaticResource DialogButtonsPanel}">
+                        <vsui:DialogButton Click="OnOwnOkButtonClick" Content="OK" IsDefault="True"
+                                IsEnabled="{Binding ElementName=OrganizationComboBox,
+                                                    Path=SelectedItem,
+                                                    Converter={StaticResource NotNullConverter}}" />
+                        <vsui:DialogButton Content="Cancel" IsCancel="True" />
+                    </StackPanel>
+                </StackPanel>
+
+            </Grid>
+        </TabItem>
+        <TabItem Header="Other organizations">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition SharedSizeGroup="tabItemSize" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition SharedSizeGroup="tabItemHeight" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Style="{StaticResource DialogContent}" >
+                    <TextBlock Margin="0,0,0,8"
+                    FontStyle="Italic" Text="Please type the key of the organization you want to bind to." />
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="Organization key" />
+                        <TextBox x:Name="OrganizationKeyTextBox"
+                            Width="250" Margin="12,0,0,0" >
+                        </TextBox>
+                    </StackPanel>
+
+                    <Separator Style="{StaticResource DialogSeparator}" />
+
+                    <StackPanel VerticalAlignment="Center" Style="{StaticResource DialogButtonsPanel}">
+                        <vsui:DialogButton Click="OnOtherOrgOkButtonClick" Content="OK" IsDefault="True"
+                                IsEnabled="{Binding ElementName=OrganizationKeyTextBox,
+                                                    Path=Text,
+                                                    Converter={StaticResource IsValidOrgKeyConverter}}" />
+                        <vsui:DialogButton Content="Cancel" IsCancel="True" />
+                    </StackPanel>
+
+                </StackPanel>
+
+            </Grid>
+        </TabItem>
+    </TabControl>
+
 </vsui:DialogWindow>

@@ -244,7 +244,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 var organizationDialog = new OrganizationSelectionWindow(organizations) { Owner = Application.Current.MainWindow };
                 var hasUserClickedOk = organizationDialog.ShowDialog().GetValueOrDefault();
 
-                return hasUserClickedOk ? organizationDialog.GetSelectedOrganization() : null;
+                return hasUserClickedOk ? organizationDialog.Organization : null;
             });
         }
 
