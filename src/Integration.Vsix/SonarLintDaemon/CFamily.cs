@@ -124,10 +124,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 dynamic config = project.Configurations.Item(pattern); // Microsoft.VisualStudio.VCProjectEngine.VCConfiguration
 
                 dynamic file = projectItem.Object; // Microsoft.VisualStudio.VCProjectEngine.VCFile
-                dynamic fileConfigurations = file.FileConfigurations.Item(configurationName); // Microsoft.VisualStudio.VCProjectEngine.VCFileConfiguration
-                dynamic fileTool = fileConfigurations.Tool; // Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool
+                dynamic fileConfig = file.FileConfigurations.Item(configurationName); // Microsoft.VisualStudio.VCProjectEngine.VCFileConfiguration
+                dynamic fileTool = fileConfig.Tool; // Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool
 
-                var fileConfig = new FileConfig()
+                return new FileConfig()
                 {
                     AbsoluteFilePath = absoluteFilePath,
 
@@ -162,7 +162,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                     AdditionalOptions = GetEvaluatedPropertyValue(fileTool, "AdditionalOptions"),
                 };
-                return fileConfig;
             }
 
             private static MethodInfo getEvaluatedPropertyValue;
