@@ -40,6 +40,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private Action callback;
 
+        internal delegate void DisplayMessageBoxDelegate(string message, string title);
+
         public SonarLintDaemonInstaller(ISonarLintSettings settings, ISonarLintDaemon daemon, ILogger logger)
         {
             if (settings == null)
@@ -63,6 +65,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private void Window_ContentRendered(object sender, EventArgs args)
+        {
+            SafeBeginInstallation();
+        }
+
+        internal /* for testing */ void SafeBeginInstallation()
         {
             try
             {
@@ -98,6 +105,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void DownloadCompleted(object sender, AsyncCompletedEventArgs e)
         {
+            SafeHandleDownloadCompleted(e, DisplayMessageBox);
+        }
+
+        internal /* for testing */ void SafeHandleDownloadCompleted(AsyncCompletedEventArgs e, DisplayMessageBoxDelegate displayMessageBox)
+        {
             try
             {
                 daemon.DownloadProgressChanged -= DownloadProgressChanged;
@@ -107,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     var ex = e.Error;
                     var message = string.Format(Strings.Daemon_Download_ERROR, ex.Message);
-                    MessageBox.Show(message, Strings.Daemon_Download_ErrorDlgTitle, MessageBoxButton.OK);
+                    displayMessageBox?.Invoke(message, Strings.Daemon_Download_ErrorDlgTitle);
                     logger.WriteLine(Strings.Daemon_Download_ErrorLogMessage);
                     logger.WriteLine(ex.ToString());
                     Close();
@@ -152,5 +164,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             Close();
         }
+
+        private void DisplayMessageBox(string message, string title)
+            // Should not really call MessageBox.Show directly - should use IVsUIShell.ShowMessageBox(...)
+            // However, that would require additional refactoring
+            => MessageBox.Show(message, Strings.Daemon_Download_ErrorDlgTitle, MessageBoxButton.OK, MessageBoxImage.Exclamation);
     }
 }
