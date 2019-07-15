@@ -168,6 +168,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private void DisplayMessageBox(string message, string title)
             // Should not really call MessageBox.Show directly - should use IVsUIShell.ShowMessageBox(...)
             // However, that would require additional refactoring
-            => MessageBox.Show(message, Strings.Daemon_Download_ErrorDlgTitle, MessageBoxButton.OK);
+            => MessageBox.Show(message, Strings.Daemon_Download_ErrorDlgTitle, MessageBoxButton.OK, MessageBoxImage.Exclamation);
     }
 }

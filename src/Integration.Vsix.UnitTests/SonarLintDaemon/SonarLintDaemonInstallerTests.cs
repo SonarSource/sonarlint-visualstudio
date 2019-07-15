@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.DaemonStartedOperation = () => throw new InvalidOperationException("XXX dummy exception");
 
             var installer = new SonarLintDaemonInstaller(new Mock<ISonarLintSettings>().Object, dummyDaemon, testLogger);
-            var args = new AsyncCompletedEventArgs(null, cancelled: false, null);
+            var args = new AsyncCompletedEventArgs(null, false, null);
             Action act = () => dummyDaemon.RaiseDownloadCompleteEvent(args);
 
             // Act
