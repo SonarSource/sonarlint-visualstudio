@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void FileConfig_Test1()
         {
             string sqLanguage;
-            CFamily.Capture[] captures = new CFamily.FileConfig()
+            CFamilyHelper.Capture[] captures = new CFamilyHelper.FileConfig()
             {
                 PlatformName = "Win32",
                 PlatformToolset = "v140",
@@ -54,8 +54,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 AdditionalOptions = "/a1 /a2",
                 AbsoluteFilePath = FileName,
             }.ToCaptures(FileName, out sqLanguage);
-            CFamily.Capture p = captures[0];
-            CFamily.Capture c = captures[1];
+            CFamilyHelper.Capture p = captures[0];
+            CFamilyHelper.Capture c = captures[1];
 
             p.Compiler.Should().Be("msvc-cl");
             p.StdErr.Should().Be("19.00.00 for x86");
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void FileConfig_Test2()
         {
             string sqLanguage;
-            CFamily.Capture[] captures = new CFamily.FileConfig()
+            CFamilyHelper.Capture[] captures = new CFamilyHelper.FileConfig()
             {
                 PlatformName = "x64",
                 PlatformToolset = "v140",
@@ -109,8 +109,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 AdditionalOptions = "",
                 AbsoluteFilePath = FileName,
             }.ToCaptures(FileName, out sqLanguage);
-            CFamily.Capture p = captures[0];
-            CFamily.Capture c = captures[1];
+            CFamilyHelper.Capture p = captures[0];
+            CFamilyHelper.Capture c = captures[1];
 
             p.StdErr.Should().Be("19.00.00 for x64");
 
@@ -138,35 +138,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void PlatformName()
         {
-            CFamily.FileConfig.ConvertPlatformName("Win32").Should().Be("x86");
-            CFamily.FileConfig.ConvertPlatformName("x64").Should().Be("x64");
+            CFamilyHelper.FileConfig.ConvertPlatformName("Win32").Should().Be("x86");
+            CFamilyHelper.FileConfig.ConvertPlatformName("x64").Should().Be("x64");
 
-            Action action = () => CFamily.FileConfig.ConvertPlatformName("foo");
+            Action action = () => CFamilyHelper.FileConfig.ConvertPlatformName("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformName: foo");
         }
 
         [TestMethod]
         public void PlatformToolset()
         {
-            CFamily.FileConfig.ConvertPlatformToolset("v90").Should().Be("15.00.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v90").Should().Be("15.00.00");
 
-            CFamily.FileConfig.ConvertPlatformToolset("v100").Should().Be("16.00.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v100").Should().Be("16.00.00");
 
-            CFamily.FileConfig.ConvertPlatformToolset("v110").Should().Be("17.00.00");
-            CFamily.FileConfig.ConvertPlatformToolset("v110_xp").Should().Be("17.00.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v110").Should().Be("17.00.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v110_xp").Should().Be("17.00.00");
 
-            CFamily.FileConfig.ConvertPlatformToolset("v120").Should().Be("18.00.00");
-            CFamily.FileConfig.ConvertPlatformToolset("v120_xp").Should().Be("18.00.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v120").Should().Be("18.00.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v120_xp").Should().Be("18.00.00");
 
-            CFamily.FileConfig.ConvertPlatformToolset("v140").Should().Be("19.00.00");
-            CFamily.FileConfig.ConvertPlatformToolset("v140_xp").Should().Be("19.00.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v140").Should().Be("19.00.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v140_xp").Should().Be("19.00.00");
 
-            CFamily.FileConfig.ConvertPlatformToolset("v141").Should().Be("19.10.00");
-            CFamily.FileConfig.ConvertPlatformToolset("v141_xp").Should().Be("19.10.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v141").Should().Be("19.10.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v141_xp").Should().Be("19.10.00");
 
-            CFamily.FileConfig.ConvertPlatformToolset("v142").Should().Be("19.20.00");
+            CFamilyHelper.FileConfig.ConvertPlatformToolset("v142").Should().Be("19.20.00");
 
-            Action action = () => CFamily.FileConfig.ConvertPlatformToolset("v143");
+            Action action = () => CFamilyHelper.FileConfig.ConvertPlatformToolset("v143");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformToolset: v143");
         }
 
@@ -175,35 +175,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             string sqLanguage;
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
-            CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("", FileName, out sqLanguage).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("", FileName, out sqLanguage).Should().Be("");
             sqLanguage.Should().Be("cpp");
-            CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", FileName, out sqLanguage).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", FileName, out sqLanguage).Should().Be("");
             sqLanguage.Should().Be("cpp");
-            CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.cc", out sqLanguage).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.cc", out sqLanguage).Should().Be("");
             sqLanguage.Should().Be("cpp");
-            CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.cxx", out sqLanguage).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.cxx", out sqLanguage).Should().Be("");
             sqLanguage.Should().Be("cpp");
-            CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.c", out sqLanguage).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.c", out sqLanguage).Should().Be("");
             sqLanguage.Should().Be("c");
-            CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("CompileAsC", FileName, out sqLanguage).Should().Be("/TC");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("CompileAsC", FileName, out sqLanguage).Should().Be("/TC");
             sqLanguage.Should().Be("c");
-            CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("CompileAsCpp", FileName, out sqLanguage).Should().Be("/TP");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("CompileAsCpp", FileName, out sqLanguage).Should().Be("/TP");
             sqLanguage.Should().Be("cpp");
 
-            Action action = () => CFamily.FileConfig.ConvertCompileAsAndGetSqLanguage("foo", FileName, out sqLanguage);
+            Action action = () => CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("foo", FileName, out sqLanguage);
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported CompileAs: foo");
         }
 
         [TestMethod]
         public void CompileAsManaged()
         {
-            CFamily.FileConfig.ConvertCompileAsManaged("").Should().Be("");
-            CFamily.FileConfig.ConvertCompileAsManaged("false").Should().Be("");
-            CFamily.FileConfig.ConvertCompileAsManaged("true").Should().Be("/clr");
-            CFamily.FileConfig.ConvertCompileAsManaged("Pure").Should().Be("/clr:pure");
-            CFamily.FileConfig.ConvertCompileAsManaged("Safe").Should().Be("/clr:safe");
+            CFamilyHelper.FileConfig.ConvertCompileAsManaged("").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsManaged("false").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsManaged("true").Should().Be("/clr");
+            CFamilyHelper.FileConfig.ConvertCompileAsManaged("Pure").Should().Be("/clr:pure");
+            CFamilyHelper.FileConfig.ConvertCompileAsManaged("Safe").Should().Be("/clr:safe");
 
-            Action action = () => CFamily.FileConfig.ConvertCompileAsManaged("foo");
+            Action action = () => CFamilyHelper.FileConfig.ConvertCompileAsManaged("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported CompileAsManaged: foo");
         }
 
@@ -211,19 +211,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RuntimeLibrary()
         {
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
-            CFamily.FileConfig.ConvertRuntimeLibrary("").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertRuntimeLibrary("").Should().Be("");
 
-            CFamily.FileConfig.ConvertRuntimeLibrary("MultiThreaded").Should().Be("/MT");
+            CFamilyHelper.FileConfig.ConvertRuntimeLibrary("MultiThreaded").Should().Be("/MT");
 
-            CFamily.FileConfig.ConvertRuntimeLibrary("MultiThreadedDebug").Should().Be("/MTd");
+            CFamilyHelper.FileConfig.ConvertRuntimeLibrary("MultiThreadedDebug").Should().Be("/MTd");
 
-            CFamily.FileConfig.ConvertRuntimeLibrary("MultiThreadedDLL").Should().Be("/MD");
-            CFamily.FileConfig.ConvertRuntimeLibrary("MultiThreadedDll").Should().Be("/MD");
+            CFamilyHelper.FileConfig.ConvertRuntimeLibrary("MultiThreadedDLL").Should().Be("/MD");
+            CFamilyHelper.FileConfig.ConvertRuntimeLibrary("MultiThreadedDll").Should().Be("/MD");
 
-            CFamily.FileConfig.ConvertRuntimeLibrary("MultiThreadedDebugDLL").Should().Be("/MDd");
-            CFamily.FileConfig.ConvertRuntimeLibrary("MultiThreadedDebugDll").Should().Be("/MDd");
+            CFamilyHelper.FileConfig.ConvertRuntimeLibrary("MultiThreadedDebugDLL").Should().Be("/MDd");
+            CFamilyHelper.FileConfig.ConvertRuntimeLibrary("MultiThreadedDebugDll").Should().Be("/MDd");
 
-            Action action = () => CFamily.FileConfig.ConvertRuntimeLibrary("foo");
+            Action action = () => CFamilyHelper.FileConfig.ConvertRuntimeLibrary("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported RuntimeLibrary: foo");
         }
 
@@ -231,13 +231,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ExceptionHandling()
         {
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
-            CFamily.FileConfig.ConvertExceptionHandling("").Should().Be("");
-            CFamily.FileConfig.ConvertExceptionHandling("false").Should().Be("");
-            CFamily.FileConfig.ConvertExceptionHandling("Async").Should().Be("/EHa");
-            CFamily.FileConfig.ConvertExceptionHandling("Sync").Should().Be("/EHsc");
-            CFamily.FileConfig.ConvertExceptionHandling("SyncCThrow").Should().Be("/EHs");
+            CFamilyHelper.FileConfig.ConvertExceptionHandling("").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertExceptionHandling("false").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertExceptionHandling("Async").Should().Be("/EHa");
+            CFamilyHelper.FileConfig.ConvertExceptionHandling("Sync").Should().Be("/EHsc");
+            CFamilyHelper.FileConfig.ConvertExceptionHandling("SyncCThrow").Should().Be("/EHs");
 
-            Action action = () => CFamily.FileConfig.ConvertExceptionHandling("foo");
+            Action action = () => CFamilyHelper.FileConfig.ConvertExceptionHandling("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported ExceptionHandling: foo");
         }
 
@@ -245,15 +245,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void EnhancedInstructionSet()
         {
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
-            CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("").Should().Be("");
-            CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("NotSet").Should().Be("");
-            CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions").Should().Be("/arch:AVX");
-            CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions2").Should().Be("/arch:AVX2");
-            CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions").Should().Be("/arch:SSE");
-            CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions2").Should().Be("/arch:SSE2");
-            CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("NoExtensions").Should().Be("/arch:IA32");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("NotSet").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions").Should().Be("/arch:AVX");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions2").Should().Be("/arch:AVX2");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions").Should().Be("/arch:SSE");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions2").Should().Be("/arch:SSE2");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("NoExtensions").Should().Be("/arch:IA32");
 
-            Action action = () => CFamily.FileConfig.ConvertEnableEnhancedInstructionSet("foo");
+            Action action = () => CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported EnableEnhancedInstructionSet: foo");
         }
 
@@ -261,13 +261,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void BasicRuntimeChecks()
         {
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
-            CFamily.FileConfig.ConvertBasicRuntimeChecks("").Should().Be("");
-            CFamily.FileConfig.ConvertBasicRuntimeChecks("Default").Should().Be("");
-            CFamily.FileConfig.ConvertBasicRuntimeChecks("StackFrameRuntimeCheck").Should().Be("/RTCs");
-            CFamily.FileConfig.ConvertBasicRuntimeChecks("UninitializedLocalUsageCheck").Should().Be("/RTCu");
-            CFamily.FileConfig.ConvertBasicRuntimeChecks("EnableFastChecks").Should().Be("/RTC1");
+            CFamilyHelper.FileConfig.ConvertBasicRuntimeChecks("").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertBasicRuntimeChecks("Default").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertBasicRuntimeChecks("StackFrameRuntimeCheck").Should().Be("/RTCs");
+            CFamilyHelper.FileConfig.ConvertBasicRuntimeChecks("UninitializedLocalUsageCheck").Should().Be("/RTCu");
+            CFamilyHelper.FileConfig.ConvertBasicRuntimeChecks("EnableFastChecks").Should().Be("/RTC1");
 
-            Action action = () => CFamily.FileConfig.ConvertBasicRuntimeChecks("foo");
+            Action action = () => CFamilyHelper.FileConfig.ConvertBasicRuntimeChecks("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported BasicRuntimeChecks: foo");
         }
 
@@ -282,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectItemMock = new Mock<ProjectItem>();
 
             // Act
-            CFamily.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
+            CFamilyHelper.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
                 loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", "charset");
 
             // Assert
@@ -301,7 +301,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
 
             // Act
-            CFamily.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
+            CFamilyHelper.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
                 loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", "charset");
 
             // Assert
@@ -321,7 +321,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
 
             // Act
-            CFamily.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
+            CFamilyHelper.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
                 loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", "charset");
 
             // Assert
@@ -340,7 +340,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             using (new AssertIgnoreScope())
             {
-                string json = CFamily.TryGetConfig(loggerMock.Object, null, "c:\\dummy", out sqLanguage);
+                string json = CFamilyHelper.TryGetConfig(loggerMock.Object, null, "c:\\dummy", out sqLanguage);
 
                 // Assert
                 AssertPartialMessageLogged(loggerMock,
@@ -354,7 +354,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void IsFileInSolution_NullItem_ReturnsFalse()
         {
             // Arrange and Act
-            var result = CFamily.IsFileInSolution(null);
+            var result = CFamilyHelper.IsFileInSolution(null);
 
             // Assert
             result.Should().BeFalse();
@@ -367,7 +367,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
 
             // Act
-            var result = CFamily.IsFileInSolution(projectItemMock.Object);
+            var result = CFamilyHelper.IsFileInSolution(projectItemMock.Object);
 
             // Assert
             result.Should().BeFalse();
@@ -382,7 +382,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             projectItemMock.Setup(i => i.ContainingProject).Throws<System.Runtime.InteropServices.COMException>();
 
             // Act
-            var result = CFamily.IsFileInSolution(projectItemMock.Object);
+            var result = CFamilyHelper.IsFileInSolution(projectItemMock.Object);
 
             // Assert
             result.Should().BeFalse();
@@ -393,17 +393,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void IsHeaderFile_DotHExtension_ReturnsTrue()
         {
             // Act and Assert
-            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\file.h").Should().Be(true);
-            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\FILE.H").Should().Be(true);
+            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\file.h").Should().Be(true);
+            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\FILE.H").Should().Be(true);
         }
 
         [TestMethod]
         public void IsHeaderFile_NotDotHExtension_ReturnsFalse()
         {
             // Act and Assert
-            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\file.hh").Should().Be(false);
-            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\FILE.cpp").Should().Be(false);
-            CFamily.IsHeaderFile("c:\\aaa\\bbbb\\noextension").Should().Be(false);
+            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\file.hh").Should().Be(false);
+            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\FILE.cpp").Should().Be(false);
+            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\noextension").Should().Be(false);
         }
 
         private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)

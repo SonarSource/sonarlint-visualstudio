@@ -376,7 +376,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Concurrent requests should not use same directory:
             var buildWrapperOutDir = CreateTempDirectory(WorkingDirectory);
 
-            if (sqLanguage == CFamily.C_LANGUAGE_KEY || sqLanguage == CFamily.CPP_LANGUAGE_KEY)
+            if (sqLanguage == CFamilyHelper.C_LANGUAGE_KEY || sqLanguage == CFamilyHelper.CPP_LANGUAGE_KEY)
             {
                 PrepareSonarCFamilyProps(json, request, buildWrapperOutDir);
             }
