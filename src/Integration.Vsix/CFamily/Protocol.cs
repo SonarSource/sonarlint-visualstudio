@@ -122,8 +122,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             WriteUTF(writer, "IN");
             Write(writer, request.Options);
-            writer.Write(request.Flags);
-            writer.Write(request.MsVersion);
+            WriteLong(writer, request.Flags);
+            WriteLong(writer, request.MsVersion);
             Write(writer, request.IncludeDirs);
             Write(writer, request.FrameworkDirs);
             Write(writer, request.VfsOverlayFiles);
@@ -135,24 +135,63 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             WriteUTF(writer, "END");
         }
 
+        public /*visible for testing*/ static void WriteLong(BinaryWriter writer, long l)
+        {
+            // Big endian conversion
+            byte[] temp = BitConverter.GetBytes(l);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(temp);
+            }
+            writer.Write(temp);
+        }
+
+        public /*visible for testing*/ static void WriteInt(BinaryWriter writer, int i)
+        {
+            // Big endian conversion
+            byte[] temp = BitConverter.GetBytes(i);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(temp);
+            }
+            writer.Write(temp);
+        }
+
+        public /*visible for testing*/ static void WriteShort(BinaryWriter writer, ushort s)
+        {
+            // Big endian conversion
+            byte[] temp = BitConverter.GetBytes(s);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(temp);
+            }
+            writer.Write(temp);
+        }
+
         private static void Write(BinaryWriter writer, string[] strings)
         {
-            writer.Write(strings.Length);
+            WriteInt(writer, strings.Length);
             foreach (string value in strings)
             {
                 WriteUTF(writer, value);
             }
         }
 
-        private static void WriteUTF(BinaryWriter writer, string str)
+        public /*visible for testing*/ static void WriteUTF(BinaryWriter writer, string str)
         {
+            if (str.Length > ushort.MaxValue)
+            {
+                throw new InvalidOperationException($"String size is too big to be serialized: {str.Length}");
+            }
+            WriteShort(writer, (ushort)str.Length);
             // FIXME change to use modified UTF-8 encoding
-            writer.Write(str);
+            writer.Write(Encoding.UTF8.GetBytes(str));
         }
         private static string ReadUTF(BinaryReader reader)
         {
+            ushort size = reader.ReadUInt16();
             // FIXME change to use modified UTF-8 encoding
-            return reader.ReadString();
+            return Encoding.UTF8.GetString(reader.ReadBytes(size));
         }
 
         /**
