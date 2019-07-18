@@ -195,6 +195,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     UndefinePreprocessorDefinitions = GetEvaluatedPropertyValue(fileTool, "UndefinePreprocessorDefinitions"),
 
                     ForcedIncludeFiles = GetEvaluatedPropertyValue(fileTool, "ForcedIncludeFiles"),
+                    PrecompiledHeader = GetEvaluatedPropertyValue(fileTool, "PrecompiledHeader"),
                     PrecompiledHeaderFile = GetEvaluatedPropertyValue(fileTool, "PrecompiledHeaderFile"),
 
                     CompileAs = GetEvaluatedPropertyValue(fileTool, "CompileAs"),
@@ -257,6 +258,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             public string ForcedIncludeFiles { get; set; }
 
+            public string PrecompiledHeader { get; set; }
+
             public string PrecompiledHeaderFile { get; set; }
 
             public string CompileAs { get; set; }
@@ -311,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 Add(c.Cmd, "true".Equals(IgnoreStandardIncludePath) ? "/X" : "");
                 AddRange(c.Cmd, "/I", AdditionalIncludeDirectories.Split(';'));
                 AddRange(c.Cmd, "/FI", ForcedIncludeFiles.Split(';'));
-                Add(c.Cmd, "/Yu", PrecompiledHeaderFile);
+                Add(c.Cmd, ConvertPrecompiledHeader(PrecompiledHeader, PrecompiledHeaderFile));
 
                 Add(c.Cmd, "true".Equals(UndefineAllPreprocessorDefinitions) ? "/u" : "");
                 AddRange(c.Cmd, "/D", PreprocessorDefinitions.Split(';'));
@@ -453,6 +456,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     case "MultiThreadedDebugDLL":
                     case "MultiThreadedDebugDll":
                         return "/MDd"; // defines macros "_MT", "_DLL" and "_DEBUG"
+                }
+            }
+
+            internal static string ConvertPrecompiledHeader(string value, string header)
+            {
+                switch (value)
+                {
+                    default:
+                        throw new ArgumentException($"Unsupported PrecompiledHeader: {value}", nameof(value));
+                    case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+                        return "";
+                    case "Create":
+                        return "/Yc" + header;
+                    case "Use":
+                        return "/Yu" + header;
                 }
             }
 
