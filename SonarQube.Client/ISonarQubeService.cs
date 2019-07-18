@@ -32,7 +32,11 @@ namespace SonarQube.Client
     {
         Version SonarQubeVersion { get; }
 
-        bool HasOrganizationsFeature { get; }
+        /// <summary>
+        /// Returns whether organizations are available and being used
+        /// on the server
+        /// </summary>
+        Task<bool> HasOrganizations(CancellationToken token);
 
         bool IsConnected { get; }
 
