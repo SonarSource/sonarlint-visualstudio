@@ -609,6 +609,13 @@
     </ItemGroup>
     <Message Text="Content: %(Content.Identity), IncludeInVSIX: %(Content.IncludeInVSIX)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Content.Identity)', '$(Grpc_Regex)'))" />
   </Target>
+  <Target Name="IncludeCFamilyAnalyzerInVsix" BeforeTargets="PrepareForBuild">
+    <ItemGroup>
+      <Content Include="clang-0.0.4-win\**\*">
+        <IncludeInVSIX>True</IncludeInVSIX>
+      </Content>
+    </ItemGroup>
+  </Target>
   <Import Project="..\..\packages\Microsoft.VSSDK.BuildTools.14.3.25407\build\Microsoft.VSSDK.BuildTools.targets" Condition="Exists('..\..\packages\Microsoft.VSSDK.BuildTools.14.3.25407\build\Microsoft.VSSDK.BuildTools.targets')" />
   <Target Name="GenerateProtobufClasses" BeforeTargets="PrepareForBuild" Outputs="$(ProjectDir)Protobuf\SonarlintDaemon.cs" Inputs="$(ProjectDir)Protobuf\sonarlint-daemon.proto">
     <Message Importance="high" Text="Generating protobuf classes..." />

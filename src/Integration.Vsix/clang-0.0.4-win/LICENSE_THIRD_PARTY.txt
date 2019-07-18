@@ -1,0 +1,2 @@
+Includes following third-party libraries:
+LLVM (http://releases.llvm.org/8.0.0/LICENSE.TXT)
