@@ -20,33 +20,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Net;
-using Sonarlint;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    public delegate void DaemonEventHandler(object sender, EventArgs e);
-
-    public interface ISonarLintDaemon : IDisposable
+    public interface IClangAnalyzerProcessRunner
     {
-        bool IsInstalled { get; }
-        bool IsRunning { get; }
-
-        void Install();
-        event DownloadProgressChangedEventHandler DownloadProgressChanged;
-        event AsyncCompletedEventHandler DownloadCompleted;
-
-        event EventHandler<EventArgs> Ready;
-
-        void Start();
-        void Stop();
-
-        void RequestAnalysis(string path, string charset, string sqLanguage, IIssueConsumer consumer);
-    }
-
-    public interface IIssueConsumer
-    {
-        void Accept(string path, IEnumerable<Issue> issues);
+        /**
+         * Run the Clang CFamily analyzer using the provided file as exchange (input protocol should be already written into it).
+         */
+        bool Execute(string exchangeFilePath);
     }
 }

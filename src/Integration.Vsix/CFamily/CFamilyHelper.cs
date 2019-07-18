@@ -22,20 +22,20 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using EnvDTE;
 using Microsoft.VisualStudio;
-using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal static class CFamilyHelper
     {
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
 
-        public static void ProcessFile(ISonarLintDaemon daemon, IIssueConsumer issueConsumer, ILogger logger,
+        public static void ProcessFile(IClangAnalyzerProcessRunner runner, IIssueConsumer issueConsumer, ILogger logger,
             ProjectItem projectItem, string absoluteFilePath, string charset)
         {
             if (IsHeaderFile(absoluteFilePath))
@@ -53,14 +53,67 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             string sqLanguage;
-            string json = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
-            if (json != null && sqLanguage != null)
+            Request request = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
+            if (request != null && request.File != null && sqLanguage != null)
             {
-                daemon.RequestAnalysis(absoluteFilePath, charset, sqLanguage, json, issueConsumer);
+
+                string tempFileName = null;
+                try
+                {
+                    tempFileName = Path.GetTempFileName();
+
+                    // Create a FileInfo object to set the file's attributes
+                    FileInfo fileInfo = new FileInfo(tempFileName);
+
+                    // Set the Attribute property of this file to Temporary. 
+                    // Although this is not completely necessary, the .NET Framework is able 
+                    // to optimize the use of Temporary files by keeping them cached in memory.
+                    fileInfo.Attributes = FileAttributes.Temporary;
+
+                    using (var writeStream = new FileStream(tempFileName, FileMode.Open))
+                    {
+                        Protocol.Write(new BinaryWriter(writeStream), request);
+
+                    }
+                    var success = runner.Execute(tempFileName);
+
+                    if (success)
+                    {
+                        using (var readStream = new FileStream(tempFileName, FileMode.Open))
+                        {
+                            Response response = Protocol.Read(new BinaryReader(readStream));
+                            issueConsumer.Accept(absoluteFilePath, response.Messages.Where(m => m.Filename == absoluteFilePath)
+                                .Select(ToSonarLintIssue)
+                                .ToList());
+                        }
+                    }
+                }
+                finally
+                {
+                    if (tempFileName != null)
+                    {
+                        File.Delete(tempFileName);
+                    }
+                }
             }
         }
 
-        internal static string TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath,
+        private static Sonarlint.Issue ToSonarLintIssue(Message daemonMessage)
+        {
+            return new Sonarlint.Issue()
+            {
+                FilePath = daemonMessage.Filename,
+                Message = daemonMessage.Text,
+                RuleKey = daemonMessage.RuleKey,
+                Severity = Sonarlint.Issue.Types.Severity.Blocker, // FIXME
+                StartLine = daemonMessage.Line,
+                StartLineOffset = daemonMessage.Column,
+                EndLine = daemonMessage.EndLine,
+                EndLineOffset = daemonMessage.EndColumn
+            };
+        }
+
+        internal static Request TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath,
             out string sqLanguage)
         {
             Debug.Assert(!IsHeaderFile(absoluteFilePath),
@@ -71,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             try
             {
-                return FileConfig.TryGet(projectItem, absoluteFilePath).ToJson(absoluteFilePath, out sqLanguage);
+                return FileConfig.TryGet(projectItem, absoluteFilePath).ToRequest(absoluteFilePath, out sqLanguage);
             }
             catch (Exception e)
             {
@@ -104,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // the next line will throw if the file is not part of a solution
                     projectItem.ConfigurationManager.ActiveConfiguration != null;
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
             }
@@ -287,12 +340,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return new Capture[] { p, c };
             }
 
-            public string ToJson(string path, out string sqLanguage)
+            public Request ToRequest(string path, out string sqLanguage)
             {
                 Capture[] c = ToCaptures(path, out sqLanguage);
-                string json = "{ \"version\": 0, \"captures\": [ " + c[0].ToJson() + " , " + c[1].ToJson() + " ] }";
-                System.Diagnostics.Debug.WriteLine(json);
-                return json;
+                return MsvcDriver.ToRequest(c);
             }
 
             internal static string ConvertPlatformName(string platformName)
@@ -501,41 +552,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal class Capture
         {
-            [JsonProperty("compiler")]
             public string Compiler { get { return "msvc-cl"; } }
 
-            [JsonProperty("cwd")]
             public string Cwd { get; set; }
 
-            [JsonProperty("executable")]
             public string Executable { get; set; }
 
-            [JsonProperty("cmd")]
             public List<string> Cmd { get; set; }
 
-            [JsonProperty("env")]
             public List<string> Env { get; set; }
 
-            [JsonProperty("stdout")]
             public string StdOut { get; set; }
 
-            [JsonProperty("stderr")]
             public string StdErr { get; set; }
 
-            public string ToJson()
-            {
-                var sb = new StringBuilder();
-                using (var writer = new StringWriter(sb))
-                {
-                    using (var textWriter = new JsonTextWriter(writer))
-                    {
-                        var serializer = JsonSerializer.CreateDefault();
-                        serializer.Formatting = Formatting.Indented;
-                        serializer.Serialize(textWriter, this);
-                    }
-                }
-                return sb.ToString();
-            }
         }
     }
 }

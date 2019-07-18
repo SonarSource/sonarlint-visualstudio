@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
   <!-- Executive summary:
        * to build the VS2015 vsix, build from inside VS2015.
        * to build the VS2017 vsix, build from inside VS2017.
@@ -32,14 +31,11 @@
          To achieve this, this project conditionally imports different VSIX manifests based on the version of VS being
          used to build the project/solution.
   -->
-
   <PropertyGroup>
     <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
   </PropertyGroup>
-
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
-
   <PropertyGroup>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -87,7 +83,57 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="**\obj\**\*;**\*.Designer.cs;Settings\*;**\Protobuf\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*;**\SonarLintDaemon\SonarLintDaemonSplashscreen.*" />
+    <Compile Include="BoundSolutionAnalyzer.cs" />
+    <Compile Include="CFamily\ClangAnalyzerProcessRunner.cs" />
+    <Compile Include="CFamily\IClangAnalyzerProcessRunner.cs" />
+    <Compile Include="CFamily\MsvcDriver.cs" />
+    <Compile Include="CFamily\Protocol.cs" />
+    <Compile Include="Commands\ManageConnectionsCommand.cs" />
+    <Compile Include="Commands\PackageCommandId.cs" />
+    <Compile Include="Commands\PackageCommandManager.cs" />
+    <Compile Include="Commands\ProjectExcludePropertyToggleCommand.cs" />
+    <Compile Include="Commands\ProjectSonarLintMenuCommand.cs" />
+    <Compile Include="Commands\ProjectTestPropertySetCommand.cs" />
+    <Compile Include="Commands\VsCommandBase.cs" />
+    <Compile Include="Delegates\SonarAnalyzerConnectedWorkflow.cs" />
+    <Compile Include="Delegates\SonarAnalyzerLegacyConnectedWorkflow.cs" />
+    <Compile Include="Delegates\SonarAnalyzerManager.cs" />
+    <Compile Include="Delegates\SonarAnalyzerStandaloneWorkflow.cs" />
+    <Compile Include="Delegates\SonarAnalyzerWorkflowBase.cs" />
+    <Compile Include="Helpers\CommonGuids.cs" />
+    <Compile Include="Helpers\IEnumerableExtensions.cs" />
+    <Compile Include="Helpers\IIssueConverter.cs" />
+    <Compile Include="Helpers\IssueConverter.cs" />
+    <Compile Include="Helpers\TcpUtil.cs" />
+    <Compile Include="Helpers\VisualStudioConstants.cs" />
+    <Compile Include="InfoBar\InfoBarManager.cs" />
+    <Compile Include="InternalsVisibleTo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SonarLintDaemonPackage.cs" />
+    <Compile Include="CFamily\CFamilyHelper.cs" />
+    <Compile Include="SonarLintDaemon\ISonarLintDaemon.cs" />
+    <Compile Include="SonarLintDaemon\LegacyInstallationCleanup.cs" />
+    <Compile Include="SonarLintDaemon\SonarLintDaemon.cs" />
+    <Compile Include="SonarLintIntegrationPackage.cs" />
+    <Compile Include="SonarLintNotificationsPackage.cs" />
+    <Compile Include="SonarLintTagger\ISonarLanguageRecognizer.cs" />
+    <Compile Include="SonarLintTagger\IssueMarker.cs" />
+    <Compile Include="SonarLintTagger\IssuesSnapshot.cs" />
+    <Compile Include="SonarLintTagger\IssueTagger.cs" />
+    <Compile Include="SonarLintTagger\SinkManager.cs" />
+    <Compile Include="SonarLintTagger\SnapshotFactory.cs" />
+    <Compile Include="SonarLintTagger\SonarLanguage.cs" />
+    <Compile Include="SonarLintTagger\SonarLanguageRecognizer.cs" />
+    <Compile Include="SonarLintTagger\TaggerProvider.cs" />
+    <Compile Include="SonarLintTagger\TextBufferIssueTracker.cs" />
+    <Compile Include="SonarLintTelemetryPackage.cs" />
+    <Compile Include="Suppression\ILiveIssueFactory.cs" />
+    <Compile Include="Suppression\ISuppressionHandler.cs" />
+    <Compile Include="Suppression\LiveIssue.cs" />
+    <Compile Include="Suppression\LiveIssueFactory.cs" />
+    <Compile Include="Suppression\SuppressionHandler.cs" />
+    <Compile Include="Telemetry\SonarLintIntegrationPackage.IOleCommandTarget.cs" />
+    <Compile Include="Telemetry\TelemetryLogger.cs" />
     <Compile Include="Protobuf\Sonarlint-daemonGrpc.cs" />
     <Compile Include="Protobuf\SonarlintDaemon.cs" />
     <Compile Include="..\AssemblyInfo.Shared.cs">
@@ -540,7 +586,6 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
-
   <!-- ***************************************** -->
   <!-- Select the manifest to use -->
   <!-- In most cases we can just select the folder using the $(VersionSpecificSuffic) property.
@@ -549,13 +594,12 @@
          targets will complain. -->
   <PropertyGroup>
     <ManifestFolder>Manifests\VS$(VersionSpecificSuffix)\</ManifestFolder>
-    <ManifestFolder Condition=" $(VSTargetVersion) == '2015' AND $(VisualStudioVersion) != '14.0' " >Manifests\VS2015_v3Manifest\</ManifestFolder>
+    <ManifestFolder Condition=" $(VSTargetVersion) == '2015' AND $(VisualStudioVersion) != '14.0' ">Manifests\VS2015_v3Manifest\</ManifestFolder>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(ManifestFolder)source.extension.vsixmanifest" />
   </ItemGroup>
   <!-- ***************************************** -->
-  
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
@@ -568,13 +612,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
-
-
   <!-- ********************************************************** -->
   <!-- Copy and sign the VSIX -->
   <!-- ********************************************************** -->
   <Import Project="$(MSBuildThisFileDirectory)SignVsixes.targets" />
-
   <!-- Set properties required by the signing targets -->
   <PropertyGroup>
     <PackageFolder>..\..\packages\</PackageFolder>
@@ -582,15 +623,12 @@
   <ItemGroup>
     <VSIXesToSign Include="$(SolutionDir)binaries\$(AssemblyName).vsix" />
   </ItemGroup>
-
   <Target Name="CopyVsixToBinariesAndSign" AfterTargets="Build" Inputs="$(TargetDir)$(AssemblyName).vsix" Outputs="$(SolutionDir)binaries\$(AssemblyName).vsix">
     <Message Importance="high" Text="Copying vsix from $(TargetDir)$(AssemblyName).vsix to $(SolutionDir)binaries\$(AssemblyName).vsix" />
     <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(AssemblyName).vsix" DestinationFiles="$(SolutionDir)binaries\$(AssemblyName).vsix" />
-
     <CallTarget Targets="SignVsixesIfPfxSupplied" />
   </Target>
   <!-- ********************************************************** -->
-
   <Import Project="..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets" Condition="Exists('..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

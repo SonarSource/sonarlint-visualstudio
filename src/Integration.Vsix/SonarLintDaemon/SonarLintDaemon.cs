@@ -348,7 +348,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return tempDirectory;
         }
 
-        public void RequestAnalysis(string path, string charset, string sqLanguage, string json, IIssueConsumer consumer)
+        public void RequestAnalysis(string path, string charset, string sqLanguage, IIssueConsumer consumer)
         {
             if (daemonClient == null)
             {
@@ -356,10 +356,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
             WritelnToPane($"Analyzing {path}");
-            Analyze(path, charset, sqLanguage, json, consumer);
+            Analyze(path, charset, sqLanguage, consumer);
         }
 
-        private async void Analyze(string path, string charset, string sqLanguage, string json, IIssueConsumer consumer)
+        private async void Analyze(string path, string charset, string sqLanguage, IIssueConsumer consumer)
         {
             var request = new AnalysisReq
             {
@@ -376,11 +376,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Concurrent requests should not use same directory:
             var buildWrapperOutDir = CreateTempDirectory(WorkingDirectory);
 
-            if (sqLanguage == CFamilyHelper.C_LANGUAGE_KEY || sqLanguage == CFamilyHelper.CPP_LANGUAGE_KEY)
-            {
-                PrepareSonarCFamilyProps(json, request, buildWrapperOutDir);
-            }
-
             using (var call = daemonClient.Analyze(request))
             {
                 try
@@ -395,30 +390,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     Directory.Delete(buildWrapperOutDir, true);
                 }
-            }
-        }
-
-        private void PrepareSonarCFamilyProps(string json, AnalysisReq request, string bwDir)
-        {
-            request.Properties.Add("sonar.cfamily.useCache", bool.FalseString);
-            if (json == null)
-            {
-                return;
-            }
-
-            if (IsVerbose())
-            {
-                WritelnToPane("Build wrapper output:" + Environment.NewLine + json);
-            }
-
-            try
-            {
-                File.WriteAllText(Path.Combine(bwDir, "build-wrapper-dump.json"), json);
-                request.Properties.Add("sonar.cfamily.build-wrapper-output", bwDir);
-            }
-            catch (Exception e)
-            {
-                WritelnToPane("Unable to write build wrapper file in " + bwDir + ": " + e.StackTrace);
             }
         }
 

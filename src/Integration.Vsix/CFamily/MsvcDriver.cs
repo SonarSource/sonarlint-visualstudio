@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
     internal class MsvcDriver
     {
-        static Regex versionMatcher = new Regex(@"\d++\.\d++\.\d++(\.\d++)?");
+        static Regex versionMatcher = new Regex(@"\d+\.\d+\.\d+(\.\d+)?");
 
         public static Request ToRequest(CFamilyHelper.Capture[] captures)
         {
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         throw new InvalidDataException("Unable to extract version of Microsoft Compiler");
                     }
 
-                    break;
+                    continue;
                 }
 
                 ArgumentCursor args = new ArgumentCursor(capture.Cmd);

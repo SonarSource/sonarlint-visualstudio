@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -58,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLintSettings settings;
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly ILogger logger;
+        private readonly ClangAnalyzerProcessRunner clangAnalyzerRunner;
 
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider tableManagerProvider,
@@ -84,6 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.settings = settings;
             this.languageRecognizer = languageRecognizer;
             this.logger = logger;
+            this.clangAnalyzerRunner = new ClangAnalyzerProcessRunner(logger);
         }
 
         internal IEnumerable<TextBufferIssueTracker> ActiveTrackersForTesting { get { return this.issueTrackers; } }
@@ -161,12 +164,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     case SonarLanguage.Javascript:
                         handled = true;
-                        daemon.RequestAnalysis(path, charset, "js", null, issueConsumer);
+                        daemon.RequestAnalysis(path, charset, "js", issueConsumer);
                         break;
 
                     case SonarLanguage.CFamily:
                         handled = true;
-                        CFamilyHelper.ProcessFile(daemon, issueConsumer, logger, projectItem, path, charset);
+                        CFamilyHelper.ProcessFile(clangAnalyzerRunner, issueConsumer, logger, projectItem, path, charset);
                         break;
 
                     default:
