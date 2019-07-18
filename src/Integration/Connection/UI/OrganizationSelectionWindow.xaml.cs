@@ -41,6 +41,9 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
 
             var sortedOrganizations = organizations.OrderBy(x => x.Name).ToList();
             OrganizationComboBox.ItemsSource = sortedOrganizations;
+
+            // Pre-select the first organization, if there is one
+            OrganizationComboBox.SelectedItem = sortedOrganizations?.FirstOrDefault();
         }
 
         private void OnOwnOkButtonClick(object sender, RoutedEventArgs e)
