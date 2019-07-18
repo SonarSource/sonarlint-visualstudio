@@ -138,18 +138,14 @@ namespace SonarLint.VisualStudio.Integration.Connection
                     await this.host.SonarQubeService.ConnectAsync(connection, cancellationToken);
                 }
 
-                if (connection.Organization == null &&
-                    this.host.SonarQubeService.HasOrganizationsFeature)
+                if (connection.Organization == null)
                 {
-                    notifications.ProgressChanged(Strings.ConnectionStepRetrievingOrganizations);
-                    var organizations = await this.host.SonarQubeService.GetAllOrganizationsAsync(cancellationToken);
+                    var hasOrgs = await this.host.SonarQubeService.HasOrganizations(cancellationToken);
+                    if (hasOrgs)
+                    {
+                        notifications.ProgressChanged(Strings.ConnectionStepRetrievingOrganizations);
+                        var organizations = await this.host.SonarQubeService.GetAllOrganizationsAsync(cancellationToken);
 
-                    if (organizations.Count <= 1) // Only 1 org means the SQ server is recent enough but the feature is not active
-                    {
-                        connection.Organization = null;
-                    }
-                    else
-                    {
                         connection.Organization = AskUserToSelectOrganizationOnUIThread(organizations);
                         if (connection.Organization == null) // User clicked cancel
                         {
