@@ -61,6 +61,9 @@ namespace SonarQube.Client.Requests
                 Page++;
             }
             while (pageResult.Value != null &&
+                // Continue paging until we get a partial page of results i.e. fewer than requested.
+                // NB there is a bug here: should be comparing against the request page size, not the
+                // maximum allowed size. See https://github.com/SonarSource/sonarqube-webclient-dotnet/issues/8
                 pageResult.Value.Length >= MaximumPageSize);
 
             return allResponseItems.ToArray();
