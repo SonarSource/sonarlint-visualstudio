@@ -25,7 +25,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static SonarLint.VisualStudio.Integration.Vsix.CFamilyHelper;
+
 
 /**
  * This is a port of the Java MsvcDriver
@@ -36,9 +36,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
     internal class MsvcDriver
     {
-        Regex versionMatcher = new Regex(@"\d++\.\d++\.\d++(\.\d++)?");
+        static Regex versionMatcher = new Regex(@"\d++\.\d++\.\d++(\.\d++)?");
 
-        public Request toRequest(CFamilyHelper.Capture[] captures)
+        public static Request ToRequest(CFamilyHelper.Capture[] captures)
         {
             Request request = new Request();
             Dictionary<string, Probe> probes = new Dictionary<string, Probe>();
