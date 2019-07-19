@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 PreprocessorDefinitions = "D1;D2;",
                 UndefinePreprocessorDefinitions = "U1;U2;",
                 ForcedIncludeFiles = "h1;h2;",
+                PrecompiledHeader = "",
                 CompileAs = "Default",
                 CompileAsManaged = "",
                 RuntimeLibrary = "MultiThreaded",
@@ -91,6 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 PreprocessorDefinitions = "",
                 UndefinePreprocessorDefinitions = "",
                 ForcedIncludeFiles = "",
+                PrecompiledHeader = "Use",
                 PrecompiledHeaderFile = "stdafx.h",
                 UndefineAllPreprocessorDefinitions = "true",
                 IgnoreStandardIncludePath = "true",
@@ -117,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             c.Cmd.Should().Equal(new [] {
                 "cl.exe",
                 "/X",
-                "/Yu", "stdafx.h",
+                "/Yustdafx.h",
                 "/u",
                 "/TP",
                 "/clr",
@@ -273,6 +275,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             Action action = () => CFamily.FileConfig.ConvertBasicRuntimeChecks("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported BasicRuntimeChecks: foo");
+        }
+
+        [TestMethod]
+        public void PrecompiledHeader()
+        {
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+            CFamily.FileConfig.ConvertPrecompiledHeader("", "stdafx.h").Should().Be("");
+            CFamily.FileConfig.ConvertPrecompiledHeader("Use", "stdafx.h").Should().Be("/Yustdafx.h");
+            CFamily.FileConfig.ConvertPrecompiledHeader("Create", "stdafx.h").Should().Be("/Ycstdafx.h");
+            CFamily.FileConfig.ConvertPrecompiledHeader("Use", "").Should().Be("/Yu");
+            CFamily.FileConfig.ConvertPrecompiledHeader("Create", "").Should().Be("/Yc");
+
+            Action action = () => CFamily.FileConfig.ConvertPrecompiledHeader("foo", "");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PrecompiledHeader: foo");
         }
 
         [TestMethod]
