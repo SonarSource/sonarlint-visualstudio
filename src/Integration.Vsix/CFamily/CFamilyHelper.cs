@@ -29,7 +29,7 @@ using Microsoft.VisualStudio;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal static class CFamilyHelper
     {
