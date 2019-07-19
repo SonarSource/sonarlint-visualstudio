@@ -24,8 +24,9 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
     [TestClass]
     public class CFamilyTest
@@ -67,8 +68,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             c.StdErr.Should().BeNull("otherwise will be considered as probe");
             c.Cwd.Should().Be(p.Cwd);
             c.Executable.Should().BeSameAs(p.Executable, "otherwise won't be associated with probe");
-            c.Env.Should().Equal(new [] {"INCLUDE=sys1;sys2;"});
-            c.Cmd.Should().Equal(new [] {
+            c.Env.Should().Equal(new[] { "INCLUDE=sys1;sys2;" });
+            c.Cmd.Should().Equal(new[] {
                 "cl.exe",
                 "/I", "dir1", "/I", "dir2",
                 "/FI", "h1", "/FI", "h2",
@@ -116,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             p.StdErr.Should().Be("19.00.00 for x64");
 
-            c.Cmd.Should().Equal(new [] {
+            c.Cmd.Should().Equal(new[] {
                 "cl.exe",
                 "/X",
                 "/Yustdafx.h",
