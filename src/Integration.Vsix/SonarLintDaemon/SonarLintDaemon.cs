@@ -31,6 +31,7 @@ using System.Text.RegularExpressions;
 using Grpc.Core;
 using Microsoft.VisualStudio;
 using Sonarlint;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
