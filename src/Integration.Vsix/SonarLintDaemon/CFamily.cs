@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal static class CFamily
+    internal static class CFamilyHelper
     {
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";

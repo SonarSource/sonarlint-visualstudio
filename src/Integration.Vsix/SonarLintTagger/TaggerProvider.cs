@@ -166,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                     case SonarLanguage.CFamily:
                         handled = true;
-                        CFamily.ProcessFile(daemon, issueConsumer, logger, projectItem, path, charset);
+                        CFamilyHelper.ProcessFile(daemon, issueConsumer, logger, projectItem, path, charset);
                         break;
 
                     default:
