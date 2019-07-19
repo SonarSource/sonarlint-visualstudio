@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // the next line will throw if the file is not part of a solution
                     projectItem.ConfigurationManager.ActiveConfiguration != null;
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
             }
@@ -143,6 +143,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     UndefinePreprocessorDefinitions = GetEvaluatedPropertyValue(fileTool, "UndefinePreprocessorDefinitions"),
 
                     ForcedIncludeFiles = GetEvaluatedPropertyValue(fileTool, "ForcedIncludeFiles"),
+                    PrecompiledHeader = GetEvaluatedPropertyValue(fileTool, "PrecompiledHeader"),
                     PrecompiledHeaderFile = GetEvaluatedPropertyValue(fileTool, "PrecompiledHeaderFile"),
 
                     CompileAs = GetEvaluatedPropertyValue(fileTool, "CompileAs"),
@@ -205,6 +206,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             public string ForcedIncludeFiles { get; set; }
 
+            public string PrecompiledHeader { get; set; }
+
             public string PrecompiledHeaderFile { get; set; }
 
             public string CompileAs { get; set; }
@@ -259,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Add(c.Cmd, "true".Equals(IgnoreStandardIncludePath) ? "/X" : "");
                 AddRange(c.Cmd, "/I", AdditionalIncludeDirectories.Split(';'));
                 AddRange(c.Cmd, "/FI", ForcedIncludeFiles.Split(';'));
-                Add(c.Cmd, "/Yu", PrecompiledHeaderFile);
+                Add(c.Cmd, ConvertPrecompiledHeader(PrecompiledHeader, PrecompiledHeaderFile));
 
                 Add(c.Cmd, "true".Equals(UndefineAllPreprocessorDefinitions) ? "/u" : "");
                 AddRange(c.Cmd, "/D", PreprocessorDefinitions.Split(';'));
@@ -465,6 +468,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                         return "/RTCu";
                     case "EnableFastChecks":
                         return "/RTC1";
+                }
+            }
+
+            internal static string ConvertPrecompiledHeader(string value, string header)
+            {
+                switch (value)
+                {
+                    default:
+                        throw new ArgumentException($"Unsupported PrecompiledHeader: {value}", nameof(value));
+                    case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+                        return "";
+                    case "Create":
+                        return "/Yc" + header;
+                    case "Use":
+                        return "/Yu" + header;
                 }
             }
         }
