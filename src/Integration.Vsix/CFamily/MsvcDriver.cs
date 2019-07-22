@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     string arg = capture.Cmd[args.Index];
                     if (arg.StartsWith("-"))
                     {
-                        arg = "/" + arg.Substring(1, arg.Length);
+                        arg = "/" + arg.JavaSubstring(1, arg.Length);
                     }
 
                     if (arg.StartsWith("/I"))
@@ -416,21 +416,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
     }
 
-    internal static class stringExtensions
-    {
-        public static string ReplaceFirst(this string original, string oldValue, string newValue)
-        {
-            if (string.IsNullOrEmpty(original))
-                return string.Empty;
-            if (string.IsNullOrEmpty(oldValue))
-                return original;
-            if (string.IsNullOrEmpty(newValue))
-                newValue = string.Empty;
-            int loc = original.IndexOf(oldValue);
-            return original.Remove(loc, oldValue.Length).Insert(loc, newValue);
-        }
-    }
-
     internal class Probe
     {
         public string Major { get; }
@@ -473,9 +458,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
             else
             {
-                arg = arg.Substring(prefix.Length, arg.Length - prefix.Length);
+                arg = arg.JavaSubstring(prefix.Length, arg.Length);
             }
             return arg;
+        }
+        
+    }
+
+    public static class JavaExtensions
+    {
+        /**
+         * In Java, String::substring takes endIndex as second argument
+         */
+        public static string JavaSubstring(this string str, int startIndex, int endIndex)
+        {
+            return str.Substring(startIndex, endIndex - startIndex);
+        }
+
+        public static string ReplaceFirst(this string original, string oldValue, string newValue)
+        {
+            if (string.IsNullOrEmpty(original))
+                return string.Empty;
+            if (string.IsNullOrEmpty(oldValue))
+                return original;
+            if (string.IsNullOrEmpty(newValue))
+                newValue = string.Empty;
+            int loc = original.IndexOf(oldValue);
+            return original.Remove(loc, oldValue.Length).Insert(loc, newValue);
         }
     }
 }

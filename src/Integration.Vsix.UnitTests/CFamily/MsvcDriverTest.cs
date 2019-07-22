@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
-using System.IO;
-using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
@@ -41,7 +36,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             StdOut = "",
             StdErr = "19.10.25017 for x86"
         };
-
 
         [TestMethod]
         public void File_Type()
@@ -98,7 +92,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             req.File.Should().Be("file.cpp");
             req.Flags.Should().Be(Request.MS | Request.C99 | Request.C11);
         }
-
 
         [TestMethod]
         public void Should_Skip_Cx_And_Cli()
@@ -189,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void Undefine_Macro()
+        public void Undefine_Macro_With_Dash_Syntax()
         {
             Request req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
@@ -200,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
-                      "/Uname"
+                      "-Uname"
                     },
                 }
             });
@@ -225,8 +218,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             });
             req.Predefines.Should().EndWith("#include \"file.h\"\n");
         }
-
-
 
         [TestMethod]
         public void Arch()
@@ -295,8 +286,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             req.Predefines.Should().NotContainAny("#define __AVX2__");
         }
 
-
-
         [TestMethod]
         public void Version()
         {
@@ -352,8 +341,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             req.Predefines.Should().Contain("#define _HAS_CHAR16_T_LANGUAGE_SUPPORT 1\n");
 
         }
-
-
 
         [TestMethod]
         public void Char_Is_Unsigned()
