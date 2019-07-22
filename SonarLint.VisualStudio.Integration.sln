@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.Vsix", "src\Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
 EndProject
@@ -41,13 +41,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{
 		src\SonarLint.xml = src\SonarLint.xml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client", "sonarqube-webclient\SonarQube.Client\SonarQube.Client.2015.csproj", "{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client.2015", "sonarqube-webclient\SonarQube.Client\SonarQube.Client.2015.csproj", "{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client.Tests", "sonarqube-webclient\SonarQube.Client.Tests\SonarQube.Client.Tests.2015.csproj", "{BA771DF7-9F99-4DE3-B85B-3E5DB742A55D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client.Tests.2015", "sonarqube-webclient\SonarQube.Client.Tests\SonarQube.Client.Tests.2015.csproj", "{BA771DF7-9F99-4DE3-B85B-3E5DB742A55D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.TeamExplorer", "src\Integration.TeamExplorer\Integration.TeamExplorer.csproj", "{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.TeamExplorer.UnitTests", "src\Integration.TeamExplorer.UnitTests\Integration.TeamExplorer.UnitTests.csproj", "{115CC746-5181-485C-8707-346E8D55B1E5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{E21A01C7-D261-462A-9A1E-5E505AEF9791}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DownloadCFamilyPlugin", "build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj", "{3C3CD0D9-7CD6-4857-A54E-BC71D25BA086}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,6 +119,10 @@ Global
 		{115CC746-5181-485C-8707-346E8D55B1E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{115CC746-5181-485C-8707-346E8D55B1E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{115CC746-5181-485C-8707-346E8D55B1E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C3CD0D9-7CD6-4857-A54E-BC71D25BA086}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C3CD0D9-7CD6-4857-A54E-BC71D25BA086}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C3CD0D9-7CD6-4857-A54E-BC71D25BA086}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C3CD0D9-7CD6-4857-A54E-BC71D25BA086}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,5 +137,9 @@ Global
 		{112698A2-85C3-4357-AAA5-7658D29D27A1} = {244A2265-326C-40AE-8906-02CC250867AA}
 		{BA771DF7-9F99-4DE3-B85B-3E5DB742A55D} = {9CF012C2-0303-4643-A5E2-0A45AFE4DBD5}
 		{115CC746-5181-485C-8707-346E8D55B1E5} = {9CF012C2-0303-4643-A5E2-0A45AFE4DBD5}
+		{3C3CD0D9-7CD6-4857-A54E-BC71D25BA086} = {E21A01C7-D261-462A-9A1E-5E505AEF9791}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F3315ECB-9393-4DE2-9FF0-6F1C9FAA17BD}
 	EndGlobalSection
 EndGlobal

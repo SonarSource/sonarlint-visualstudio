@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    
+    <!-- Not a product project so we don't want it to be taken into account for code coverage -->
+    <SonarQubeTestProject>true</SonarQubeTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
+    <PackageReference Include="SharpCompress" Version="0.23.0" />
+    <PackageReference Include="SharpZipLib" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+</Project>

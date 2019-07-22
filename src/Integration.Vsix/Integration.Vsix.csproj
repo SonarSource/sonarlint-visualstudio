@@ -571,6 +571,58 @@
 
 
   <!-- ********************************************************** -->
+  <!-- CFamily plugin handling -->
+  <!-- Download and unpack the jar, select the required files and -->
+  <!-- add them to the VSIX.                                      -->
+  <!-- ********************************************************** -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj">
+      <Project>{3c3cd0d9-7cd6-4857-a54e-bc71d25ba086}</Project>
+      <Name>DownloadCFamilyPlugin</Name>
+      <Private>True</Private>
+      <IncludeOutputGroupsInVSIX>GetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <!-- Hack to stop the DownloadCFamilyPlugin dll and it dependencies from being included in the VSIX.
+         Note: the setting <IncludeOutputGroupsInVSIX>GetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
+         in the ProjectReference above is also required -->
+    <SuppressFromVsix Include="SharpCompress.dll" />
+    <SuppressFromVsix Include="ICSharpCode.SharpZipLib.dll" />
+    <SuppressFromVsix Include="DownloadCFamilyPlugin.dll" />
+  </ItemGroup>
+
+  <UsingTask TaskName="DownloadAndExtract" AssemblyFile="$(OutputPath)DownloadCFamilyPlugin.dll" />
+
+  <PropertyGroup>
+    <!-- Download url for the CFamily plugin. Update this url to embed a new version of the plugin. -->
+    <PluginUrl>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.3.0.11371.jar</PluginUrl>
+    
+    <!-- Hook into the VSIX targets so we can specify additional items to include in the VSIX -->
+    <GetVsixSourceItemsDependsOn>DownloadCFamilyFiles;$(GetVsixSourceItemsDependsOn)</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="DownloadCFamilyFiles">
+    <Message Importance="high" Text="Executing plugin download task..." />
+    <Message Importance="high" Text="Plugin url: $(PluginUrl)" />
+
+    <DownloadAndExtract DownloadUrl="$(PluginUrl)">
+      <Output TaskParameter="FilesToEmbed" ItemName="FilesToEmbed" />
+    </DownloadAndExtract>
+
+    <ItemGroup>
+      <!-- Add all of the files to the vsix.
+           Note: the files are referenced directly from the download location. They are not checked
+           in, and don't appear as part of this project in the Solution Explorer in VS. -->
+      <VSIXSourceItem Include="@(FilesToEmbed)">
+        <VSIXSubPath>CFamilyFiles</VSIXSubPath>
+        <InstallRoot>$(InstallRoot)</InstallRoot>
+      </VSIXSourceItem>
+    </ItemGroup>
+    <Message Importance="high" Text="List of CFamily files to be embedded in the VSIX:" />
+    <Message Importance="high" Text="  %(VSIXSourceItem.Identity)" />
+  </Target>
+
+
+  <!-- ********************************************************** -->
   <!-- Copy and sign the VSIX -->
   <!-- ********************************************************** -->
   <Import Project="$(MSBuildThisFileDirectory)SignVsixes.targets" />
