@@ -613,7 +613,7 @@
            Note: the files are referenced directly from the download location. They are not checked
            in, and don't appear as part of this project in the Solution Explorer in VS. -->
       <VSIXSourceItem Include="@(FilesToEmbed)">
-        <VSIXSubPath>CFamilyFiles</VSIXSubPath>
+        <VSIXSubPath>CFamily</VSIXSubPath>
         <InstallRoot>$(InstallRoot)</InstallRoot>
       </VSIXSourceItem>
     </ItemGroup>
