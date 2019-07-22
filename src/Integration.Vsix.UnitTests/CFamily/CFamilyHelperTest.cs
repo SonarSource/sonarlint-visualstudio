@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
     [TestClass]
-    public class CFamilyTest
+    public class CFamilyHelperTest
     {
         private const string FileName = @"C:\absolute\path\to\file.cpp";
         [TestMethod]
