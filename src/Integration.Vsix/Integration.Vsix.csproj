@@ -579,8 +579,10 @@
     <!-- Download url for the CFamily plugin. Update this url to embed a new version of the plugin. -->
     <PluginUrl>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.3.0.11371.jar</PluginUrl>
 
+    <CFamilyFolderName>.CFamilyEmbedded</CFamilyFolderName>
+
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
-    <CFamilyTargetDirectory>$(MSBuildThisFileDirectory).CFamilyEmbeddedFiles</CFamilyTargetDirectory>
+    <CFamilyTargetDirectory>$(MSBuildThisFileDirectory)$(CFamilyFolderName)</CFamilyTargetDirectory>
     
     <!-- Hook the target that fetches the CFamily files into to the build process. -->
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
@@ -609,7 +611,7 @@
         <IncludeInVSIX>True</IncludeInVSIX>
 
         <!-- Custom sub folder in the VSIX -->
-        <VSIXSubPath>CFamilyFiles</VSIXSubPath>
+        <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
       </Content>
     </ItemGroup>
   </Target>
