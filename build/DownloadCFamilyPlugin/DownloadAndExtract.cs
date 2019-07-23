@@ -59,7 +59,7 @@ namespace DownloadCFamilyPlugin
 
         private readonly string[] AdditionalFilesToReturnPattern = new string[]
         {
-            "S*_params.json"
+            "*_params.json"
         };
 
         #region MSBuild input / output properties (set/read in the project file)

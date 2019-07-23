@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     
-    <!-- Not a product project so we don't want it to be taken into account for code coverage -->
-    <SonarQubeTestProject>true</SonarQubeTestProject>
+    <!-- Not a product project or test project - completely exclude it from analysis/code coverage -->
+    <SonarQubeExclude>true</SonarQubeExclude>
   </PropertyGroup>
 
   <ItemGroup>
