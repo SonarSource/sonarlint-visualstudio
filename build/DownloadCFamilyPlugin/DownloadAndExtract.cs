@@ -49,15 +49,20 @@ namespace DownloadCFamilyPlugin
     {
         // The txz archive containing the subprocess.exe
         private const string WindowsTxzFilePattern = "clang-*-win.txz";
-        private const string CLangExeFilePattern = "SubProcess.exe";
 
-        private readonly string[] KnownJsonFiles = new string[]
+        // Sub-folder into which the tar file should be unzipped
+        private const string TarUnzipSubFolder = "tar_xz";
+
+        // List of patterns to match single files in the uncompressed output
+        private readonly string[] SingleFilePatterns = new string[]
         {
                 "Sonar_way_profile.json",
-                "RulesList.json"
+                "RulesList.json",
+                TarUnzipSubFolder + "\\SubProcess.exe"
         };
 
-        private readonly string[] AdditionalFilesToReturnPattern = new string[]
+        // List of patterns to match multiple files in the uncompressed output
+        private readonly string[] MultipleFilesPatterns = new string[]
         {
             "*_params.json"
         };
@@ -89,15 +94,13 @@ namespace DownloadCFamilyPlugin
             DownloadJarFile(DownloadUrl, jarFilePath);
             UnzipJar(jarFilePath, perVersionPluginFolder);
 
-            // Locate the required files from the jar
-            var fileList = FindJsonFiles(perVersionPluginFolder);
-
             // Uncompress and extract the windows tar archive to get the subprocess exe
             var tarFilePath = FindSingleFile(perVersionPluginFolder, WindowsTxzFilePattern);
-            var tarSubFolder = Path.Combine(perVersionPluginFolder, "tar_xz");
+            var tarSubFolder = Path.Combine(perVersionPluginFolder, TarUnzipSubFolder);
             UncompressAndUnzipTar(tarFilePath, tarSubFolder);
-            var subProcessExeFile = FindSingleFile(tarSubFolder, CLangExeFilePattern);
-            fileList.Add(subProcessExeFile);
+
+            // Locate the required files from the uncompressed jar and tar
+            var fileList = FindFiles(perVersionPluginFolder);
 
             FilesToEmbed = fileList.ToArray();
 
@@ -117,16 +120,16 @@ namespace DownloadCFamilyPlugin
             return fileName;
         }
 
-        private List<string> FindJsonFiles(string searchRoot)
+        private List<string> FindFiles(string searchRoot)
         {
             var files = new List<string>();
 
-            foreach(var file in KnownJsonFiles)
+            foreach(var file in SingleFilePatterns)
             {
                 files.Add(FindSingleFile(searchRoot, file));
             }
 
-            foreach(var pattern in AdditionalFilesToReturnPattern)
+            foreach(var pattern in MultipleFilesPatterns)
             {
                 var matches = Directory.GetFiles(searchRoot, pattern, SearchOption.AllDirectories);
                 if (matches.Any())
