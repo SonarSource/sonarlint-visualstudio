@@ -597,7 +597,7 @@
          Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
          DownloadCFamilyPlugin.csproj to avoid getting file-locking errors when rebuilding.
     -->
-    <Exec Command='"$(MSBuildBinPath)\msbuild.exe" ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory="$(CFamilyTargetDirectory)" /p:UseSharedCompilation=false /t:Build;CopyEmbeddedFiles'
+    <Exec Command='"$(MSBuildBinPath)\msbuild.exe" ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory="$(CFamilyTargetDirectory)" /p:UseSharedCompilation=false /t:Restore;Build;CopyEmbeddedFiles'
              LogStandardErrorAsError="true"
              IgnoreExitCode="false" />
 
