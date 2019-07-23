@@ -20,70 +20,86 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-
     internal class RulesLoader
     {
-        private const string CFamilyFiles = ".CFamilyEmbedded";
+        private static readonly string CFamilyFilesDirectory = Path.Combine(
+            Path.GetDirectoryName(typeof(RulesLoader).Assembly.Location),
+            ".CFamilyEmbedded");
 
         public static List<string> ReadRulesList()
         {
-            var extensionFolder = Path.GetDirectoryName(typeof(RulesLoader).Assembly.Location);
-            string path = Path.Combine(extensionFolder, CFamilyFiles, "RulesList.json");
-            using (StreamReader r = new StreamReader(path, Encoding.UTF8))
-            {
-                string json = r.ReadToEnd();
-                dynamic array = JsonConvert.DeserializeObject(json);
-                List<string> result = new List<string>();
-                foreach (var item in array)
-                {
-                    result.Add(item.Value);
-                }
-                return result;
-            }
+            var rulesList = LoadCFamilyJsonFile<List<string>>("RulesList.json");
+            Debug.Assert(rulesList != null, "The CFamily RulesList.json should exist and not be empty");
+
+            return rulesList;
         }
 
         public static List<string> ReadActiveRulesList()
         {
-            var extensionFolder = Path.GetDirectoryName(typeof(RulesLoader).Assembly.Location);
-            string path = Path.Combine(extensionFolder, CFamilyFiles, "Sonar_way_profile.json");
-            using (StreamReader r = new StreamReader(path, Encoding.UTF8))
-            {
-                string json = r.ReadToEnd();
-                dynamic profile = JsonConvert.DeserializeObject(json);
-                List<string> result = new List<string>();
-                foreach (var item in profile.ruleKeys)
-                {
-                    result.Add(item.Value);
-                }
-                return result;
-            }
+            var rulesProfile = LoadCFamilyJsonFile<RulesProfile>("Sonar_way_profile.json");
+            Debug.Assert(rulesProfile != null, "The CFamily Sonar_way_profile.json should exist and not be empty");
+
+            return rulesProfile.RuleKeys;
         }
 
         public static Dictionary<string, string> ReadRuleParams(String ruleKey)
         {
-            var extensionFolder = Path.GetDirectoryName(typeof(RulesLoader).Assembly.Location);
-            string path = Path.Combine(extensionFolder, CFamilyFiles, ruleKey + "_params.json");
-            if (!File.Exists(path))
+            var ruleParams = LoadCFamilyJsonFile<RuleParameter[]>(ruleKey + "_params.json");
+
+            if (ruleParams == null)
             {
                 return new Dictionary<string, string>();
             }
-            using (StreamReader r = new StreamReader(path, Encoding.UTF8))
+
+            var result = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var param in ruleParams)
             {
-                string json = r.ReadToEnd();
-                dynamic array = JsonConvert.DeserializeObject(json);
-                Dictionary<string, string> result = new Dictionary<string, string>();
-                foreach (var param in array)
-                {
-                    result.Add(param.key.Value, param.defaultValue.Value);
-                }
-                return result;
+                result.Add(param.Key, param.DefaultValue);
             }
+            return result;
+        }
+
+        private static T LoadCFamilyJsonFile<T>(string fileName) where T: class
+        {
+            string path = Path.Combine(CFamilyFilesDirectory, fileName);
+            if (!File.Exists(path))
+            {
+                return default(T);
+            }
+
+            var data = JsonConvert.DeserializeObject<T>(File.ReadAllText(path, Encoding.UTF8));
+            return data;
+        }
+
+        private class RulesProfile
+        {
+            [JsonProperty("name")]
+            public string Name { get; set; }
+
+            [JsonProperty("ruleKeys")]
+            public List<string> RuleKeys { get; set; }
+        }
+
+        private class RuleParameter
+        {
+            [JsonProperty("key")]
+            public string Key { get; set; }
+
+            [JsonProperty("description")]
+            public string Description { get; set; }
+
+            [JsonProperty("defaultValue")]
+            public string DefaultValue { get; set; }
+
+            [JsonProperty("type")]
+            public string Type { get; set; }
         }
     }
 }
