@@ -571,6 +571,52 @@
 
 
   <!-- ********************************************************** -->
+  <!-- CFamily plugin handling -->
+  <!-- Download and unpack the jar, select the required files and -->
+  <!-- add them to the VSIX.                                      -->
+  <!-- ********************************************************** -->
+  <PropertyGroup>
+    <!-- Download url for the CFamily plugin. Update this url to embed a new version of the plugin. -->
+    <PluginUrl>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.3.0.11371.jar</PluginUrl>
+
+    <CFamilyFolderName>.CFamilyEmbedded</CFamilyFolderName>
+
+    <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
+    <CFamilyTargetDirectory>$(MSBuildThisFileDirectory)$(CFamilyFolderName)</CFamilyTargetDirectory>
+    
+    <!-- Hook the target that fetches the CFamily files into to the build process. -->
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GetCFamilyFiles">
+    <Message Importance="high" Text="Fetching the CFamily files..." />
+
+    <!-- Note: building the helper project explicitly using MSBuild rather than referencing it via a ProjectReference.
+         This makes is easier for us to control when the build is performed, so we can trigger it early enough
+         to include the downloaded files as normal Content files in this project.
+         Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
+         DownloadCFamilyPlugin.csproj to avoid getting file-locking errors when rebuilding.
+    -->
+    <Exec Command='"$(MSBuildBinPath)\msbuild.exe" ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory="$(CFamilyTargetDirectory)" /p:UseSharedCompilation=false /t:Restore;Build;CopyEmbeddedFiles'
+             LogStandardErrorAsError="true"
+             IgnoreExitCode="false" />
+
+    <ItemGroup>
+      <Content Include="$(CFamilyTargetDirectory)\**\*">
+        <!-- We need to include the files as content that is copied to the output directory so that
+             1) they get included in the VSIX, and 
+             2) they get copied to the bin folder of any test projects that reference this project.
+        -->
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <IncludeInVSIX>True</IncludeInVSIX>
+
+        <!-- Custom sub folder in the VSIX -->
+        <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
+      </Content>
+    </ItemGroup>
+  </Target>
+
+  <!-- ********************************************************** -->
   <!-- Copy and sign the VSIX -->
   <!-- ********************************************************** -->
   <Import Project="$(MSBuildThisFileDirectory)SignVsixes.targets" />

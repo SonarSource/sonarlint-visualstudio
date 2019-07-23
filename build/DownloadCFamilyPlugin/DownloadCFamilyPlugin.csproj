@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    
+    <!-- Not a product project or test project - completely exclude it from analysis/code coverage -->
+    <SonarQubeExclude>true</SonarQubeExclude>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
+    <PackageReference Include="SharpCompress" Version="0.23.0" />
+    <PackageReference Include="SharpZipLib" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+
+  <!-- Building the project creates an assembly that contains this custom task.   
+       We then need to execute the CopyEmbeddedFiles task to execute the task and copy the files. -->
+  <UsingTask TaskName="DownloadAndExtract" AssemblyFile="$(OutputPath)DownloadCFamilyPlugin.dll" />
+  
+  <Target Name="CopyEmbeddedFiles" >
+    <Message Importance="high" Text="Fetching CFamily files..." />
+
+    <!-- Parameter validation -->
+    <Error Condition="$(PluginUrl)==''" Text="PluginUrl property must be specified (url from which the CFamily jar can be downloaded)" />
+    <Error Condition="$(TargetDirectory)==''" Text="TargetDirectory property must be specified (i.e. destination to copy the CFamily files to)" />
+
+    <DownloadAndExtract DownloadUrl="$(PluginUrl)">
+      <Output TaskParameter="FilesToEmbed" ItemName="FilesToEmbed" />
+    </DownloadAndExtract>
+
+    <Message Importance="high" Text="List of CFamily files to be embedded in the VSIX:" />
+    <Message Importance="high" Text="  %(FilesToEmbed.Identity)" />
+
+    <Message Importance="high" Text="Copying files to $(TargetDirectory)..." />
+    <MakeDir Directories="$(TargetDirectory)" />
+    <Copy DestinationFolder="$(TargetDirectory)" SkipUnchangedFiles="true" SourceFiles="@(FilesToEmbed)" />
+    
+  </Target>
+
+</Project>
