@@ -22,8 +22,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -66,6 +68,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return result;
         }
 
+        public static RuleMetadata ReadRuleMetadata(String ruleKey)
+        {
+            var ruleMetadata = LoadCFamilyJsonFile<RuleMetadata>(ruleKey + ".json");
+
+            if (ruleMetadata == null)
+            {
+                throw new FileNotFoundException("Unable to find metadata of rule: " + ruleKey);
+            }
+
+            return ruleMetadata;
+        }
+
         private static T LoadCFamilyJsonFile<T>(string fileName) where T: class
         {
             string path = Path.Combine(CFamilyFilesDirectory, fileName);
@@ -100,6 +114,47 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             [JsonProperty("type")]
             public string Type { get; set; }
+        }
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        public enum RuleType
+        {
+            [EnumMember(Value = "CODE_SMELL")]
+            CodeSmell,
+            [EnumMember(Value = "BUG")]
+            Bug,
+            [EnumMember(Value = "VULNERABILITY")]
+            Vulnerability,
+            [EnumMember(Value = "HOTSPOT")]
+            Hotspot
+        }
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        public enum RuleSeverity
+        {
+            [EnumMember(Value = "Blocker")]
+            Blocker,
+            [EnumMember(Value = "Critical")]
+            Critical,
+            [EnumMember(Value = "Major")]
+            Major,
+            [EnumMember(Value = "Minor")]
+            Minor,
+            [EnumMember(Value = "Info")]
+            Info
+        }
+
+        public class RuleMetadata
+        {
+            [JsonProperty("title")]
+            public string Title { get; set; }
+
+            [JsonProperty("type")]
+            public RuleType Type { get; set; }
+
+            [JsonProperty("defaultSeverity")]
+            public RuleSeverity DefaultSeverity { get; set; }
+
         }
     }
 }
