@@ -18,9 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.IO;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -46,6 +50,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
 
             RulesLoader.ReadRuleParams("Missing").Should().BeEmpty();
+
+            // Sanity check, ensure we can read all rules params
+            foreach (string ruleKey in RulesLoader.ReadRulesList())
+            {
+                RulesLoader.ReadRuleParams(ruleKey).Should().NotBeNull();
+            }
+        }
+
+        [TestMethod]
+        public void Read_Rules_Metadata()
+        {
+            using (new AssertionScope())
+            {
+                RulesLoader.ReadRuleMetadata("ClassComplexity").Type.Should().Be(RuleType.CodeSmell);
+                RulesLoader.ReadRuleMetadata("ClassComplexity").DefaultSeverity.Should().Be(RuleSeverity.Critical);
+            }
+
+            Action act = () => RulesLoader.ReadRuleMetadata("Missing");
+            act.Should().ThrowExactly<FileNotFoundException>();
+
+            // Sanity check, ensure we can read all rules
+            foreach (string ruleKey in RulesLoader.ReadRulesList())
+            {
+                RulesLoader.ReadRuleMetadata(ruleKey).Should().NotBeNull();
+            }
         }
     }
 
