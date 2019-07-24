@@ -105,6 +105,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
+    <Compile Include="CFamily\CFamilyStrings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CFamilyStrings.resx</DependentUpon>
+    </Compile>
     <Compile Include="Settings\OtherOptionsDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -491,6 +496,10 @@
     <EmbeddedResource Include="Resources\Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CFamily\CFamilyStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CFamilyStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="Telemetry\GeneratedCode\SqmCommandFacade.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
