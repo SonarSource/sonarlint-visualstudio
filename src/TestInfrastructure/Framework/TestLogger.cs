@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class TestLogger : ILogger
     {
-        private readonly IList<string> outputStrings = new List<string>();
+        public IList<string> OutputStrings { get; } = new List<string>();
 
         private readonly bool logToConsole;
 
@@ -46,48 +46,53 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertOutputStrings(int expectedOutputMessages)
         {
-            this.outputStrings.Should().HaveCount(expectedOutputMessages);
+            this.OutputStrings.Should().HaveCount(expectedOutputMessages);
         }
 
         public void AssertOutputStrings(params string[] orderedOutputMessages)
         {
             string[] expected = orderedOutputMessages.Select(o => o + Environment.NewLine).ToArray(); // All messages are postfixed by a newline
-            this.outputStrings.Should().Equal(expected);
+            this.OutputStrings.Should().Equal(expected);
         }
 
         public void AssertPartialOutputStrings(params string[] orderedPartialOutputMessages)
         {
-            this.outputStrings.Should().Equal(orderedPartialOutputMessages, (actualValue, expectedValue) =>
+            this.OutputStrings.Should().Equal(orderedPartialOutputMessages, (actualValue, expectedValue) =>
                 actualValue.Contains(expectedValue));
         }
 
         public void AssertOutputStringExists(string expected)
         {
-            this.outputStrings.Should().Contain(expected + Environment.NewLine); // All messages are postfixed by a newline
+            this.OutputStrings.Should().Contain(expected + Environment.NewLine); // All messages are postfixed by a newline
+        }
+
+        public void AssertOutputStringDoesNotExist(string expected)
+        {
+            this.OutputStrings.Contains(expected + Environment.NewLine).Should().BeFalse(); // All messages are postfixed by a newline
         }
 
         public void AssertPartialOutputStringExists(params string[] expected)
         {
-            this.outputStrings.Should()
+            this.OutputStrings.Should()
                 .Contain(msg => expected.All(partial => msg.Contains(partial)),
                 because: $"MISSING TEXT: {string.Join(",", expected)}");
         }
 
         public void AssertNoOutputMessages()
         {
-            outputStrings.Should().HaveCount(0);
+            OutputStrings.Should().HaveCount(0);
         }
 
         public void Reset()
         {
-            outputStrings.Clear();
+            OutputStrings.Clear();
         }
 
         #region ILogger methods
 
         public void WriteLine(string message)
         {
-            outputStrings.Add(message + Environment.NewLine);
+            OutputStrings.Add(message + Environment.NewLine);
             if (logToConsole)
             {
                 Console.WriteLine(message);
