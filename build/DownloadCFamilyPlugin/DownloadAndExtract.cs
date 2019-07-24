@@ -58,13 +58,14 @@ namespace DownloadCFamilyPlugin
         {
                 "Sonar_way_profile.json",
                 "RulesList.json",
-                TarUnzipSubFolder + "\\SubProcess.exe"
+                TarUnzipSubFolder + @"\subprocess.exe"
         };
 
         // List of patterns to match multiple files in the uncompressed output
         private readonly string[] MultipleFilesPatterns = new string[]
         {
-            "*_params.json"
+            @"org\sonar\l10n\cpp\rules\params\*_params.json",
+            @"org\sonar\l10n\cpp\rules\cpp\*.json"
         };
 
         #region MSBuild input / output properties (set/read in the project file)
