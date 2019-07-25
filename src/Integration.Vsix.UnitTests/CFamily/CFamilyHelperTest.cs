@@ -427,6 +427,68 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\noextension").Should().Be(false);
         }
 
+        [TestMethod]
+        public void IssueFixup_InvalidIssuesAreFixedUp()
+        {
+            // Sonarlint issue lines are 1-based, offsets are 0-based
+
+            using (new AssertIgnoreScope())
+            {
+                // 1. all invalid
+                var inputIssue = GetFixedIssue(-1, -2, -3, -4);
+                CheckPositions(inputIssue, 1, 0, 1, 0);
+
+                // 2. Start invalid
+                inputIssue = GetFixedIssue(0, -1, 2, 4);
+                CheckPositions(inputIssue, 1, 0, 2, 4);
+
+                // 3. End offset invalid
+                inputIssue = GetFixedIssue(3, 2, 4, -1);
+                CheckPositions(inputIssue, 3, 2, 4, 0);
+
+                // 3. End before start
+                inputIssue = GetFixedIssue(1, 2, 0, -1);
+                CheckPositions(inputIssue, 1, 2, 1, 2);
+            }
+        }
+
+        [TestMethod]
+        public void IssueFixup_OtherPropertiesArePreserved()
+        {
+            // 1. Valid
+            var inputIssue = CreateIssue(1, 2, 3, 4);
+            inputIssue.RuleKey = "rule key1";
+            inputIssue.Message = "message 1";
+
+            var fixedIssue = CFamilyHelper.FixUpPositions(inputIssue);
+            CheckPositions(fixedIssue, 1, 2, 3, 4);
+            inputIssue.RuleKey = "rule key1";
+            inputIssue.Message = "message 1";
+
+            object.ReferenceEquals(inputIssue, fixedIssue).Should().BeFalse();
+        }
+
+        private static Sonarlint.Issue CreateIssue(int startline, int startOffset, int endLine, int endOffset) =>
+            new Sonarlint.Issue
+            {
+                StartLine = startline,
+                EndLine = endLine,
+                StartLineOffset = startOffset,
+                EndLineOffset = endOffset
+            };
+
+        private static Sonarlint.Issue GetFixedIssue(int startline, int startOffset, int endLine, int endOffset) =>
+            CFamilyHelper.FixUpPositions(CreateIssue(startline, startOffset, endLine, endOffset));
+
+        private static void CheckPositions(Sonarlint.Issue issue,
+            int expectedStartline, int expectedStartOffset, int expectedEndLine, int expectedEndOffset)
+        {
+            issue.StartLine.Should().Be(expectedStartline);
+            issue.EndLine.Should().Be(expectedEndLine);
+            issue.StartLineOffset.Should().Be(expectedStartOffset);
+            issue.EndLineOffset.Should().Be(expectedEndOffset);
+        }
+
         private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
         {
             var projectItemMock = new Mock<ProjectItem>();

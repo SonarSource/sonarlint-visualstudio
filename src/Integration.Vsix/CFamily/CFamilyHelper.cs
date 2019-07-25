@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage)
         {
-            return new Sonarlint.Issue()
+            var issue = new Sonarlint.Issue()
             {
                 FilePath = cfamilyIssue.Filename,
                 Message = cfamilyIssue.Text,
@@ -138,6 +138,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 EndLine = cfamilyIssue.EndLine,
                 EndLineOffset = cfamilyIssue.EndColumn - 1
             };
+            return FixUpPositions(issue);
+        }
+
+        internal /* for testing */ static Sonarlint.Issue FixUpPositions(Sonarlint.Issue issue)
+        {
+            // SonarLint issue lines are 1-based, offsets are 0-based.
+            // However, the line and offset positions for issues returned by the CLang analyzer are
+            // not always populated completely e.g. the line offsets might be negative, and the EndLine
+            // might not be set and so be before the StartLine.
+            var fixedIssue = new Sonarlint.Issue(issue);
+
+            Debug.Assert(issue.StartLine >= 1, "Not expecting an invalid start line to be reported in a Sonarlint.Issue");
+
+            fixedIssue.StartLine = Math.Max(1, fixedIssue.StartLine);
+            fixedIssue.StartLineOffset = Math.Max(0, fixedIssue.StartLineOffset);
+
+            fixedIssue.EndLine = Math.Max(fixedIssue.StartLine, fixedIssue.EndLine);
+            fixedIssue.EndLineOffset = Math.Max(0, fixedIssue.EndLineOffset);
+
+            if (fixedIssue.EndLine == fixedIssue.StartLine)
+            {
+                fixedIssue.EndLineOffset = Math.Max(fixedIssue.StartLineOffset, fixedIssue.EndLineOffset);
+            }
+
+            return fixedIssue;
         }
 
         private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, ILogger logger)
