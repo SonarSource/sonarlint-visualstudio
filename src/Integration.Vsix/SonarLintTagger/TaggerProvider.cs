@@ -162,12 +162,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     case SonarLanguage.Javascript:
                         handled = true;
-                        daemon.RequestAnalysis(path, charset, "js", null, issueConsumer);
+                        daemon.RequestAnalysis(path, charset, "js", issueConsumer);
                         break;
 
                     case SonarLanguage.CFamily:
                         handled = true;
-                        CFamilyHelper.ProcessFile(daemon, issueConsumer, logger, projectItem, path, charset);
+                        CFamilyHelper.ProcessFile(new ProcessRunner(logger), issueConsumer, logger, projectItem, path, charset);
                         break;
 
                     default:

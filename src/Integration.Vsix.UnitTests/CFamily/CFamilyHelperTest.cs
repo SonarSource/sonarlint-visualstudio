@@ -296,59 +296,59 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void ProcessFile_HeaderFile_IsNotProcessed()
         {
             // Arrange
-            var daemonMock = new Mock<ISonarLintDaemon>();
+            var runnerMock = new Mock<IProcessRunner>();
             var issueConsumerMock = new Mock<IIssueConsumer>();
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = new Mock<ProjectItem>();
 
             // Act
-            CFamilyHelper.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
+            CFamilyHelper.ProcessFile(runnerMock.Object, issueConsumerMock.Object,
                 loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", "charset");
 
             // Assert
             AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
-            AssertFileNotAnalysed(daemonMock);
+            AssertFileNotAnalysed(runnerMock);
         }
 
         [TestMethod]
         public void ProcessFile_FileOutsideSolution_IsNotProcessed()
         {
             // Arrange
-            var daemonMock = new Mock<ISonarLintDaemon>();
+            var runnerMock = new Mock<IProcessRunner>();
             var issueConsumerMock = new Mock<IIssueConsumer>();
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
 
             // Act
-            CFamilyHelper.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
+            CFamilyHelper.ProcessFile(runnerMock.Object, issueConsumerMock.Object,
                 loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", "charset");
 
             // Assert
             AssertMessageLogged(loggerMock,
                 "Unable to retrieve the configuration for file 'c:\\dummy\\file.cpp'. Check the file is part of a project in the current solution.");
-            AssertFileNotAnalysed(daemonMock);
+            AssertFileNotAnalysed(runnerMock);
         }
 
         [TestMethod]
         public void ProcessFile_ErrorGetting_IsHandled()
         {
             // Arrange
-            var daemonMock = new Mock<ISonarLintDaemon>();
+            var runnerMock = new Mock<IProcessRunner>();
             var issueConsumerMock = new Mock<IIssueConsumer>();
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
 
             // Act
-            CFamilyHelper.ProcessFile(daemonMock.Object, issueConsumerMock.Object,
+            CFamilyHelper.ProcessFile(runnerMock.Object, issueConsumerMock.Object,
                 loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", "charset");
 
             // Assert
             AssertPartialMessageLogged(loggerMock,
                 "Unable to collect C/C++ configuration for c:\\dummy\\file.cpp: ");
-            AssertFileNotAnalysed(daemonMock);
+            AssertFileNotAnalysed(runnerMock);
         }
 
         [TestMethod]
@@ -361,12 +361,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // Act
             using (new AssertIgnoreScope())
             {
-                string json = CFamilyHelper.TryGetConfig(loggerMock.Object, null, "c:\\dummy", out sqLanguage);
+                var request = CFamilyHelper.TryGetConfig(loggerMock.Object, null, "c:\\dummy", out sqLanguage);
 
                 // Assert
                 AssertPartialMessageLogged(loggerMock,
                     "Unable to collect C/C++ configuration for c:\\dummy: ");
-                json.Should().BeNull();
+                request.Should().BeNull();
                 sqLanguage.Should().BeNull();
             }
         }
@@ -438,11 +438,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             return projectItemMock;
         }
 
-        private static void AssertFileNotAnalysed(Mock<ISonarLintDaemon> daemonMock)
+        private static void AssertFileNotAnalysed(Mock<IProcessRunner> daemonMock)
         {
-            daemonMock.Verify(d => d.RequestAnalysis(It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<IIssueConsumer>()),
+            daemonMock.Verify(d => d.Execute(It.IsAny<ProcessRunnerArguments>()),
                 Times.Never);
         }
 
