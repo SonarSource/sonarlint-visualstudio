@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EnvDTE;
@@ -41,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class TextBufferIssueTrackerTests
     {
-        private Mock<ISonarLintDaemon> daemonMock;
+        private Mock<IAnalyzerController> mockAnalyzerController;
 
         private TaggerProvider taggerProvider;
         private Mock<ITextDocument> mockedJavascriptDocumentFooJs;
@@ -50,7 +51,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            daemonMock = new Mock<ISonarLintDaemon>();
+            mockAnalyzerController = new Mock<IAnalyzerController>();
+
             taggerProvider = CreateTaggerProvider();
             mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js");
             javascriptLanguage = new[] { SonarLanguage.Javascript };
@@ -70,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // 2. Add a tagger -> analysis requested
             var tagger = new IssueTagger(testSubject);
-            daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", testSubject), Times.Once);
+            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new SonarLanguage[] { SonarLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
         }
 
         [TestMethod]
@@ -125,14 +127,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // 2. Add a tagger and raise -> analysis requested
             var tagger = new IssueTagger(testSubject);
-            daemonMock.Invocations.Clear();
+            mockAnalyzerController.Invocations.Clear();
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", testSubject), Times.Once);
+            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new SonarLanguage[] { SonarLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
 
             // 3. Unregister tagger and raise -> analysis not requested
             tagger.Dispose();
-            daemonMock.Invocations.Clear();
+            mockAnalyzerController.Invocations.Clear();
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
             CheckAnalysisWasNotRequested();
@@ -146,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
 
             var tagger = new IssueTagger(testSubject);
-            daemonMock.Invocations.Clear();
+            mockAnalyzerController.Invocations.Clear();
 
             // Act
             RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
@@ -154,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Sanity check (that the test setup is correct and that events are actually being handled)
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", testSubject), Times.Once);
+            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new SonarLanguage[] { SonarLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
         }
 
         private static void RaiseRenameEvent(Mock<ITextDocument> mockDocument, string newFileName)
@@ -177,7 +179,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void CheckAnalysisWasNotRequested()
         {
-            daemonMock.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IIssueConsumer>()), Times.Never);
+            mockAnalyzerController.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<SonarLanguage>>(),
+                It.IsAny<IIssueConsumer>(), It.IsAny<ProjectItem>()), Times.Never);
         }
 
         #endregion
@@ -308,8 +311,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serviceProvider = new ConfigurableServiceProvider();
             serviceProvider.RegisterService(typeof(DTE), mockDTE.Object);
 
-            var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, daemonMock.Object,
-                serviceProvider, settingsMock.Object, languageRecognizer, new TestLogger());
+            var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, mockAnalyzerController.Object,
+                serviceProvider, languageRecognizer, new TestLogger());
             return provider;
         }
 
