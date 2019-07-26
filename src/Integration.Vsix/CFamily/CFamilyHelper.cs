@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Request request = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
             if (request != null && request.File != null && sqLanguage != null)
             {
-                request.Options = GetKeyValueOptionsList();
+                request.Options = GetKeyValueOptionsList(RulesMetadataCache.Instance);
                 var response = CallClangAnalyzer(request, runner, logger);
 
                 if (response != null)
@@ -71,16 +71,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                                     .Select(m => ToSonarLintIssue(m, sqLanguage))
                                     .ToList());
                 }
-
             }
         }
 
-        internal /* for testing */ static string[]GetKeyValueOptionsList()
+        internal /* for testing */ static string[]GetKeyValueOptionsList(IRulesConfiguration rulesConfiguration)
         {
-            var options = GetDefaultOptions();
-            options.Add("internal.qualityProfile", string.Join(",", RulesLoader.ReadActiveRulesList()));
+            var options = GetDefaultOptions(rulesConfiguration);
+            options.Add("internal.qualityProfile", string.Join(",", rulesConfiguration.ActiveRuleKeys));
             var data = options.Select(kv => kv.Key + "=" + kv.Value).ToArray();
             return data;
+        }
+
+        private static Dictionary<string, string> GetDefaultOptions(IRulesConfiguration rulesConfiguration)
+        {
+            Dictionary<string, string> defaults = new Dictionary<string, string>();
+            foreach (string ruleKey in rulesConfiguration.AllRuleKeys)
+            {
+                if (rulesConfiguration.RulesParameters.TryGetValue(ruleKey, out IDictionary<string, string> ruleParams))
+                {
+                    foreach (var param in ruleParams)
+                    {
+                        string optionKey = ruleKey + "." + param.Key;
+                        defaults.Add(optionKey, param.Value);
+                    }
+                }
+            }
+
+            return defaults;
         }
 
         internal /* for testing */ static Response CallClangAnalyzer(Request request, IProcessRunner runner, ILogger logger)
@@ -124,21 +141,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
-        }
-
-        private static Dictionary<string, string> GetDefaultOptions()
-        {
-            Dictionary<string, string> defaults = new Dictionary<string, string>();
-            foreach (string ruleKey in RulesLoader.ReadRulesList())
-            {
-                IDictionary<string, string> ruleParams = RulesLoader.ReadRuleParams(ruleKey);
-                foreach (var param in ruleParams)
-                {
-                    string optionKey = ruleKey + "." + param.Key;
-                    defaults.Add(optionKey, param.Value);
-                }
-            }
-            return defaults;
         }
 
         private static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage)
