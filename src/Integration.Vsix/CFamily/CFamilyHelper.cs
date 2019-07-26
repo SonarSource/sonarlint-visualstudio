@@ -62,51 +62,67 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Request request = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
             if (request != null && request.File != null && sqLanguage != null)
             {
-                Dictionary<string, string> options = GetDefaultOptions();
-                options.Add("internal.qualityProfile", string.Join(",", RulesLoader.ReadActiveRulesList()));
+                request.Options = GetKeyValueOptionsList();
+                var response = CallClangAnalyzer(request, runner, logger);
 
-                request.Options = options.Select(kv => kv.Key + "=" + kv.Value).ToArray();
-
-                string tempFileName = null;
-                try
+                if (response != null)
                 {
-                    tempFileName = Path.GetTempFileName();
+                    issueConsumer.Accept(absoluteFilePath, response.Messages.Where(m => m.Filename == absoluteFilePath)
+                                    .Select(m => ToSonarLintIssue(m, sqLanguage))
+                                    .ToList());
+                }
 
-                    // Create a FileInfo object to set the file's attributes
-                    FileInfo fileInfo = new FileInfo(tempFileName);
+            }
+        }
 
-                    // Set the Attribute property of this file to Temporary. 
-                    // Although this is not completely necessary, the .NET Framework is able 
-                    // to optimize the use of Temporary files by keeping them cached in memory.
-                    fileInfo.Attributes = FileAttributes.Temporary;
+        internal /* for testing */ static string[]GetKeyValueOptionsList()
+        {
+            var options = GetDefaultOptions();
+            options.Add("internal.qualityProfile", string.Join(",", RulesLoader.ReadActiveRulesList()));
+            var data = options.Select(kv => kv.Key + "=" + kv.Value).ToArray();
+            return data;
+        }
+        internal /* for testing */ static Response CallClangAnalyzer(Request request, IProcessRunner runner, ILogger logger)
+        {
+            string tempFileName = null;
+            try
+            {
+                tempFileName = Path.GetTempFileName();
 
-                    using (var writeStream = new FileStream(tempFileName, FileMode.Open))
+                // Create a FileInfo object to set the file's attributes
+                FileInfo fileInfo = new FileInfo(tempFileName);
+
+                // Set the Attribute property of this file to Temporary. 
+                // Although this is not completely necessary, the .NET Framework is able 
+                // to optimize the use of Temporary files by keeping them cached in memory.
+                fileInfo.Attributes = FileAttributes.Temporary;
+
+                using (var writeStream = new FileStream(tempFileName, FileMode.Open))
+                {
+                    Protocol.Write(new BinaryWriter(writeStream), request);
+                }
+
+                var success = ExecuteAnalysis(runner, tempFileName, logger);
+
+                if (success)
+                {
+                    using (var readStream = new FileStream(tempFileName, FileMode.Open))
                     {
-                        Protocol.Write(new BinaryWriter(writeStream), request);
-
-                    }
-
-                    var success = ExecuteAnalysis(runner, tempFileName, logger);
-
-                    if (success)
-                    {
-                        using (var readStream = new FileStream(tempFileName, FileMode.Open))
-                        {
-                            Response response = Protocol.Read(new BinaryReader(readStream));
-                            issueConsumer.Accept(absoluteFilePath, response.Messages.Where(m => m.Filename == absoluteFilePath)
-                                .Select(m => ToSonarLintIssue(m, sqLanguage))
-                                .ToList());
-                        }
+                        Response response = Protocol.Read(new BinaryReader(readStream));
+                        return response;
                     }
                 }
-                finally
+
+                return null;
+            }
+            finally
+            {
+                if (tempFileName != null)
                 {
-                    if (tempFileName != null)
-                    {
-                        File.Delete(tempFileName);
-                    }
+                    File.Delete(tempFileName);
                 }
             }
+
         }
 
         private static Dictionary<string, string> GetDefaultOptions()

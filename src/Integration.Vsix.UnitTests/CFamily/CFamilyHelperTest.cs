@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -425,6 +426,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\file.hh").Should().Be(false);
             CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\FILE.cpp").Should().Be(false);
             CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\noextension").Should().Be(false);
+        }
+
+        [TestMethod]
+        public void GetKeyValueOptionsList()
+        {
+            var options = CFamilyHelper.GetKeyValueOptionsList();
+
+            // QP option
+            CheckHasOption("internal.qualityProfile=");
+
+            // Check a few known rules with parameters
+            CheckHasOption("ClassComplexity.maximumClassComplexityThreshold=80");
+            CheckHasOption("S1142.max=3");
+            CheckHasOption("S1578.format=^[A-Za-z_-][A-Za-z0-9_-]+\\.(c|m|cpp|cc|cxx)$");
+
+            options.Count().Should().Be(38);
+
+            string CheckHasOption(string optionName)
+            {
+                var matches = options.Where(x => x.StartsWith(optionName, StringComparison.InvariantCulture));
+                matches.Count().Should().Be(1);
+                return matches.First();
+            }
         }
 
         private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
