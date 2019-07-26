@@ -19,23 +19,31 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using EnvDTE;
 
-// TODO: decide whether both of these interfaces are required
-
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    public interface IAnalyzer
+    internal class CLangAnalyzer : IAnalyzer
     {
-        bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages);
+        private readonly ILogger logger;
 
-        void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem);
-    }
+        public CLangAnalyzer(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
-    // Marker interface used by for MEF exporting/importing
-    // (there are multiple implementations of IAnalyzer but only one implentation
-    // of this interface).
-    internal interface IAnalyzerController : IAnalyzer
-    {
+        public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
+        {
+            return languages.Contains(SonarLanguage.CFamily);
+        }
+
+        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        {
+            Debug.Assert(IsAnalysisSupported(detectedLanguages));
+
+            CFamilyHelper.ProcessFile(new ProcessRunner(logger), consumer, logger, projectItem, path, charset);
+        }
     }
 }
