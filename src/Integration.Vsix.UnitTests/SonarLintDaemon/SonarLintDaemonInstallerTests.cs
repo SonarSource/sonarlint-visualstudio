@@ -273,7 +273,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
                 DaemonInstallOperation?.Invoke();
             }
 
-            public void RequestAnalysis(string path, string charset, string sqLanguage, string json, IIssueConsumer consumer)
+            public void RequestAnalysis(string path, string charset, string sqLanguage, IIssueConsumer consumer)
             {
                 throw new NotImplementedException();
             }

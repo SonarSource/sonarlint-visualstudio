@@ -22,11 +22,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
-using System.Text;
 using EnvDTE;
 using Microsoft.VisualStudio;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
@@ -36,7 +35,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
 
-        public static void ProcessFile(ISonarLintDaemon daemon, IIssueConsumer issueConsumer, ILogger logger,
+        private static readonly string analyzerExeFilePath = Path.Combine(
+            Path.GetDirectoryName(typeof(RulesLoader).Assembly.Location),
+            ".CFamilyEmbedded", "subprocess.exe");
+
+        private const int AnalysisTimeoutMs = 10 * 1000;
+        
+        public static void ProcessFile(IProcessRunner runner, IIssueConsumer issueConsumer, ILogger logger,
             ProjectItem projectItem, string absoluteFilePath, string charset)
         {
             if (IsHeaderFile(absoluteFilePath))
@@ -54,14 +59,120 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
 
             string sqLanguage;
-            string json = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
-            if (json != null && sqLanguage != null)
+            Request request = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
+            if (request != null && request.File != null && sqLanguage != null)
             {
-                daemon.RequestAnalysis(absoluteFilePath, charset, sqLanguage, json, issueConsumer);
+                request.Options = GetKeyValueOptionsList();
+                var response = CallClangAnalyzer(request, runner, logger);
+
+                if (response != null)
+                {
+                    issueConsumer.Accept(absoluteFilePath, response.Messages.Where(m => m.Filename == absoluteFilePath)
+                                    .Select(m => ToSonarLintIssue(m, sqLanguage))
+                                    .ToList());
+                }
+
             }
         }
 
-        internal static string TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath,
+        internal /* for testing */ static string[]GetKeyValueOptionsList()
+        {
+            var options = GetDefaultOptions();
+            options.Add("internal.qualityProfile", string.Join(",", RulesLoader.ReadActiveRulesList()));
+            var data = options.Select(kv => kv.Key + "=" + kv.Value).ToArray();
+            return data;
+        }
+        internal /* for testing */ static Response CallClangAnalyzer(Request request, IProcessRunner runner, ILogger logger)
+        {
+            string tempFileName = null;
+            try
+            {
+                tempFileName = Path.GetTempFileName();
+
+                // Create a FileInfo object to set the file's attributes
+                FileInfo fileInfo = new FileInfo(tempFileName);
+
+                // Set the Attribute property of this file to Temporary. 
+                // Although this is not completely necessary, the .NET Framework is able 
+                // to optimize the use of Temporary files by keeping them cached in memory.
+                fileInfo.Attributes = FileAttributes.Temporary;
+
+                using (var writeStream = new FileStream(tempFileName, FileMode.Open))
+                {
+                    Protocol.Write(new BinaryWriter(writeStream), request);
+                }
+
+                var success = ExecuteAnalysis(runner, tempFileName, logger);
+
+                if (success)
+                {
+                    using (var readStream = new FileStream(tempFileName, FileMode.Open))
+                    {
+                        Response response = Protocol.Read(new BinaryReader(readStream));
+                        return response;
+                    }
+                }
+
+                return null;
+            }
+            finally
+            {
+                if (tempFileName != null)
+                {
+                    File.Delete(tempFileName);
+                }
+            }
+
+        }
+
+        private static Dictionary<string, string> GetDefaultOptions()
+        {
+            Dictionary<string, string> defaults = new Dictionary<string, string>();
+            foreach (string ruleKey in RulesLoader.ReadRulesList())
+            {
+                Dictionary<string, string> ruleParams = RulesLoader.ReadRuleParams(ruleKey);
+                foreach (var param in ruleParams)
+                {
+                    string optionKey = ruleKey + "." + param.Key;
+                    defaults.Add(optionKey, param.Value);
+                }
+            }
+            return defaults;
+        }
+
+        private static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage)
+        {
+            return new Sonarlint.Issue()
+            {
+                FilePath = cfamilyIssue.Filename,
+                Message = cfamilyIssue.Text,
+                RuleKey = sqLanguage + ":" + cfamilyIssue.RuleKey,
+                Severity = Sonarlint.Issue.Types.Severity.Blocker, // FIXME
+                Type = Sonarlint.Issue.Types.Type.CodeSmell, //FIXME
+                StartLine = cfamilyIssue.Line,
+                StartLineOffset = cfamilyIssue.Column - 1,
+                EndLine = cfamilyIssue.EndLine,
+                EndLineOffset = cfamilyIssue.EndColumn - 1
+            };
+        }
+
+        private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, ILogger logger)
+        {
+            if (analyzerExeFilePath == null)
+            {
+                logger.WriteLine("Unable to locate the CFamily analyzer exe");
+                return false;
+            }
+
+            ProcessRunnerArguments args = new ProcessRunnerArguments(analyzerExeFilePath, false);
+            args.CmdLineArgs = new string[] { fileName };
+            args.TimeoutInMilliseconds = AnalysisTimeoutMs;
+
+            bool success = runner.Execute(args);
+            return success;
+        }
+
+        internal static Request TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath,
             out string sqLanguage)
         {
             Debug.Assert(!IsHeaderFile(absoluteFilePath),
@@ -72,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             try
             {
-                return FileConfig.TryGet(projectItem, absoluteFilePath).ToJson(absoluteFilePath, out sqLanguage);
+                return FileConfig.TryGet(projectItem, absoluteFilePath).ToRequest(absoluteFilePath, out sqLanguage);
             }
             catch (Exception e)
             {
@@ -291,12 +402,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return new Capture[] { p, c };
             }
 
-            public string ToJson(string path, out string sqLanguage)
+            public Request ToRequest(string path, out string sqLanguage)
             {
                 Capture[] c = ToCaptures(path, out sqLanguage);
-                string json = "{ \"version\": 0, \"captures\": [ " + c[0].ToJson() + " , " + c[1].ToJson() + " ] }";
-                System.Diagnostics.Debug.WriteLine(json);
-                return json;
+                return MsvcDriver.ToRequest(c);
             }
 
             internal static string ConvertPlatformName(string platformName)
@@ -522,41 +631,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         internal class Capture
         {
-            [JsonProperty("compiler")]
             public string Compiler { get { return "msvc-cl"; } }
 
-            [JsonProperty("cwd")]
             public string Cwd { get; set; }
 
-            [JsonProperty("executable")]
             public string Executable { get; set; }
 
-            [JsonProperty("cmd")]
             public List<string> Cmd { get; set; }
 
-            [JsonProperty("env")]
             public List<string> Env { get; set; }
 
-            [JsonProperty("stdout")]
             public string StdOut { get; set; }
 
-            [JsonProperty("stderr")]
             public string StdErr { get; set; }
 
-            public string ToJson()
-            {
-                var sb = new StringBuilder();
-                using (var writer = new StringWriter(sb))
-                {
-                    using (var textWriter = new JsonTextWriter(writer))
-                    {
-                        var serializer = JsonSerializer.CreateDefault();
-                        serializer.Formatting = Formatting.Indented;
-                        serializer.Serialize(textWriter, this);
-                    }
-                }
-                return sb.ToString();
-            }
         }
     }
 }
