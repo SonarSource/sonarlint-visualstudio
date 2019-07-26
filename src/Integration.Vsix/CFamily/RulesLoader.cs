@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Path.GetDirectoryName(typeof(RulesLoader).Assembly.Location),
             ".CFamilyEmbedded");
 
-        public static List<string> ReadRulesList()
+        public static IEnumerable<string> ReadRulesList()
         {
             var rulesList = LoadCFamilyJsonFile<List<string>>("RulesList.json");
             Debug.Assert(rulesList != null, "The CFamily RulesList.json should exist and not be empty");
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return rulesList;
         }
 
-        public static List<string> ReadActiveRulesList()
+        public static IEnumerable<string> ReadActiveRulesList()
         {
             var rulesProfile = LoadCFamilyJsonFile<RulesProfile>("Sonar_way_profile.json");
             Debug.Assert(rulesProfile != null, "The CFamily Sonar_way_profile.json should exist and not be empty");
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return rulesProfile.RuleKeys;
         }
 
-        public static Dictionary<string, string> ReadRuleParams(String ruleKey)
+        public static IDictionary<string, string> ReadRuleParams(String ruleKey)
         {
             var ruleParams = LoadCFamilyJsonFile<RuleParameter[]>(ruleKey + "_params.json");
 
