@@ -431,7 +431,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void GetKeyValueOptionsList()
         {
-            var options = CFamilyHelper.GetKeyValueOptionsList();
+            var options = CFamilyHelper.GetKeyValueOptionsList(RulesMetadataCache.Instance);
 
             // QP option
             CheckHasOption("internal.qualityProfile=");
