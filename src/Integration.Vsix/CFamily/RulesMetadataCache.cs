@@ -25,26 +25,37 @@ using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    internal sealed class RulesMetadataCache
+    internal interface IRulesConfiguration
+    {
+        IEnumerable<string> AllRuleKeys { get; }
+
+        IEnumerable<string> ActiveRuleKeys { get; }
+
+        IDictionary<string, IDictionary<string, string>> RulesParameters { get; }
+
+        IDictionary<string, RuleMetadata> RulesMetadata { get; }
+    }
+
+    internal sealed class RulesMetadataCache : IRulesConfiguration
     {
         private static readonly Lazy<RulesMetadataCache> lazy = new Lazy<RulesMetadataCache>(() => new RulesMetadataCache());
 
-        public static RulesMetadataCache Instance { get { return lazy.Value; } }
+        public static IRulesConfiguration Instance { get { return lazy.Value; } }
 
-        public List<string> AllRulesList { get; }
-        public List<string> ActiveRulesList { get; }
+        public IEnumerable<string> AllRuleKeys { get; }
+        public IEnumerable<string> ActiveRuleKeys { get; }
 
-        public Dictionary<string, Dictionary<string, string>> RulesParameters { get; }
+        public IDictionary<string, IDictionary<string, string>> RulesParameters { get; }
 
-        public Dictionary<string, RuleMetadata> RulesMetadata { get; }
+        public IDictionary<string, RuleMetadata> RulesMetadata { get; }
 
         private RulesMetadataCache()
         {
-            AllRulesList = RulesLoader.ReadRulesList();
-            ActiveRulesList = RulesLoader.ReadActiveRulesList();
-            RulesParameters = AllRulesList
+            AllRuleKeys = RulesLoader.ReadRulesList();
+            ActiveRuleKeys = RulesLoader.ReadActiveRulesList();
+            RulesParameters = AllRuleKeys
                 .ToDictionary(key => key, key => RulesLoader.ReadRuleParams(key));
-            RulesMetadata = AllRulesList
+            RulesMetadata = AllRuleKeys
                 .ToDictionary(key => key, key => RulesLoader.ReadRuleMetadata(key));
         }
     }

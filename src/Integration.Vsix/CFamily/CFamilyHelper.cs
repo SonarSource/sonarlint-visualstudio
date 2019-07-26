@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Dictionary<string, string> defaults = new Dictionary<string, string>();
             foreach (string ruleKey in RulesLoader.ReadRulesList())
             {
-                Dictionary<string, string> ruleParams = RulesLoader.ReadRuleParams(ruleKey);
+                IDictionary<string, string> ruleParams = RulesLoader.ReadRuleParams(ruleKey);
                 foreach (var param in ruleParams)
                 {
                     string optionKey = ruleKey + "." + param.Key;

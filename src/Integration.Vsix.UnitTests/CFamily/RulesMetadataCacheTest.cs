@@ -18,15 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
-using System.IO;
-using EnvDTE;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
 
@@ -38,19 +33,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Read_Rules()
         {
-            RulesMetadataCache.Instance.AllRulesList.Should().HaveCount(410);
+            RulesMetadataCache.Instance.AllRuleKeys.Should().HaveCount(410);
         }
 
         [TestMethod]
         public void Read_Active_Rules()
         {
-            RulesMetadataCache.Instance.ActiveRulesList.Should().HaveCount(255);
+            RulesMetadataCache.Instance.ActiveRuleKeys.Should().HaveCount(255);
         }
 
         [TestMethod]
         public void Read_Rules_Params()
         {
-            Dictionary<string, string> parameters = null;
+            IDictionary<string, string> parameters = null;
             RulesMetadataCache.Instance.RulesParameters.TryGetValue("ClassComplexity", out parameters);
             parameters.Should()
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
