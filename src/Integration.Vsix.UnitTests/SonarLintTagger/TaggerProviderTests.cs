@@ -44,9 +44,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class TaggerProviderTests
     {
-        private ISonarLintDaemon daemon;
-        private Mock<ISonarLintDaemon> mockDaemon;
-        private Mock<ISonarLintSettings> mockISonarLintSettings;
+        private Mock<IAnalyzerController> mockAnalyzerController;
+        private IAnalyzerController analyzerController;
         private Mock<ILogger> mockLogger;
 
         private TaggerProvider provider;
@@ -60,9 +59,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // minimal setup to create a tagger
 
-            this.mockDaemon = new Mock<ISonarLintDaemon>();
-            mockDaemon.Setup(d => d.IsRunning).Returns(true);
-            this.daemon = mockDaemon.Object;
+            mockAnalyzerController = new Mock<IAnalyzerController>();
+            mockAnalyzerController.Setup(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<SonarLanguage>>())).Returns(true);
+            analyzerController = this.mockAnalyzerController.Object;
 
             var mockTableManagerProvider = new Mock<ITableManagerProvider>();
             mockTableManagerProvider.Setup(t => t.GetTableManager(StandardTables.ErrorsTable))
@@ -101,31 +100,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockJsContentType.Setup(c => c.IsOfType("JavaScript")).Returns(true);
             this.jsContentType = mockJsContentType.Object;
 
-
-            mockISonarLintSettings = new Mock<ISonarLintSettings>();
-            mockISonarLintSettings.Setup(s => s.IsActivateMoreEnabled).Returns(true);
-            var sonarLintSettings = mockISonarLintSettings.Object;
-
             dummyDocumentFactoryService = new DummyTextDocumentFactoryService();
 
             mockLogger = new Mock<ILogger>();
 
             var sonarLanguageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryService, fileExtensionRegistryService);
 
-            this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, daemon, serviceProvider,
-                sonarLintSettings, sonarLanguageRecognizer, mockLogger.Object);
+            this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, analyzerController, serviceProvider,
+                sonarLanguageRecognizer, mockLogger.Object);
         }
 
         [TestMethod]
-        public void CreateTagger_should_create_tracker_for_js_when_daemon_running()
+        public void CreateTagger_should_create_tracker_for_js_when_analysis_is_supported()
         {
             CreateTagger(jsContentType).Should().NotBeNull();
         }
 
         [TestMethod]
-        public void CreateTagger_should_return_null_when_daemon_not_activated()
+        public void CreateTagger_should_return_null_when_analysis_is_not_supported()
         {
-            mockISonarLintSettings.Setup(s => s.IsActivateMoreEnabled).Returns(false);
+            mockAnalyzerController.Setup(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<SonarLanguage>>())).Returns(false);
 
             CreateTagger(jsContentType).Should().BeNull();
         }

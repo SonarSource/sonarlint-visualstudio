@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -55,17 +54,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISet<SinkManager> managers = new HashSet<SinkManager>();
         private readonly ISet<TextBufferIssueTracker> issueTrackers = new HashSet<TextBufferIssueTracker>();
 
-        private readonly ISonarLintDaemon daemon;
-        private readonly ISonarLintSettings settings;
+        private readonly IAnalyzerController analyzerController;
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider tableManagerProvider,
             ITextDocumentFactoryService textDocumentFactoryService,
-            ISonarLintDaemon daemon,
+            IAnalyzerController analyzerController,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ISonarLintSettings settings,
+            
             ISonarLanguageRecognizer languageRecognizer,
             ILogger logger)
         {
@@ -80,9 +78,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
                                                    StandardTableColumnDefinitions.ProjectName);
 
-            this.daemon = daemon;
+            this.analyzerController = analyzerController;
             this.dte = serviceProvider.GetService<DTE>();
-            this.settings = settings;
             this.languageRecognizer = languageRecognizer;
             this.logger = logger;
         }
@@ -94,11 +91,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// </summary>
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
-            if (!settings.IsActivateMoreEnabled)
-            {
-                return null;
-            }
-
             // Only attempt to track the view's edit buffer.
             if (buffer != textView.TextBuffer ||
                 typeof(T) != typeof(IErrorTag))
@@ -114,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var detectedLanguages = languageRecognizer.Detect(textDocument, buffer);
 
-            if (detectedLanguages.Any())
+            if (detectedLanguages.Any() && analyzerController.IsAnalysisSupported(detectedLanguages))
             {
                 // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(TextBufferIssueTracker),
@@ -145,39 +137,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Called on the UI thread -> unhandled exceptions will crash VS
             try
             {
-                UnsafeRequestAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem);
+                analyzerController.RequestAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine($"Daemon error: {ex.ToString()}");
-            }
-        }
-
-        private void UnsafeRequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem)
-        {
-            bool handled = false;
-            foreach (var language in detectedLanguages)
-            {
-                switch (language)
-                {
-                    case SonarLanguage.Javascript:
-                        handled = true;
-                        daemon.RequestAnalysis(path, charset, "js", issueConsumer);
-                        break;
-
-                    case SonarLanguage.CFamily:
-                        handled = true;
-                        CFamilyHelper.ProcessFile(new ProcessRunner(logger), issueConsumer, logger, projectItem, path, charset);
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-
-            if (!handled)
-            {
-                logger.WriteLine($"Unsupported content type for {path}");
+                logger.WriteLine($"Analysis error: {ex.ToString()}");
             }
         }
 
@@ -207,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (managers)
             {
                 issueTrackers.Add(bufferHandler);
-                daemon.Ready += bufferHandler.DaemonStarted;
+                //TODO duncanp: daemon.Ready += bufferHandler.DaemonStarted;
 
                 foreach (var manager in managers)
                 {
@@ -221,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (managers)
             {
                 issueTrackers.Remove(bufferHandler);
-                daemon.Ready -= bufferHandler.DaemonStarted;
+                //TODO duncanp: daemon.Ready -= bufferHandler.DaemonStarted;
 
                 foreach (var manager in managers)
                 {
