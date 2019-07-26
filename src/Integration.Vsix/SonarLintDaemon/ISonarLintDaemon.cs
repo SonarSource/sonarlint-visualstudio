@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     public delegate void DaemonEventHandler(object sender, EventArgs e);
 
-    public interface ISonarLintDaemon : IDisposable
+    public interface ISonarLintDaemon : IAnalyzer, IDisposable
     {
         bool IsInstalled { get; }
         bool IsRunning { get; }
@@ -41,8 +41,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         void Start();
         void Stop();
-
-        void RequestAnalysis(string path, string charset, string sqLanguage, IIssueConsumer consumer);
     }
 
     public interface IIssueConsumer

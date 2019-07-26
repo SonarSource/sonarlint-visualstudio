@@ -414,7 +414,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return tempDirectory;
         }
 
-        public void RequestAnalysis(string path, string charset, string sqLanguage, IIssueConsumer consumer)
+        private void RequestAnalysis(string path, string charset, string sqLanguage, IIssueConsumer consumer)
         {
             if (daemonClient == null)
             {
@@ -523,6 +523,43 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         #endregion
+
+        #region IAnalyzer methods
+
+        public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
+        {
+            // TODO: this method is called when deciding whether to create a tagger.
+            // If support for additional languages is not active when the user opens a document
+            // then we won't create a tagger. If the user then activates support for additional
+            // languages and saves the file, we won't display any issues because there isn't a
+            // tagger. The user will have to close and re-open the file to see issues.
+            // Is this the behaviour we want, or should we return true here if the language
+            // is supported, and then check whether to analyze when RequestAnalysis is called?
+            bool isSupported = (languages.Contains(SonarLanguage.Javascript) &&
+                settings.IsActivateMoreEnabled);
+            return isSupported;
+        }
+
+        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, EnvDTE.ProjectItem projectItem)
+        {
+            if (!settings.IsActivateMoreEnabled)
+            {
+                // User might have disable additional languages in the meantime
+                return;
+            }
+
+            if (!IsRunning) // daemon might not have finished starting / might have shutdown
+            {
+                // TODO: handle as part of #926: Delay starting the daemon until a file needs to be analyzed
+                // https://github.com/SonarSource/sonarlint-visualstudio/issues/926
+                logger.WriteLine("Daemon has not started yet. Analysis will not be performed");
+                return;
+            }
+
+            RequestAnalysis(path, charset, "js", consumer);
+        }
+
+        #endregion end of IAnalyzer methods
     }
 }
 
