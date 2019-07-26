@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             if (analyzerExeFilePath == null)
             {
-                logger.WriteLine("Unable to locate teh CFamily analyzer exe");
+                logger.WriteLine("Unable to locate the CFamily analyzer exe");
                 return false;
             }
 

@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void CallAnalyzer_Fails()
         {
             // Arrange
-            var dummyProcessRunner = new DummyProcessRunner(MockResponse(), false);
+            var dummyProcessRunner = new DummyProcessRunner(MockEmptyResponse(), false);
 
             // Act
             var response = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger());
@@ -67,6 +67,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
 
             response.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void CallAnalyzer_BadResponse_Fails()
+        {
+            // Arrange
+            var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse(), true);
+            Action act = () => CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger());
+
+            // Act and Assert
+            act.Should().ThrowExactly<InvalidDataException>();
+
+            dummyProcessRunner.ExecuteCalled.Should().BeTrue();
+            File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
         }
 
         private class DummyProcessRunner : IProcessRunner
@@ -189,5 +203,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             }
         }
 
+        private byte[] MockBadEndResponse()
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                BinaryWriter writer = new BinaryWriter(stream);
+                Protocol.WriteUTF(writer, "OUT");
+
+                // 0 issues
+                Protocol.WriteInt(writer, 0);
+
+                // 0 measures
+                Protocol.WriteInt(writer, 0);
+
+                // 0 symbols
+                Protocol.WriteInt(writer, 0);
+
+                Protocol.WriteUTF(writer, "FOO");
+                return stream.ToArray();
+            }
+        }
     }
 }
