@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private const string DaemonHost = "localhost";
         private const int DefaultDaemonPort = 8050;
 
-        internal /* for testing */ const string DefaultDaemonVersion = "4.3.0.2475";
+        internal /* for testing */ const string DefaultDaemonVersion = "4.3.2.2521";
         internal /* for testing */ const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
         internal /* for testing */ static readonly string DefaultDownloadUrl = string.Format("https://binaries.sonarsource.com/Distribution/sonarlint-daemon/sonarlint-daemon-{0}-windows.zip",
             DefaultDaemonVersion);
