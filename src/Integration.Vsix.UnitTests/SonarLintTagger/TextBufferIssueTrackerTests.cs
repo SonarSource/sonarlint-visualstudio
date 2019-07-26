@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // 2. Add a tagger -> analysis requested
             var tagger = new IssueTagger(testSubject);
-            daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", null, testSubject), Times.Once);
+            daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", testSubject), Times.Once);
         }
 
         [TestMethod]
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             daemonMock.Invocations.Clear();
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", null, testSubject), Times.Once);
+            daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", testSubject), Times.Once);
 
             // 3. Unregister tagger and raise -> analysis not requested
             tagger.Dispose();
@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Sanity check (that the test setup is correct and that events are actually being handled)
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", null, testSubject), Times.Once);
+            daemonMock.Verify(x => x.RequestAnalysis("foo.js", "utf-8", "js", testSubject), Times.Once);
         }
 
         private static void RaiseRenameEvent(Mock<ITextDocument> mockDocument, string newFileName)
@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void CheckAnalysisWasNotRequested()
         {
-            daemonMock.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IIssueConsumer>()), Times.Never);
+            daemonMock.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IIssueConsumer>()), Times.Never);
         }
 
         #endregion
