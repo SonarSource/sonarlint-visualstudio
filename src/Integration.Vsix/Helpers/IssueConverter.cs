@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using Microsoft.VisualStudio.Text;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
@@ -26,10 +27,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
     {
         public IssueMarker ToMarker(Sonarlint.Issue issue, ITextSnapshot currentSnapshot)
         {
-            int startPos = currentSnapshot.GetLineFromLineNumber(issue.StartLine - 1).Start.Position + issue.StartLineOffset;
-            var start = new SnapshotPoint(currentSnapshot, startPos);
+            // SonarLint issues line numbers are 1-based, spans lines are 0-based
 
-            int endPos = currentSnapshot.GetLineFromLineNumber(issue.EndLine - 1).Start.Position + issue.EndLineOffset;
+            var maxLength = currentSnapshot.Length;
+
+            var startLine = currentSnapshot.GetLineFromLineNumber(issue.StartLine - 1);
+            int startPos = startLine.Start.Position + issue.StartLineOffset;
+
+            int endPos;
+            if (issue.EndLine == 0          // Special case : EndLine = 0 means "select whole of the start line, ignoring the offset"
+                || startPos > maxLength)    // Defensive : issue start position is beyond the end of the file. Just select the last line.
+            {
+                startPos = startLine.Start.Position;
+                endPos = startLine.Start.Position + startLine.Length;
+            }
+            else
+            {
+                endPos = currentSnapshot.GetLineFromLineNumber(issue.EndLine - 1).Start.Position + issue.EndLineOffset;
+                // Make sure the end position isn't beyond the end of the snapshot either
+                endPos = Math.Min(maxLength, endPos);
+            }
+
+            var start = new SnapshotPoint(currentSnapshot, startPos);
             var end = new SnapshotPoint(currentSnapshot, endPos);
 
             return new IssueMarker(issue, new SnapshotSpan(start, end));
