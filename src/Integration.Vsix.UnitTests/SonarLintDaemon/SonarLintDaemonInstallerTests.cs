@@ -19,8 +19,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -273,7 +275,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
                 DaemonInstallOperation?.Invoke();
             }
 
-            public void RequestAnalysis(string path, string charset, string sqLanguage, IIssueConsumer consumer)
+            public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
             {
                 throw new NotImplementedException();
             }
@@ -285,6 +287,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             }
 
             public void Stop()
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
             {
                 throw new NotImplementedException();
             }

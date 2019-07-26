@@ -23,6 +23,7 @@ using System.IO;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Vsix;
 using VSIX = SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -425,6 +426,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 daemon.InstallationPath.Should().Be("c:\\storagePath\\sonarlint-daemon-4.3.0.2450-windows");
                 daemon.ZipFilePath.Should().Be("d:\\tempPath\\sonarlint-daemon-4.3.0.2450-windows.zip");
             }
+        }
+
+        [TestMethod]
+        public void IsAnalyisSupported_AdditionalSupportNotActive()
+        {
+            // Arrange
+            settings.IsActivateMoreEnabled = false;
+
+            // Should never return true if activate more is not enabled
+            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.Javascript }).Should().BeFalse();
+            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsAnalyisSupported_AdditionalSupportIsActive()
+        {
+            // Arrange
+            settings.IsActivateMoreEnabled = true;
+
+            // Should never return true if activate more is not enabled
+            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.Javascript }).Should().BeTrue();
+            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeFalse();
+            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.CFamily, SonarLanguage.Javascript }).Should().BeTrue();
         }
 
         private static void ForceDeleteDirectory(string path)
