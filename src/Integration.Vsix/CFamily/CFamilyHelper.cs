@@ -82,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var data = options.Select(kv => kv.Key + "=" + kv.Value).ToArray();
             return data;
         }
+
         internal /* for testing */ static Response CallClangAnalyzer(Request request, IProcessRunner runner, ILogger logger)
         {
             string tempFileName = null;
@@ -160,11 +161,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 StartLine = cfamilyIssue.Line,
                 EndLine = cfamilyIssue.EndLine,
 
-                // Don't make the line offsets negative in the special case EndLine=0
-                StartLineOffset = 
-                    cfamilyIssue.EndLine == 0 ? cfamilyIssue.Column : cfamilyIssue.Column - 1,
-                EndLineOffset =
-                    cfamilyIssue.EndLine == 0 ? cfamilyIssue.EndColumn : cfamilyIssue.EndColumn - 1
+                // We don't care about the columns in the special case EndLine=0
+                StartLineOffset = cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
+                EndLineOffset = cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1
             };
         }
 
