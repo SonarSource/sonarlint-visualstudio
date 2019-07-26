@@ -82,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var data = options.Select(kv => kv.Key + "=" + kv.Value).ToArray();
             return data;
         }
+
         internal /* for testing */ static Response CallClangAnalyzer(Request request, IProcessRunner runner, ILogger logger)
         {
             string tempFileName = null;
@@ -142,6 +143,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage)
         {
+            // Lines and character positions are 1-based
+            Debug.Assert(cfamilyIssue.Line > 0);
+
+            // BUT special case of EndLine=0, Column=0, EndColumn=0 meaning "select the whole line"
+            Debug.Assert(cfamilyIssue.EndLine >= 0);
+            Debug.Assert(cfamilyIssue.Column > 0 || cfamilyIssue.Column == 0); 
+            Debug.Assert(cfamilyIssue.EndColumn > 0 || cfamilyIssue.EndLine == 0);
+
             return new Sonarlint.Issue()
             {
                 FilePath = cfamilyIssue.Filename,
@@ -150,9 +159,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 Severity = Sonarlint.Issue.Types.Severity.Blocker, // FIXME
                 Type = Sonarlint.Issue.Types.Type.CodeSmell, //FIXME
                 StartLine = cfamilyIssue.Line,
-                StartLineOffset = cfamilyIssue.Column - 1,
                 EndLine = cfamilyIssue.EndLine,
-                EndLineOffset = cfamilyIssue.EndColumn - 1
+
+                // We don't care about the columns in the special case EndLine=0
+                StartLineOffset = cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
+                EndLineOffset = cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1
             };
         }
 
