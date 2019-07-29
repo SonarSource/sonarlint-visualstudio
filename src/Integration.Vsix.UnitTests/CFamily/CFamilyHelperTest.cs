@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
@@ -26,6 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using static Sonarlint.Issue.Types;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -429,7 +431,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void GetKeyValueOptionsList()
+        public void GetKeyValueOptionsList_UsingEmbeddedRulesJson()
         {
             var options = CFamilyHelper.GetKeyValueOptionsList(RulesMetadataCache.Instance);
 
@@ -449,6 +451,128 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 matches.Count().Should().Be(1);
                 return matches.First();
             }
+        }
+
+        [TestMethod]
+        public void GetKeyValueOptionsList_WithKnownConfig()
+        {
+            var rulesConfig = GetDummyRulesConfiguration();
+            var options = CFamilyHelper.GetKeyValueOptionsList(rulesConfig);
+
+            // QP option
+            CheckHasExactOption("internal.qualityProfile=rule2,rule3"); // only active rules
+
+            // Check a few known rules with parameters
+            CheckHasExactOption("rule1.rule1 Param1=rule1 Value1");
+            CheckHasExactOption("rule1.rule1 Param2=rule1 Value2");
+
+            CheckHasExactOption("rule2.rule2 Param1=rule2 Value1");
+            CheckHasExactOption("rule2.rule2 Param2=rule2 Value2");
+
+            CheckHasExactOption("rule3.rule3 Param1=rule3 Value1");
+            CheckHasExactOption("rule3.rule3 Param2=rule3 Value2");
+
+            options.Count().Should().Be(7);
+
+            string CheckHasExactOption(string expected)
+            {
+                var matches = options.Where(x => string.Equals(x, expected, StringComparison.InvariantCulture));
+                matches.Count().Should().Be(1);
+                return matches.First();
+            }
+        }
+
+        [TestMethod]
+        public void ToSonarLintIssue_EndLineIsNotZero()
+        {
+            var ruleConfig = GetDummyRulesConfiguration();
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, null);
+
+            // Act
+            var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
+
+            //Assert
+            issue.StartLine.Should().Be(4);
+            issue.StartLineOffset.Should().Be(3 - 1);
+
+            issue.EndLine.Should().Be(2);
+            issue.EndLineOffset.Should().Be(1 - 1);
+
+            issue.RuleKey.Should().Be("lang1:rule2");
+            issue.FilePath.Should().Be("file");
+            issue.Message.Should().Be("test endline is not zero");
+        }
+
+        [TestMethod]
+        public void ToSonarLintIssue_EndLineIsZero()
+        {
+            // Special case: ignore column offsets if EndLine is zero
+            var ruleConfig = GetDummyRulesConfiguration();
+            var message = new Message("rule3", "ff", 101, 1, 0, 3, "test endline is zero", true, null);
+
+            // Act
+            var issue = CFamilyHelper.ToSonarLintIssue(message, "cpp", ruleConfig);
+
+            //Assert
+            issue.StartLine.Should().Be(101);
+
+            issue.EndLine.Should().Be(0);
+            issue.StartLineOffset.Should().Be(0);
+            issue.EndLineOffset.Should().Be(0);
+
+            issue.RuleKey.Should().Be("cpp:rule3");
+            issue.FilePath.Should().Be("ff");
+            issue.Message.Should().Be("test endline is zero");
+        }
+
+        [TestMethod]
+        public void ToSonarLintIssue_SeverityAndTypeLookup()
+        {
+            var ruleConfig = GetDummyRulesConfiguration();
+
+            // 1. Check rule2
+            var message = new Message("rule2", "any", 4, 3, 2, 1, "message", false, null);
+            var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
+
+            issue.RuleKey.Should().Be("lang1:rule2");
+            issue.Severity.Should().Be(Severity.Info);
+            issue.Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
+
+            // 2. Check rule3
+            message = new Message("rule3", "any", 4, 3, 2, 1, "message", false, null);
+            issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
+
+            issue.RuleKey.Should().Be("lang1:rule3");
+            issue.Severity.Should().Be(Severity.Critical);
+            issue.Type.Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
+        }
+
+        private static IRulesConfiguration GetDummyRulesConfiguration()
+        {
+            var config = new DummyRulesConfiguration
+            {
+                RuleKeyToActiveMap = new Dictionary<string, bool>
+                {
+                    { "rule1", false },
+                    { "rule2", true },
+                    { "rule3", true }
+                },
+
+                RulesParameters = new Dictionary<string, IDictionary<string, string>>
+                {
+                    { "rule1", new Dictionary<string, string> { { "rule1 Param1", "rule1 Value1" }, { "rule1 Param2", "rule1 Value2" } } },
+                    { "rule2", new Dictionary<string, string> { { "rule2 Param1", "rule2 Value1" }, { "rule2 Param2", "rule2 Value2" } } },
+                    { "rule3", new Dictionary<string, string> { { "rule3 Param1", "rule3 Value1" }, { "rule3 Param2", "rule3 Value2" } } }
+                },
+
+                RulesMetadata = new Dictionary<string, RulesLoader.RuleMetadata>
+                {
+                    { "rule1", new RulesLoader.RuleMetadata { Title = "rule1 title", DefaultSeverity = Sonarlint.Issue.Types.Severity.Blocker, Type = Sonarlint.Issue.Types.Type.Bug } },
+                    { "rule2", new RulesLoader.RuleMetadata { Title = "rule2 title", DefaultSeverity = Sonarlint.Issue.Types.Severity.Info, Type = Sonarlint.Issue.Types.Type.CodeSmell } },
+                    { "rule3", new RulesLoader.RuleMetadata { Title = "rule3 title", DefaultSeverity = Sonarlint.Issue.Types.Severity.Critical, Type = Sonarlint.Issue.Types.Type.Vulnerability } },
+                }
+            };
+            return config;
         }
 
         private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
@@ -477,6 +601,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             loggerMock.Verify(x => x.WriteLine(It.Is<string>(
                 s => s.Contains(message))), Times.Once);
+        }
+
+        private class DummyRulesConfiguration : IRulesConfiguration
+        {
+            public IDictionary<string, bool> RuleKeyToActiveMap { get; set; } = new Dictionary<string, bool>();
+
+            #region IRulesConfiguration interface
+
+            public IEnumerable<string> AllRuleKeys => RuleKeyToActiveMap.Keys;
+
+            public IEnumerable<string> ActiveRuleKeys => RuleKeyToActiveMap.Where(kvp => kvp.Value)
+                                                                            .Select(kvp => kvp.Key)
+                                                                            .ToList();
+            public IDictionary<string, IDictionary<string, string>> RulesParameters { get; set; }
+                    = new Dictionary<string, IDictionary<string, string>>();
+
+            public IDictionary<string, RulesLoader.RuleMetadata> RulesMetadata { get; set; }
+                    = new Dictionary<string, RulesLoader.RuleMetadata>();
+
+            #endregion
         }
     }
 }
