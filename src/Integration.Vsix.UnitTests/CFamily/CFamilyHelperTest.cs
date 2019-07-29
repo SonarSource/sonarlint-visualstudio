@@ -25,7 +25,6 @@ using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using static Sonarlint.Issue.Types;
 
@@ -296,62 +295,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void ProcessFile_HeaderFile_IsNotProcessed()
+        public void CreateRequest_HeaderFile_IsNotProcessed()
         {
             // Arrange
-            var runnerMock = new Mock<IProcessRunner>();
-            var issueConsumerMock = new Mock<IIssueConsumer>();
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = new Mock<ProjectItem>();
 
             // Act
-            CFamilyHelper.ProcessFile(runnerMock.Object, issueConsumerMock.Object,
-                loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", "charset");
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", out string sqLanguage);
 
             // Assert
             AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
-            AssertFileNotAnalysed(runnerMock);
+            request.Should().BeNull();
+            sqLanguage.Should().BeNull();
         }
 
         [TestMethod]
-        public void ProcessFile_FileOutsideSolution_IsNotProcessed()
+        public void CreateRequest_FileOutsideSolution_IsNotProcessed()
         {
             // Arrange
-            var runnerMock = new Mock<IProcessRunner>();
-            var issueConsumerMock = new Mock<IIssueConsumer>();
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
 
             // Act
-            CFamilyHelper.ProcessFile(runnerMock.Object, issueConsumerMock.Object,
-                loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", "charset");
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", out string sqLanguage);
 
             // Assert
             AssertMessageLogged(loggerMock,
                 "Unable to retrieve the configuration for file 'c:\\dummy\\file.cpp'. Check the file is part of a project in the current solution.");
-            AssertFileNotAnalysed(runnerMock);
+            request.Should().BeNull();
+            sqLanguage.Should().BeNull();
         }
 
         [TestMethod]
-        public void ProcessFile_ErrorGetting_IsHandled()
+        public void CreateRequest_ErrorGetting_IsHandled()
         {
             // Arrange
-            var runnerMock = new Mock<IProcessRunner>();
-            var issueConsumerMock = new Mock<IIssueConsumer>();
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
 
             // Act
-            CFamilyHelper.ProcessFile(runnerMock.Object, issueConsumerMock.Object,
-                loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", "charset");
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", out string sqLanguage);
 
             // Assert
             AssertPartialMessageLogged(loggerMock,
                 "Unable to collect C/C++ configuration for c:\\dummy\\file.cpp: ");
-            AssertFileNotAnalysed(runnerMock);
+            request.Should().BeNull();
+            sqLanguage.Should().BeNull();
         }
 
         [TestMethod]
