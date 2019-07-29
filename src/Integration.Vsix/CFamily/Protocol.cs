@@ -60,6 +60,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public string[] Macros { get; set; } = Array.Empty<string>();
         public string TargetTriple { get; set; } = "x86_64-unknown-unknown";
         public string File { get; set; } = "";
+
+        // Note: the language isn't passed as part of the request to the
+        // CLang analyzer, but it is by SVLS used when filtering the returned issues.
+        public string CFamilyLanguage { get; set; }
     }
 
     internal class Response
