@@ -23,6 +23,7 @@ using System.IO;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
 
@@ -63,8 +64,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             using (new AssertionScope())
             {
-                RulesLoader.ReadRuleMetadata("ClassComplexity").Type.Should().Be(RuleType.CodeSmell);
-                RulesLoader.ReadRuleMetadata("ClassComplexity").DefaultSeverity.Should().Be(RuleSeverity.Critical);
+                RulesLoader.ReadRuleMetadata("ClassComplexity").Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
+                RulesLoader.ReadRuleMetadata("ClassComplexity").DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Critical);
             }
 
             Action act = () => RulesLoader.ReadRuleMetadata("Missing");
@@ -76,6 +77,68 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 RulesLoader.ReadRuleMetadata(ruleKey).Should().NotBeNull();
             }
         }
+
+        [TestMethod]
+        public void SonarTypeConverter_CodeSmell()
+        {
+            var json = @"{
+title: 'title1',
+defaultSeverity: 'CRITICAL',
+type: 'CODE_SMELL'
+}";
+            var ruleMetadata = DeserializeJson(json);
+
+            ruleMetadata.Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
+            ruleMetadata.DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Critical);
+        }
+
+        [TestMethod]
+        public void SonarTypeConverter_Bug()
+        {
+            var json = @"{
+title: 'title1',
+defaultSeverity: 'BLOCKER',
+type: 'BUG'
+}";
+            var ruleMetadata = DeserializeJson(json);
+
+            ruleMetadata.Type.Should().Be(Sonarlint.Issue.Types.Type.Bug);
+            ruleMetadata.DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Blocker);
+        }
+
+        [TestMethod]
+        public void SonarTypeConverter_Vulnerability ()
+        {
+            var json = @"{
+title: 'title1',
+defaultSeverity: 'INFO',
+type: 'VULNERABILITY'
+}";
+            var ruleMetadata = DeserializeJson(json);
+
+            ruleMetadata.Type.Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
+            ruleMetadata.DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Info);
+        }
+
+        [TestMethod]
+        public void SonarTypeConverter_UnknownType_Throws()
+        {
+            var json = @"{
+title: 'title1',
+defaultSeverity: 'CRITICAL',
+type: 'xxx bad type'
+}";
+            Action act = () => DeserializeJson(json);
+
+            act.Should().ThrowExactly<JsonSerializationException>().And.Message.Should().Contain("xxx bad type");
+        }
+
+        private static RuleMetadata DeserializeJson(string json)
+        {
+            var data = JsonConvert.DeserializeObject<RuleMetadata>(json, new SonarTypeConverter());
+            return data;
+        }
+
     }
 
 }

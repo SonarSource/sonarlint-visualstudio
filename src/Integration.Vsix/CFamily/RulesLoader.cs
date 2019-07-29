@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return ruleMetadata;
         }
 
-        private static T LoadCFamilyJsonFile<T>(string fileName) where T: class
+        private static T LoadCFamilyJsonFile<T>(string fileName) where T : class
         {
             string path = Path.Combine(CFamilyFilesDirectory, fileName);
             if (!File.Exists(path))
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return default(T);
             }
 
-            var data = JsonConvert.DeserializeObject<T>(File.ReadAllText(path, Encoding.UTF8));
+            var data = JsonConvert.DeserializeObject<T>(File.ReadAllText(path, Encoding.UTF8), new SonarTypeConverter());
             return data;
         }
 
@@ -116,45 +116,50 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             public string Type { get; set; }
         }
 
-        [JsonConverter(typeof(StringEnumConverter))]
-        public enum RuleType
-        {
-            [EnumMember(Value = "CODE_SMELL")]
-            CodeSmell,
-            [EnumMember(Value = "BUG")]
-            Bug,
-            [EnumMember(Value = "VULNERABILITY")]
-            Vulnerability,
-            [EnumMember(Value = "HOTSPOT")]
-            Hotspot
-        }
-
-        [JsonConverter(typeof(StringEnumConverter))]
-        public enum RuleSeverity
-        {
-            [EnumMember(Value = "Blocker")]
-            Blocker,
-            [EnumMember(Value = "Critical")]
-            Critical,
-            [EnumMember(Value = "Major")]
-            Major,
-            [EnumMember(Value = "Minor")]
-            Minor,
-            [EnumMember(Value = "Info")]
-            Info
-        }
-
         public class RuleMetadata
         {
             [JsonProperty("title")]
             public string Title { get; set; }
 
             [JsonProperty("type")]
-            public RuleType Type { get; set; }
+            public Sonarlint.Issue.Types.Type Type { get; set; }
 
             [JsonProperty("defaultSeverity")]
-            public RuleSeverity DefaultSeverity { get; set; }
+            public Sonarlint.Issue.Types.Severity DefaultSeverity { get; set; }
 
+        }
+
+        /// <summary>
+        /// Custom converter to the protobuf issue Type enum
+        /// </summary>
+        internal class SonarTypeConverter : Newtonsoft.Json.JsonConverter
+        {
+            public override bool CanConvert(Type objectType) =>
+                objectType == typeof(Sonarlint.Issue.Types.Type);
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                var serializedString = (string)reader.Value;
+
+                // The names of the CodeSmell enum doesn't map directly to the serialized string so
+                // we can't use the default JSON StringEnumSerializer
+                if (serializedString.Equals("CODE_SMELL", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Sonarlint.Issue.Types.Type.CodeSmell;
+                }
+
+                if (Enum.TryParse<Sonarlint.Issue.Types.Type>(serializedString, true /* ignore case */, out Sonarlint.Issue.Types.Type data))
+                {
+                    return data;
+                }
+
+                throw new JsonSerializationException($"Unrecognized Sonarlint.Issue.Types.Type value: {serializedString}");
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
