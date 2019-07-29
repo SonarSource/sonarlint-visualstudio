@@ -49,17 +49,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var request = CFamilyHelper.CreateRequest(logger, projectItem, path, out string sqLanguage);
+            var request = CFamilyHelper.CreateRequest(logger, projectItem, path);
             if (request == null)
             {
                 return;
             }
 
-            TriggerAnalysisAsync(request, consumer, sqLanguage)
+            TriggerAnalysisAsync(request, consumer)
                 .Forget(); // fire and forget
         }
 
-        private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, string sqLanguage)
+        private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer)
         {
             // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
             // Note: we support multiple versions of VS which prevents us from using some threading helper methods
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             if (response != null)
             {
                 var issues = response.Messages.Where(m => m.Filename == request.File)
-                        .Select(m => CFamilyHelper.ToSonarLintIssue(m, sqLanguage, RulesMetadataCache.Instance))
+                        .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, RulesMetadataCache.Instance))
                         .ToList();
 
                 // Switch back to the UI thread

@@ -182,24 +182,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void ConvertCompileAsAndGetSqLanguage()
         {
-            string sqLanguage;
+            string cfamilyLanguage;
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("", FileName, out sqLanguage).Should().Be("");
-            sqLanguage.Should().Be("cpp");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", FileName, out sqLanguage).Should().Be("");
-            sqLanguage.Should().Be("cpp");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.cc", out sqLanguage).Should().Be("");
-            sqLanguage.Should().Be("cpp");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.cxx", out sqLanguage).Should().Be("");
-            sqLanguage.Should().Be("cpp");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("Default", @"c:\Foo.c", out sqLanguage).Should().Be("");
-            sqLanguage.Should().Be("c");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("CompileAsC", FileName, out sqLanguage).Should().Be("/TC");
-            sqLanguage.Should().Be("c");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("CompileAsCpp", FileName, out sqLanguage).Should().Be("/TP");
-            sqLanguage.Should().Be("cpp");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("", FileName, out cfamilyLanguage).Should().Be("");
+            cfamilyLanguage.Should().Be("cpp");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", FileName, out cfamilyLanguage).Should().Be("");
+            cfamilyLanguage.Should().Be("cpp");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", @"c:\Foo.cc", out cfamilyLanguage).Should().Be("");
+            cfamilyLanguage.Should().Be("cpp");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", @"c:\Foo.cxx", out cfamilyLanguage).Should().Be("");
+            cfamilyLanguage.Should().Be("cpp");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", @"c:\Foo.c", out cfamilyLanguage).Should().Be("");
+            cfamilyLanguage.Should().Be("c");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("CompileAsC", FileName, out cfamilyLanguage).Should().Be("/TC");
+            cfamilyLanguage.Should().Be("c");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("CompileAsCpp", FileName, out cfamilyLanguage).Should().Be("/TP");
+            cfamilyLanguage.Should().Be("cpp");
 
-            Action action = () => CFamilyHelper.FileConfig.ConvertCompileAsAndGetSqLanguage("foo", FileName, out sqLanguage);
+            Action action = () => CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("foo", FileName, out cfamilyLanguage);
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported CompileAs: foo");
         }
 
@@ -303,12 +303,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = new Mock<ProjectItem>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", out string sqLanguage);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h");
 
             // Assert
             AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
             request.Should().BeNull();
-            sqLanguage.Should().BeNull();
         }
 
         [TestMethod]
@@ -320,13 +319,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", out string sqLanguage);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
 
             // Assert
             AssertMessageLogged(loggerMock,
                 "Unable to retrieve the configuration for file 'c:\\dummy\\file.cpp'. Check the file is part of a project in the current solution.");
             request.Should().BeNull();
-            sqLanguage.Should().BeNull();
         }
 
         [TestMethod]
@@ -338,13 +336,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", out string sqLanguage);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
 
             // Assert
             AssertPartialMessageLogged(loggerMock,
                 "Unable to collect C/C++ configuration for c:\\dummy\\file.cpp: ");
             request.Should().BeNull();
-            sqLanguage.Should().BeNull();
         }
 
         [TestMethod]
@@ -352,18 +349,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             // Arrange
             var loggerMock = new Mock<ILogger>();
-            string sqLanguage;
 
             // Act
             using (new AssertIgnoreScope())
             {
-                var request = CFamilyHelper.TryGetConfig(loggerMock.Object, null, "c:\\dummy", out sqLanguage);
+                var request = CFamilyHelper.TryGetConfig(loggerMock.Object, null, "c:\\dummy");
 
                 // Assert
                 AssertPartialMessageLogged(loggerMock,
                     "Unable to collect C/C++ configuration for c:\\dummy: ");
                 request.Should().BeNull();
-                sqLanguage.Should().BeNull();
             }
         }
 
