@@ -21,7 +21,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -43,7 +47,50 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            CFamilyHelper.ProcessFile(new ProcessRunner(logger), consumer, logger, projectItem, path, charset);
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var request = CFamilyHelper.CreateRequest(logger, projectItem, path, out string sqLanguage);
+            if (request == null)
+            {
+                return;
+            }
+
+            TriggerAnalysisAsync(request, consumer, sqLanguage)
+                .Forget(); // fire and forget
         }
+
+        private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, string sqLanguage)
+        {
+            // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
+            // Note: we support multiple versions of VS which prevents us from using some threading helper methods
+            // that are only available in newer versions of VS e.g. [Import] IThreadHandling.            // current versions.
+
+            // Switch a background thread
+            await TaskScheduler.Default;
+
+            // TODO: we're tying up a background thread waiting for out-of-process analysis. We could
+            // change the process runner so it works asynchronously. Alternatively, we could change the
+            // RequestAnalysis method to be synchronous, rather than fire-and-forget.
+            var response = CFamilyHelper.CallClangAnalyzer(request, new ProcessRunner(logger), logger);
+
+            System.Threading.Thread.Sleep(5000);
+
+            if (response != null)
+            {
+                var issues = response.Messages.Where(m => m.Filename == request.File)
+                        .Select(m => CFamilyHelper.ToSonarLintIssue(m, sqLanguage, RulesMetadataCache.Instance))
+                        .ToList();
+
+                // Switch back to the UI thread
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                // Note: the file being analyzed might have been closed by the time the analysis results are 
+                // returned. This doesn't cause a crash; all active taggers will have been detached from the
+                // TextBufferIssueTracker when the file was closed, but the TextBufferIssueTracker will
+                // still exist and handle the call.
+                consumer.Accept(request.File, issues);
+            }
+        }
+
     }
 }

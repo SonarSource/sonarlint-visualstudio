@@ -41,37 +41,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private const int AnalysisTimeoutMs = 10 * 1000;
         
-        public static void ProcessFile(IProcessRunner runner, IIssueConsumer issueConsumer, ILogger logger,
-            ProjectItem projectItem, string absoluteFilePath, string charset)
+        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, out string sqLanguage)
         {
+            sqLanguage = null;
             if (IsHeaderFile(absoluteFilePath))
             {
                 // We can't analyze header files currently because we can't get all
                 // of the required configuration information
                 logger.WriteLine($"Cannot analyze header files. File: '{absoluteFilePath}'");
-                return;
+                return null;
             }
 
             if (!IsFileInSolution(projectItem))
             {
                 logger.WriteLine($"Unable to retrieve the configuration for file '{absoluteFilePath}'. Check the file is part of a project in the current solution.");
-                return;
+                return null;
             }
 
-            string sqLanguage;
             Request request = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
-            if (request != null && request.File != null && sqLanguage != null)
-            {
-                request.Options = GetKeyValueOptionsList(RulesMetadataCache.Instance);
-                var response = CallClangAnalyzer(request, runner, logger);
 
-                if (response != null)
-                {
-                    issueConsumer.Accept(absoluteFilePath, response.Messages.Where(m => m.Filename == absoluteFilePath)
-                                    .Select(m => ToSonarLintIssue(m, sqLanguage, RulesMetadataCache.Instance))
-                                    .ToList());
-                }
+            if (request?.File == null || sqLanguage == null)
+            {
+                return null;
             }
+
+            request.Options = GetKeyValueOptionsList(RulesMetadataCache.Instance);
+            return request;
         }
 
         internal /* for testing */ static string[]GetKeyValueOptionsList(IRulesConfiguration rulesConfiguration)
@@ -121,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
 
                 var success = ExecuteAnalysis(runner, tempFileName, logger);
-
+                
                 if (success)
                 {
                     using (var readStream = new FileStream(tempFileName, FileMode.Open))
