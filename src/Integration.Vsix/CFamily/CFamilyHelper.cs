@@ -41,9 +41,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private const int AnalysisTimeoutMs = 10 * 1000;
         
-        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, out string sqLanguage)
+        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
         {
-            sqLanguage = null;
             if (IsHeaderFile(absoluteFilePath))
             {
                 // We can't analyze header files currently because we can't get all
@@ -58,9 +57,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            Request request = TryGetConfig(logger, projectItem, absoluteFilePath, out sqLanguage);
+            Request request = TryGetConfig(logger, projectItem, absoluteFilePath);
 
-            if (request?.File == null || sqLanguage == null)
+            if (request?.File == null || request?.CFamilyLanguage == null)
             {
                 return null;
             }
@@ -184,8 +183,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return success;
         }
 
-        internal static Request TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath,
-            out string sqLanguage)
+        internal static Request TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
         {
             Debug.Assert(!IsHeaderFile(absoluteFilePath),
                 $"Not expecting TryGetConfig to be called for header files: {absoluteFilePath}");
@@ -195,12 +193,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             try
             {
-                return FileConfig.TryGet(projectItem, absoluteFilePath).ToRequest(absoluteFilePath, out sqLanguage);
+                return FileConfig.TryGet(projectItem, absoluteFilePath).ToRequest(absoluteFilePath);
             }
             catch (Exception e)
             {
                 logger.WriteLine($"Unable to collect C/C++ configuration for {absoluteFilePath}: {e.ToString()}");
-                sqLanguage = null;
                 return null;
             }
         }
@@ -363,7 +360,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             #endregion
 
-            public Capture[] ToCaptures(string path, out string sqLanguage)
+            public Capture[] ToCaptures(string path, out string cfamilyLanguage)
             {
                 var p = new Capture()
                 {
@@ -391,7 +388,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 AddRange(c.Cmd, "/D", PreprocessorDefinitions.Split(';'));
                 AddRange(c.Cmd, "/U", UndefinePreprocessorDefinitions.Split(';'));
 
-                Add(c.Cmd, ConvertCompileAsAndGetSqLanguage(CompileAs, path, out sqLanguage));
+                Add(c.Cmd, ConvertCompileAsAndGetLanguage(CompileAs, path, out cfamilyLanguage));
                 Add(c.Cmd, ConvertCompileAsManaged(CompileAsManaged));
                 Add(c.Cmd, "true".Equals(CompileAsWinRT) ? "/ZW" : "");
                 Add(c.Cmd, "true".Equals(DisableLanguageExtensions) ? "/Za" : ""); // defines macro "__STDC__" when compiling C
@@ -414,13 +411,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return new Capture[] { p, c };
             }
 
-            public Request ToRequest(string path, out string sqLanguage)
+            public Request ToRequest(string path)
             {
-                Capture[] c = ToCaptures(path, out sqLanguage);
-                return MsvcDriver.ToRequest(c);
+                Capture[] c = ToCaptures(path, out string cfamilyLanguage);
+                var request = MsvcDriver.ToRequest(c);
+                request.CFamilyLanguage = cfamilyLanguage;
+                return request;
             }
 
-            internal static string ConvertPlatformName(string platformName)
+            internal /* for testing */ static string ConvertPlatformName(string platformName)
             {
                 switch (platformName)
                 {
@@ -433,7 +432,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
-            internal static string ConvertPlatformToolset(string platformToolset)
+            internal /* for testing */ static string ConvertPlatformToolset(string platformToolset)
             {
                 switch (platformToolset)
                 {
@@ -462,7 +461,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
-            internal static string ConvertCompileAsAndGetSqLanguage(string value, string path, out string sqLanguage)
+            internal /* for testing */ static string ConvertCompileAsAndGetLanguage(string value, string path, out string cfamilyLanguage)
             {
                 switch (value)
                 {
@@ -473,27 +472,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         // Compile files with extensions ".cpp", ".cxx" and ".cc" as Cpp and files with extension ".c" as C
                         if (path.ToLowerInvariant().EndsWith(".cpp") || path.ToLowerInvariant().EndsWith(".cxx") || path.ToLowerInvariant().EndsWith(".cc"))
                         {
-                            sqLanguage = CPP_LANGUAGE_KEY;
+                            cfamilyLanguage = CPP_LANGUAGE_KEY;
                         }
                         else if (path.ToLowerInvariant().EndsWith(".c"))
                         {
-                            sqLanguage = C_LANGUAGE_KEY;
+                            cfamilyLanguage = C_LANGUAGE_KEY;
                         }
                         else
                         {
-                            sqLanguage = null;
+                            cfamilyLanguage = null;
                         }
                         return "";
                     case "CompileAsC":
-                        sqLanguage = "c";
+                        cfamilyLanguage = "c";
                         return "/TC";
                     case "CompileAsCpp":
-                        sqLanguage = CPP_LANGUAGE_KEY;
+                        cfamilyLanguage = CPP_LANGUAGE_KEY;
                         return "/TP";
                 }
             }
 
-            internal static string ConvertCompileAsManaged(string value)
+            internal /* for testing */ static string ConvertCompileAsManaged(string value)
             {
                 switch (value)
                 {
@@ -511,7 +510,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
-            internal static string ConvertRuntimeLibrary(string value)
+            internal /* for testing */ static string ConvertRuntimeLibrary(string value)
             {
                 switch (value)
                 {
@@ -532,7 +531,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
-            internal static string ConvertEnableEnhancedInstructionSet(string value)
+            internal /* for testing */ static string ConvertEnableEnhancedInstructionSet(string value)
             {
                 switch (value)
                 {
@@ -554,7 +553,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
-            internal static string ConvertExceptionHandling(string value)
+            internal /* for testing */ static string ConvertExceptionHandling(string value)
             {
                 switch (value)
                 {
@@ -573,7 +572,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
-            internal static string ConvertBasicRuntimeChecks(string value)
+            internal /* for testing */ static string ConvertBasicRuntimeChecks(string value)
             {
                 switch (value)
                 {
@@ -592,7 +591,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
-            internal static string ConvertPrecompiledHeader(string value, string header)
+            internal /* for testing */ static string ConvertPrecompiledHeader(string value, string header)
             {
                 switch (value)
                 {
