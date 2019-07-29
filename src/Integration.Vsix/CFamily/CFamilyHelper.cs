@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 if (response != null)
                 {
                     issueConsumer.Accept(absoluteFilePath, response.Messages.Where(m => m.Filename == absoluteFilePath)
-                                    .Select(m => ToSonarLintIssue(m, sqLanguage))
+                                    .Select(m => ToSonarLintIssue(m, sqLanguage, RulesMetadataCache.Instance))
                                     .ToList());
                 }
             }
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         }
 
-        private static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage)
+        internal /* for testing */ static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage, IRulesConfiguration rulesConfiguration)
         {
             // Lines and character positions are 1-based
             Debug.Assert(cfamilyIssue.Line > 0);
@@ -153,13 +153,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Debug.Assert(cfamilyIssue.Column > 0 || cfamilyIssue.Column == 0); 
             Debug.Assert(cfamilyIssue.EndColumn > 0 || cfamilyIssue.EndLine == 0);
 
+            // Look up default severity and type
+            var defaultSeverity = rulesConfiguration.RulesMetadata[cfamilyIssue.RuleKey].DefaultSeverity;
+            var defaultType = rulesConfiguration.RulesMetadata[cfamilyIssue.RuleKey].Type;
+
             return new Sonarlint.Issue()
             {
                 FilePath = cfamilyIssue.Filename,
                 Message = cfamilyIssue.Text,
                 RuleKey = sqLanguage + ":" + cfamilyIssue.RuleKey,
-                Severity = Sonarlint.Issue.Types.Severity.Blocker, // FIXME
-                Type = Sonarlint.Issue.Types.Type.CodeSmell, //FIXME
+                Severity = defaultSeverity,
+                Type = defaultType,
                 StartLine = cfamilyIssue.Line,
                 EndLine = cfamilyIssue.EndLine,
 
