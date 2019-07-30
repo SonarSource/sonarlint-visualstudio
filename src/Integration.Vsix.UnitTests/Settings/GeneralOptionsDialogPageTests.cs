@@ -81,8 +81,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // ... and activate options should be visible
             page.Control.ActivateButton.Visibility.Should().Be(Visibility.Visible);
             page.Control.ActivateText.Visibility.Should().Be(Visibility.Visible);
-            page.Control.ShowAdditionalLanguageDownloadDialogue.IsChecked.Should().BeFalse();
-            page.Control.ShowAdditionalLanguageDownloadText.Visibility.Should().Be(Visibility.Visible);
         }
 
 
@@ -118,8 +116,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // ... and active options should not
             page.Control.ActivateButton.Visibility.Should().Be(Visibility.Collapsed);
             page.Control.ActivateText.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.ShowAdditionalLanguageDownloadDialogue.IsChecked.Should().BeFalse();  // inverse of SkipActivateMoreDialog
-            page.Control.ShowAdditionalLanguageDownloadText.Visibility.Should().Be(Visibility.Collapsed);
         }
 
         [TestMethod]
@@ -154,8 +150,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // ... and activate options should be visible
             page.Control.ActivateButton.Visibility.Should().Be(Visibility.Visible);
             page.Control.ActivateText.Visibility.Should().Be(Visibility.Visible);
-            page.Control.ShowAdditionalLanguageDownloadDialogue.IsChecked.Should().BeTrue();  // inverse of SkipActivateMoreDialog
-            page.Control.ShowAdditionalLanguageDownloadText.Visibility.Should().Be(Visibility.Visible);
         }
 
         [TestMethod]

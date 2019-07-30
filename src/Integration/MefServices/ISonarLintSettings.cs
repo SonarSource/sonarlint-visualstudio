@@ -25,7 +25,6 @@ namespace SonarLint.VisualStudio.Integration
     public interface ISonarLintSettings
     {
         bool IsActivateMoreEnabled { get; set; }
-        bool SkipActivateMoreDialog { get; set; }
         DaemonLogLevel DaemonLogLevel { get; set; }
     }
 }
