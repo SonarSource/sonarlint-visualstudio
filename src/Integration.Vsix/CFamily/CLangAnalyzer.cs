@@ -73,8 +73,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // RequestAnalysis method to be synchronous, rather than fire-and-forget.
             var response = CFamilyHelper.CallClangAnalyzer(request, new ProcessRunner(logger), logger);
 
-            System.Threading.Thread.Sleep(5000);
-
             if (response != null)
             {
                 var issues = response.Messages.Where(m => m.Filename == request.File)
