@@ -33,7 +33,7 @@ using System.Text.RegularExpressions;
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
 
-    internal class MsvcDriver
+    internal static class MsvcDriver
     {
         static Regex versionMatcher = new Regex(@"\d+\.\d+\.\d+(\.\d+)?");
 

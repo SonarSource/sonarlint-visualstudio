@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // Switch a background thread
             await TaskScheduler.Default;
 
-            // TODO: we're tying up a background thread waiting for out-of-process analysis. We could
+            // W're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
             // RequestAnalysis method to be synchronous, rather than fire-and-forget.
             var response = CFamilyHelper.CallClangAnalyzer(request, new ProcessRunner(logger), logger);
