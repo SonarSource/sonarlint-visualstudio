@@ -20,11 +20,8 @@
 
 using System;
 using System.IO;
-using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
@@ -32,6 +29,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     [TestClass]
     public class ProtocolTest
     {
+
+        #region Protocol-level reading/writing tests
+
         [TestMethod]
         public void Write_Empty_Request()
         {
@@ -63,55 +63,93 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Read_Empty_Response()
         {
-            using (MemoryStream stream = new MemoryStream(MockEmptyResponse()))
-            {
-                BinaryReader reader = new BinaryReader(stream);
-                Response response = Protocol.Read(reader);
+            var response = CallProtocolRead(MockEmptyResponse());
 
-                response.Messages.Length.Should().Be(0);
-            }
+            response.Messages.Length.Should().Be(0);
         }
 
         [TestMethod]
         public void Read_Response()
         {
-            using (MemoryStream stream = new MemoryStream(MockResponse()))
-            {
-                BinaryReader reader = new BinaryReader(stream);
-                Response response = Protocol.Read(reader);
+            var response = CallProtocolRead(MockResponse());
 
-                response.Messages.Length.Should().Be(1);
-                response.Messages[0].RuleKey.Should().Be("ruleKey");
-                response.Messages[0].Line.Should().Be(10);
-                response.Messages[0].Column.Should().Be(11);
-                response.Messages[0].EndLine.Should().Be(12);
-                response.Messages[0].EndColumn.Should().Be(13);
-                response.Messages[0].Text.Should().Be("Issue message");
-                response.Messages[0].PartsMakeFlow.Should().Be(true);
-                response.Messages[0].Parts.Length.Should().Be(1);
-            }
+            response.Messages.Length.Should().Be(1);
+            response.Messages[0].RuleKey.Should().Be("ruleKey");
+            response.Messages[0].Line.Should().Be(10);
+            response.Messages[0].Column.Should().Be(11);
+            response.Messages[0].EndLine.Should().Be(12);
+            response.Messages[0].EndColumn.Should().Be(13);
+            response.Messages[0].Text.Should().Be("Issue message");
+            response.Messages[0].PartsMakeFlow.Should().Be(true);
+            response.Messages[0].Parts.Length.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void Response_Filtering_NoFiltering()
+        {
+            var response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles(), null);
+
+            response.Messages.Length.Should().Be(3);
+            response.Messages[0].Filename.Should().Be("c:\\data\\file1.cpp");
+            response.Messages[1].Filename.Should().Be("e:\\data\\file2.cpp");
+            response.Messages[2].Filename.Should().Be("E:\\data\\file2.cpp");
+
+            response.Messages[0].RuleKey.Should().Be("ruleKey1");
+            response.Messages[1].RuleKey.Should().Be("ruleKey2");
+            response.Messages[2].RuleKey.Should().Be("ruleKey3");
+        }
+
+        [TestMethod]
+        public void Response_Filtering_WithFiltering()
+        {
+            // 1. Match file1
+            var response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles(), "C:\\DATA/File1.cpp");
+
+            response.Messages.Length.Should().Be(1);
+            response.Messages[0].Filename.Should().Be("c:\\data\\file1.cpp");
+            response.Messages[0].RuleKey.Should().Be("ruleKey1");
+
+            // 2. Match file2
+            response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles(), "e:/DATA/FILE2.cpp");
+
+            response.Messages.Length.Should().Be(2);
+            response.Messages[0].Filename.Should().Be("e:\\data\\file2.cpp");
+            response.Messages[1].Filename.Should().Be("E:\\data\\file2.cpp");
+
+            response.Messages[0].RuleKey.Should().Be("ruleKey2");
+            response.Messages[1].RuleKey.Should().Be("ruleKey3");
+        }
+
+        [TestMethod]
+        public void Response_Filtering_NoMatches()
+        {
+            var response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles(), "file4.cpp");
+
+            response.Messages.Length.Should().Be(0);
         }
 
         [TestMethod]
         public void Read_Bad_Response_Throw()
         {
-            using (MemoryStream stream = new MemoryStream(MockBadStartResponse()))
-            {
-                BinaryReader reader = new BinaryReader(stream);
+            Action act = () => CallProtocolRead(MockBadStartResponse());
+            act.Should().ThrowExactly<InvalidDataException>();
 
-                Action act = () => Protocol.Read(reader);
-                act.Should().ThrowExactly<InvalidDataException>();
-            }
-
-            using (MemoryStream stream = new MemoryStream(MockBadEndResponse()))
-            {
-                BinaryReader reader = new BinaryReader(stream);
-
-                Action act = () => Protocol.Read(reader);
-                act.Should().ThrowExactly<InvalidDataException>();
-            }
-
+            act = () => CallProtocolRead(MockBadEndResponse());
+            act.Should().ThrowExactly<InvalidDataException>();
         }
+
+        private static Response CallProtocolRead(byte[] data, string issueFileName = null)
+        {
+            using (MemoryStream stream = new MemoryStream(data))
+            {
+                BinaryReader reader = new BinaryReader(stream);
+                return Protocol.Read(reader, issueFileName);
+            }
+        }
+
+        #endregion // Protocol-level reading/writing tests
+
+        #region Low-level reading/writing tests
 
         [TestMethod]
         public void Write_UTF8()
@@ -236,6 +274,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             }
         }
 
+        #endregion // Low-level reading/writing tests
+
         private byte[] MockEmptyResponse()
         {
             using (MemoryStream stream = new MemoryStream())
@@ -343,5 +383,83 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 return stream.ToArray();
             }
         }
+
+        private byte[] MockResponseWithIssuesFromMultipleFiles()
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                BinaryWriter writer = new BinaryWriter(stream);
+                Protocol.WriteUTF(writer, "OUT");
+
+                // Number of issues
+                Protocol.WriteInt(writer, 3);
+
+                // Issue 1 
+                Protocol.WriteUTF(writer, "ruleKey1");
+                Protocol.WriteUTF(writer, "c:\\data\\file1.cpp");
+                Protocol.WriteInt(writer, 10);
+                Protocol.WriteInt(writer, 11);
+                Protocol.WriteInt(writer, 12);
+                Protocol.WriteInt(writer, 13);
+                Protocol.WriteInt(writer, 100);
+                Protocol.WriteUTF(writer, "Issue message");
+
+                writer.Write(false); // no flow
+                Protocol.WriteInt(writer, 0);
+
+                // Issue 2
+                Protocol.WriteUTF(writer, "ruleKey2");
+                Protocol.WriteUTF(writer, "e:\\data\\file2.cpp");
+                Protocol.WriteInt(writer, 10);
+                Protocol.WriteInt(writer, 11);
+                Protocol.WriteInt(writer, 12);
+                Protocol.WriteInt(writer, 13);
+                Protocol.WriteInt(writer, 100);
+                Protocol.WriteUTF(writer, "Issue message");
+
+                writer.Write(false); // no flow
+                Protocol.WriteInt(writer, 0);
+
+                // Issue 3 
+                Protocol.WriteUTF(writer, "ruleKey3");
+                Protocol.WriteUTF(writer, "E:\\data\\file2.cpp");
+                Protocol.WriteInt(writer, 10);
+                Protocol.WriteInt(writer, 11);
+                Protocol.WriteInt(writer, 12);
+                Protocol.WriteInt(writer, 13);
+                Protocol.WriteInt(writer, 100);
+                Protocol.WriteUTF(writer, "Issue message");
+
+                writer.Write(false); // no flow
+                Protocol.WriteInt(writer, 0);
+
+
+                // 1 measure
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteUTF(writer, "file.cpp");
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+
+                byte[] execLines = new byte[] { 1, 2, 3, 4 };
+                Protocol.WriteInt(writer, execLines.Length);
+                writer.Write(execLines);
+
+
+                // 1 symbol
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+
+                Protocol.WriteUTF(writer, "END");
+                return stream.ToArray();
+            }
+        }
+
     }
 }
