@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     using (var readStream = new FileStream(tempFileName, FileMode.Open))
                     {
-                        Response response = Protocol.Read(new BinaryReader(readStream));
+                        Response response = Protocol.Read(new BinaryReader(readStream), request.File);
                         return response;
                     }
                 }

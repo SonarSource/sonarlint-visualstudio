@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -147,16 +148,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /**
            * This method does not close the provided stream.
            */
-        public static Response Read(BinaryReader reader)
+           // Optimisation added in C#: filter files during load, rather than loading everything then filtering.
+           // Example: analysing a small C# file produced 1300 issues; ten in the cpp file, the rest in
+           // header files (we don't currently show issues in header files).
+           // The issueFilePath is optional.
+        public static Response Read(BinaryReader reader, string issueFilePath = null)
         {
-
             if ("OUT" != ReadUTF(reader))
             {
                 throw new InvalidDataException("Communication issue with the C/C++ analyzer: OUT expected");
             }
 
-            Message[] messages = new Message[ReadInt(reader)];
-            for (int i = 0; i < messages.Length; i++)
+            bool doFilterResults;
+            if (string.IsNullOrEmpty(issueFilePath))
+            {
+                doFilterResults = false;
+            }
+            else
+            {
+                issueFilePath = Path.GetFullPath(issueFilePath); // get the canonical form
+                doFilterResults = true;
+            }
+
+            int messageCount = ReadInt(reader);
+            List<Message> messages = new List<Message>();
+            for (int i = 0; i < messageCount; i++)
             {
                 string ruleKey = ReadUTF(reader);
                 string filename = ReadUTF(reader);
@@ -169,7 +185,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 string text = ReadUTF(reader);
                 bool partsMakeFlow = reader.ReadBoolean();
                 MessagePart[] parts = ReadMessageParts(reader);
-                messages[i] = new Message(ruleKey, filename, line, column, endLine, endColumn, text, partsMakeFlow, parts);
+
+                if (!doFilterResults || string.Equals(issueFilePath, Path.GetFullPath(filename), StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var message = new Message(ruleKey, filename, line, column, endLine, endColumn, text, partsMakeFlow, parts);
+                    messages.Add(message);
+                }
             }
             // Skip measures
             int nbMeasures = ReadInt(reader);
@@ -214,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 throw new InvalidDataException("Communication issue with the C/C++ analyzer: END expected");
             }
 
-            return new Response(messages);
+            return new Response(messages.ToArray());
         }
 
         private static MessagePart[] ReadMessageParts(BinaryReader reader)
