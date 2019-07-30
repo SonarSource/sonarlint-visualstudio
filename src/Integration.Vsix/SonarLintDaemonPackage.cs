@@ -87,30 +87,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 
-                if (daemon.IsInstalled)
+                if (!settings.IsActivateMoreEnabled)
                 {
-                    if (settings.IsActivateMoreEnabled && !daemon.IsRunning)
-                    {
-                        daemon.Start();
-                    }
+                    // Support for additional languages is not enabled
+                    // - nothing more to do
+                    return;
                 }
-                else
+
+                if (!daemon.IsInstalled)
                 {
-                    if (settings.IsActivateMoreEnabled)
-                    {
-                        // User already agreed to have the daemon installed, so directly start download
-                        await JoinableTaskFactory.SwitchToMainThreadAsync();
-                        new SonarLintDaemonInstaller(settings, daemon, logger).Show();
-                    }
-                    else if (!settings.SkipActivateMoreDialog)
-                    {
-                        await JoinableTaskFactory.SwitchToMainThreadAsync();
-                        var result = new SonarLintDaemonSplashscreen(settings).ShowDialog();
-                        if (result == true)
-                        {
-                            new SonarLintDaemonInstaller(settings, daemon, logger).Show();
-                        }
-                    }
+                    // User already agreed to have the daemon installed, so directly start download
+                    await JoinableTaskFactory.SwitchToMainThreadAsync();
+                    new SonarLintDaemonInstaller(settings, daemon, logger).Show();
+                }
+                else if (!daemon.IsRunning)
+                {
+                    daemon.Start();
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
