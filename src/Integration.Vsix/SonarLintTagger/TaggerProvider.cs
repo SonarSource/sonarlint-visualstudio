@@ -171,7 +171,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (managers)
             {
                 issueTrackers.Add(bufferHandler);
-                //TODO duncanp: daemon.Ready += bufferHandler.DaemonStarted;
 
                 foreach (var manager in managers)
                 {
@@ -185,7 +184,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (managers)
             {
                 issueTrackers.Remove(bufferHandler);
-                //TODO duncanp: daemon.Ready -= bufferHandler.DaemonStarted;
 
                 foreach (var manager in managers)
                 {

@@ -19,100 +19,18 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 /**
  * This is a port of the protocol implemented between Java and C++
  * https://github.com/SonarSource/sonar-cpp/blob/master/sonar-cfamily-plugin/src/main/java/com/sonar/cpp/analyzer/Protocol.java
+ * 
+ * Note: the ported code also needs to deal with the fact that the Java DataOutputStream/DataInputStreams are big-endian whereas
+ *       the C# BinaryWriter/Reader are little-endian.
  */
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-
-    internal class Request
-    {
-        public const int Verify = 1;
-        public const int C99 = 1 << 1;
-        public const int C11 = 1 << 2;
-        public const int CPlusPlus = 1 << 3;
-        public const int CPlusPlus11 = 1 << 4;
-        public const int CPlusPlus14 = 1 << 5;
-        public const int CPlusPlus17 = 1 << 6;
-        public const int ObjC = 1 << 7;
-        public const int MS = 1 << 8;
-        public const int GNU = 1 << 9;
-        public const int OperatorNames = 1 << 10;
-        public const int CharIsUnsigned = 1 << 11;
-        public const int CreateReproducer = 1 << 14;
-        public const int AutoRefCount = 1 << 15;
-        public const int Weak = 1 << 16;
-        public const int C17 = 1 << 17;
-
-        public string[] Options { get; set; } = Array.Empty<string>();
-        public long Flags { get; set; }
-        public long MsVersion { get; set; }
-        public string[] IncludeDirs { get; set; } = Array.Empty<string>();
-        public string[] FrameworkDirs { get; set; } = Array.Empty<string>();
-        public string[] VfsOverlayFiles { get; set; } = Array.Empty<string>();
-        public string ModuleName { get; set; } = "";
-        public string Predefines { get; set; } = "";
-        public string[] Macros { get; set; } = Array.Empty<string>();
-        public string TargetTriple { get; set; } = "x86_64-unknown-unknown";
-        public string File { get; set; } = "";
-
-        // Note: the language isn't passed as part of the request to the
-        // CLang analyzer, but it is by SVLS used when filtering the returned issues.
-        public string CFamilyLanguage { get; set; }
-    }
-
-    internal class Response
-    {
-        public Message[] Messages { get; }
-
-        public Response(Message[] messages)
-        {
-            Messages = messages;
-        }
-    }
-
-    internal class MessagePart
-    {
-        public string Filename;
-        public int Line { get; }
-        public int Column { get; }
-        public int EndLine { get; }
-        public int EndColumn { get; }
-        public string Text { get; }
-
-        public MessagePart(string filename, int line, int column, int endLine, int endColumn, string text)
-        {
-            Filename = filename;
-            Line = line;
-            Column = column;
-            EndLine = endLine;
-            EndColumn = endColumn;
-            Text = text;
-        }
-    }
-
-    internal class Message : MessagePart
-    {
-
-        public string RuleKey { get; }
-        public bool PartsMakeFlow { get; }
-        public MessagePart[] Parts { get; }
-
-        public Message(string ruleKey, string filename, int line, int column, int endLine, int endColumn, string message, bool partsMakeFlow, MessagePart[] parts)
-            : base(filename, line, column, endLine, endColumn, message)
-        {
-            RuleKey = ruleKey;
-            PartsMakeFlow = partsMakeFlow;
-            Parts = parts;
-        }
-
-    }
-
     internal static class Protocol
     {
         /**
