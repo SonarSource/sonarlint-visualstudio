@@ -75,7 +75,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             if (response != null)
             {
-                var issues = response.Messages.Where(m => m.Filename == request.File)
+                Debug.Assert(response.Messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");
+                var issues = response.Messages
                         .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, RulesMetadataCache.Instance))
                         .ToList();
 
