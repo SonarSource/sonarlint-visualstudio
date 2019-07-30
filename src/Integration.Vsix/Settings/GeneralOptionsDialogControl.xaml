@@ -43,17 +43,6 @@
                    Text="SonarLint can also analyze JavaScript files. After installing the support for this language, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
                    Margin="5" TextWrapping="Wrap" />
 
-        <CheckBox
-                Grid.Row="2" Grid.ColumnSpan="2"
-                x:Name="ShowAdditionalLanguageDownloadDialogue"
-                Content="Prompt to activate additional language support on startup" Margin="5"/>
-
-        <TextBlock 
-                Grid.Row="3" Grid.Column="2"
-                x:Name="ShowAdditionalLanguageDownloadText"
-                Text="Display a dialogue giving the option to download additional languages when Visual Studio starts"
-                TextWrapping="Wrap" />
-
         <StackPanel x:Name="VerbosityPanel" Grid.Row="4" Grid.ColumnSpan="2">
 
             <TextBlock Text="SonarLint output verbosity for the analysis of additional languages:"
