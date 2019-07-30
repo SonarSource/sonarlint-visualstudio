@@ -26,7 +26,7 @@
                 Margin="5" Padding="5,2.5" />
         <TextBlock Grid.Column="1" Grid.Row="0"
                    x:Name="ActivateText"
-                   Text="Install and activate support for JavaScript, C and C++."
+                   Text="Install and activate support for JavaScript."
                    VerticalAlignment="Center"
                    Margin="5" TextWrapping="Wrap"/>
 
@@ -35,12 +35,12 @@
                 Margin="5" Padding="5,2.5" />
         <TextBlock Grid.Column="1" Grid.Row="0"
                    x:Name="DeactivateText" Visibility="Collapsed"
-                   Text="Deactivate JavaScript, C and C++ support."
+                   Text="Deactivate JavaScript support."
                    VerticalAlignment="Center"
                    Margin="5" TextWrapping="Wrap"/>
 
         <TextBlock Grid.Column="1" Grid.Row="1"
-                   Text="SonarLint can also analyze JavaScript, C and C++ files. After installing the support for these languages, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
+                   Text="SonarLint can also analyze JavaScript files. After installing the support for this language, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
                    Margin="5" TextWrapping="Wrap" />
 
         <CheckBox

@@ -6,11 +6,11 @@
         >
     <StackPanel Margin="5">
         <TextBlock Margin="0,5"
-            Text="SonarLint for Visual Studio can also analyze JavaScript, C or C++ files."
+            Text="SonarLint for Visual Studio can also analyze JavaScript files."
             TextWrapping="Wrap"/>
 
         <TextBlock Margin="0,5"
-            Text="Download and activate the support of these additional languages now?"
+            Text="Download and activate the support of this additional language now?"
             TextWrapping="Wrap"/>
 
         <CheckBox Margin="10" HorizontalAlignment="Center"
