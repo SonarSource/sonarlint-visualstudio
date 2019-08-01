@@ -88,17 +88,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to activate support of additional languages: {0}
-        ///
-        ///See the SonarLint output window for more detail..
-        /// </summary>
-        internal static string Daemon_Download_ERROR {
-            get {
-                return ResourceManager.GetString("Daemon_Download_ERROR", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarLint - download error.
         /// </summary>
         internal static string Daemon_Download_ErrorDlgTitle {
