@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
     public interface ISonarLintDaemon : IAnalyzer, IDisposable
     {
+        bool InstallInProgress { get; }
         bool IsInstalled { get; }
         bool IsRunning { get; }
 
