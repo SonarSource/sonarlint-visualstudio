@@ -97,8 +97,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 if (!daemon.IsInstalled)
                 {
                     // User already agreed to have the daemon installed, so directly start download
-                    await JoinableTaskFactory.SwitchToMainThreadAsync();
-                    new SonarLintDaemonInstaller(settings, daemon, logger).Show();
+                    // No UI interation so we don't need to be on the UI thread
+                    daemon.Install();
                 }
                 else if (!daemon.IsRunning)
                 {

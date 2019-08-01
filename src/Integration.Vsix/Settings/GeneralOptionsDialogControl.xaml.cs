@@ -63,11 +63,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 base.OnInitialized(e);
 
-                if (!daemon.IsInstalled)
-                {
-                    settings.IsActivateMoreEnabled = false;
-                }
-
+                // Note: it's possible that the daemon has not been fully installed at this point
+                // - the download might have been started when the daemon package loaded, but not
+                // have completed before the user goes to Tools, Options, SonarLint.
                 UpdateActiveMoreControls();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -103,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (!daemon.IsInstalled)
                 {
-                    new SonarLintDaemonInstaller(settings, daemon, logger).Show(UpdateActiveMoreControls);
+                    daemon.Install();
                     return;
                 }
                 
