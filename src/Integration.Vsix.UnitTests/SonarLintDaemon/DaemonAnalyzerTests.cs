@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Net;
 using EnvDTE;
 using FluentAssertions;
@@ -32,6 +33,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
     [TestClass]
     public class DaemonAnalyzerTests
     {
+        [TestMethod]
+        public void IsSupported_True()
+        {
+            // Arrange
+            var dummyDaemon = new DummySonarLintDaemon();
+            var analyzer = new DaemonAnalyzer(dummyDaemon);
+
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.CFamily };
+
+            // Act
+            var result = analyzer.IsAnalysisSupported(new[] { SonarLanguage.CFamily });
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsSupported_False()
+        {
+            // Arrange
+            var dummyDaemon = new DummySonarLintDaemon();
+            var analyzer = new DaemonAnalyzer(dummyDaemon);
+
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.CFamily };
+
+            // Act
+            var result = analyzer.IsAnalysisSupported(new[] { SonarLanguage.Javascript });
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
         [TestMethod]
         public void RequestAnalysis_Started_AnalysisRequested()
         {
@@ -205,6 +238,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         {
             #region Test helper methods
 
+            public IEnumerable<SonarLanguage> SupportedLanguages { get; set; }
+
             public int InstallCallCount { get; private set; }
             public int StartCallCount { get; private set; }
             public int RequestAnalysisCallCount { get; private set; }
@@ -247,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
             {
-                throw new NotImplementedException();
+                return SupportedLanguages.Intersect(languages).Any();
             }
 
             public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
