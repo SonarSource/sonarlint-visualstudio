@@ -163,3 +163,4 @@ $RECYCLE.BIN/
 .DS_Store
 /.sonarqube
 /src/Integration.Vsix/.CFamilyEmbedded
+/src/Integration.Vsix/lib

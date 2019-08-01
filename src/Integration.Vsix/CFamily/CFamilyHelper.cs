@@ -35,9 +35,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
 
-        private static readonly string analyzerExeFilePath = Path.Combine(
+        public static readonly string CFamilyFilesDirectory = Path.Combine(
             Path.GetDirectoryName(typeof(RulesLoader).Assembly.Location),
-            ".CFamilyEmbedded", "subprocess.exe");
+            "lib");
+
+        private static readonly string analyzerExeFilePath = Path.Combine(
+            CFamilyFilesDirectory, "subprocess.exe");
 
         private const int AnalysisTimeoutMs = 10 * 1000;
         
