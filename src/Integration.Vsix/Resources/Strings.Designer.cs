@@ -196,6 +196,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not starting the daemon: support for additional languages is not activated..
+        /// </summary>
+        internal static string Daemon_NotStarting_NotEnabled {
+            get {
+                return ResourceManager.GetString("Daemon_NotStarting_NotEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The file cannot be analyzed because the platform toolset has not been specified. Set the Platform Toolset property through the Visual Studio project property page..
         /// </summary>
         internal static string Daemon_PlatformToolsetNotSpecified {

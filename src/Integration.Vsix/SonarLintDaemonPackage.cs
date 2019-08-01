@@ -96,13 +96,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 if (!daemon.IsInstalled)
                 {
-                    // User already agreed to have the daemon installed, so directly start download
+                    // User already agreed to have the daemon installed so directly start download
                     // No UI interation so we don't need to be on the UI thread
                     daemon.Install();
-                }
-                else if (!daemon.IsRunning)
-                {
-                    daemon.Start();
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,10 +30,13 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
+    [Export(typeof(IAnalyzer))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CLangAnalyzer : IAnalyzer
     {
         private readonly ILogger logger;
 
+        [ImportingConstructor]
         public CLangAnalyzer(ILogger logger)
         {
             this.logger = logger;

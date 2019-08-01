@@ -105,10 +105,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return;
                 }
                 
-                if (!daemon.IsRunning)
-                {
-                    daemon.Start();
-                }
                 settings.IsActivateMoreEnabled = true;
 
                 UpdateActiveMoreControls();
