@@ -272,4 +272,8 @@
     <value>Not starting the daemon: support for additional languages is not activated.</value>
     <comment>Output window message</comment>
   </data>
+  <data name="ERROR_StoppingDaemon" xml:space="preserve">
+    <value>Error stopping the daemon: {0}</value>
+    <comment>Output window message</comment>
+  </data>
 </root>
