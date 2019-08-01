@@ -45,7 +45,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             settings = new ConfigurableSonarLintSettings
             {
-                DaemonLogLevel = DaemonLogLevel.Verbose
+                DaemonLogLevel = DaemonLogLevel.Verbose,
+                IsActivateMoreEnabled = true // default to assuming the user has turned on support for additional languages
             };
             logger = new TestLogger(logToConsole: true);
 
