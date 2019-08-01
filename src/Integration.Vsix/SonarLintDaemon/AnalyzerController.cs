@@ -22,27 +22,19 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using EnvDTE;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(IAnalyzerController))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class AnalyzerController : IAnalyzerController
     {
         private readonly ILogger logger;
         private readonly IEnumerable<IAnalyzer> analyzers;
 
         [ImportingConstructor]
-        public AnalyzerController(
-            ISonarLintDaemon daemon,
-            ILogger logger
-            ) : this(logger,
-                // Analyzers
-                daemon, new CLangAnalyzer(logger))
-        {
-        }
-
-        internal /* for testing */ AnalyzerController(ILogger logger, params IAnalyzer[] analyzers)
+        public AnalyzerController(ILogger logger,
+            [ImportMany]IEnumerable<IAnalyzer> analyzers)
         {
             this.logger = logger;
             this.analyzers = analyzers;

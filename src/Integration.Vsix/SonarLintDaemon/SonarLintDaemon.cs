@@ -36,6 +36,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Resources;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarLintDaemon))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SonarLintDaemon : ISonarLintDaemon
     {
         private const string DaemonHost = "localhost";
@@ -55,6 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /* for testing */  string WorkingDirectory { get; }
         internal /* for testing */ string DaemonVersion { get; }
         internal /* for testing */ string DownloadUrl { get; }
+        public bool InstallInProgress { get; private set; }
 
         public event DownloadProgressChangedEventHandler DownloadProgressChanged;
         public event AsyncCompletedEventHandler DownloadCompleted;
@@ -101,9 +103,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 throw new InvalidOperationException("Process already running");
             }
+
             if (!IsInstalled)
             {
                 throw new InvalidOperationException("Daemon is not installed");
+            }
+
+            if (!settings.IsActivateMoreEnabled)
+            {
+                // Don't start if the user has subsequently deactivated support for additional languages
+                logger.WriteLine(Strings.Daemon_NotStarting_NotEnabled);
+                return;
             }
 
             logger.WriteLine(Strings.Daemon_Starting);
@@ -350,6 +360,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void Download()
         {
+            // TODO: this isn't thread-safe
+            if (InstallInProgress)
+            {
+                return;
+            }
+
+            InstallInProgress = true;
             this.logger.WriteLine(Strings.Daemon_Downloading);
 
             Uri uri = new Uri(DownloadUrl);
@@ -379,6 +396,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Directory.Delete(InstallationPath, true);
             }
             ZipFile.ExtractToDirectory(ZipFilePath, storagePath);
+
+            InstallInProgress = false;
         }
 
         internal /* for testing */ string InstallationPath => Path.Combine(storagePath, $"sonarlint-daemon-{DaemonVersion}-windows");

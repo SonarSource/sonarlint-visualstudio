@@ -268,4 +268,8 @@
     <value>The file cannot be analyzed because the platform toolset has not been specified. Set the Platform Toolset property through the Visual Studio project property page.</value>
     <comment>Output window message</comment>
   </data>
+  <data name="Daemon_NotStarting_NotEnabled" xml:space="preserve">
+    <value>Not starting the daemon: support for additional languages is not activated.</value>
+    <comment>Output window message</comment>
+  </data>
 </root>

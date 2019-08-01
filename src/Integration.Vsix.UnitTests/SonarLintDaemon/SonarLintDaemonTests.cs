@@ -24,6 +24,7 @@ using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using VSIX = SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -115,6 +116,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Directory.CreateDirectory(exeDirectory);
             File.WriteAllText(testableDaemon.ExePath, "junk");
             testableDaemon.IsInstalled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsInstalled_ActivateAdditionalLanguagesIsFalse_Start_NotStarted()
+        {
+            // Arrange - simulate existing installation
+            // Sanity check - not expecting the exe directory to exist to start with
+            var exeDirectory = Path.GetDirectoryName(testableDaemon.ExePath);
+            Directory.CreateDirectory(exeDirectory);
+            File.WriteAllText(testableDaemon.ExePath, "junk");
+            testableDaemon.IsInstalled.Should().BeTrue();
+
+            settings.IsActivateMoreEnabled = false;
+
+            // Act
+            testableDaemon.Start();
+
+            // Assert
+            testableDaemon.IsRunning.Should().BeFalse();
+            testableDaemon.CreateChannelCallCount.Should().Be(0);
+            logger.AssertOutputStringExists(Strings.Daemon_NotStarting_NotEnabled);
         }
 
         [TestMethod]
