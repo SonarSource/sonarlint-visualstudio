@@ -22,19 +22,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal class RulesLoader
     {
-        private static readonly string CFamilyFilesDirectory = Path.Combine(
-            Path.GetDirectoryName(typeof(RulesLoader).Assembly.Location),
-            ".CFamilyEmbedded");
-
         public static IEnumerable<string> ReadRulesList()
         {
             var rulesList = LoadCFamilyJsonFile<List<string>>("RulesList.json");
@@ -82,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private static T LoadCFamilyJsonFile<T>(string fileName) where T : class
         {
-            string path = Path.Combine(CFamilyFilesDirectory, fileName);
+            string path = Path.Combine(CFamilyHelper.CFamilyFilesDirectory, fileName);
             if (!File.Exists(path))
             {
                 return default(T);

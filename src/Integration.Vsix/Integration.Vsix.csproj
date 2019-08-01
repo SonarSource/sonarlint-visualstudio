@@ -588,7 +588,7 @@
     <!-- Download url for the CFamily plugin. Update this url to embed a new version of the plugin. -->
     <PluginUrl>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.3.0.11371.jar</PluginUrl>
 
-    <CFamilyFolderName>.CFamilyEmbedded</CFamilyFolderName>
+    <CFamilyFolderName>lib</CFamilyFolderName>
 
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
     <CFamilyTargetDirectory>$(MSBuildThisFileDirectory)$(CFamilyFolderName)</CFamilyTargetDirectory>
@@ -609,6 +609,9 @@
     <Exec Command='"$(MSBuildBinPath)\msbuild.exe" ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory="$(CFamilyTargetDirectory)" /p:UseSharedCompilation=false /t:Restore;Build;CopyEmbeddedFiles'
              LogStandardErrorAsError="true"
              IgnoreExitCode="false" />
+
+    <!-- Copy the license file to the same directory -->
+    <Copy SourceFiles=".\CFamily\License" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
 
     <ItemGroup>
       <Content Include="$(CFamilyTargetDirectory)\**\*">
