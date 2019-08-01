@@ -51,8 +51,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         [TestMethod]
         public void OnActivate_WhenDaemonIsNotInstalled_ControlsAreConfiguredForActivation()
         {
-            // Daemon is not installed so the control should be set up so the user
-            // can "Activate"
+            // Daemon is not installed. However, that should not affect the activation
+            // status of the controls.
             var settings = new ConfigurableSonarLintSettings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
@@ -73,14 +73,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             page.Control.Should().NotBeNull();
             page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Verbose);
 
-            // Daemon is not installed, so deactivate options should not be visible
-            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Collapsed);
+            // User has enabled activation; the activation status of the daemon should be irrelevant
+            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Visible);
+            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Visible);
+            page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Visible);
 
             // ... and activate options should be visible
-            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Visible);
-            page.Control.ActivateText.Visibility.Should().Be(Visibility.Visible);
+            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Collapsed);
+            page.Control.ActivateText.Visibility.Should().Be(Visibility.Collapsed);
         }
 
 
