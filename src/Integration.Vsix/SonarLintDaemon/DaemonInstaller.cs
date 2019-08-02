@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public event DownloadProgressChangedEventHandler DownloadProgressChanged;
         public event AsyncCompletedEventHandler DownloadCompleted;
-        public event EventHandler<EventArgs> Ready;
             
         [ImportingConstructor]
         public DaemonInstaller(ILogger logger)
