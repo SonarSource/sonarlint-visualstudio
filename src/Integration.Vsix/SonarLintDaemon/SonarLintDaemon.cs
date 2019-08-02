@@ -18,20 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
 using Grpc.Core;
 using Microsoft.VisualStudio;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -42,57 +38,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private const string DaemonHost = "localhost";
         private const int DefaultDaemonPort = 8050;
 
-        internal /* for testing */ const string DefaultDaemonVersion = "4.3.2.2521";
-        internal /* for testing */ const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
-        internal /* for testing */ static readonly string DefaultDownloadUrl = string.Format("https://binaries.sonarsource.com/Distribution/sonarlint-daemon/sonarlint-daemon-{0}-windows.zip",
-            DefaultDaemonVersion);
-
         private readonly ISonarLintSettings settings;
         private readonly ILogger logger;
-        private readonly string tmpPath;
-        private readonly string storagePath;
+        private readonly IDaemonInstaller installer;
+
         internal /* for testing */ Process process;
 
         internal /* for testing */  string WorkingDirectory { get; }
-        internal /* for testing */ string DaemonVersion { get; }
-        internal /* for testing */ string DownloadUrl { get; }
-        public bool InstallInProgress { get; private set; }
 
-        public event DownloadProgressChangedEventHandler DownloadProgressChanged;
-        public event AsyncCompletedEventHandler DownloadCompleted;
         public event EventHandler<EventArgs> Ready;
 
         private Channel channel;
         private StandaloneSonarLint.StandaloneSonarLintClient daemonClient;
 
         [ImportingConstructor]
-        public SonarLintDaemon(ISonarLintSettings settings, ILogger logger)
-            : this(settings, logger,
-                  Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarLint for Visual Studio"),
-                  Path.GetTempPath())
-        {
-        }
-
-        internal /* for testing */  SonarLintDaemon(ISonarLintSettings settings, ILogger logger, string storagePath, string tmpPath)
+        public SonarLintDaemon(ISonarLintSettings settings, IDaemonInstaller daemonInstaller, ILogger logger)
         {
             this.settings = settings;
             this.logger = logger;
+            this.installer = daemonInstaller;
 
-            this.tmpPath = tmpPath;
-            this.storagePath = storagePath;
             this.WorkingDirectory = CreateTempDirectory();
-
-            this.DownloadUrl = GetDownloadUrl();
-            this.DaemonVersion = ExtractVersionStringFromUrl(this.DownloadUrl);
-            Debug.Assert(this.DaemonVersion != null, "Daemon version should not be null - check the hard-coded download URL is valid");
-
-            logger.WriteLine(Strings.Daemon_Version, this.DaemonVersion);
-            logger.WriteLine(Strings.Daemon_Download_Url, this.DownloadUrl);
-        }
-
-        public void Install()
-        {
-            Download();
         }
 
         public bool IsRunning => process != null && !process.HasExited;
@@ -104,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 throw new InvalidOperationException("Process already running");
             }
 
-            if (!IsInstalled)
+            if (!installer.IsInstalled())
             {
                 throw new InvalidOperationException("Daemon is not installed");
             }
@@ -301,115 +267,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public int Port { get; private set; }
 
-        public bool IsInstalled => File.Exists(ExePath);
-
-        private static string ExtractVersionStringFromUrl(string url)
-        {
-            // We're loosely match the "version" part of the zip file name
-            var regEx = "/sonarlint-daemon-(?'version'[\\w.-]+)-windows.zip$";
-            var match = Regex.Match(url, regEx, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-            if (match.Success)
-            {
-                return match.Groups["version"].Value;
-            }
-
-            return null;
-        }
-
-        private string GetDownloadUrl()
-        {
-            var actualUrl = System.Environment.GetEnvironmentVariable(SonarLintDownloadUrlEnvVar);
-
-            if (string.IsNullOrWhiteSpace(actualUrl))
-            {
-                logger.WriteLine(Strings.Daemon_UsingDefaultDownloadLocation);
-                actualUrl = DefaultDownloadUrl;
-            }
-            else
-            {
-                if (IsValidUrl(actualUrl))
-                {
-                    logger.WriteLine(Strings.Daemon_UsingDownloadUrlFromEnvVar, SonarLintDownloadUrlEnvVar);
-                }
-                else
-                {
-                    actualUrl = DefaultDownloadUrl;
-                }
-            }
-
-            return actualUrl;
-        }
-
-        private bool IsValidUrl(string url)
-        {
-            Uri dummyResult;
-            if (!Uri.TryCreate(url, UriKind.Absolute, out dummyResult))
-            {
-                logger.WriteLine(Strings.Daemon_InvalidUrlInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
-                return false;
-            }
-
-            if (ExtractVersionStringFromUrl(url) == null)
-            {
-                logger.WriteLine(Strings.Daemon_InvalidFileNameInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
-                return false;
-            }
-
-            return true;
-        }
-
-        private void Download()
-        {
-            // TODO: this isn't thread-safe
-            if (InstallInProgress)
-            {
-                return;
-            }
-
-            InstallInProgress = true;
-            this.logger.WriteLine(Strings.Daemon_Downloading);
-
-            Uri uri = new Uri(DownloadUrl);
-
-            using (var client = new WebClient())
-            {
-                client.DownloadProgressChanged += (sender, args) => DownloadProgressChanged?.Invoke(sender, args);
-                client.DownloadFileCompleted += Unzip;
-                client.DownloadFileCompleted += (sender, args) =>
-                    {
-                        this.logger.WriteLine(Strings.Daemon_Downloaded);
-                        DownloadCompleted?.Invoke(sender, args);
-                    };
-                client.DownloadFileAsync(uri, ZipFilePath);
-            }
-        }
-
-        private void Unzip(object sender, AsyncCompletedEventArgs e)
-        {
-            if (e.Error != null)
-            {
-                return;
-            }
-
-            if (Directory.Exists(InstallationPath))
-            {
-                Directory.Delete(InstallationPath, true);
-            }
-            ZipFile.ExtractToDirectory(ZipFilePath, storagePath);
-
-            InstallInProgress = false;
-        }
-
-        internal /* for testing */ string InstallationPath => Path.Combine(storagePath, $"sonarlint-daemon-{DaemonVersion}-windows");
-
-        internal /* for testing */string ZipFilePath => Path.Combine(tmpPath, $"sonarlint-daemon-{DaemonVersion}-windows.zip");
-
-        internal virtual /* for testing */string ExePath => Path.Combine(InstallationPath, "jre", "bin", "java.exe");
+        internal virtual /* for testing */string ExePath => Path.Combine(installer.InstallationPath, "jre", "bin", "java.exe");
 
         private string GetCmdArgs(int port)
         {
-            string jarPath = Path.Combine(InstallationPath, "lib", $"sonarlint-daemon-{DaemonVersion}.jar");
-            string logPath = Path.Combine(InstallationPath, "conf", "logback.xml");
+            string jarPath = Path.Combine(installer.InstallationPath, "lib", $"sonarlint-daemon-{installer.DaemonVersion}.jar");
+            string logPath = Path.Combine(installer.InstallationPath, "conf", "logback.xml");
             string className = "org.sonarlint.daemon.Daemon";
 
             return string.Format("-Djava.awt.headless=true" +
@@ -418,7 +281,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 " \"-Dsonarlint.home={2}\"" +
                 " {3}" +
                 " \"--port\" \"{4}\"",
-                jarPath, logPath, InstallationPath, className, port);
+                jarPath, logPath, installer.InstallationPath, className, port);
         }
 
         private string CreateTempDirectory()
