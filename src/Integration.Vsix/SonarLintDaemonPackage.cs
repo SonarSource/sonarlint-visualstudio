@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -52,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
 
         private ISonarLintDaemon daemon;
+        private ILogger logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -74,8 +76,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async System.Threading.Tasks.Task InitAsync()
         {
-            ILogger logger = null;
-
             try
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
@@ -100,12 +100,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // No UI interation so we don't need to be on the UI thread
                     daemon.Install();
                 }
+
+                var solutionTracker = await this.GetMefServiceAsync<IActiveSolutionTracker>();
+                solutionTracker.ActiveSolutionChanged += HandleActiveSolutionChanged;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger?.WriteLine(Resources.Strings.ERROR_InitializingDaemon, ex);
             }
             logger?.WriteLine(Resources.Strings.Daemon_InitializationComplete);
+        }
+
+        private void HandleActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
+        {
+            try
+            {
+                // Stop the daemon running when a solution is closed
+                if (!e.IsSolutionOpen)
+                {
+                    this.daemon.Stop();
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger?.WriteLine(Strings.ERROR_StoppingDaemon, ex);
+            }
         }
 
         protected override void Dispose(bool disposing)
