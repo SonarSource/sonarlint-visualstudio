@@ -19,7 +19,9 @@
  */
 
 using System;
+using System.ComponentModel;
 using System.IO;
+using System.Net;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,11 +34,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class SonarLintDaemonTests
     {
-        private string tempPath;
-        private string storagePath;
         private TestableSonarLintDaemon testableDaemon;
         private TestLogger logger;
         private ConfigurableSonarLintSettings settings;
+        private DummyDaemonInstaller dummyInstaller;
 
         public TestContext TestContext { get; set; }
 
@@ -50,11 +51,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             logger = new TestLogger(logToConsole: true);
 
-            tempPath = Path.Combine(TestContext.DeploymentDirectory, Path.GetRandomFileName());
-            storagePath = Path.Combine(TestContext.DeploymentDirectory, Path.GetRandomFileName());
-            Directory.CreateDirectory(tempPath);
-            Directory.CreateDirectory(storagePath);
-            testableDaemon = new TestableSonarLintDaemon(settings, logger, storagePath, tempPath);
+            dummyInstaller = new DummyDaemonInstaller
+            {
+                IsInstalledReturnValue = true, // installed by default
+                InstallationPath = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName, Path.GetRandomFileName())
+            };
+            Directory.CreateDirectory(dummyInstaller.InstallationPath);
+
+
+            testableDaemon = new TestableSonarLintDaemon(settings, logger, dummyInstaller);
 
             logger.Reset(); // clear any messages logged during construction
         }
@@ -67,9 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             try
             {
                 testableDaemon.Dispose();
-
-                ForceDeleteDirectory(tempPath);
-                ForceDeleteDirectory(storagePath);
+                ForceDeleteDirectory(dummyInstaller.InstallationPath);
             }
             catch(Exception ex)
             {
@@ -104,31 +107,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IsInstalled()
-        {
-            // Sanity check - not expecting the exe directory to exist to start with
-            var exeDirectory = Path.GetDirectoryName(testableDaemon.ExePath);
-            Directory.Exists(exeDirectory).Should().BeFalse();
-
-            // 1. No directory or file -> false
-            testableDaemon.IsInstalled.Should().BeFalse();
-
-            // 2. Directory and file exist -> true
-            Directory.CreateDirectory(exeDirectory);
-            File.WriteAllText(testableDaemon.ExePath, "junk");
-            testableDaemon.IsInstalled.Should().BeTrue();
-        }
-
-        [TestMethod]
         public void IsInstalled_ActivateAdditionalLanguagesIsFalse_Start_NotStarted()
         {
-            // Arrange - simulate existing installation
-            // Sanity check - not expecting the exe directory to exist to start with
-            var exeDirectory = Path.GetDirectoryName(testableDaemon.ExePath);
-            Directory.CreateDirectory(exeDirectory);
-            File.WriteAllText(testableDaemon.ExePath, "junk");
-            testableDaemon.IsInstalled.Should().BeTrue();
-
+            dummyInstaller.IsInstalledReturnValue = true;
             settings.IsActivateMoreEnabled = false;
 
             // Act
@@ -143,6 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Run_Without_Install()
         {
+            dummyInstaller.IsInstalledReturnValue = false;
             Action op = () => testableDaemon.Start();
 
             op.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Be("Daemon is not installed");
@@ -379,79 +361,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void DownloadUrlInEnvironmentVar_NotSet_DefaultUsed()
-        {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                // Arrange - make sure the variable is not set
-                scope.SetVariable(VSIX.SonarLintDaemon.SonarLintDownloadUrlEnvVar, "");
-
-                // Act
-                var daemon = new TestableSonarLintDaemon(settings, logger, "c:\\storage", "d:\\temp");
-
-                // Assert
-                daemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultDownloadUrl);
-                daemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
-                daemon.InstallationPath.Should().Be($"c:\\storage\\sonarlint-daemon-{VSIX.SonarLintDaemon.DefaultDaemonVersion}-windows");
-                daemon.ZipFilePath.Should().Be($"d:\\temp\\sonarlint-daemon-{VSIX.SonarLintDaemon.DefaultDaemonVersion}-windows.zip");
-            }
-        }
-
-        [TestMethod]
-        public void DownloadUrlInEnvironmentVar_InvalidUrl_UseDefault()
-        {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                // Arrange
-                scope.SetVariable(VSIX.SonarLintDaemon.SonarLintDownloadUrlEnvVar, "invalid uri");
-
-                // Act
-                var realDaemon = new VSIX.SonarLintDaemon(settings, logger);
-
-                // Assert
-                realDaemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultDownloadUrl);
-                realDaemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
-            }
-        }
-
-        [TestMethod]
-        public void DownloadUrlInEnvironmentVar_InvalidVersion_UseDefault()
-        {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                // Arrange
-                scope.SetVariable(VSIX.SonarLintDaemon.SonarLintDownloadUrlEnvVar, "http://somewhere/sonarlint-daemon.zip");
-
-                // Act
-                var realDaemon = new VSIX.SonarLintDaemon(settings, logger);
-
-                // Assert
-                realDaemon.DownloadUrl.Should().Be(VSIX.SonarLintDaemon.DefaultDownloadUrl);
-                realDaemon.DaemonVersion.Should().Be(VSIX.SonarLintDaemon.DefaultDaemonVersion);
-            }
-        }
-
-        [TestMethod]
-        public void DownloadUrlInEnvironmentVar_Valid_UseSupplied()
-        {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                // Arrange
-                scope.SetVariable(VSIX.SonarLintDaemon.SonarLintDownloadUrlEnvVar,
-                    "https://repox.jfrog.io/repox/sonarsource/org/sonarsource/sonarlint/core/sonarlint-daemon/4.3.0.2450/sonarlint-daemon-4.3.0.2450-windows.zip");
-
-                // Act
-                var daemon = new TestableSonarLintDaemon(settings, logger, "c:\\storagePath\\", "d:\\tempPath\\");
-
-                // Assert
-                daemon.DownloadUrl.Should().Be("https://repox.jfrog.io/repox/sonarsource/org/sonarsource/sonarlint/core/sonarlint-daemon/4.3.0.2450/sonarlint-daemon-4.3.0.2450-windows.zip");
-                daemon.DaemonVersion.Should().Be("4.3.0.2450");
-                daemon.InstallationPath.Should().Be("c:\\storagePath\\sonarlint-daemon-4.3.0.2450-windows");
-                daemon.ZipFilePath.Should().Be("d:\\tempPath\\sonarlint-daemon-4.3.0.2450-windows.zip");
-            }
-        }
-
-        [TestMethod]
         public void IsAnalyisSupported_AdditionalSupportNotActive()
         {
             // Arrange
@@ -491,8 +400,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             private string nameOfSubstituteExeFile;
 
-            public TestableSonarLintDaemon(ISonarLintSettings settings, ILogger logger, string storagePath, string tmpPath)
-                : base(settings, logger, storagePath, tmpPath)
+            public TestableSonarLintDaemon(ISonarLintSettings settings, ILogger logger, IDaemonInstaller installer)
+                : base(settings, installer, logger)
             {
                 this.Ready += (s, a) => WasReadyEventInvoked = true;
             }
@@ -549,6 +458,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             #endregion Overrides
+        }
+
+        private class DummyDaemonInstaller : IDaemonInstaller
+        {
+            public bool IsInstalledReturnValue { get;set;}
+
+            #region IDaemonInstaller methods
+
+            public bool InstallInProgress { get; set; }
+
+            public string InstallationPath { get; set; }
+
+            public string DaemonVersion { get; set; }
+
+            public event DownloadProgressChangedEventHandler DownloadProgressChanged;
+            public event AsyncCompletedEventHandler DownloadCompleted;
+
+            public void Install()
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsInstalled()
+            {
+                return IsInstalledReturnValue;
+            }
+
+            #endregion
         }
     }
 }

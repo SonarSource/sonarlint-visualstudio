@@ -61,10 +61,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             };
 
             var daemonMock = new Mock<ISonarLintDaemon>();
-            daemonMock.SetupGet<bool>(x => x.IsInstalled).Returns(false);
+            var installerMock = new Mock<IDaemonInstaller>();
+            installerMock.Setup<bool>(x => x.IsInstalled()).Returns(false);
 
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object);
+            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
 
             // Act
             page.ActivateAccessor();
@@ -96,10 +97,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             };
 
             var daemonMock = new Mock<ISonarLintDaemon>();
-            daemonMock.SetupGet<bool>(x => x.IsInstalled).Returns(true);
-            
+            var installerMock = new Mock<IDaemonInstaller>();
+            installerMock.Setup<bool>(x => x.IsInstalled()).Returns(true);
+
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object);
+            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
 
             // Act
             page.ActivateAccessor();
@@ -130,10 +132,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             };
 
             var daemonMock = new Mock<ISonarLintDaemon>();
-            daemonMock.SetupGet<bool>(x => x.IsInstalled).Returns(true);
+            var installerMock = new Mock<IDaemonInstaller>();
+            installerMock.Setup<bool>(x => x.IsInstalled()).Returns(true);
 
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object);
+            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
 
             // Act
             page.ActivateAccessor();
@@ -163,9 +166,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             };
 
             var daemonMock = new Mock<ISonarLintDaemon>();
+            var installerMock = new Mock<IDaemonInstaller>();
 
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object);
+            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
             page.ActivateAccessor();
 
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
@@ -188,9 +192,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             };
 
             var daemonMock = new Mock<ISonarLintDaemon>();
+            var installerMock = new Mock<IDaemonInstaller>();
 
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object);
+            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
             page.ActivateAccessor();
 
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
@@ -202,10 +207,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             settings.DaemonLogLevel.Should().Be(DaemonLogLevel.Minimal);
         }
 
-        private static void ConfigureSiteMock(GeneralOptionsDialogPage testSubject, ISonarLintSettings settings, ISonarLintDaemon daemon)
+        private static void ConfigureSiteMock(GeneralOptionsDialogPage testSubject, ISonarLintSettings settings, ISonarLintDaemon daemon, IDaemonInstaller installer)
         {
             var mefHostMock = new Mock<IComponentModel>();
             mefHostMock.Setup(m => m.GetExtensions<ISonarLintDaemon>()).Returns(() => new[] { daemon });
+            mefHostMock.Setup(m => m.GetExtensions<IDaemonInstaller>()).Returns(() => new[] { installer });
             mefHostMock.Setup(m => m.GetExtensions<ISonarLintSettings>()).Returns(() => new[] { settings });
             mefHostMock.Setup(m => m.GetExtensions<ILogger>()).Returns(() => new[] { new TestLogger() });
 
