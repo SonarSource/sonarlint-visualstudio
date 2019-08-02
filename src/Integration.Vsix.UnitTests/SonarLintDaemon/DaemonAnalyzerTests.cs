@@ -33,13 +33,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
     [TestClass]
     public class DaemonAnalyzerTests
     {
+        private DummySonarLintDaemon dummyDaemon;
+        private DummyDaemonInstaller dummyInstaller;
+        private DaemonAnalyzer analyzer;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            dummyDaemon = new DummySonarLintDaemon();
+            dummyInstaller = new DummyDaemonInstaller();
+            analyzer = new DaemonAnalyzer(dummyDaemon, dummyInstaller);
+        }
+
         [TestMethod]
         public void IsSupported_True()
         {
             // Arrange
-            var dummyDaemon = new DummySonarLintDaemon();
-            var analyzer = new DaemonAnalyzer(dummyDaemon);
-
             dummyDaemon.SupportedLanguages = new[] { SonarLanguage.CFamily };
 
             // Act
@@ -53,9 +62,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void IsSupported_False()
         {
             // Arrange
-            var dummyDaemon = new DummySonarLintDaemon();
-            var analyzer = new DaemonAnalyzer(dummyDaemon);
-
             dummyDaemon.SupportedLanguages = new[] { SonarLanguage.CFamily };
 
             // Act
@@ -69,26 +75,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_Started_AnalysisRequested()
         {
             // Arrange
-            var dummyDaemon = new DummySonarLintDaemon();
-            var analyzer = new DaemonAnalyzer(dummyDaemon);
-
-            dummyDaemon.IsInstalled = true;
+            dummyInstaller.IsInstalledReturnValue = true;
             dummyDaemon.IsRunning = true;
 
             // 1. Start
             analyzer.RequestAnalysis("path", "charset", null, null, null);
 
             // Assert - only RequestAnalysis called
-            dummyDaemon.InstallCallCount.Should().Be(0);
+            dummyInstaller.InstallCallCount.Should().Be(0);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
 
             // 2. Check the event handlers have been unsubscribed
             dummyDaemon.SimulateDaemonReady(null);
-            dummyDaemon.SimulateInstallFinished(null);
-            
+            dummyInstaller.SimulateInstallFinished(null);
+
             // Assert - not other calls
-            dummyDaemon.InstallCallCount.Should().Be(0);
+            dummyInstaller.InstallCallCount.Should().Be(0);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
         }
@@ -97,10 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_NotStarted_StartThenRequestAnalysis()
         {
             // Arrange
-            var dummyDaemon = new DummySonarLintDaemon();
-            var analyzer = new DaemonAnalyzer(dummyDaemon);
-
-            dummyDaemon.IsInstalled = true;
+            dummyInstaller.IsInstalledReturnValue = true;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
@@ -114,16 +114,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
 
             // Sanity check of all of the call counts
-            dummyDaemon.InstallCallCount.Should().Be(0);
+            dummyInstaller.InstallCallCount.Should().Be(0);
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
 
             // 3. Check the event handlers have been unsubscribed
             dummyDaemon.SimulateDaemonReady(null);
-            dummyDaemon.SimulateInstallFinished(null);
+            dummyInstaller.SimulateInstallFinished(null);
 
             // Call counts should not have changed
-            dummyDaemon.InstallCallCount.Should().Be(0);
+            dummyInstaller.InstallCallCount.Should().Be(0);
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
         }
@@ -132,21 +132,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_NotInstalled_InstallThenStartThenRequestAnalysis()
         {
             // Arrange
-            var dummyDaemon = new DummySonarLintDaemon();
-            var analyzer = new DaemonAnalyzer(dummyDaemon);
-
-            dummyDaemon.IsInstalled = false;
+            dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
             analyzer.RequestAnalysis("path", "charset", null, null, null);
 
-            dummyDaemon.InstallCallCount.Should().Be(1);
+            dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
 
             // 2. Simulate daemon being installed
-            dummyDaemon.SimulateInstallFinished(new AsyncCompletedEventArgs(null, false /* cancelled */, null));
+            dummyInstaller.SimulateInstallFinished(new AsyncCompletedEventArgs(null, false /* cancelled */, null));
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
 
@@ -156,10 +153,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             // 4. Check the event handlers have been unsubscribed
             dummyDaemon.SimulateDaemonReady(null);
-            dummyDaemon.SimulateInstallFinished(null);
+            dummyInstaller.SimulateInstallFinished(null);
 
             // Sanity check of all of the call counts
-            dummyDaemon.InstallCallCount.Should().Be(1);
+            dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
         }
@@ -168,33 +165,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_NotInstalled_ErrorOnInstall_StartNotCalled()
         {
             // Arrange
-            var dummyDaemon = new DummySonarLintDaemon();
-            var analyzer = new DaemonAnalyzer(dummyDaemon);
-
-            dummyDaemon.IsInstalled = false;
+            dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
             analyzer.RequestAnalysis("path", "charset", null, null, null);
 
-            dummyDaemon.InstallCallCount.Should().Be(1);
+            dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
 
             // 2. Simulate daemon being installed
             var args = new AsyncCompletedEventArgs(new InvalidOperationException("XXX"), false /* cancelled */, null);
-            dummyDaemon.SimulateInstallFinished(args);
+            dummyInstaller.SimulateInstallFinished(args);
 
-            dummyDaemon.InstallCallCount.Should().Be(1);
+            dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
 
             // 3. Check the event handlers have been unsubscribed
             dummyDaemon.SimulateDaemonReady(null);
-            dummyDaemon.SimulateInstallFinished(null);
+            dummyInstaller.SimulateInstallFinished(null);
 
             // Sanity check of all of the call counts
-            dummyDaemon.InstallCallCount.Should().Be(1);
+            dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
         }
@@ -204,32 +198,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         {
             // Arrange
             var dummyDaemon = new DummySonarLintDaemon();
-            var analyzer = new DaemonAnalyzer(dummyDaemon);
+            var dummyInstaller = new DummyDaemonInstaller();
+            var analyzer = new DaemonAnalyzer(dummyDaemon, dummyInstaller);
 
-            dummyDaemon.IsInstalled = false;
+            dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
             analyzer.RequestAnalysis("path", "charset", null, null, null);
 
-            dummyDaemon.InstallCallCount.Should().Be(1);
+            dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
 
             // 2. Simulate daemon being installed
             var args = new AsyncCompletedEventArgs(null, true /* cancelled */ , null);
-            dummyDaemon.SimulateInstallFinished(args);
+            dummyInstaller.SimulateInstallFinished(args);
 
-            dummyDaemon.InstallCallCount.Should().Be(1);
+            dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
 
             // 3. Check the event handlers have been unsubscribed
             dummyDaemon.SimulateDaemonReady(null);
-            dummyDaemon.SimulateInstallFinished(null);
+            dummyInstaller.SimulateInstallFinished(null);
 
             // Sanity check of all of the call counts
-            dummyDaemon.InstallCallCount.Should().Be(1);
+            dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
         }
@@ -240,15 +235,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             public IEnumerable<SonarLanguage> SupportedLanguages { get; set; }
 
-            public int InstallCallCount { get; private set; }
             public int StartCallCount { get; private set; }
             public int RequestAnalysisCallCount { get; private set; }
-
-            public void SimulateInstallFinished(AsyncCompletedEventArgs args)
-            {
-                this.IsInstalled = true;
-                this.DownloadCompleted?.Invoke(this, args);
-            }
 
             public void SimulateDaemonReady(EventArgs args)
             {
@@ -260,24 +248,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             #region ISonarLintDaemon methods
 
-            public bool InstallInProgress { get; set; } /* publicly settable for testing */
-
-            public bool IsInstalled { get; set; } /* publicly settable for testing */
-
             public bool IsRunning { get; set; } /* publicly settable for testing */
 
-            public event DownloadProgressChangedEventHandler DownloadProgressChanged;
-            public event AsyncCompletedEventHandler DownloadCompleted;
             public event EventHandler<EventArgs> Ready;
 
             public void Dispose()
             {
                 throw new NotImplementedException();
-            }
-
-            public void Install()
-            {
-                InstallCallCount++;
             }
 
             public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
@@ -302,5 +279,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             #endregion ISonarLintDaemon methods
         }
+
+        private class DummyDaemonInstaller : IDaemonInstaller
+            {
+                #region Test helpers
+
+                public int InstallCallCount { get; private set; }
+
+                public bool IsInstalledReturnValue { get; set; }
+
+                public void SimulateInstallFinished(AsyncCompletedEventArgs args)
+                {
+                    this.IsInstalledReturnValue = true;
+                    this.DownloadCompleted?.Invoke(this, args);
+                }
+
+                #endregion
+
+                #region IDaemonInstaller methods
+
+                public bool InstallInProgress { get; set; } /* publicly settable for testing */
+
+                public string InstallationPath => throw new NotImplementedException();
+
+                public string DaemonVersion => throw new NotImplementedException();
+
+                public event DownloadProgressChangedEventHandler DownloadProgressChanged;
+                public event AsyncCompletedEventHandler DownloadCompleted;
+
+                public void Install()
+                {
+                    InstallCallCount++;
+                }
+
+                public bool IsInstalled()
+                {
+                    return IsInstalledReturnValue;
+                }
+
+                #endregion
+            }
     }
 }

@@ -18,25 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Sonarlint;
-using System;
-using System.Collections.Generic;
+using System.ComponentModel;
+using System.Net;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public delegate void DaemonEventHandler(object sender, EventArgs e);
-
-    public interface ISonarLintDaemon : IAnalyzer, IDisposable
+    public interface IDaemonInstaller
     {
-        bool IsRunning { get; }
-        event EventHandler<EventArgs> Ready;
+        bool InstallInProgress { get; }
+        bool IsInstalled();
+       
+        string InstallationPath { get; }
+        string DaemonVersion { get; }
 
-        void Start();
-        void Stop();
-    }
-
-    public interface IIssueConsumer
-    {
-        void Accept(string path, IEnumerable<Issue> issues);
+        void Install();
+        event DownloadProgressChangedEventHandler DownloadProgressChanged;
+        event AsyncCompletedEventHandler DownloadCompleted;
     }
 }

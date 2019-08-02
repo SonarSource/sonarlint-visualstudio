@@ -83,10 +83,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
 
-                var settings = await this.GetMefServiceAsync<ISonarLintSettings>();
-
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 
+                var settings = await this.GetMefServiceAsync<ISonarLintSettings>();
                 if (!settings.IsActivateMoreEnabled)
                 {
                     // Support for additional languages is not enabled
@@ -94,11 +93,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return;
                 }
 
-                if (!daemon.IsInstalled)
+                IDaemonInstaller installer = await this.GetMefServiceAsync<IDaemonInstaller>();
+                if (!installer.IsInstalled())
                 {
                     // User already agreed to have the daemon installed so directly start download
                     // No UI interation so we don't need to be on the UI thread
-                    daemon.Install();
+                    installer.Install();
                 }
 
                 var solutionTracker = await this.GetMefServiceAsync<IActiveSolutionTracker>();

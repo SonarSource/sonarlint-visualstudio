@@ -33,9 +33,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly ISonarLintSettings settings;
         private readonly ISonarLintDaemon daemon;
+        private readonly IDaemonInstaller installer;
         private readonly ILogger logger;
 
-        public GeneralOptionsDialogControl(ISonarLintSettings settings, ISonarLintDaemon daemon, ILogger logger)
+        public GeneralOptionsDialogControl(ISonarLintSettings settings, ISonarLintDaemon daemon, IDaemonInstaller installer, ILogger logger)
         {
             if (settings == null)
             {
@@ -45,6 +46,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 throw new ArgumentNullException(nameof(daemon));
             }
+            if (installer == null)
+            {
+                throw new ArgumentNullException(nameof(installer));
+            }
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
@@ -52,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.settings = settings;
             this.daemon = daemon;
+            this.installer = installer;
             this.logger = logger;
 
             InitializeComponent();
@@ -99,9 +105,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
-                if (!daemon.IsInstalled)
+                if (!installer.IsInstalled())
                 {
-                    daemon.Install();
+                    installer.Install();
                     return;
                 }
                 

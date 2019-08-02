@@ -31,11 +31,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class DaemonAnalyzer : IAnalyzer
     {
         private readonly ISonarLintDaemon daemon;
+        private readonly IDaemonInstaller installer;
 
         [ImportingConstructor]
-        public DaemonAnalyzer(ISonarLintDaemon daemon)
+        public DaemonAnalyzer(ISonarLintDaemon daemon, IDaemonInstaller daemonInstaller)
         {
             this.daemon = daemon;
+            this.installer = daemonInstaller;
         }
 
         public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
@@ -46,13 +48,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
             // Optimise for the common case of daemon up and running
-            if (daemon.IsInstalled && daemon.IsRunning)
+            if (installer.IsInstalled() && daemon.IsRunning)
             {
                 daemon.RequestAnalysis(path, charset, detectedLanguages, consumer, projectItem);
                 return;
             }
 
-            new DelayedRequest(daemon, path, charset, detectedLanguages, consumer, projectItem).Execute();
+            new DelayedRequest(daemon, installer, path, charset, detectedLanguages, consumer, projectItem).Execute();
         }
 
         /// <summary>
@@ -67,16 +69,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private class DelayedRequest
         {
             private readonly ISonarLintDaemon daemon;
+            private readonly IDaemonInstaller daemonInstaller;
             private readonly string path;
             private readonly string charset;
             private readonly IEnumerable<SonarLanguage> detectedLanguages;
             private readonly IIssueConsumer consumer;
             private readonly ProjectItem projectItem;
 
-            public DelayedRequest(ISonarLintDaemon daemon, string path, string charset, IEnumerable<SonarLanguage> detectedLanguages,
+            public DelayedRequest(ISonarLintDaemon daemon, IDaemonInstaller daemonInstaller, string path, string charset, IEnumerable<SonarLanguage> detectedLanguages,
                 IIssueConsumer consumer, ProjectItem projectItem)
             {
                 this.daemon = daemon;
+                this.daemonInstaller = daemonInstaller;
                 this.path = path;
                 this.charset = charset;
                 this.detectedLanguages = detectedLanguages;
@@ -86,10 +90,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             public void Execute()
             {
-                if (!daemon.IsInstalled)
+                if (!daemonInstaller.IsInstalled())
                 {
-                    daemon.DownloadCompleted += HandleInstallCompleted;
-                    daemon.Install();
+                    daemonInstaller.DownloadCompleted += HandleInstallCompleted;
+                    daemonInstaller.Install();
                 }
                 else
                 {
@@ -108,13 +112,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             private void MakeRequest()
             {
                 daemon.Ready -= HandleDaemonReady;
-                daemon.DownloadCompleted -= HandleInstallCompleted;
+                daemonInstaller.DownloadCompleted -= HandleInstallCompleted;
                 daemon.RequestAnalysis(path, charset, detectedLanguages, consumer, projectItem);
             }
 
             private void HandleInstallCompleted(object sender, AsyncCompletedEventArgs e)
             {
-                daemon.DownloadCompleted -= HandleInstallCompleted;
+                daemonInstaller.DownloadCompleted -= HandleInstallCompleted;
 
                 if (e.Error == null && !e.Cancelled)
                 {
