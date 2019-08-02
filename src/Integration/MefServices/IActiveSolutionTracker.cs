@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal class ActiveSolutionChangedEventArgs : EventArgs
+    public class ActiveSolutionChangedEventArgs : EventArgs
     {
         public ActiveSolutionChangedEventArgs(bool isSolutionOpen)
         {
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration
         public bool IsSolutionOpen { get; }
     }
 
-    internal class ProjectOpenedEventArgs : EventArgs
+    public class ProjectOpenedEventArgs : EventArgs
     {
         public ProjectOpenedEventArgs(IVsHierarchy pHierarchy)
         {
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration
         public IVsHierarchy ProjectHierarchy { get; }
     }
 
-    internal interface IActiveSolutionTracker
+    public interface IActiveSolutionTracker
     {
         /// <summary>
         /// The active solution has changed (either opened or closed).

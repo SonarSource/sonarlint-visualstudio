@@ -304,6 +304,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error stopping the daemon: {0}.
+        /// </summary>
+        internal static string ERROR_StoppingDaemon {
+            get {
+                return ResourceManager.GetString("ERROR_StoppingDaemon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified argument is of a valid type..
         /// </summary>
         internal static string InvalidInfoBarInstance {
