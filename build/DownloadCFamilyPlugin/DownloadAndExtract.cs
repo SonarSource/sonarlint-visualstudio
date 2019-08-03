@@ -58,7 +58,8 @@ namespace DownloadCFamilyPlugin
         {
                 "Sonar_way_profile.json",
                 "RulesList.json",
-                TarUnzipSubFolder + @"\subprocess.exe"
+                TarUnzipSubFolder + @"\subprocess.exe",
+                TarUnzipSubFolder + @"\LICENSE_THIRD_PARTY.txt"
         };
 
         // List of patterns to match multiple files in the uncompressed output
