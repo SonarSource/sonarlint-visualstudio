@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -54,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ISonarLintDaemon daemon;
         private ILogger logger;
+        private StatusBarDownloadProgressHandler statusBarDownloadProgressHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -94,6 +96,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 }
 
                 IDaemonInstaller installer = await this.GetMefServiceAsync<IDaemonInstaller>();
+
+                var sbService = await this.GetServiceAsync(typeof(IVsStatusbar)) as IVsStatusbar;
+                statusBarDownloadProgressHandler = new StatusBarDownloadProgressHandler(sbService, installer, logger);
+
                 if (!installer.IsInstalled())
                 {
                     // User already agreed to have the daemon installed so directly start download
@@ -135,6 +141,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 this.daemon?.Dispose();
                 this.daemon = null;
+                statusBarDownloadProgressHandler?.Dispose();
+                statusBarDownloadProgressHandler = null;
             }
         }
 

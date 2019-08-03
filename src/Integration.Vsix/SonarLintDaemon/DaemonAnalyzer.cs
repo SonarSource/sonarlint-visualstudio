@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (!daemonInstaller.IsInstalled())
                 {
-                    daemonInstaller.DownloadCompleted += HandleInstallCompleted;
+                    daemonInstaller.InstallationCompleted += HandleInstallCompleted;
                     daemonInstaller.Install();
                 }
                 else
@@ -112,13 +112,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             private void MakeRequest()
             {
                 daemon.Ready -= HandleDaemonReady;
-                daemonInstaller.DownloadCompleted -= HandleInstallCompleted;
+                daemonInstaller.InstallationCompleted -= HandleInstallCompleted;
                 daemon.RequestAnalysis(path, charset, detectedLanguages, consumer, projectItem);
             }
 
             private void HandleInstallCompleted(object sender, AsyncCompletedEventArgs e)
             {
-                daemonInstaller.DownloadCompleted -= HandleInstallCompleted;
+                daemonInstaller.InstallationCompleted -= HandleInstallCompleted;
 
                 if (e.Error == null && !e.Cancelled)
                 {

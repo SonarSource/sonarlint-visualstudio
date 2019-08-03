@@ -276,4 +276,8 @@
     <value>Error stopping the daemon: {0}</value>
     <comment>Output window message</comment>
   </data>
+  <data name="Daemon_Downloading_StatusBarMessage" xml:space="preserve">
+    <value>Downloading SonarLint daemon</value>
+    <comment>VS status bar message</comment>
+  </data>
 </root>

@@ -472,8 +472,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public string DaemonVersion { get; set; }
 
-            public event DownloadProgressChangedEventHandler DownloadProgressChanged;
-            public event AsyncCompletedEventHandler DownloadCompleted;
+            public event InstallationProgressChangedEventHandler InstallationProgressChanged;
+            public event AsyncCompletedEventHandler InstallationCompleted;
 
             public void Install()
             {
