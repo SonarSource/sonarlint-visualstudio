@@ -611,7 +611,7 @@
              IgnoreExitCode="false" />
 
     <!-- Copy the license file to the same directory -->
-    <Copy SourceFiles=".\CFamily\License" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
 
     <ItemGroup>
       <Content Include="$(CFamilyTargetDirectory)\**\*">
