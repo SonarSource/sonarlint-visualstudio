@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel;
-using System.Net;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -32,7 +32,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         string DaemonVersion { get; }
 
         void Install();
-        event DownloadProgressChangedEventHandler DownloadProgressChanged;
-        event AsyncCompletedEventHandler DownloadCompleted;
+        event InstallationProgressChangedEventHandler InstallationProgressChanged;
+        event AsyncCompletedEventHandler InstallationCompleted;
+    }
+
+    public delegate void InstallationProgressChangedEventHandler(object sender, InstallationProgressChangedEventArgs e);
+
+    // We can't write tests against the WebClient.DownloadProgressChangedEventArgs directly because it doesn't
+    // have a public constructor, so we've created our own custom event
+    public class InstallationProgressChangedEventArgs : EventArgs
+    {
+        public InstallationProgressChangedEventArgs(long bytesReceived, long totalBytesToReceive)
+        {
+            BytesReceived = bytesReceived;
+            TotalBytesToReceive = totalBytesToReceive;
+        }
+
+        public long BytesReceived { get; }
+        public long TotalBytesToReceive { get; }
     }
 }

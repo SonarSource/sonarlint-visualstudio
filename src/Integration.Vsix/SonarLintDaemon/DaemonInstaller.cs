@@ -48,8 +48,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /* for testing */ string DownloadUrl { get; }
 
 
-        public event DownloadProgressChangedEventHandler DownloadProgressChanged;
-        public event AsyncCompletedEventHandler DownloadCompleted;
+        public event InstallationProgressChangedEventHandler InstallationProgressChanged;
+        public event AsyncCompletedEventHandler InstallationCompleted;
             
         [ImportingConstructor]
         public DaemonInstaller(ILogger logger)
@@ -157,12 +157,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             using (var client = new WebClient())
             {
-                client.DownloadProgressChanged += (sender, args) => DownloadProgressChanged?.Invoke(sender, args);
+                client.DownloadProgressChanged += (sender, args) => InstallationProgressChanged?.Invoke(sender, new InstallationProgressChangedEventArgs(args.BytesReceived, args.TotalBytesToReceive));
                 client.DownloadFileCompleted += Unzip;
                 client.DownloadFileCompleted += (sender, args) =>
                 {
                     this.logger.WriteLine(Strings.Daemon_Downloaded);
-                    DownloadCompleted?.Invoke(sender, args);
+                    InstallationCompleted?.Invoke(sender, args);
                 };
                 client.DownloadFileAsync(uri, ZipFilePath);
             }
