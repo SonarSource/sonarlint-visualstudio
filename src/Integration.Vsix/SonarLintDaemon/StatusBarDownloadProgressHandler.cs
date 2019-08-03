@@ -47,11 +47,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.installer = installer;
             this.logger = logger;
 
-            this.installer.InstallationProgressChanged += Daemon_DownloadProgressChanged;
-            this.installer.InstallationCompleted += Daemon_DownloadCompleted;
+            this.installer.InstallationProgressChanged += HandleDownloadProgressChanged;
+            this.installer.InstallationCompleted += HandleInstallationCompleted;
         }
 
-        private void Daemon_DownloadCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        private void HandleInstallationCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
             try
             {
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private void Daemon_DownloadProgressChanged(object sender, InstallationProgressChangedEventArgs e)
+        private void HandleDownloadProgressChanged(object sender, InstallationProgressChangedEventArgs e)
         {
             try
             {
@@ -77,14 +77,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void UpdateStatusBar(long bytesReceived, long totalBytes)
         {
-            statusBar?.Progress(ref pwdCookie, 1, "Downloading SonarLint daemon: ", (uint)bytesReceived, (uint)totalBytes);
+            statusBar?.Progress(ref pwdCookie, 1, Strings.Daemon_Downloading_StatusBarMessage, (uint)bytesReceived, (uint)totalBytes);
         }
 
         private void Cleanup()
         {
-            installer.InstallationCompleted -= Daemon_DownloadCompleted;
-            installer.InstallationProgressChanged -= Daemon_DownloadProgressChanged;
-            statusBar.Progress(ref pwdCookie, 0, "Downloading SonarLint daemon: ", 0, 0);
+            installer.InstallationCompleted -= HandleInstallationCompleted;
+            installer.InstallationProgressChanged -= HandleDownloadProgressChanged;
+
+            if (pwdCookie != 0)
+            {
+                statusBar.Progress(ref pwdCookie, 0, Strings.Daemon_Downloading_StatusBarMessage, 0, 0);
+                pwdCookie = 0;
+            }
         }
 
         #region IDisposable Support

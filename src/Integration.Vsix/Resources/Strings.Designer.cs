@@ -133,6 +133,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading SonarLint daemon.
+        /// </summary>
+        internal static string Daemon_Downloading_StatusBarMessage {
+            get {
+                return ResourceManager.GetString("Daemon_Downloading_StatusBarMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Daemon error occurred in editor integration: {0}.
         /// </summary>
         internal static string Daemon_Editor_ERROR {

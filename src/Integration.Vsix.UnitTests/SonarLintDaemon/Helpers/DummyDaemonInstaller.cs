@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.ComponentModel;
@@ -32,9 +33,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool IsInstalledReturnValue { get; set; }
 
+        public void AssertNoEventHandlersRegistered()
+        {
+            this.InstallationProgressChanged.Should().BeNull();
+            this.InstallationCompleted.Should().BeNull();
+        }
+
         public void SimulateProgressChanged(InstallationProgressChangedEventArgs args)
         {
-            this.InstallationProgressChanged(this, args);
+            this.InstallationProgressChanged?.Invoke(this, args);
         }
 
         public void SimulateInstallFinished(AsyncCompletedEventArgs args)
