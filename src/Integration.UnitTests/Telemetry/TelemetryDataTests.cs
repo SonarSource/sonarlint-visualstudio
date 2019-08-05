@@ -22,6 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -49,9 +50,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                         new Analysis { Language = "js" },
                         new Analysis { Language = "csharp" },
                         new Analysis { Language = "xxx" }
-                    }
+                    }.ToList()
             };
-
 
             string serializedData = null;
             using (var textWriter = new StringWriter())
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reloadedData.LastSavedAnalysisDate.Should().Be(originalData.LastSavedAnalysisDate);
             reloadedData.LastUploadDate.Should().Be(originalData.LastUploadDate);
 
-            reloadedData.Analyses.Length.Should().Be(3);
+            reloadedData.Analyses.Count.Should().Be(3);
             reloadedData.Analyses[0].Language.Should().Be("js");
             reloadedData.Analyses[1].Language.Should().Be("csharp");
             reloadedData.Analyses[2].Language.Should().Be("xxx");
