@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using System;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -118,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration
 
             await telemetryClient.OptOutAsync(GetPayload(telemetryRepository.Data));
         }
-
+         
         private void DisableAllEvents()
         {
             telemetryTimer.Elapsed -= OnTelemetryTimerElapsed;
@@ -170,14 +172,29 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        public void LanguageAnalyzed(string languageKey)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(languageKey), "Supplied languageKey should not be null/empty");
+            Debug.Assert(telemetryRepository.Data != null);
+
+            if (!telemetryRepository.Data.Analyses.Any(x => string.Equals(x.Language, languageKey, StringComparison.OrdinalIgnoreCase)))
+            {
+                telemetryRepository.Data.Analyses.Add(new Analysis { Language = languageKey });
+                telemetryRepository.Save();
+            }
+        }
+
         private async void OnTelemetryTimerElapsed(object sender, TelemetryTimerEventArgs e)
         {
             try
             {
                 telemetryRepository.Data.LastUploadDate = e.SignalTime;
-                telemetryRepository.Save();
-
+                
                 await telemetryClient.SendPayloadAsync(GetPayload(telemetryRepository.Data));
+
+                // Clear out the list of saved languages
+                telemetryRepository.Data.Analyses = new System.Collections.Generic.List<Analysis>();
+                telemetryRepository.Save();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

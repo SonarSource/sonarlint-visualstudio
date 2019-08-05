@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
 
@@ -61,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         [XmlArray("Analyses")]
-        public Analysis[] Analyses { get; set; }
+        public List<Analysis> Analyses { get; set; } = new List<Analysis>();
 
         private static DateTimeOffset ParseSavedString(string data)
         {
