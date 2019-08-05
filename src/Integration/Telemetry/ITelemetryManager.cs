@@ -26,5 +26,7 @@ namespace SonarLint.VisualStudio.Integration
         void OptOut();
         void OptIn();
         void Update();
+
+        void LanguageAnalyzed(string languageKey);
     }
 }

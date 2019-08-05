@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -189,7 +190,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
             {
                 IsAnonymousDataShared = true,
                 InstallationDate = DateTimeOffset.Now,
-                LastUploadDate = DateTimeOffset.Now.AddDays(-1)
+                LastUploadDate = DateTimeOffset.Now.AddDays(-1),
+                Analyses = new System.Collections.Generic.List<Analysis>()
+                {
+                    new Analysis { Language = "csharp" }
+                }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
@@ -201,6 +206,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // Assert
             telemetryData.LastUploadDate.Should().Be(now);
+            telemetryData.Analyses.Count.Should().Be(0); // should have cleared the list of installed languages
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
@@ -213,7 +219,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
             {
                 IsAnonymousDataShared = true,
                 InstallationDate = DateTimeOffset.Now,
-                LastUploadDate = DateTimeOffset.Now.AddDays(-1)
+                LastUploadDate = DateTimeOffset.Now.AddDays(-1),
+                Analyses = new System.Collections.Generic.List<Analysis>()
+                {
+                    new Analysis { Language = "csharp" }
+                }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
@@ -225,6 +235,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // Assert
             telemetryData.LastUploadDate.Should().Be(now);
+            telemetryData.Analyses.Count.Should().Be(0); // should have cleared the list of installed languages
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
@@ -315,5 +326,49 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private TelemetryManager CreateManager() => new TelemetryManager(activeSolutionTrackerMock.Object,
             telemetryRepositoryMock.Object, loggerMock.Object, telemetryClientMock.Object,
             telemetryTimerMock.Object, knownUIContexts.Object);
+
+        #region Languages analyzed tests
+
+        [TestMethod]
+        public void LanguageAnalyzed_RepositoryOnlySavedWhenNewLanguage()
+        {
+            // Arrange
+            var telemetryData = new TelemetryData { InstallationDate = DateTimeOffset.MinValue };
+            this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+            var manager = CreateManager();
+
+            // Set up the telemetry mock after creating the manager, since the manager will
+            // may saved data on initial creation
+            this.telemetryRepositoryMock.Reset();
+            this.telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
+            // Act
+
+            // 1. New language analyzed for the first time -> should be saved in repo
+            manager.LanguageAnalyzed("cpp");
+
+            CheckExpectedLanguages(telemetryData, "cpp");
+            this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(1)); // Saved
+
+            // 2. New language analyzed for the first time -> should be saved in repo
+            manager.LanguageAnalyzed("js");
+
+            CheckExpectedLanguages(telemetryData, "cpp", "js");
+            this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(2)); // Saved
+
+            // 3. Repeat a language -> not saved
+            manager.LanguageAnalyzed("JS");
+
+            CheckExpectedLanguages(telemetryData, "cpp", "js");
+            this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(2)); // Saved
+        }
+        
+        private static void CheckExpectedLanguages(TelemetryData data, params string[] expectedLanguageKeys)
+        {
+            var actualLanguageKeys = data.Analyses.Select(a => a.Language).ToList();
+            actualLanguageKeys.Should().BeEquivalentTo(expectedLanguageKeys);
+        }
+
+        #endregion
     }
 }
