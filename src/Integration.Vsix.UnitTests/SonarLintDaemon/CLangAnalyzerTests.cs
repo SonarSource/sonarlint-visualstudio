@@ -20,6 +20,7 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
@@ -31,8 +32,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         [TestMethod]
         public void IsSupported()
         {
-            var analyzer = new CLangAnalyzer(new TestLogger());
+            // Arrange
+            var telemetryManagerMock = new Mock<ITelemetryManager>();
 
+            var analyzer = new CLangAnalyzer(telemetryManagerMock.Object, new TestLogger());
+
+            // Act and Assert
             analyzer.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeTrue();
             analyzer.IsAnalysisSupported(new[] { SonarLanguage.Javascript }).Should().BeFalse();
             analyzer.IsAnalysisSupported(new[] { SonarLanguage.Javascript, SonarLanguage.CFamily }).Should().BeTrue();
