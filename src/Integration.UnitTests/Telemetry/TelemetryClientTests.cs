@@ -152,7 +152,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
   ""connected_mode_used"": true,
   ""connected_mode_sonarcloud"": true,
   ""install_time"": ""2017-12-23T08:25:35.456+01:00"",
-  ""system_time"": ""2018-03-15T18:55:10.123+01:00""
+  ""system_time"": ""2018-03-15T18:55:10.123+01:00"",
+  ""analyses"": null
 }";
 
             httpHandlerMock.VerifyAll();

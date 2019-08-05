@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Telemetry;
+using System;
+using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -56,5 +56,33 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("system_time"), JsonConverter(typeof(ShortIsoDateTimeOffsetConverter))]
         public DateTimeOffset SystemDate { get; set; }
+
+        [JsonProperty("analyses")]
+        public Analysis[] Analyses { get; set; }
+    }
+
+    // We want to produce the same format as for IntelliJ and Eclipse (although
+    // currently we are only recording the languages used, not the analysis durations).
+    //
+    // Example from Eclipse:
+    //   "analyses": [
+    //  {
+    //    "language": "java",
+    //    "rate_per_duration": {
+    //      "0-300": 0,
+    //      "300-500": 0,
+    //      "500-1000": 0,
+    //      "1000-2000": 28.57,
+    //      "2000-4000": 14.29,
+    //      "4000+": 57.14
+    //    }
+    //  }
+    //]
+
+    // Note that this class is also used when serializing data to the users machine (in XML format)
+    public sealed class Analysis
+    {
+        [JsonProperty("language")]
+        public string Language { get; set; }
     }
 }
