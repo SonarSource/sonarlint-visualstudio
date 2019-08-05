@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -72,6 +73,11 @@ namespace SonarLint.VisualStudio.Integration
                 SystemDate = now,
                 InstallDate = telemetryData.InstallationDate,
             };
+        }
+
+        public static string Serialize(TelemetryPayload payload)
+        {
+            return JsonHelper.Serialize(payload);
         }
     }
 }

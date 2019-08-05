@@ -60,6 +60,9 @@ namespace SonarLint.VisualStudio.Integration
             set { LastUploadDate = ParseSavedString(value); }
         }
 
+        [XmlArray("Analyses")]
+        public Analysis[] Analyses { get; set; }
+
         private static DateTimeOffset ParseSavedString(string data)
         {
             // ParseExact will throw an exception when value is invalid date, but
