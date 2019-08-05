@@ -34,11 +34,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CLangAnalyzer : IAnalyzer
     {
+        private readonly ITelemetryManager telemetryManager;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public CLangAnalyzer(ILogger logger)
+        public CLangAnalyzer(ITelemetryManager telemetryManager, ILogger logger)
         {
+            this.telemetryManager = telemetryManager;
             this.logger = logger;
         }
 
@@ -84,6 +86,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, RulesMetadataCache.Instance))
                         .ToList();
 
+                telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
+
                 // Switch back to the UI thread
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -94,6 +98,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 consumer.Accept(request.File, issues);
             }
         }
-
     }
 }
