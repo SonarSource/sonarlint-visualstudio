@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
         {
-            return SupportedLanguages.Intersect(languages).Any();
+            return SupportedLanguages?.Intersect(languages).Any() ?? false;
         }
 
         public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)

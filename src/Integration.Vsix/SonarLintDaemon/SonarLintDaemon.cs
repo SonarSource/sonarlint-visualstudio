@@ -417,7 +417,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // tagger. The user will have to close and re-open the file to see issues.
             // Is this the behaviour we want, or should we return true here if the language
             // is supported, and then check whether to analyze when RequestAnalysis is called?
-            bool isSupported = (languages.Contains(SonarLanguage.Javascript) &&
+            bool isSupported = (languages != null && languages.Contains(SonarLanguage.Javascript) &&
                 settings.IsActivateMoreEnabled);
             return isSupported;
         }

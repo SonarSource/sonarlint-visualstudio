@@ -18,15 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Net;
-using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using System;
+using System.ComponentModel;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 {
@@ -36,13 +33,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         private DummySonarLintDaemon dummyDaemon;
         private DummyDaemonInstaller dummyInstaller;
         private DaemonAnalyzer analyzer;
+        private Mock<ITelemetryManager> telemetryManagerMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
             dummyDaemon = new DummySonarLintDaemon();
             dummyInstaller = new DummyDaemonInstaller();
-            analyzer = new DaemonAnalyzer(dummyDaemon, dummyInstaller);
+            telemetryManagerMock = new Mock<ITelemetryManager>();
+            analyzer = new DaemonAnalyzer(dummyDaemon, dummyInstaller, telemetryManagerMock.Object);
         }
 
         [TestMethod]
@@ -72,20 +71,42 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         }
 
         [TestMethod]
+        public void RequestAnalysis_Started_NotSupported_AnalysisRequested()
+        {
+            // Arrange
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.CFamily };
+            dummyInstaller.IsInstalledReturnValue = true;
+            dummyDaemon.IsRunning = true;
+
+            // Act
+            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+
+            // Assert - analysis not called
+            dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
+            CheckTelemetryManagerCallCount("js", 0);
+
+            // Sanity check the other call counts
+            dummyInstaller.InstallCallCount.Should().Be(0);
+            dummyDaemon.StartCallCount.Should().Be(0);
+        }
+
+        [TestMethod]
         public void RequestAnalysis_Started_AnalysisRequested()
         {
             // Arrange
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = true;
             dummyDaemon.IsRunning = true;
 
             // 1. Start
-            analyzer.RequestAnalysis("path", "charset", null, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
 
             // Assert - only RequestAnalysis called
             dummyInstaller.InstallCallCount.Should().Be(0);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
-
+            CheckTelemetryManagerCallCount("js", 1);
+            
             // 2. Check the event handlers have been unsubscribed
             dummyDaemon.SimulateDaemonReady(null);
             dummyInstaller.SimulateInstallFinished(null);
@@ -94,17 +115,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyInstaller.InstallCallCount.Should().Be(0);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
+            CheckTelemetryManagerTotalCallCount(1);
         }
 
         [TestMethod]
         public void RequestAnalysis_NotStarted_StartThenRequestAnalysis()
         {
             // Arrange
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = true;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", null, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
 
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
@@ -112,6 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // 2. Simulate daemon being ready
             dummyDaemon.SimulateDaemonReady(null);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
+            CheckTelemetryManagerCallCount("js", 1);
 
             // Sanity check of all of the call counts
             dummyInstaller.InstallCallCount.Should().Be(0);
@@ -126,17 +150,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyInstaller.InstallCallCount.Should().Be(0);
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
+            CheckTelemetryManagerTotalCallCount(1);
         }
 
         [TestMethod]
         public void RequestAnalysis_NotInstalled_InstallThenStartThenRequestAnalysis()
         {
             // Arrange
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", null, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript}, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -150,6 +176,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // 3. Simulate daemon being ready
             dummyDaemon.SimulateDaemonReady(null);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
+            CheckTelemetryManagerCallCount("js", 1);
 
             // 4. Check the event handlers have been unsubscribed
             dummyDaemon.SimulateDaemonReady(null);
@@ -159,17 +186,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
+            CheckTelemetryManagerTotalCallCount(1);
         }
 
         [TestMethod]
         public void RequestAnalysis_NotInstalled_ErrorOnInstall_StartNotCalled()
         {
             // Arrange
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", null, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -191,21 +220,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
+            CheckTelemetryManagerTotalCallCount(0);
         }
 
         [TestMethod]
         public void RequestAnalysis_NotInstalled_InstallCancelled_StartNotCalled()
         {
             // Arrange
-            var dummyDaemon = new DummySonarLintDaemon();
-            var dummyInstaller = new DummyDaemonInstaller();
-            var analyzer = new DaemonAnalyzer(dummyDaemon, dummyInstaller);
-
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", null, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -227,6 +254,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
+            CheckTelemetryManagerTotalCallCount(0);
+        }
+
+        private void CheckTelemetryManagerCallCount(string languageKey, int expectedCallCount)
+        {
+            telemetryManagerMock.Verify(x => x.LanguageAnalyzed(languageKey), Times.Exactly(expectedCallCount));
+        }
+
+        private void CheckTelemetryManagerTotalCallCount(int expectedTotalCallCount)
+        {
+            telemetryManagerMock.Verify(x => x.LanguageAnalyzed(It.IsAny<string>()), Times.Exactly(expectedTotalCallCount));
         }
     }
 }
