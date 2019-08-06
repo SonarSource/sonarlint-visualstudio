@@ -35,12 +35,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     internal class CLangAnalyzer : IAnalyzer
     {
         private readonly ITelemetryManager telemetryManager;
+        private readonly ISonarLintSettings settings;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public CLangAnalyzer(ITelemetryManager telemetryManager, ILogger logger)
+        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ILogger logger)
         {
             this.telemetryManager = telemetryManager;
+            this.settings = settings;
             this.logger = logger;
         }
 
@@ -74,10 +76,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // Switch a background thread
             await TaskScheduler.Default;
 
+            logger.WriteLine($"Analyzing {request.File}");
+
             // W're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
             // RequestAnalysis method to be synchronous, rather than fire-and-forget.
-            var response = CFamilyHelper.CallClangAnalyzer(request, new ProcessRunner(logger), logger);
+            var response = CFamilyHelper.CallClangAnalyzer(request, new ProcessRunner(settings, logger), logger);
 
             if (response != null)
             {
@@ -87,6 +91,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         .ToList();
 
                 telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
+
+                logger.WriteLine($"Found {issues.Count} issue(s)");
 
                 // Switch back to the UI thread
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
