@@ -33,17 +33,10 @@
             <Hyperlink>
                 <TextBlock Text="See a sample of data" />
                 <Hyperlink.ToolTip>
-                    <StackPanel>
-                        <TextBlock Text="{}{" />
-                        <TextBlock Text="    &quot;days_since_installation&quot;: 120," />
-                        <TextBlock Text="    &quot;days_of_use&quot;: 40," />
-                        <TextBlock Text="    &quot;sonarlint_version&quot;: &quot;3.0&quot;," />
-                        <TextBlock Text="    &quot;sonarlint_product&quot;: &quot;SonarLint Visual Studio&quot;," />
-                        <TextBlock Text="    &quot;connected_mode_used&quot;: true" />
-                        <TextBlock Text="    &quot;install_time&quot;: &quot;2017-12-23T08:25:35.456+01:00&quot;" />
-                        <TextBlock Text="    &quot;system_time&quot;: &quot;2018-03-15T18:55:10.123+01:00&quot;" />
-                        <TextBlock Text="}" />
-                    </StackPanel>
+                    <!-- In theory, we should be able to bind directly to a string in resx file. However, the name of
+                         the Integration.Vsix.dll changes depending on which version of VS we are targetting, so we
+                         can't add a clr-namespace reference. Instead, we'll set the text string from code behind. -->
+                    <TextBlock Name="jsonExampleTextBlock" Text="" />
                 </Hyperlink.ToolTip>
             </Hyperlink>
         </TextBlock>
