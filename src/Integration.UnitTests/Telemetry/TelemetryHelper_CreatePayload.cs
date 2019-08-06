@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -148,6 +149,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
 
             result.NumberOfDaysSinceInstallation.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void CreatePayload_IncludesAnalyses()
+        {
+            var telemetryData = new TelemetryData
+            {
+                Analyses = new []
+                {
+                    new Analysis { Language ="cs" },
+                    new Analysis { Language = "vbnet" }
+                }.ToList()
+            };
+
+            var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
+
+            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTime(2017, 7, 25), binding);
+
+            result.Analyses.Count.Should().Be(2);
+            result.Analyses[0].Language.Should().Be("cs");
+            result.Analyses[1].Language.Should().Be("vbnet");
         }
 
         [TestMethod]

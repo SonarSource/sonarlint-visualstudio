@@ -50,5 +50,29 @@ namespace SonarLint.VisualStudio.Integration
                 KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= value;
             }
         }
+
+        public event EventHandler<UIContextChangedEventArgs> CSharpProjectContextChanged
+        {
+            add
+            {
+                KnownUIContexts.CSharpProjectContext.UIContextChanged += value;
+            }
+            remove
+            {
+                KnownUIContexts.CSharpProjectContext.UIContextChanged -= value;
+            }
+        }
+
+        public event EventHandler<UIContextChangedEventArgs> VBProjectContextChanged
+        {
+            add
+            {
+                KnownUIContexts.VBProjectContext.UIContextChanged += value;
+            }
+            remove
+            {
+                KnownUIContexts.VBProjectContext.UIContextChanged -= value;
+            }
+        }
     }
 }
