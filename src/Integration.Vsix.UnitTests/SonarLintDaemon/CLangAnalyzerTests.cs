@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Arrange
             var telemetryManagerMock = new Mock<ITelemetryManager>();
 
-            var analyzer = new CLangAnalyzer(telemetryManagerMock.Object, new TestLogger());
+            var analyzer = new CLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(), new TestLogger());
 
             // Act and Assert
             analyzer.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeTrue();
