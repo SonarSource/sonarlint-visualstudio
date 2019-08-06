@@ -280,4 +280,35 @@
     <value>Downloading SonarLint daemon</value>
     <comment>VS status bar message</comment>
   </data>
+  <data name="ToolsOptions_ExampleJson" xml:space="preserve">
+    <value>{
+  "sonarlint_product": "SonarLint Visual Studio",
+  "sonarlint_version": "4.12.0.0",
+  "ide_version": "16.0.29123.89",
+  "days_since_installation": 1,
+  "days_of_use": 2,
+  "connected_mode_used": false,
+  "connected_mode_sonarcloud": false,
+  "install_time": "2019-08-05T10:03:25.923+00:00",
+  "system_time": "2019-08-06T11:31:00.142+01:00",
+  "analyses": [
+    {
+      "language": "cs"
+    },
+    {
+      "language": "js"
+    },
+    {
+      "language": "cpp"
+    },
+    {
+      "language": "c"
+    },
+    {
+      "language": "vbnet"
+    }
+  ]
+}</value>
+    <comment>Examples of JSON payload that is uploaded to SonarSource</comment>
+  </data>
 </root>

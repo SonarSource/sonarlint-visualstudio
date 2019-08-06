@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Controls;
 
@@ -32,6 +33,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public OtherOptionsDialogControl()
         {
             InitializeComponent();
+
+            // Set the example json payload (see the xaml file for an explanation)
+            jsonExampleTextBlock.Text = Strings.ToolsOptions_ExampleJson;
         }
     }
 }
