@@ -601,6 +601,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     default:
                         throw new ArgumentException($"Unsupported PrecompiledHeader: {value}", nameof(value));
                     case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
+                    case "NotUsing": // https://github.com/SonarSource/sonarlint-visualstudio/issues/992
                         return "";
                     case "Create":
                         return "/Yc" + header;
