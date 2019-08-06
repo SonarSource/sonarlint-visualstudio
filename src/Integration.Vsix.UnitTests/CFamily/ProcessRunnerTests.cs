@@ -415,7 +415,7 @@ xxx yyy
 
         private static ProcessRunner CreateProcessRunner(ILogger logger)
         {
-            return CreateProcessRunner(logger);
+            return new ProcessRunner(new ConfigurableSonarLintSettings(), logger);
         }
 
         private static void SafeSetEnvironmentVariable(string key, string value, EnvironmentVariableTarget target, ILogger logger)
