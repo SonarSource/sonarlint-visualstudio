@@ -72,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration
                 IsUsingSonarCloud = isSonarCloud,
                 SystemDate = now,
                 InstallDate = telemetryData.InstallationDate,
+                Analyses = telemetryData.Analyses
             };
         }
 

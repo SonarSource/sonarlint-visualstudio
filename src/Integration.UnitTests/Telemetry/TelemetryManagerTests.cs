@@ -290,6 +290,48 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
+        public void WhenCSharpOrVBProjectContextChangedAndActive_LanguagesUpdated()
+        {
+            // Arrange
+            var telemetryData = new TelemetryData
+            {
+                IsAnonymousDataShared = true,
+                InstallationDate = DateTimeOffset.Now,
+                LastSavedAnalysisDate = DateTimeOffset.Now
+            };
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
+            var manager = CreateManager();
+
+            // 1. CSharp context changed
+            RaiseEventAndCheckResult(SonarLanguageKeys.CSharp, x => x.CSharpProjectContextChanged += null);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+
+            // 2. ... and again
+            RaiseEventAndCheckResult(SonarLanguageKeys.CSharp, x => x.CSharpProjectContextChanged += null);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once); // still only saved once
+
+            // 3. VB context changed
+            RaiseEventAndCheckResult(SonarLanguageKeys.VBNet, x => x.VBProjectContextChanged += null);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(2)); // new languages, so saved again
+
+            // 4. ... and again
+            RaiseEventAndCheckResult(SonarLanguageKeys.VBNet, x => x.VBProjectContextChanged += null);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(2)); // still only saved twice
+
+            telemetryData.Analyses.Count.Should().Be(2); // check the collection of data is cumulative
+
+            void RaiseEventAndCheckResult(string expectedLanguageKey, Action<IKnownUIContexts> eventExpression)
+            {
+                knownUIContexts.Raise(eventExpression, new UIContextChangedEventArgs(true));
+
+                // Assert
+                var matches = telemetryData.Analyses.Count(x => string.Equals(x.Language, expectedLanguageKey, StringComparison.OrdinalIgnoreCase));
+                matches.Should().Be(1);
+            }
+        }
+
+        [TestMethod]
         public void WhenSolutionBuildingContextChangedAndNotActivate_DoNothing()
         {
             WhenEventAndNotActivate_DoNothing(x => x.SolutionBuildingContextChanged += null);
@@ -299,6 +341,18 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void WhenSolutionExistsAndFullyLoadedContextChangedAndNotActivate_DoNothing()
         {
             WhenEventAndNotActivate_DoNothing(x => x.SolutionExistsAndFullyLoadedContextChanged += null);
+        }
+
+        [TestMethod]
+        public void WhenCSharpContextChangedAndNotActivate_DoNothing()
+        {
+            WhenEventAndNotActivate_DoNothing(x => x.CSharpProjectContextChanged += null);
+        }
+
+        [TestMethod]
+        public void WhenVBContextChangedAndNotActivate_DoNothing()
+        {
+            WhenEventAndNotActivate_DoNothing(x => x.VBProjectContextChanged += null);
         }
 
         private void WhenEventAndNotActivate_DoNothing(Action<IKnownUIContexts> eventExpression)
@@ -320,6 +374,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             telemetryData.LastSavedAnalysisDate.Should().Be(now);
             telemetryData.NumberOfDaysOfUse.Should().Be(0);
+            telemetryData.Analyses.Count.Should().Be(0);
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Never);
         }
 

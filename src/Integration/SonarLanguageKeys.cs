@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2018 SonarSource SA
+ * Copyright (C) 2016-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,15 +19,24 @@
  */
 
 using System;
-using Microsoft.VisualStudio.Shell;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface IKnownUIContexts
+    /// <summary>
+    /// Language keys for languages supported by SonarQube/Cloud plugins
+    /// </summary>
+    /// <remarks>A full list of languages keys can be obtained by calling https://sonarcloud.io/api/languages/list
+    /// </remarks>
+    public static class SonarLanguageKeys
     {
-        event EventHandler<UIContextChangedEventArgs> SolutionBuildingContextChanged;
-        event EventHandler<UIContextChangedEventArgs> SolutionExistsAndFullyLoadedContextChanged;
-        event EventHandler<UIContextChangedEventArgs> CSharpProjectContextChanged;
-        event EventHandler<UIContextChangedEventArgs> VBProjectContextChanged;
+        public const string CSharp = "cs";
+        public const string VBNet = "vbnet";
+        public const string JavaScript = "js";
+        public const string C = "c";
+        public const string CPlusPlus = "cpp";
     }
 }
