@@ -289,6 +289,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             CFamilyHelper.FileConfig.ConvertPrecompiledHeader("Create", "stdafx.h").Should().Be("/Ycstdafx.h");
             CFamilyHelper.FileConfig.ConvertPrecompiledHeader("Use", "").Should().Be("/Yu");
             CFamilyHelper.FileConfig.ConvertPrecompiledHeader("Create", "").Should().Be("/Yc");
+            CFamilyHelper.FileConfig.ConvertPrecompiledHeader("NotUsing", "XXX").Should().Be("");
 
             Action action = () => CFamilyHelper.FileConfig.ConvertPrecompiledHeader("foo", "");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PrecompiledHeader: foo");
