@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new ProcessRunner(new TestLogger()).Execute(null);
+            Action action = () => new ProcessRunner(new ConfigurableSonarLintSettings(), new TestLogger()).Execute(null);
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runnerArgs");
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var logger = new TestLogger();
             var args = new ProcessRunnerArguments(exeName, true);
-            var runner = new ProcessRunner(logger);
+            var runner = CreateProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -79,7 +79,7 @@ xxx yyy
 
             var logger = new TestLogger();
             var args = new ProcessRunnerArguments(exeName, true);
-            var runner = new ProcessRunner(logger);
+            var runner = CreateProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -111,7 +111,7 @@ xxx yyy
             {
                 TimeoutInMilliseconds = 100
             };
-            var runner = new ProcessRunner(logger);
+            var runner = CreateProcessRunner(logger);
 
             var timer = Stopwatch.StartNew();
 
@@ -136,7 +136,7 @@ xxx yyy
         {
             // Arrange
             var logger = new TestLogger();
-            var runner = new ProcessRunner(logger);
+            var runner = CreateProcessRunner(logger);
 
             var exeName = WriteBatchFileForTest(TestContext,
 @"echo %PROCESS_VAR%
@@ -172,7 +172,7 @@ xxx yyy
 
             // Arrange
             var logger = new TestLogger();
-            var runner = new ProcessRunner(logger);
+            var runner = CreateProcessRunner(logger);
 
             try
             {
@@ -231,7 +231,7 @@ xxx yyy
             // Arrange
             var logger = new TestLogger();
             var args = new ProcessRunnerArguments("missingExe.foo", false);
-            var runner = new ProcessRunner(logger);
+            var runner = CreateProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -273,7 +273,7 @@ xxx yyy
 
             args.CmdLineArgs = expected;
 
-            var runner = new ProcessRunner(logger);
+            var runner = CreateProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -320,7 +320,7 @@ xxx yyy
 
             args.CmdLineArgs = expected;
 
-            var runner = new ProcessRunner(logger);
+            var runner = CreateProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -386,7 +386,7 @@ xxx yyy
                 }
             };
 
-            var runner = new ProcessRunner(logger);
+            var runner = CreateProcessRunner(logger);
 
             // Act
             var success = runner.Execute(runnerArgs);
@@ -412,6 +412,11 @@ xxx yyy
         #endregion Tests
 
         #region Private methods
+
+        private static ProcessRunner CreateProcessRunner(ILogger logger)
+        {
+            return new ProcessRunner(new ConfigurableSonarLintSettings(), logger);
+        }
 
         private static void SafeSetEnvironmentVariable(string key, string value, EnvironmentVariableTarget target, ILogger logger)
         {

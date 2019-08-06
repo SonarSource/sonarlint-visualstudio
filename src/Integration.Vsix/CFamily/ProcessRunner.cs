@@ -37,10 +37,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public const int ErrorCode = 1;
 
         private readonly ILogger logger;
+        private readonly ISonarLintSettings settings;
 
-        public ProcessRunner(ILogger logger)
+        public ProcessRunner(ISonarLintSettings settings, ILogger logger)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
 
         #region Public methods
@@ -199,7 +201,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private void LogDebug(string message, params object[] args)
         {
-            LogMessage(CFamilyStrings.MSG_Prefix_DEBUG + message, args);
+            if (settings.DaemonLogLevel == DaemonLogLevel.Verbose)
+            {
+                LogMessage(CFamilyStrings.MSG_Prefix_DEBUG + message, args);
+            }
         }
 
         private static string GetFormattedMessage(string message, params object[] args)
