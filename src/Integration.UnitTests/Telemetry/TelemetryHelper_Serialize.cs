@@ -21,6 +21,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -50,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     new Analysis { Language = "js" },
                     new Analysis { Language = "csharp" },
                     new Analysis { Language = "vbnet" }
-                }
+                }.ToList()
             };
 
             var serialized = TelemetryHelper.Serialize(payload);

@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 namespace SonarLint.VisualStudio.Integration
 {
     /// <summary>
-    /// Represents a programming language. Implements <seealso cref="IEquatable{T}"/>.
+    /// Represents a programming language for which connected mode is supported. Implements <seealso cref="IEquatable{T}"/>.
     /// </summary>
     /// <remarks>
     /// <para>

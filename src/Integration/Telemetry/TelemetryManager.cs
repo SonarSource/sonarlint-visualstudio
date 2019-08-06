@@ -128,6 +128,8 @@ namespace SonarLint.VisualStudio.Integration
 
             knownUIContexts.SolutionBuildingContextChanged -= this.OnAnalysisRun;
             knownUIContexts.SolutionExistsAndFullyLoadedContextChanged -= this.OnAnalysisRun;
+            knownUIContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
+            knownUIContexts.VBProjectContextChanged -= OnVBProjectContextChanged;
         }
 
         private void EnableAllEvents()
@@ -137,6 +139,24 @@ namespace SonarLint.VisualStudio.Integration
 
             knownUIContexts.SolutionBuildingContextChanged += this.OnAnalysisRun;
             knownUIContexts.SolutionExistsAndFullyLoadedContextChanged += this.OnAnalysisRun;
+            knownUIContexts.CSharpProjectContextChanged += OnCSharpProjectContextChanged;
+            knownUIContexts.VBProjectContextChanged += OnVBProjectContextChanged;
+        }
+
+        private void OnCSharpProjectContextChanged(object sender, UIContextChangedEventArgs e)
+        {
+            if (e.Activated)
+            {
+                LanguageAnalyzed(SonarLanguageKeys.CSharp);
+            }
+        }
+
+        private void OnVBProjectContextChanged(object sender, UIContextChangedEventArgs e)
+        {
+            if (e.Activated)
+            {
+                LanguageAnalyzed(SonarLanguageKeys.VBNet);
+            }
         }
 
         private TelemetryPayload GetPayload(TelemetryData telemetryData)

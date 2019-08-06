@@ -21,6 +21,7 @@
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Telemetry;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration
@@ -58,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration
         public DateTimeOffset SystemDate { get; set; }
 
         [JsonProperty("analyses")]
-        public Analysis[] Analyses { get; set; }
+        public List<Analysis> Analyses { get; set; }
     }
 
     // We want to produce the same format as for IntelliJ and Eclipse (although
