@@ -22,6 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Linq;
 using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -32,12 +34,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly ISonarLintDaemon daemon;
         private readonly IDaemonInstaller installer;
+        private readonly ITelemetryManager telemetryManager;
 
         [ImportingConstructor]
-        public DaemonAnalyzer(ISonarLintDaemon daemon, IDaemonInstaller daemonInstaller)
+        public DaemonAnalyzer(ISonarLintDaemon daemon, IDaemonInstaller daemonInstaller, ITelemetryManager telemetryManager)
         {
             this.daemon = daemon;
             this.installer = daemonInstaller;
+            this.telemetryManager = telemetryManager;
         }
 
         public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
@@ -47,14 +51,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
-            // Optimise for the common case of daemon up and running
-            if (installer.IsInstalled() && daemon.IsRunning)
+            if (!IsAnalysisSupported(detectedLanguages))
             {
-                daemon.RequestAnalysis(path, charset, detectedLanguages, consumer, projectItem);
                 return;
             }
 
-            new DelayedRequest(daemon, installer, path, charset, detectedLanguages, consumer, projectItem).Execute();
+            // Optimise for the common case of daemon up and running
+            if (installer.IsInstalled() && daemon.IsRunning)
+            {
+                InvokeDaemon(path, charset, detectedLanguages, consumer, projectItem);
+                return;
+            }
+
+            new DelayedRequest(this, path, charset, detectedLanguages, consumer, projectItem).Execute();
+        }
+
+        private void InvokeDaemon(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        {
+            Debug.Assert(detectedLanguages?.Contains(SonarLanguage.Javascript) ?? false, "Not expecting the daemon to be called for languages other than JavaScript");
+
+            // TODO refactor the daemon so it does not implement IAnalyzer or make any
+            // decisions about whether to run or not. That should all be handled by 
+            // this class.
+            telemetryManager.LanguageAnalyzed("js");
+            daemon.RequestAnalysis(path, charset, detectedLanguages, consumer, projectItem);
         }
 
         /// <summary>
@@ -70,17 +90,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             private readonly ISonarLintDaemon daemon;
             private readonly IDaemonInstaller daemonInstaller;
+            private readonly DaemonAnalyzer daemonAnalyzer;
             private readonly string path;
             private readonly string charset;
             private readonly IEnumerable<SonarLanguage> detectedLanguages;
             private readonly IIssueConsumer consumer;
             private readonly ProjectItem projectItem;
 
-            public DelayedRequest(ISonarLintDaemon daemon, IDaemonInstaller daemonInstaller, string path, string charset, IEnumerable<SonarLanguage> detectedLanguages,
+            public DelayedRequest(DaemonAnalyzer daemonAnalyzer, string path, string charset, IEnumerable<SonarLanguage> detectedLanguages,
                 IIssueConsumer consumer, ProjectItem projectItem)
             {
-                this.daemon = daemon;
-                this.daemonInstaller = daemonInstaller;
+                this.daemonAnalyzer = daemonAnalyzer;
+                this.daemon = daemonAnalyzer.daemon;
+                this.daemonInstaller = daemonAnalyzer.installer;
                 this.path = path;
                 this.charset = charset;
                 this.detectedLanguages = detectedLanguages;
@@ -113,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 daemon.Ready -= HandleDaemonReady;
                 daemonInstaller.InstallationCompleted -= HandleInstallCompleted;
-                daemon.RequestAnalysis(path, charset, detectedLanguages, consumer, projectItem);
+                daemonAnalyzer.InvokeDaemon(path, charset, detectedLanguages, consumer, projectItem);
             }
 
             private void HandleInstallCompleted(object sender, AsyncCompletedEventArgs e)
