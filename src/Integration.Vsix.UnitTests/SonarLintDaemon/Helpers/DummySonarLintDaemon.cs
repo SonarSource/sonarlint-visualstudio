@@ -35,6 +35,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public int StartCallCount { get; private set; }
         public int RequestAnalysisCallCount { get; private set; }
 
+        /// <summary>
+        /// Optional - code to execute when Start is called
+        /// </summary>
+        public Action StartOperation { get; set; }
+
+        /// <summary>
+        /// Optional - code execute when RequestAnalysis is called
+        /// </summary>
+        public Action RequestAnalysisOperation { get; set; }
+
         public void SimulateDaemonReady(EventArgs args)
         {
             this.IsRunning = true;
@@ -62,11 +72,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
             RequestAnalysisCallCount++;
+            RequestAnalysisOperation?.Invoke();
         }
 
         public void Start()
         {
             StartCallCount++;
+            StartOperation?.Invoke();
         }
 
         public void Stop()

@@ -25,6 +25,8 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -112,6 +114,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             public void Execute()
             {
+                // Note: called on the UI thread so an unhandled exception will crash VS.
+                // However, the only excecution path to this point should be from our tagger which
+                // should handle any exceptions.
                 if (!daemonInstaller.IsInstalled())
                 {
                     daemonInstaller.InstallationCompleted += HandleInstallCompleted;
@@ -140,18 +145,45 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             private void HandleInstallCompleted(object sender, AsyncCompletedEventArgs e)
             {
-                daemonInstaller.InstallationCompleted -= HandleInstallCompleted;
-
-                if (e.Error == null && !e.Cancelled)
+                // Could be on the UI thread -> unhandled exceptions will crash VS
+                // e.g. https://github.com/SonarSource/sonarlint-visualstudio/issues/999
+                try
                 {
-                    daemon.Ready += HandleDaemonReady;
-                    daemon.Start();
+                    daemonInstaller.InstallationCompleted -= HandleInstallCompleted;
+
+                    if (e.Error == null && !e.Cancelled)
+                    {
+                        // Potential race condition: the daemon might already have been started
+                        if (daemon.IsRunning)
+                        {
+                            MakeRequest();
+                        }
+                        else
+                        {
+                            daemon.Ready += HandleDaemonReady;
+                            daemon.Start();
+                        }
+                    }
+                }
+                catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    // Squash non-critical exceptions
+                    Debug.WriteLine($"Error handling daemon installation complete notification: {ex.ToString()}");
                 }
             }
 
             private void HandleDaemonReady(object sender, EventArgs e)
             {
-                MakeRequest();
+                // Could be on the UI thread -> unhandled exceptions will crash VS
+                try
+                {
+                    MakeRequest();
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    // Squash non-critical exceptions
+                    Debug.WriteLine($"Error handling daemon ready notification: {ex.ToString()}");
+                }
             }
         }
     }
