@@ -108,7 +108,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 if (!installer.IsInstalled())
                 {
                     installer.Install();
-                    return;
                 }
                 
                 settings.IsActivateMoreEnabled = true;

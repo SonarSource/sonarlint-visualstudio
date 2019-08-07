@@ -87,28 +87,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 
-                var settings = await this.GetMefServiceAsync<ISonarLintSettings>();
-                if (!settings.IsActivateMoreEnabled)
-                {
-                    // Support for additional languages is not enabled
-                    // - nothing more to do
-                    return;
-                }
-
-                IDaemonInstaller installer = await this.GetMefServiceAsync<IDaemonInstaller>();
-
-                var sbService = await this.GetServiceAsync(typeof(IVsStatusbar)) as IVsStatusbar;
-                statusBarDownloadProgressHandler = new StatusBarDownloadProgressHandler(sbService, installer, logger);
-
-                if (!installer.IsInstalled())
-                {
-                    // User already agreed to have the daemon installed so directly start download
-                    // No UI interation so we don't need to be on the UI thread
-                    installer.Install();
-                }
-
+                // Set up the solution tracker so we can shut down the daemon when a solution is closed
                 var solutionTracker = await this.GetMefServiceAsync<IActiveSolutionTracker>();
                 solutionTracker.ActiveSolutionChanged += HandleActiveSolutionChanged;
+
+                IDaemonInstaller installer = await this.GetMefServiceAsync<IDaemonInstaller>();
+                if (!installer.IsInstalled())
+                {
+                    // Set up the status bar download handler in case the user enables
+                    // support for additional languages during the VS session
+                    var sbService = await this.GetServiceAsync(typeof(IVsStatusbar)) as IVsStatusbar;
+                    statusBarDownloadProgressHandler = new StatusBarDownloadProgressHandler(sbService, installer, logger);
+
+                    var settings = await this.GetMefServiceAsync<ISonarLintSettings>();
+                    if (settings.IsActivateMoreEnabled)
+                    {
+                        // User already agreed to have the daemon installed so directly start download.
+                        // No UI interation so we don't need to be on the UI thread.
+                        installer.Install();
+                    }
+                }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
