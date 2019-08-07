@@ -67,12 +67,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (IsRunning)
             {
-                throw new InvalidOperationException("Process already running");
+                logger.WriteLine("Daemon is already running");
+                return;
             }
 
             if (!installer.IsInstalled())
             {
-                throw new InvalidOperationException("Daemon is not installed");
+                logger.WriteLine("Daemon is not installed");
+                return;
             }
 
             if (!settings.IsActivateMoreEnabled)

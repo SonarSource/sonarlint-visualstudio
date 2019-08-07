@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel;
 using System.IO;
-using System.Net;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -125,9 +124,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Run_Without_Install()
         {
             dummyInstaller.IsInstalledReturnValue = false;
-            Action op = () => testableDaemon.Start();
+            testableDaemon.Start();
 
-            op.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Be("Daemon is not installed");
+            // Should not throw as this could crash VS: https://github.com/SonarSource/sonarlint-visualstudio/issues/999
+            // ...but daemon should not start either.
+            testableDaemon.IsRunning.Should().BeFalse();
         }
 
         [TestMethod]
