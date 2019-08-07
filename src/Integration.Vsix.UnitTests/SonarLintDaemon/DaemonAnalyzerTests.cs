@@ -107,14 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
             CheckTelemetryManagerCallCount("js", 1);
             
-            // 2. Check the event handlers have been unsubscribed
-            dummyDaemon.SimulateDaemonReady(null);
-            dummyInstaller.SimulateInstallFinished(null);
-
-            // Assert - not other calls
-            dummyInstaller.InstallCallCount.Should().Be(0);
-            dummyDaemon.StartCallCount.Should().Be(0);
-            dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
+            CheckEventHandlersUnsubscribed();
             CheckTelemetryManagerTotalCallCount(1);
         }
 
@@ -154,6 +147,42 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         }
 
         [TestMethod]
+        public void RequestAnalysis_NotStarted_StartThenRequestAnalysis_NonCriticalExceptionInMakeRequestIsSuppressed()
+        {
+            // Arrange
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyInstaller.IsInstalledReturnValue = true;
+            dummyDaemon.IsRunning = false;
+
+            bool requestAnalysisOpInvoked = false;
+            dummyDaemon.RequestAnalysisOperation = () =>
+            {
+                requestAnalysisOpInvoked = true;
+                throw new InvalidOperationException("xxx");
+            };
+
+            // 1. Make the request
+            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+
+            dummyDaemon.StartCallCount.Should().Be(1);
+            dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
+
+            // 2. Simulate daemon being ready
+            dummyDaemon.SimulateDaemonReady(null);
+            dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
+            CheckTelemetryManagerCallCount("js", 1);
+
+            requestAnalysisOpInvoked.Should().BeTrue();
+
+            // Sanity check of all of the call counts
+            dummyInstaller.InstallCallCount.Should().Be(0);
+            dummyDaemon.StartCallCount.Should().Be(1);
+            dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
+
+            CheckEventHandlersUnsubscribed();
+        }
+
+        [TestMethod]
         public void RequestAnalysis_NotInstalled_InstallThenStartThenRequestAnalysis()
         {
             // Arrange
@@ -178,15 +207,71 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
             CheckTelemetryManagerCallCount("js", 1);
 
-            // 4. Check the event handlers have been unsubscribed
-            dummyDaemon.SimulateDaemonReady(null);
-            dummyInstaller.SimulateInstallFinished(null);
+            CheckEventHandlersUnsubscribed();
+        }
 
-            // Sanity check of all of the call counts
+        [TestMethod]
+        public void RequestAnalysis_NotInstalled_InstallCalled_DaemonAlreadyRunningSoStartNotCalled_RequestAnalysisCalled()
+        {
+            // Related to https://github.com/SonarSource/sonarlint-visualstudio/issues/999
+
+            // Arrange
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyInstaller.IsInstalledReturnValue = false;
+            dummyDaemon.IsRunning = false;
+
+            // 1. Make the request
+            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+
             dummyInstaller.InstallCallCount.Should().Be(1);
-            dummyDaemon.StartCallCount.Should().Be(1);
+            dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
+            dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
+
+            // 2. Simulate daemon started by another caller, then send the "installation complete" notification
+            dummyDaemon.IsRunning = true;
+            dummyInstaller.SimulateInstallFinished(new AsyncCompletedEventArgs(null, false /* cancelled */, null));
+
+            // Should not call Start in this case: should just request the analysis
+            dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
-            CheckTelemetryManagerTotalCallCount(1);
+
+            CheckEventHandlersUnsubscribed();
+        }
+
+        [TestMethod]
+        public void RequestAnalysis_NotInstalled_InstallCalled_DaemonAlreadyRunning_RequestAnalysisCalled_NonCriticalIsSuppressed()
+        {
+            // Related to https://github.com/SonarSource/sonarlint-visualstudio/issues/999
+
+            // Arrange
+            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyInstaller.IsInstalledReturnValue = false;
+            dummyDaemon.IsRunning = false;
+
+            bool requestAnalysisOpInvoked = false;
+            dummyDaemon.RequestAnalysisOperation = () =>
+            {
+                requestAnalysisOpInvoked = true;
+                throw new InvalidOperationException("xxx");
+            };
+
+            // 1. Make the request
+            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+
+            dummyInstaller.InstallCallCount.Should().Be(1);
+            dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
+            dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
+
+            // 2. Simulate daemon started by another caller, then send the "installation complete" notification
+            dummyDaemon.IsRunning = true;
+            dummyInstaller.SimulateInstallFinished(new AsyncCompletedEventArgs(null, false /* cancelled */, null));
+
+            // Exception should be suppressed
+            requestAnalysisOpInvoked.Should().BeTrue();
+            dummyDaemon.StartCallCount.Should().Be(0);
+            dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
+
+            CheckEventHandlersUnsubscribed();
         }
 
         [TestMethod]
@@ -212,15 +297,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
 
-            // 3. Check the event handlers have been unsubscribed
-            dummyDaemon.SimulateDaemonReady(null);
-            dummyInstaller.SimulateInstallFinished(null);
-
-            // Sanity check of all of the call counts
-            dummyInstaller.InstallCallCount.Should().Be(1);
-            dummyDaemon.StartCallCount.Should().Be(0);
-            dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
-            CheckTelemetryManagerTotalCallCount(0);
+            CheckEventHandlersUnsubscribed();
         }
 
         [TestMethod]
@@ -246,15 +323,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
 
-            // 3. Check the event handlers have been unsubscribed
+            CheckEventHandlersUnsubscribed();
+        }
+
+        private void CheckEventHandlersUnsubscribed()
+        {
+            // Check that firing the events doesn't result in any more method calls.
+
+            // Store the current counts
+            var installCallCount = dummyInstaller.InstallCallCount;
+            var startCallCount = dummyDaemon.StartCallCount;
+            var requestCallCount = dummyDaemon.RequestAnalysisCallCount;
+
+            // Make the telemetry manager throw if it is called again
+            telemetryManagerMock.Setup(x => x.LanguageAnalyzed(It.IsAny<string>())).Throws<InvalidOperationException>();
+
+            // Fire the events
             dummyDaemon.SimulateDaemonReady(null);
             dummyInstaller.SimulateInstallFinished(null);
 
-            // Sanity check of all of the call counts
-            dummyInstaller.InstallCallCount.Should().Be(1);
-            dummyDaemon.StartCallCount.Should().Be(0);
-            dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
-            CheckTelemetryManagerTotalCallCount(0);
+            // Check the call counts haven't changed
+            dummyInstaller.InstallCallCount.Should().Be(installCallCount);
+            dummyDaemon.StartCallCount.Should().Be(startCallCount);
+            dummyDaemon.RequestAnalysisCallCount.Should().Be(requestCallCount);
         }
 
         private void CheckTelemetryManagerCallCount(string languageKey, int expectedCallCount)

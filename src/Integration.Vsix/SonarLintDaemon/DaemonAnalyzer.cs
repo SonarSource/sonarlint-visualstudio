@@ -114,8 +114,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             public void Execute()
             {
-                Debug.Assert(ThreadHelper.CheckAccess(), "Expecting calls to DelayedRequest.Execute to be on the UI thread");
-
                 // Note: called on the UI thread so an unhandled exception will crash VS.
                 // However, the only excecution path to this point should be from our tagger which
                 // should handle any exceptions.
