@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -44,8 +42,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             RulesLoader.ReadRulesList().Should().HaveCount(410); // unexpanded list of keys
 
-            RulesMetadataCache.GetSettings("c").AllRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
-            RulesMetadataCache.GetSettings("cpp").AllRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
+            RulesMetadataCache.GetSettings("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
+            RulesMetadataCache.GetSettings("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
             RulesMetadataCache.GetSettings("objc").Should().BeNull();
@@ -56,8 +54,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             RulesLoader.ReadActiveRulesList().Should().HaveCount(255); // unexpanded list of active rules
 
-            RulesMetadataCache.GetSettings("c").ActiveRuleKeys.Should().HaveCount(Active_C_Rules);
-            RulesMetadataCache.GetSettings("cpp").ActiveRuleKeys.Should().HaveCount(Active_CPP_Rules);
+            RulesMetadataCache.GetSettings("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules);
+            RulesMetadataCache.GetSettings("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
             RulesMetadataCache.GetSettings("objc").Should().BeNull();

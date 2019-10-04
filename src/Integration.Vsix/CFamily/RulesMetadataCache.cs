@@ -27,9 +27,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal interface IRulesConfiguration
     {
-        IEnumerable<string> AllRuleKeys { get; }
+        string LanguageKey { get; }
 
-        IEnumerable<string> ActiveRuleKeys { get; }
+        IEnumerable<string> AllPartialRuleKeys { get; }
+
+        IEnumerable<string> ActivePartialRuleKeys { get; }
 
         IDictionary<string, IDictionary<string, string>> RulesParameters { get; }
 
@@ -75,13 +77,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             public SingleLanguageRulesConfiguration(string cFamilyLanguage)
             {
+                LanguageKey = cFamilyLanguage;
+
                 var ruleKeysForLanguage = AllLanguagesRulesMetadata
                     .Where(kvp => kvp.Value.CompatibleLanguages.Contains(cFamilyLanguage, RuleKeyComparer))
                     .Select(kvp => kvp.Key)
                     .ToArray();
 
-                AllRuleKeys = ruleKeysForLanguage;
-                ActiveRuleKeys = AllLanguagesActiveRuleKeys
+                AllPartialRuleKeys = ruleKeysForLanguage;
+                ActivePartialRuleKeys = AllLanguagesActiveRuleKeys
                     .Intersect(ruleKeysForLanguage, RuleKeyComparer)
                     .ToArray();
 
@@ -91,14 +95,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     .ToDictionary(key => key, key => AllLanguagesRulesMetadata[key]);
             }
 
-            public IEnumerable<string> AllRuleKeys { get; }
+            public string LanguageKey { get; }
 
-            public IEnumerable<string> ActiveRuleKeys { get; }
+            public IEnumerable<string> AllPartialRuleKeys { get; }
+
+            public IEnumerable<string> ActivePartialRuleKeys { get; }
 
             public IDictionary<string, IDictionary<string, string>> RulesParameters { get; }
 
             public IDictionary<string, RuleMetadata> RulesMetadata { get; }
         }
-
     }
 }
