@@ -304,7 +304,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = new Mock<ProjectItem>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h");
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", DummyRulesConfiguration.ValidRulesConfig);
 
             // Assert
             AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
@@ -320,7 +320,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", DummyRulesConfiguration.ValidRulesConfig);
 
             // Assert
             AssertMessageLogged(loggerMock,
@@ -337,7 +337,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", DummyRulesConfiguration.ValidRulesConfig);
 
             // Assert
             AssertPartialMessageLogged(loggerMock,
@@ -590,26 +590,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             loggerMock.Verify(x => x.WriteLine(It.Is<string>(
                 s => s.Contains(message))), Times.Once);
-        }
-
-        private class DummyRulesConfiguration : IRulesConfiguration
-        {
-            public IDictionary<string, bool> RuleKeyToActiveMap { get; set; } = new Dictionary<string, bool>();
-
-            #region IRulesConfiguration interface
-
-            public IEnumerable<string> AllRuleKeys => RuleKeyToActiveMap.Keys;
-
-            public IEnumerable<string> ActiveRuleKeys => RuleKeyToActiveMap.Where(kvp => kvp.Value)
-                                                                            .Select(kvp => kvp.Key)
-                                                                            .ToList();
-            public IDictionary<string, IDictionary<string, string>> RulesParameters { get; set; }
-                    = new Dictionary<string, IDictionary<string, string>>();
-
-            public IDictionary<string, RulesLoader.RuleMetadata> RulesMetadata { get; set; }
-                    = new Dictionary<string, RulesLoader.RuleMetadata>();
-
-            #endregion
         }
     }
 }

@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private const int AnalysisTimeoutMs = 10 * 1000;
         
-        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
+        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, IRulesConfiguration rulesConfiguration)
         {
             if (IsHeaderFile(absoluteFilePath))
             {
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            request.Options = GetKeyValueOptionsList(RulesMetadataCache.Instance);
+            request.Options = GetKeyValueOptionsList(rulesConfiguration);
             return request;
         }
 
