@@ -121,6 +121,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             [JsonProperty("defaultSeverity")]
             public Sonarlint.Issue.Types.Severity DefaultSeverity { get; set; }
 
+            [JsonProperty("compatibleLanguages")]
+            public string[] CompatibleLanguages { get; set; }
         }
 
         /// <summary>

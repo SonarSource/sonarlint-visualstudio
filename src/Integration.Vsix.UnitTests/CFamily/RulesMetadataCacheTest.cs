@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,23 +32,46 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     [TestClass]
     public class RulesMetadataCacheTest
     {
+        // Rule data for C-Family plugin v6.3 (build 11371)
+        private const int Active_C_Rules = 154;
+        private const int Inactive_C_Rules = 104;
+
+        private const int Active_CPP_Rules = 245;
+        private const int Inactive_CPP_Rules = 146;
+
         [TestMethod]
         public void Read_Rules()
         {
-            RulesMetadataCache.Instance.AllRuleKeys.Should().HaveCount(410);
+            RulesLoader.ReadRulesList().Should().HaveCount(410); // unexpanded list of keys
+
+            RulesMetadataCache.GetSettings("c").AllRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
+            RulesMetadataCache.GetSettings("cpp").AllRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
+
+            // We don't currently support ObjC rules in VS
+            RulesMetadataCache.GetSettings("objc").Should().BeNull();
         }
 
         [TestMethod]
         public void Read_Active_Rules()
         {
-            RulesMetadataCache.Instance.ActiveRuleKeys.Should().HaveCount(255);
+            RulesLoader.ReadActiveRulesList().Should().HaveCount(255); // unexpanded list of active rules
+
+            RulesMetadataCache.GetSettings("c").ActiveRuleKeys.Should().HaveCount(Active_C_Rules);
+            RulesMetadataCache.GetSettings("cpp").ActiveRuleKeys.Should().HaveCount(Active_CPP_Rules);
+
+            // We don't currently support ObjC rules in VS
+            RulesMetadataCache.GetSettings("objc").Should().BeNull();
         }
+
+        private static IEnumerable<string> GetRulesByLanguage(IEnumerable<string> ruleKeys, string language) =>
+            ruleKeys.Where(key => key.StartsWith(language.ToLowerInvariant() + ":"));
+        
 
         [TestMethod]
         public void Read_Rules_Params()
         {
             IDictionary<string, string> parameters = null;
-            RulesMetadataCache.Instance.RulesParameters.TryGetValue("ClassComplexity", out parameters);
+            RulesMetadataCache.GetSettings("cpp").RulesParameters.TryGetValue("ClassComplexity", out parameters);
             parameters.Should()
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
 
@@ -56,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Read_Rules_Metadata()
         {
             RuleMetadata metadata = null;
-            RulesMetadataCache.Instance.RulesMetadata.TryGetValue("ClassComplexity", out metadata);
+            RulesMetadataCache.GetSettings("cpp").RulesMetadata.TryGetValue("ClassComplexity", out metadata);
             using (new AssertionScope())
             {
                 metadata.Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);

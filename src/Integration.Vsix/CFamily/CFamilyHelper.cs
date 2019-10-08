@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            request.Options = GetKeyValueOptionsList(RulesMetadataCache.Instance);
+            request.Options = GetKeyValueOptionsList(RulesMetadataCache.GetSettings(request.CFamilyLanguage));
             return request;
         }
 
