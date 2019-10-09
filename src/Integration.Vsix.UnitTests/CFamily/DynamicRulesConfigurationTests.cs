@@ -101,13 +101,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Ctor_NoSettings_DefaultsUsed()
         {
             // Arrange
-            // Arrange
             var defaultConfig = new DummyRulesConfiguration
             {
+                LanguageKey = "123",
                 RuleKeyToActiveMap = new Dictionary<string, bool>
                 {
                     { "rule1", true }
-                }
+                },
+                RulesParameters = new Dictionary<string, IDictionary<string, string>>(),
+                RulesMetadata = new Dictionary<string, RulesLoader.RuleMetadata>()
             };
 
             var fileMock = new Mock<IFile>();
@@ -118,15 +120,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             // Assert
             dynamicConfig.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1");
+
+            dynamicConfig.LanguageKey.Should().Be("123");
+
+            // Other properties should be pass-throughs
+            dynamicConfig.AllPartialRuleKeys.Should().BeSameAs(defaultConfig.AllPartialRuleKeys);
+            dynamicConfig.RulesParameters.Should().BeSameAs(defaultConfig.RulesParameters);
+            dynamicConfig.RulesMetadata.Should().BeSameAs(defaultConfig.RulesMetadata);
         }
 
         [TestMethod]
         public void Ctor_ErrorLoadingSettings_ErrorSquashedAndDefaultsUsed()
         {
             // Arrange
-            // Arrange
             var defaultConfig = new DummyRulesConfiguration
             {
+                LanguageKey = "xxx",
                 RuleKeyToActiveMap = new Dictionary<string, bool>
                 {
                     { "ruleX", true }
@@ -157,7 +166,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 RuleKeyToActiveMap = new Dictionary<string, bool>
                 {
                     { "rule1", true }, { "rule2", true }, { "rule3", false }, { "rule4", false }
-                }
+                },
+                RulesParameters = new Dictionary<string, IDictionary<string, string>>(),
+                RulesMetadata = new Dictionary<string, RulesLoader.RuleMetadata>()
             };
 
             var userSettings = @"{
@@ -182,6 +193,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             // Assert
             dynamicConfig.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule4");
+
+            dynamicConfig.LanguageKey.Should().Be("cpp");
+
+            // Other properties should be pass-throughs
+            dynamicConfig.AllPartialRuleKeys.Should().BeSameAs(defaultConfig.AllPartialRuleKeys);
+            dynamicConfig.RulesParameters.Should().BeSameAs(defaultConfig.RulesParameters);
+            dynamicConfig.RulesMetadata.Should().BeSameAs(defaultConfig.RulesMetadata);
         }
     }
 }
