@@ -75,7 +75,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             public SingleLanguageRulesConfiguration(string cFamilyLanguage)
             {
-                var ruleKeysForLanguage = AllLanguagesRulesMetadata.Where(kvp => kvp.Value.CompatibleLanguages.Contains(cFamilyLanguage, RuleKeyComparer))
+                var ruleKeysForLanguage = AllLanguagesRulesMetadata
+                    .Where(kvp => kvp.Value.CompatibleLanguages.Contains(cFamilyLanguage, RuleKeyComparer))
                     .Select(kvp => kvp.Key)
                     .ToArray();
 
