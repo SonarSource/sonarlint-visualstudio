@@ -22,6 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -76,6 +77,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
             File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestIsIssueForActiveRule()
+        {
+            var rulesConfig = new DummyRulesConfiguration
+            {
+                LanguageKey = "any",
+                RuleKeyToActiveMap = new Dictionary<string, bool>
+                {
+                    { "rule1", true },
+                    { "rule2", false }
+                }
+            };
+
+            // 1. Match - active
+            var message = new Message("rule1", "filename", 0, 0, 0, 0, "msg", false, null);
+            CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeTrue();
+
+            // 2. Match - not active
+            message = new Message("rule2", "filename", 0, 0, 0, 0, "msg", false, null);
+            CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
+
+            // 3. No match - case-sensitivity
+            message = new Message("RULE1", "filename", 0, 0, 0, 0, "msg", false, null);
+            CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
+
+            // 4. No match
+            message = new Message("xxx", "filename", 0, 0, 0, 0, "msg", false, null);
+            CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
         }
 
         private class DummyProcessRunner : IProcessRunner

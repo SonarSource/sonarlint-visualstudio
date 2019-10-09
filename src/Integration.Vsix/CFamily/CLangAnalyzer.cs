@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        private bool IsIssueForActiveRule(Message message, IRulesConfiguration rulesConfiguration)
+        internal /* for testing */ static bool IsIssueForActiveRule(Message message, IRulesConfiguration rulesConfiguration)
         {
             // Currently (v6.3) the subprocess.exe will always run the native CLang rules, so those issues
             // could be returned even if they were not activated in the profile.
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // In addition, in v6.4+ there are internal rules that are always enabled and will always return
             // issues. Filtering for active rules will also remove those internal issues since the corresponding
             // rules will never be active in a quality profile.
-            return rulesConfiguration.ActivePartialRuleKeys.Contains(message.RuleKey);
+            return rulesConfiguration.ActivePartialRuleKeys.Contains(message.RuleKey, CFamilyHelper.RuleKeyComparer);
         }
     }
 }

@@ -38,6 +38,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private const int Inactive_CPP_Rules = 146;
 
         [TestMethod]
+        public void Settings_LanguageKey()
+        {
+            RulesMetadataCache.GetSettings("c").LanguageKey.Should().Be("c");
+            RulesMetadataCache.GetSettings("cpp").LanguageKey.Should().Be("cpp");
+
+            // We don't currently support ObjC rules in VS
+            RulesMetadataCache.GetSettings("objc").Should().BeNull();
+        }
+
+        [TestMethod]
         public void Read_Rules()
         {
             RulesLoader.ReadRulesList().Should().HaveCount(410); // unexpanded list of keys
