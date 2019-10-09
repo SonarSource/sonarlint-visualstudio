@@ -61,11 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             // We don't currently support ObjC rules in VS
             RulesMetadataCache.GetSettings("objc").Should().BeNull();
-        }
-
-        private static IEnumerable<string> GetRulesByLanguage(IEnumerable<string> ruleKeys, string language) =>
-            ruleKeys.Where(key => key.StartsWith(language.ToLowerInvariant() + ":"));
-        
+        }        
 
         [TestMethod]
         public void Read_Rules_Params()
