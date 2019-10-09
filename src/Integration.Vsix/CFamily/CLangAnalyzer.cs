@@ -86,8 +86,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             if (response != null)
             {
                 Debug.Assert(response.Messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");
+                var rulesConfig = RulesMetadataCache.GetSettings(request.CFamilyLanguage);
                 var issues = response.Messages
-                        .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, RulesMetadataCache.Instance))
+                        .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, rulesConfig))
                         .ToList();
 
                 telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
