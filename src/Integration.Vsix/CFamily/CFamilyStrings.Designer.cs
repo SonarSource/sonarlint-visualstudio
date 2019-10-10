@@ -146,6 +146,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error loading user settings from &quot;{0}&quot;. Default rules configuration will be used.
+        ///  Error message: {1}.
+        /// </summary>
+        internal static string Settings_ErrorLoadingSettings {
+            get {
+                return ResourceManager.GetString("Settings_ErrorLoadingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loaded user settings from &quot;{0}&quot;..
+        /// </summary>
+        internal static string Settings_LoadedUserSettings {
+            get {
+                return ResourceManager.GetString("Settings_LoadedUserSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User settings file does not exist at &quot;{0}&quot;. Using default rules configuration..
+        /// </summary>
+        internal static string Settings_NoUserSettings {
+            get {
+                return ResourceManager.GetString("Settings_NoUserSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running..
         /// </summary>
         internal static string WARN_ExecutionTimedOutKilled {

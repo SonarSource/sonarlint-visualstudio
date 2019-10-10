@@ -148,6 +148,16 @@
   <data name="MSG_Runner_SettingEnvVar" xml:space="preserve">
     <value>Setting environment variable '{0}'. Value: {1}</value>
   </data>
+  <data name="Settings_ErrorLoadingSettings" xml:space="preserve">
+    <value>Error loading user settings from "{0}". Default rules configuration will be used.
+  Error message: {1}</value>
+  </data>
+  <data name="Settings_LoadedUserSettings" xml:space="preserve">
+    <value>Loaded user settings from "{0}".</value>
+  </data>
+  <data name="Settings_NoUserSettings" xml:space="preserve">
+    <value>User settings file does not exist at "{0}". Using default rules configuration.</value>
+  </data>
   <data name="WARN_ExecutionTimedOutKilled" xml:space="preserve">
     <value>Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running.</value>
   </data>

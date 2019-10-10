@@ -18,14 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Integration.Helpers;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
@@ -57,7 +60,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var request = CFamilyHelper.CreateRequest(logger, projectItem, path);
+            // TODO - reading rules config on every request to simplify testing. Cache and monitor the file.
+            var request = CFamilyHelper.CreateRequest(logger, projectItem, path, r => GetDynamicRulesConfiguration(r));
             if (request == null)
             {
                 return;
@@ -67,18 +71,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 .Forget(); // fire and forget
         }
 
+        private IRulesConfiguration GetDynamicRulesConfiguration(string language)
+        {
+            var userSettingsFilePath = Path.Combine(Environment.GetEnvironmentVariable("APPDATA"), "SonarLint for Visual Studio", "settings.json");
+            var config = new DynamicRulesConfiguration(RulesMetadataCache.GetSettings(language), userSettingsFilePath, logger, new FileWrapper());
+
+            return config;
+        }
+
         private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer)
         {
             // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
             // Note: we support multiple versions of VS which prevents us from using some threading helper methods
-            // that are only available in newer versions of VS e.g. [Import] IThreadHandling.            // current versions.
+            // that are only available in newer versions of VS e.g. [Import] IThreadHandling.          
 
             // Switch a background thread
             await TaskScheduler.Default;
 
             logger.WriteLine($"Analyzing {request.File}");
 
-            // W're tying up a background thread waiting for out-of-process analysis. We could
+            // We're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
             // RequestAnalysis method to be synchronous, rather than fire-and-forget.
             var response = CFamilyHelper.CallClangAnalyzer(request, new ProcessRunner(settings, logger), logger);
@@ -86,9 +98,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             if (response != null)
             {
                 Debug.Assert(response.Messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");
-                var rulesConfig = RulesMetadataCache.GetSettings(request.CFamilyLanguage);
+
                 var issues = response.Messages
-                        .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, rulesConfig))
+                        .Where(m => IsIssueForActiveRule(m, request.RulesConfiguration))
+                        .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, request.RulesConfiguration))
                         .ToList();
 
                 telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
@@ -104,6 +117,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // still exist and handle the call.
                 consumer.Accept(request.File, issues);
             }
+        }
+
+        internal /* for testing */ static bool IsIssueForActiveRule(Message message, IRulesConfiguration rulesConfiguration)
+        {
+            // Currently (v6.3) the subprocess.exe will always run the native CLang rules, so those issues
+            // could be returned even if they were not activated in the profile.
+            
+            // In addition, in v6.4+ there are internal rules that are always enabled and will always return
+            // issues. Filtering for active rules will also remove those internal issues since the corresponding
+            // rules will never be active in a quality profile.
+            return rulesConfiguration.ActivePartialRuleKeys.Contains(message.RuleKey, CFamilyHelper.RuleKeyComparer);
         }
     }
 }

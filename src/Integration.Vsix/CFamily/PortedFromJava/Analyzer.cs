@@ -27,7 +27,7 @@ using System;
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
 
-    internal class Request
+    internal partial class Request
     {
         public const int Verify = 1;
         public const int C99 = 1 << 1;
@@ -57,10 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public string[] Macros { get; set; } = Array.Empty<string>();
         public string TargetTriple { get; set; } = "x86_64-unknown-unknown";
         public string File { get; set; } = "";
-
-        // Note: the language isn't passed as part of the request to the
-        // CLang analyzer, but it is by SVLS used when filtering the returned issues.
-        public string CFamilyLanguage { get; set; }
     }
 
     internal class Response

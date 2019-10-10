@@ -32,6 +32,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal static class CFamilyHelper
     {
+        public static readonly StringComparer RuleKeyComparer = StringComparer.Ordinal;
+        public static readonly StringComparison RuleKeyComparison = StringComparison.Ordinal;
+
+        internal delegate IRulesConfiguration GetRulesConfiguration(string languageKey);
+
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
 
@@ -44,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private const int AnalysisTimeoutMs = 10 * 1000;
         
-        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
+        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, GetRulesConfiguration rulesConfigSelector)
         {
             if (IsHeaderFile(absoluteFilePath))
             {
@@ -67,14 +72,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            request.Options = GetKeyValueOptionsList(RulesMetadataCache.GetSettings(request.CFamilyLanguage));
+            request.RulesConfiguration = rulesConfigSelector(request.CFamilyLanguage);
+            Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
+            request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
+
             return request;
         }
 
         internal /* for testing */ static string[]GetKeyValueOptionsList(IRulesConfiguration rulesConfiguration)
         {
             var options = GetDefaultOptions(rulesConfiguration);
-            options.Add("internal.qualityProfile", string.Join(",", rulesConfiguration.ActiveRuleKeys));
+            options.Add("internal.qualityProfile", string.Join(",", rulesConfiguration.ActivePartialRuleKeys));
             var data = options.Select(kv => kv.Key + "=" + kv.Value).ToArray();
             return data;
         }
@@ -82,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private static Dictionary<string, string> GetDefaultOptions(IRulesConfiguration rulesConfiguration)
         {
             Dictionary<string, string> defaults = new Dictionary<string, string>();
-            foreach (string ruleKey in rulesConfiguration.AllRuleKeys)
+            foreach (string ruleKey in rulesConfiguration.AllPartialRuleKeys)
             {
                 if (rulesConfiguration.RulesParameters.TryGetValue(ruleKey, out IDictionary<string, string> ruleParams))
                 {
