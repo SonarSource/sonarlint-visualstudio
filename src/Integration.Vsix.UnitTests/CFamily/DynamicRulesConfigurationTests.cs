@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -95,6 +96,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // 2. Null rules in user settings
             dynamicConfig = DynamicRulesConfiguration.CalculateActiveRules(defaultConfig, new UserSettings());
             dynamicConfig.Should().BeEquivalentTo("rule1", "rule2");
+        }
+
+        [TestMethod]
+        public void Ctor_NullArguments()
+        {
+            Action act = () => new DynamicRulesConfiguration(null, "", new TestLogger(), new FileWrapper());
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("defaultRulesConfig");
+
+            act = () => new DynamicRulesConfiguration(new DummyRulesConfiguration(), null, new TestLogger(), new FileWrapper());
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettingsFilePath");
+
+            act = () => new DynamicRulesConfiguration(new DummyRulesConfiguration(), "", null, new FileWrapper());
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+
+            act = () => new DynamicRulesConfiguration(new DummyRulesConfiguration(), "", new TestLogger(), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileWrapper");
         }
 
         [TestMethod]

@@ -38,10 +38,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public DynamicRulesConfiguration(IRulesConfiguration defaultRulesConfig, string userSettingsFilePath, ILogger logger, IFile fileWrapper)
         {
-            this.defaultRulesConfig = defaultRulesConfig;
-            this.userSettingsFilePath = userSettingsFilePath;
-            this.logger = logger;
-            this.fileSystem = fileWrapper;
+            this.defaultRulesConfig = defaultRulesConfig ?? throw new ArgumentNullException(nameof(defaultRulesConfig));
+            this.userSettingsFilePath = userSettingsFilePath ?? throw new ArgumentNullException(nameof(userSettingsFilePath));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileSystem = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
 
             var userSettings = SafeLoadUserSettings();
             this.ActivePartialRuleKeys = CalculateActiveRules(defaultRulesConfig, userSettings);
@@ -65,21 +65,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             if (!fileSystem.Exists(userSettingsFilePath))
             {
-                logger.WriteLine($"User settings file does not exist: {userSettingsFilePath}. Using default rules configuration.");
+                logger.WriteLine(CFamilyStrings.Settings_NoUserSettings, userSettingsFilePath);
                 return null;
             }
 
             UserSettings userSettings = null;
             try
             {
-                logger.WriteLine($"Loading user settings from {userSettingsFilePath} ...");
+                logger.WriteLine(CFamilyStrings.Settings_LoadedUserSettings, userSettingsFilePath);
                 var data = fileSystem.ReadAllText(userSettingsFilePath);
                 userSettings = JsonConvert.DeserializeObject<UserSettings>(data);
             }
             catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine($"Error loading user settings from {userSettingsFilePath}. Error: {ex.Message}");
-                logger.WriteLine($"Default rule settings will be used.");
+                logger.WriteLine(CFamilyStrings.Settings_ErrorLoadingSettings, userSettingsFilePath, ex.Message);
             }
             return userSettings;
         }
