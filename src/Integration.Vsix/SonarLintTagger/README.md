@@ -12,7 +12,7 @@ Important terms in Visual Studio development:
 In a nutshell:
 - there are two separate areas of functionality:
   1) editor integration i.e. showing squigglies and tooltips in the editor
-  2) error list integaration i.e. showing errors in the error list
+  2) error list integration i.e. showing errors in the error list
 
 The `TaggerProvider` is the glue that holds everthing together:
 - it is a singleton that will be created by VS when required
