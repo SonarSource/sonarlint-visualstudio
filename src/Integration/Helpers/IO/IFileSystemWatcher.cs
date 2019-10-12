@@ -30,5 +30,8 @@ namespace SonarLint.VisualStudio.Integration.Helpers
         NotifyFilters NotifyFilter { get; set; }
         bool EnableRaisingEvents { get; set; }
         event FileSystemEventHandler Changed;
+        event FileSystemEventHandler Created;
+        event FileSystemEventHandler Deleted;
+        event RenamedEventHandler Renamed;
     }
 }

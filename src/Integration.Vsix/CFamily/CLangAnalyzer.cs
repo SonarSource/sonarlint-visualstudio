@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
         private readonly ILogger logger;
+        private readonly UserSettingFileChangeHandler userSettingFileChangeHandler;
 
         [ImportingConstructor]
         public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ILogger logger)
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.telemetryManager = telemetryManager;
             this.settings = settings;
             this.logger = logger;
+            userSettingFileChangeHandler = new UserSettingFileChangeHandler(logger);
         }
 
         public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
@@ -73,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private IRulesConfiguration GetDynamicRulesConfiguration(string language)
         {
-            var userSettingsFilePath = Path.Combine(Environment.GetEnvironmentVariable("APPDATA"), "SonarLint for Visual Studio", "settings.json");
+            var userSettingsFilePath = UserSettings.UserSettingsFilePath;
             var config = new DynamicRulesConfiguration(RulesMetadataCache.GetSettings(language), userSettingsFilePath, logger, new FileWrapper());
 
             return config;

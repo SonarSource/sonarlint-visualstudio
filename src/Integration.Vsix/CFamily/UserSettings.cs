@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -51,6 +53,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     // Json-serializable data class
     internal class UserSettings
     {
+        // Note: the data is stored in the roaming profile so it will be sync across machines
+        // for domain-joined users.
+        public static readonly string UserSettingsFilePath = Path.GetFullPath(
+            Path.Combine(Environment.GetEnvironmentVariable("APPDATA"), "SonarLint for Visual Studio", "settings.json"));
+
         [JsonProperty("sonarlint.rules")]
         public Dictionary<string, RuleConfig> Rules { get; set; }
     }

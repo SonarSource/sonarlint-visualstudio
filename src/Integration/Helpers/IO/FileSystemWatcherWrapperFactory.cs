@@ -92,6 +92,42 @@ namespace SonarLint.VisualStudio.Integration.Helpers
                 }
             }
 
+            public event FileSystemEventHandler Created
+            {
+                add
+                {
+                    watcher.Created += value;
+                }
+                remove
+                {
+                    watcher.Created -= value;
+                }
+            }
+
+            public event FileSystemEventHandler Deleted
+            {
+                add
+                {
+                    watcher.Deleted += value;
+                }
+                remove
+                {
+                    watcher.Deleted -= value;
+                }
+            }
+
+            public event RenamedEventHandler Renamed
+            {
+                add
+                {
+                    watcher.Renamed += value;
+                }
+                remove
+                {
+                    watcher.Renamed -= value;
+                }
+            }
+
             public void Dispose() => watcher.Dispose();
         }
     }
