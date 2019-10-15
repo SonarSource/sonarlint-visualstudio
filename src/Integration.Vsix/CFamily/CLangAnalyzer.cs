@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
         private readonly ILogger logger;
-        private readonly SingleFileMonitor userSettingsFileMonitor;
 
         [ImportingConstructor]
         public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ILogger logger)
@@ -46,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.telemetryManager = telemetryManager;
             this.settings = settings;
             this.logger = logger;
-            userSettingsFileMonitor = new SingleFileMonitor(UserSettings.UserSettingsFilePath, logger);
         }
 
         public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)

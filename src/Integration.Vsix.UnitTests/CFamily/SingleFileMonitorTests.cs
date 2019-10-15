@@ -255,7 +255,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // There are 5 operations per iteration -> expecting close to 500.
 
             TestContext.WriteLine($"Number of recorded events: {totalEventCount}");
-            totalEventCount.Should().BeInRange(490, 500);
+            totalEventCount.Should().BeInRange(300, 500);
 
             void testBody()
             {
