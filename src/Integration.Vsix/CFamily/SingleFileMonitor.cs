@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
 
                 lastWriteTime = currentTime;
-                logger.WriteLine(CFamilyStrings.FileMonitor_FileChanged, filePathToMonitor, args.ChangeType.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId);
+                logger.WriteLine(CFamilyStrings.FileMonitor_FileChanged, filePathToMonitor, args.ChangeType);
 
                 fileChangedHandlers(this, EventArgs.Empty);
             }

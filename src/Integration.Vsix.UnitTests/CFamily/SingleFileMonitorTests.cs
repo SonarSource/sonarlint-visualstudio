@@ -132,16 +132,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             }
         }
 
-        private void Monitor_FileChanged(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void Monitor_FileChanged2(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         [TestMethod]
         public void RealFile_FileChangeIsTracked()
         {
