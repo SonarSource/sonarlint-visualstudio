@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.filePathToMonitor = filePathToMonitor;
 
             fileWatcher = factory.Create();
-            fileWatcher.Path = Path.GetDirectoryName(filePathToMonitor);
+            fileWatcher.Path = Path.GetDirectoryName(filePathToMonitor); // NB will throw if the directory does not exist
             fileWatcher.Filter = Path.GetFileName(filePathToMonitor);
             fileWatcher.NotifyFilter = System.IO.NotifyFilters.CreationTime | System.IO.NotifyFilters.LastWrite |
                 NotifyFilters.FileName | NotifyFilters.DirectoryName;
@@ -83,6 +83,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     fileWatcher.EnableRaisingEvents = false;
                 }
+            }
+        }
+
+        internal /* for testing */ bool FileWatcherIsRaisingEvents
+        {
+            get
+            {
+                return fileWatcher.EnableRaisingEvents;
             }
         }
 

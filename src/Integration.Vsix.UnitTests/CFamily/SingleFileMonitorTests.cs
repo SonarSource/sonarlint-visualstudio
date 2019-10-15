@@ -86,8 +86,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             }
         }
 
+        [TestMethod]
+        public void OnlyRaisesEventsIfHasListeners()
+        {
+            // Arrange
+            var testDir = CreateTestSpecificDirectory();
+            var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
+
+            EventHandler dummyHandler = (sender, args) => { };
+
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
+            {
+                // 1. Nothing registered -> underlying wrapper should not be raising events
+                singleFileMonitor.FileWatcherIsRaisingEvents.Should().BeFalse();
+
+                // 2. Register a listener -> start monitoring
+                singleFileMonitor.FileChanged += dummyHandler;
+                singleFileMonitor.FileWatcherIsRaisingEvents.Should().BeTrue();
+
+                // 3. Unregister the listener -> stop monitoring
+                singleFileMonitor.FileChanged -= dummyHandler;
+                singleFileMonitor.FileWatcherIsRaisingEvents.Should().BeFalse();
+            }
+        }
+
         #region Simple file operations
-        // Check simple file operations are handled and don't produce duplicates
+            // Check simple file operations are handled and don't produce duplicates
 
         [TestMethod]
         public void RealFile_FileCreationIsTracked()
@@ -96,10 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
 
-
-            var monitor = new SingleFileMonitor(new FileSystemWatcherWrapperFactory(), filePathToMonitor, new TestLogger());
-
-            using (var singleFileMonitor = new SingleFileMonitor(new FileSystemWatcherWrapperFactory(), filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -129,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(new FileSystemWatcherWrapperFactory(), filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -149,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(new FileSystemWatcherWrapperFactory(), filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -169,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(new FileSystemWatcherWrapperFactory(), filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -192,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var otherFilePath = Path.ChangeExtension(filePathToMonitor, "other");
             File.WriteAllText(otherFilePath, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(new FileSystemWatcherWrapperFactory(), filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -213,7 +234,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             var otherFileInDir = Path.Combine(testDir, "otherSettingsFile.txt");
 
-            using (var firstMonitor = new SingleFileMonitor(new FileSystemWatcherWrapperFactory(), filePathToMonitor, new TestLogger()))
+            using (var firstMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
             {
                 var waitableFileMonitor = new WaitableFileMonitor(firstMonitor);
                 waitableFileMonitor.EventCount.Should().Be(0);
@@ -255,11 +276,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // There are 5 operations per iteration -> expecting close to 500.
 
             TestContext.WriteLine($"Number of recorded events: {totalEventCount}");
-            totalEventCount.Should().BeInRange(300, 500);
+            totalEventCount.Should().BeInRange(340, 500);
 
             void testBody()
             {
-                using (var singleFileMonitor = new SingleFileMonitor(new FileSystemWatcherWrapperFactory(), filePathToMonitor, new TestLogger()))
+                using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
                 {
                     var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                     testWrapper.EventCount.Should().Be(0);
