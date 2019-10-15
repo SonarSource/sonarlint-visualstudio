@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    [ExcludeFromCodeCoverage] // Wrapper around System
     public class FileSystemWatcherWrapperFactory : IFileSystemWatcherFactory
     {
         public IFileSystemWatcher Create() => new FileSystemWatcherWrapper();
@@ -89,6 +87,42 @@ namespace SonarLint.VisualStudio.Integration.Helpers
                 remove
                 {
                     watcher.Changed -= value;
+                }
+            }
+
+            public event FileSystemEventHandler Created
+            {
+                add
+                {
+                    watcher.Created += value;
+                }
+                remove
+                {
+                    watcher.Created -= value;
+                }
+            }
+
+            public event FileSystemEventHandler Deleted
+            {
+                add
+                {
+                    watcher.Deleted += value;
+                }
+                remove
+                {
+                    watcher.Deleted -= value;
+                }
+            }
+
+            public event RenamedEventHandler Renamed
+            {
+                add
+                {
+                    watcher.Renamed += value;
+                }
+                remove
+                {
+                    watcher.Renamed -= value;
                 }
             }
 

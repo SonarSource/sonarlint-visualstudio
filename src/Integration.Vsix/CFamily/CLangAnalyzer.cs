@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EnvDTE;
@@ -73,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private IRulesConfiguration GetDynamicRulesConfiguration(string language)
         {
-            var userSettingsFilePath = Path.Combine(Environment.GetEnvironmentVariable("APPDATA"), "SonarLint for Visual Studio", "settings.json");
+            var userSettingsFilePath = UserSettings.UserSettingsFilePath;
             var config = new DynamicRulesConfiguration(RulesMetadataCache.GetSettings(language), userSettingsFilePath, logger, new FileWrapper());
 
             return config;
