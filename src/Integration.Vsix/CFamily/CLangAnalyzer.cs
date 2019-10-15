@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EnvDTE;
@@ -40,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
         private readonly ILogger logger;
-        private readonly UserSettingFileChangeHandler userSettingFileChangeHandler;
+        private readonly SingleFileMonitor userSettingsFileMonitor;
 
         [ImportingConstructor]
         public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ILogger logger)
@@ -48,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.telemetryManager = telemetryManager;
             this.settings = settings;
             this.logger = logger;
-            userSettingFileChangeHandler = new UserSettingFileChangeHandler(logger);
+            userSettingsFileMonitor = new SingleFileMonitor(UserSettings.UserSettingsFilePath, logger);
         }
 
         public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)

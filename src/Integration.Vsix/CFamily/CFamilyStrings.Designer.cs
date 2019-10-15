@@ -70,6 +70,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error handling file change notification: {0}.
+        /// </summary>
+        internal static string FileMonitor_ErrorHandlingFileChange {
+            get {
+                return ResourceManager.GetString("FileMonitor_ErrorHandlingFileChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File changed: {0}. Change type: {1}.
+        /// </summary>
+        internal static string FileMonitor_FileChanged {
+            get {
+                return ResourceManager.GetString("FileMonitor_FileChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;sensitive data removed&gt;.
         /// </summary>
         internal static string MSG_CmdLine_SensitiveCmdLineArgsAlternativeText {

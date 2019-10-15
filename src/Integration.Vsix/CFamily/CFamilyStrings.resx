@@ -120,6 +120,12 @@
   <data name="ERROR_ProcessRunner_ExeNotFound" xml:space="preserve">
     <value>Execution failed. The specified executable does not exist: {0}</value>
   </data>
+  <data name="FileMonitor_ErrorHandlingFileChange" xml:space="preserve">
+    <value>Error handling file change notification: {0}</value>
+  </data>
+  <data name="FileMonitor_FileChanged" xml:space="preserve">
+    <value>File changed: {0}. Change type: {1}</value>
+  </data>
   <data name="MSG_CmdLine_SensitiveCmdLineArgsAlternativeText" xml:space="preserve">
     <value>&lt;sensitive data removed&gt;</value>
   </data>
