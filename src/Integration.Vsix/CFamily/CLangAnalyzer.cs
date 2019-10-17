@@ -56,8 +56,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             // TODO - reading rules config on every request to simplify testing. Cache and monitor the file.
             var request = CFamilyHelper.CreateRequest(logger, projectItem, path, r => GetDynamicRulesConfiguration(r));
             if (request == null)

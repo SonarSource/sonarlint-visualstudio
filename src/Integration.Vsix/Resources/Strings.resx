@@ -311,4 +311,16 @@
 }</value>
     <comment>Examples of JSON payload that is uploaded to SonarSource</comment>
   </data>
+  <data name="JobRunner_CancellingJob" xml:space="preserve">
+    <value>Cancelling the job "{0}" started at {1}</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="JobRunner_FinishedJob" xml:space="preserve">
+    <value>Finished job "{0}" started at {1}. Elapsed time: {2}ms</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="JobRunner_StartingJob" xml:space="preserve">
+    <value>Starting job: "{0}". Time: {1}</value>
+    <comment>Output window message</comment>
+  </data>
 </root>

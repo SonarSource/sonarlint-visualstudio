@@ -22,7 +22,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Strings {
+    internal class Strings {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.Integration.Vsix.Resources.Strings", typeof(Strings).Assembly);
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Connected mode detected..
         /// </summary>
-        public static string AnalyzerManager_InConnectedMode {
+        internal static string AnalyzerManager_InConnectedMode {
             get {
                 return ResourceManager.GetString("AnalyzerManager_InConnectedMode", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Standalone mode detected..
         /// </summary>
-        public static string AnalyzerManager_InStandaloneMode {
+        internal static string AnalyzerManager_InStandaloneMode {
             get {
                 return ResourceManager.GetString("AnalyzerManager_InStandaloneMode", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Cannot find tool window with the specified guid: {0}.
         /// </summary>
-        public static string CannotFindToolWindow {
+        internal static string CannotFindToolWindow {
             get {
                 return ResourceManager.GetString("CannotFindToolWindow", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to SonarLint - download error.
         /// </summary>
-        public static string Daemon_Download_ErrorDlgTitle {
+        internal static string Daemon_Download_ErrorDlgTitle {
             get {
                 return ResourceManager.GetString("Daemon_Download_ErrorDlgTitle", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Download error:.
         /// </summary>
-        public static string Daemon_Download_ErrorLogMessage {
+        internal static string Daemon_Download_ErrorLogMessage {
             get {
                 return ResourceManager.GetString("Daemon_Download_ErrorLogMessage", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Daemon download url: {0}.
         /// </summary>
-        public static string Daemon_Download_Url {
+        internal static string Daemon_Download_Url {
             get {
                 return ResourceManager.GetString("Daemon_Download_Url", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Finished downloading the daemon..
         /// </summary>
-        public static string Daemon_Downloaded {
+        internal static string Daemon_Downloaded {
             get {
                 return ResourceManager.GetString("Daemon_Downloaded", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Downloading the daemon....
         /// </summary>
-        public static string Daemon_Downloading {
+        internal static string Daemon_Downloading {
             get {
                 return ResourceManager.GetString("Daemon_Downloading", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Downloading SonarLint daemon.
         /// </summary>
-        public static string Daemon_Downloading_StatusBarMessage {
+        internal static string Daemon_Downloading_StatusBarMessage {
             get {
                 return ResourceManager.GetString("Daemon_Downloading_StatusBarMessage", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Daemon error occurred in editor integration: {0}.
         /// </summary>
-        public static string Daemon_Editor_ERROR {
+        internal static string Daemon_Editor_ERROR {
             get {
                 return ResourceManager.GetString("Daemon_Editor_ERROR", resourceCulture);
             }
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Finished initializing the daemon package..
         /// </summary>
-        public static string Daemon_InitializationComplete {
+        internal static string Daemon_InitializationComplete {
             get {
                 return ResourceManager.GetString("Daemon_InitializationComplete", resourceCulture);
             }
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Initializing the daemon package....
         /// </summary>
-        public static string Daemon_Initializing {
+        internal static string Daemon_Initializing {
             get {
                 return ResourceManager.GetString("Daemon_Initializing", resourceCulture);
             }
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Finished installing the daemon..
         /// </summary>
-        public static string Daemon_Installed {
+        internal static string Daemon_Installed {
             get {
                 return ResourceManager.GetString("Daemon_Installed", resourceCulture);
             }
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Installing the daemon....
         /// </summary>
-        public static string Daemon_Installing {
+        internal static string Daemon_Installing {
             get {
                 return ResourceManager.GetString("Daemon_Installing", resourceCulture);
             }
@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to The daemon file name supplied in {0} environment variable is invalid (&apos;{1}&apos;). Using the default download URL..
         /// </summary>
-        public static string Daemon_InvalidFileNameInDownloadEnvVar {
+        internal static string Daemon_InvalidFileNameInDownloadEnvVar {
             get {
                 return ResourceManager.GetString("Daemon_InvalidFileNameInDownloadEnvVar", resourceCulture);
             }
@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Download URL supplied in {0} environment variable is invalid (&apos;{1}&apos;). Using default download URL..
         /// </summary>
-        public static string Daemon_InvalidUrlInDownloadEnvVar {
+        internal static string Daemon_InvalidUrlInDownloadEnvVar {
             get {
                 return ResourceManager.GetString("Daemon_InvalidUrlInDownloadEnvVar", resourceCulture);
             }
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Not starting the daemon: support for additional languages is not activated..
         /// </summary>
-        public static string Daemon_NotStarting_NotEnabled {
+        internal static string Daemon_NotStarting_NotEnabled {
             get {
                 return ResourceManager.GetString("Daemon_NotStarting_NotEnabled", resourceCulture);
             }
@@ -216,7 +216,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to The file cannot be analyzed because the platform toolset has not been specified. Set the Platform Toolset property through the Visual Studio project property page..
         /// </summary>
-        public static string Daemon_PlatformToolsetNotSpecified {
+        internal static string Daemon_PlatformToolsetNotSpecified {
             get {
                 return ResourceManager.GetString("Daemon_PlatformToolsetNotSpecified", resourceCulture);
             }
@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Daemon started successfully..
         /// </summary>
-        public static string Daemon_Started {
+        internal static string Daemon_Started {
             get {
                 return ResourceManager.GetString("Daemon_Started", resourceCulture);
             }
@@ -234,7 +234,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Starting the daemon....
         /// </summary>
-        public static string Daemon_Starting {
+        internal static string Daemon_Starting {
             get {
                 return ResourceManager.GetString("Daemon_Starting", resourceCulture);
             }
@@ -243,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Daemon stopped successfully..
         /// </summary>
-        public static string Daemon_Stopped {
+        internal static string Daemon_Stopped {
             get {
                 return ResourceManager.GetString("Daemon_Stopped", resourceCulture);
             }
@@ -252,7 +252,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Stopping the daemon....
         /// </summary>
-        public static string Daemon_Stopping {
+        internal static string Daemon_Stopping {
             get {
                 return ResourceManager.GetString("Daemon_Stopping", resourceCulture);
             }
@@ -261,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Using default daemon download URL.
         /// </summary>
-        public static string Daemon_UsingDefaultDownloadLocation {
+        internal static string Daemon_UsingDefaultDownloadLocation {
             get {
                 return ResourceManager.GetString("Daemon_UsingDefaultDownloadLocation", resourceCulture);
             }
@@ -270,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Using daemon download url from {0} environment variable.
         /// </summary>
-        public static string Daemon_UsingDownloadUrlFromEnvVar {
+        internal static string Daemon_UsingDownloadUrlFromEnvVar {
             get {
                 return ResourceManager.GetString("Daemon_UsingDownloadUrlFromEnvVar", resourceCulture);
             }
@@ -279,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Daemon version: {0}.
         /// </summary>
-        public static string Daemon_Version {
+        internal static string Daemon_Version {
             get {
                 return ResourceManager.GetString("Daemon_Version", resourceCulture);
             }
@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error occurred configuring the daemon: {0}.
         /// </summary>
-        public static string ERROR_ConfiguringDaemon {
+        internal static string ERROR_ConfiguringDaemon {
             get {
                 return ResourceManager.GetString("ERROR_ConfiguringDaemon", resourceCulture);
             }
@@ -297,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error occurred initializing the daemon package: {0}.
         /// </summary>
-        public static string ERROR_InitializingDaemon {
+        internal static string ERROR_InitializingDaemon {
             get {
                 return ResourceManager.GetString("ERROR_InitializingDaemon", resourceCulture);
             }
@@ -306,7 +306,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error occurred installing the daemon: {0}.
         /// </summary>
-        public static string ERROR_InstallingDaemon {
+        internal static string ERROR_InstallingDaemon {
             get {
                 return ResourceManager.GetString("ERROR_InstallingDaemon", resourceCulture);
             }
@@ -315,7 +315,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error stopping the daemon: {0}.
         /// </summary>
-        public static string ERROR_StoppingDaemon {
+        internal static string ERROR_StoppingDaemon {
             get {
                 return ResourceManager.GetString("ERROR_StoppingDaemon", resourceCulture);
             }
@@ -324,7 +324,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to The specified argument is of a valid type..
         /// </summary>
-        public static string InvalidInfoBarInstance {
+        internal static string InvalidInfoBarInstance {
             get {
                 return ResourceManager.GetString("InvalidInfoBarInstance", resourceCulture);
             }
@@ -333,16 +333,43 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Invalid VisualStudio version, expecting &apos;14.0&apos; or &apos;15.0&apos; got &apos;{0}&apos;..
         /// </summary>
-        public static string InvalidVisualStudioVersion {
+        internal static string InvalidVisualStudioVersion {
             get {
                 return ResourceManager.GetString("InvalidVisualStudioVersion", resourceCulture);
             }
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancelling the job &quot;{0}&quot; started at {1}.
+        /// </summary>
+        internal static string JobRunner_CancellingJob {
+            get {
+                return ResourceManager.GetString("JobRunner_CancellingJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finished job &quot;{0}&quot; started at {1}. Elapsed time: {2}ms.
+        /// </summary>
+        internal static string JobRunner_FinishedJob {
+            get {
+                return ResourceManager.GetString("JobRunner_FinishedJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting job: &quot;{0}&quot;. Time: {1}.
+        /// </summary>
+        internal static string JobRunner_StartingJob {
+            get {
+                return ResourceManager.GetString("JobRunner_StartingJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connected: checking for notifications.
         /// </summary>
-        public static string Notifications_Connected {
+        internal static string Notifications_Connected {
             get {
                 return ResourceManager.GetString("Notifications_Connected", resourceCulture);
             }
@@ -351,7 +378,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Notifications: error occurred: {0}.
         /// </summary>
-        public static string Notifications_ERROR {
+        internal static string Notifications_ERROR {
             get {
                 return ResourceManager.GetString("Notifications_ERROR", resourceCulture);
             }
@@ -360,7 +387,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Finished initializing the notifications package.
         /// </summary>
-        public static string Notifications_InitializationComplete {
+        internal static string Notifications_InitializationComplete {
             get {
                 return ResourceManager.GetString("Notifications_InitializationComplete", resourceCulture);
             }
@@ -369,7 +396,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Initializing the notifications package....
         /// </summary>
-        public static string Notifications_Initializing {
+        internal static string Notifications_Initializing {
             get {
                 return ResourceManager.GetString("Notifications_Initializing", resourceCulture);
             }
@@ -378,7 +405,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Loading notifications settings....
         /// </summary>
-        public static string Notifications_LoadingSettings {
+        internal static string Notifications_LoadingSettings {
             get {
                 return ResourceManager.GetString("Notifications_LoadingSettings", resourceCulture);
             }
@@ -387,7 +414,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Not connected: not checking for notifications.
         /// </summary>
-        public static string Notifications_NotConnected {
+        internal static string Notifications_NotConnected {
             get {
                 return ResourceManager.GetString("Notifications_NotConnected", resourceCulture);
             }
@@ -396,7 +423,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Saving notifications settings....
         /// </summary>
-        public static string Notifications_SavingSettings {
+        internal static string Notifications_SavingSettings {
             get {
                 return ResourceManager.GetString("Notifications_SavingSettings", resourceCulture);
             }
@@ -405,7 +432,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to SonarLint package: error occurred: {0}.
         /// </summary>
-        public static string SL_ERROR {
+        internal static string SL_ERROR {
             get {
                 return ResourceManager.GetString("SL_ERROR", resourceCulture);
             }
@@ -414,7 +441,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Finishing initializing the SonarLint package.
         /// </summary>
-        public static string SL_InitializationComplete {
+        internal static string SL_InitializationComplete {
             get {
                 return ResourceManager.GetString("SL_InitializationComplete", resourceCulture);
             }
@@ -423,7 +450,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Initializing the SonarLint package....
         /// </summary>
-        public static string SL_Initializing {
+        internal static string SL_Initializing {
             get {
                 return ResourceManager.GetString("SL_Initializing", resourceCulture);
             }
@@ -432,7 +459,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Telemetry: error occurred: {0}.
         /// </summary>
-        public static string Telemetry_ERROR {
+        internal static string Telemetry_ERROR {
             get {
                 return ResourceManager.GetString("Telemetry_ERROR", resourceCulture);
             }
@@ -441,7 +468,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Finished initializing the telemetry package....
         /// </summary>
-        public static string Telemetry_InitializationComplete {
+        internal static string Telemetry_InitializationComplete {
             get {
                 return ResourceManager.GetString("Telemetry_InitializationComplete", resourceCulture);
             }
@@ -450,7 +477,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Initializing the telemetry package....
         /// </summary>
-        public static string Telemetry_Initializing {
+        internal static string Telemetry_Initializing {
             get {
                 return ResourceManager.GetString("Telemetry_Initializing", resourceCulture);
             }
@@ -480,7 +507,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         ///    {
         ///      &quot;language&quot; [rest of string was truncated]&quot;;.
         /// </summary>
-        public static string ToolsOptions_ExampleJson {
+        internal static string ToolsOptions_ExampleJson {
             get {
                 return ResourceManager.GetString("ToolsOptions_ExampleJson", resourceCulture);
             }
