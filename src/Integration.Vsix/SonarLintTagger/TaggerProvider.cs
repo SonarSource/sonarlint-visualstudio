@@ -30,6 +30,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -58,6 +60,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly ILogger logger;
 
+        private readonly ISingleFileMonitor settingsFileMonitor;
+
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider tableManagerProvider,
             ITextDocumentFactoryService textDocumentFactoryService,
@@ -66,6 +70,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             
             ISonarLanguageRecognizer languageRecognizer,
             ILogger logger)
+            : this(tableManagerProvider, textDocumentFactoryService, analyzerController, serviceProvider, languageRecognizer, logger,
+                  new SingleFileMonitor(UserSettings.UserSettingsFilePath, logger))
+        {
+        }
+
+        internal TaggerProvider(ITableManagerProvider tableManagerProvider,
+            ITextDocumentFactoryService textDocumentFactoryService,
+            IAnalyzerController analyzerController,
+            IServiceProvider serviceProvider,
+            ISonarLanguageRecognizer languageRecognizer,
+            ILogger logger,
+            ISingleFileMonitor settingsFileMonitor)
         {
             this.errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
             this.textDocumentFactoryService = textDocumentFactoryService;
@@ -82,9 +98,36 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.dte = serviceProvider.GetService<DTE>();
             this.languageRecognizer = languageRecognizer;
             this.logger = logger;
+
+            this.settingsFileMonitor = settingsFileMonitor;
+            this.settingsFileMonitor.FileChanged += OnSettingsFileChanged;
+        }
+
+        private readonly object reanalysisLockObject = new object();
+        private CancellableJobRunner reanalysisJob;
+
+        private void OnSettingsFileChanged(object sender, EventArgs e)
+        {
+            // Handle notification from the single file monitor that the settings file has changed.
+
+            // Re-analysis could take multiple seconds so it's possible that we'll get another
+            // file change notification before the re-analysis has completed.
+            // If that happens we'll cancel the current re-analysis and start another one.
+            lock (reanalysisLockObject)
+            {
+                reanalysisJob?.Cancel();
+
+                var operations = this.issueTrackers
+                    .Select<TextBufferIssueTracker, Action>(it => () => it.RequestAnalysis())
+                    .ToArray(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
+
+                reanalysisJob = CancellableJobRunner.Start(Strings.JobRunner_JobDescription_ReaanalyzeOpenDocs, operations, logger);
+            }
         }
 
         internal IEnumerable<TextBufferIssueTracker> ActiveTrackersForTesting { get { return this.issueTrackers; } }
+
+        #region IViewTaggerProvider members
 
         /// <summary>
         /// Create a tagger that will track SonarLint issues on the view/buffer combination.
@@ -119,6 +162,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return null;
         }
 
+        #endregion IViewTaggerProvider members
+
         #region ITableDataSource members
 
         public string DisplayName => "SonarLint";
@@ -134,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem)
         {
-            // Called on the UI thread -> unhandled exceptions will crash VS
+            // May be called on the UI thread -> unhandled exceptions will crash VS
             try
             {
                 analyzerController.RequestAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem);
