@@ -37,13 +37,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Arrange
             var testLogger = new TestLogger(logToConsole: true);
             TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
-            
+
             // Act
             var testSubject = CancellableJobRunner.Start("my job", new Action[] { }, testLogger);
+            WaitForRunnerToFinish(testSubject);
 
             // Assert
-            System.Threading.Thread.Sleep(500);
-            testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
+            testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);            
         }
 
         [TestMethod]
@@ -56,9 +56,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             bool op1Executed = false, op2Executed = false;
             int operationThreadId = -1;
             
-            ManualResetEvent blockTestEvent = null;
-            bool signalled = false;
-
             CancellableJobRunner testSubject = null;
 
             Action op1 = () =>
@@ -70,22 +67,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 operationThreadId = Thread.CurrentThread.ManagedThreadId;
             };
 
-            Action op2 = () => 
-                { 
-                    op2Executed = true; 
-                    blockTestEvent.Set();
-                };
+            Action op2 = () => op2Executed = true;
 
             // Act
-            using (blockTestEvent = new ManualResetEvent(false /* non-signalled */))
-            {
-                testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, testLogger);
-                signalled = blockTestEvent.WaitOne(1000);
-            }
-
+            testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, testLogger);
+            WaitForRunnerToFinish(testSubject);
+            
             // Assert
             testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
-            signalled.Should().BeTrue();
 
             op1Executed.Should().BeTrue();
             op2Executed.Should().BeTrue();
@@ -101,45 +90,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
 
             bool op1Executed = false, op2Executed = false;
-            ManualResetEvent runnerCancelledEvent = null;
-            ManualResetEvent blockTestEvent = null;
+            CancellableJobRunner testSubject = null;
 
             Action op1 = () =>
             {
                 TestContext.WriteLine($"Executing op1 on thread {Thread.CurrentThread.ManagedThreadId}");
                 op1Executed = true;
 
-                // Wait for the test to cancel the runner
-                runnerCancelledEvent.WaitOne(2000);
+                testSubject.Cancel();
             };
 
             Action op2 = () =>
             {
                 TestContext.WriteLine($"Executing op2 on thread {Thread.CurrentThread.ManagedThreadId}");
                 op2Executed = true;
-
-                // Unblock the test if it is waiting for this op (should
-                // not happen because the runner has been cancelled)
-                blockTestEvent.Set();
             };
 
             // Act
-            using (runnerCancelledEvent = new ManualResetEvent(false /* non-signalled */))
-            using (blockTestEvent = new ManualResetEvent(false /* non-signalled */))
-            {
-                var testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, testLogger);
-                testSubject.Cancel();
+            testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, testLogger);
 
-                runnerCancelledEvent.Set(); // Unblock the first operation
 
-                var blockTestEventSignalled = blockTestEvent.WaitOne(500);
-                blockTestEventSignalled.Should().BeFalse(); // Should not get here
+            WaitForRunnerToFinish(testSubject);
 
-                // Other checks
-                testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Cancelled);
-                op1Executed.Should().BeTrue();
-                op2Executed.Should().BeFalse();
-            }
+            // Other checks
+            testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Cancelled);
+            op1Executed.Should().BeTrue();
+            op2Executed.Should().BeFalse();
         }
 
         [TestMethod]
@@ -150,17 +126,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
 
             bool op1Executed = false, op2Executed = false;
-            ManualResetEvent delayOp1Event = null;
-            ManualResetEvent blockTestEvent = null;
 
             Action op1 = () =>
             {
                 TestContext.WriteLine($"Executing op1 on thread {Thread.CurrentThread.ManagedThreadId}");
                 op1Executed = true;
-
-                // Wait for the test to unblock the operation
-                delayOp1Event.WaitOne(2000);
-
                 throw new InvalidOperationException("XXX YYY");
             };
 
@@ -168,29 +138,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             {
                 TestContext.WriteLine($"Executing op2 on thread {Thread.CurrentThread.ManagedThreadId}");
                 op2Executed = true;
-
-                // Unblock the test if it is waiting for this op (should
-                // not happen because this op should not be executed)
-                blockTestEvent.Set();
             };
 
             // Act
-            using (delayOp1Event = new ManualResetEvent(false /* non-signalled */))
-            using (blockTestEvent = new ManualResetEvent(false /* non-signalled */))
+            var testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, testLogger);
+            WaitForRunnerToFinish(testSubject);
+
+            // Other checks
+            testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Faulted);
+            testLogger.AssertPartialOutputStringExists("XXX YYY");
+
+            op1Executed.Should().BeTrue();
+            op2Executed.Should().BeFalse();
+        }
+
+        private static void WaitForRunnerToFinish(CancellableJobRunner runner)
+        {
+            int timeout = System.Diagnostics.Debugger.IsAttached ? 20000 : 3000;
+
+            try
             {
-                var testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, testLogger);
-                delayOp1Event.Set(); // Unblock the first operation
-
-                var blockTestEventSignalled = blockTestEvent.WaitOne(500);
-                blockTestEventSignalled.Should().BeFalse();
-
-                // Other checks
-                testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Faulted);
-                testLogger.AssertPartialOutputStringExists("XXX YYY");
-
-                op1Executed.Should().BeTrue();
-                op2Executed.Should().BeFalse();
+                runner.TestingWaitHandle?.WaitOne(timeout);
+            }
+            catch (ObjectDisposedException)
+            {
+                // If the runner has finished then the token source will have been disposed
             }
         }
+
     }
 }

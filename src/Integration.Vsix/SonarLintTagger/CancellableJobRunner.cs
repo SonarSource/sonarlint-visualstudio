@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// Runs a series of operations on a separate background thread.
     /// Can be cancelled.
     /// </summary>
-    internal class CancellableJobRunner
+    internal sealed class CancellableJobRunner
     {
         internal enum RunnerState
         {
@@ -41,9 +41,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IEnumerable<Action> operations;
         private readonly ILogger logger;
         private readonly string jobDescription;
-        private CancellationTokenSource cancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource cancellationSource;
         private DateTime startTime;
 
+        internal /* for testing */ WaitHandle TestingWaitHandle
+        { 
+            get
+            {
+                // NB this will throw if the cancellation source has
+                // been disposed but not yet nulled out
+                return cancellationSource?.Token.WaitHandle;
+            }
+        }
         internal /* for testing */ RunnerState State { get; private set; }
 
         public static CancellableJobRunner Start(string jobDescription, IEnumerable<Action> operations, ILogger logger)
@@ -61,8 +70,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.jobDescription = jobDescription;
             this.operations = operations;
             this.logger = logger;
-
             State = RunnerState.NotStarted;
+
+            cancellationSource = new CancellationTokenSource();
         }
 
         private async System.Threading.Tasks.Task Execute()
@@ -102,6 +112,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             finally
             {
+                // We're cancelling here purely for testing purposes: tests can wait on the token WaitHandle
+                // to know that the job runner has finished. Ugly, but it means we can write reliable tests.
+                cancellationSource.Cancel();
                 cancellationSource?.Dispose();
                 cancellationSource = null;
             }
