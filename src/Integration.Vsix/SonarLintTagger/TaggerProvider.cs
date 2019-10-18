@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly ILogger logger;
 
-        private readonly SingleFileMonitor settingsFileMonitor;
+        private readonly ISingleFileMonitor settingsFileMonitor;
 
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider tableManagerProvider,
@@ -70,6 +70,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             
             ISonarLanguageRecognizer languageRecognizer,
             ILogger logger)
+            : this(tableManagerProvider, textDocumentFactoryService, analyzerController, serviceProvider, languageRecognizer, logger,
+                  new SingleFileMonitor(UserSettings.UserSettingsFilePath, logger))
+        {
+        }
+
+        internal TaggerProvider(ITableManagerProvider tableManagerProvider,
+            ITextDocumentFactoryService textDocumentFactoryService,
+            IAnalyzerController analyzerController,
+            IServiceProvider serviceProvider,
+            ISonarLanguageRecognizer languageRecognizer,
+            ILogger logger,
+            ISingleFileMonitor settingsFileMonitor)
         {
             this.errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
             this.textDocumentFactoryService = textDocumentFactoryService;
@@ -87,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.languageRecognizer = languageRecognizer;
             this.logger = logger;
 
-            this.settingsFileMonitor = new SingleFileMonitor(UserSettings.UserSettingsFilePath, logger);
+            this.settingsFileMonitor = settingsFileMonitor;
             this.settingsFileMonitor.FileChanged += OnSettingsFileChanged;
         }
 

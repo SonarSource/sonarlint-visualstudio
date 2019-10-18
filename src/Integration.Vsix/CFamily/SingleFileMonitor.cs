@@ -30,6 +30,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     /// Monitors a single file for all types of change (creation, modification, deletion, rename)
     /// and raises an event for any change.
     /// </summary>
+    internal interface ISingleFileMonitor : IDisposable
+    {
+        event EventHandler FileChanged;
+    }
+
+    /// <summary>
+    /// Concrete implementation of ISingleFileMonitor
+    /// </summary>
     /// <remarks>
     /// Duplicate events can be raised by the lower-level file system watcher class - see
     /// https://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
@@ -38,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     /// In other words, we're removing duplicates but at the cost of potentially losing a few real
     /// events.
     /// </remarks>
-    internal sealed class SingleFileMonitor : IDisposable
+    internal sealed class SingleFileMonitor : ISingleFileMonitor
     {
         private readonly string filePathToMonitor;
         private readonly IFileSystemWatcher fileWatcher;

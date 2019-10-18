@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -105,9 +106,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockLogger = new Mock<ILogger>();
 
             var sonarLanguageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryService, fileExtensionRegistryService);
+            var mockSettingsFileMonitor = new Mock<ISingleFileMonitor>();
 
             this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, analyzerController, serviceProvider,
-                sonarLanguageRecognizer, mockLogger.Object);
+                sonarLanguageRecognizer, mockLogger.Object, mockSettingsFileMonitor.Object);
         }
 
         [TestMethod]

@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -311,8 +312,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serviceProvider = new ConfigurableServiceProvider();
             serviceProvider.RegisterService(typeof(DTE), mockDTE.Object);
 
+            var mockSettingsFileMonitor = new Mock<ISingleFileMonitor>();
+           
             var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, mockAnalyzerController.Object,
-                serviceProvider, languageRecognizer, new TestLogger());
+                serviceProvider, languageRecognizer, new TestLogger(), mockSettingsFileMonitor.Object);
             return provider;
         }
 
