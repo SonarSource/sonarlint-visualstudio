@@ -189,6 +189,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 catch (Exception ex)
                 {
                     TestContext.WriteLine("XXX " + ex.Message);
+                    TestContext.WriteLine(ex.StackTrace);
                     errorCount++;
                 }
             }
