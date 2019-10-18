@@ -152,50 +152,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             op2Executed.Should().BeFalse();
         }
 
-        [TestMethod]
-        public void Loop_NoOperations_NoErrors()
-        {
-            RunTestInLoop(NoOperations_NoErrors);
-        }
-
-        [TestMethod]
-        public void Loop_AllOperationsExecuted()
-        {
-            RunTestInLoop(AllOperationsExecuted);
-        }
-
-        [TestMethod]
-        public void Loop_CancelAfterFirstOperation()
-        {
-            RunTestInLoop(CancelAfterFirstOperation);
-        }
-
-        [TestMethod]
-        public void Loop_ExceptionInOperationPreventsSubsequentOperations()
-        {
-            RunTestInLoop(ExceptionInOperationPreventsSubsequentOperations);
-        }
-
-        private void RunTestInLoop(Action test)
-        {
-            int errorCount = 0;
-            // Run the above tests multiple times to check they are reliable
-            for(int i = 0; i < 500; i++)
-            {
-                try
-                {
-                    test();
-                }
-                catch (Exception ex)
-                {
-                    TestContext.WriteLine("XXX " + ex.Message);
-                    TestContext.WriteLine(ex.StackTrace);
-                    errorCount++;
-                }
-            }
-            errorCount.Should().Be(0);
-        }
-
         private static void WaitForRunnerToFinish(CancellableJobRunner runner)
         {
             int timeout = System.Diagnostics.Debugger.IsAttached ? 20000 : 3000;
