@@ -29,17 +29,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class CancellableJobRunnerTests
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         public void NoOperations_NoErrors()
         {
             // Arrange
             var testLogger = new TestLogger(logToConsole: true);
+            TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
             
             // Act
             var testSubject = CancellableJobRunner.Start("my job", new Action[] { }, testLogger);
 
             // Assert
-            System.Threading.Thread.Sleep(200);
+            System.Threading.Thread.Sleep(500);
             testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
         }
 
@@ -48,6 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             // Arrange
             var testLogger = new TestLogger(logToConsole: true);
+            TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
 
             bool op1Executed = false, op2Executed = false;
             int operationThreadId = -1;
@@ -59,10 +63,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             Action op1 = () =>
             {
+                TestContext.WriteLine($"Executing op1 on thread {Thread.CurrentThread.ManagedThreadId}");
                 testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Running);
 
                 op1Executed = true;
-                operationThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                operationThreadId = Thread.CurrentThread.ManagedThreadId;
             };
 
             Action op2 = () => 
@@ -85,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             op1Executed.Should().BeTrue();
             op2Executed.Should().BeTrue();
 
-            operationThreadId.Should().NotBe(System.Threading.Thread.CurrentThread.ManagedThreadId);
+            operationThreadId.Should().NotBe(Thread.CurrentThread.ManagedThreadId);
         }
 
         [TestMethod]
@@ -93,12 +98,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             // Arrange
             var testLogger = new TestLogger(logToConsole: true);
+            TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
+
             bool op1Executed = false, op2Executed = false;
             ManualResetEvent runnerCancelledEvent = null;
             ManualResetEvent blockTestEvent = null;
 
             Action op1 = () =>
             {
+                TestContext.WriteLine($"Executing op1 on thread {Thread.CurrentThread.ManagedThreadId}");
                 op1Executed = true;
 
                 // Wait for the test to cancel the runner
@@ -107,6 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             Action op2 = () =>
             {
+                TestContext.WriteLine($"Executing op2 on thread {Thread.CurrentThread.ManagedThreadId}");
                 op2Executed = true;
 
                 // Unblock the test if it is waiting for this op (should
@@ -123,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
                 runnerCancelledEvent.Set(); // Unblock the first operation
 
-                var blockTestEventSignalled = blockTestEvent.WaitOne(200);
+                var blockTestEventSignalled = blockTestEvent.WaitOne(500);
                 blockTestEventSignalled.Should().BeFalse(); // Should not get here
 
                 // Other checks
@@ -133,18 +142,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             }
         }
 
-
         [TestMethod]
         public void ExceptionInOperationPreventsSubsequentOperations()
         {
             // Arrange
             var testLogger = new TestLogger(logToConsole: true);
+            TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
+
             bool op1Executed = false, op2Executed = false;
             ManualResetEvent delayOp1Event = null;
             ManualResetEvent blockTestEvent = null;
 
             Action op1 = () =>
             {
+                TestContext.WriteLine($"Executing op1 on thread {Thread.CurrentThread.ManagedThreadId}");
                 op1Executed = true;
 
                 // Wait for the test to unblock the operation
@@ -155,6 +166,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             Action op2 = () =>
             {
+                TestContext.WriteLine($"Executing op2 on thread {Thread.CurrentThread.ManagedThreadId}");
                 op2Executed = true;
 
                 // Unblock the test if it is waiting for this op (should
@@ -169,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 var testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, testLogger);
                 delayOp1Event.Set(); // Unblock the first operation
 
-                var blockTestEventSignalled = blockTestEvent.WaitOne(200);
+                var blockTestEventSignalled = blockTestEvent.WaitOne(500);
                 blockTestEventSignalled.Should().BeFalse();
 
                 // Other checks

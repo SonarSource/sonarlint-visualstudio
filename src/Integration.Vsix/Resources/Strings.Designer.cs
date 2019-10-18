@@ -349,7 +349,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error running background task: {0}.
+        ///   Looks up a localized string similar to Error running job &quot;{0}&quot; started at {1}. Error message: {2}.
         /// </summary>
         internal static string JobRunner_ExecutionError {
             get {

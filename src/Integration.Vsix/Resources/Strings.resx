@@ -324,7 +324,7 @@
     <comment>Output window message</comment>
   </data>
   <data name="JobRunner_ExecutionError" xml:space="preserve">
-    <value>Error running background task: {0}</value>
+    <value>Error running job "{0}" started at {1}. Error message: {2}</value>
     <comment>Output window message</comment>
   </data>
   <data name="JobRunner_JobDescription_ReaanalyzeOpenDocs" xml:space="preserve">

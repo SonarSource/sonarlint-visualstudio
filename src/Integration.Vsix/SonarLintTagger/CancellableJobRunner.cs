@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 State = RunnerState.Faulted;
-                logger.WriteLine(Strings.JobRunner_ExecutionError, ex.Message);
+                logger.WriteLine(Strings.JobRunner_ExecutionError, jobDescription, startTime.ToLongTimeString(), ex.Message);
             }
             finally
             {
