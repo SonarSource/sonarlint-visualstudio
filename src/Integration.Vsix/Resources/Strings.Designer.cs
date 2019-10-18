@@ -349,11 +349,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error running background task: {0}.
+        /// </summary>
+        internal static string JobRunner_ExecutionError {
+            get {
+                return ResourceManager.GetString("JobRunner_ExecutionError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finished job &quot;{0}&quot; started at {1}. Elapsed time: {2}ms.
         /// </summary>
         internal static string JobRunner_FinishedJob {
             get {
                 return ResourceManager.GetString("JobRunner_FinishedJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to re-analyze open documents.
+        /// </summary>
+        internal static string JobRunner_JobDescription_ReaanalyzeOpenDocs {
+            get {
+                return ResourceManager.GetString("JobRunner_JobDescription_ReaanalyzeOpenDocs", resourceCulture);
             }
         }
         

@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -108,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     .Select<TextBufferIssueTracker, Action>(it => () => it.RequestAnalysis())
                     .ToArray(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
 
-                reanalysisJob = CancellableJobRunner.Start("re-analyse open documents", operations, logger);
+                reanalysisJob = CancellableJobRunner.Start(Strings.JobRunner_JobDescription_ReaanalyzeOpenDocs, operations, logger);
             }
         }
 

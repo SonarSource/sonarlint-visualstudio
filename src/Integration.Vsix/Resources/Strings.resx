@@ -323,4 +323,12 @@
     <value>Starting job: "{0}". Time: {1}</value>
     <comment>Output window message</comment>
   </data>
+  <data name="JobRunner_ExecutionError" xml:space="preserve">
+    <value>Error running background task: {0}</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="JobRunner_JobDescription_ReaanalyzeOpenDocs" xml:space="preserve">
+    <value>re-analyze open documents</value>
+    <comment>Output window message</comment>
+  </data>
 </root>

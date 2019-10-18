@@ -33,11 +33,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     internal class CancellableJobRunner
     {
+        internal enum RunnerState
+        {
+            NotStarted, Running, Finished, Cancelled, Faulted
+        }
+
         private readonly IEnumerable<Action> operations;
         private readonly ILogger logger;
         private readonly string jobDescription;
         private CancellationTokenSource cancellationSource = new CancellationTokenSource();
         private DateTime startTime;
+
+        internal /* for testing */ RunnerState State { get; private set; }
 
         public static CancellableJobRunner Start(string jobDescription, IEnumerable<Action> operations, ILogger logger)
         {
@@ -54,12 +61,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.jobDescription = jobDescription;
             this.operations = operations;
             this.logger = logger;
+
+            State = RunnerState.NotStarted;
         }
 
         private async System.Threading.Tasks.Task Execute()
         {
-            // This is a potentially long running task since we are looping through all documents
-            // analysing one at a time.
+            State = RunnerState.Running;
 
             // See https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md for
             // info on VS threading.
@@ -81,14 +89,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 if (!cancellationSource.Token.IsCancellationRequested)
                 {
+                    State = RunnerState.Finished;
                     var elapsedTime = DateTime.UtcNow - startTime;
                     logger.WriteLine(Strings.JobRunner_FinishedJob,
                         jobDescription, startTime.ToLongTimeString(), (long)elapsedTime.TotalMilliseconds);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(ex.Message);
+                State = RunnerState.Faulted;
+                logger.WriteLine(Strings.JobRunner_ExecutionError, ex.Message);
             }
             finally
             {
@@ -104,6 +114,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (!cancellationSource?.Token.IsCancellationRequested ?? false)
                 {
+                    State = RunnerState.Cancelled;
                     logger.WriteLine(Strings.JobRunner_CancellingJob, jobDescription, startTime.ToLongTimeString());
                     cancellationSource?.Cancel();
                 }
@@ -113,11 +124,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // Guard against a possible race condition - the job might have finished and
                 // dispose the source but not set the source to null at the point this method
                 // calls cancel
-                System.Diagnostics.Debug.Fail("Object disposed exception");
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(ex.Message);
+                logger.WriteLine(Strings.JobRunner_ExecutionError, ex.Message);
             }
         }
     }
