@@ -530,6 +530,9 @@
     <Content Include="Commands\PackageCommands.vsct">
       <SubType>Designer</SubType>
     </Content>
+	   <Content Include="SonarLintDaemon\DaemonCommands.vsct">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Resources\sonarlint_200.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

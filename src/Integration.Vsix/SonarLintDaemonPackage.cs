@@ -53,6 +53,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
 
+        public const string CommandSetGuidString = "1F83EA11-3B07-45B3-BF39-307FD4F42194";
+
         private ISonarLintDaemon daemon;
         private ILogger logger;
         private StatusBarDownloadProgressHandler statusBarDownloadProgressHandler;
@@ -82,6 +84,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
                 logger.WriteLine(Resources.Strings.Daemon_Initializing);
+
+                await DisableRuleCommand.InitializeAsync(this);
 
                 daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
 
