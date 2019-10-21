@@ -26,7 +26,6 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Integration.Helpers;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
@@ -37,13 +36,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
+        private readonly IUserSettingsProvider userSettingsProvider; 
         private readonly ILogger logger;
-
+        
         [ImportingConstructor]
-        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ILogger logger)
+        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, IUserSettingsProvider userSettingsProvider, ILogger logger)
         {
             this.telemetryManager = telemetryManager;
             this.settings = settings;
+            this.userSettingsProvider = userSettingsProvider;
             this.logger = logger;
         }
 
@@ -56,7 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            // TODO - reading rules config on every request to simplify testing. Cache and monitor the file.
             var request = CFamilyHelper.CreateRequest(logger, projectItem, path, r => GetDynamicRulesConfiguration(r));
             if (request == null)
             {
@@ -69,8 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private IRulesConfiguration GetDynamicRulesConfiguration(string language)
         {
-            var userSettingsFilePath = UserSettings.UserSettingsFilePath;
-            var config = new DynamicRulesConfiguration(RulesMetadataCache.GetSettings(language), userSettingsFilePath, logger, new FileWrapper());
+            var config = new DynamicRulesConfiguration(RulesMetadataCache.GetSettings(language), userSettingsProvider.UserSettings);
 
             return config;
         }

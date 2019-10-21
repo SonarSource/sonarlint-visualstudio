@@ -22,8 +22,8 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Integration.Helpers;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void ActiveRules_NullUserSettings_ReturnsDefaultActive()
+        public void ActiveRules_EmptyUserSettings_ReturnsDefaultActive()
         {
             // Arrange
             var defaultConfig = new DummyRulesConfiguration
@@ -89,29 +89,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 }
             };
 
-            // 1. Null user settings
-            var dynamicConfig = DynamicRulesConfiguration.CalculateActiveRules(defaultConfig, null);
-            dynamicConfig.Should().BeEquivalentTo("rule1", "rule2");
-
-            // 2. Null rules in user settings
-            dynamicConfig = DynamicRulesConfiguration.CalculateActiveRules(defaultConfig, new UserSettings());
+            // Act
+            var dynamicConfig = DynamicRulesConfiguration.CalculateActiveRules(defaultConfig, new UserSettings());
             dynamicConfig.Should().BeEquivalentTo("rule1", "rule2");
         }
 
         [TestMethod]
         public void Ctor_NullArguments()
         {
-            Action act = () => new DynamicRulesConfiguration(null, "", new TestLogger(), new FileWrapper());
+            var userSettings = new UserSettings();
+
+            Action act = () => new DynamicRulesConfiguration(null, userSettings);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("defaultRulesConfig");
 
-            act = () => new DynamicRulesConfiguration(new DummyRulesConfiguration(), null, new TestLogger(), new FileWrapper());
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettingsFilePath");
-
-            act = () => new DynamicRulesConfiguration(new DummyRulesConfiguration(), "", null, new FileWrapper());
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-
-            act = () => new DynamicRulesConfiguration(new DummyRulesConfiguration(), "", new TestLogger(), null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileWrapper");
+            // Null settings should be ok
+            act = () => new DynamicRulesConfiguration(new DummyRulesConfiguration(), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettings");
         }
 
         [TestMethod]
@@ -129,11 +122,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 RulesMetadata = new Dictionary<string, RulesLoader.RuleMetadata>()
             };
 
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.Exists("nonExistentFile")).Returns(false);
-
             // Act
-            var dynamicConfig = new DynamicRulesConfiguration(defaultConfig, "nonExistentFile", new TestLogger(), fileMock.Object);
+            var dynamicConfig = new DynamicRulesConfiguration(defaultConfig, new UserSettings());
 
             // Assert
             dynamicConfig.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1");
@@ -144,33 +134,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             dynamicConfig.AllPartialRuleKeys.Should().BeSameAs(defaultConfig.AllPartialRuleKeys);
             dynamicConfig.RulesParameters.Should().BeSameAs(defaultConfig.RulesParameters);
             dynamicConfig.RulesMetadata.Should().BeSameAs(defaultConfig.RulesMetadata);
-        }
-
-        [TestMethod]
-        public void Ctor_ErrorLoadingSettings_ErrorSquashedAndDefaultsUsed()
-        {
-            // Arrange
-            var defaultConfig = new DummyRulesConfiguration
-            {
-                LanguageKey = "xxx",
-                RuleKeyToActiveMap = new Dictionary<string, bool>
-                {
-                    { "ruleX", true }
-                }
-            };
-
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.Exists("settings.file")).Returns(true);
-            fileMock.Setup(x => x.ReadAllText("settings.file")).Throws(new System.InvalidOperationException("custom error message"));
-
-            var logger = new TestLogger();
-
-            // Act
-            var dynamicConfig = new DynamicRulesConfiguration(defaultConfig, "settings.file", logger, fileMock.Object);
-
-            // Assert
-            dynamicConfig.ActivePartialRuleKeys.Should().BeEquivalentTo("ruleX");
-            logger.AssertPartialOutputStringExists("custom error message");
         }
 
         [TestMethod]
@@ -188,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 RulesMetadata = new Dictionary<string, RulesLoader.RuleMetadata>()
             };
 
-            var userSettings = @"{
+            var userSettingsData = @"{
     'sonarlint.rules': {
         'cpp:rule2': {
             'level': 'off'
@@ -199,14 +162,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     }
 }
 ";
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.Exists("settings.file")).Returns(true);
-            fileMock.Setup(x => x.ReadAllText("settings.file")).Returns(userSettings);
+            var userSettings = (UserSettings)JsonConvert.DeserializeObject(userSettingsData, typeof(UserSettings));
 
             var logger = new TestLogger();
 
             // Act
-            var dynamicConfig = new DynamicRulesConfiguration(defaultConfig, "settings.file", logger, fileMock.Object);
+            var dynamicConfig = new DynamicRulesConfiguration(defaultConfig, userSettings);
 
             // Assert
             dynamicConfig.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule4");

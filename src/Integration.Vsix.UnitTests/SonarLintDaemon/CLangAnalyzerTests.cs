@@ -21,6 +21,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
@@ -34,8 +35,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         {
             // Arrange
             var telemetryManagerMock = new Mock<ITelemetryManager>();
+            var testLogger = new TestLogger();
+            var fileWrapperMock = new Mock<IFile>();
 
-            var analyzer = new CLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(), new TestLogger());
+            var analyzer = new CLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
+                new UserSettingsProvider("missingfile.txt", testLogger, fileWrapperMock.Object),
+                testLogger);
 
             // Act and Assert
             analyzer.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeTrue();

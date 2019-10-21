@@ -110,6 +110,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CFamilyStrings.resx</DependentUpon>
     </Compile>
+    <Compile Include="SonarLintDaemon\DaemonStrings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DaemonStrings.resx</DependentUpon>
+    </Compile>
     <Compile Include="Settings\OtherOptionsDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -500,6 +505,11 @@
     <EmbeddedResource Include="CFamily\CFamilyStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CFamilyStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+	    <EmbeddedResource Include="SonarLintDaemon\DaemonStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>DaemonStrings.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>SonarLint.VisualStudio.Integration.Vsix</CustomToolNamespace>
     </EmbeddedResource>
     <None Include="Telemetry\GeneratedCode\SqmCommandFacade.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ISonarLanguageRecognizer languageRecognizer,
             ILogger logger)
             : this(tableManagerProvider, textDocumentFactoryService, analyzerController, serviceProvider, languageRecognizer, logger,
-                  new SingleFileMonitor(UserSettings.UserSettingsFilePath, logger))
+                  new SingleFileMonitor(UserSettingsProvider.UserSettingsFilePath, logger))
         {
         }
 
