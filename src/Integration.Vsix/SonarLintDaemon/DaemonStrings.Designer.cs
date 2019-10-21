@@ -61,6 +61,44 @@ namespace SonarLint.VisualStudio.Integration.Vsix {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disabled rule &quot;{0}&quot;.
+        /// </summary>
+        internal static string DisableRule_DisabledRule {
+            get {
+                return ResourceManager.GetString("DisableRule_DisabledRule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in DisableCommandRule.QueryStatus:
+        ///  Error: {0}.
+        /// </summary>
+        internal static string DisableRule_ErrorCheckingCommandStatus {
+            get {
+                return ResourceManager.GetString("DisableRule_ErrorCheckingCommandStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error disabling rule &quot;{0}&quot;:
+        ///  Error: {1}.
+        /// </summary>
+        internal static string DisableRule_ErrorDisablingRule {
+            get {
+                return ResourceManager.GetString("DisableRule_ErrorDisablingRule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {unknown}.
+        /// </summary>
+        internal static string DisableRule_UnknownErrorCode {
+            get {
+                return ResourceManager.GetString("DisableRule_UnknownErrorCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error handling file change notification: {0}.
         /// </summary>
         internal static string FileMonitor_ErrorHandlingFileChange {

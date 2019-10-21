@@ -20,6 +20,7 @@
   <Include href="Telemetry\GeneratedCode\SqmVsCommands.vsct"/>
   <!-- Include all package commands -->
   <Include href="Commands\PackageCommands.vsct"/>
+  <Include href="SonarLintDaemon\DaemonCommands.vsct"/>
 
   <Symbols>
     <!-- This is the package guid for the package. -->
