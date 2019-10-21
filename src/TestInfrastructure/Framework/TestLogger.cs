@@ -78,6 +78,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 because: $"MISSING TEXT: {string.Join(",", expected)}");
         }
 
+        public void AssertPartialOutputStringDoesNotExist(params string[] expected)
+        {
+            this.OutputStrings.Should()
+                .NotContain(msg => expected.All(partial => msg.Contains(partial)),
+                because: $"MISSING TEXT: {string.Join(",", expected)}");
+        }
+
         public void AssertNoOutputMessages()
         {
             OutputStrings.Should().HaveCount(0);

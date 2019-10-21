@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json;
@@ -32,6 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         event EventHandler SettingsChanged;
 
         UserSettings UserSettings { get; }
+        void DisableRule(string ruleId);
     }
 
     [Export(typeof(IUserSettingsProvider))]
@@ -44,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly ISingleFileMonitor settingsFileMonitor;
 
-        private readonly IFile fileSystem;
+        private readonly IFile fileWrapper;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -58,16 +60,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IFile fileWrapper, ISingleFileMonitor settingsFileMonitor)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.fileSystem = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+            this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
             this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
 
-            UserSettings = SafeLoadUserSettings();
+            UserSettings = SafeLoadUserSettings(settingsFileMonitor.MonitoredFilePath, fileWrapper, logger);
             settingsFileMonitor.FileChanged += OnFileChanged;
         }
 
         private void OnFileChanged(object sender, EventArgs e)
         {
-            UserSettings = SafeLoadUserSettings();
+            UserSettings = SafeLoadUserSettings(settingsFileMonitor.MonitoredFilePath, fileWrapper, logger);
             SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -77,31 +79,59 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public event EventHandler SettingsChanged;
 
+        public void DisableRule(string ruleId)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
+
+            if (UserSettings.Rules.TryGetValue(ruleId, out var ruleConfig))
+            {
+                ruleConfig.Level = RuleLevel.Off;
+            }
+            else
+            {
+                UserSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
+            }
+
+            SafeSaveUserSettings(settingsFileMonitor.MonitoredFilePath, UserSettings, fileWrapper, logger);
+        }
+
         #endregion
 
-        private UserSettings SafeLoadUserSettings()
+        internal /* for testing */ static UserSettings SafeLoadUserSettings(string filePath, IFile fileWrapper, ILogger logger)
         {
             UserSettings userSettings = null;
-            var userSettingsFilePath = settingsFileMonitor.MonitoredFilePath;
-
-            if (!fileSystem.Exists(userSettingsFilePath))
+            if (!fileWrapper.Exists(filePath))
             {
-                logger.WriteLine(DaemonStrings.Settings_NoUserSettings, userSettingsFilePath);
+                logger.WriteLine(DaemonStrings.Settings_NoUserSettings, filePath);
             }
             else
             {
                 try
                 {
-                    logger.WriteLine(DaemonStrings.Settings_LoadedUserSettings, userSettingsFilePath);
-                    var data = fileSystem.ReadAllText(userSettingsFilePath);
+                    logger.WriteLine(DaemonStrings.Settings_LoadedUserSettings, filePath);
+                    var data = fileWrapper.ReadAllText(filePath);
                     userSettings = JsonConvert.DeserializeObject<UserSettings>(data);
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
-                    logger.WriteLine(DaemonStrings.Settings_ErrorLoadingSettings, userSettingsFilePath, ex.Message);
+                    logger.WriteLine(DaemonStrings.Settings_ErrorLoadingSettings, filePath, ex.Message);
                 }
             }
             return userSettings ?? new UserSettings();
+        }
+
+        internal /* for testing */ static void SafeSaveUserSettings(string filePath, UserSettings data, IFile fileWrapper, ILogger logger)
+        {
+            try
+            {
+                string dataAsText = JsonConvert.SerializeObject(data, Formatting.Indented);
+                fileWrapper.WriteAllText(filePath, dataAsText);
+                logger.WriteLine(DaemonStrings.Settings_SavedUserSettings, filePath);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(DaemonStrings.Settings_ErrorSavingSettings, filePath, ex.Message);
+            }
         }
     }
 }

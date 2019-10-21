@@ -89,6 +89,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error saving user settings to &quot;{0}&quot;.
+        ///  Error: {1}.
+        /// </summary>
+        internal static string Settings_ErrorSavingSettings {
+            get {
+                return ResourceManager.GetString("Settings_ErrorSavingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loaded user settings from &quot;{0}&quot;..
         /// </summary>
         internal static string Settings_LoadedUserSettings {
@@ -103,6 +113,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix {
         internal static string Settings_NoUserSettings {
             get {
                 return ResourceManager.GetString("Settings_NoUserSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saved user settings to &quot;{0}&quot;..
+        /// </summary>
+        internal static string Settings_SavedUserSettings {
+            get {
+                return ResourceManager.GetString("Settings_SavedUserSettings", resourceCulture);
             }
         }
     }
