@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -68,13 +69,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        /// <param name="commandService">Command service to add command to, not null.</param>
-        internal /* for testing */ DisableRuleCommand(IMenuCommandService commandService, IErrorList errorList,
+        /// <param name="menuCommandService">Command service to add command to, not null.</param>
+        internal /* for testing */ DisableRuleCommand(IMenuCommandService menuCommandService, IErrorList errorList,
             IUserSettingsProvider userSettingsProvider, ILogger logger)
         {
-            if (commandService == null)
+            if (menuCommandService == null)
             {
-                throw new ArgumentNullException(nameof(commandService));
+                throw new ArgumentNullException(nameof(menuCommandService));
             }
             this.errorList = errorList ?? throw new ArgumentNullException(nameof(errorList));
             this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
@@ -82,14 +83,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
             menuItem = new OleMenuCommand(Execute, null, QueryStatus, menuCommandID);
-            commandService.AddCommand(menuItem);
+            menuCommandService.AddCommand(menuItem);
         }
 
         private void QueryStatus(object sender, EventArgs args)
         {
-            bool status = TryGetErrorCodeSync(errorList, out _);
-            menuItem.Enabled = status;
-            menuItem.Visible = status;
+            try
+            {
+                bool status = TryGetErrorCodeSync(errorList, out _);
+                menuItem.Enabled = status;
+                menuItem.Visible = status;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(DaemonStrings.DisableRule_ErrorCheckingCommandStatus, ex.Message);
+            }
         }
 
         /// <summary>
@@ -110,13 +118,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            if (TryGetErrorCodeSync(errorList, out string errorCode))
+            string errorCode = null;
+            try
             {
-                logger.WriteLine($"Disabling rule: {errorCode}");
-                userSettingsProvider.DisableRule(errorCode);
-            }
+                if (TryGetErrorCodeSync(errorList, out errorCode))
+                {
+                    userSettingsProvider.DisableRule(errorCode);
+                    logger.WriteLine(DaemonStrings.DisableRule_DisabledRule, errorCode);
+                }
 
-            Debug.Assert(errorCode != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");
+                Debug.Assert(errorCode != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");
+            }
+            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(DaemonStrings.DisableRule_ErrorDisablingRule, errorCode ?? DaemonStrings.DisableRule_UnknownErrorCode, ex.Message);
+            }
         }
 
         /// <summary>

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using FluentAssertions;
@@ -34,6 +35,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
     [TestClass]
     public class DisableRuleCommandTests
     {
+        [TestMethod]
+        public void Ctor_NullArguments()
+        {
+            var menuCommandService = new DummyMenuCommandService();
+            var errorList = CreateErrorList();
+            var userSettingsProvider = new Mock<IUserSettingsProvider>().Object;
+            var logger = new TestLogger();
+
+            Action act = () => new DisableRuleCommand(null, errorList, userSettingsProvider, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("menuCommandService");
+
+            act = () => new DisableRuleCommand(menuCommandService, null, userSettingsProvider, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("errorList");
+
+            act = () => new DisableRuleCommand(menuCommandService, errorList, null, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettingsProvider");
+
+            act = () => new DisableRuleCommand(menuCommandService, errorList, userSettingsProvider, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
         [TestMethod]
         public void CommandRegistration()
         {
@@ -99,10 +121,84 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             command.Visible.Should().BeFalse();
         }
 
+        [TestMethod]
+        public void QueryStatus_NonCriticalErrorSuppressed()
+        {
+            // Arrange
+            var errorList = new Mock<IErrorList>();
+            errorList.Setup(x => x.TableControl).Throws(new InvalidOperationException("exception xxx"));
+
+            var testLogger = new TestLogger();
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+
+            var command = CreateDisableRuleMenuCommand(errorList.Object, mockUserSettingsProvider.Object, testLogger);
+
+            // Act - should not throw
+            var _ = command.OleStatus;
+
+            testLogger.AssertPartialOutputStringExists("exception xxx");
+        }
+
+        [TestMethod]
+        public void QueryStatus_CriticalErrorNotSuppressed()
+        {
+            // Arrange
+            var errorList = new Mock<IErrorList>();
+            errorList.Setup(x => x.TableControl).Throws(new StackOverflowException("exception xxx"));
+
+            var testLogger = new TestLogger();
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+
+            var command = CreateDisableRuleMenuCommand(errorList.Object, mockUserSettingsProvider.Object, testLogger);
+            Action act = () => _ = command.OleStatus;
+
+            // Act 
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("exception xxx");
+
+            testLogger.AssertPartialOutputStringDoesNotExist("exception xxx");
+        }
+
+        [TestMethod]
+        public void Execute_NonCriticalErrorSuppressed()
+        {
+            // Arrange
+            var errorList = new Mock<IErrorList>();
+            errorList.Setup(x => x.TableControl).Throws(new InvalidOperationException("exception xxx"));
+
+            var testLogger = new TestLogger();
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+
+            var command = CreateDisableRuleMenuCommand(errorList.Object, mockUserSettingsProvider.Object, testLogger);
+
+            // Act - should not throw
+            command.Invoke();
+
+            testLogger.AssertPartialOutputStringExists("exception xxx", DaemonStrings.DisableRule_UnknownErrorCode);
+        }
+
+        [TestMethod]
+        public void Execute_CriticalErrorNotSuppressed()
+        {
+            // Arrange
+            var errorList = new Mock<IErrorList>();
+            errorList.Setup(x => x.TableControl).Throws(new StackOverflowException("exception xxx"));
+
+            var testLogger = new TestLogger();
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+
+            var command = CreateDisableRuleMenuCommand(errorList.Object, mockUserSettingsProvider.Object, testLogger);
+            Action act = () => command.Invoke();
+
+            // Act 
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("exception xxx");
+
+            testLogger.AssertPartialOutputStringDoesNotExist("exception xxx");
+        }
+
         private static MenuCommand CreateDisableRuleMenuCommand(IErrorList errorList, IUserSettingsProvider userSettingsProvider, ILogger logger)
         {
             var dummyMenuService = new DummyMenuCommandService();
-            var testSubject = new DisableRuleCommand(dummyMenuService, errorList, userSettingsProvider, new TestLogger());
+            var testSubject = new DisableRuleCommand(dummyMenuService, errorList, userSettingsProvider, logger);
 
             dummyMenuService.AddedMenuCommands.Count.Should().Be(1);
             return dummyMenuService.AddedMenuCommands[0];
@@ -271,12 +367,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             #region ITableEntriesSnapshot methods
 
-            public int Count => throw new System.NotImplementedException();
-            public int VersionNumber => throw new System.NotImplementedException();
-            public void Dispose() => throw new System.NotImplementedException();
-            public int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot) => throw new System.NotImplementedException();
-            public void StartCaching() => throw new System.NotImplementedException();
-            public void StopCaching() => throw new System.NotImplementedException();
+            public int Count => throw new NotImplementedException();
+            public int VersionNumber => throw new NotImplementedException();
+            public void Dispose() => throw new NotImplementedException();
+            public int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot) => throw new NotImplementedException();
+            public void StartCaching() => throw new NotImplementedException();
+            public void StopCaching() => throw new NotImplementedException();
 
             public bool TryGetValue(int index, string keyName, out object content)
             {
@@ -297,16 +393,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             #region IMenuCommandService methods 
 
-            public DesignerVerbCollection Verbs => throw new System.NotImplementedException();
+            public DesignerVerbCollection Verbs => throw new NotImplementedException();
 
             public void AddCommand(MenuCommand command) => AddedMenuCommands.Add(command);
 
-            public void AddVerb(DesignerVerb verb) => throw new System.NotImplementedException();
-            public MenuCommand FindCommand(CommandID commandID) => throw new System.NotImplementedException();
-            public bool GlobalInvoke(CommandID commandID) => throw new System.NotImplementedException();
-            public void RemoveCommand(MenuCommand command) => throw new System.NotImplementedException();
-            public void RemoveVerb(DesignerVerb verb) => throw new System.NotImplementedException();
-            public void ShowContextMenu(CommandID menuID, int x, int y) => throw new System.NotImplementedException();
+            public void AddVerb(DesignerVerb verb) => throw new NotImplementedException();
+            public MenuCommand FindCommand(CommandID commandID) => throw new NotImplementedException();
+            public bool GlobalInvoke(CommandID commandID) => throw new NotImplementedException();
+            public void RemoveCommand(MenuCommand command) => throw new NotImplementedException();
+            public void RemoveVerb(DesignerVerb verb) => throw new NotImplementedException();
+            public void ShowContextMenu(CommandID menuID, int x, int y) => throw new NotImplementedException();
 
             #endregion IMenuCommandService methods 
         }
