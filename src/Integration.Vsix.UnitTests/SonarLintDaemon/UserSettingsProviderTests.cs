@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             fileMock.Setup(x => x.Exists("settings.file")).Returns(true);
             fileMock.Setup(x => x.ReadAllText("settings.file")).Throws(new System.InvalidOperationException("custom error message"));
 
-            var logger = new TestLogger();
+            var logger = new TestLogger(logToConsole: true);
 
             // Act
             var testSubject = new UserSettingsProvider(logger, fileMock.Object, CreateMockFileMonitor("settings.file").Object);
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var fileMock = new Mock<IFile>();
             fileMock.Setup(x => x.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.InvalidOperationException("custom error message"));
 
-            var logger = new TestLogger();
+            var logger = new TestLogger(logToConsole: true);
 
             // Act - should not throw
             UserSettingsProvider.SafeSaveUserSettings("settings.file", new UserSettings(), fileMock.Object, logger);
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var fileMock = new Mock<IFile>();
             fileMock.Setup(x => x.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.StackOverflowException("critical custom error message"));
 
-            var logger = new TestLogger();
+            var logger = new TestLogger(logToConsole: true);
 
             // Act
             Action act = () => UserSettingsProvider.SafeSaveUserSettings("settings.file", new UserSettings(), fileMock.Object, logger);
