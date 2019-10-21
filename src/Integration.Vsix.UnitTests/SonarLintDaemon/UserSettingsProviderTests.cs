@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
 using System;
+using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -35,16 +35,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         [TestMethod]
         public void Ctor_NullArguments()
         {
-            Action act = () => new UserSettingsProvider(null, new TestLogger(), new FileWrapper());
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettingsFilePath");
+            var mockSingleFileMonitor = new Mock<ISingleFileMonitor>();
 
-            act = () => new UserSettingsProvider("", null, new FileWrapper());
+            Action act = () => new UserSettingsProvider(null, new FileWrapper(), mockSingleFileMonitor.Object);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-            act = () => new UserSettingsProvider("", new TestLogger(), null);
+            act = () => new UserSettingsProvider(new TestLogger(), null, mockSingleFileMonitor.Object);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileWrapper");
-        }
 
+            act = () => new UserSettingsProvider(new TestLogger(), new FileWrapper(), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingsFileMonitor");
+
+        }
 
         [TestMethod]
         public void Ctor_NoSettingsFile_EmptySettingsReturned()
@@ -54,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             fileMock.Setup(x => x.Exists("nonExistentFile")).Returns(false);
 
             // Act
-            var testSubject = new UserSettingsProvider("nonexistent file", new TestLogger(), fileMock.Object);
+            var testSubject = new UserSettingsProvider(new TestLogger(), fileMock.Object, CreateMockFileMonitor("nonexistentFile").Object);
 
             // Assert
             CheckSettingsAreEmpty(testSubject.UserSettings);
@@ -71,11 +73,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var logger = new TestLogger();
 
             // Act
-            var testSubject = new UserSettingsProvider("settings.file", logger, fileMock.Object);
+            var testSubject = new UserSettingsProvider(logger, fileMock.Object, CreateMockFileMonitor("settings.file").Object);
 
             // Assert
             CheckSettingsAreEmpty(testSubject.UserSettings);
             logger.AssertPartialOutputStringExists("custom error message");
+        }
+
+        [TestMethod]
+        public void FileChanges_EventsRaised()
+        {
+            var fileMock = new Mock<IFile>();
+            fileMock.Setup(x => x.Exists("settings.file")).Returns(true);
+            var fileMonitorMock = CreateMockFileMonitor("settings.file");
+
+            int settingsChangedEventCount = 0;
+
+            var invalidSettingsData = @"NOT VALID JSON";
+            var validSettingsData = @"{
+    'sonarlint.rules': {
+        'typescript:S2685': {
+            'level': 'on'
+        }
+    }
+}
+";
+            var logger = new TestLogger();
+            var testSubject = new UserSettingsProvider(logger, fileMock.Object, fileMonitorMock.Object);
+            testSubject.SettingsChanged += (s, args) => settingsChangedEventCount++;
+            logger.Reset();
+
+            // 1. Simulate the file change when the file is invalid
+            fileMock.Setup(x => x.ReadAllText("settings.file")).Returns(invalidSettingsData);
+            fileMonitorMock.Raise(x => x.FileChanged += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+
+            // Assert
+            settingsChangedEventCount.Should().Be(1);
+            CheckSettingsAreEmpty(testSubject.UserSettings);
+
+            // 2. Simulate another event when the file is valid - valid settings should be returned
+            fileMock.Setup(x => x.ReadAllText("settings.file")).Returns(validSettingsData);
+            fileMonitorMock.Raise(x => x.FileChanged += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+
+            // Assert
+            settingsChangedEventCount.Should().Be(2);
+            testSubject.UserSettings.Should().NotBeNull();
+            testSubject.UserSettings.Rules.Should().NotBeNull();
+            testSubject.UserSettings.Rules.Count.Should().Be(1);
+        }
+
+        private static Mock<ISingleFileMonitor> CreateMockFileMonitor(string filePathToMonitor)
+        {
+            var mockSettingsFileMonitor = new Mock<ISingleFileMonitor>();
+            mockSettingsFileMonitor.Setup(x => x.MonitoredFilePath).Returns(filePathToMonitor);
+            return mockSettingsFileMonitor;
         }
 
         private static void CheckSettingsAreEmpty(UserSettings userSettings)

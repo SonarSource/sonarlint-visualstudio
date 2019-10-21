@@ -36,11 +36,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Arrange
             var telemetryManagerMock = new Mock<ITelemetryManager>();
             var testLogger = new TestLogger();
-            var fileWrapperMock = new Mock<IFile>();
+            var userSettingsProviderMock = new Mock<IUserSettingsProvider>();
 
             var analyzer = new CLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                new UserSettingsProvider("missingfile.txt", testLogger, fileWrapperMock.Object),
-                testLogger);
+                userSettingsProviderMock.Object, testLogger);
 
             // Act and Assert
             analyzer.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeTrue();

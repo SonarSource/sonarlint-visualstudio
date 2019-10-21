@@ -24,6 +24,7 @@ using System.IO;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -42,23 +43,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public static readonly string UserSettingsFilePath = Path.GetFullPath(
             Path.Combine(Environment.GetEnvironmentVariable("APPDATA"), "SonarLint for Visual Studio", "settings.json"));
 
+        private readonly ISingleFileMonitor settingsFileMonitor;
+
         private readonly IFile fileSystem;
         private readonly ILogger logger;
-        private readonly string userSettingsFilePath;
 
         [ImportingConstructor]
         public UserSettingsProvider(ILogger logger)
-            : this(UserSettingsProvider.UserSettingsFilePath, logger, new FileWrapper())
+            : this(logger, new FileWrapper(),
+                  new SingleFileMonitor(UserSettingsFilePath, logger))
         {
         }
 
-        internal /* for testing */ UserSettingsProvider(string userSettingsFilePath, ILogger logger, IFile fileWrapper)
+        internal /* for testing */ UserSettingsProvider(ILogger logger,
+            IFile fileWrapper, ISingleFileMonitor settingsFileMonitor)
         {
-            this.userSettingsFilePath = userSettingsFilePath ?? throw new ArgumentNullException(nameof(userSettingsFilePath));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+            this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
 
             UserSettings = SafeLoadUserSettings();
+            settingsFileMonitor.FileChanged += OnFileChanged;
+        }
+
+        private void OnFileChanged(object sender, EventArgs e)
+        {
+            UserSettings = SafeLoadUserSettings();
+            SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         #region IUserSettingsProvider implementation
@@ -72,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private UserSettings SafeLoadUserSettings()
         {
             UserSettings userSettings = null;
+            var userSettingsFilePath = settingsFileMonitor.MonitoredFilePath;
 
             if (!fileSystem.Exists(userSettingsFilePath))
             {

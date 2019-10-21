@@ -25,9 +25,9 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Helpers;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
+namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class SingleFileMonitorTests
@@ -57,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
                 // Assert
                 testLogger.AssertPartialOutputStringExists("XXX non-critical exception");
+                fileMonitor.MonitoredFilePath.Should().Be("c:\\dummy\\file.txt");
             }
         }
 
@@ -97,6 +98,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
             {
+                singleFileMonitor.MonitoredFilePath.Should().Be(filePathToMonitor);
+
                 // 1. Nothing registered -> underlying wrapper should not be raising events
                 singleFileMonitor.FileWatcherIsRaisingEvents.Should().BeFalse();
 

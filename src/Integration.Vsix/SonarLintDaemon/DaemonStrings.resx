@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="FileMonitor_ErrorHandlingFileChange" xml:space="preserve">
+    <value>Error handling file change notification: {0}</value>
+  </data>
+  <data name="FileMonitor_FileChanged" xml:space="preserve">
+    <value>File changed: {0}. Change type: {1}</value>
+  </data>
   <data name="Settings_ErrorLoadingSettings" xml:space="preserve">
     <value>Error loading user settings from "{0}". Default rules configuration will be used.
   Error message: {1}</value>
