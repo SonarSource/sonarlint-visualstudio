@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -52,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class UserSettings
     {
         [JsonProperty("sonarlint.rules")]
-        public Dictionary<string, RuleConfig> Rules { get; set; } = new Dictionary<string, RuleConfig>();
+        public Dictionary<string, RuleConfig> Rules { get; set; } = new Dictionary<string, RuleConfig>(StringComparer.OrdinalIgnoreCase);
     }
 
     internal class RuleConfig
