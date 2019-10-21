@@ -22,9 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.VisualStudio;
-using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -32,18 +29,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     internal sealed class DynamicRulesConfiguration : IRulesConfiguration
     {
         private readonly IRulesConfiguration defaultRulesConfig;
-        private readonly string userSettingsFilePath;
-        private readonly ILogger logger;
-        private readonly IFile fileSystem;
 
-        public DynamicRulesConfiguration(IRulesConfiguration defaultRulesConfig, string userSettingsFilePath, ILogger logger, IFile fileWrapper)
+        public DynamicRulesConfiguration(IRulesConfiguration defaultRulesConfig, UserSettings userSettings)
         {
             this.defaultRulesConfig = defaultRulesConfig ?? throw new ArgumentNullException(nameof(defaultRulesConfig));
-            this.userSettingsFilePath = userSettingsFilePath ?? throw new ArgumentNullException(nameof(userSettingsFilePath));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.fileSystem = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+            if (userSettings == null)
+            {
+                throw new ArgumentNullException(nameof(userSettings));
+            }
 
-            var userSettings = SafeLoadUserSettings();
             this.ActivePartialRuleKeys = CalculateActiveRules(defaultRulesConfig, userSettings);
         }
 
@@ -61,31 +55,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         #endregion IRulesConfiguration interface methods
 
-        private UserSettings SafeLoadUserSettings()
-        {
-            if (!fileSystem.Exists(userSettingsFilePath))
-            {
-                logger.WriteLine(CFamilyStrings.Settings_NoUserSettings, userSettingsFilePath);
-                return null;
-            }
-
-            UserSettings userSettings = null;
-            try
-            {
-                logger.WriteLine(CFamilyStrings.Settings_LoadedUserSettings, userSettingsFilePath);
-                var data = fileSystem.ReadAllText(userSettingsFilePath);
-                userSettings = JsonConvert.DeserializeObject<UserSettings>(data);
-            }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(CFamilyStrings.Settings_ErrorLoadingSettings, userSettingsFilePath, ex.Message);
-            }
-            return userSettings;
-        }
-
         internal /* for testing */ static IEnumerable<string> CalculateActiveRules(IRulesConfiguration defaultRulesConfig, UserSettings userSettings)
         {
-            if (userSettings == null || userSettings.Rules == null)
+            if (userSettings?.Rules?.Count == 0)
             {
                 return defaultRulesConfig.ActivePartialRuleKeys;
             }

@@ -312,10 +312,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serviceProvider = new ConfigurableServiceProvider();
             serviceProvider.RegisterService(typeof(DTE), mockDTE.Object);
 
-            var mockSettingsFileMonitor = new Mock<ISingleFileMonitor>();
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
            
             var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, mockAnalyzerController.Object,
-                serviceProvider, languageRecognizer, new TestLogger(), mockSettingsFileMonitor.Object);
+                serviceProvider, languageRecognizer, mockUserSettingsProvider.Object, new TestLogger());
             return provider;
         }
 

@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -60,8 +59,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly ILogger logger;
 
-        private readonly ISingleFileMonitor settingsFileMonitor;
-
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider tableManagerProvider,
             ITextDocumentFactoryService textDocumentFactoryService,
@@ -69,19 +66,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             
             ISonarLanguageRecognizer languageRecognizer,
+            IUserSettingsProvider userSettingsProvider,
             ILogger logger)
-            : this(tableManagerProvider, textDocumentFactoryService, analyzerController, serviceProvider, languageRecognizer, logger,
-                  new SingleFileMonitor(UserSettings.UserSettingsFilePath, logger))
-        {
-        }
-
-        internal TaggerProvider(ITableManagerProvider tableManagerProvider,
-            ITextDocumentFactoryService textDocumentFactoryService,
-            IAnalyzerController analyzerController,
-            IServiceProvider serviceProvider,
-            ISonarLanguageRecognizer languageRecognizer,
-            ILogger logger,
-            ISingleFileMonitor settingsFileMonitor)
         {
             this.errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
             this.textDocumentFactoryService = textDocumentFactoryService;
@@ -99,8 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.languageRecognizer = languageRecognizer;
             this.logger = logger;
 
-            this.settingsFileMonitor = settingsFileMonitor;
-            this.settingsFileMonitor.FileChanged += OnSettingsFileChanged;
+            userSettingsProvider.SettingsChanged += OnSettingsFileChanged;
         }
 
         private readonly object reanalysisLockObject = new object();

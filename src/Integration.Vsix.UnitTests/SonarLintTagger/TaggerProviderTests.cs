@@ -106,10 +106,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockLogger = new Mock<ILogger>();
 
             var sonarLanguageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryService, fileExtensionRegistryService);
-            var mockSettingsFileMonitor = new Mock<ISingleFileMonitor>();
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
 
             this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, analyzerController, serviceProvider,
-                sonarLanguageRecognizer, mockLogger.Object, mockSettingsFileMonitor.Object);
+                sonarLanguageRecognizer,mockUserSettingsProvider.Object, mockLogger.Object);
         }
 
         [TestMethod]

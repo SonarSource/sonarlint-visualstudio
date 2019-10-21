@@ -24,7 +24,7 @@ using System.IO;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Integration.Helpers;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.Integration.Vsix
 {
     /// <summary>
     /// Monitors a single file for all types of change (creation, modification, deletion, rename)
@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     internal interface ISingleFileMonitor : IDisposable
     {
         event EventHandler FileChanged;
+        string MonitoredFilePath { get; }
     }
 
     /// <summary>
@@ -48,7 +49,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     /// </remarks>
     internal sealed class SingleFileMonitor : ISingleFileMonitor
     {
-        private readonly string filePathToMonitor;
         private readonly IFileSystemWatcher fileWatcher;
         private readonly ILogger logger;
         private DateTime lastWriteTime = DateTime.MinValue;
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public SingleFileMonitor(IFileSystemWatcherFactory factory, string filePathToMonitor, ILogger logger)
         {
-            this.filePathToMonitor = filePathToMonitor;
+            this.MonitoredFilePath = filePathToMonitor;
 
             fileWatcher = factory.Create();
             fileWatcher.Path = Path.GetDirectoryName(filePathToMonitor); // NB will throw if the directory does not exist
@@ -75,6 +75,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             this.logger = logger;
         }
+
+        public string MonitoredFilePath { get; }
 
         private EventHandler fileChangedHandlers;
         public event EventHandler FileChanged
@@ -126,13 +128,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
 
                 lastWriteTime = currentTime;
-                logger.WriteLine(CFamilyStrings.FileMonitor_FileChanged, filePathToMonitor, args.ChangeType);
+                logger.WriteLine(DaemonStrings.FileMonitor_FileChanged, MonitoredFilePath, args.ChangeType);
 
                 fileChangedHandlers(this, EventArgs.Empty);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(CFamilyStrings.FileMonitor_ErrorHandlingFileChange, ex.Message);
+                logger.WriteLine(DaemonStrings.FileMonitor_ErrorHandlingFileChange, ex.Message);
             }
             finally
             {

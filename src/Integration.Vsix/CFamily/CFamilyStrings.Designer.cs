@@ -70,24 +70,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error handling file change notification: {0}.
-        /// </summary>
-        internal static string FileMonitor_ErrorHandlingFileChange {
-            get {
-                return ResourceManager.GetString("FileMonitor_ErrorHandlingFileChange", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File changed: {0}. Change type: {1}.
-        /// </summary>
-        internal static string FileMonitor_FileChanged {
-            get {
-                return ResourceManager.GetString("FileMonitor_FileChanged", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;sensitive data removed&gt;.
         /// </summary>
         internal static string MSG_CmdLine_SensitiveCmdLineArgsAlternativeText {
@@ -160,34 +142,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         internal static string MSG_Runner_SettingEnvVar {
             get {
                 return ResourceManager.GetString("MSG_Runner_SettingEnvVar", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error loading user settings from &quot;{0}&quot;. Default rules configuration will be used.
-        ///  Error message: {1}.
-        /// </summary>
-        internal static string Settings_ErrorLoadingSettings {
-            get {
-                return ResourceManager.GetString("Settings_ErrorLoadingSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Loaded user settings from &quot;{0}&quot;..
-        /// </summary>
-        internal static string Settings_LoadedUserSettings {
-            get {
-                return ResourceManager.GetString("Settings_LoadedUserSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to User settings file does not exist at &quot;{0}&quot;. Using default rules configuration..
-        /// </summary>
-        internal static string Settings_NoUserSettings {
-            get {
-                return ResourceManager.GetString("Settings_NoUserSettings", resourceCulture);
             }
         }
         
