@@ -24,7 +24,6 @@ using System.IO;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Helpers;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

@@ -81,6 +81,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         }
 
         [TestMethod]
+        public void Ctor_ErrorLoadingSettings_CriticalErrorsAreNotSquashed()
+        {
+            // Arrange
+            var fileMock = new Mock<IFile>();
+            fileMock.Setup(x => x.Exists("settings.file")).Returns(true);
+            fileMock.Setup(x => x.ReadAllText("settings.file")).Throws(new System.StackOverflowException("critical custom error message"));
+
+            var logger = new TestLogger();
+
+            // Act
+            Action act = () => new UserSettingsProvider(logger, fileMock.Object, CreateMockFileMonitor("settings.file").Object);
+
+            // Assert
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("critical custom error message");
+        }
+
+        [TestMethod]
         public void FileChanges_EventsRaised()
         {
             var fileMock = new Mock<IFile>();
