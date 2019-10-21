@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly OleMenuCommand menuItem;
         private readonly IErrorList errorList;
+        private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ILogger logger;
 
         /// <summary>
@@ -56,8 +57,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var vsErrorList = (IVsErrorList)await package.GetServiceAsync(typeof(SVsErrorList));
             var eList = vsErrorList as IErrorList;
 
+            var settingsProvider = await package.GetMefServiceAsync<IUserSettingsProvider>();
+
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync((typeof(IMenuCommandService)));
-            Instance = new DisableRuleCommand(commandService, eList, logger);
+            Instance = new DisableRuleCommand(commandService, eList, settingsProvider, logger);
         }
 
         /// <summary>
@@ -66,13 +69,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private DisableRuleCommand(IMenuCommandService commandService, IErrorList errorList, ILogger logger)
+        internal /* for testing */ DisableRuleCommand(IMenuCommandService commandService, IErrorList errorList,
+            IUserSettingsProvider userSettingsProvider, ILogger logger)
         {
             if (commandService == null)
             {
                 throw new ArgumentNullException(nameof(commandService));
             }
             this.errorList = errorList ?? throw new ArgumentNullException(nameof(errorList));
+            this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
@@ -105,12 +110,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             if (TryGetErrorCodeSync(errorList, out string errorCode))
             {
                 logger.WriteLine($"Disabling rule: {errorCode}");
-                // TODO
+                userSettingsProvider.DisableRule(errorCode);
             }
 
             Debug.Assert(errorCode != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");
@@ -129,7 +132,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 var handle = selectedItems.First();
                 errorCode = FindErrorCodeForEntry(handle);
+
+                if (!IsDisablingRulesSupported(errorCode))
+                {
+                    errorCode = null;
+                }
             }
+
             return errorCode != null;
         }
 
@@ -145,6 +154,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             return null;
+        }
+
+        private static readonly string[] supportedLanguages = new[] { CFamily.CFamilyHelper.CPP_LANGUAGE_KEY, CFamily.CFamilyHelper.C_LANGUAGE_KEY };
+
+        private static bool IsDisablingRulesSupported(string errorCode)
+        {
+            // We don't currently support disabling rules for all languages
+            var language = errorCode?.Split(':')?[0];
+            return supportedLanguages.Contains(language, CFamily.CFamilyHelper.RuleKeyComparer);
         }
     }
 }
