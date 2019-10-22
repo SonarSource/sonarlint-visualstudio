@@ -176,6 +176,57 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         }
 
         [TestMethod]
+        public void EnsureFileExists_CreatedIfMissing()
+        {
+            // Arrange
+            var fileMock = new Mock<IFile>();
+            var testSubject = new UserSettingsProvider(new TestLogger(), fileMock.Object, CreateMockFileMonitor("c:\\missingFile.txt").Object);
+            fileMock.Reset();
+            fileMock.Setup(x => x.Exists("c:\\missingFile.txt")).Returns(false);
+
+            // Act
+            testSubject.EnsureFileExists();
+            
+            // Assert
+            fileMock.Verify(x => x.Exists("c:\\missingFile.txt"), Times.Once);
+            fileMock.Verify(x => x.WriteAllText("c:\\missingFile.txt", It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void EnsureFileExists_NotCreatedIfExists()
+        {
+            // Arrange
+            var fileMock = new Mock<IFile>();
+            var testSubject = new UserSettingsProvider(new TestLogger(), fileMock.Object, CreateMockFileMonitor("c:\\subDir1\\existingFile.txt").Object);
+            fileMock.Reset();
+            fileMock.Setup(x => x.Exists("c:\\subDir1\\existingFile.txt")).Returns(true);
+
+            // Act
+            testSubject.EnsureFileExists();
+
+            // Assert
+            fileMock.Verify(x => x.Exists("c:\\subDir1\\existingFile.txt"), Times.Once);
+            fileMock.Verify(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void ConstructAndDispose()
+        {
+            // Arrange
+            var fileMock = new Mock<IFile>();
+            var fileMonitorMock = CreateMockFileMonitor("c:\\aaa\\bbb\\file.txt");
+
+            // 1. Construct
+            var testSubject = new UserSettingsProvider(new TestLogger(), fileMock.Object, fileMonitorMock.Object);
+            testSubject.SettingsFilePath.Should().Be("c:\\aaa\\bbb\\file.txt");
+            fileMonitorMock.Verify(x => x.Dispose(), Times.Never);
+
+            // 2. Dispose
+            testSubject.Dispose();
+            fileMonitorMock.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
         public void RealFile_RoundTripLoadAndSave()
         {
             // Arrange
