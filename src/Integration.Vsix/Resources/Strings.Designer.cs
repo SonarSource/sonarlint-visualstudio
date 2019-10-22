@@ -502,6 +502,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error opening settings file &quot;{0}&quot;:
+        ///  Error: {1}.
+        /// </summary>
+        internal static string ToolsOptions_ErrorOpeningSettingsFile {
+            get {
+                return ResourceManager.GetString("ToolsOptions_ErrorOpeningSettingsFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {
         ///  &quot;sonarlint_product&quot;: &quot;SonarLint Visual Studio&quot;,
         ///  &quot;sonarlint_version&quot;: &quot;4.12.0.0&quot;,

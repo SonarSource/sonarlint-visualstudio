@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -33,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         public void Ctor_WithNullSettings_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new GeneralOptionsDialogControl(null, new Mock<ISonarLintDaemon>().Object, new Mock<IDaemonInstaller>().Object, new TestLogger());
+            Action act = () => new GeneralOptionsDialogControl(null, new Mock<ISonarLintDaemon>().Object, new Mock<IDaemonInstaller>().Object, new Mock<ICommand>().Object, new TestLogger());
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         public void Ctor_WithNullDaemon_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new GeneralOptionsDialogControl(new Mock<ISonarLintSettings>().Object, null, new Mock<IDaemonInstaller>().Object, new TestLogger());
+            Action act = () => new GeneralOptionsDialogControl(new Mock<ISonarLintSettings>().Object, null, new Mock<IDaemonInstaller>().Object, new Mock<ICommand>().Object, new TestLogger());
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("daemon");
@@ -53,17 +54,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         public void Ctor_WithNullInstaller_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new GeneralOptionsDialogControl(new Mock<ISonarLintSettings>().Object, new Mock<ISonarLintDaemon>().Object, null, new TestLogger());
+            Action act = () => new GeneralOptionsDialogControl(new Mock<ISonarLintSettings>().Object, new Mock<ISonarLintDaemon>().Object, null, new Mock<ICommand>().Object, new TestLogger());
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("installer");
         }
 
         [TestMethod]
+        public void Ctor_WithNullOpenSettingsCommand_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action act = () => new GeneralOptionsDialogControl(new Mock<ISonarLintSettings>().Object, new Mock<ISonarLintDaemon>().Object, new Mock<IDaemonInstaller>().Object, null, new TestLogger());
+
+            // Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("openSettingsFileCommand");
+        }
+
+
+        [TestMethod]
         public void Ctor_WithNullLogger_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new GeneralOptionsDialogControl(new Mock<ISonarLintSettings>().Object, new Mock<ISonarLintDaemon>().Object, new Mock<IDaemonInstaller>().Object, null);
+            Action act = () => new GeneralOptionsDialogControl(new Mock<ISonarLintSettings>().Object, new Mock<ISonarLintDaemon>().Object, new Mock<IDaemonInstaller>().Object, new Mock<ICommand>().Object, null);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
