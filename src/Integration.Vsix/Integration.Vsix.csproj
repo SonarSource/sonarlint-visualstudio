@@ -122,6 +122,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Settings\SonarLintSettings.cs" />
+    <Compile Include="Settings\OpenSettingsFileWpfCommand.cs" />
     <Compile Include="Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

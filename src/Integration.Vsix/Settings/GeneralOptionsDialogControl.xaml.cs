@@ -21,6 +21,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
@@ -36,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IDaemonInstaller installer;
         private readonly ILogger logger;
 
-        public GeneralOptionsDialogControl(ISonarLintSettings settings, ISonarLintDaemon daemon, IDaemonInstaller installer, ILogger logger)
+        public GeneralOptionsDialogControl(ISonarLintSettings settings, ISonarLintDaemon daemon, IDaemonInstaller installer, ICommand openSettingsFileCommand, ILogger logger)
         {
             if (settings == null)
             {
@@ -54,6 +55,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 throw new ArgumentNullException(nameof(logger));
             }
+            if (openSettingsFileCommand == null)
+            {
+                throw new ArgumentNullException(nameof(openSettingsFileCommand));
+            }
 
             this.settings = settings;
             this.daemon = daemon;
@@ -61,6 +66,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.logger = logger;
 
             InitializeComponent();
+
+            this.OpenSettingsButton.Command = openSettingsFileCommand;
         }
 
         protected override void OnInitialized(EventArgs e)

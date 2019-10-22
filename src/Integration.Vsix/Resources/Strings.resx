@@ -331,4 +331,9 @@
     <value>re-analyze open documents</value>
     <comment>Output window message</comment>
   </data>
+  <data name="ToolsOptions_ErrorOpeningSettingsFile" xml:space="preserve">
+    <value>Error opening settings file "{0}":
+  Error: {1}</value>
+    <comment>Output window message</comment>
+  </data>
 </root>
