@@ -117,6 +117,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Created directory: {0}.
+        /// </summary>
+        internal static string FileMonitory_CreatedDirectory {
+            get {
+                return ResourceManager.GetString("FileMonitory_CreatedDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error loading user settings from &quot;{0}&quot;. Default rules configuration will be used.
         ///  Error message: {1}.
         /// </summary>

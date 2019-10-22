@@ -131,6 +131,9 @@
   <data name="DisableRule_UnknownErrorCode" xml:space="preserve">
     <value>{unknown}</value>
   </data>
+  <data name="FileMonitory_CreatedDirectory" xml:space="preserve">
+    <value>Created directory: {0}</value>
+  </data>
   <data name="FileMonitor_ErrorHandlingFileChange" xml:space="preserve">
     <value>Error handling file change notification: {0}</value>
   </data>
