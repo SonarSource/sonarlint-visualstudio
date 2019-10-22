@@ -38,16 +38,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void NonCriticalExceptions_AreSuppressed()
         {
             // Arrange
-            var watcherMock = new Mock<IFileSystemWatcher>();
+            var directoryMock = new Mock<IDirectory>();
+            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
 
-            var watcherFactoryMock = new Mock<IFileSystemWatcherFactory>();
-            watcherFactoryMock
-                .Setup(x => x.Create())
-                .Returns(watcherMock.Object);
-
+            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var testLogger = new TestLogger();
 
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, "c:\\dummy\\file.txt", testLogger))
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
             {
                 fileMonitor.FileChanged += (s, args) => throw new InvalidOperationException("XXX non-critical exception");
 
@@ -65,25 +62,63 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CriticalExceptions_AreNotSuppressed()
         {
             // Arrange
-            var watcherMock = new Mock<IFileSystemWatcher>();
+            var directoryMock = new Mock<IDirectory>();
+            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+
+            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             Action act = () =>
             {
                 watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
             };
 
-            var watcherFactoryMock = new Mock<IFileSystemWatcherFactory>();
-            watcherFactoryMock
-                .Setup(x => x.Create())
-                .Returns(watcherMock.Object);
-
             var testLogger = new TestLogger();
 
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, "c:\\dummy\\file.txt", testLogger))
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
             {
                 fileMonitor.FileChanged += (s, args) => throw new StackOverflowException("YYY critical exception");
 
                 // Act and assert
                 act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("YYY critical exception");
+            }
+        }
+
+        [TestMethod]
+        public void DirectoryDoesNotExist_IsCreated()
+        {
+            // Arrange
+            var directoryMock = new Mock<IDirectory>();
+            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+
+            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
+            var testLogger = new TestLogger(logToConsole: true);
+
+            // Act
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
+            {
+                // Assert
+                directoryMock.Verify(x => x.Exists("c:\\dummy"), Times.Once);
+                directoryMock.Verify(x => x.Create("c:\\dummy"), Times.Once);
+                testLogger.AssertPartialOutputStringExists("c:\\dummy");
+            }
+        }
+
+        [TestMethod]
+        public void DirectoryDoesExist_IsNotCreated()
+        {
+            // Arrange
+            var directoryMock = new Mock<IDirectory>();
+            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+
+            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
+            var testLogger = new TestLogger(logToConsole: true);
+
+            // Act
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
+            {
+                // Assert
+                directoryMock.Verify(x => x.Exists("c:\\dummy"), Times.Once);
+                directoryMock.Verify(x => x.Create("c:\\dummy"), Times.Never);
+                testLogger.AssertPartialOutputStringDoesNotExist("c:\\dummy");
             }
         }
 
@@ -237,6 +272,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 System.Threading.Thread.Sleep(1000);
                 waitableFileMonitor.EventCount.Should().Be(0);
             }
+        }
+
+        private static Mock<IFileSystemWatcherFactory> CreateFactoryAndWatcherMocks(out Mock<IFileSystemWatcher> watcherMock)
+        {
+            watcherMock = new Mock<IFileSystemWatcher>();
+            var watcherFactoryMock = new Mock<IFileSystemWatcherFactory>();
+            watcherFactoryMock
+                .Setup(x => x.Create())
+                .Returns(watcherMock.Object);
+            return watcherFactoryMock;
         }
 
         #endregion Simple file operations
