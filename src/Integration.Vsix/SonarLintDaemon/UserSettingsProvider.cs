@@ -30,14 +30,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal interface IUserSettingsProvider
     {
+        /// <summary>
+        /// Notification that one or more settings have changed
+        /// </summary>
         event EventHandler SettingsChanged;
 
+        /// <summary>
+        /// The settings for the current user
+        /// </summary>
         UserSettings UserSettings { get; }
+
+        /// <summary>
+        /// Full path to the file containing the user settings
+        /// </summary>
+        string SettingsFilePath { get; }
+
+        /// <summary>
+        /// Updates the user settings to disabled the specified rule
+        /// </summary>
         void DisableRule(string ruleId);
+        
+        /// <summary>
+        /// Ensure the settings file exists, creating a new file if necessary
+        /// </summary>
+        void EnsureFileExists();
     }
 
     [Export(typeof(IUserSettingsProvider))]
-    internal class UserSettingsProvider : IUserSettingsProvider
+    internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     {
         // Note: the data is stored in the roaming profile so it will be sync across machines
         // for domain-joined users.
@@ -63,13 +83,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
             this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
 
-            UserSettings = SafeLoadUserSettings(settingsFileMonitor.MonitoredFilePath, fileWrapper, logger);
+            SettingsFilePath = settingsFileMonitor.MonitoredFilePath;
+            UserSettings = SafeLoadUserSettings(SettingsFilePath, fileWrapper, logger);
             settingsFileMonitor.FileChanged += OnFileChanged;
         }
 
         private void OnFileChanged(object sender, EventArgs e)
         {
-            UserSettings = SafeLoadUserSettings(settingsFileMonitor.MonitoredFilePath, fileWrapper, logger);
+            UserSettings = SafeLoadUserSettings(SettingsFilePath, fileWrapper, logger);
             SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -92,7 +113,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 UserSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
             }
 
-            SafeSaveUserSettings(settingsFileMonitor.MonitoredFilePath, UserSettings, fileWrapper, logger);
+            SafeSaveUserSettings(SettingsFilePath, UserSettings, fileWrapper, logger);
+        }
+
+        public string SettingsFilePath { get; }
+
+        public void EnsureFileExists()
+        {
+            if (!fileWrapper.Exists(SettingsFilePath))
+            {
+                SafeSaveUserSettings(SettingsFilePath, UserSettings, fileWrapper, logger);
+            }
         }
 
         #endregion
@@ -132,6 +163,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger.WriteLine(DaemonStrings.Settings_ErrorSavingSettings, filePath, ex.Message);
             }
+        }
+        public void Dispose()
+        {
+            settingsFileMonitor.FileChanged -= OnFileChanged;
+            settingsFileMonitor.Dispose();
         }
     }
 }
