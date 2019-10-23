@@ -140,6 +140,14 @@
   <data name="FileMonitor_FileChanged" xml:space="preserve">
     <value>File changed: {0}. Change type: {1}</value>
   </data>
+  <data name="ReanalysisStatusBar_Error" xml:space="preserve">
+    <value>Error re-analysing open documents: {0}</value>
+    <comment>Output window message</comment>
+  </data>
+  <data name="ReanalysisStatusBar_InProgress" xml:space="preserve">
+    <value>SonarLint: re-analysing open documents. Completed {0} of {1}</value>
+    <comment>Status bar message</comment>
+  </data>
   <data name="Settings_ErrorLoadingSettings" xml:space="preserve">
     <value>Error loading user settings from "{0}". Default rules configuration will be used.
   Error message: {1}</value>

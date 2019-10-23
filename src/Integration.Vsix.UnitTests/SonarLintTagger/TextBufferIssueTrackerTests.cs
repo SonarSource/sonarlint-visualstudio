@@ -309,8 +309,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockDTE.Setup(d => d.Solution).Returns(solution);
             var dte = mockDTE.Object;
 
+            var mockVsStatusBar = new Mock<Microsoft.VisualStudio.Shell.Interop.IVsStatusbar>();
+
             var serviceProvider = new ConfigurableServiceProvider();
             serviceProvider.RegisterService(typeof(DTE), mockDTE.Object);
+            serviceProvider.RegisterService(typeof(Microsoft.VisualStudio.Shell.Interop.IVsStatusbar), mockVsStatusBar.Object);
 
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
            
