@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -57,6 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly IAnalyzerController analyzerController;
         private readonly ISonarLanguageRecognizer languageRecognizer;
+        private readonly IVsStatusbar vsStatusBar;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -64,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ITextDocumentFactoryService textDocumentFactoryService,
             IAnalyzerController analyzerController,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            
+
             ISonarLanguageRecognizer languageRecognizer,
             IUserSettingsProvider userSettingsProvider,
             ILogger logger)
@@ -85,11 +87,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.languageRecognizer = languageRecognizer;
             this.logger = logger;
 
+            vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
             userSettingsProvider.SettingsChanged += OnSettingsFileChanged;
         }
 
         private readonly object reanalysisLockObject = new object();
         private CancellableJobRunner reanalysisJob;
+        private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
 
         private void OnSettingsFileChanged(object sender, EventArgs e)
         {
@@ -101,12 +105,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (reanalysisLockObject)
             {
                 reanalysisJob?.Cancel();
+                reanalysisProgressHandler?.Dispose();
 
                 var operations = this.issueTrackers
                     .Select<TextBufferIssueTracker, Action>(it => () => it.RequestAnalysis())
                     .ToArray(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
 
-                reanalysisJob = CancellableJobRunner.Start(Strings.JobRunner_JobDescription_ReaanalyzeOpenDocs, operations, null /* progress reporting */, logger);
+                reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
+
+                reanalysisJob = CancellableJobRunner.Start(Strings.JobRunner_JobDescription_ReaanalyzeOpenDocs, operations,
+                    reanalysisProgressHandler, logger);
             }
         }
 

@@ -126,6 +126,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error re-analysing open documents: {0}.
+        /// </summary>
+        internal static string ReanalysisStatusBar_Error {
+            get {
+                return ResourceManager.GetString("ReanalysisStatusBar_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: re-analysing open documents. Completed {0} of {1}.
+        /// </summary>
+        internal static string ReanalysisStatusBar_InProgress {
+            get {
+                return ResourceManager.GetString("ReanalysisStatusBar_InProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error loading user settings from &quot;{0}&quot;. Default rules configuration will be used.
         ///  Error message: {1}.
         /// </summary>
