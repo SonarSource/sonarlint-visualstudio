@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     .Select<TextBufferIssueTracker, Action>(it => () => it.RequestAnalysis())
                     .ToArray(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
 
-                reanalysisJob = CancellableJobRunner.Start(Strings.JobRunner_JobDescription_ReaanalyzeOpenDocs, operations, logger);
+                reanalysisJob = CancellableJobRunner.Start(Strings.JobRunner_JobDescription_ReaanalyzeOpenDocs, operations, null /* progress reporting */, logger);
             }
         }
 

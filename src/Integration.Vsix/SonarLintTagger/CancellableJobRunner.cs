@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Threading;
@@ -33,7 +34,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     internal sealed class CancellableJobRunner
     {
-        internal enum RunnerState
+        // Not overriding Equals etc - this type is only used for progress reporting.
+        // It's not intended to be stored or compared
+        public struct JobRunnerProgress
+        {
+            public JobRunnerProgress(RunnerState currentState, int completed, int totalOperations)
+            {
+                CurrentState = currentState;
+                CompletedOperations = completed;
+                TotalOperations = totalOperations;
+            }
+
+            public RunnerState CurrentState { get; }
+            public int CompletedOperations { get; }
+            public int TotalOperations { get; }
+        }
+
+        public enum RunnerState
         {
             NotStarted, Running, Finished, Cancelled, Faulted
         }
@@ -41,8 +58,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IEnumerable<Action> operations;
         private readonly ILogger logger;
         private readonly string jobDescription;
+        private readonly IProgress<JobRunnerProgress> progress;
+        
         private CancellationTokenSource cancellationSource;
         private DateTime startTime;
+
+        private int completedOperations;
+        private readonly int totalOperations;
 
         internal /* for testing */ WaitHandle TestingWaitHandle
         { 
@@ -55,9 +77,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
         internal /* for testing */ RunnerState State { get; private set; }
 
-        public static CancellableJobRunner Start(string jobDescription, IEnumerable<Action> operations, ILogger logger)
+        public static CancellableJobRunner Start(string jobDescription, IEnumerable<Action> operations, IProgress<JobRunnerProgress> progress, ILogger logger)
         {
-            var runner = new CancellableJobRunner(jobDescription, operations, logger);
+            var runner = new CancellableJobRunner(jobDescription, operations, progress, logger);
 
             runner.Execute()
                 .Forget(); // kick off the re-analysis process and return
@@ -65,12 +87,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return runner;
         }
 
-        private CancellableJobRunner(string jobDescription, IEnumerable<Action> operations, ILogger logger)
+        private CancellableJobRunner(string jobDescription, IEnumerable<Action> operations, IProgress<JobRunnerProgress> progress, ILogger logger)
         {
             this.jobDescription = jobDescription;
             this.operations = operations;
+            this.progress = progress;
             this.logger = logger;
             State = RunnerState.NotStarted;
+
+            totalOperations = operations.Count();
+            completedOperations = 0;
 
             cancellationSource = new CancellationTokenSource();
         }
@@ -88,13 +114,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 startTime = DateTime.UtcNow;
                 logger.WriteLine(Strings.JobRunner_StartingJob, jobDescription, startTime.ToLongTimeString());
 
+                progress?.Report(new JobRunnerProgress(State, completedOperations, totalOperations));
                 foreach (var op in operations)
                 {
                     if (cancellationSource.Token.IsCancellationRequested)
                     {
                         break;
                     }
+
                     op();
+
+                    if (cancellationSource.Token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    completedOperations++;
+                    progress?.Report(new JobRunnerProgress(State, completedOperations, totalOperations));
                 }
 
                 if (!cancellationSource.Token.IsCancellationRequested)
@@ -103,11 +139,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     var elapsedTime = DateTime.UtcNow - startTime;
                     logger.WriteLine(Strings.JobRunner_FinishedJob,
                         jobDescription, startTime.ToLongTimeString(), (long)elapsedTime.TotalMilliseconds);
+                    progress?.Report(new JobRunnerProgress(State, completedOperations, totalOperations));
                 }
+
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 State = RunnerState.Faulted;
+                progress?.Report(new JobRunnerProgress(State, completedOperations, totalOperations));
                 logger.WriteLine(Strings.JobRunner_ExecutionError, jobDescription, startTime.ToLongTimeString(), ex.Message);
             }
             finally
@@ -130,6 +169,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     State = RunnerState.Cancelled;
                     logger.WriteLine(Strings.JobRunner_CancellingJob, jobDescription, startTime.ToLongTimeString());
                     cancellationSource?.Cancel();
+                    progress?.Report(new JobRunnerProgress(State, completedOperations, totalOperations));
                 }
             }
             catch (ObjectDisposedException)
