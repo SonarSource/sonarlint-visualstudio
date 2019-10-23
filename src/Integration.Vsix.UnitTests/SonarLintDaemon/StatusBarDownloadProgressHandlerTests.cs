@@ -18,27 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix;
-using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 {
     [TestClass]
     public class StatusBarDownloadProgressHandlerTests
     {
-        private const int ExpectedCookie = 123;
-
-        private DummyStatusBar dummyStatusBar;
+        private ConfigurableVsStatusbar dummyStatusBar;
         private DummyDaemonInstaller dummyInstaller;
         private TestLogger logger;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            dummyStatusBar = new DummyStatusBar(ExpectedCookie);
+            dummyStatusBar = new ConfigurableVsStatusbar(987);
             dummyInstaller = new DummyDaemonInstaller();
             logger = new TestLogger();
         }
@@ -51,25 +48,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             // 1. Initial request
             dummyInstaller.SimulateProgressChanged(new InstallationProgressChangedEventArgs(0, 1000));
-            CheckProgressParamaters(dummyStatusBar,
-                0, // 0 on first call
-                1, // "in progress"
-                0, 1000);
+            dummyStatusBar.CheckLastCallWasSetupCall(0, 1000);
 
             // 2. Progress updates
             dummyInstaller.SimulateProgressChanged(new InstallationProgressChangedEventArgs(100, 1000));
-            CheckProgressParamaters(dummyStatusBar,
-                ExpectedCookie, // should not be using the cookie
-                1, // "in progress"
-                100, 1000);
+            dummyStatusBar.CheckLastCallWasInProgressCall(100, 1000);
 
 
             // 3. Cleanup - reset the statusbar
             dummyInstaller.SimulateInstallFinished(new System.ComponentModel.AsyncCompletedEventArgs(null, false, null));
-            CheckProgressParamaters(dummyStatusBar,
-                ExpectedCookie, // should still be using the cookie
-                0, // "finished"
-                0, 0);
+            dummyStatusBar.CheckLastCallWasCleanup();
 
             dummyStatusBar.ProgressCallCount.Should().Be(3);
             dummyInstaller.AssertNoEventHandlersRegistered();
@@ -88,23 +76,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             // 1. Initial request
             dummyInstaller.SimulateProgressChanged(new InstallationProgressChangedEventArgs(0, 1000));
-            CheckProgressParamaters(dummyStatusBar,
-                0, // 0 on first call
-                1, // "in progress"
-                0, 1000);
+            dummyStatusBar.CheckLastCallWasSetupCall(0, 1000);
 
             // 2. Progress updates
             dummyInstaller.SimulateProgressChanged(new InstallationProgressChangedEventArgs(100, 1000));
-            CheckProgressParamaters(dummyStatusBar,
-                ExpectedCookie, // should not be using the cookie
-                1, // "in progress"
-                100, 1000);
+            dummyStatusBar.CheckLastCallWasInProgressCall(100, 1000);
 
             dummyStatusBar.ProgressCallCount.Should().Be(2);
 
             // 3. Dispose - unhook event handlers, then simulate more events
             progressHandler.Dispose();
+
             dummyInstaller.AssertNoEventHandlersRegistered();
+            dummyStatusBar.CheckLastCallWasCleanup();
             dummyStatusBar.ProgressCallCount.Should().Be(3);
         }
 
@@ -124,6 +108,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Act and Assert: exception should be suppressed
             dummyInstaller.SimulateProgressChanged(new InstallationProgressChangedEventArgs(0, 1000));
             opExecuted.Should().BeTrue();
+
+            logger.AssertPartialOutputStringExists("xxx");
         }
 
         [TestMethod]
@@ -138,6 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             Action act = () => dummyInstaller.SimulateProgressChanged(new InstallationProgressChangedEventArgs(0, 1000));
 
             act.Should().Throw<StackOverflowException>().And.Message.Should().Be("xxx");
+            logger.AssertPartialOutputStringDoesNotExist("xxx");
         }
 
         [TestMethod]
@@ -162,6 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Act and Assert: exception should be suppressed
             dummyInstaller.SimulateInstallFinished(new System.ComponentModel.AsyncCompletedEventArgs(null, false, null));
             opExecuted.Should().BeTrue();
+            logger.AssertPartialOutputStringExists("xxx");
         }
 
         [TestMethod]
@@ -179,130 +167,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             Action act = () => dummyInstaller.SimulateInstallFinished(new System.ComponentModel.AsyncCompletedEventArgs(null, true, null));
 
             act.Should().Throw<StackOverflowException>().And.Message.Should().Be("xxx");
+            logger.AssertPartialOutputStringDoesNotExist("xxx");
         }
-
-        private static void CheckProgressParamaters(DummyStatusBar dummyStatusBar, uint expectedCookie, int expectedProgress, uint expectedNComplete, uint expectedNTotal)
-        {
-            dummyStatusBar.LastPwdCookie.Should().Be(expectedCookie);
-            dummyStatusBar.LastfInProgress.Should().Be(expectedProgress);
-            dummyStatusBar.LastnComplete.Should().Be(expectedNComplete);
-            dummyStatusBar.LastnTotal.Should().Be(expectedNTotal);
-        }
-
-        private class DummyStatusBar : IVsStatusbar
-        {
-            private uint cookieToReturn;
-
-            public DummyStatusBar(uint cookieToReturn)
-            {
-                this.cookieToReturn = cookieToReturn;
-            }
-
-            public int ProgressCallCount { get; set; }
-
-            public Action ProgressOperation { get; set; }
-
-            #region IVsStatusbar methods
-
-            public int Clear()
-            {
-                throw new NotImplementedException();
-            }
-
-            public int SetText(string pszText)
-            {
-                throw new NotImplementedException();
-            }
-
-            public uint LastPwdCookie { get; private set; }
-            public int LastfInProgress { get; private set; }
-            public string LastLabel { get; private set; }
-            public uint LastnComplete { get; private set; }
-            public uint LastnTotal { get; private set; }
-
-
-            public int Progress(ref uint pdwCookie, int fInProgress, string pwszLabel, uint nComplete, uint nTotal)
-            {
-                ProgressCallCount++;
-
-                LastPwdCookie = pdwCookie;
-                LastfInProgress = fInProgress;
-                LastLabel = pwszLabel;
-                LastnComplete = nComplete;
-                LastnTotal = nTotal;
-
-                if (pdwCookie == 0)
-                {
-                    pdwCookie = cookieToReturn;
-                }
-
-                ProgressOperation?.Invoke();
-
-                return 0; // success
-            }
-
-            public int Animation(int fOnOff, ref object pvIcon)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int SetSelMode(ref object pvSelMode)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int SetInsMode(ref object pvInsMode)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int SetLineChar(ref object pvLine, ref object pvChar)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int SetXYWH(ref object pvX, ref object pvY, ref object pvW, ref object pvH)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int SetLineColChar(ref object pvLine, ref object pvCol, ref object pvChar)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int IsCurrentUser(IVsStatusbarUser pUser, ref int pfCurrent)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int SetColorText(string pszText, uint crForeColor, uint crBackColor)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int GetText(out string pszText)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int FreezeOutput(int fFreeze)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int IsFrozen(out int pfFrozen)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int GetFreezeCount(out int plCount)
-            {
-                throw new NotImplementedException();
-            }
-
-            #endregion
-        }
-
     }
 }
