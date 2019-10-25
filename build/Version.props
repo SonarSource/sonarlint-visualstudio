@@ -11,8 +11,7 @@
     <BuildNumber>0</BuildNumber>
     <Sha1>not-set</Sha1>
     <BranchName>not-set</BranchName>
-	<BuildConfiguration>$(Configuration)</BuildConfiguration>
-	<BuildConfiguration Condition=" $(BuildConfiguration) == ''">not-set</BuildConfiguration>
+	  <BuildConfiguration>not-set</BuildConfiguration>
    
     <!-- Calculated properties -->
     <FullVersion>$(MainVersion).$(BuildNumber)</FullVersion>   
