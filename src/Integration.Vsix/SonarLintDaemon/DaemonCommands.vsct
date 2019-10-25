@@ -6,7 +6,6 @@
       <Group guid="guidDaemonCmdSet" id="grpDaemonErrorList" priority="0x1600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ERRORLIST" />
       </Group>
-
     </Groups>
 
     <Buttons>
