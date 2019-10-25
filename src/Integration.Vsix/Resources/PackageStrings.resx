@@ -126,7 +126,7 @@
     <comment>Package description in the Help/About</comment>
   </data>
   <data name="901" xml:space="preserve">
-    <value>SonarLint for Visual Studio</value>
+    <value>SonarLint</value>
     <comment>Options group name</comment>
   </data>
   <data name="902" xml:space="preserve">
@@ -134,8 +134,8 @@
     <comment>General options page name</comment>
   </data>
   <data name="903" xml:space="preserve">
-    <value>Change security settings for the SonarLint for Visual Studio extension</value>
-    <comment>Keywords for General options page</comment>
+    <value>analysis rule rules SonarLint</value>
+    <comment>Keywords for General options page (used when searching Options)</comment>
   </data>
   <data name="904" xml:space="preserve">
     <value>Other</value>
