@@ -2,8 +2,15 @@
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <Commands package="guidDaemonPackagePkgString">
+    <Groups>
+      <Group guid="guidDaemonCmdSet" id="grpDaemonErrorList" priority="0x1600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ERRORLIST" />
+      </Group>
+    </Groups>
+
     <Buttons>
       <Button guid="guidDaemonCmdSet" id="cmdidErrorListDisableSonarLintRule" priority="0x0100" type="Button">
+        <Parent guid="guidDaemonCmdSet" id="grpDaemonErrorList" />
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -13,24 +20,13 @@
       </Button>
     </Buttons>
   </Commands>
-
-  <CommandPlacements>
-    <!-- Place on Error list context menu -->
-    <CommandPlacement guid="guidDaemonCmdSet" id="cmdidErrorListDisableSonarLintRule" priority="0x0100">
-      <Parent guid="guidErrorListCommands" id="groupidErrorListCommands"/>
-    </CommandPlacement>
-  </CommandPlacements>
   
   <Symbols>
     <GuidSymbol name="guidDaemonPackagePkgString" value="{6f63ab5a-5ab8-4a0d-9914-151911885966}" />
     <GuidSymbol name="guidDaemonCmdSet" value="{1F83EA11-3B07-45B3-BF39-307FD4F42194}">
       <IDSymbol name="cmdidErrorListDisableSonarLintRule" value="0x200"/>
+      <IDSymbol name="grpDaemonErrorList" value="0x100" />
     </GuidSymbol>
-    
-    <!-- VS Error menu/group Guid:IDs -->
-    <GuidSymbol name="guidErrorListCommands" value="{eb2f90ac-ee02-4a6a-8294-6e96e273ee97}">
-      <IDSymbol name="groupidErrorListCommands" value="0x105"/>
-    </GuidSymbol>
-    
+        
   </Symbols>
 </CommandTable>
