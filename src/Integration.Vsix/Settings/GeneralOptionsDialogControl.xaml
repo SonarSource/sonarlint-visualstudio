@@ -23,21 +23,17 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Button Grid.Column="0" Grid.Row="0" Content="Open user settings"
+        <Button Grid.Column="0" Grid.Row="0" Content="Edit rules settings"
                 x:Name="OpenSettingsButton"
+                Height="24"
                 Margin="5" Padding="5,2.5" />
         <TextBlock Grid.Column="1" Grid.Row="0"
-                   Text="Open the per-user settings file."
                    VerticalAlignment="Center"
                    Margin="5"
-                   TextWrapping="Wrap" />
+                   TextWrapping="Wrap" ><Run Text="Open the per-user settings file"/><Run Text=" in which C/C++ rules can be activated/deactivated."/></TextBlock>
         <TextBlock Grid.Column="1" Grid.Row="1"
                    VerticalAlignment="Center"
-                   Margin="5,0,0,5" TextWrapping="Wrap" >
-            <Run>The file will be created if it does not exist.</Run>
-            <LineBreak />
-            <Run>Note: currently only the C-Family analysis rules use the per-user settings file.</Run>
-        </TextBlock>
+                   Margin="5,0,0,5" TextWrapping="Wrap" Text="The file will be created if it does not exist." />
 
         <Button Grid.Column="0" Grid.Row="2" Content="Activate more..." Click="OnActivateMoreClicked"
                 x:Name="ActivateButton"
