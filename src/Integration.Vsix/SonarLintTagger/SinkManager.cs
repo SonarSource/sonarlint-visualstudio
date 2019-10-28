@@ -91,8 +91,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exception.
-                // We are not logging them to the output window because it might be too noisy: if the
-                // bug #1055 mention above occurs then the faulty sink will throw an exception each
+                // We are not logging the errors to the output window because it might be too noisy e.g. if
+                // bug #1055 mentioned above occurs then the faulty sink will throw an exception each
                 // time a character is typed in the editor.
                 System.Diagnostics.Debug.WriteLine($"Error in sink {sink.GetType().FullName}.{operationName}: {ex.Message}");
             }
