@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class TaggerProvider : IViewTaggerProvider, ITableDataSource
+    internal sealed class TaggerProvider : IViewTaggerProvider, ITableDataSource, ISinkManagerRegister
     {
         internal readonly ITableManager errorTableManager;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
