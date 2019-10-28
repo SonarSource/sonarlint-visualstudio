@@ -19,10 +19,18 @@
  */
 
 using System;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    // Interface introduced to simplify testing.
+    internal interface ISinkManagerRegister
+    {
+        void AddSinkManager(SinkManager manager);
+        void RemoveSinkManager(SinkManager manager);
+    }
+
     /// <summary>
     /// Error list plumbing
     /// </summary>
@@ -32,40 +40,62 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// an IDisposable (this object) that they hang on to as long as they are interested in our data (and they Dispose() of it when they are done).
     /// </para>
     /// <para>
+    /// The sink is an external component that might not handle notifications correctly.
+    /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/1055 for an example.
+    /// Consequently, we'll code defensively.
+    /// </para>
+    /// <para>
     /// See the README.md in this folder for more information
     /// </para>
     /// </summary>
     internal sealed class SinkManager : IDisposable
     {
-        private readonly TaggerProvider taggerProvider;
+        private ISinkManagerRegister sinkRegister;
         private readonly ITableDataSink sink;
 
-        internal SinkManager(TaggerProvider taggerProvider, ITableDataSink sink)
+        internal SinkManager(ISinkManagerRegister sinkRegister, ITableDataSink sink)
         {
-            this.taggerProvider = taggerProvider;
+            this.sinkRegister = sinkRegister;
             this.sink = sink;
 
-            taggerProvider.AddSinkManager(this);
+            sinkRegister.AddSinkManager(this);
         }
 
         public void Dispose()
         {
-            taggerProvider.RemoveSinkManager(this);
+            sinkRegister?.RemoveSinkManager(this);
+            sinkRegister = null;
         }
 
         public void AddFactory(SnapshotFactory factory)
         {
-            sink.AddFactory(factory);
+            SafeOperation("AddFactory", () => sink.AddFactory(factory));
         }
 
         public void RemoveFactory(SnapshotFactory factory)
         {
-            sink.RemoveFactory(factory);
+            SafeOperation("RemoveFactory", () => sink.RemoveFactory(factory));
         }
 
         public void UpdateSink()
         {
-            sink.FactorySnapshotChanged(null);
+            SafeOperation("FactorySnapshotChanged", () => sink.FactorySnapshotChanged(null));
+        }
+
+        private void SafeOperation(string operationName, Action op)
+        {
+            try
+            {
+                op();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Suppress non-critical exception.
+                // We are not logging the errors to the output window because it might be too noisy e.g. if
+                // bug #1055 mentioned above occurs then the faulty sink will throw an exception each
+                // time a character is typed in the editor.
+                System.Diagnostics.Debug.WriteLine($"Error in sink {sink.GetType().FullName}.{operationName}: {ex.Message}");
+            }
         }
     }
 }
