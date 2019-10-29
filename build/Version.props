@@ -3,18 +3,14 @@
     <!-- Manually set the three-part main version and check in the changed file.
          The other build properties (e.g. Sha1) will be set by the CI build when
          it builds ChangeVersion.proj. -->
-	
-    <MainVersion>4.13.0</MainVersion>
-
-
+    <MainVersion>4.14.0</MainVersion>
     <!-- Properties set by the CI build pipeline -->
     <BuildNumber>0</BuildNumber>
     <Sha1>not-set</Sha1>
     <BranchName>not-set</BranchName>
     <BuildConfiguration>not-set</BuildConfiguration>
-   
     <!-- Calculated properties -->
-    <FullVersion>$(MainVersion).$(BuildNumber)</FullVersion>   
+    <FullVersion>$(MainVersion).$(BuildNumber)</FullVersion>
     <AssemblyVersion>$(MainVersion)</AssemblyVersion>
     <AssemblyFileVersion>$(FullVersion)</AssemblyFileVersion>
     <AssemblyInformationalVersion>Version:$(FullVersion) Branch:$(BranchName) Sha1:$(Sha1) Configuration:$(BuildConfiguration)</AssemblyInformationalVersion>
