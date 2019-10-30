@@ -49,6 +49,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
+    <PackageReference Include="StrongNamer" Version="0.0.8" />
   </ItemGroup>
 
   <ItemGroup Label="Test framework">

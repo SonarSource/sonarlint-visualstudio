@@ -26,6 +26,7 @@
     <ProjectGuid>{115CC746-5181-485C-8707-346E8D55B1E5}</ProjectGuid>
     
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">
@@ -48,6 +49,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
+    <PackageReference Include="StrongNamer" Version="0.0.8" />
   </ItemGroup>
 
   <ItemGroup Label="Test framework">
