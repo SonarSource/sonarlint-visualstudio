@@ -26,7 +26,6 @@
     <ProjectGuid>{115CC746-5181-485C-8707-346E8D55B1E5}</ProjectGuid>
     
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">
@@ -40,7 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Alm.Authentication" Version="4.0.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="14.3.25407" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407" />
     <PackageReference Include="EnvDTE" Version="8.0.0" />
@@ -49,14 +47,23 @@
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
-    <PackageReference Include="StrongNamer" Version="0.0.8" />
   </ItemGroup>
 
+  
+  <ItemGroup Label="Alm authentication">
+    <!-- The package from MS isn't signed so we need to reference the StrongName package
+         and conditionally set the DisableStrongName properties -->
+    <PackageReference Include="Microsoft.Alm.Authentication" Version="4.0.0.1" />
+    <PackageReference Include="StrongNamer" Version="0.0.8" />
+  </ItemGroup>
+  <PropertyGroup>
+      <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
+  </PropertyGroup>
+
+  
   <ItemGroup Label="Test framework">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
-    <PackageReference Include="coverlet.collector" Version="1.0.1" />
 
     <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
