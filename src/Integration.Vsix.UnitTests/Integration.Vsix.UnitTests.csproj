@@ -9,6 +9,9 @@
     </AdditionalFiles>
   </ItemGroup>
 
+  <PropertyGroup Label="Specify which VS-specific refs are required">
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
@@ -24,13 +27,18 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   
-  <PropertyGroup>
-    <!-- Workaround for the C++ RulesLoader tests. If we include the target framework in the test
-         assembly output path, then it won't find the C++ rule json files as they will be in the
-         directory above. -->
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-  </PropertyGroup>
-
+  <ItemGroup Label="HACK to make the C++ rule loader tests work">
+    <!-- We need all of the json files in the lib subfolder to be copied under the test assembly folder.
+         The files are marked as content files in the Integration project, but since this project was
+         converted to be an SDK-style project the files are being deleted when before the tests are run,
+         causing them to fail. 
+    -->
+    <Content Include="..\Integration.Vsix\lib\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>lib\%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+  
   <ItemGroup Label="Framework references">
     <Reference Include="System.Web" />
     <Reference Include="System.Xaml" />
