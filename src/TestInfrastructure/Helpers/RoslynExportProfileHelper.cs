@@ -23,7 +23,6 @@ using System.Linq;
 using System.Xml;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGet;
 using SonarQube.Client.Messages;
 
@@ -72,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void AssertConfigSectionEqual(ConfigurationResponse expected, ConfigurationResponse actual)
         {
-            CollectionAssert.AreEqual(expected.AdditionalFiles, actual.AdditionalFiles, "Additional files differ");
+            actual.AdditionalFiles.Should().BeEquivalentTo(expected.AdditionalFiles, "Additional files differ");
 
             RuleSet expectedRuleSet = TestRuleSetHelper.XmlToRuleSet(expected.RuleSet.OuterXml);
             RuleSet actualRuleSet = TestRuleSetHelper.XmlToRuleSet(actual.RuleSet.OuterXml);
@@ -81,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void AssertDeploymentSectionEqual(DeploymentResponse expected, DeploymentResponse actual)
         {
-            CollectionAssert.AreEqual(expected.NuGetPackages, actual.NuGetPackages, "NuGet package information differs");
+            actual.NuGetPackages.Should().BeEquivalentTo(expected.NuGetPackages, "NuGet package information differs");
         }
     }
 }
