@@ -25,6 +25,7 @@
     <ProjectGuid>{203F7669-02B6-4314-BD11-20E8D7C19FBC}</ProjectGuid>
 
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DebugType>Full</DebugType>
   </PropertyGroup>
   
   <ItemGroup Label="HACK to make the C++ rule loader tests work">

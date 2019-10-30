@@ -26,6 +26,7 @@
     <ProjectGuid>{115CC746-5181-485C-8707-346E8D55B1E5}</ProjectGuid>
     
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DebugType>Full</DebugType>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">
