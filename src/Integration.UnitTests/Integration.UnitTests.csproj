@@ -26,6 +26,7 @@
     <ProjectGuid>{CB59EF29-8193-4F32-866E-64FBB6199283}</ProjectGuid>
     
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">
