@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -115,11 +115,6 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             public RestoredUnitTestAssertException(string message, Exception innerException)
                 : base(message, innerException)
-            {
-            }
-
-            protected RestoredUnitTestAssertException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
-                : base(info, context)
             {
             }
         }
