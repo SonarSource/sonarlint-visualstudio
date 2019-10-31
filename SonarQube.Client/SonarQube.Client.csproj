@@ -22,7 +22,7 @@
     <PackageReference Include="Google.Protobuf" Version="3.6.1" />
     <!-- When changing this reference update ProtocCompiler property too! -->
     <PackageReference Include="Grpc.Tools" Version="1.4.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
