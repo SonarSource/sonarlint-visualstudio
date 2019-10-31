@@ -48,6 +48,9 @@
     <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='14.0'">2015</VersionSpecificSuffix>
     <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
     <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='16.0'">2019</VersionSpecificSuffix>
+
+    <!-- We're referencing VS-specific assemblies so we'll build to a VS-specific output folder -->
+    <OutputPath>bin\$(Configuration)\VS$(VersionSpecificSuffix)\</OutputPath>
   </PropertyGroup>
 
   <!-- Sanity check to fail the build if VsTargetVersion isn't used correctly -->

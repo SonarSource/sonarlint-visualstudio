@@ -24,7 +24,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -105,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertEditRequested(params string[] expectedFiles)
         {
-            CollectionAssert.AreEquivalent(expectedFiles, this.editRequested.ToArray(), "Actual: " + string.Join(", ", this.editRequested));
+            this.editRequested.Should().BeEquivalentTo(expectedFiles, "Actual: " + string.Join(", ", this.editRequested));
         }
 
         public void AssertNoEditRequested()
@@ -115,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertCreateRequested(params string[] expectedFiles)
         {
-            CollectionAssert.AreEquivalent(expectedFiles, this.createRequested.ToArray(), "Actual: " + string.Join(", ", this.createRequested));
+            this.createRequested.Should().BeEquivalentTo(expectedFiles, "Actual: " + string.Join(", ", this.createRequested));
         }
 
         public void AssertNoCreateRequested()
