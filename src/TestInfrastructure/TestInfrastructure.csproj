@@ -22,6 +22,8 @@
     <CodeAnalysisRuleSet>TestInfrastructure.ruleset</CodeAnalysisRuleSet>
 
     <ProjectGuid>{FBD8024A-9795-4E5B-938E-AFE44FCA240C}</ProjectGuid>
+
+    <SonarQubeTestProject>true</SonarQubeTestProject>
     
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
