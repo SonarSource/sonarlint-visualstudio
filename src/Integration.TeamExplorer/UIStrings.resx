@@ -141,4 +141,8 @@
     <value>SonarQube</value>
     <comment>Name of SonarQube server product</comment>
   </data>
+  <data name="SelectProjectInstruction" xml:space="preserve">
+    <value>Select a SonarQube project and bind it to the current solution.</value>
+    <comment>Message instructing the user to select from the presented list of SonarQube projects with which to bind the current solution to.</comment>
+  </data>
 </root>

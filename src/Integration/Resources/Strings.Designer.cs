@@ -973,15 +973,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select a SonarQube project and bind it to the current solution..
-        /// </summary>
-        public static string SelectProjectInstruction {
-            get {
-                return ResourceManager.GetString("SelectProjectInstruction", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The specified SonarQube server does not have the minimum required version of any of the supported plugins (C#, VB.Net). .
         /// </summary>
         public static string ServerHasNoSupportedPluginVersion {
