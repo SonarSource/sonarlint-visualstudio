@@ -127,9 +127,8 @@
       <HintPath>..\..\..\packages\Microsoft.VisualStudio.Shell.14.0.14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.2015.csproj">
-      <Project>{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}</Project>
-      <Name>SonarQube.Client.2015</Name>
+    <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj">
+      <Name>SonarQube.Client</Name>
     </ProjectReference>
     <ProjectReference Include="..\Integration\Integration.csproj">
       <Project>{03278c1a-ee78-4fa7-a5b0-1ab0a81ea76f}</Project>
