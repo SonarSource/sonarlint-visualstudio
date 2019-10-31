@@ -18,6 +18,8 @@
     
     <ProjectGuid>{AB7A8888-EF8B-4F6D-8005-398744A60BA2}</ProjectGuid>
     
+    <SonarQubeTestProject>true</SonarQubeTestProject>
+
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
