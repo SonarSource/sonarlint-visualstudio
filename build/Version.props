@@ -4,6 +4,7 @@
          The other build properties (e.g. Sha1) will be set by the CI build when
          it builds ChangeVersion.proj. -->
     <MainVersion>4.14.0</MainVersion>
+
     <!-- Properties set by the CI build pipeline -->
     <BuildNumber>0</BuildNumber>
     <Sha1>not-set</Sha1>
