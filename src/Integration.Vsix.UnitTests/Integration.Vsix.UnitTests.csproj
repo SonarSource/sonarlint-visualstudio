@@ -13,6 +13,7 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
+  <Import Project="..\EmbeddedSonarAnalyzer.props" />
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
@@ -49,12 +50,6 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="SonarAnalyzer">
-      <HintPath>..\..\binaries\SonarAnalyzer.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
   <PropertyGroup>
     <!-- Suppress NuGet warning about the explicit downgrade to System.Collections.Immutable v1.1.37 -->
     <NoWarn>NU1605</NoWarn>
@@ -63,9 +58,9 @@
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="8.0.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.1.37" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="1.3.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="1.3.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.3.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="1.3.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="1.3.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.3.2" />
     <PackageReference Include="Microsoft.Composition" Version="1.0.30" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="14.0.25424" />
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="14.0.23205" />

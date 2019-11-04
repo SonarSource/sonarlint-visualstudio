@@ -1,0 +1,22 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <!-- Manually set the version of the SonarC# and VB analyzers to embed.
+       NB we assume that the SonarC# and SonarVB NuGet packages have the same version number. -->
+  <PropertyGroup>
+    <EmbeddedSonarAnalyzerVersion>8.0.0.9566</EmbeddedSonarAnalyzerVersion>
+  </PropertyGroup>
+
+  <ItemGroup Label="Embedded SonarLint analyzers">
+    <!-- Reference the packages we want to import, but we don't want to include them as analyzers for project -->
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all"/>
+
+    <!-- Select all of the analyzer binaries (we assume that the package restore has happened so the files are already on disc) -->
+    <SonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll" />
+    <SonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll" />
+
+    <Reference Include="@(SonarAnalyzerAssemblies)" />  <!-- need to reference the common SonarAnalyzer.dll assembly directly -> no harm in referencing them all -->
+    <VSIXSourceItem Include="@(SonarAnalyzerAssemblies)" /> <!-- ensure the binaries are embedded in the VSIX-->
+  </ItemGroup>
+
+</Project>
