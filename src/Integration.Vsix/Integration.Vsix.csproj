@@ -1,8 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project>
 
+  <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
+       .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  
   <!-- Executive summary:
-       * to build the VS2015 vsix, build from inside VS2015.
        * to build the VS2017 vsix, build from inside VS2017.
        * to build the VS2019 vsix, build from inside VS2019.
        
@@ -11,6 +13,8 @@
        * build from a VS2017/2019 command line, and specify the version of VS to target by
          setting the vsTargetVersion property to 2015, 2017 or 2019 e.g.
            /p:vsTargetVersion=2017
+
+       The projects use the new-style SDK-format and so cannot be opened in VS2015.
 
        Background:
        We want to be able to use the same set of projects to develop in multiple versions of VS (currently VS2015
@@ -32,430 +36,100 @@
          To achieve this, this project conditionally imports different VSIX manifests based on the version of VS being
          used to build the project/solution.
   -->
-  <Import Project="..\..\packages\Microsoft.VSSDK.BuildTools.16.2.3073\build\Microsoft.VSSDK.BuildTools.props" Condition="Exists('..\..\packages\Microsoft.VSSDK.BuildTools.16.2.3073\build\Microsoft.VSSDK.BuildTools.props')" />
+  
   <PropertyGroup>
     <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-  </PropertyGroup>
-
-  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
-
-  <PropertyGroup>
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+    
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-    <TargetFrameworkProfile />
   </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <ItemGroup Label="Common items">
+    <Compile Include="..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
+    <AdditionalFiles Include="..\SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
+  </ItemGroup>
+
+  <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
+  
+  <!-- Need to reference the Sonar Roslyn analyzers: we need to reference one of the assmblies,
+       and embed all of them in the VSIX. -->
+  <Import Project="..\EmbeddedSonarAnalyzer.props" />
+  
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFramework>net46</TargetFramework>
+
     <ProjectGuid>{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SonarLint.VisualStudio.Integration.Vsix</RootNamespace>
     <AssemblyName>SonarLint.$(VersionSpecificSuffix)</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <CodeAnalysisRuleSet>..\..\.sonarlint\sonarlint-visualstudiocsharp.ruleset</CodeAnalysisRuleSet>
+
+    <ProjectGuid>{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}</ProjectGuid>
+
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DebugType>Full</DebugType>
+
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)\devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
-    <CodeAnalysisRuleSet>..\..\.sonarlint\sonarlint-visualstudiocsharp.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\VS$(VersionSpecificSuffix)\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DeployExtension>True</DeployExtension>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\VS$(VersionSpecificSuffix)\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="**\obj\**\*;**\*.Designer.cs;Settings\*;**\Protobuf\*;**\Telemetry\GeneratedCode\*;**\SonarLintDaemon\SonarLintDaemonInstaller.*;**\SonarLintDaemon\SonarLintDaemonSplashscreen.*" />
-    <Compile Include="Protobuf\Sonarlint-daemonGrpc.cs" />
-    <Compile Include="Protobuf\SonarlintDaemon.cs" />
-    <Compile Include="..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-    <Compile Include="**\*.xaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
-    <Page Include="**\*.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Compile Include="Resources\Strings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Strings.resx</DependentUpon>
-    </Compile>
-    <Compile Include="CFamily\CFamilyStrings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CFamilyStrings.resx</DependentUpon>
-    </Compile>
-    <Compile Include="SonarLintDaemon\DaemonStrings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DaemonStrings.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Settings\OtherOptionsDialogPage.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Settings\GeneralOptionsDialogPage.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Settings\SonarLintSettings.cs" />
-    <Compile Include="Settings\OpenSettingsFileWpfCommand.cs" />
-    <Compile Include="Telemetry\GeneratedCode\SqmCommandFacade.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SqmCommandFacade.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Telemetry\GeneratedCode\SqmOleCommandTarget.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SqmOleCommandTarget.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="SonarLintTagger\README.md" />
-    <None Include="Telemetry\SonarLintSqmData.ttinclude" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-      <HintPath>..\..\packages\EnvDTE.8.0.0\lib\net10\EnvDTE.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="EnvDTE80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>..\..\packages\EnvDTE80.8.0.0\lib\net10\EnvDTE80.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Google.Protobuf, Version=3.6.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Google.Protobuf.3.6.1\lib\net45\Google.Protobuf.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Grpc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Grpc.Core.1.4.1\lib\net45\Grpc.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.CodeAnalysis.Common.1.3.2\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.CodeAnalysis.CSharp.1.3.2\lib\net45\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp.Workspaces, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.CodeAnalysis.CSharp.Workspaces.1.3.2\lib\net45\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.VisualBasic, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.CodeAnalysis.VisualBasic.1.3.2\lib\net45\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.3.2\lib\net45\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.CodeAnalysis.Workspaces.Common.1.3.2\lib\net45\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.CodeAnalysis.Workspaces.Common.1.3.2\lib\net45\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.ComponentModelHost.14.0.25424\lib\net45\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.CoreUtility.14.0.23205\lib\net45\Microsoft.VisualStudio.CoreUtility.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.ImageCatalog.14.3.25407\lib\net45\Microsoft.VisualStudio.ImageCatalog.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Imaging, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Imaging.14.3.25407\lib\net45\Microsoft.VisualStudio.Imaging.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime.14.3.25407\lib\Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.LanguageServices, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.LanguageServices.1.3.2\lib\net46\Microsoft.VisualStudio.LanguageServices.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.OLE.Interop.7.10.6070\lib\Microsoft.VisualStudio.OLE.Interop.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.14.0.14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Immutable.10.0.10.0.30319\lib\net40\Microsoft.VisualStudio.Shell.Immutable.10.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Immutable.11.0.11.0.50727\lib\net45\Microsoft.VisualStudio.Shell.Immutable.11.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Immutable.12.0.12.0.21003\lib\net45\Microsoft.VisualStudio.Shell.Immutable.12.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Immutable.14.0.14.3.25407\lib\net45\Microsoft.VisualStudio.Shell.Immutable.14.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Interop.7.10.6071\lib\Microsoft.VisualStudio.Shell.Interop.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Interop.10.0.10.0.30319\lib\Microsoft.VisualStudio.Shell.Interop.10.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Interop.11.0.11.0.61030\lib\Microsoft.VisualStudio.Shell.Interop.11.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Interop.12.0.12.0.30110\lib\Microsoft.VisualStudio.Shell.Interop.12.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime.14.3.25407\lib\Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Interop.8.0.8.0.50727\lib\Microsoft.VisualStudio.Shell.Interop.8.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Shell.Interop.9.0.9.0.30729\lib\Microsoft.VisualStudio.Shell.Interop.9.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Text.Data.14.0.23205\lib\net45\Microsoft.VisualStudio.Text.Data.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Text.Logic.14.0.23205\lib\net45\Microsoft.VisualStudio.Text.Logic.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Text.UI.14.0.23205\lib\net45\Microsoft.VisualStudio.Text.UI.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.TextManager.Interop.7.10.6070\lib\Microsoft.VisualStudio.TextManager.Interop.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.TextManager.Interop.8.0.8.0.50727\lib\Microsoft.VisualStudio.TextManager.Interop.8.0.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Threading, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Threading.14.1.131\lib\net45\Microsoft.VisualStudio.Threading.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Utilities, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Utilities.14.3.25407\lib\net45\Microsoft.VisualStudio.Utilities.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Validation, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.VisualStudio.Validation.14.1.111\lib\net45\Microsoft.VisualStudio.Validation.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="SonarAnalyzer">
-      <HintPath>..\..\binaries\SonarAnalyzer.dll</HintPath>
-    </Reference>
-    <Reference Include="SonarAnalyzer.CSharp">
-      <HintPath>..\..\binaries\SonarAnalyzer.CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="SonarAnalyzer.VisualBasic">
-      <HintPath>..\..\binaries\SonarAnalyzer.VisualBasic.dll</HintPath>
-    </Reference>
-    <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>..\..\packages\stdole.7.0.3300\lib\net10\stdole.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.AppContext, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.AppContext.4.3.0\lib\net46\System.AppContext.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Collections.Immutable.1.1.37\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.30.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.30\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.30.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.30\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.30.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.30\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.30.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.30\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.30.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.30\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Console.4.3.0\lib\net46\System.Console.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Diagnostics.FileVersionInfo, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Diagnostics.FileVersionInfo.4.3.0\lib\net46\System.Diagnostics.FileVersionInfo.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Diagnostics.StackTrace, Version=4.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Diagnostics.StackTrace.4.3.0\lib\net46\System.Diagnostics.StackTrace.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.IO.Compression.4.3.0\lib\net46\System.IO.Compression.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.IO.Compression.ZipFile, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.IO.Compression.ZipFile.4.3.0\lib\net46\System.IO.Compression.ZipFile.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <!-- NOTE: Grpc.Core v1.4.1 depends on System.Interactive.Async.dll.
-         However, the Grpc.Core NuGet only targets two frameworks, net45 and netstandard1.5, whereas 
-         System.Interactive.Asynx targets net45, net46, netstandard1.0 and netstandard1.3.
-         We need to reference the version of System.Interactive.Async that is used by Grpc.Core, which
-         is 3.0.1000.0. This is in the System.Interactive.Async net45 directory.
-         By default, VS picks the version in the net46 directory (v3.0.3000.0) which is not the one we
-         want. We've manually edited this file to reference the correct version. -->
-    <Reference Include="System.Interactive.Async, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Interactive.Async.3.1.1\lib\net45\System.Interactive.Async.dll</HintPath>
-      <!-- We want to ship this dll in the VSIX so mark it as private -->
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.IO.FileSystem, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.IO.FileSystem.4.3.0\lib\net46\System.IO.FileSystem.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.IO.FileSystem.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.IO.FileSystem.Primitives.4.3.0\lib\net46\System.IO.FileSystem.Primitives.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Reflection.Metadata, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Reflection.Metadata.1.2.0\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.Algorithms.4.3.0\lib\net46\System.Security.Cryptography.Algorithms.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net46\System.Security.Cryptography.X509Certificates.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Text.Encoding.CodePages, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Text.Encoding.CodePages.4.3.0\lib\net46\System.Text.Encoding.CodePages.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Threading.Thread, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Threading.Thread.4.3.0\lib\net46\System.Threading.Thread.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Xml.ReaderWriter, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Xml.ReaderWriter.4.3.0\lib\net46\System.Xml.ReaderWriter.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Xml.XmlDocument, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Xml.XmlDocument.4.3.0\lib\net46\System.Xml.XmlDocument.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Xml.XPath, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Xml.XPath.4.3.0\lib\net46\System.Xml.XPath.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Xml.XPath.XDocument, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Xml.XPath.XDocument.4.3.0\lib\net46\System.Xml.XPath.XDocument.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="UIAutomationProvider" />
-    <Reference Include="WindowsBase" />
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Suppress NuGet warning about the explicit downgrade to System.Collections.Immutable v1.1.37 -->
+    <NoWarn>NU1605</NoWarn>
+  </PropertyGroup>
+  
   <ItemGroup>
+    <PackageReference Include="EnvDTE" Version="8.0.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
+    <PackageReference Include="Grpc" Version="1.4.1" />
+    <PackageReference Include="Grpc.Tools" Version="1.4.1" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="1.3.2" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.1.37" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="1.3.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="1.3.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.3.2" />
+    <PackageReference Include="Microsoft.Composition" Version="1.0.30" />
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="14.0.25424" />
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="14.0.23205" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="14.3.25407" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="14.3.25407" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="14.0.23205" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="14.0.23205" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="14.0.23205" />
+    <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
+    <PackageReference Include="NuGet.Core" Version="2.12.0" />
+    <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.3.2099" />
+
+    <!-- Workaround for NuGet bug https://github.com/NuGet/Home/issues/2365 
+         EmbedInteropAssemblies isn't set for PackagReferences. -->
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.27" />
+  </ItemGroup>  
+  
+  <ItemGroup Label="Project references">
     <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj">
-      <Name>SonarQube.Client</Name>
+      <Project>{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}</Project>
+      <Name>SonarQube.Client.2015</Name>
     </ProjectReference>
     <ProjectReference Include="..\Integration.TeamExplorer\Integration.TeamExplorer.csproj">
       <Project>{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}</Project>
@@ -481,86 +155,123 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.CSharp.csproj">
-      <Project>{d993daf3-5b68-4d43-b558-f6b9ef13c796}</Project>
-      <Name>SonarAnalyzerEmbedder.CSharp</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.VisualBasic.vbproj">
-      <Project>{112698a2-85c3-4357-aaa5-7658d29d27a1}</Project>
-      <Name>SonarAnalyzerEmbedder.VisualBasic</Name>
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
+
   <ItemGroup>
-    <EmbeddedResource Include="Resources\PackageStrings.resx">
+    <EmbeddedResource Update="Resources\PackageStrings.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
-      <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Strings.resx">
+    <EmbeddedResource Update="Resources\Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="CFamily\CFamilyStrings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CFamilyStrings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-	    <EmbeddedResource Include="SonarLintDaemon\DaemonStrings.resx">
+    <EmbeddedResource Update="SonarLintDaemon\DaemonStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DaemonStrings.Designer.cs</LastGenOutput>
       <CustomToolNamespace>SonarLint.VisualStudio.Integration.Vsix</CustomToolNamespace>
     </EmbeddedResource>
-    <None Include="Telemetry\GeneratedCode\SqmCommandFacade.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqmCommandFacade.cs</LastGenOutput>
-    </None>
-    <None Include="Telemetry\GeneratedCode\SqmOleCommandTarget.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqmOleCommandTarget.cs</LastGenOutput>
-    </None>
-    <None Include="Telemetry\GeneratedCode\SqmVsCommands.tt">
-      <AutoGen>True</AutoGen>
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqmVsCommands.vsct</LastGenOutput>
-    </None>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-    <Content Include="Commands\PackageCommands.vsct">
-      <SubType>Designer</SubType>
-    </Content>
-	   <Content Include="SonarLintDaemon\DaemonCommands.vsct">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="Resources\sonarlint_200.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="..\..\LICENSE">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <Link>LICENSE</Link>
     </Content>
-    <Content Include="Resources\CommandIcons.png" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\sonarlint_200.png" />
+    <None Remove="Resources\sonarlint_32.png" />
+    <None Remove="Resources\sonarlint_wave_128px.png" />
+    <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
+    <None Remove="Settings\OtherOptionsDialogControl.xaml" />
+    <None Remove="SonarLint.vsct" />
+    
     <Content Include="Resources\sonarlint_32.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <None Include="Resources\sonarlint_32px.ico" />
     <Content Include="Resources\sonarlint_wave_128px.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="Resources\sonarlint_200.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
+    <Page Include="Settings\GeneralOptionsDialogControl.xaml" />
+    <Page Include="Settings\OtherOptionsDialogControl.xaml" />
+
+    <VSCTCompile Include="SonarLint.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
+    </VSCTCompile>
+
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Resources\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <Compile Update="SonarLintDaemon\DaemonStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DaemonStrings.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Telemetry\GeneratedCode\SqmCommandFacade.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SqmCommandFacade.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Telemetry\GeneratedCode\SqmOleCommandTarget.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SqmOleCommandTarget.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup Label="Legacy SQM - generated code">
+    <None Update="Telemetry\GeneratedCode\SqmCommandFacade.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SqmCommandFacade.cs</LastGenOutput>
+    </None>
+    <None Update="Telemetry\GeneratedCode\SqmOleCommandTarget.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SqmOleCommandTarget.cs</LastGenOutput>
+    </None>
+    <None Update="Telemetry\GeneratedCode\SqmVsCommands.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SqmVsCommands.vsct</LastGenOutput>
+    </None>
+    <None Update="Telemetry\GeneratedCode\SqmVsCommands.vsct">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SqmVsCommands.tt</DependentUpon>
+    </None>
     <Content Include="Telemetry\GeneratedCode\SqmVsCommands.vsct">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SqmVsCommands.tt</DependentUpon>
     </Content>
-    <VSCTCompile Include="SonarLint.vsct">
-      <ResourceName>Menus.ctmenu</ResourceName>
-      <SubType>Designer</SubType>
-    </VSCTCompile>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup Label="Daemon dependencies - Grpc">
+    <VSIXSourceItem Include="$(NuGetPackageRoot)Grpc.Core\1.4.1\runtimes\win\native\grpc_csharp_ext.x86.dll">
+      <Visible>false</Visible>
+    </VSIXSourceItem>
+
+    <VSIXSourceItem Include="$(NuGetPackageRoot)Grpc.Core\1.4.1\runtimes\win\native\grpc_csharp_ext.x64.dll">
+      <Visible>false</Visible>
+    </VSIXSourceItem>
+
+    <VSIXSourceItem Include="$(NuGetPackageRoot)Grpc.Core\1.4.1\lib\net45\Grpc.Core.dll">
+      <Visible>false</Visible>
+    </VSIXSourceItem>
+
   </ItemGroup>
 
   <!-- ***************************************** -->
@@ -569,29 +280,84 @@
          The one special case is if we are targetting VS2015 but not building in VS2015. In that case,
          we need to use the v3 version of the manifest (used by VS2017+), otherwise the VSSDK build
          targets will complain. -->
+  <ItemGroup>
+    <None Remove="Manifests\**" />
+  </ItemGroup>
   <PropertyGroup>
     <ManifestFolder>Manifests\VS$(VersionSpecificSuffix)\</ManifestFolder>
-    <ManifestFolder Condition=" $(VSTargetVersion) == '2015' AND $(VisualStudioVersion) != '14.0' " >Manifests\VS2015_v3Manifest\</ManifestFolder>
+    <ManifestFolder Condition=" $(VSTargetVersion) == '2015' AND $(VisualStudioVersion) != '14.0' ">Manifests\VS2015_v3Manifest\</ManifestFolder>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(ManifestFolder)source.extension.vsixmanifest" />
   </ItemGroup>
   <!-- ***************************************** -->
+
+  <!-- ********************************************************** -->
+  <!-- Copy and sign the VSIX -->
+  <!-- ********************************************************** -->
+  <Import Project="$(MSBuildThisFileDirectory)SignVsixes.targets" />
+
+  <!-- Set properties required by the signing targets -->
+  <PropertyGroup>
+    <BinariesFolder>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\..\binaries\))</BinariesFolder>
+  </PropertyGroup>
+  <ItemGroup>
+    <VSIXesToSign Include="$(BinariesFolder)$(AssemblyName).vsix" />
+  </ItemGroup>
   
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
-    <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.6.7.1.4347\analyzers\Google.Protobuf.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.6.7.1.4347\analyzers\SonarAnalyzer.CSharp.dll" />
-    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.6.7.1.4347\analyzers\SonarAnalyzer.dll" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CopyVsixToBinariesAndSign" AfterTargets="Build" Inputs="$(TargetDir)$(AssemblyName).vsix" Outputs="$(BinariesFolder)$(AssemblyName).vsix">
+    <Message Importance="high" Text="Copying vsix from $(TargetDir)$(AssemblyName).vsix to $(BinariesFolder)$(AssemblyName).vsix" />
+    <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(AssemblyName).vsix" DestinationFiles="$(BinariesFolder)$(AssemblyName).vsix" />
+
+    <CallTarget Targets="SignVsixesIfPfxSupplied" />
+  </Target>
+  <!-- ********************************************************** -->
+
+  <!-- ********************************************************** -->
+  <!-- Generate the protobuf classes -->
+  <!-- ********************************************************** -->
+  <Target Name="GenerateProtobufClasses" BeforeTargets="PrepareForBuild" Outputs="$(ProjectDir)Protobuf\SonarlintDaemon.cs" Inputs="$(ProjectDir)Protobuf\sonarlint-daemon.proto">
+    <Message Importance="high" Text="Generating protobuf classes..." />
+    <Exec WorkingDirectory="$(ProjectDir)Protobuf" Command="build.bat $(NuGetPackageRoot)Grpc.Tools\1.4.1\tools\windows_x64" />
+
+    <!-- Make sure that any files we have just generated are included in the compilation -->
+    <ItemGroup>
+      <Compile Remove="Protobuf\*.cs" />
+      <Compile Include="Protobuf\*.cs" />
+    </ItemGroup>
+
+  </Target>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 
 
+  <!-- ********************************************************** -->
+  <!-- Reference Grpc and System.Interactive.Async.dll -->
+  <!-- ********************************************************** -->
+  <!-- NOTE: Grpc.Core v1.4.1 depends on System.Interactive.Async.dll.
+         However, the Grpc.Core NuGet only targets two frameworks, net45 and netstandard1.5, whereas 
+         System.Interactive.Asynx targets net45, net46, netstandard1.0 and netstandard1.3.
+         We need to reference the version of System.Interactive.Async that is used by Grpc.Core, which
+         is 3.0.1000.0. This is in the System.Interactive.Async net45 directory.
+         By default, VS picks the version in the net46 directory (v3.0.3000.0) which is not the one we
+         want. We've manually edited this file to reference the correct version. -->
+  
+  <!-- This section relies on properties set by Sdk.targets so it needs to be AFTER the import of Sdk.targets -->
+  <PropertyGroup>
+    <!-- System.Interactive.Async might be in the user NuGet cache or the fallback cache -->
+    <GrpcSystemInteractiveAsyncFilePath>$(NuGetPackageRoot)System.Interactive.Async\3.1.1\lib\net45\System.Interactive.Async.dll</GrpcSystemInteractiveAsyncFilePath>
+    <GrpcSystemInteractiveAsyncFilePath Condition="!(Exists('$(GrpcSystemInteractiveAsyncFilePath)'))" >$(_NugetFallbackFolder)\System.Interactive.Async\3.1.1\lib\net45\System.Interactive.Async.dll</GrpcSystemInteractiveAsyncFilePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Grpc.Core" Version="1.4.1" ExcludeAssets="all" PrivateAssets="all" />
+    <Reference Include="$(NuGetPackageRoot)grpc.core\1.4.1\lib\net45\Grpc.Core.dll" />
+
+    <PackageReference Include="System.Interactive.Async" Version="3.1.1" ExcludeAssets="all" PrivateAssets="all" />
+    <Reference Include="$(GrpcSystemInteractiveAsyncFilePath)" />
+  </ItemGroup>
+
+  
   <!-- ********************************************************** -->
   <!-- CFamily plugin handling -->
   <!-- Download and unpack the jar, select the required files and -->
@@ -605,8 +371,10 @@
 
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
     <CFamilyTargetDirectory>$(MSBuildThisFileDirectory)$(CFamilyFolderName)</CFamilyTargetDirectory>
-    
-    <!-- Hook the target that fetches the CFamily files into to the build process. -->
+
+    <!-- Hook the target that fetches the CFamily files into to the build process. 
+         This needs to be set after the SDK targets have been imported.
+    -->
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
   </PropertyGroup>
 
@@ -619,9 +387,7 @@
          Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
          DownloadCFamilyPlugin.csproj to avoid getting file-locking errors when rebuilding.
     -->
-    <Exec Command='"$(MSBuildBinPath)\msbuild.exe" ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory="$(CFamilyTargetDirectory)" /p:UseSharedCompilation=false /t:Restore;Build;CopyEmbeddedFiles'
-             LogStandardErrorAsError="true"
-             IgnoreExitCode="false" />
+    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(CFamilyTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;CopyEmbeddedFiles" LogStandardErrorAsError="true" IgnoreExitCode="false" />
 
     <!-- Copy the license file to the same directory -->
     <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
@@ -637,55 +403,10 @@
 
         <!-- Custom sub folder in the VSIX -->
         <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
+        <Visible>false</Visible>
       </Content>
     </ItemGroup>
   </Target>
 
-  <!-- ********************************************************** -->
-  <!-- Copy and sign the VSIX -->
-  <!-- ********************************************************** -->
-  <Import Project="$(MSBuildThisFileDirectory)SignVsixes.targets" />
-
-  <!-- Set properties required by the signing targets -->
-  <PropertyGroup>
-    <PackageFolder>..\..\packages\</PackageFolder>
-  </PropertyGroup>
-  <ItemGroup>
-    <VSIXesToSign Include="$(SolutionDir)binaries\$(AssemblyName).vsix" />
-  </ItemGroup>
-
-  <Target Name="CopyVsixToBinariesAndSign" AfterTargets="Build" Inputs="$(TargetDir)$(AssemblyName).vsix" Outputs="$(SolutionDir)binaries\$(AssemblyName).vsix">
-    <Message Importance="high" Text="Copying vsix from $(TargetDir)$(AssemblyName).vsix to $(SolutionDir)binaries\$(AssemblyName).vsix" />
-    <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(AssemblyName).vsix" DestinationFiles="$(SolutionDir)binaries\$(AssemblyName).vsix" />
-
-    <CallTarget Targets="SignVsixesIfPfxSupplied" />
-  </Target>
-  <!-- ********************************************************** -->
-
-  <Import Project="..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets" Condition="Exists('..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Grpc.Core.1.4.1\build\net45\Grpc.Core.targets'))" />
-    <Error Condition="!Exists('..\..\packages\Microsoft.VSSDK.BuildTools.16.2.3073\build\Microsoft.VSSDK.BuildTools.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.VSSDK.BuildTools.16.2.3073\build\Microsoft.VSSDK.BuildTools.props'))" />
-    <Error Condition="!Exists('..\..\packages\Microsoft.VSSDK.BuildTools.16.2.3073\build\Microsoft.VSSDK.BuildTools.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.VSSDK.BuildTools.16.2.3073\build\Microsoft.VSSDK.BuildTools.targets'))" />
-  </Target>
-  <Target Name="IncludeDllsVsix" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <Grpc_Regex>grpc_csharp_ext.*\.dll</Grpc_Regex>
-    </PropertyGroup>
-    <ItemGroup>
-      <Content Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Content.Identity)', '$(Grpc_Regex)'))">
-        <IncludeInVSIX>True</IncludeInVSIX>
-      </Content>
-    </ItemGroup>
-    <Message Text="Content: %(Content.Identity), IncludeInVSIX: %(Content.IncludeInVSIX)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Content.Identity)', '$(Grpc_Regex)'))" />
-  </Target>
-  <Import Project="..\..\packages\Microsoft.VSSDK.BuildTools.14.3.25407\build\Microsoft.VSSDK.BuildTools.targets" Condition="Exists('..\..\packages\Microsoft.VSSDK.BuildTools.14.3.25407\build\Microsoft.VSSDK.BuildTools.targets')" />
-  <Target Name="GenerateProtobufClasses" BeforeTargets="PrepareForBuild" Outputs="$(ProjectDir)Protobuf\SonarlintDaemon.cs" Inputs="$(ProjectDir)Protobuf\sonarlint-daemon.proto">
-    <Message Importance="high" Text="Generating protobuf classes..." />
-    <Exec WorkingDirectory="$(ProjectDir)Protobuf" Command="build.bat" />
-  </Target>
-  <Import Project="..\..\packages\Microsoft.VSSDK.BuildTools.16.2.3073\build\Microsoft.VSSDK.BuildTools.targets" Condition="Exists('..\..\packages\Microsoft.VSSDK.BuildTools.16.2.3073\build\Microsoft.VSSDK.BuildTools.targets')" />
 </Project>
+
