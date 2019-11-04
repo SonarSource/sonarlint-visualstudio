@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29319.158
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.Vsix", "src\Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.Vsix", "src\Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration", "src\Integration\Integration.csproj", "{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration", "src\Integration\Integration.csproj", "{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.UnitTests", "src\Integration.UnitTests\Integration.UnitTests.csproj", "{CB59EF29-8193-4F32-866E-64FBB6199283}"
 EndProject
@@ -15,9 +15,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9CF012C2
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.Vsix.UnitTests", "src\Integration.Vsix.UnitTests\Integration.Vsix.UnitTests.csproj", "{203F7669-02B6-4314-BD11-20E8D7C19FBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Progress", "src\Progress\Progress.csproj", "{140A6FE4-C8F7-4AF7-B4C8-EEEAE4E0B1A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Progress", "src\Progress\Progress.csproj", "{140A6FE4-C8F7-4AF7-B4C8-EEEAE4E0B1A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProgressVS", "src\ProgressVS\ProgressVS.csproj", "{B00C57EB-F4EC-43CE-A849-90DA04775B84}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProgressVS", "src\ProgressVS\ProgressVS.csproj", "{B00C57EB-F4EC-43CE-A849-90DA04775B84}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Progress.TestFramework", "src\Progress.TestFramework\Progress.TestFramework.csproj", "{AB7A8888-EF8B-4F6D-8005-398744A60BA2}"
 EndProject
@@ -28,12 +28,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		src\AssemblyInfo.Shared.cs = src\AssemblyInfo.Shared.cs
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarAnalyzerEmbedder.CSharp", "src\SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.CSharp.csproj", "{D993DAF3-5B68-4D43-B558-F6B9EF13C796}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarAnalyzerEmbedder", "SonarAnalyzerEmbedder", "{244A2265-326C-40AE-8906-02CC250867AA}"
-EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SonarAnalyzerEmbedder.VisualBasic", "src\SonarAnalyzerEmbedder\SonarAnalyzerEmbedder.VisualBasic.vbproj", "{112698A2-85C3-4357-AAA5-7658D29D27A1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{71E68181-C534-4C18-84AA-42A8C273414E}"
 	ProjectSection(SolutionItems) = preProject
 		src\SonarQube\SolutionBinding.sqconfig = src\SonarQube\SolutionBinding.sqconfig
@@ -41,7 +35,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{
 		src\SonarLint.xml = src\SonarLint.xml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.TeamExplorer", "src\Integration.TeamExplorer\Integration.TeamExplorer.csproj", "{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.TeamExplorer", "src\Integration.TeamExplorer\Integration.TeamExplorer.csproj", "{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.TeamExplorer.UnitTests", "src\Integration.TeamExplorer.UnitTests\Integration.TeamExplorer.UnitTests.csproj", "{115CC746-5181-485C-8707-346E8D55B1E5}"
 EndProject
@@ -91,14 +85,6 @@ Global
 		{33315FCB-3D07-4177-944E-AA45CC3C5539}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33315FCB-3D07-4177-944E-AA45CC3C5539}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33315FCB-3D07-4177-944E-AA45CC3C5539}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D993DAF3-5B68-4D43-B558-F6B9EF13C796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D993DAF3-5B68-4D43-B558-F6B9EF13C796}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D993DAF3-5B68-4D43-B558-F6B9EF13C796}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D993DAF3-5B68-4D43-B558-F6B9EF13C796}.Release|Any CPU.Build.0 = Release|Any CPU
-		{112698A2-85C3-4357-AAA5-7658D29D27A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{112698A2-85C3-4357-AAA5-7658D29D27A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{112698A2-85C3-4357-AAA5-7658D29D27A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{112698A2-85C3-4357-AAA5-7658D29D27A1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -125,8 +111,6 @@ Global
 		{203F7669-02B6-4314-BD11-20E8D7C19FBC} = {9CF012C2-0303-4643-A5E2-0A45AFE4DBD5}
 		{AB7A8888-EF8B-4F6D-8005-398744A60BA2} = {9CF012C2-0303-4643-A5E2-0A45AFE4DBD5}
 		{33315FCB-3D07-4177-944E-AA45CC3C5539} = {9CF012C2-0303-4643-A5E2-0A45AFE4DBD5}
-		{D993DAF3-5B68-4D43-B558-F6B9EF13C796} = {244A2265-326C-40AE-8906-02CC250867AA}
-		{112698A2-85C3-4357-AAA5-7658D29D27A1} = {244A2265-326C-40AE-8906-02CC250867AA}
 		{115CC746-5181-485C-8707-346E8D55B1E5} = {9CF012C2-0303-4643-A5E2-0A45AFE4DBD5}
 		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC} = {9CF012C2-0303-4643-A5E2-0A45AFE4DBD5}
 	EndGlobalSection
