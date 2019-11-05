@@ -1,6 +1,11 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\build\Version.props" />
   
+  <!-- Manually set the version of the SonarC# and VB analyzers to embed.
+       NB we assume that the SonarC# and SonarVB NuGet packages have the same version number. -->
+  <PropertyGroup>
+    <EmbeddedSonarAnalyzerVersion>8.0.0.9566</EmbeddedSonarAnalyzerVersion>
+  </PropertyGroup>
+
   <ItemGroup Label="Embedded SonarLint analyzers">
     <!-- Reference the packages we want to import, but we don't want to include them as analyzers for project -->
     <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
