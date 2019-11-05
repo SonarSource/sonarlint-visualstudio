@@ -12,9 +12,9 @@
        * $(PackagesFolder)      : the folder containing the packages. Defaults to $(NuGetPackageRoot) if not set.
   -->
 
-  <ImportGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
-  </ImportGroup>
+  </ItemGroup>
   
   <PropertyGroup>
     <PackagesFolder Condition=" $(PackagesFolder) == ''">$(NuGetPackageRoot)</PackagesFolder>    
