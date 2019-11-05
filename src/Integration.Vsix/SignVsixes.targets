@@ -15,11 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
   </ItemGroup>
-  
-  <PropertyGroup>
-    <PackagesFolder Condition=" $(PackagesFolder) == ''">$(NuGetPackageRoot)</PackagesFolder>    
-  </PropertyGroup>
-  
+    
   <Target Name="SignVsixesIfPfxSupplied">
     <Message Importance="high" Text="Vsixes to sign: @(VSIXesToSign)" />
     <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="ValidateVsixSigningInputs;LocateVsixSignToolAndBinaries;SignVsixes" />
@@ -38,12 +34,17 @@
 
   <!-- The vsixsigntool is shipped in a NuGet package. We need to locate the exe file. -->
   <Target Name="LocateVsixSignToolAndBinaries" >
+    <PropertyGroup>
+      <PackagesFolder Condition=" $(PackagesFolder) == ''">$(NuGetPackageRoot)</PackagesFolder>
+    </PropertyGroup>
+
     <Message Importance="high" Text="Locating VSIX sign tool..." />
+    <Message Importance="high" Text="  Searching under '$(PackagesFolder)'" />
 
     <!-- There could be multiple versions of the NuGet package on the machine. We'll select all
 	       of the matching exes, and then just pick one. -->
     <ItemGroup>
-	    <VsixSignToolsList Include="$(PackagesFolder)/Microsoft.VSSDK.Vsixsigntool*/tools/vssdk/vsixsigntool.exe" />
+	    <VsixSignToolsList Include="$(PackagesFolder)/Microsoft.VSSDK.Vsixsigntool/**/vsixsigntool.exe" />
 	  </ItemGroup>
     <PropertyGroup>
       <VsixSignToolPath>%(VsixSignToolsList.Identity)</VsixSignToolPath>	
