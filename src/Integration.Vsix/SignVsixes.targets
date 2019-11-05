@@ -2,25 +2,26 @@
 <Project ToolsVersion="14.0" DefaultTargets="SignVsixesIfPfxSupplied" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- Targets to handle signing one or more VSIXes using a pfx certificate.
-  
-       Prerequisites:
-       The calling project should import a version of the NuGet package "Microsoft.VSSDK.Vsixsigntool"
-  
+    
        Usage:
        The following properties should be set by the caller:
        * $(pfxCertificatePath)  : full path to the pfx file
        * $(pfxPassword)         : password to the certificate file
        * $(pfxSha1)             : the sha1 for the certificate file
        * @(VSIXesToSign)        : the list of VSIXes to sign
-       * $(PackagesFolder)      : the folder containing the packages. Defaults to $(SolutionDir)packages/ if not set.
+       * $(PackagesFolder)      : the folder containing the packages. Defaults to $(NuGetPackageRoot) if not set.
   -->
+
+  <ImportGroup>
+    <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
+  </ImportGroup>
   
   <PropertyGroup>
-    <PackagesFolder Condition=" $(SolutionDir) != ''">$(SolutionDir)packages/</PackagesFolder>
+    <PackagesFolder Condition=" $(PackagesFolder) == ''">$(NuGetPackageRoot)</PackagesFolder>    
   </PropertyGroup>
   
   <Target Name="SignVsixesIfPfxSupplied">
-    <Message Importance="high" Text="YYYY @(VSIXesToSign)" />
+    <Message Importance="high" Text="Vsixes to sign: @(VSIXesToSign)" />
     <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="ValidateVsixSigningInputs;LocateVsixSignToolAndBinaries;SignVsixes" />
     <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing VSIXes - pfx certificate path has not been set." />
   </Target>
