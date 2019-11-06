@@ -1,12 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup Label="Common items">
-    <Compile Include="..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
 
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <RequiresTeamFoundation>true</RequiresTeamFoundation>
@@ -16,14 +8,10 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
 
+    <ProjectGuid>{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.TeamExplorer</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.TeamExplorer</AssemblyName>
     
-    <ProjectGuid>{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}</ProjectGuid>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DebugType>Full</DebugType>
-    
-    <CodeAnalysisRuleSet>..\..\.sonarlint\sonarlint-visualstudiocsharp.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

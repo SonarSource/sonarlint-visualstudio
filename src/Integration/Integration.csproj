@@ -1,14 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   
-  <ItemGroup Label="Common items">
-    <Compile Include="..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <RequiresRuleset>true</RequiresRuleset>
   </PropertyGroup>
@@ -21,7 +12,6 @@
     <RootNamespace>SonarLint.VisualStudio.Integration</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration</AssemblyName>
     
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">
@@ -44,10 +34,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
-
   </ItemGroup>
 
-  
   <ItemGroup>
     <PackageReference Include="StrongNamer" Version="0.0.8" />
   </ItemGroup>

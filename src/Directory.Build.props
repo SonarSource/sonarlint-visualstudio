@@ -1,0 +1,19 @@
+<Project>
+ <PropertyGroup>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\.sonarlint\sonarlint-visualstudioCsharp.ruleset</CodeAnalysisRuleSet>
+
+   <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+   <DebugType>Full</DebugType>
+ </PropertyGroup>
+
+  <ItemGroup Label="Common items">
+    <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
+  </ItemGroup>
+
+
+</Project>

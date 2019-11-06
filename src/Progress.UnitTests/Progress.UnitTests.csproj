@@ -11,15 +11,11 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <IsPackable>false</IsPackable>
 
+    <ProjectGuid>{33315FCB-3D07-4177-944E-AA45CC3C5539}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Progress.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Progress.UnitTests</AssemblyName>
-    
-    <ProjectGuid>{33315FCB-3D07-4177-944E-AA45CC3C5539}</ProjectGuid>
-    
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DebugType>Full</DebugType>
+
   </PropertyGroup>
 
   <ItemGroup>

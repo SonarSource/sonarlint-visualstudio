@@ -11,15 +11,11 @@
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <IsPackable>false</IsPackable>
 
     <ProjectGuid>{B00C57EB-F4EC-43CE-A849-90DA04775B84}</ProjectGuid>
-
     <RootNamespace>SonarLint.VisualStudio.Progress</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.ProgressVS</AssemblyName>
         
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DebugType>Full</DebugType>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

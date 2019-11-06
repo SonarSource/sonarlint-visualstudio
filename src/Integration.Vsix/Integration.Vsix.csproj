@@ -44,15 +44,6 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
 
-  <ItemGroup Label="Common items">
-    <Compile Include="..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
   <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
   
@@ -66,13 +57,7 @@
     <ProjectGuid>{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.Vsix</RootNamespace>
     <AssemblyName>SonarLint.$(VersionSpecificSuffix)</AssemblyName>
-    <CodeAnalysisRuleSet>..\..\.sonarlint\sonarlint-visualstudiocsharp.ruleset</CodeAnalysisRuleSet>
-
-    <ProjectGuid>{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}</ProjectGuid>
-
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DebugType>Full</DebugType>
-
+ 
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>

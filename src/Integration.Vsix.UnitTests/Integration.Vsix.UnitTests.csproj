@@ -1,14 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup Label="Common items">
-    <Compile Include="..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
@@ -17,16 +8,12 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <IsPackable>false</IsPackable>
-
-    <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
-    <AssemblyName>SonarLint.VisualStudio.Integration.Vsix.UnitTests</AssemblyName>
-    <CodeAnalysisRuleSet>..\..\.sonarlint\sonarlint-visualstudiocsharp.ruleset</CodeAnalysisRuleSet>
 
     <ProjectGuid>{203F7669-02B6-4314-BD11-20E8D7C19FBC}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Integration.Vsix.UnitTests</AssemblyName>
 
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DebugType>Full</DebugType>
+
   </PropertyGroup>
   
   <ItemGroup Label="HACK to make the C++ rule loader tests work">

@@ -17,8 +17,6 @@
     <RootNamespace>SonarLint.VisualStudio.Progress</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Progress</AssemblyName>
         
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DebugType>Full</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
