@@ -1,26 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup Label="Common items">
-    <Compile Include="..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <IsPackable>false</IsPackable>
 
+    <ProjectGuid>{AB7A8888-EF8B-4F6D-8005-398744A60BA2}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Progress.TestFramework</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Progress.TestFramework</AssemblyName>
-    
-    <ProjectGuid>{AB7A8888-EF8B-4F6D-8005-398744A60BA2}</ProjectGuid>
-    
+        
     <SonarQubeTestProject>true</SonarQubeTestProject>
-
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,14 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup Label="Common items">
-    <Compile Include="..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-    <AdditionalFiles Include="..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <IsTestProject>true</IsTestProject>
     <RequiresRuleset>true</RequiresRuleset>
@@ -19,13 +10,10 @@
     <TargetFramework>net48</TargetFramework>
     <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.TestInfrastructure</AssemblyName>
-    <CodeAnalysisRuleSet>TestInfrastructure.ruleset</CodeAnalysisRuleSet>
 
     <ProjectGuid>{FBD8024A-9795-4E5B-938E-AFE44FCA240C}</ProjectGuid>
 
     <SonarQubeTestProject>true</SonarQubeTestProject>
-    
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   
   <ItemGroup Label="References">
