@@ -49,7 +49,17 @@ indent_size = 2
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
 # Avoid "this." and "Me." if not necessary
-dotnet_style_qualification_for_field = false:suggestion
-dotnet_style_qualification_for_property = false:suggestion
-dotnet_style_qualification_for_method = false:suggestion
-dotnet_style_qualification_for_event = false:suggestion
+#dotnet_style_qualification_for_field = false:suggestion
+#dotnet_style_qualification_for_property = false:suggestion
+#dotnet_style_qualification_for_method = false:suggestion
+#dotnet_style_qualification_for_event = false:suggestion
+
+csharp_style_inlined_variable_declaration = false:suggestion
+
+[*.cs]
+
+# IDE0039: Use local function
+csharp_style_pattern_local_over_anonymous_function = false:suggestion
+
+# IDE0016: Use 'throw' expression
+csharp_style_throw_expression = false:suggestion
