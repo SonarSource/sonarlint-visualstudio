@@ -23,7 +23,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
@@ -37,7 +36,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             var teController = new ConfigurableTeamExplorerController();
-            var serviceProvider = CreateServiceProviderWithMefExports<ITeamExplorerController>(teController);
 
             var testSubject = new ManageConnectionsCommand(teController);
 
@@ -71,15 +69,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             // Test case 1: no TE controller
             // Arrange
-            IServiceProvider sp1 = CreateServiceProviderWithEmptyComponentModel();
             command.Enabled = false;
 
-            ManageConnectionsCommand testSubject1;
-            using (new AssertIgnoreScope()) // TE service is missing from MEF
-            {
-                testSubject1 = new ManageConnectionsCommand(null);
-            }
-
+            var testSubject1 = new ManageConnectionsCommand(null);
+          
             // Act
             testSubject1.QueryStatus(command, null);
 
@@ -98,29 +91,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             command.Enabled.Should().BeTrue("Expected the command to be disabled on QueryStatus when does have TE controller");
         }
 
-        #region Helpers
-
-        private static IServiceProvider CreateServiceProviderWithMefExports<T>(T instance)
-        {
-            var serviceProvider = new ConfigurableServiceProvider();
-            var mefExports = MefTestHelpers.CreateExport<T>(instance);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
-
-            serviceProvider.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
-
-            return serviceProvider;
-        }
-
-        private static IServiceProvider CreateServiceProviderWithEmptyComponentModel()
-        {
-            var serviceProvider = new ConfigurableServiceProvider();
-            var mefModel = new ConfigurableComponentModel(serviceProvider);
-
-            serviceProvider.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
-
-            return serviceProvider;
-        }
-
-        #endregion Helpers
     }
 }

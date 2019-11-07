@@ -98,12 +98,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.VisualStateManager.ClearBoundProject();
 
             // Act
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
-
-            // Assert
-            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
-            this.errorListController.RefreshCalledCount.Should().Be(0);
-            this.errorListController.ResetCalledCount.Should().Be(0);
+            using (var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                // Assert
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
+                this.errorListController.RefreshCalledCount.Should().Be(0);
+                this.errorListController.ResetCalledCount.Should().Be(0);
+            }
         }
 
         [TestMethod]
@@ -113,12 +114,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureSolutionBinding(new BoundSonarQubeProject());
 
             // Act
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
-
-            // Assert
-            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound solution should report true activation");
-            this.errorListController.RefreshCalledCount.Should().Be(0);
-            this.errorListController.ResetCalledCount.Should().Be(0);
+            using (var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                // Assert
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound solution should report true activation");
+                this.errorListController.RefreshCalledCount.Should().Be(0);
+                this.errorListController.ResetCalledCount.Should().Be(0);
+            }
         }
 
         [TestMethod]
@@ -128,35 +130,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.host.SonarQubeService = sonarQubeServiceMock.Object;
 
-            var activeSolutionBoundTracker = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker,
-                this.loggerMock.Object);
-
-            // We want to directly jump to Connect
-            sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(false);
-            ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://test"), "projectkey", "projectName"));
-
-            // ConnectAsync should throw
-            sonarQubeServiceMock
-                .SetupSequence(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>()))
-                .Throws<Exception>()
-                .Throws<TaskCanceledException>()
-                .Throws(new HttpRequestException("http request", new Exception("something happened")));
-
-            // Act
-            // Throwing errors will put the connection and binding out of sync, which
-            // cause a Debug.Assert in the product code that we need to suppress
-            using (new AssertIgnoreScope())
+            using (var activeSolutionBoundTracker = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, this.loggerMock.Object))
             {
-                this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
-                this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
-                this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
-            }
+                // We want to directly jump to Connect
+                sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(false);
+                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://test"), "projectkey", "projectName"));
 
-            // Assert
-            this.loggerMock
-                .Verify(x => x.WriteLine(It.Is<string>(s => s.StartsWith("SonarQube request failed:")), It.IsAny<object[]>()), Times.Exactly(2));
-            this.loggerMock
-                .Verify(x => x.WriteLine(It.Is<string>(s => s.StartsWith("SonarQube request timed out or was canceled"))), Times.Once);
+                // ConnectAsync should throw
+                sonarQubeServiceMock
+                    .SetupSequence(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>()))
+                    .Throws<Exception>()
+                    .Throws<TaskCanceledException>()
+                    .Throws(new HttpRequestException("http request", new Exception("something happened")));
+
+                // Act
+                // Throwing errors will put the connection and binding out of sync, which
+                // cause a Debug.Assert in the product code that we need to suppress
+                using (new AssertIgnoreScope())
+                {
+                    this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                    this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+                    this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                }
+
+                // Assert
+                this.loggerMock
+                    .Verify(x => x.WriteLine(It.Is<string>(s => s.StartsWith("SonarQube request failed:")), It.IsAny<object[]>()), Times.Exactly(2));
+                this.loggerMock
+                    .Verify(x => x.WriteLine(It.Is<string>(s => s.StartsWith("SonarQube request timed out or was canceled"))), Times.Once);
+            }
         }
 
         [TestMethod]
@@ -167,102 +169,104 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigureService(isConnected: false);
             ConfigureSolutionBinding(boundProject);
 
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
-            var solutionBindingChangedEventCount = 0;
-            testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
+            using (var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                var solutionBindingChangedEventCount = 0;
+                testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
 
-            // Sanity
-            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Initially bound");
-            this.errorListController.RefreshCalledCount.Should().Be(0);
-            this.errorListController.ResetCalledCount.Should().Be(0);
-            solutionBindingChangedEventCount.Should().Be(0, "no events raised during construction");
+                // Sanity
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Initially bound");
+                this.errorListController.RefreshCalledCount.Should().Be(0);
+                this.errorListController.ResetCalledCount.Should().Be(0);
+                solutionBindingChangedEventCount.Should().Be(0, "no events raised during construction");
 
-            // Case 1: Clear bound project
-            ConfigureSolutionBinding(null);
-            // Act
-            host.VisualStateManager.ClearBoundProject();
+                // Case 1: Clear bound project
+                ConfigureSolutionBinding(null);
+                // Act
+                host.VisualStateManager.ClearBoundProject();
 
-            // Assert
-            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
-            this.errorListController.RefreshCalledCount.Should().Be(0);
-            this.errorListController.ResetCalledCount.Should().Be(0);
-            solutionBindingChangedEventCount.Should().Be(1, "Unbind should trigger reanalysis");
+                // Assert
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
+                this.errorListController.RefreshCalledCount.Should().Be(0);
+                this.errorListController.ResetCalledCount.Should().Be(0);
+                solutionBindingChangedEventCount.Should().Be(1, "Unbind should trigger reanalysis");
 
-            VerifyServiceDisconnect(Times.Never());
-            VerifyServiceConnect(Times.Never());
+                VerifyServiceDisconnect(Times.Never());
+                VerifyServiceConnect(Times.Never());
 
-            // Case 2: Set bound project
-            ConfigureSolutionBinding(boundProject);
-            // Act
-            host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
+                // Case 2: Set bound project
+                ConfigureSolutionBinding(boundProject);
+                // Act
+                host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
 
-            // Assert
-            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound solution should report true activation");
-            this.errorListController.RefreshCalledCount.Should().Be(0);
-            this.errorListController.ResetCalledCount.Should().Be(0);
-            solutionBindingChangedEventCount.Should().Be(2, "Bind should trigger reanalysis");
+                // Assert
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound solution should report true activation");
+                this.errorListController.RefreshCalledCount.Should().Be(0);
+                this.errorListController.ResetCalledCount.Should().Be(0);
+                solutionBindingChangedEventCount.Should().Be(2, "Bind should trigger reanalysis");
 
-            // Notifications from the Team Explorer should not trigger connect/disconnect
-            VerifyServiceDisconnect(Times.Never());
-            VerifyServiceConnect(Times.Never());
+                // Notifications from the Team Explorer should not trigger connect/disconnect
+                VerifyServiceDisconnect(Times.Never());
+                VerifyServiceConnect(Times.Never());
 
-            // Case 3: Bound solution unloaded -> disconnect
-            ConfigureSolutionBinding(null);
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+                // Case 3: Bound solution unloaded -> disconnect
+                ConfigureSolutionBinding(null);
+                // Act
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
 
-            // Assert
-            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Should respond to solution change event and report unbound");
-            this.errorListController.RefreshCalledCount.Should().Be(1);
-            this.errorListController.ResetCalledCount.Should().Be(0);
-            solutionBindingChangedEventCount.Should().Be(3, "Solution change should trigger reanalysis");
+                // Assert
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Should respond to solution change event and report unbound");
+                this.errorListController.RefreshCalledCount.Should().Be(1);
+                this.errorListController.ResetCalledCount.Should().Be(0);
+                solutionBindingChangedEventCount.Should().Be(3, "Solution change should trigger reanalysis");
 
-            // Closing an unbound solution should not call disconnect/connect
-            VerifyServiceDisconnect(Times.Never());
-            VerifyServiceConnect(Times.Never());
+                // Closing an unbound solution should not call disconnect/connect
+                VerifyServiceDisconnect(Times.Never());
+                VerifyServiceConnect(Times.Never());
 
-            // Case 4: Load a bound solution
-            ConfigureSolutionBinding(boundProject);
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                // Case 4: Load a bound solution
+                ConfigureSolutionBinding(boundProject);
+                // Act
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
-            // Assert
-            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound respond to solution change event and report bound");
-            this.errorListController.RefreshCalledCount.Should().Be(2);
-            this.errorListController.ResetCalledCount.Should().Be(0);
-            solutionBindingChangedEventCount.Should().Be(4, "Solution change should trigger reanalysis");
+                // Assert
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound respond to solution change event and report bound");
+                this.errorListController.RefreshCalledCount.Should().Be(2);
+                this.errorListController.ResetCalledCount.Should().Be(0);
+                solutionBindingChangedEventCount.Should().Be(4, "Solution change should trigger reanalysis");
 
-            // Loading a bound solution should call connect
-            VerifyServiceDisconnect(Times.Never());
-            VerifyServiceConnect(Times.Once());
+                // Loading a bound solution should call connect
+                VerifyServiceDisconnect(Times.Never());
+                VerifyServiceConnect(Times.Once());
 
-            // Case 5: Close a bound solution
-            ConfigureSolutionBinding(null);
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+                // Case 5: Close a bound solution
+                ConfigureSolutionBinding(null);
+                // Act
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
 
-            // Assert
-            // TODO: this.errorListController.RefreshCalledCount.Should().Be(4);
-            this.errorListController.ResetCalledCount.Should().Be(0);
-            solutionBindingChangedEventCount.Should().Be(5, "Solution change should trigger reanalysis");
+                // Assert
+                // TODO: this.errorListController.RefreshCalledCount.Should().Be(4);
+                this.errorListController.ResetCalledCount.Should().Be(0);
+                solutionBindingChangedEventCount.Should().Be(5, "Solution change should trigger reanalysis");
 
-            // SonarQubeService.Disconnect should be called since the WPF DisconnectCommand is not available
-            VerifyServiceDisconnect(Times.Once());
-            VerifyServiceConnect(Times.Once());
+                // SonarQubeService.Disconnect should be called since the WPF DisconnectCommand is not available
+                VerifyServiceDisconnect(Times.Once());
+                VerifyServiceConnect(Times.Once());
 
-            // Case 6: Dispose and change
-            // Act
-            testSubject.Dispose();
-            ConfigureSolutionBinding(boundProject);
-            host.VisualStateManager.ClearBoundProject();
+                // Case 6: Dispose and change
+                // Act
+                testSubject.Dispose();
+                ConfigureSolutionBinding(boundProject);
+                host.VisualStateManager.ClearBoundProject();
 
-            // Assert
-            solutionBindingChangedEventCount.Should().Be(5, "Once disposed should stop raising the event");
-            // TODO: this.errorListController.RefreshCalledCount.Should().Be(3);
-            this.errorListController.ResetCalledCount.Should().Be(1);
-            // SonarQubeService.Disconnect should be called since the WPF DisconnectCommand is not available
-            VerifyServiceDisconnect(Times.Once());
-            VerifyServiceConnect(Times.Once());
+                // Assert
+                solutionBindingChangedEventCount.Should().Be(5, "Once disposed should stop raising the event");
+                // TODO: this.errorListController.RefreshCalledCount.Should().Be(3);
+                this.errorListController.ResetCalledCount.Should().Be(1);
+                // SonarQubeService.Disconnect should be called since the WPF DisconnectCommand is not available
+                VerifyServiceDisconnect(Times.Once());
+                VerifyServiceConnect(Times.Once());
+            }
         }
 
         [TestMethod]
@@ -276,26 +280,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Set the current configuration used by the tracker
             ConfigureSolutionBinding(initialProject);
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
+            using (var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
 
-            int solutionBindingChangedEventCount = 0;
-            testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
+                int solutionBindingChangedEventCount = 0;
+                testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
 
-            // Now configure the provider to return a different configuration
-            var newProject = new BoundSonarQubeProject(
-                new Uri("http://localhost:9000"),
-                "projectKey", "projectName",
-                organization: new SonarQubeOrganization("myOrgKey_DIFFERENT", "myOrgName"));
-            ConfigureSolutionBinding(newProject);
+                // Now configure the provider to return a different configuration
+                var newProject = new BoundSonarQubeProject(
+                    new Uri("http://localhost:9000"),
+                    "projectKey", "projectName",
+                    organization: new SonarQubeOrganization("myOrgKey_DIFFERENT", "myOrgName"));
+                ConfigureSolutionBinding(newProject);
 
-            // Act - simulate the binding state changing in the Team explorer section.
-            // The project configuration hasn't changed (it doesn't matter what properties
-            // we pass here; they aren't used when raising the event.)
-            host.VisualStateManager.SetBoundProject(new Uri("http://junk"), "any", "any");
+                // Act - simulate the binding state changing in the Team explorer section.
+                // The project configuration hasn't changed (it doesn't matter what properties
+                // we pass here; they aren't used when raising the event.)
+                host.VisualStateManager.SetBoundProject(new Uri("http://junk"), "any", "any");
 
-            // Assert
-            // Different config so event should be raised
-            solutionBindingChangedEventCount.Should().Be(1);
+                // Assert
+                // Different config so event should be raised
+                solutionBindingChangedEventCount.Should().Be(1);
+            }
         }
 
         [TestMethod]
@@ -309,68 +315,76 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Set the current configuration used by the tracker
             ConfigureSolutionBinding(boundProject);
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
+            using (var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
 
-            int solutionBindingChangedEventCount = 0;
-            testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
+                int solutionBindingChangedEventCount = 0;
+                testSubject.SolutionBindingChanged += (obj, args) => { solutionBindingChangedEventCount++; };
 
-            // Act - simulate the binding state changing in the Team explorer section.
-            host.VisualStateManager.SetBoundProject(new Uri("http://junk"), "any", "any");
+                // Act - simulate the binding state changing in the Team explorer section.
+                host.VisualStateManager.SetBoundProject(new Uri("http://junk"), "any", "any");
 
-            // Assert
-            // Same config so event should not be raised
-            solutionBindingChangedEventCount.Should().Be(0);
+                // Assert
+                // Same config so event should not be raised
+                solutionBindingChangedEventCount.Should().Be(0);
+            }
         }
 
         [TestMethod]
         public void UpdateConnection_WasDisconnected_NewSolutionIsUnbound_NoConnectOrDisconnectCalls()
         {
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
-            ConfigureService(isConnected: false);
-            ConfigureSolutionBinding(null);
+            using (new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                ConfigureService(isConnected: false);
+                ConfigureSolutionBinding(null);
 
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                // Act
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
-            // Assert
-            VerifyServiceConnect(Times.Never());
-            VerifyServiceDisconnect(Times.Never());
-            isMockServiceConnected.Should().Be(false);
+                // Assert
+                VerifyServiceConnect(Times.Never());
+                VerifyServiceDisconnect(Times.Never());
+                isMockServiceConnected.Should().Be(false);
+            }
         }
 
         [TestMethod]
         public void UpdateConnection_WasDisconnected_NewSolutionIsBound_ConnectCalled()
         {
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
-            ConfigureService(isConnected: false);
-            ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
+            using (new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                ConfigureService(isConnected: false);
+                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
 
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                // Act
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
-            // Assert
-            VerifyServiceConnect(Times.Once());
-            VerifyServiceDisconnect(Times.Never());
-            isMockServiceConnected.Should().Be(true);
+                // Assert
+                VerifyServiceConnect(Times.Once());
+                VerifyServiceDisconnect(Times.Never());
+                isMockServiceConnected.Should().Be(true);
+            }
         }
 
         [TestMethod]
         public void UpdateConnection_WasConnected_NewSolutionIsUnbound_DisconnectedCalled()
         {
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
-            ConfigureService(isConnected: true);
-            ConfigureSolutionBinding(null);
+            using (new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                ConfigureService(isConnected: true);
+                ConfigureSolutionBinding(null);
 
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                // Act
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
-            // Assert
-            VerifyServiceConnect(Times.Never());
-            VerifyServiceDisconnect(Times.Once());
-            isMockServiceConnected.Should().Be(false);
+                // Assert
+                VerifyServiceConnect(Times.Never());
+                VerifyServiceDisconnect(Times.Once());
+                isMockServiceConnected.Should().Be(false);
+            }
         }
 
         [TestMethod]
@@ -382,17 +396,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // just in case.
 
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
-            ConfigureService(isConnected: true);
-            ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
+            using (new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                ConfigureService(isConnected: true);
+                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
 
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                // Act
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
-            // Assert
-            VerifyServiceConnect(Times.Once());
-            VerifyServiceDisconnect(Times.Once());
-            isMockServiceConnected.Should().Be(true);
+                // Assert
+                VerifyServiceConnect(Times.Once());
+                VerifyServiceDisconnect(Times.Once());
+                isMockServiceConnected.Should().Be(true);
+            }
         }
 
         [TestMethod]
@@ -403,27 +419,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Here, the command exists but is not executable.
 
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
+            using (new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
 
-            int commandCallCount = 0;
-            int commandCanExecuteCallCount = 0;
-            var teSection = ConfigurableSectionController.CreateDefault();
-            teSection.DisconnectCommand = new Integration.WPF.RelayCommand(
-                () => commandCallCount++,
-                () => { commandCanExecuteCallCount++; return false; });
-            host.SetActiveSection(teSection);
+                int commandCallCount = 0;
+                int commandCanExecuteCallCount = 0;
+                var teSection = ConfigurableSectionController.CreateDefault();
+                teSection.DisconnectCommand = new Integration.WPF.RelayCommand(
+                    () => commandCallCount++,
+                    () => { commandCanExecuteCallCount++; return false; });
+                host.SetActiveSection(teSection);
 
-            ConfigureService(isConnected: true);
-            ConfigureSolutionBinding(null);
+                ConfigureService(isConnected: true);
+                ConfigureSolutionBinding(null);
 
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+                // Act
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
 
-            // Assert
-            VerifyServiceConnect(Times.Never());
-            VerifyServiceDisconnect(Times.Once());
-            commandCanExecuteCallCount.Should().Be(1);
-            commandCallCount.Should().Be(0);
+                // Assert
+                VerifyServiceConnect(Times.Never());
+                VerifyServiceDisconnect(Times.Once());
+                commandCanExecuteCallCount.Should().Be(1);
+                commandCallCount.Should().Be(0);
+            }
         }
 
         [TestMethod]
@@ -432,57 +450,62 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Wpf command is available and can be executed -> should be called instead of service.Disconnect()
 
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
+            using (new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                int commandCallCount = 0;
+                int commandCanExecuteCallCount = 0;
+                var teSection = ConfigurableSectionController.CreateDefault();
+                teSection.DisconnectCommand = new Integration.WPF.RelayCommand(
+                    () => { commandCallCount++; isMockServiceConnected = false; },
+                    () => { commandCanExecuteCallCount++; return true; });
+                host.SetActiveSection(teSection);
 
-            int commandCallCount = 0;
-            int commandCanExecuteCallCount = 0;
-            var teSection = ConfigurableSectionController.CreateDefault();
-            teSection.DisconnectCommand = new Integration.WPF.RelayCommand(
-                () => { commandCallCount++; isMockServiceConnected = false; },
-                () => { commandCanExecuteCallCount++; return true; });
-            host.SetActiveSection(teSection);
+                ConfigureService(isConnected: true);
+                ConfigureSolutionBinding(null);
 
-            ConfigureService(isConnected: true);
-            ConfigureSolutionBinding(null);
+                // Act
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
 
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
-
-            // Assert
-            VerifyServiceConnect(Times.Never());
-            VerifyServiceDisconnect(Times.Never());
-            commandCanExecuteCallCount.Should().Be(1);
-            commandCallCount.Should().Be(1);
+                // Assert
+                VerifyServiceConnect(Times.Never());
+                VerifyServiceDisconnect(Times.Never());
+                commandCanExecuteCallCount.Should().Be(1);
+                commandCallCount.Should().Be(1);
+            }
         }
 
         [TestMethod]
         public void SolutionBindingUpdated_WhenClearBoundProject_NotRaised()
         {
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
-            int callCount = 0;
-            testSubject.SolutionBindingUpdated += (sender, e) => callCount++;
+            using (var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                int callCount = 0;
+                testSubject.SolutionBindingUpdated += (sender, e) => callCount++;
 
-            // Act
-            host.VisualStateManager.ClearBoundProject();
+                // Act
+                host.VisualStateManager.ClearBoundProject();
 
-            // Assert
-            callCount.Should().Be(0);
+                // Assert
+                callCount.Should().Be(0);
+            }
         }
 
         [TestMethod]
         public void SolutionBindingUpdated_WhenSetBoundProject_Raised()
         {
             // Arrange
-            var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object);
-            int callCount = 0;
-            testSubject.SolutionBindingUpdated += (sender, e) => callCount++;
+            using (var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
+            {
+                int callCount = 0;
+                testSubject.SolutionBindingUpdated += (sender, e) => callCount++;
 
-            // Act
-            host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
+                // Act
+                host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
 
-            // Assert
-            callCount.Should().Be(1);
+                // Assert
+                callCount.Should().Be(1);
+            }
         }
 
         private void ConfigureService(bool isConnected)

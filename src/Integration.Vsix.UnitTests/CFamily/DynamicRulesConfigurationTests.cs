@@ -164,8 +164,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 ";
             var userSettings = (UserSettings)JsonConvert.DeserializeObject(userSettingsData, typeof(UserSettings));
 
-            var logger = new TestLogger();
-
             // Act
             var dynamicConfig = new DynamicRulesConfiguration(defaultConfig, userSettings);
 

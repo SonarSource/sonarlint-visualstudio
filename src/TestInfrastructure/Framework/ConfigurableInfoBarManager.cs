@@ -63,8 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public ConfigurableInfoBar AssertHasAttachedInfoBar(Guid toolwindowGuid)
         {
-            ConfigurableInfoBar infoBar = null;
-            this.attached.TryGetValue(toolwindowGuid, out infoBar).Should().BeTrue("The tool window {0} has no attached info bar", toolwindowGuid);
+            this.attached.TryGetValue(toolwindowGuid, out var infoBar).Should().BeTrue("The tool window {0} has no attached info bar", toolwindowGuid);
             return infoBar;
         }
 

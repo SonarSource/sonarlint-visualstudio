@@ -92,25 +92,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         #region Tests
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ConnectionWorkflow_ConnectionStep_WhenGivenANullHost_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(null, new RelayCommand(() => { }));
+            Action act = () => new ConnectionWorkflow(null, new RelayCommand(() => { }));
 
-            // Assert
-            FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception of type ArgumentNullException but no exception was thrown.");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ConnectionWorkflow_ConnectionStep_WhenGivenANullParentCommand_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, null);
+            Action act = () => new ConnectionWorkflow(this.host, null);
 
-            // Assert
-            FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception of type ArgumentNullException but no exception was thrown.");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("parentCommand");
         }
 
         [TestMethod]

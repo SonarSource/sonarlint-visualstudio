@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             // 2. Size array and call again to get the data
             string[] fileNames = new string[fileCount];
-            result = solution.GetProjectFilesInSolution(grfGetOpsIncludeUnloadedFiles, fileCount, fileNames, out fileCount);
+            result = solution.GetProjectFilesInSolution(grfGetOpsIncludeUnloadedFiles, fileCount, fileNames, out _);
             if (ErrorHandler.Failed(result))
             {
                 return map;

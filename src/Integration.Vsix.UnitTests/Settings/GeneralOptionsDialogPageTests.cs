@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 
             public void ActivateAccessor()
             {
-                var forceInitialization = Child;
+                _ = Child; // touch the property to make sure any initialization has been done
                 base.OnActivate(new CancelEventArgs());
             }
 

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -174,13 +174,12 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.ServiceCallCount++;
 
             // Try to get an existing service instance (which could be null)
-            object serviceInstance = null;
-            bool found = this.serviceInstances.TryGetValue(serviceType, out serviceInstance);
+            bool found = this.serviceInstances.TryGetValue(serviceType, out object serviceInstance);
 
             // If we didn't find an instance, try to create one.
             if (!found)
             {
-                Func<object> constructor = null;
+                Func<object> constructor;
                 found = this.serviceConstructors.TryGetValue(serviceType, out constructor);
                 if (found)
                 {

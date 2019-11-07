@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -46,10 +46,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         RuleSet IRuleSetSerializer.LoadRuleSet(string path)
         {
-            RuleSet rs = null;
-            this.savedRuleSets.TryGetValue(path, out rs);
-            int counter = 0;
-            this.ruleSetLoaded.TryGetValue(path, out counter);
+            this.savedRuleSets.TryGetValue(path, out RuleSet rs);
+            this.ruleSetLoaded.TryGetValue(path, out int counter);
             this.ruleSetLoaded[path] = ++counter;
             rs?.Validate();
             return rs;
@@ -57,8 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         void IRuleSetSerializer.WriteRuleSetFile(RuleSet ruleSet, string path)
         {
-            RuleSet rs;
-            if (!this.savedRuleSets.TryGetValue(path, out rs))
+            if (!this.savedRuleSets.TryGetValue(path, out _))
             {
                 this.savedRuleSets[path] = ruleSet;
             }
@@ -124,8 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertRuleSetLoaded(string ruleSet, int expectedNumberOfTimes)
         {
-            int actual = 0;
-            this.ruleSetLoaded.TryGetValue(ruleSet, out actual);
+            this.ruleSetLoaded.TryGetValue(ruleSet, out int actual);
             actual.Should().Be(expectedNumberOfTimes, "RuleSet {0} was loaded unexpected number of times", ruleSet);
         }
 

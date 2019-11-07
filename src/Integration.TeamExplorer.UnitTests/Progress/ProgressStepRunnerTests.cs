@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -128,6 +128,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Progress
             // Assert
             controller1.NumberOfAbortRequests.Should().Be(1);
             controller2.NumberOfAbortRequests.Should().Be(1);
+
+            observer1.IsFinished.Should().BeTrue();
+            observer2.IsFinished.Should().BeTrue();
         }
     }
 }

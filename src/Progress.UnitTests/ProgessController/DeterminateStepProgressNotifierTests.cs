@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -80,7 +80,6 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             var controller = new ConfigurableProgressController(null);
             const int Steps = 227; // Quite a few values for which N * (1 / N) > 1.0
             var testSubject = new DeterminateStepProgressNotifier(controller, Steps);
-            List<Tuple<string, double>> expectedProgress = new List<Tuple<string, double>>();
 
             // Act + Assert
             int expectedValue = 0;

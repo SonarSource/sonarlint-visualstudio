@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -54,8 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void AssertInstalledPackages(Project project, IEnumerable<PackageName> expectedPackages)
         {
-            IList<PackageName> packages = new List<PackageName>();
-            this.installedPackages.TryGetValue(project, out packages).Should().BeTrue("Expecting installed packages for project {0}", project.FileName);
+            this.installedPackages.TryGetValue(project, out IList<PackageName> packages).Should().BeTrue("Expecting installed packages for project {0}", project.FileName);
 
             var expected = expectedPackages.ToArray();
             var actual = packages.ToArray();

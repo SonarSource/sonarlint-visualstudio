@@ -232,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
-            SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
+            this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
             await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
@@ -265,17 +265,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 rule.Action = RuleAction.None;
             }
-            var expectedRuleSet = new RuleSet(ruleSet)
-            {
-                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, ProjectName, QualityProfileName),
-                NonLocalizedDescription = "\r\nhttp://connected/profiles/show?key="
-            };
             var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
             var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
             RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
-            SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
+            this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
             await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
@@ -283,6 +278,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
             testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            testSubject.Rulesets.Count.Should().Be(0);
             controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
@@ -305,16 +301,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var notifications = new ConfigurableProgressStepExecutionEvents();
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
-            var expectedRuleSet = new RuleSet(ruleSet)
-            {
-                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, ProjectName, QualityProfileName),
-                NonLocalizedDescription = "\r\nhttp://connected/profiles/show?key="
-            };
             var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
             RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, Enumerable.Empty<PackageName>(), additionalFiles);
 
             var language = Language.VBNET;
-            SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
+            this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
             await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
@@ -322,6 +313,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
             testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            testSubject.Rulesets.Count.Should().Be(0);
             controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);

@@ -333,10 +333,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             File.Exists(settingsFile).Should().BeTrue();
 
             var reloadedSettings = UserSettingsProvider.SafeLoadUserSettings(settingsFile, new FileWrapper(), new TestLogger());
-            testSubject.UserSettings.Rules.Count.Should().Be(3);
-            testSubject.UserSettings.Rules["javascript:S111"].Level.Should().Be(RuleLevel.On);
-            testSubject.UserSettings.Rules["cpp:S111"].Level.Should().Be(RuleLevel.Off);
-            testSubject.UserSettings.Rules["xxx:S222"].Level.Should().Be(RuleLevel.On);
+            reloadedSettings.Rules.Count.Should().Be(3);
+            reloadedSettings.Rules["javascript:S111"].Level.Should().Be(RuleLevel.On);
+            reloadedSettings.Rules["cpp:S111"].Level.Should().Be(RuleLevel.Off);
+            reloadedSettings.Rules["xxx:S222"].Level.Should().Be(RuleLevel.On);
         }
 
         [TestMethod]

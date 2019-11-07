@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ((ISectionController)testSubject).View.Should().NotBeNull("Failed to get the View as ConnectSectionView");
             testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
-            // Case 2: re-initialization with connection but no projects
+            // Case 2: re-initialization with connection
             this.host.TestStateManager.IsConnected = true;
             ReInitialize(testSubject, this.host);
 
@@ -108,16 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.View.Should().NotBeNull("Failed to get the View");
             testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
-            // Case 3: re-initialization with connection and projects
-            var projects = new[] { new SonarQubeProject("", "") };
-            ReInitialize(testSubject, this.host);
-
-            // Assert
-            AssertCommandsInSync(testSubject);
-            testSubject.View.Should().NotBeNull("Failed to get the View");
-            testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
-
-            // Case 4: re-initialization with no connection
+            // Case 3: re-initialization with no connection
             this.host.TestStateManager.IsConnected = false;
             ReInitialize(testSubject, this.host);
 
@@ -126,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.View.Should().NotBeNull("Failed to get the View");
             testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
-            // Case 5: Dispose
+            // Case 4: Dispose
             testSubject.Dispose();
 
             // Assert

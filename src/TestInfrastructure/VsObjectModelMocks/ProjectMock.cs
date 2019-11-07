@@ -255,7 +255,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         int IVsProject.IsDocumentInProject(string pszMkDocument, out int pfFound, VSDOCUMENTPRIORITY[] pdwPriority, out uint pitemid)
         {
             pfFound = 0;
-            pitemid = 0;
 
             if (this.Files.TryGetValue(pszMkDocument, out pitemid))
             {

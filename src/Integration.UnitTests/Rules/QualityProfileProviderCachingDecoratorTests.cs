@@ -136,7 +136,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Rules
         public void SynchOnTimerElapsed_WhenNotConnected_NoErrors()
         {
             // Arrange - initialise in a connected state, then disconnect
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             var testSubject = CreateTestSubjectWithInitialFetchCompleted();
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             serviceMock.Invocations.Clear();
             wrappedProvider.ResetCalls();
 

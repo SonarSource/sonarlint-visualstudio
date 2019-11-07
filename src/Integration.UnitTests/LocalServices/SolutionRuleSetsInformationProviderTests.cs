@@ -368,8 +368,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             info.ConfigurationContext.Should().Be(configuration.ConfigurationName);
 
-            string ruleSetDirectoryValue = null;
-            ((IVsBuildPropertyStorage)projectMock).GetPropertyValue(Constants.CodeAnalysisRuleSetDirectoriesPropertyKey, configuration.ConfigurationName, 0, out ruleSetDirectoryValue);
+            ((IVsBuildPropertyStorage)projectMock).GetPropertyValue(Constants.CodeAnalysisRuleSetDirectoriesPropertyKey, configuration.ConfigurationName, 0, out string ruleSetDirectoryValue);
             if (string.IsNullOrWhiteSpace(ruleSetDirectoryValue))
             {
                 info.RuleSetDirectories.Should().BeEmpty();
