@@ -686,8 +686,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
-            bindingInfoProvider.UnboundProjects = allProjects;
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider
+            {
+                UnboundProjects = allProjects
+            };
 
             // Act
             var result = BindingWorkflow.GetProjectsForRulesetBinding(true, allProjects, bindingInfoProvider, logger);
@@ -709,8 +711,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
-            bindingInfoProvider.UnboundProjects = allProjects;
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider
+            {
+                UnboundProjects = allProjects
+            };
 
             // Act
             var result = BindingWorkflow.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
@@ -740,8 +744,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
-            bindingInfoProvider.UnboundProjects = unboundProjects;
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider
+            {
+                UnboundProjects = unboundProjects
+            };
 
             // Act
             var result = BindingWorkflow.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
@@ -765,8 +771,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
-            bindingInfoProvider.UnboundProjects = null;
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider
+            {
+                UnboundProjects = null
+            };
 
             // Act
             var result = BindingWorkflow.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);

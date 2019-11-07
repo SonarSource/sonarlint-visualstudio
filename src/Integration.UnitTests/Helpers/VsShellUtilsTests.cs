@@ -135,8 +135,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void EnumerateProjectProperties_NullConfigManager_ReturnsNull()
         {
             // Arrange
-            var project = new ProjectMock("projectfile.proj");
-            project.ConfigurationManager = null; 
+            var project = new ProjectMock("projectfile.proj")
+            {
+                ConfigurationManager = null
+            };
 
             // Act
             var result = VsShellUtils.GetProjectProperties(project, "anyproperty");
@@ -150,8 +152,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void EnumerateProjectProperties_SingleMatchingProperty_NoConfiguration()
         {
             // Arrange
-            var project = new ProjectMock("projectfile.proj");
-            project.ConfigurationManager = null;
+            var project = new ProjectMock("projectfile.proj")
+            {
+                ConfigurationManager = null
+            };
             project.Properties.RegisterKnownProperty("AAA").Value = "aaa value";
             project.Properties.RegisterKnownProperty("BBB").Value = "bbb value";
             project.Properties.RegisterKnownProperty("CCC").Value = "ccc value";

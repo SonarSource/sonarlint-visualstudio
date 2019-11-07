@@ -89,8 +89,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ShouldExecuteRegisteredAction_WhenTreeNotNullAndNoNuGetAnalyzer_ReturnsTrue()
         {
             // Arrange
-            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-            testSubject.GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.NoAnalyzer;
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace())
+            {
+                GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.NoAnalyzer
+            };
 
             // Act
             var result = testSubject.ShouldExecuteRegisteredAction(Enumerable.Empty<DiagnosticDescriptor>(), new Mock<SyntaxTree>().Object);
@@ -103,8 +105,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ShouldExecuteRegisteredAction_WhenTreeNotNullAndNuGetAnalyzerSameVersion_ReturnsTrue()
         {
             // Arrange
-            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-            testSubject.GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.SameVersion;
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace())
+            {
+                GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.SameVersion
+            };
 
             // Act
             var result = testSubject.ShouldExecuteRegisteredAction(Enumerable.Empty<DiagnosticDescriptor>(), new Mock<SyntaxTree>().Object);
@@ -117,8 +121,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ShouldExecuteRegisteredAction_WhenTreeNotNullAndNuGetAnalyzerDifferentVersion_ReturnsFalse()
         {
             // Arrange
-            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace());
-            testSubject.GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.DifferentVersion;
+            var testSubject = new TestableSonarAnalyzerWorkflow(new AdhocWorkspace())
+            {
+                GetProjectNuGetAnalyzerStatusFunc = tree => ProjectAnalyzerStatus.DifferentVersion
+            };
 
             // Act
             var result = testSubject.ShouldExecuteRegisteredAction(Enumerable.Empty<DiagnosticDescriptor>(), new Mock<SyntaxTree>().Object);

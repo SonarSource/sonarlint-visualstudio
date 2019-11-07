@@ -62,15 +62,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.store = new ConfigurableCredentialStore();
             this.serviceProvider.RegisterService(typeof(ICredentialStoreService), this.store);
 
-            this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.projectSystemHelper.SolutionItemsProject = this.dte.Solution.AddOrGetProject("Solution Items");
+            this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider)
+            {
+                SolutionItemsProject = this.dte.Solution.AddOrGetProject("Solution Items")
+            };
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
             this.sourceControlledFileSystem = new ConfigurableSourceControlledFileSystem();
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sourceControlledFileSystem);
 
-            this.solutionRuleSetsInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider();
-            this.solutionRuleSetsInfoProvider.SolutionRootFolder = Path.GetDirectoryName(this.dte.Solution.FilePath);
+            this.solutionRuleSetsInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider
+            {
+                SolutionRootFolder = Path.GetDirectoryName(this.dte.Solution.FilePath)
+            };
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.solutionRuleSetsInfoProvider);
 
             var mefExport = MefTestHelpers.CreateExport<ILogger>(new SonarLintOutputLogger(serviceProvider));
@@ -141,10 +145,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
             var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
             var projectKey = "MyProject Key";
-            var written = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds);
-            written.Profiles = new Dictionary<Language, ApplicableQualityProfile>();
-            written.Profiles[Language.VBNET] = new ApplicableQualityProfile { ProfileKey = "VB" };
-            written.Profiles[Language.CSharp] = new ApplicableQualityProfile { ProfileKey = "CS", ProfileTimestamp = DateTime.Now };
+            var written = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds)
+            {
+                Profiles = new Dictionary<Language, ApplicableQualityProfile>()
+                {
+                    { Language.VBNET, new ApplicableQualityProfile { ProfileKey = "VB" } },
+                    { Language.CSharp, new ApplicableQualityProfile { ProfileKey = "CS", ProfileTimestamp = DateTime.Now } }
+                }
+            };
 
             // Act (write)
             string output = testSubject.WriteSolutionBinding(written);

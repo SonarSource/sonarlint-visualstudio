@@ -181,9 +181,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void IsSonarCloud_InvalidUri_Relative()
         {
-            UriBuilder builder = new UriBuilder();
-            builder.Scheme = "file";
-            builder.Path = "..\\..\\foo\\file.txt";
+            UriBuilder builder = new UriBuilder
+            {
+                Scheme = "file",
+                Path = "..\\..\\foo\\file.txt"
+            };
 
             TelemetryHelper.IsSonarCloud(builder.Uri).Should().BeFalse();
         }

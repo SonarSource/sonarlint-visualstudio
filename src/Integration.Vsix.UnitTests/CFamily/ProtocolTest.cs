@@ -48,8 +48,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Write_Request_With_One_Empty_Option()
         {
-            Request request = new Request();
-            request.Options = new string[] { "" };
+            Request request = new Request
+            {
+                Options = new string[] { "" }
+            };
+
             using (MemoryStream stream = new MemoryStream())
             {
                 BinaryWriter writer = new BinaryWriter(stream);

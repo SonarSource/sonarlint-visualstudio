@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -58,8 +58,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             this.testServiceProvider = new ConfigurableServiceProvider();
             this.testVisualizer = new ConfigurableProgressVisualizer();
             this.progressEvents = new ConfigurableProgressEvents();
-            this.testController = new ConfigurableProgressController(this.testServiceProvider);
-            this.testController.Events = this.progressEvents;
+            this.testController = new ConfigurableProgressController(this.testServiceProvider)
+            {
+                Events = this.progressEvents
+            };
             this.threadService = new SingleThreadedTaskSchedulerService();
             this.testServiceProvider.RegisterService(typeof(SVsTaskSchedulerService), this.threadService);
         }
@@ -357,18 +359,22 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         [Description("Tests that in case of event for an unexpected step it will be ignored")]
         public void ProgressObserver_EventMonitoringAndExecution_ViewModelOutOfSync()
         {
-            ConfigurableProgressTestOperation step = new ConfigurableProgressTestOperation((c, e) => { });
-            step.Progress = 0.0;
-            step.Indeterminate = false;
-            step.ExecutionState = StepExecutionState.NotStarted;
+            ConfigurableProgressTestOperation step = new ConfigurableProgressTestOperation((c, e) => { })
+            {
+                Progress = 0.0,
+                Indeterminate = false,
+                ExecutionState = StepExecutionState.NotStarted
+            };
             this.progressEvents.Steps = new IProgressStep[] { step };
             this.CreateTestSubject();
 
             // Create another step which is not observed
-            ConfigurableProgressTestOperation anotherStep = new ConfigurableProgressTestOperation((c, e) => { });
-            anotherStep.ExecutionState = StepExecutionState.Succeeded;
-            anotherStep.Progress = 1.0;
-            anotherStep.Indeterminate = false;
+            ConfigurableProgressTestOperation anotherStep = new ConfigurableProgressTestOperation((c, e) => { })
+            {
+                ExecutionState = StepExecutionState.Succeeded,
+                Progress = 1.0,
+                Indeterminate = false
+            };
 
             using (new AssertIgnoreScope())
             {
@@ -385,12 +391,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             // Arrange - Create a determinate not started step
             int initialProgress = 0;
             string initialProgressDetails = null;
-            ConfigurableProgressTestOperation step = new ConfigurableProgressTestOperation((c, e) => { });
-            step.Progress = initialProgress;
-            step.ProgressDetailText = initialProgressDetails;
-            step.Indeterminate = false;
-            step.ExecutionState = StepExecutionState.NotStarted;
-            step.ImpactsProgress = true;
+            ConfigurableProgressTestOperation step = new ConfigurableProgressTestOperation((c, e) => { })
+            {
+                Progress = initialProgress,
+                ProgressDetailText = initialProgressDetails,
+                Indeterminate = false,
+                ExecutionState = StepExecutionState.NotStarted,
+                ImpactsProgress = true
+            };
             this.progressEvents.Steps = new IProgressStep[] { step };
             this.CreateTestSubject();
             this.threadService.SetCurrentThreadIsUIThread(false);
@@ -662,14 +670,16 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             StepExecutionState executionState = (StepExecutionState)random.Next(0, maxFlag + 1);
 
             ConfigurableProgressTestOperation step;
-            step = new ConfigurableProgressTestOperation((c, e) => { });
-            step.DisplayText = "DisplayText:" + Environment.TickCount.ToString();
-            step.ExecutionState = executionState;
-            step.Progress = random.NextDouble();
-            step.ProgressDetailText = "ProgressDetailText:" + Environment.TickCount.ToString();
-            step.Indeterminate = indeterminate;
-            step.Hidden = !visible;
-            step.ImpactsProgress = impacting;
+            step = new ConfigurableProgressTestOperation((c, e) => { })
+            {
+                DisplayText = "DisplayText:" + Environment.TickCount.ToString(),
+                ExecutionState = executionState,
+                Progress = random.NextDouble(),
+                ProgressDetailText = "ProgressDetailText:" + Environment.TickCount.ToString(),
+                Indeterminate = indeterminate,
+                Hidden = !visible,
+                ImpactsProgress = impacting
+            };
             return step;
         }
 

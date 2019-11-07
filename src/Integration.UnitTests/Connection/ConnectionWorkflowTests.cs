@@ -118,7 +118,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Arrange
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
+#pragma warning disable IDE0017 // Simplify object initialization
             ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(() => { }));
+#pragma warning restore IDE0017 // Simplify object initialization
 
             // Act
             testSubject.ConnectedServer = connectionInfo;

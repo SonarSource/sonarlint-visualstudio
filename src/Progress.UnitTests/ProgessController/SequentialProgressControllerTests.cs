@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -307,12 +307,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         {
             // Arrange
             ConfigurableProgressStepFactory testFactory = new ConfigurableProgressStepFactory();
-            ConfigurableProgressTestOperation stepOperation = new ConfigurableProgressTestOperation(this.DoNothing);
-            stepOperation.CancellableAction = () =>
+            ConfigurableProgressTestOperation stepOperation = new ConfigurableProgressTestOperation(this.DoNothing)
             {
-                // Using this opportunity to abort - the test assumes that Cancellable is called before the step is actually executed
-                this.testSubject.TryAbort().Should().BeTrue("Should be able to abort");
-                return true;
+                CancellableAction = () =>
+                {
+                    // Using this opportunity to abort - the test assumes that Cancellable is called before the step is actually executed
+                    this.testSubject.TryAbort().Should().BeTrue("Should be able to abort");
+                    return true;
+                }
             };
             testFactory.CreateOpeartion = (d) => stepOperation;
             ProgressEventsVerifier verifier = new ProgressEventsVerifier(this.testSubject);

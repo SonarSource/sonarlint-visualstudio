@@ -286,8 +286,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             StateManager testSubject = this.CreateTestSubject(host);
 
             section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
-            var conn = new ConnectionInformation(new Uri("http://xyz"));
-            conn.Organization = new SonarQubeOrganization("org1", "org1 name");
+            var conn = new ConnectionInformation(new Uri("http://xyz"))
+            {
+                Organization = new SonarQubeOrganization("org1", "org1 name")
+            };
             var projects = new[] { new SonarQubeProject("111", ""), new SonarQubeProject("222", "") };
             testSubject.SetProjects(conn, projects);
             TransferableVisualState state = testSubject.ManagedState;

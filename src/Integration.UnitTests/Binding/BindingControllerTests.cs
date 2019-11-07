@@ -85,9 +85,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
-            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-            this.host.SonarQubeService = sonarQubeService.Object;
-
+            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher)
+            {
+                SonarQubeService = sonarQubeService.Object
+            };
+            
             IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
                 new []
                 {

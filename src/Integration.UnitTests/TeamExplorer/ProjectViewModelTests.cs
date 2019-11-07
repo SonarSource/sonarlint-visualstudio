@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -68,7 +68,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Arrange
             var projectInfo = new SonarQubeProject("P1", "Project1");
+#pragma warning disable IDE0017 // Simplify object initialization
             var viewModel = new ProjectViewModel(CreateServerViewModel(), projectInfo);
+#pragma warning restore IDE0017 // Simplify object initialization
 
             // Test Case 1: When project is bound, should show message with 'bound' marker
             // Act

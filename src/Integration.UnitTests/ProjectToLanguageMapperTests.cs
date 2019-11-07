@@ -50,8 +50,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity1()
         {
             // Arrange
-            var csProject = new ProjectMock("cs1.csproj");
-            csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind.ToUpper();
+            var csProject = new ProjectMock("cs1.csproj")
+            {
+                ProjectKind = ProjectSystemHelper.CSharpProjectKind.ToUpper()
+            };
 
             // Act
             var csProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(csProject);
@@ -64,8 +66,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity2()
         {
             // Arrange
-            var csProject = new ProjectMock("cs1.csproj");
-            csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind.ToLower();
+            var csProject = new ProjectMock("cs1.csproj")
+            {
+                ProjectKind = ProjectSystemHelper.CSharpProjectKind.ToLower()
+            };
 
             // Act
             var csProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(csProject);
@@ -107,8 +111,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CSCore()
         {
             // Arrange
-            var csProject = new ProjectMock("cs1.csproj");
-            csProject.ProjectKind = ProjectSystemHelper.CSharpCoreProjectKind;
+            var csProject = new ProjectMock("cs1.csproj")
+            {
+                ProjectKind = ProjectSystemHelper.CSharpCoreProjectKind
+            };
 
             // Act
             var csProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(csProject);
@@ -121,8 +127,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_VBCore()
         {
             // Arrange
-            var vbNetProject = new ProjectMock("vb1.vbproj");
-            vbNetProject.ProjectKind = ProjectSystemHelper.VbCoreProjectKind;
+            var vbNetProject = new ProjectMock("vb1.vbproj")
+            {
+                ProjectKind = ProjectSystemHelper.VbCoreProjectKind
+            };
 
             // Act
             var vbNetProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(vbNetProject);
