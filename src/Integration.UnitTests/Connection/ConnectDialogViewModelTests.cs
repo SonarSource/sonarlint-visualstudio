@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -49,10 +49,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Test case 2a: setting raw server url makes it 'dirty' valid URL
             // Arrange
-            var testSubject2a = new ConnectionInfoDialogViewModel();
+            var testSubject2a = new ConnectionInfoDialogViewModel
+            {
 
-            // Act
-            testSubject2a.ServerUrlRaw = "http://localhost";
+                // Act
+                ServerUrlRaw = "http://localhost"
+            };
             string validationError2a = GetErrorForProperty(testSubject2a, nameof(testSubject2a.ServerUrlRaw));
 
             // Assert
@@ -61,10 +63,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Test case 2b: setting raw server url makes it 'dirty' invalid URL
             // Arrange
-            var testSubject2b = new ConnectionInfoDialogViewModel();
+            var testSubject2b = new ConnectionInfoDialogViewModel
+            {
 
-            // Act
-            testSubject2b.ServerUrlRaw = "not-a-valid-url";
+                // Act
+                ServerUrlRaw = "not-a-valid-url"
+            };
             string validationError2b = GetErrorForProperty(testSubject2b, nameof(testSubject2b.ServerUrlRaw));
 
             // Assert
@@ -73,8 +77,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Test case 3: clearing a non-pristine view model should still be non-pristine
             // Arrange
-            var testSubject3 = new ConnectionInfoDialogViewModel();
-            testSubject3.ServerUrlRaw = "blah"; // Makes url field dirty
+            var testSubject3 = new ConnectionInfoDialogViewModel
+            {
+                ServerUrlRaw = "blah" // Makes url field dirty
+            };
             testSubject3.IsUrlPristine.Should().BeFalse("URL should be made dirty before clearing the field"); // Sanity check
 
             // Act
@@ -88,7 +94,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectDialogViewModel_ServerUrl_SetOnlyWhenServerUrlRawIsValid()
         {
             // Arrange
+#pragma warning disable IDE0017 // Simplify object initialization
             var model = new ConnectionInfoDialogViewModel();
+#pragma warning restore IDE0017 // Simplify object initialization
 
             // Test:
             //   Invalid entry does not set ServerUrl
@@ -104,7 +112,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         [TestMethod]
         public void ConnectDialogViewModel_ShowSecurityWarning_InsecureUriScheme_IsTrue()
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var model = new ConnectionInfoDialogViewModel();
+#pragma warning restore IDE0017 // Simplify object initialization
 
             model.ServerUrlRaw = "http://hostname";
             model.ShowSecurityWarning.Should().BeTrue("Security warning should be visible");

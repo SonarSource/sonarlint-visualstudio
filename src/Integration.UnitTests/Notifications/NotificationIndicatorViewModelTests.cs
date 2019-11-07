@@ -102,8 +102,10 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             // Arrange
             var timerMock = new Mock<ITimer>();
 
-            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object);
-            model.IsToolTipVisible = true;
+            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object)
+            {
+                IsToolTipVisible = true
+            };
 
             // Act
             model.IsToolTipVisible = false;
@@ -182,9 +184,11 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             bool areVisible, SonarQubeNotification[] events)
         {
             var timerMock = new Mock<ITimer>();
-            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object);
-            model.AreNotificationsEnabled = areEnabled;
-            model.IsIconVisible = areVisible;
+            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object)
+            {
+                AreNotificationsEnabled = areEnabled,
+                IsIconVisible = areVisible
+            };
             model.SetNotificationEvents(events);
 
             return model;

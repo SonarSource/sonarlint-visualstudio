@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -62,8 +62,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
 
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
-            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-            this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
+            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher)
+            {
+                SonarQubeService = this.sonarQubeServiceMock.Object
+            };
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), new ConfigurableVsProjectSystemHelper(this.serviceProvider));
         }
 

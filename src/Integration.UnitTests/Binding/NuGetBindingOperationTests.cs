@@ -247,9 +247,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(NuGetBindingOperation testSubject, Dictionary<Language, IEnumerable<PackageName>> nugetPackagesByLanguage)
         {
-            var exportResponse = new RoslynExportProfileResponse();
-            exportResponse.Deployment = new DeploymentResponse();
-            exportResponse.Deployment.NuGetPackages = new List<NuGetPackageInfoResponse>();
+            var exportResponse = new RoslynExportProfileResponse
+            {
+                Deployment = new DeploymentResponse
+                {
+                    NuGetPackages = new List<NuGetPackageInfoResponse>()
+                }
+            };
 
             foreach (var nugetPackagesForLanguage in nugetPackagesByLanguage)
             {

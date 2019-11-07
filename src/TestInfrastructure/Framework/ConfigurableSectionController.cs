@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -109,19 +109,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public static ConfigurableSectionController CreateDefault()
         {
-            var section = new ConfigurableSectionController();
-            section.ViewModel = new ConfigurableConnectSectionViewModel();
-            section.View = new ConfigurableConnectSectionView();
-            section.ProgressHost = new ConfigurableProgressControlHost();
-            section.UserNotifications = new ConfigurableUserNotification();
-            section.BindCommand = new RelayCommand<BindCommandArgs>(args => { });
-            section.ConnectCommand = new RelayCommand(() => { });
-            section.DisconnectCommand = new RelayCommand(() => { });
-            section.ReconnectCommand = new RelayCommand(() => { });
-            section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => { });
-            section.BrowseToUrlCommand = new RelayCommand<string>(url => { });
-            section.BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { });
-            section.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { });
+            var section = new ConfigurableSectionController
+            {
+                ViewModel = new ConfigurableConnectSectionViewModel(),
+                View = new ConfigurableConnectSectionView(),
+                ProgressHost = new ConfigurableProgressControlHost(),
+                UserNotifications = new ConfigurableUserNotification(),
+                BindCommand = new RelayCommand<BindCommandArgs>(args => { }),
+                ConnectCommand = new RelayCommand(() => { }),
+                DisconnectCommand = new RelayCommand(() => { }),
+                ReconnectCommand = new RelayCommand(() => { }),
+                RefreshCommand = new RelayCommand<ConnectionInformation>(c => { }),
+                BrowseToUrlCommand = new RelayCommand<string>(url => { }),
+                BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { }),
+                ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { })
+            };
             return section;
         }
 

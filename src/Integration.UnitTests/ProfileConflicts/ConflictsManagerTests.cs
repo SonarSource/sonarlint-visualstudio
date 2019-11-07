@@ -56,8 +56,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.projectHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectHelper);
 
-            this.ruleSetInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider();
-            this.ruleSetInfoProvider.SolutionRootFolder = this.TestContext.TestRunDirectory;
+            this.ruleSetInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider
+            {
+                SolutionRootFolder = this.TestContext.TestRunDirectory
+            };
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfoProvider);
 
             this.fileSystem = new ConfigurableFileSystem();

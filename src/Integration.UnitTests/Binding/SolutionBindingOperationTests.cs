@@ -65,8 +65,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
             this.sccFileSystem = new ConfigurableSourceControlledFileSystem();
             this.ruleFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
-            this.ruleSetInfo = new ConfigurableSolutionRuleSetsInformationProvider();
-            this.ruleSetInfo.SolutionRootFolder = SolutionRoot;
+            this.ruleSetInfo = new ConfigurableSolutionRuleSetsInformationProvider
+            {
+                SolutionRootFolder = SolutionRoot
+            };
 
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
