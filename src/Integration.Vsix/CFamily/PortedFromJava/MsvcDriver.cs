@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -83,8 +84,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     if (arg.StartsWith("/I"))
                     {
                         string dirStr = args.readPrefix("/I");
-                        includeDirs.Add(Absolute(capture.Cwd, dirStr));
-
+                        var absolutePath = Absolute(capture.Cwd, dirStr);
+                        if (absolutePath != null)
+                        {
+                            includeDirs.Add(absolutePath);
+                        }
                     }
                     else if ("/X" == arg)
                     {
@@ -263,7 +267,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else
                     {
                         string file = Absolute(capture.Cwd, arg);
-                        files.Add(file);
+                        if (file != null)
+                        {
+                            files.Add(file);
+                        }
                         args.Index++;
                     }
                 }
@@ -278,9 +285,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     foreach (string env in capture.Env
                         .Where(env => env.StartsWith("INCLUDE=")))
                     {
-                        foreach (string dirStr in env.Substring("INCLUDE=".Length).Split(';'))
+                        foreach (string dirStr in env.Substring("INCLUDE=".Length).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
                         {
-                            includeDirs.Add(Absolute(capture.Cwd, dirStr));
+                            var path = Absolute(capture.Cwd, dirStr);
+                            if (path != null)
+                            {
+                                includeDirs.Add(path);
+                            }
                         }
                     }
                 }
@@ -404,15 +415,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /**
          * @return given path if it is absolute, otherwise prepends given base path
          */
-        static string Absolute(string basePath, string relativeOrAbsolutePath)
+        internal static string Absolute(string basePath, string relativeOrAbsolutePath)
         {
-            if (!System.IO.Path.IsPathRooted(relativeOrAbsolutePath))
-            {
-                return Path.Combine(basePath, relativeOrAbsolutePath).Replace('\\', '/');
-            }
-            return relativeOrAbsolutePath;
-        }
+            Debug.Assert(!string.IsNullOrEmpty(basePath), "basePath should not be empty");
+            Debug.Assert(!string.IsNullOrEmpty(relativeOrAbsolutePath), "relativeOrAbsolutePath should not be empty");
 
+            var cleanedPath = relativeOrAbsolutePath.Trim();
+
+            Debug.Assert(!cleanedPath.Any(c => Path.GetInvalidPathChars().Contains(c)), "relativeOrAbsolutePath should not contain invalid path characters");
+
+            if (string.IsNullOrEmpty(cleanedPath))
+            {
+                return null;
+            }
+
+            if (!System.IO.Path.IsPathRooted(cleanedPath))
+            {
+                return Path.Combine(basePath, cleanedPath).Replace('\\', '/');
+            }
+            return cleanedPath;
+        }
     }
 
     internal class Probe
@@ -461,7 +483,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
             return arg;
         }
-        
+
     }
 
     public static class JavaExtensions
