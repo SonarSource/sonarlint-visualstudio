@@ -45,12 +45,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() { "cl.exe", "file.cpp" },
                 }
             });
-            req.File.Should().Be("file.cpp");
+            req.File.Should().Be("basePath/file.cpp");
             req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14);
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
@@ -58,12 +58,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() { "cl.exe", "file.c" },
                 }
             });
-            req.File.Should().Be("file.c");
+            req.File.Should().Be("basePath/file.c");
             req.Flags.Should().Be(Request.MS | Request.C99 | Request.C11);
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
@@ -71,12 +71,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() { "cl.exe", "/TP", "file.c" },
                 }
             });
-            req.File.Should().Be("file.c");
+            req.File.Should().Be("basePath/file.c");
             req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14);
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
@@ -84,13 +84,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() { "cl.exe", "/TC", "file.cpp" },
                 }
             });
-            req.File.Should().Be("file.cpp");
+            req.File.Should().Be("basePath/file.cpp");
             req.Flags.Should().Be(Request.MS | Request.C99 | Request.C11);
+        }
+
+        [TestMethod]
+        public void File_RelativeAndAbsolutePath()
+        {
+            // 1. Relative Path
+            Request req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "root",
+                    Env = new List<string>(),
+                    Cmd = new List<string>() { "cl.exe", "subdir1\\subdir2\\file.cpp" }, //  \ should be converted to /
+                }
+            });
+            req.File.Should().Be("root/subdir1/subdir2/file.cpp");
+
+
+            // 2. Absolute path
+            req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "root",
+                    Env = new List<string>(),
+                    Cmd = new List<string>() { "cl.exe", "d://subdir1\\subdir2\\file.cpp" }, //  should not be changed
+                }
+            });
+            req.File.Should().Be("d://subdir1\\subdir2\\file.cpp");
         }
 
         [TestMethod]
@@ -129,24 +160,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>() { "INCLUDE=system" },
-                    Cmd = new List<string>() { "cl.exe", "/I", "user" },
+                    Cmd = new List<string>() { "cl.exe", "/I", "c:/user" },
                 }
             });
-            req.IncludeDirs.Should().Contain("user", "system");
+            req.IncludeDirs.Should().BeEquivalentTo("c:/user", "basePath/system");
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>() { "INCLUDE=system" },
-                    Cmd = new List<string>() { "cl.exe", "/I", "user", "/X" },
+                    Cmd = new List<string>() { "cl.exe", "/I", "d:\\user", "/X" },
                 }
             });
-            req.IncludeDirs.Should().Contain("user");
+            req.IncludeDirs.Should().BeEquivalentTo("d:\\user");
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
@@ -158,7 +189,71 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     Cmd = new List<string>() { "cl.exe", "/I", "user" },
                 }
             });
-            req.IncludeDirs.Should().Contain("cwd/user", "cwd/system");
+            req.IncludeDirs.Should().BeEquivalentTo("cwd/user", "cwd/system");
+
+        }
+
+        // Regression test for SLVS-1014: https://github.com/SonarSource/sonarlint-visualstudio/issues/1014
+        [TestMethod]
+        public void Include_Directories_MultipleIncludes()
+        {
+            var req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "cwd",
+                    Env = new List<string>()
+                    {
+                        "INCLUDE=system;;\r\tfoo\r\t;;bar\r\n",     // leading and training whitespace should be stripped
+                        "INCLUDE=include2a;;;;include2b",           // empty entries should be ignored
+                        "XXXINCLUDE=shouldbeignored",               // other environment variable
+                        "INCLUDE=include3a;\r\t\n  ; ;include3b",   // whitespace entries should be ignored
+                        "INCLUDE=subDir1\\subdir2\\relativePath1.txt", // \ should be converted to /
+                        "INCLUDE=c:\\absPath1"                      // Absolute path should not be changed
+                    },
+                    Cmd = new List<string>(), // no /I parameters
+                }
+            });
+
+            req.IncludeDirs.Should().BeEquivalentTo(
+                "cwd/system", "cwd/foo", "cwd/bar",
+                "cwd/include2a", "cwd/include2b",
+                "cwd/include3a", "cwd/include3b",
+                "cwd/subDir1/subdir2/relativePath1.txt",
+                "c:\\absPath1");
+        }
+
+        [TestMethod]
+        public void Include_Directories_SlashIArgs()
+        {
+            var req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "cwd",
+                    Env = new List<string>()
+                    {
+                        "NotAnInclude=should be ignored"
+                    },
+                    Cmd = new List<string>() { "cl.exe",
+                        "/I", "\r\tuser  \n", // leading and training whitespace should be stripped
+                        "/I", "foo",
+                        "i", "should be ignored - case-sensitive",
+                        "/I", "bar",
+                        "/I", "subdir2\\relativePath1.txt", // \ should be converted to /
+                        "/I", "c:\\absPath1"                // Absolute path should not be changed
+
+                    }
+                }
+            });
+            req.IncludeDirs.Should().BeEquivalentTo(
+                "cwd/user",
+                "cwd/foo",
+                "cwd/bar",
+                "cwd/subdir2/relativePath1.txt",
+                "c:\\absPath1");
         }
 
         [TestMethod]
@@ -385,7 +480,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
@@ -396,24 +491,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             });
             req.Flags.Should().Be(Request.C99 | Request.C11);
             req.Predefines.Should().Contain("#define __STDC__ 1\n");
-            req.File.Should().Be("file.c");
+            req.File.Should().Be("basePath/file.c");
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
                       "/Za",
-                      "file.cpp"
+                      "c:\\file.cpp"
                     },
                 }
             });
             req.Flags.Should().Be(Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 | Request.OperatorNames);
-            req.File.Should().Be("file.cpp");
+            req.File.Should().Be("c:\\file.cpp");
         }
 
         [TestMethod]
@@ -445,5 +540,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             req.TargetTriple.Should().Be("i686-pc-windows");
         }
 
+        [TestMethod]
+        public void AbsolutePathConversion()
+        {
+            // 1. Only whitespace -> null
+            MsvcDriver.Absolute("root", "\r\t\n   ")
+                .Should().BeNull();
+
+            // 2. Relative path with leading and trailing whitespce
+            MsvcDriver.Absolute("root", "\r\t\nsubdir1/subDir2\\xxx.foo")
+                    .Should().Be("root/subdir1/subDir2/xxx.foo");
+
+            // 3. Absolute path with leading and trailing whitespace
+            MsvcDriver.Absolute("root", "\r\t\nx:\\subdir1/subDir2\\xxx.foo")
+                    .Should().Be("x:\\subdir1/subDir2\\xxx.foo");
+        }
     }
 }
