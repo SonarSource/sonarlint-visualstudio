@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         private static MenuCommand CreateDisableRuleMenuCommand(IErrorList errorList, IUserSettingsProvider userSettingsProvider, ILogger logger)
         {
             var dummyMenuService = new DummyMenuCommandService();
-            var testSubject = new DisableRuleCommand(dummyMenuService, errorList, userSettingsProvider, logger);
+            new DisableRuleCommand(dummyMenuService, errorList, userSettingsProvider, logger);
 
             dummyMenuService.AddedMenuCommands.Count.Should().Be(1);
             return dummyMenuService.AddedMenuCommands[0];

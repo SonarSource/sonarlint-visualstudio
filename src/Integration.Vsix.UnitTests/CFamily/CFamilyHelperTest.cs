@@ -37,7 +37,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void FileConfig_Test1()
         {
-            string sqLanguage;
             CFamilyHelper.Capture[] captures = new CFamilyHelper.FileConfig()
             {
                 PlatformName = "Win32",
@@ -57,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 BasicRuntimeChecks = "Default",
                 AdditionalOptions = "/a1 /a2",
                 AbsoluteFilePath = FileName,
-            }.ToCaptures(FileName, out sqLanguage);
+            }.ToCaptures(FileName, out _);
             CFamilyHelper.Capture p = captures[0];
             CFamilyHelper.Capture c = captures[1];
 
@@ -86,7 +85,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void FileConfig_Test2()
         {
-            string sqLanguage;
             CFamilyHelper.Capture[] captures = new CFamilyHelper.FileConfig()
             {
                 PlatformName = "x64",
@@ -113,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 BasicRuntimeChecks = "EnableFastChecks",
                 AdditionalOptions = "",
                 AbsoluteFilePath = FileName,
-            }.ToCaptures(FileName, out sqLanguage);
+            }.ToCaptures(FileName, out _);
             CFamilyHelper.Capture p = captures[0];
             CFamilyHelper.Capture c = captures[1];
 

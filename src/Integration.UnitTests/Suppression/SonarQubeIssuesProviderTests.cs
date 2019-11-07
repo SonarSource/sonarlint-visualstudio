@@ -133,14 +133,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SetupSolutionBinding(isConnected: true, issues: new List<SonarQubeIssue>());
 
             // Act
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "keyXXX",
-                mockTimerFactory.Object, testLogger);
-            WaitForInitialFetchTaskToStart();
+            using (var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "keyXXX",
+                mockTimerFactory.Object, testLogger))
+            {
+                WaitForInitialFetchTaskToStart();
 
-            // Assert - issues are fetched and timer is started
-            VerifyTimerStart(Times.Once());
-            timerRunning.Should().Be(true);
-            VerifyServiceGetIssues(Times.Once(), "keyXXX");
+                // Assert - issues are fetched and timer is started
+                VerifyTimerStart(Times.Once());
+                timerRunning.Should().Be(true);
+                VerifyServiceGetIssues(Times.Once(), "keyXXX");
+            }
         }
 
         [TestMethod]
@@ -234,7 +236,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             var sonarQubeIssue1 = new SonarQubeIssue(null, null, null, "message", "sqkey", "S1", true);
             var sonarQubeIssue2 = new SonarQubeIssue("/foo/bar.cs", "hash", 12, "message", "sqkey", "S2", true);
 
-            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue1 },
+            SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", "") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);

@@ -172,8 +172,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var localProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
-
             ProjectTestPropertySetCommand testSubject;
             using (new AssertIgnoreScope()) // we want to be missing the MEF service
             {

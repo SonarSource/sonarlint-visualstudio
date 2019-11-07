@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
 
             public void Activate()
             {
-                var forceInitialization = Child;
+                _ = Child; // touch the property to make sure any initialization has been done
                 base.OnActivate(new CancelEventArgs());
             }
 

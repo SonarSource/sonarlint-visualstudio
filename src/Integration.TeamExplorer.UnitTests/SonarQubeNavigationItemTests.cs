@@ -33,7 +33,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void SonarQubeNavigationItem_Execute()
         {
             // Arrange
-            var serviceProvider = new ConfigurableServiceProvider();
             var controller = new ConfigurableTeamExplorerController();
 
             var testSubject = new SonarQubeNavigationItem(controller);
@@ -49,7 +48,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void SonarQubeNavigationItem_Ctor()
         {
             // Arrange
-            var serviceProvider = new ConfigurableServiceProvider();
             var controller = new ConfigurableTeamExplorerController();
 
             // Act

@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             this.settingsStore.AssertCollectionDoesNotExist(SonarLintSettings.SettingsRoot);
 
             // Act
-            SonarLintSettings testSubject = this.CreateTestSubject();
+            this.CreateTestSubject();
 
             // Assert
             this.settingsStore.AssertCollectionExists(SonarLintSettings.SettingsRoot);

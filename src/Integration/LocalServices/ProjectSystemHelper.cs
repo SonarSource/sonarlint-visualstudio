@@ -143,8 +143,7 @@ namespace SonarLint.VisualStudio.Integration
                 IVsProject vsProject = projectHierarchy as IVsProject;
                 int pfFound;
                 VSDOCUMENTPRIORITY[] pdwPriority = new VSDOCUMENTPRIORITY[1];
-                uint itemId;
-                if (ErrorHandler.Succeeded(vsProject.IsDocumentInProject(file, out pfFound, pdwPriority, out itemId)) && pfFound != 0)
+                if (ErrorHandler.Succeeded(vsProject.IsDocumentInProject(file, out pfFound, pdwPriority, out _)) && pfFound != 0)
                 {
                     return true;
                 }

@@ -149,7 +149,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange
             string wholeLineText = "whole line text";
-            string lineHash = ChecksumCalculator.Calculate(wholeLineText);
 
             Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
             SetLiveIssue(diag, startLine: 101, wholeLineText: wholeLineText);

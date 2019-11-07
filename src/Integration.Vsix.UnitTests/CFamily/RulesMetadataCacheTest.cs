@@ -74,8 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Read_Rules_Params()
         {
-            IDictionary<string, string> parameters = null;
-            RulesMetadataCache.GetSettings("cpp").RulesParameters.TryGetValue("ClassComplexity", out parameters);
+            RulesMetadataCache.GetSettings("cpp").RulesParameters.TryGetValue("ClassComplexity", out var parameters);
             parameters.Should()
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
 
@@ -84,8 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Read_Rules_Metadata()
         {
-            RuleMetadata metadata = null;
-            RulesMetadataCache.GetSettings("cpp").RulesMetadata.TryGetValue("ClassComplexity", out metadata);
+            RulesMetadataCache.GetSettings("cpp").RulesMetadata.TryGetValue("ClassComplexity", out var metadata);
             using (new AssertionScope())
             {
                 metadata.Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);

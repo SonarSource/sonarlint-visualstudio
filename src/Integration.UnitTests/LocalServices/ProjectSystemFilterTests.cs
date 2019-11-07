@@ -181,12 +181,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             result.Should().BeTrue("Project with non-bool property SonarQubeTestProject should be accepted");
 
-            // Test case 3: non-bool, non-empty -> not accepted
+            // Test case 3: non-bool, non-empty -> treat as false -> is accepted
             // Arrange
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "123");
 
             // Act
             result = testSubject.IsAccepted(project);
+            result.Should().BeTrue();
 
             // Test case 4: property true -> not accepted
             // Arrange

@@ -300,6 +300,7 @@ namespace SonarAnalyzer.Helpers
   class SonarAnalysisContext {}
 }";
             Assembly asm = CreateAndLoadAssembly(SonarAnalyzerAssemblyName, "102.0", sourceContextButNoProperty);
+            asm.Should().NotBeNull();
 
             // Act - should not error
             using (CreateTestSubject())

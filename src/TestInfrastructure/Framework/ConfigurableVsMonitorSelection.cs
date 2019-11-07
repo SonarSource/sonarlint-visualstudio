@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -108,8 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void RegisterKnownContext(Guid contextId)
         {
-            uint unusedCookie;
-            ((IVsMonitorSelection)this).GetCmdUIContextCookie(ref contextId, out unusedCookie);
+            ((IVsMonitorSelection)this).GetCmdUIContextCookie(ref contextId, out _);
         }
 
         public void SetContext(Guid contextId, bool activate)

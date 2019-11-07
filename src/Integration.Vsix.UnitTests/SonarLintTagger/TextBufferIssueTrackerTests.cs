@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void WhenFileIsSaved_ButNoTaggers_AnalysisIsNotRequested()
         {
             // Arrange
-            var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
+            _ = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
 
             CheckAnalysisWasNotRequested();
@@ -200,7 +200,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
-            var tagger = new IssueTagger(testSubject);
 
             // Act
             using (new AssertIgnoreScope())
@@ -230,7 +229,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
-            var tagger = new IssueTagger(testSubject);
 
             // Sanity check
             testSubject.LastIssues.Should().BeNull();

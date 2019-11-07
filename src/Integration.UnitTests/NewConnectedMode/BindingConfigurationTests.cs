@@ -162,6 +162,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act & Assert
             CheckAreNotEqual(config1, config2);
             CheckAreNotEqual(config2, config1);
+
+            CheckAreNotEqual(standalone, config1);
+            CheckAreNotEqual(standalone, config2);
         }
 
         [TestMethod]

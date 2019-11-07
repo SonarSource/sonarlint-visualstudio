@@ -256,8 +256,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             this.CreateTestSubject(tracker);
-            // Previous binding information that should be cleared once there's no solution
-            var boundProject = new SonarQubeProject("bla", "");
 
             this.stateManager.BoundProjectKey = "bla";
             this.stateManager.SetBoundProject(new Uri("http://localhost"), null, "bla");

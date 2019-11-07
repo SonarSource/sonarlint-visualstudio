@@ -126,8 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private bool IsValidUrl(string url)
         {
-            Uri dummyResult;
-            if (!Uri.TryCreate(url, UriKind.Absolute, out dummyResult))
+            if (!Uri.TryCreate(url, UriKind.Absolute, out _))
             {
                 logger.WriteLine(Strings.Daemon_InvalidUrlInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
                 return false;
