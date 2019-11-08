@@ -30,6 +30,7 @@
   
   <ItemGroup Label="Framework references">
     <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="WindowsBase" />
