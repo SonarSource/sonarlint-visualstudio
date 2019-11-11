@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
+using Microsoft.VisualStudio.PlatformUI;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection.UI
@@ -31,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Connection.UI
     /// Interaction logic for OrganizationSelectionWindow.xaml
     /// </summary>
     [ExcludeFromCodeCoverage] // Rely on Visual Studio elements that cannot be rendered under test
-    public partial class OrganizationSelectionWindow
+    public partial class OrganizationSelectionWindow : DialogWindow
     {
         public SonarQubeOrganization Organization { get; private set; }
 
