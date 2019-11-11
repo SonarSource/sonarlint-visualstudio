@@ -32,6 +32,7 @@ using SonarQube.Client.Requests;
 using SonarQube.Client.Models;
 using SonarQube.Client.Api;
 using System.Globalization;
+using System.Linq;
 
 namespace SonarQube.Client.Tests
 {
@@ -43,7 +44,7 @@ namespace SonarQube.Client.Tests
 
         private RequestFactory requestFactory;
 
-        private static readonly Uri BasePath = new Uri("http://localhost");
+        private const string DefaultBasePath = "http://localhost/";
 
         private const string UserAgent = "the-test-user-agent/1.0";
 
@@ -61,15 +62,15 @@ namespace SonarQube.Client.Tests
             requestFactory = new RequestFactory(logger);
             DefaultConfiguration.Configure(requestFactory);
 
-            service = new SonarQubeService(messageHandler.Object, requestFactory, UserAgent, logger);
+            ResetService();
         }
 
-        protected void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK)
+        protected void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK, string serverUrl = DefaultBasePath)
         {
             messageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync",
                     ItExpr.Is<HttpRequestMessage>(m =>
-                        m.RequestUri == new Uri(BasePath, relativePath) &&
+                        m.RequestUri == new Uri(new Uri(serverUrl), relativePath) &&
                         m.Headers.UserAgent.ToString() == UserAgent), // UserAgent should be always sent
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
@@ -79,24 +80,30 @@ namespace SonarQube.Client.Tests
                 }));
         }
 
-        protected async Task ConnectToSonarQube(string version = "5.6.0.0")
+        protected async Task ConnectToSonarQube(string version = "5.6.0.0", string serverUrl = DefaultBasePath)
         {
-            SetupRequest("api/server/version", version);
-            SetupRequest("api/authentication/validate", "{ \"valid\": true}");
+            SetupRequest("api/server/version", version, serverUrl: serverUrl);
+            SetupRequest("api/authentication/validate", "{ \"valid\": true}", serverUrl: serverUrl);
 
             await service.ConnectAsync(
-                new ConnectionInformation(BasePath, "valeri", new SecureString()),
+                new ConnectionInformation(new Uri(serverUrl), "valeri", new SecureString()),
                 CancellationToken.None);
 
             // Sanity checks
             service.IsConnected.Should().BeTrue();
+
             service.SonarQubeVersion.Should().Be(new Version(version));
             logger.InfoMessages.Should().Contain(
-                new[]
-                {
-                    "Connecting to 'http://localhost/'.",
-                    $"Connected to SonarQube '{version}'.",
-                });
+                x => x.StartsWith($"Connecting to '{serverUrl}", StringComparison.OrdinalIgnoreCase));
+
+            logger.InfoMessages.Should().Contain(
+                x => x.StartsWith($"Connected to SonarQube '{version}'."));
+        }
+
+        protected void ResetService()
+        {
+            messageHandler.Reset();
+            service = new SonarQubeService(messageHandler.Object, requestFactory, UserAgent, logger);
         }
     }
 }
