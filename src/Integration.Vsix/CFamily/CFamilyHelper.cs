@@ -45,8 +45,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private static readonly string analyzerExeFilePath = Path.Combine(
             CFamilyFilesDirectory, "subprocess.exe");
 
-        private const int AnalysisTimeoutMs = 10 * 1000;
-        
+        private const int DefaultAnalysisTimeoutMs = 10 * 1000;
+        private const string TimeoutEnvVar = "SONAR_CFAMILY_TIMEOUT_MS";
+
+
         public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, GetRulesConfiguration rulesConfigSelector)
         {
             if (IsHeaderFile(absoluteFilePath))
@@ -196,10 +198,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             ProcessRunnerArguments args = new ProcessRunnerArguments(analyzerExeFilePath, false);
             args.CmdLineArgs = new string[] { fileName };
-            args.TimeoutInMilliseconds = AnalysisTimeoutMs;
+            args.TimeoutInMilliseconds = GetTimeoutInMs();
 
             bool success = runner.Execute(args);
             return success;
+        }
+
+        internal /* for testing*/ static int GetTimeoutInMs()
+        {
+            var setting = Environment.GetEnvironmentVariable(TimeoutEnvVar);
+
+            if (int.TryParse(setting, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo,  out int userSuppliedTimeout)
+                && userSuppliedTimeout > 0)
+            {
+                return userSuppliedTimeout;
+            }
+
+            return DefaultAnalysisTimeoutMs;
         }
 
         internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
