@@ -206,18 +206,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         internal /* for testing*/ static int GetTimeoutInMs()
         {
-            var timeout = DefaultAnalysisTimeoutMs;
-
             var setting = Environment.GetEnvironmentVariable(TimeoutEnvVar);
 
-            if (setting != null
-                && int.TryParse(setting, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo,  out int userSuppliedTimeout)
+            if (int.TryParse(setting, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo,  out int userSuppliedTimeout)
                 && userSuppliedTimeout > 0)
             {
-                timeout = userSuppliedTimeout;
+                return userSuppliedTimeout;
             }
 
-            return timeout;
+            return DefaultAnalysisTimeoutMs;
         }
 
         internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
