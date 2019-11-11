@@ -534,6 +534,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             issue.Type.Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
         }
 
+        [TestMethod]
+        public void SubProcessTimeout()
+        {
+            SetTimeoutAndCheckCalculatedTimeout("", 10000); // not set -> default
+
+            SetTimeoutAndCheckCalculatedTimeout("222", 222); // valid -> used
+            SetTimeoutAndCheckCalculatedTimeout("200000", 200000); // valid -> used
+
+            SetTimeoutAndCheckCalculatedTimeout("-111", 10000); // invalid -> default
+            SetTimeoutAndCheckCalculatedTimeout("not an integer", 10000);
+            SetTimeoutAndCheckCalculatedTimeout("1.23", 10000);
+            SetTimeoutAndCheckCalculatedTimeout("2,000", 10000);
+            SetTimeoutAndCheckCalculatedTimeout("2.001", 10000);
+
+            void SetTimeoutAndCheckCalculatedTimeout(string valueToSet, int expectedTimeout)
+            {
+                using (new EnvironmentVariableScope())
+                {
+                    Environment.SetEnvironmentVariable("SONAR_CFAMILY_TIMEOUT_MS", valueToSet);
+
+                    CFamilyHelper.GetTimeoutInMs().Should().Be(expectedTimeout);
+                }
+            }
+        }
+
         private static IRulesConfiguration GetDummyRulesConfiguration()
         {
             var config = new DummyRulesConfiguration
@@ -571,12 +596,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             projectMock.ConfigurationManager.ActiveConfiguration = new ConfigurationMock("dummy config");
 
             return projectItemMock;
-        }
-
-        private static void AssertFileNotAnalysed(Mock<IProcessRunner> daemonMock)
-        {
-            daemonMock.Verify(d => d.Execute(It.IsAny<ProcessRunnerArguments>()),
-                Times.Never);
         }
 
         private static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
