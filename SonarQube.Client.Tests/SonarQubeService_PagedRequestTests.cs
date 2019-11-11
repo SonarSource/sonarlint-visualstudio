@@ -79,7 +79,7 @@ namespace SonarQube.Client.Tests
   ]
 }");
             var result = await request.InvokeAsync(client, CancellationToken.None);
-            result.Count().Should().Be(2);
+            result.Should().HaveCount(2);
         }
 
         [TestMethod]
@@ -147,7 +147,7 @@ namespace SonarQube.Client.Tests
             var result = await request.InvokeAsync(client, CancellationToken.None);
 
             // Should stop after two pages of data
-            result.Count().Should().Be(10);
+            result.Should().HaveCount(10);
         }
 
         private void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK)
