@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -41,7 +41,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
             if (currentConnection != null)
             {
                 vm.ServerUrlRaw = currentConnection.ServerUri.AbsoluteUri;
-                vm.Username = currentConnection.UserName;
+                // Security: don't populate the user name field, as this might be a token
+                // See https://github.com/SonarSource/sonarlint-visualstudio/issues/1081
             }
 
             return vm;

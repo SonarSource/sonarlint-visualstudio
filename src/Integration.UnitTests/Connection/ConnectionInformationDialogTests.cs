@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             // Assert
             viewModel.ServerUrl.Should().Be(connectionInformation.ServerUri, "Unexpected ServerUrl");
-            viewModel.Username.Should().Be(connectionInformation.UserName, "Unexpected UserName");
+            viewModel.Username.Should().Be(null, "Not expecting the user name to be populated");
         }
     }
 }
