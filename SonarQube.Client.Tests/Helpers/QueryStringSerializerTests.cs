@@ -97,6 +97,10 @@ namespace SonarQube.Client.Helpers
                 .Should().Be("a=10&b=true&c=x&c=y");
         }
 
+        #region Dummy serialization test classes
+
+#pragma warning disable IDE1006 // Naming Styles
+
         public class SimpleProperties
         {
             public int a { get; set; }
@@ -134,9 +138,16 @@ namespace SonarQube.Client.Helpers
 
         public class PrivateProperties
         {
+#pragma warning disable IDE0051 // Remove unused private members
             private int a { get; set; }
+#pragma warning restore IDE0051 // Remove unused private members
             protected int b { get; set; }
             internal int c { get; set; }
         }
+
+#pragma warning restore IDE1006 // Naming Styles
+
+        #endregion Dummy serialization test classes
+
     }
 }

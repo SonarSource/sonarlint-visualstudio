@@ -53,7 +53,7 @@ namespace SonarQube.Client.Tests
 
             // TODO: create a protobuf file with more than one issue with different states
             // the one above does not have suppressed issues, hence the Count==0
-            result.Should().HaveCount(0);
+            result.Should().BeEmpty();
 
             messageHandler.VerifyAll();
         }
