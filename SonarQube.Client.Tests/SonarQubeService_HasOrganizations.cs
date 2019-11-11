@@ -19,8 +19,6 @@
  */
 
 using System;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -32,148 +30,34 @@ namespace SonarQube.Client.Tests
     public class SonarQubeService_HasOrganizations : SonarQubeService_TestBase
     {
         [TestMethod]
-        public async Task HasOrganizations_5_60()
+        public async Task HasOrganizations_NotSonarCloud_ReturnsFalse()
         {
-            await ConnectToSonarQube();
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeFalse();
+            // Version should be irrelevant
+            await CheckDoesNotHaveOrganizations("5.6.0.0", "http://localhost");
+            await CheckDoesNotHaveOrganizations("6.0.0.0", "https://localhost/");
+            await CheckDoesNotHaveOrganizations("6.1.0.0", "https://localhost:9000");
+            await CheckDoesNotHaveOrganizations("6.7.0.0", "https://mysonarqubeserver/");
+            await CheckDoesNotHaveOrganizations("7.9.0.0", "https://notsonarcloud.io/");
+            await CheckDoesNotHaveOrganizations("7.9.0.0", "https://sonarcloud.ion/");
+            await CheckDoesNotHaveOrganizations("7.9.0.0", "http://sonarcloud.ion/");
+            await CheckDoesNotHaveOrganizations("99.99.0.0", "https://my.org.sonarqube:123");
         }
 
         [TestMethod]
-        public async Task HasOrganizations_6_00()
+        public async Task HasOrganizations_SonarCloud_ReturnsTrue()
         {
-            await ConnectToSonarQube("6.0.0.0");
+            // Version should be irrelevant
+            await CheckHasOrganizations("5.6.0.0", "https://sonarcloud.io/");
+            await CheckHasOrganizations("6.0.0.0", "https://sonarcloud.io/");
+            await CheckHasOrganizations("6.1.0.0", "https://sonarcloud.io/");
+            await CheckHasOrganizations("6.7.0.0", "https://sonarcloud.io/");
+            await CheckHasOrganizations("7.9.0.0", "https://sonarcloud.io/");
+            await CheckHasOrganizations("99.99.0.0", "https://sonarcloud.io/");
 
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_6_10()
-        {
-            await ConnectToSonarQube("6.1.0.0");
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_6_70_SonarQube_Default_ReturnsFalse()
-        {
-            await ConnectToSonarQube("6.7.0.0");
-
-            SetupRequest("api/organizations/search?p=1&ps=3",
-                // default API response from SQ6.7
-                @"{""organizations"":[{""key"":""default-organization"",""name"":""Default Organization"",""guarded"":true}],""paging"":{""pageIndex"":1,""pageSize"":3,""total"":1}}");
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_6_70_WithOrganizations_ReturnsTrue()
-        {
-            await ConnectToSonarQube("6.7.0.0");
-
-            SetupRequestWithOrganizations();
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_7_90_SonarQube_Default_ReturnsFalse()
-        {
-            await ConnectToSonarQube("7.9.0.0");
-
-            SetupRequest("api/organizations/search?p=1&ps=3",
-                // default response from SonarQube 7.9
-                @"{""organizations"":[{""key"":""default-organization"",""name"":""Default Organization"",""guarded"":true,""actions"":{""admin"":false,""delete"":false,""provision"":false}}],""paging"":{""pageIndex"":1,""pageSize"":3,""total"":1}}");
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_7_90_WithOrganizations_ReturnsTrue()
-        {
-            await ConnectToSonarQube("7.9.0.0");
-
-            SetupRequestWithOrganizations();
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_7_90_SonarCloud_ReturnsTrue()
-        {
-            await ConnectToSonarQube("7.9.0.0");
-
-            // Actual response from SonarCloud at the point this test was written
-            var sonarCloudResponse = @"{""organizations"":[{""key"":""farmsmart"",""name"":""FarmSmart"",""description"":"""",""url"":""https://www.farmsmart.co"",
-""avatar"":""https://avatars3.githubusercontent.com/u/49406855?v=4"",""actions"":{""admin"":false,""delete"":false,""provision"":false}},
-{""key"":""user-zero"",""name"":""user-zero"",""description"":"""",""url"":"""",""avatar"":""https://avatars2.githubusercontent.com/u/18621890?v=4"",
-""actions"":{""admin"":false,""delete"":false,""provision"":false}},{""key"":""kvalchev"",""name"":""kvalchev"",""description"":"""",""url"":"""",""avatar"":"""",
-""actions"":{""admin"":false,""delete"":false,""provision"":false}}],""paging"":{""pageIndex"":1,""pageSize"":3,""total"":41974}}";
-
-            SetupRequest("api/organizations/search?p=1&ps=3", sonarCloudResponse);
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_99_99_Default_ReturnsFalse()
-        {
-            await ConnectToSonarQube("99.99.0.0");
-
-            SetupRequest("api/organizations/search?p=1&ps=3",
-                // default response from SonarQube 7.9
-                @"{""organizations"":[{""key"":""default-organization"",""name"":""Default Organization"",""guarded"":true,""actions"":{""admin"":false,""delete"":false,""provision"":false}}],""paging"":{""pageIndex"":1,""pageSize"":3,""total"":1}}");
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_99_99_WithOrganizations_ReturnsTrue()
-        {
-            await ConnectToSonarQube("99.99.0.0");
-
-            SetupRequestWithOrganizations();
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_EmptyOrganizationList_ReturnsFalse()
-        {
-            await ConnectToSonarQube("6.2.0.0");
-
-            // Should not fail if the list is empty
-            SetupRequest("api/organizations/search?p=1&ps=3",
-@"
-{
-  ""organizations"": []
-}");
-
-            var result = await service.HasOrganizations(CancellationToken.None);
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public async Task HasOrganizations_99_90_NonOkHttpResponse_ReturnsTrue()
-        {
-            await ConnectToSonarQube("7.9.0.0");
-
-            SetupRequestWithOrganizations(HttpStatusCode.InternalServerError);
-
-            Action act = () => { var result = service.HasOrganizations(CancellationToken.None).Result; };
-
-            act.Should().ThrowExactly<HttpRequestException>();
+            // Casing, final slash
+            await CheckHasOrganizations("99.99.0.0", "https://sonarcloud.io");
+            await CheckHasOrganizations("99.99.0.0", "HTTPS://SONARCLOUD.IO");
+            await CheckHasOrganizations("99.99.0.0", "HTTPS://SONARCLOUD.IO/");
         }
 
         [TestMethod]
@@ -190,32 +74,22 @@ namespace SonarQube.Client.Tests
             logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
 
-        private void SetupRequestWithOrganizations(HttpStatusCode httpResponseStatusCode = HttpStatusCode.OK)
+        private async Task CheckHasOrganizations(string serverVersion, string serverUrl)
         {
-            SetupRequest("api/organizations/search?p=1&ps=3",
-@"
-{
-  ""paging"": {
-    ""pageIndex"": 1,
-    ""pageSize"": 25,
-    ""total"": 2
-  },
-  ""organizations"": [
-    {
-      ""key"": ""foo-company"",
-      ""name"": ""Foo Company"",
-      ""guarded"": true
-    },
-    {
-      ""key"": ""bar-company"",
-      ""name"": ""Bar Company"",
-      ""description"": ""The Bar company produces quality software too."",
-      ""url"": ""https://www.bar.com"",
-      ""avatar"": ""https://www.bar.com/logo.png"",
-      ""guarded"": false
-    }
-  ]
-}", httpResponseStatusCode);
+            ResetService();
+            await ConnectToSonarQube(serverVersion, serverUrl);
+
+            var result = await service.HasOrganizations(CancellationToken.None);
+            result.Should().BeTrue();
+        }
+
+        private async Task CheckDoesNotHaveOrganizations(string serverVersion, string serverUrl)
+        {
+            ResetService();
+            await ConnectToSonarQube(serverVersion, serverUrl);
+
+            var result = await service.HasOrganizations(CancellationToken.None);
+            result.Should().BeFalse();
         }
     }
 }

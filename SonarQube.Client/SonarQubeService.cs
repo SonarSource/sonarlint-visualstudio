@@ -51,31 +51,9 @@ namespace SonarQube.Client
         {
             EnsureIsConnected();
 
-            // 1. Server must support the API
-            if (SonarQubeVersion < OrganizationsFeatureMinimalVersion)
-            {
-                return false;
-            }
+            var hasOrganisations = this.httpClient.BaseAddress.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase);
 
-            // 2. There must actually be a organizations on the server
-            var organizations = await InvokeRequestAsync<IGetOrganizationsRequest, SonarQubeOrganization[]>(
-                request =>
-                {
-                    // Need to look at all organizations since a user can have zero organizations
-                    request.OnlyUserOrganizations = false;
-
-                    // Selecting all of the organizations would take too long so we need to 
-                    // limit the number returned.
-                    // The fact that setting the page size has this effect seems like a bug, but
-                    // there are other requests that currently rely on this behaviour.
-                    // It's now being tracked by https://github.com/SonarSource/sonarqube-webclient-dotnet/issues/8
-                    request.PageSize = 3;
-                },
-                token);
-
-            // SonarQube 6.2 or later has the API and a default organization so we are expecting to find
-            // one organization even on SQ, so we need to check for > 1 organization
-            return organizations != null && organizations.Count() > 1;
+            return await Task.FromResult<bool>(hasOrganisations);
         }
 
         public bool IsConnected { get; private set; }
