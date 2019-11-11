@@ -147,7 +147,7 @@ namespace SonarQube.Client.Tests
 
             messageHandler.VerifyAll();
 
-            result.Should().HaveCount(1);
+            result.Should().ContainSingle();
 
             result[0].Key.Should().Be("sq-project-key");
             result[0].Name.Should().Be("SonarQube Project Name");
