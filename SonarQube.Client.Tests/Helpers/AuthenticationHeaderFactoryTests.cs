@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarQube Client
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -73,8 +73,8 @@ namespace SonarQube.Client.Helpers.Tests
             userNameAndPasswordTokens[0] = userNameAndPassword.Substring(0, index);
             userNameAndPasswordTokens[1] = userNameAndPassword.Substring(index + 1, userNameAndPassword.Length - index - 1);
 
-            userNameAndPasswordTokens[0].Should().Be(expectedUser, "Unexpected user name");
-            userNameAndPasswordTokens[1].Should().Be(expectedPassword, "Unexpected password");
+            userNameAndPasswordTokens.Should().HaveElementAt(0, expectedUser);
+            userNameAndPasswordTokens.Should().HaveElementAt(1, expectedPassword);
         }
     }
 }

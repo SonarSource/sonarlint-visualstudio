@@ -42,8 +42,8 @@ namespace SonarQube.Client.Tests.Services
         {
             var factory = new RequestFactory(logger);
             Action action = () => factory.Create<ITestRequest>(new Version(1, 0, 0));
-            action.Should().ThrowExactly<InvalidOperationException>().And
-                .Message.Should().Be("Could not find factory for 'ITestRequest'.");
+            action.Should().ThrowExactly<InvalidOperationException>()
+                .WithMessage("Could not find factory for 'ITestRequest'.");
 
             logger.ErrorMessages.Should().Contain(new[] { "Could not find factory for 'ITestRequest'." });
         }
@@ -55,8 +55,8 @@ namespace SonarQube.Client.Tests.Services
             factory.RegisterRequest<ITestRequest, TestRequest1>("2.0.0");
 
             Action action = () => factory.Create<ITestRequest>(new Version(1, 0, 0));
-            action.Should().ThrowExactly<InvalidOperationException>().And
-                .Message.Should().Be("Could not find compatible implementation of 'ITestRequest' for SonarQube 1.0.0.");
+            action.Should().ThrowExactly<InvalidOperationException>()
+                .WithMessage("Could not find compatible implementation of 'ITestRequest' for SonarQube 1.0.0.");
 
             logger.ErrorMessages.Should().Contain(new[] { "Could not find compatible implementation of 'ITestRequest' for SonarQube 1.0.0." });
         }
@@ -123,8 +123,8 @@ namespace SonarQube.Client.Tests.Services
 
             Action action = () => factory.RegisterRequest<ITestRequest, TestRequest2>("1.0.0");
 
-            action.Should().ThrowExactly<InvalidOperationException>().And
-                .Message.Should().Be("Registration for ITestRequest with version 1.0.0 already exists.");
+            action.Should().ThrowExactly<InvalidOperationException>()
+                .WithMessage("Registration for ITestRequest with version 1.0.0 already exists.");
 
             logger.ErrorMessages.Should().Contain(new[] { "Registration for ITestRequest with version 1.0.0 already exists." });
         }

@@ -68,8 +68,8 @@ namespace SonarQube.Client.Tests
 
             Action action = () => { var result = service.HasOrganizations(CancellationToken.None).Result; };
 
-            action.Should().ThrowExactly<InvalidOperationException>().And
-                .Message.Should().Be("This operation expects the service to be connected.");
+            action.Should().ThrowExactly<InvalidOperationException>()
+                .WithMessage("This operation expects the service to be connected.");
 
             logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
