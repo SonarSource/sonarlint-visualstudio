@@ -90,9 +90,10 @@ namespace SonarQube.Client.Models
         /// correct scheme and url. See https://github.com/SonarSource/sonarlint-visualstudio/issues/796
         /// </summary>
         private static Uri FixSonarCloudUri(Uri serverUri) =>
-            serverUri.Host.IndexOf("sonarcloud.io", StringComparison.OrdinalIgnoreCase) < 0
-                ? serverUri
-                : new Uri("https://sonarcloud.io/");
+            (serverUri.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase) ||
+             serverUri.Host.Equals("www.sonarcloud.io", StringComparison.OrdinalIgnoreCase))
+                ? new Uri("https://sonarcloud.io/")
+                : serverUri;
 
         #region IDisposable Support
 
