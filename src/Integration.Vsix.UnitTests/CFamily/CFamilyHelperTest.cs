@@ -552,7 +552,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             {
                 using (new EnvironmentVariableScope())
                 {
-                    Environment.SetEnvironmentVariable("SONAR_CFAMILY_TIMEOUT_MS", valueToSet);
+                    Environment.SetEnvironmentVariable("SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS", valueToSet);
 
                     CFamilyHelper.GetTimeoutInMs().Should().Be(expectedTimeout);
                 }

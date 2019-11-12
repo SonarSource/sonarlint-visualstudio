@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             CFamilyFilesDirectory, "subprocess.exe");
 
         private const int DefaultAnalysisTimeoutMs = 10 * 1000;
-        private const string TimeoutEnvVar = "SONAR_CFAMILY_TIMEOUT_MS";
+        private const string TimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
 
 
         public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, GetRulesConfiguration rulesConfigSelector)
