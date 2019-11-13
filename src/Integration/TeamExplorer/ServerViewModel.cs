@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     public class ServerViewModel : ViewModelBase
     {
         private readonly ConnectionInformation connectionInformation;
-        private readonly ObservableCollection<ProjectViewModel> projects = new ObservableCollection<ProjectViewModel>();
+        private ObservableCollection<ProjectViewModel> projects = new ObservableCollection<ProjectViewModel>();
         private readonly ContextualCommandsCollection commands = new ContextualCommandsCollection();
         private bool showAllProjects;
         private bool isExpanded;
@@ -64,10 +64,10 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                 .OrderBy(p => p.Name, StringComparer.CurrentCulture)
                 .Select(project => new ProjectViewModel(this, project));
 
-            foreach (var projectVM in projectViewModels)
-            {
-                this.Projects.Add(projectVM);
-            }
+            // We'll create a new collection and replace the old one: if we add items to the existing
+            // collection we'll get a property change notification for each item
+            this.projects = new ObservableCollection<ProjectViewModel>(projectViewModels);
+            this.RaisePropertyChanged("Projects");
 
             this.ShowAllProjects = true;
         }
