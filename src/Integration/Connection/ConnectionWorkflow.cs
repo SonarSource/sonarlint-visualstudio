@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Workflow steps
 
-        internal /* for testing purposes */ async Task ConnectionStepAsync(ConnectionInformation connection,
+        internal /* for testing purposes */ async Task ConnectionStepAsync(ConnectionInformation connection, 
             IProgressController controller, IProgressStepExecutionEvents notifications, CancellationToken cancellationToken)
         {
             this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToConnectId);
@@ -152,8 +152,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
                             AbortWithMessage(notifications, controller, cancellationToken); // TODO: Might be worth throwing
                             return;
                         }
-
                     }
+
                 }
 
                 // Persist the credentials on successful connection to SonarQube, unless

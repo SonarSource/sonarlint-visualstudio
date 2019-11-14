@@ -16,6 +16,9 @@
              xmlns:vstheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsutilities="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
              x:Name="UserControlRoot"
+             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+             MaxHeight="600"
+             MinHeight="100"
              d:DesignHeight="300"
              d:DesignWidth="300"
              mc:Ignorable="d">
@@ -32,151 +35,167 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel Style="{StaticResource SQTESectionStyle}">
+    <Border BorderThickness="1" BorderBrush="Transparent">
 
-        <StackPanel Margin="0,6,6,6" Visibility="{Binding State.ConnectedServers.Count, Converter={StaticResource IntToVisibleConverter}, ConverterParameter=Invert}">
-            <Grid Margin="0,0,0,6">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Image Grid.Column="0"
-                       Width="32" Height="32" Margin="0,0,6,0"
-                       VerticalAlignment="Center"
-                       SnapsToDevicePixels="True"
-                       Source="{StaticResource SonarQubeServerIcon}" />
-                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Style="{StaticResource EmphasizedText}" Text="{x:Static resx:UIStrings.SonarQubeName}" />
-                    <TextBlock Style="{StaticResource SubduedText}" Text="{x:Static resx:UIStrings.ProductAuthors}" />
+        <Grid Style="{StaticResource SQTESectionStyle}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <StackPanel Margin="0,6,6,6" Visibility="{Binding State.ConnectedServers.Count, Converter={StaticResource IntToVisibleConverter}, ConverterParameter=Invert}">
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0"
+                           Width="32" Height="32" Margin="0,0,6,0"
+                           VerticalAlignment="Center"
+                           SnapsToDevicePixels="True"
+                           Source="{StaticResource SonarQubeServerIcon}" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource EmphasizedText}" Text="{x:Static resx:UIStrings.SonarQubeName}" />
+                            <TextBlock Style="{StaticResource SubduedText}" Text="{x:Static resx:UIStrings.ProductAuthors}" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Grid.Row="1"
+                           Margin="0,0,0,6"
+                           Text="{x:Static resx:UIStrings.SonarQubeDescription}"
+                           TextWrapping="Wrap" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <tecontrols:TextLink x:Name="ConnectLink"
+                                         Grid.Column="0"
+                                         Command="{Binding ConnectCommand}"
+                                         CommandParameter="{Binding ElementName=progressPlacePlaceholder}"
+                                         Text="{x:Static resx:UIStrings.ConnectLinkText}" />
+                        <tecontrols:TextLink Grid.Column="2"
+                                         Command="{Binding BrowseToUrlCommand}"
+                                         CommandParameter="{x:Static root:Constants.SonarQubeHomeWebUrl}"
+                                         Text="{x:Static resx:UIStrings.MoreInfoLinkText}" />
+                    </Grid>
                 </StackPanel>
-            </Grid>
-            <TextBlock Grid.Row="1"
-                       Margin="0,0,0,6"
-                       Text="{x:Static resx:UIStrings.SonarQubeDescription}"
-                       TextWrapping="Wrap" />
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <tecontrols:TextLink x:Name="ConnectLink"
-                                     Grid.Column="0"
-                                     Command="{Binding ConnectCommand}"
-                                     CommandParameter="{Binding ElementName=progressPlacePlaceholder}"
-                                     Text="{x:Static resx:UIStrings.ConnectLinkText}" />
-                <tecontrols:TextLink Grid.Column="2"
-                                     Command="{Binding BrowseToUrlCommand}"
-                                     CommandParameter="{x:Static root:Constants.SonarQubeHomeWebUrl}"
-                                     Text="{x:Static resx:UIStrings.MoreInfoLinkText}" />
-            </Grid>
-        </StackPanel>
 
-        <ContentControl Name="progressPlacePlaceholder" />
+                <ContentControl Name="progressPlacePlaceholder" />
+            </StackPanel>
 
-        <StackPanel Visibility="{Binding State.ConnectedServers.Count, Converter={StaticResource IntToVisibleConverter}}">
+            <StackPanel Grid.Row="1"
+            Visibility="{Binding State.ConnectedServers.Count, Converter={StaticResource IntToVisibleConverter}}">
+                <TextBox x:Name="FilterTextBox" Style="{StaticResource FilterTextBox}" />
 
-            <TextBox x:Name="FilterTextBox" Style="{StaticResource FilterTextBox}" />
-
-            <TextBlock Margin="6,0"
-                       KeyboardNavigation.IsTabStop="False"
-                       Style="{StaticResource SQStaticTextStyle}"
-                       Text="{x:Static resx:UIStrings.SelectProjectInstruction}"
-                       TextWrapping="Wrap"
-                       Visibility="{Binding State.HasBoundProject,
+                <TextBlock Margin="6,0"
+                        KeyboardNavigation.IsTabStop="False"
+                        Style="{StaticResource SQStaticTextStyle}"
+                        Text="{x:Static resx:UIStrings.SelectProjectInstruction}"
+                        TextWrapping="Wrap"
+                        Visibility="{Binding State.HasBoundProject,
                                             Converter={StaticResource TrueToVisibleConverter},
                                             ConverterParameter=Invert}" />
+            </StackPanel>
 
-            <TreeView x:Name="ServerTreeView"
-                      Margin="6,3,6,6"
-                      ItemContainerStyle="{StaticResource SQServerTreeViewItemStyle}"
-                      ItemsSource="{Binding State.ConnectedServers}"
-                      Style="{StaticResource SQTreeViewStyle}">
-                <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type sonarlintTE:ServerViewModel}"
-                                              ItemContainerStyle="{StaticResource SQProjectTreeViewItemStyle}"
-                                              ItemsSource="{Binding Projects}">
-                        <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
-                            <Image Source="{StaticResource SonarQubeServerIcon}" Style="{StaticResource SQTreeViewIconStyle}" />
-                            <TextBlock AutomationProperties.Name="{Binding AutomationName}" Text="{Binding Url}">
-                                <TextBlock.Style>
-                                    <Style BasedOn="{StaticResource EmphasizedText}" TargetType="{x:Type TextBlock}">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding OrganizationName}" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <TextBlock AutomationProperties.Name="{Binding AutomationName}">
-                                <Run Text="{Binding Url, Mode=OneWay}" />
-                                <Run Text="-" />
-                                <Run Text="{Binding OrganizationName, Mode=OneWay}" />
-                                <TextBlock.Style>
-                                    <Style BasedOn="{StaticResource EmphasizedText}" TargetType="{x:Type TextBlock}">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding OrganizationName}" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <TextBlock Margin="6,0,0,0"
-                                       Style="{StaticResource SubduedText}"
-                                       Text="{x:Static resx:UIStrings.ServerNoProjectsInlineText}"
-                                       Visibility="{Binding Projects.Count,
-                                                            Converter={StaticResource IntToVisibleConverter},
-                                                            ConverterParameter=Invert}" />
-                        </StackPanel>
-                    </HierarchicalDataTemplate>
+            <Border BorderThickness="1" BorderBrush="Transparent" Grid.Row="2" >
+                <TreeView x:Name="ServerTreeView"
+                    Margin="6,3,6,6"
+                    ItemContainerStyle="{StaticResource SQServerTreeViewItemStyle}"
+                    ItemsSource="{Binding State.ConnectedServers}"
+                    VirtualizingStackPanel.IsVirtualizing="True"
+                    VirtualizingStackPanel.VirtualizationMode="Standard"
+                    Visibility="{Binding State.ConnectedServers.Count, Converter={StaticResource IntToVisibleConverter}}"
+                    Style="{StaticResource SQTreeViewStyle}">
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate DataType="{x:Type sonarlintTE:ServerViewModel}"
+                                            ItemContainerStyle="{StaticResource SQProjectTreeViewItemStyle}"
+                                            ItemsSource="{Binding Projects}">
+                            <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
+                                <Image Source="{StaticResource SonarQubeServerIcon}" Style="{StaticResource SQTreeViewIconStyle}" />
+                                <TextBlock AutomationProperties.Name="{Binding AutomationName}" Text="{Binding Url}">
+                                    <TextBlock.Style>
+                                        <Style BasedOn="{StaticResource EmphasizedText}" TargetType="{x:Type TextBlock}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding OrganizationName}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock AutomationProperties.Name="{Binding AutomationName}">
+                            <Run Text="{Binding Url, Mode=OneWay}" />
+                            <Run Text="-" />
+                            <Run Text="{Binding OrganizationName, Mode=OneWay}" />
+                                    <TextBlock.Style>
+                                        <Style BasedOn="{StaticResource EmphasizedText}" TargetType="{x:Type TextBlock}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding OrganizationName}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Margin="6,0,0,0"
+                                    Style="{StaticResource SubduedText}"
+                                    Text="{x:Static resx:UIStrings.ServerNoProjectsInlineText}"
+                                    Visibility="{Binding Projects.Count,
+                                                        Converter={StaticResource IntToVisibleConverter},
+                                                        ConverterParameter=Invert}" />
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
 
-                    <DataTemplate DataType="{x:Type sonarlintTE:ProjectViewModel}">
-                        <Grid vstheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}" Tag="{Binding ElementName=UserControlRoot, Path=DataContext}">
+                        <DataTemplate DataType="{x:Type sonarlintTE:ProjectViewModel}">
+                            <Grid vstheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}" Tag="{Binding ElementName=UserControlRoot, Path=DataContext}">
 
-                            <Grid.InputBindings>
-                                <MouseBinding Command="{Binding Path=DataContext.BindCommand,
-                                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                              CommandParameter="{Binding ., Converter={StaticResource ProjectViewModelToBindingArgsConverter}}"
-                                              MouseAction="LeftDoubleClick" />
-                            </Grid.InputBindings>
+                                <Grid.InputBindings>
+                                    <MouseBinding Command="{Binding Path=DataContext.BindCommand,
+                                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding ., Converter={StaticResource ProjectViewModelToBindingArgsConverter}}"
+                                            MouseAction="LeftDoubleClick" />
+                                </Grid.InputBindings>
 
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <Image Grid.Column="0"
-                                   RenderOptions.EdgeMode="Aliased"
-                                   Source="{StaticResource ProjectIcon}"
-                                   Style="{StaticResource SQTreeViewIconStyle}" />
-                            <TextBlock Grid.Column="1"
-                                       AutomationProperties.Name="{Binding AutomationName}"
-                                       Text="{Binding ProjectName}">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsBound}" Value="True">
-                                                <Setter Property="FontWeight" Value="Bold" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <vsimaging:CrispImage Grid.Column="2"
-                                                  Width="16" Height="16" Margin="12,1,0,1"
-                                                  Moniker="{x:Static vsimagecatalog:KnownMonikers.Link}"
-                                                  Visibility="{Binding IsBound,
-                                                                       Converter={StaticResource TrueToVisibleConverter}}" />
-                        </Grid>
-                    </DataTemplate>
-                </TreeView.Resources>
-            </TreeView>
+                                <Image Grid.Column="0"
+                                RenderOptions.EdgeMode="Aliased"
+                                Source="{StaticResource ProjectIcon}"
+                                Style="{StaticResource SQTreeViewIconStyle}" />
+                                <TextBlock Grid.Column="1"
+                                    AutomationProperties.Name="{Binding AutomationName}"
+                                    Text="{Binding ProjectName}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsBound}" Value="True">
+                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <vsimaging:CrispImage Grid.Column="2"
+                                                Width="16" Height="16" Margin="12,1,0,1"
+                                                Moniker="{x:Static vsimagecatalog:KnownMonikers.Link}"
+                                                Visibility="{Binding IsBound,
+                                                                    Converter={StaticResource TrueToVisibleConverter}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </TreeView.Resources>
+                </TreeView>
+            </Border>
 
-        </StackPanel>
-    </StackPanel>
+        </Grid>
+
+    </Border>
 </UserControl>
