@@ -30,9 +30,9 @@ using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
-using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
-using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
 using IVSOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
+using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
+using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -106,6 +106,23 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         #endregion
 
         #region TeamExplorerSectionBase overrides
+
+#if VS2019
+
+        protected override void InitializeViewModel(SectionInitializeEventArgs e)
+        {
+            base.InitializeViewModel(e);
+
+            // Warning - cargo cult code!
+            // This property isn't documented. However, without it the Team Explorer will add a scroll bar to the section during
+            // binding if the section height is not large enough to display the user control (so there can be two scrollbars, the
+            // section scrollbar and the project tree view scrollbar).
+            // With it, the control is correctly sized to the available height with just the project tree view scrollbar when required.
+            // This property is was added in VS2019.
+            ITeamExplorerSectionExtensions.SetProperty(this, SectionProperties.FillVerticalSpace, 600d);
+        }
+#endif
+
         protected override object CreateView(SectionInitializeEventArgs e)
         {
             return new ConnectSectionView();
