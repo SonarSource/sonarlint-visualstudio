@@ -28,7 +28,7 @@ using SonarQube.Client.Requests;
 namespace SonarQube.Client.Tests
 {
     [TestClass]
-    public class SonarQubeService_Ctor
+    public class SonarQubeService_Miscellaneous
     {
         [TestMethod]
         public void SonarQubeService_Ctor_ArgumentChecks()
@@ -48,6 +48,38 @@ namespace SonarQube.Client.Tests
 
             action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, new RequestFactory(logger), string.Empty, null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        public void SonarQubeService_GetOrganizationKeyForWebApiCalls()
+        {
+            // 1. Doesn't fail with missing keys
+            CheckSameKeyReturnedAndNoLogOutput(null);
+            CheckSameKeyReturnedAndNoLogOutput(string.Empty);
+
+            // 2. No change for normal keys
+            CheckSameKeyReturnedAndNoLogOutput("my.org.key");
+            CheckSameKeyReturnedAndNoLogOutput("sonar.internal.testing.no.org.XXX");
+            CheckSameKeyReturnedAndNoLogOutput("aaa.sonar.internal.testing.no.org");
+
+            // 3. Special key is recognised
+            CheckSpecialKeyIsRecognisedAndNullReturned("sonar.internal.testing.no.org");
+            CheckSpecialKeyIsRecognisedAndNullReturned("SONAR.INTERNAL.TESTING.NO.ORG");
+        }
+
+        private static void CheckSameKeyReturnedAndNoLogOutput(string key)
+        {
+            var testLogger = new TestLogger();
+            SonarQubeService.GetOrganizationKeyForWebApiCalls(key, testLogger).Should().Be(key);
+            testLogger.DebugMessages.Should().HaveCount(0);
+        }
+
+        private static void CheckSpecialKeyIsRecognisedAndNullReturned(string key)
+        {
+            var testLogger = new TestLogger();
+            SonarQubeService.GetOrganizationKeyForWebApiCalls(key, testLogger).Should().BeNull();
+            testLogger.DebugMessages.Should().HaveCount(1);
+            testLogger.DebugMessages[0].Should().Contain("sonar.internal.testing.no.org");
         }
     }
 }
