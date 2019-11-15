@@ -185,7 +185,8 @@ namespace SonarLint.VisualStudio.Integration
         {
             // Cannot use Path.ChangeExtension here because if the sonar project name contains
             // a dot (.) then everything after this will be replaced with .ruleset
-            string fileName = $"{PathHelper.EscapeFileName(ProjectKey + fileNameSuffix)}.{Constants.RuleSetFileExtension}";
+            string fileName = $"{PathHelper.EscapeFileName(ProjectKey + fileNameSuffix)}.{Constants.RuleSetFileExtension}"
+                .ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068
             return Path.Combine(ruleSetRootPath, fileName);
         }
     }
