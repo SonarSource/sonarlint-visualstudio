@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Windows.Forms;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -34,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         {
             // Arrange
             var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
-            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, new TestLogger());
+            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, new TestLogger());
 
             // Act & Assert
             testSubject.CanExecute(null).Should().BeTrue();
@@ -45,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         {
             // Arrange
             var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
-            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, new TestLogger());
+            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, new TestLogger());
 
             // Act
             testSubject.Execute(null);
@@ -61,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Arrange
             var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
             var testLogger = new TestLogger();
-            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, testLogger)
+            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, testLogger)
             {
                 OpenDocOp = () => throw new InvalidOperationException("dummy execute exception")
             };
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Arrange
             var userSettingsProvider = CreateDummyUserSettingsProvider("any");
             var testLogger = new TestLogger();
-            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, testLogger)
+            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, testLogger)
             {
                 OpenDocOp = () => throw new StackOverflowException("dummy execute exception")
             };
@@ -101,8 +102,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 
         private class TestableOpenSettingsFileWpfCommand : OpenSettingsFileWpfCommand
         {
-            public TestableOpenSettingsFileWpfCommand(IServiceProvider serviceProvider, IUserSettingsProvider userSettingsProvider, ILogger logger)
-                : base(serviceProvider, userSettingsProvider, logger){}
+            public TestableOpenSettingsFileWpfCommand(IServiceProvider serviceProvider, IUserSettingsProvider userSettingsProvider, IWin32Window win32Window, ILogger logger)
+                : base(serviceProvider, userSettingsProvider, win32Window, logger) {}
 
             public int CallCount { get; private set; }
             public string LastSuppliedFilePath { get; set; }
