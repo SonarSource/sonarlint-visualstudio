@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -195,14 +196,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Language.VBNET, SonarLintMode.LegacyConnected);
 
             // Assert
-            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\MyKey_VB.ruleset");
+            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\mykey_vb.ruleset");
 
             // Case 2: C# + valid path characters
             // Act
             ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.LegacyConnected);
 
             // Assert
-            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\MyKeyCSharp.ruleset");
+            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\mykeycsharp.ruleset");
         }
 
         [TestMethod]
@@ -217,14 +218,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Language.VBNET, SonarLintMode.Connected);
 
             // Assert
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\MyKey_VB.ruleset");
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykey_vb.ruleset"); // should be lower-case
 
             // Case 2: C# + valid path characters
             // Act
             ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.Connected);
 
             // Assert
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\MyKeyCSharp.ruleset");
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeycsharp.ruleset");
         }
 
         [TestMethod]
@@ -236,6 +237,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Assert
             Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.LegacyConnected));
             Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.Connected));
+        }
+
+        [TestMethod] // Regression test for #1068: https://github.com/SonarSource/sonarlint-visualstudio/issues/1068
+        public void CheckSolutionRuleSet_RuleSetIncludePathFormatting()
+        {
+            // 1. Check the behaviour of the Microsoft.VisualStudio.CodeAnalysis.RuleSetInclude constructor
+            // is as expected (forces path to lower case)
+            var include = new RuleSetInclude("C:\\subDIR1\\SUBDIR2\\file.txt", RuleAction.Default);
+            include.FilePath.Should().Be("c:\\subdir1\\subdir2\\file.txt");
+
+            include = new RuleSetInclude("..\\xxx\\SUBDIR2\\file.txt", RuleAction.Default);
+            include.FilePath.Should().Be("..\\xxx\\subdir2\\file.txt");
+
+            // 2. Check our file name calculation function produces lower case
+            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
+            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.VBNET, SonarLintMode.Connected);
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeyvb.ruleset"); // should be lower-case
         }
 
         [TestMethod]
