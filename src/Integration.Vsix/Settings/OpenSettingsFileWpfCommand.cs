@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Windows.Input;
 using Microsoft.VisualStudio;
@@ -34,14 +33,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ILogger logger;
         private readonly IWin32Window win32Window;
-
-        [DllImport("user32.dll", ExactSpelling = true)]
-        private static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
-        private const uint GetRootWindow = 2;
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern int SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
-        private const uint WM_CLOSE = 0x10;
 
         public OpenSettingsFileWpfCommand(IServiceProvider serviceProvider, IUserSettingsProvider userSettingsProvider, IWin32Window win32Window, ILogger logger)
         {
@@ -77,26 +68,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var viewType = Guid.Empty;
             VsShellUtilities.TryOpenDocument(serviceProvider, filePath, viewType, out var _, out var _, out var _);
 
-            CloseOptionsDialog(win32Window);
+            new NativeInterop().CloseRootWindow(win32Window);
         }
 
         #endregion ICommand methods
-
-        private static void CloseOptionsDialog(IWin32Window win32Window)
-        {
-            // There doesn't appear to be a VS API to close Tools, Options so 
-            // we're using PInvoke.
-            // NB this is equivalent to clicking Cancel i.e. any changed settings will
-            // not be saved.
-            var dialogHwnd = win32Window?.Handle ?? IntPtr.Zero;
-            if (dialogHwnd != IntPtr.Zero)
-            {
-                var topLevelHwnd = GetAncestor(dialogHwnd, GetRootWindow);
-                if (topLevelHwnd != IntPtr.Zero)
-                {
-                    SendMessage(topLevelHwnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
-                }
-            }
-        }
     }
 }
