@@ -4,6 +4,18 @@
   <Import Project="$(MSBuildProjectDirectory)\RegexTransform.tasks" />
   <PropertyGroup>
     <SolutionRoot>$(MSBuildProjectDirectory)\..</SolutionRoot>
+	
+	<!-- Properties set by the CI build pipeline -->
+    <BuildNumber>0</BuildNumber>
+    <Sha1>not-set</Sha1>
+    <BranchName>not-set</BranchName>
+    <BuildConfiguration>not-set</BuildConfiguration>
+    <!-- Calculated properties -->
+    <FullVersion>$(MainVersion).$(BuildNumber)</FullVersion>
+    <AssemblyVersion>$(MainVersion)</AssemblyVersion>
+    <AssemblyFileVersion>$(FullVersion)</AssemblyFileVersion>
+    <AssemblyInformationalVersion>Version:$(FullVersion) Branch:$(BranchName) Sha1:$(Sha1) Configuration:$(BuildConfiguration)</AssemblyInformationalVersion>
+    <VsixVersion>$(FullVersion)</VsixVersion>
   </PropertyGroup>
 
   <ItemGroup>
