@@ -3,7 +3,7 @@
   <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
        .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-  
+
   <!-- Executive summary:
        * to build the VS2017 vsix, build from inside VS2017.
        * to build the VS2019 vsix, build from inside VS2019.
@@ -36,6 +36,8 @@
          To achieve this, this project conditionally imports different VSIX manifests based on the version of VS being
          used to build the project/solution.
   -->
+
+  <Import Project="..\..\build\version.props" />
   
   <PropertyGroup>
     <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
@@ -57,7 +59,8 @@
     <ProjectGuid>{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.Vsix</RootNamespace>
     <AssemblyName>SonarLint.$(VersionSpecificSuffix)</AssemblyName>
- 
+    <TargetVsixContainerName>SonarLint.VSIX-$(VsixVersion)-$(VersionSpecificSuffix).vsix</TargetVsixContainerName>
+    
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
@@ -298,12 +301,12 @@
     <BinariesFolder>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\..\binaries\))</BinariesFolder>
   </PropertyGroup>
   <ItemGroup>
-    <VSIXesToSign Include="$(BinariesFolder)$(AssemblyName).vsix" />
+    <VSIXesToSign Include="$(BinariesFolder)$(TargetVsixContainerName)" />
   </ItemGroup>
   
-  <Target Name="CopyVsixToBinariesAndSign" AfterTargets="Build" Inputs="$(TargetDir)$(AssemblyName).vsix" Outputs="$(BinariesFolder)$(AssemblyName).vsix">
-    <Message Importance="high" Text="Copying vsix from $(TargetDir)$(AssemblyName).vsix to $(BinariesFolder)$(AssemblyName).vsix" />
-    <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(AssemblyName).vsix" DestinationFiles="$(BinariesFolder)$(AssemblyName).vsix" />
+  <Target Name="CopyVsixToBinariesAndSign" AfterTargets="Build" Inputs="$(TargetDir)$(TargetVsixContainerName)" Outputs="$(BinariesFolder)$(TargetVsixContainerName)">
+    <Message Importance="high" Text="Copying vsix from $(TargetDir)$(TargetVsixContainerName) to $(BinariesFolder)$(TargetVsixContainerName)" />
+    <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(TargetVsixContainerName)" DestinationFiles="$(BinariesFolder)$(TargetVsixContainerName)" />
 
     <CallTarget Targets="SignVsixesIfPfxSupplied" />
   </Target>

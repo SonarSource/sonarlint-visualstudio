@@ -4,22 +4,27 @@
   <Import Project="$(MSBuildProjectDirectory)\RegexTransform.tasks" />
   <PropertyGroup>
     <SolutionRoot>$(MSBuildProjectDirectory)\..</SolutionRoot>
+	
+    <!-- Other calculated properties used only in RegEx transforms -->
+    <RegExAssemblyVersion>$(MainVersion)</RegExAssemblyVersion>
+    <RegExAssemblyFileVersion>$(FullVersion)</RegExAssemblyFileVersion>
+    <RegExAssemblyInformationalVersion>Version:$(FullVersion) Branch:$(BranchName) Sha1:$(Sha1) Configuration:$(BuildConfiguration)</RegExAssemblyInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <AssemblyVersion Include="$(SolutionRoot)\src\AssemblyInfo.Shared.cs">
       <Find>(?&lt;=\[assembly\: AssemblyVersion\(")([^"]*)</Find>
-      <ReplaceWith>$(AssemblyVersion)</ReplaceWith>
+      <ReplaceWith>$(RegExAssemblyVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </AssemblyVersion>
     <AssemblyFileVersion Include="$(SolutionRoot)\src\AssemblyInfo.Shared.cs">
       <Find>(?&lt;=\[assembly\: AssemblyFileVersion\(")([^"]*)</Find>
-      <ReplaceWith>$(AssemblyFileVersion)</ReplaceWith>
+      <ReplaceWith>$(RegExAssemblyFileVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </AssemblyFileVersion>
     <AssemblyInformationalVersion Include="$(SolutionRoot)\src\AssemblyInfo.Shared.cs">
       <Find>(?&lt;=\[assembly\: AssemblyInformationalVersion\(")([^"]*)</Find>
-      <ReplaceWith>$(AssemblyInformationalVersion)</ReplaceWith>
+      <ReplaceWith>$(RegExAssemblyInformationalVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </AssemblyInformationalVersion>
 
@@ -31,7 +36,7 @@
 
     <VsPackageVersion Include="$(SolutionRoot)\src\Integration.Vsix\SonarLintIntegrationPackage.cs">
       <Find>(?&lt;=\[InstalledProductRegistration\("#110", "#112", ")([^"]*)</Find>
-      <ReplaceWith>$(AssemblyFileVersion)</ReplaceWith>
+      <ReplaceWith>$(RegExAssemblyFileVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </VsPackageVersion>
   </ItemGroup>
