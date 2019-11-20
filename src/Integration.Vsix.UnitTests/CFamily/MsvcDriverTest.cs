@@ -449,6 +449,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
+                      "/std:c++14",
                       "/J"
                     },
                 }
@@ -503,12 +504,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     Cmd = new List<string>() {
                       "cl.exe",
                       "/Za",
+                      "/std:c++17",
                       "c:\\file.cpp"
                     },
                 }
             });
-            req.Flags.Should().Be(Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 | Request.OperatorNames);
+            req.Flags.Should().Be(Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 | Request.CPlusPlus17 | Request.OperatorNames);
             req.File.Should().Be("c:\\file.cpp");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(System.InvalidOperationException), "'/std:latest' is not supported. This test should throw an exception.")]
+        public void unsupported_std_version()
+        {
+             MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "",
+                    Env = new List<string>(),
+                    Cmd = new List<string>() {
+                    "cl.exe",
+                    "/std:latest",
+                    "/J"
+                    },
+                }
+            });
         }
 
         [TestMethod]

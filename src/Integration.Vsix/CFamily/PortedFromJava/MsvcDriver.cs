@@ -68,6 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 StringBuilder includes = new StringBuilder();
                 List<string> files = new List<string>();
                 bool? cpp = null;
+                string std = "c++14";
                 bool ignoreStandardIncludePaths = false;
                 bool charIsUnsigned = false;
                 bool enableMsExtensions = true;
@@ -253,6 +254,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         args.readPrefix("/Yc");
 
                     }
+                    else if (arg.StartsWith("/std:"))
+                    {
+                        std = args.readPrefix("/std:");
+
+                    }
                     else if (arg.StartsWith("/"))
                     {
                         // skip
@@ -360,15 +366,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
                 if (cpp.Value)
                 {
-                    request.Flags |= Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14;
-                    predefines.Append("#define __cplusplus 201103L\n");
                     predefines.Append("#define _CPPRTTI 1\n");
                     predefines.Append("#define _NATIVE_NULLPTR_SUPPORTED 1\n");
                     predefines.Append("#define _WCHAR_T_DEFINED 1\n");
                     predefines.Append("#define _NATIVE_WCHAR_T_DEFINED 1\n");
-                    if (major >= 19)
+                    request.Flags |= Request.CPlusPlus;
+                    if (major < 16)
                     {
+                        predefines.Append("#define __cplusplus 199711L\n");
+                    }
+                    else if (major < 19)
+                    {
+                        request.Flags |= Request.CPlusPlus11;
+                        predefines.Append("#define __cplusplus 201103L\n");
+                    }
+                    else
+                    {
+                        // if major > 19 we rely on /std.  By default, /std:c++14 is specified
                         predefines.Append("#define _HAS_CHAR16_T_LANGUAGE_SUPPORT 1\n");
+                        switch (std)
+                        {
+                            default:
+                                throw new InvalidOperationException("/std:" + std + " is not supported.");
+                            case "c++14":
+                                request.Flags |= Request.CPlusPlus11 | Request.CPlusPlus14;
+                                predefines.Append("#define __cplusplus 201402L\n");
+                                predefines.Append("#define _MSVC_LANG 201402L\n");
+                                break;
+                            case "c++17":
+                                request.Flags |= Request.CPlusPlus11 | Request.CPlusPlus14 | Request.CPlusPlus17;
+                                predefines.Append("#define __cplusplus 201703L\n");
+                                predefines.Append("#define _MSVC_LANG 201703L\n");
+                                break;
+                        }
                     }
                     /*
                      * https://github.com/SonarSource/clang/blob/v6.0.1/lib/Frontend/InitPreprocessor.cpp#L411
