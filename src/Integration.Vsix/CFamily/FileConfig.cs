@@ -77,6 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     OmitDefaultLibName = GetEvaluatedPropertyValue(fileTool, "OmitDefaultLibName"),
                     RuntimeTypeInfo = GetEvaluatedPropertyValue(fileTool, "RuntimeTypeInfo"),
                     BasicRuntimeChecks = GetEvaluatedPropertyValue(fileTool, "BasicRuntimeChecks"),
+                    LanguageStandard = GetEvaluatedPropertyValue(fileTool, "LanguageStandard"),
 
                     AdditionalOptions = GetEvaluatedPropertyValue(fileTool, "AdditionalOptions"),
                 };
@@ -155,6 +156,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             public string AdditionalOptions { get; set; }
 
+            public string LanguageStandard { get; set; }
+            
             #endregion
 
             public Capture[] ToCaptures(string path, out string cfamilyLanguage)
@@ -199,6 +202,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 Add(c.Cmd, "true".Equals(OmitDefaultLibName) ? "/Zl" : ""); // defines macro "_VC_NODEFAULTLIB"
                 Add(c.Cmd, "false".Equals(RuntimeTypeInfo) ? "/GR-" : ""); // undefines macro "_CPPRTTI"
                 Add(c.Cmd, ConvertBasicRuntimeChecks(BasicRuntimeChecks));
+                Add(c.Cmd, ConvertLanguageStandard(LanguageStandard));
 
                 // TODO Q: what if it contains space in double quotes?
                 AddRange(c.Cmd, AdditionalOptions.Split(' '));
@@ -401,6 +405,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         return "/Yc" + header;
                     case "Use":
                         return "/Yu" + header;
+                }
+            }
+
+            internal /* for testing */ static string ConvertLanguageStandard(string value)
+            {
+                switch (value)
+                {
+                    default:
+                        throw new ArgumentException($"Unsupported LanguageStandard: {value}", nameof(value));
+                    case null:
+                    case "":
+                    case "Default":
+                        return "";
+                    case "stdcpplatest":
+                        return "/std:c++latest";
+                    case "stdcpp17":
+                        return "/std:c++17";
+                    case "stdcpp14":
+                        return "/std:c++14";
                 }
             }
         }

@@ -294,6 +294,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        public void LanguageStandard()
+        {
+            CFamilyHelper.FileConfig.ConvertLanguageStandard("").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertLanguageStandard("Default").Should().Be("");
+            CFamilyHelper.FileConfig.ConvertLanguageStandard(null).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertLanguageStandard("stdcpplatest").Should().Be("/std:c++latest");
+            CFamilyHelper.FileConfig.ConvertLanguageStandard("stdcpp17").Should().Be("/std:c++17");
+            CFamilyHelper.FileConfig.ConvertLanguageStandard("stdcpp14").Should().Be("/std:c++14");
+
+            Action action = () => CFamilyHelper.FileConfig.ConvertLanguageStandard("foo");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported LanguageStandard: foo");
+        }
+
+        [TestMethod]
         public void CreateRequest_HeaderFile_IsNotProcessed()
         {
             // Arrange
