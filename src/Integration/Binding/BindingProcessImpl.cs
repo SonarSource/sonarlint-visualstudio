@@ -88,13 +88,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.NuGetBindingOperation = nugetBindingOperation;
             this.bindingInformationProvider = bindingInformationProvider;
 
-            this.State = new BindingProcessState(isFirstBinding);
+            this.InternalState = new BindingProcessState(isFirstBinding);
         }
 
-        internal BindingProcessState State { get;  }
+        // This property should not be used by product code
+        internal /* for testing */ BindingProcessState InternalState { get;  }
 
         #region IBindingTemplate methods
-        public bool BindOperationSucceeded => throw new NotImplementedException();
 
         public bool PromptSaveSolutionIfDirty()
         {
@@ -107,10 +107,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var pluginAndPatternFilteredProjects =
                 patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages.Contains(Language.ForProject(p)));
 
-            this.State.BindingProjects.UnionWith(pluginAndPatternFilteredProjects);
+            this.InternalState.BindingProjects.UnionWith(pluginAndPatternFilteredProjects);
             this.InformAboutFilteredOutProjects();
 
-            return this.State.BindingProjects.Any();
+            return this.InternalState.BindingProjects.Any();
         }
 
         public async Task<bool> DownloadQualityProfileAsync(IProgressStepExecutionEvents notificationEvents, IEnumerable<Language> languages, CancellationToken cancellationToken)
@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                        string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
                     return false;
                 }
-                this.State.QualityProfiles[language] = qualityProfileInfo;
+                this.InternalState.QualityProfiles[language] = qualityProfileInfo;
 
                 var roslynProfileExporter = await WebServiceHelper.SafeServiceCallAsync(() =>
                     this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
@@ -181,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Set the rule set which should be available for the following steps
             foreach (var keyValue in rulesets)
             {
-                this.State.Rulesets[keyValue.Key] = keyValue.Value;
+                this.InternalState.Rulesets[keyValue.Key] = keyValue.Value;
             }
 
             return true;
@@ -194,17 +194,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void InstallPackages(IProgressStepExecutionEvents notificationEvents, CancellationToken cancellationToken)
         {
-            this.State.BindingOperationSucceeded = this.NuGetBindingOperation.InstallPackages(this.State.BindingProjects, notificationEvents, cancellationToken);
+            this.InternalState.BindingOperationSucceeded = this.NuGetBindingOperation.InstallPackages(this.InternalState.BindingProjects, notificationEvents, cancellationToken);
         }
 
         public void InitializeSolutionBindingOnUIThread()
         {
-            this.solutionBindingOperation.RegisterKnownRuleSets(this.State.Rulesets);
+            this.solutionBindingOperation.RegisterKnownRuleSets(this.InternalState.Rulesets);
 
-            var projectsToUpdate = GetProjectsForRulesetBinding(this.State.IsFirstBinding, this.State.BindingProjects.ToArray(),
+            var projectsToUpdate = GetProjectsForRulesetBinding(this.InternalState.IsFirstBinding, this.InternalState.BindingProjects.ToArray(),
                 this.bindingInformationProvider, this.host.Logger);
 
-            this.solutionBindingOperation.Initialize(projectsToUpdate, this.State.QualityProfiles);
+            this.solutionBindingOperation.Initialize(projectsToUpdate, this.InternalState.QualityProfiles);
         }
 
         public void PrepareSolutionBinding(CancellationToken cancellationToken)
@@ -223,14 +223,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(saved, "Should not be cancellable");
         }
 
+        public bool BindOperationSucceeded => InternalState.BindingOperationSucceeded;
+
         #endregion
 
         #region Private methods
 
         private void InformAboutFilteredOutProjects()
         {
-            var includedProjects = this.State.BindingProjects.ToList();
-            var excludedProjects = this.projectSystem.GetSolutionProjects().Except(this.State.BindingProjects).ToList();
+            var includedProjects = this.InternalState.BindingProjects.ToList();
+            var excludedProjects = this.projectSystem.GetSolutionProjects().Except(this.InternalState.BindingProjects).ToList();
 
             var output = new StringBuilder();
 
@@ -285,7 +287,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         // duncanp
         public IEnumerable<Language> GetBindingLanguages()
         {
-            return this.State.BindingProjects.Select(Language.ForProject)
+            return this.InternalState.BindingProjects.Select(Language.ForProject)
                                        .Distinct()
                                        .Where(this.host.SupportedPluginLanguages.Contains);
         }

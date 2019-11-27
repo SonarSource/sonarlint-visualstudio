@@ -484,7 +484,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 csProject3,
                 vbNetProject2
             };
-            testSubject.State.BindingProjects.AddRange(projects);
+            testSubject.InternalState.BindingProjects.AddRange(projects);
 
             var expectedLanguages = new[] { Language.CSharp, Language.VBNET };
             this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
@@ -520,7 +520,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 csProject3,
                 vbNetProject2
             };
-            testSubject.State.BindingProjects.AddRange(projects);
+            testSubject.InternalState.BindingProjects.AddRange(projects);
 
             var expectedLanguages = new[] { Language.VBNET };
             this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);

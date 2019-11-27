@@ -391,7 +391,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             actual.Should().BeOfType<BindingWorkflow>();
             outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingLegacyBinding);
-            ((BindingWorkflow)actual).BindingProcessImpl.State.IsFirstBinding.Should().BeFalse();
+            ((BindingWorkflow)actual).BindingProcessImpl.InternalState.IsFirstBinding.Should().BeFalse();
         }
 
         [TestMethod]

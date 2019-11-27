@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal /*for testing*/ BindingProcessImpl BindingProcessImpl { get; }
 
         // duncanp - remove when tests refactored
-        internal /*for testing*/ BindingProcessImpl.BindingProcessState State { get { return BindingProcessImpl.State; } }
+        internal /*for testing*/ BindingProcessImpl.BindingProcessState State { get { return BindingProcessImpl.InternalState; } }
 
         #region Workflow startup
 
@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
         {
-            var message = this.BindingProcessImpl.State.BindingOperationSucceeded
+            var message = this.BindingProcessImpl.BindOperationSucceeded
                 ? Strings.FinishedSolutionBindingWorkflowSuccessful
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
             notifications.ProgressChanged(message);
