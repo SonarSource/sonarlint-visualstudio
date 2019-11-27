@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Returns true if the operation completed succcessfully, otherwise false
         /// </summary>
-        bool InstallPackages(ISet<Project> projectsToBind, IProgressController controller, IProgressStepExecutionEvents notificationEvents, CancellationToken token);
+        bool InstallPackages(ISet<Project> projectsToBind, IProgressStepExecutionEvents notificationEvents, CancellationToken token);
 
         /// <summary>
         /// Extracts any required information from the supplied Roslyn export profile

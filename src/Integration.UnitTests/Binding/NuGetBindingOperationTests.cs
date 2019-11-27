@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, packages);
 
             // Act
-            testSubject.InstallPackages(projectsToBind, new ConfigurableProgressController(), progressEvents, CancellationToken.None);
+            testSubject.InstallPackages(projectsToBind, progressEvents, CancellationToken.None);
 
             // Assert
             packageInstaller.AssertInstalledPackages(project1, new[] { nugetPackage });
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, packages);
 
             // Act
-            testSubject.InstallPackages(projectsToBind, new ConfigurableProgressController(), progressEvents, CancellationToken.None);
+            testSubject.InstallPackages(projectsToBind, progressEvents, CancellationToken.None);
 
             // Assert
             packageInstaller.AssertInstalledPackages(project1, nugetPackages);
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            testSubject.InstallPackages(projectsToBind, new ConfigurableProgressController(), progressEvents, cts.Token);
+            testSubject.InstallPackages(projectsToBind, progressEvents, cts.Token);
 
             // Assert
             packageInstaller.AssertInstalledPackages(project1, packages);
@@ -186,7 +186,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            testSubject.InstallPackages(projectsToBind, new ConfigurableProgressController(), progressEvents, cts.Token);
+            testSubject.InstallPackages(projectsToBind, progressEvents, cts.Token);
 
             // Assert
             packageInstaller.AssertNoInstalledPackages(project1);
@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, nugetPackages);
 
             // Act
-            testSubject.InstallPackages(projectsToBind, new ConfigurableProgressController(), progressEvents, CancellationToken.None);
+            testSubject.InstallPackages(projectsToBind, progressEvents, CancellationToken.None);
 
             // Assert
             packageInstaller.AssertNoInstalledPackages(project1);

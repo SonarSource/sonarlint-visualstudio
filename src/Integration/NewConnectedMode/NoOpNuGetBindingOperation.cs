@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         /// The packages that will be installed will be based on the information from <see cref="Analyzer.GetRequiredNuGetPackages"/>
         /// and is specific to the <see cref="RuleSet"/>.
         /// </summary>
-        public bool InstallPackages(ISet<Project> projectsToBind, IProgressController controller, IProgressStepExecutionEvents notificationEvents, CancellationToken token)
+        public bool InstallPackages(ISet<Project> projectsToBind, IProgressStepExecutionEvents notificationEvents, CancellationToken token)
         {
             // Nothing to do - just return success
             this.logger.WriteLine(Strings.Bind_NuGetAnalyzersNoLongerInstalled);
