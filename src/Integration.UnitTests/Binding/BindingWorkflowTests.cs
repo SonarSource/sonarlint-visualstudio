@@ -148,8 +148,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
-            RuleSetAssert.AreEqual(expectedRuleSet, testSubject.Rulesets[language], "Unexpected rule set");
-            testSubject.QualityProfiles[language].Should().Be(profile);
+            RuleSetAssert.AreEqual(expectedRuleSet, testSubject.State.Rulesets[language], "Unexpected rule set");
+            testSubject.State.QualityProfiles[language].Should().Be(profile);
             VerifyNuGetPackgesDownloaded(nugetPackages, language, actualProfiles);
 
             controller.NumberOfAbortRequests.Should().Be(0);
@@ -177,8 +177,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
-            testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            testSubject.State.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.State.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
             controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
@@ -204,8 +204,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
-            testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            testSubject.State.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.State.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
             controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
@@ -238,8 +238,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
-            testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            testSubject.State.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.State.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
             controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
@@ -276,9 +276,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
-            testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
-            testSubject.Rulesets.Count.Should().Be(0);
+            testSubject.State.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.State.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            testSubject.State.Rulesets.Count.Should().Be(0);
             controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
@@ -311,9 +311,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { language }, CancellationToken.None);
 
             // Assert
-            testSubject.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
-            testSubject.Rulesets.Count.Should().Be(0);
+            testSubject.State.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.State.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            testSubject.State.Rulesets.Count.Should().Be(0);
             controller.NumberOfAbortRequests.Should().Be(1);
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
@@ -333,7 +333,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var slnBindOpMock = new Mock<ISolutionBindingOperation>();
             var nugetMock = new Mock<INuGetBindingOperation>();
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
-                It.IsAny<IProgressController>(),
                 It.IsAny<IProgressStepExecutionEvents>(),
                 It.IsAny<CancellationToken>())).Returns(true);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
@@ -341,19 +340,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new BindingWorkflow(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
-            testSubject.BindingProjects.Clear();
-            testSubject.BindingProjects.Add(project1);
+            testSubject.State.BindingProjects.Clear();
+            testSubject.State.BindingProjects.Add(project1);
 
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
             var cts = new CancellationTokenSource();
 
-            testSubject.BindingOperationSucceeded = false;
+            testSubject.State.BindingOperationSucceeded = false;
 
             // Act
-            testSubject.InstallPackages(new ConfigurableProgressController(), progressEvents, cts.Token);
+            testSubject.InstallPackages(progressEvents, cts.Token);
 
             // Assert
-            testSubject.BindingOperationSucceeded.Should().BeTrue();
+            testSubject.State.BindingOperationSucceeded.Should().BeTrue();
         }
 
         [TestMethod]
@@ -365,7 +364,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var slnBindOpMock = new Mock<ISolutionBindingOperation>();
             var nugetMock = new Mock<INuGetBindingOperation>();
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
-                It.IsAny<IProgressController>(),
                 It.IsAny<IProgressStepExecutionEvents>(),
                 It.IsAny<CancellationToken>())).Returns(false);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
@@ -373,19 +371,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new BindingWorkflow(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
-            testSubject.BindingProjects.Clear();
-            testSubject.BindingProjects.Add(project1);
+            testSubject.State.BindingProjects.Clear();
+            testSubject.State.BindingProjects.Add(project1);
 
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
             var cts = new CancellationTokenSource();
 
-            testSubject.BindingOperationSucceeded = true;
+            testSubject.State.BindingOperationSucceeded = true;
 
             // Act
-            testSubject.InstallPackages(new ConfigurableProgressController(), progressEvents, cts.Token);
+            testSubject.InstallPackages(progressEvents, cts.Token);
 
             // Assert
-            testSubject.BindingOperationSucceeded.Should().BeFalse();
+            testSubject.State.BindingOperationSucceeded.Should().BeFalse();
         }
 
         [TestMethod]
@@ -395,12 +393,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = this.CreateTestSubject();
 
             // Test case 1: Default state is 'true'
-            testSubject.BindingOperationSucceeded.Should().BeTrue($"Initial state of {nameof(BindingWorkflow.BindingOperationSucceeded)} should be true");
+            testSubject.State.BindingOperationSucceeded.Should().BeTrue($"Initial state of {nameof(BindingWorkflow.State.BindingOperationSucceeded)} should be true");
 
             // Test case 2: All packages installed
             // Arrange
             var notificationsOk = new ConfigurableProgressStepExecutionEvents();
-            testSubject.BindingOperationSucceeded = true;
+            testSubject.State.BindingOperationSucceeded = true;
 
             // Act
             testSubject.EmitBindingCompleteMessage(notificationsOk);
@@ -411,7 +409,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Test case 3: Not all packages installed
             // Arrange
             var notificationsFail = new ConfigurableProgressStepExecutionEvents();
-            testSubject.BindingOperationSucceeded = false;
+            testSubject.State.BindingOperationSucceeded = false;
 
             // Act
             testSubject.EmitBindingCompleteMessage(notificationsFail);
@@ -466,7 +464,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void BindingWorkflow_GetBindingLanguages_ReturnsDistinctLanguagesForProjects()
         {
             // Arrange
-            var testSubject = this.CreateTestSubject();
+            var testSubject = this.CreateBindingProcessTestSubject();
 
             var csProject1 = new ProjectMock("cs1.csproj");
             var csProject2 = new ProjectMock("cs2.csproj");
@@ -486,7 +484,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 csProject3,
                 vbNetProject2
             };
-            testSubject.BindingProjects.AddRange(projects);
+            testSubject.State.BindingProjects.AddRange(projects);
 
             var expectedLanguages = new[] { Language.CSharp, Language.VBNET };
             this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
@@ -502,7 +500,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void BindingWorkflow_GetBindingLanguages_FiltersProjectsWithUnsupportedPluginLanguage()
         {
             // Arrange
-            var testSubject = this.CreateTestSubject();
+            var testSubject = this.CreateBindingProcessTestSubject();
 
             var csProject1 = new ProjectMock("cs1.csproj");
             var csProject2 = new ProjectMock("cs2.csproj");
@@ -522,7 +520,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 csProject3,
                 vbNetProject2
             };
-            testSubject.BindingProjects.AddRange(projects);
+            testSubject.State.BindingProjects.AddRange(projects);
 
             var expectedLanguages = new[] { Language.VBNET };
             this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
@@ -557,7 +555,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.DiscoverProjects(controller, progressEvents);
 
             // Assert
-            CollectionAssert.AreEqual(matchingProjects, testSubject.BindingProjects.ToArray(), "Unexpected projects selected for binding");
+            CollectionAssert.AreEqual(matchingProjects, testSubject.State.BindingProjects.ToArray(), "Unexpected projects selected for binding");
             progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
         }
 
@@ -582,7 +580,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.DiscoverProjects(controller, progressEvents);
 
             // Assert
-            testSubject.BindingProjects.Should().HaveCount(numberOfProjectsToInclude, "Expected " + numberOfProjectsToInclude + " project(s) selected for binding");
+            testSubject.State.BindingProjects.Should().HaveCount(numberOfProjectsToInclude, "Expected " + numberOfProjectsToInclude + " project(s) selected for binding");
             progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
             this.outputWindowPane.AssertOutputStrings(1);
 
@@ -684,7 +682,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var result = BindingWorkflow.GetProjectsForRulesetBinding(true, allProjects, bindingInfoProvider, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(true, allProjects, bindingInfoProvider, logger);
 
             // Assert
             result.Should().BeEquivalentTo(allProjects);
@@ -709,7 +707,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var result = BindingWorkflow.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
 
             // Assert
             result.Should().BeEquivalentTo(allProjects);
@@ -742,7 +740,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var result = BindingWorkflow.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
 
             // Assert
             result.Should().BeEquivalentTo(allProjects[1], allProjects[3]);
@@ -769,7 +767,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var result = BindingWorkflow.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
 
             // Assert
             result.Should().BeEmpty();
@@ -797,6 +795,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             return new BindingWorkflow(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, bindingInfoProvider);
         }
+
+        // duncanp
+        private BindingProcessImpl CreateBindingProcessTestSubject(string projectKey = "anykey", string projectName = "anyname",
+            INuGetBindingOperation nuGetBindingOperation = null)
+        {
+            this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
+
+            var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
+
+            var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected, this.host.Logger);
+            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+
+            if (nuGetBindingOperation == null)
+            {
+                return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, new NoOpNuGetBindingOperation(this.host.Logger), bindingInfoProvider);
+            }
+            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, bindingInfoProvider);
+        }
+
 
         private SonarQubeQualityProfile ConfigureProfileExport(RoslynExportProfileResponse export, Language language, string profileName)
         {

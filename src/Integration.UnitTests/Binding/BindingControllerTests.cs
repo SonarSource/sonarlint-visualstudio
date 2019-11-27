@@ -391,7 +391,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             actual.Should().BeOfType<BindingWorkflow>();
             outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingLegacyBinding);
-            ((BindingWorkflow)actual).IsFirstBinding.Should().BeFalse();
+            ((BindingWorkflow)actual).BindingProcessImpl.State.IsFirstBinding.Should().BeFalse();
         }
 
         [TestMethod]
@@ -408,9 +408,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             actual.Should().BeOfType<BindingWorkflow>();
             var bindingWorkFlow = (BindingWorkflow)actual;
-            bindingWorkFlow.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
+            bindingWorkFlow.BindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
             outputWindowPane.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
-            bindingWorkFlow.IsFirstBinding.Should().BeTrue();
+            bindingWorkFlow.State.IsFirstBinding.Should().BeTrue();
         }
 
         [TestMethod]
@@ -427,8 +427,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             actual.Should().BeOfType<BindingWorkflow>();
             var bindingWorkFlow = (BindingWorkflow)actual;
-            bindingWorkFlow.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
-            bindingWorkFlow.IsFirstBinding.Should().BeFalse();
+            bindingWorkFlow.BindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
+            bindingWorkFlow.State.IsFirstBinding.Should().BeFalse();
             outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
         }
 

@@ -21,18 +21,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -46,10 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal class BindingWorkflow : IBindingWorkflow
     {
         private readonly IHost host;
-        private readonly BindCommandArgs bindingArgs;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly ISolutionBindingOperation solutionBindingOperation;
-        private readonly ISolutionBindingInformationProvider bindingInformationProvider;
 
         public BindingWorkflow(IHost host,
             BindCommandArgs bindingArgs,
@@ -63,73 +54,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(host));
             }
 
-            if (bindingArgs == null)
-            {
-                throw new ArgumentNullException(nameof(bindingArgs));
-            }
-            Debug.Assert(bindingArgs.ProjectKey != null);
-            Debug.Assert(bindingArgs.ProjectName != null);
-            Debug.Assert(bindingArgs.Connection != null);
-
-            if (solutionBindingOperation == null)
-            {
-                throw new ArgumentNullException(nameof(solutionBindingOperation));
-            }
-
-            if (nugetBindingOperation == null)
-            {
-                throw new ArgumentNullException(nameof(nugetBindingOperation));
-            }
-
-            if (bindingInformationProvider == null)
-            {
-                throw new ArgumentNullException(nameof(bindingInformationProvider));
-            }
+            this.BindingProcessImpl = new BindingProcessImpl(host, bindingArgs, solutionBindingOperation,
+                nugetBindingOperation, bindingInformationProvider, isFirstBinding);
 
             this.host = host;
-            this.bindingArgs = bindingArgs;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
-
-            this.solutionBindingOperation = solutionBindingOperation;
-            this.NuGetBindingOperation = nugetBindingOperation;
-            this.bindingInformationProvider = bindingInformationProvider;
-            this.IsFirstBinding = isFirstBinding;
         }
 
-        internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; private set;}
+        // duncanp
+        internal /*for testing*/ BindingProcessImpl BindingProcessImpl { get; }
 
-        internal /*for testing*/ bool IsFirstBinding { get; private set; }
-
-        #region Workflow state
-
-        public ISet<Project> BindingProjects
-        {
-            get;
-        } = new HashSet<Project>();
-
-        public Dictionary<Language, RuleSet> Rulesets
-        {
-            get;
-        } = new Dictionary<Language, RuleSet>();
-
-        public Dictionary<Language, string> SolutionRulesetPaths
-        {
-            get;
-        } = new Dictionary<Language, string>();
-
-        public Dictionary<Language, SonarQubeQualityProfile> QualityProfiles
-        {
-            get;
-        } = new Dictionary<Language, SonarQubeQualityProfile>();
-
-        internal /*for testing purposes*/ bool BindingOperationSucceeded
-        {
-            get;
-            set;
-        } = true;
-
-        #endregion
+        // duncanp - remove when tests refactored
+        internal /*for testing*/ BindingProcessImpl.BindingProcessState State { get { return BindingProcessImpl.State; } }
 
         #region Workflow startup
 
@@ -179,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 // Fetch data from Sonar server and write shared ruleset file(s) to temporary location on disk
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, this.GetBindingLanguages(), token).GetAwaiter().GetResult()),
+                        (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, BindingProcessImpl.GetBindingLanguages(), token).GetAwaiter().GetResult()),
 
                 //*****************************************************************
                 // NuGet package handling
@@ -190,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 // Install the appropriate package for each project
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.InstallPackages(controller, notifications, token)),
+                        (token, notifications) => this.InstallPackages(notifications, token)),
 
                 //*****************************************************************
                 // Solution update phase
@@ -227,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void PromptSaveSolutionIfDirty(IProgressController controller, CancellationToken token)
         {
-            if (!VsShellUtils.SaveSolution(this.host, silent: false))
+            if (!BindingProcessImpl.PromptSaveSolutionIfDirty())
             {
                 this.host.Logger.WriteLine(Strings.SolutionSaveCancelledBindAborted);
 
@@ -241,14 +178,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage);
 
-            var patternFilteredProjects = this.projectSystem.GetFilteredSolutionProjects();
-            var pluginAndPatternFilteredProjects =
-                patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages.Contains(Language.ForProject(p)));
-
-            this.BindingProjects.UnionWith(pluginAndPatternFilteredProjects);
-            this.InformAboutFilteredOutProjects();
-
-            if (!this.BindingProjects.Any())
+            if (!BindingProcessImpl.DiscoverProjects())
             {
                 AbortWorkflow(controller, CancellationToken.None);
             }
@@ -261,89 +191,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(controller != null);
             Debug.Assert(notificationEvents != null);
 
-            var rulesets = new Dictionary<Language, RuleSet>();
-            var languageList = languages as IList<Language> ?? languages.ToList();
-            DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, languageList.Count);
-
-            notifier.NotifyCurrentProgress(Strings.DownloadingQualityProfileProgressMessage);
-
-            foreach (var language in languageList)
+            if (!await BindingProcessImpl.DownloadQualityProfileAsync(notificationEvents, languages, cancellationToken).ConfigureAwait(false))
             {
-                var serverLanguage = language.ToServerLanguage();
-
-                var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(() =>
-                    this.host.SonarQubeService.GetQualityProfileAsync(
-                        this.bindingArgs.ProjectKey, this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
-                    this.host.Logger);
-                if (qualityProfileInfo == null)
-                {
-                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                       string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
-                    this.AbortWorkflow(controller, cancellationToken);
-                    return;
-                }
-                this.QualityProfiles[language] = qualityProfileInfo;
-
-                var roslynProfileExporter = await WebServiceHelper.SafeServiceCallAsync(() =>
-                    this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
-                        this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
-                    this.host.Logger);
-                if (roslynProfileExporter == null)
-                {
-                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                        string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfileInfo.Name,
-                            qualityProfileInfo.Key, language.Name)));
-                    this.AbortWorkflow(controller, cancellationToken);
-                    return;
-                }
-
-                var tempRuleSetFilePath = Path.GetTempFileName();
-                File.WriteAllText(tempRuleSetFilePath, roslynProfileExporter.Configuration.RuleSet.OuterXml);
-                RuleSet ruleSet = RuleSet.LoadFromFile(tempRuleSetFilePath);
-
-                if (ruleSet == null ||
-                    ruleSet.Rules.Count == 0 ||
-                    ruleSet.Rules.All(rule => rule.Action == RuleAction.None))
-                {
-                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                        string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfileInfo.Name, language.Name)));
-                    this.AbortWorkflow(controller, cancellationToken);
-                    return;
-                }
-
-                if (!this.NuGetBindingOperation.ProcessExport(language, roslynProfileExporter))
-                {
-                    this.AbortWorkflow(controller, cancellationToken);
-                    return;
-                }
-
-                // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
-                UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfileInfo);
-
-                rulesets[language] = ruleSet;
-                notifier.NotifyIncrementedProgress(string.Empty);
-
-                this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                    string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
+                this.AbortWorkflow(controller, cancellationToken);
             }
-
-            // Set the rule set which should be available for the following steps
-            foreach (var keyValue in rulesets)
-            {
-                this.Rulesets[keyValue.Key] = keyValue.Value;
-            }
-        }
-
-        private void UpdateDownloadedSonarQubeQualityProfile(RuleSet ruleSet, SonarQubeQualityProfile qualityProfile)
-        {
-            ruleSet.NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, this.bindingArgs.ProjectName, qualityProfile.Name);
-
-            var ruleSetDescriptionBuilder = new StringBuilder();
-            ruleSetDescriptionBuilder.AppendLine(ruleSet.Description);
-            ruleSetDescriptionBuilder.AppendFormat(Strings.SonarQubeQualityProfilePageUrlFormat, this.bindingArgs.Connection.ServerUri, qualityProfile.Key);
-            ruleSet.NonLocalizedDescription = ruleSetDescriptionBuilder.ToString();
-
-            ruleSet.WriteToFile(ruleSet.FilePath);
         }
 
         private void InitializeSolutionBindingOnUIThread(IProgressStepExecutionEvents notificationEvents)
@@ -352,57 +203,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage);
 
-            this.solutionBindingOperation.RegisterKnownRuleSets(this.Rulesets);
-
-            var projectsToUpdate = GetProjectsForRulesetBinding(this.IsFirstBinding, this.BindingProjects.ToArray(), 
-                this.bindingInformationProvider, this.host.Logger);
-
-            this.solutionBindingOperation.Initialize(projectsToUpdate, this.QualityProfiles);
-        }
-
-        internal /* for testing purposes */ static Project[] GetProjectsForRulesetBinding(bool isFirstBinding,
-            Project[] allSupportedProjects,
-            ISolutionBindingInformationProvider bindingInformationProvider,
-            ILogger logger)
-        {
-            // If we are already bound we don't need to update/create rulesets in projects
-            // that already have the ruleset information configured
-            var projectsToUpdate = allSupportedProjects;
-
-            if (isFirstBinding)
-            {
-                logger.WriteLine(Strings.Bind_Ruleset_InitialBinding);
-            }
-            else
-            {
-                var unboundProjects = bindingInformationProvider.GetUnboundProjects()?.ToArray() ?? new Project[] { };
-                projectsToUpdate = projectsToUpdate.Intersect(unboundProjects).ToArray();
-
-                var upToDateProjects = allSupportedProjects.Except(unboundProjects);
-                if (upToDateProjects.Any())
-                {
-                    logger.WriteLine(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
-                    var projectList = string.Join(", ", upToDateProjects.Select(p => p.Name));
-                    logger.WriteLine($"  {projectList}");
-                }
-                else
-                {
-                    logger.WriteLine(Strings.Bind_Ruleset_AllProjectsNeedToBeUpdated);
-                }
-            }
-            return projectsToUpdate;
+            BindingProcessImpl.InitializeSolutionBindingOnUIThread();
         }
 
         private void PrepareSolutionBinding(CancellationToken token)
         {
-            this.solutionBindingOperation.Prepare(token);
+            this.BindingProcessImpl.PrepareSolutionBinding(token);
         }
 
         private void FinishSolutionBindingOnUIThread(IProgressController controller, CancellationToken token)
         {
             Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
 
-            if (!this.solutionBindingOperation.CommitSolutionBinding())
+            if (!BindingProcessImpl.FinishSolutionBindingOnUIThread())
             {
                 AbortWorkflow(controller, token);
             }
@@ -410,23 +223,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void PrepareToInstallPackages()
         {
-            this.NuGetBindingOperation.PrepareOnUIThread();
+            BindingProcessImpl.PrepareToInstallPackages();
         }
 
-        internal /*for testing purposes*/ void InstallPackages(IProgressController controller, IProgressStepExecutionEvents notificationEvents, CancellationToken token)
+        internal /*for testing purposes*/ void InstallPackages(IProgressStepExecutionEvents notificationEvents, CancellationToken token)
         {
-            this.BindingOperationSucceeded = this.NuGetBindingOperation.InstallPackages(this.BindingProjects, controller, notificationEvents, token);
+            BindingProcessImpl.InstallPackages(notificationEvents, token);
         }
 
         internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
         {
-            bool saved = VsShellUtils.SaveSolution(this.host, silent: true);
-            Debug.Assert(saved, "Should not be cancellable");
+            BindingProcessImpl.SilentSaveSolutionIfDirty();
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
         {
-            var message = this.BindingOperationSucceeded
+            var message = this.BindingProcessImpl.State.BindingOperationSucceeded
                 ? Strings.FinishedSolutionBindingWorkflowSuccessful
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
             notifications.ProgressChanged(message);
@@ -440,56 +252,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             bool aborted = controller.TryAbort();
             Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
-        }
-
-        internal /*testing purposes*/ IEnumerable<Language> GetBindingLanguages()
-        {
-            return this.BindingProjects.Select(Language.ForProject)
-                                       .Distinct()
-                                       .Where(this.host.SupportedPluginLanguages.Contains);
-        }
-
-        private void InformAboutFilteredOutProjects()
-        {
-            var includedProjects = this.BindingProjects.ToList();
-            var excludedProjects = this.projectSystem.GetSolutionProjects().Except(this.BindingProjects).ToList();
-
-            var output = new StringBuilder();
-
-            output.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionIncludedProjectsHeader).AppendLine();
-            if (includedProjects.Count == 0)
-            {
-                var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsApplicableForBinding);
-                output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
-            }
-            else
-            {
-                includedProjects.ForEach(
-                    p =>
-                    {
-                        var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, p.UniqueName);
-                        output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
-                    });
-            }
-
-            output.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionExcludedProjectsHeader).AppendLine();
-            if (excludedProjects.Count == 0)
-            {
-                var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsExcludedFromBinding);
-                output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
-            }
-            else
-            {
-                excludedProjects.ForEach(
-                    p =>
-                    {
-                        var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, p.UniqueName);
-                        output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
-                    });
-            }
-            output.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
-
-            this.host.Logger.WriteLine(output.ToString());
         }
 
         #endregion
