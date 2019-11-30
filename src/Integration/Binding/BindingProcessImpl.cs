@@ -98,7 +98,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public bool PromptSaveSolutionIfDirty()
         {
-            return VsShellUtils.SaveSolution(this.host, silent: false);
+            var result = VsShellUtils.SaveSolution(this.host, silent: false);
+            if (!result)
+            {
+                this.host.Logger.WriteLine(Strings.SolutionSaveCancelledBindAborted);
+            }
+            return result;
         }
 
         public bool DiscoverProjects()
