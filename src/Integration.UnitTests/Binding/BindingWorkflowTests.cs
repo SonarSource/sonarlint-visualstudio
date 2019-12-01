@@ -79,10 +79,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(0);
-
-            // duncanp
-            //notifications.AssertProgress(0.0, 1.0);
-            //notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage, string.Empty);
         }
 
         [TestMethod]
@@ -104,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetDownloadQPResult(bool result)
         {
-            mockBindingProcess.Setup(x => x.DownloadQualityProfileAsync(It.IsAny<IProgressStepExecutionEvents>(),
+            mockBindingProcess.Setup(x => x.DownloadQualityProfileAsync(It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<IEnumerable<Language>>(),
                 It.IsAny<CancellationToken>())).Returns(Task.FromResult(result));
         }
@@ -120,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.InstallPackages(progressEvents, cts.Token);
 
             // Assert
-            mockBindingProcess.Verify(x => x.InstallPackages(progressEvents, cts.Token), Times.Once);
+            mockBindingProcess.Verify(x => x.InstallPackages(It.IsAny<IProgress<FixedStepsProgress>>(), cts.Token), Times.Once);
         }
 
         [TestMethod]

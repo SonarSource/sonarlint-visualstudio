@@ -178,7 +178,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(controller != null);
             Debug.Assert(notificationEvents != null);
 
-            if (!await bindingProcess.DownloadQualityProfileAsync(notificationEvents, languages, cancellationToken).ConfigureAwait(false))
+            var progressAdapter = new FixedStepsProgressAdapter(notificationEvents);
+            if (!await bindingProcess.DownloadQualityProfileAsync(progressAdapter, languages, cancellationToken).ConfigureAwait(false))
             {
                 this.AbortWorkflow(controller, cancellationToken);
             }
@@ -215,7 +216,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void InstallPackages(IProgressStepExecutionEvents notificationEvents, CancellationToken token)
         {
-            bindingProcess.InstallPackages(notificationEvents, token);
+            var progressAdapter = new FixedStepsProgressAdapter(notificationEvents);
+            bindingProcess.InstallPackages(progressAdapter, token);
         }
 
         internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()

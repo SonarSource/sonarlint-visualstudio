@@ -27,7 +27,6 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Messages;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -70,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// The packages that will be installed will be based on the information from <see cref="Analyzer.GetRequiredNuGetPackages"/>
         /// and is specific to the <see cref="RuleSet"/>.
         /// </summary>
-        public bool InstallPackages(ISet<Project> projectsToBind, IProgressStepExecutionEvents notificationEvents, CancellationToken token)
+        public bool InstallPackages(ISet<Project> projectsToBind, IProgress<FixedStepsProgress> progress, CancellationToken token)
         {
             if (this.NuGetPackages.Count == 0)
             {
@@ -104,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             bool overallSuccess = true;
 
-            DeterminateStepProgressNotifier progressNotifier = new DeterminateStepProgressNotifier(notificationEvents, projectNugets.Length);
+            int currentProject = 0;
             foreach (var projectNuget in projectNugets)
             {
                 if (token.IsCancellationRequested)
@@ -126,7 +125,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 // TODO: SVS-33 (https://jira.sonarsource.com/browse/SVS-33) Trigger a Team Explorer warning notification to investigate the partial binding in the output window.
                 overallSuccess &= isNugetInstallSuccessful;
 
-                progressNotifier.NotifyIncrementedProgress(string.Empty);
+                currentProject++;
+                progress?.Report(new FixedStepsProgress(string.Empty, currentProject, projectNugets.Length));
             }
             return overallSuccess;
         }
