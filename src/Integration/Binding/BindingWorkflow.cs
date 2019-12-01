@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        private void InitializeSolutionBindingOnUIThread(IProgressStepExecutionEvents notificationEvents)
+        internal /* for testing */ void InitializeSolutionBindingOnUIThread(IProgressStepExecutionEvents notificationEvents)
         {
             Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
 
@@ -194,12 +194,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             bindingProcess.InitializeSolutionBindingOnUIThread();
         }
 
-        private void PrepareSolutionBinding(CancellationToken token)
+        internal /* for testing */ void PrepareSolutionBinding(CancellationToken token)
         {
             this.bindingProcess.PrepareSolutionBinding(token);
         }
 
-        private void FinishSolutionBindingOnUIThread(IProgressController controller, CancellationToken token)
+        internal /* for testing */ void FinishSolutionBindingOnUIThread(IProgressController controller, CancellationToken token)
         {
             Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
 
