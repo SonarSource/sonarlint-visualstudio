@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
-using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -38,14 +38,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         bool DiscoverProjects();
 
-        System.Threading.Tasks.Task<bool> DownloadQualityProfileAsync(IProgressStepExecutionEvents notificationEvents, IEnumerable<Language> languages, CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, IEnumerable<Language> languages, CancellationToken cancellationToken);
 
         // duncanp - remove
         IEnumerable<Language> GetBindingLanguages();
 
         void PrepareToInstallPackages();
 
-        void InstallPackages(IProgressStepExecutionEvents notificationEvents, CancellationToken cancellationToken);
+        void InstallPackages(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
 
         void InitializeSolutionBindingOnUIThread();
 
