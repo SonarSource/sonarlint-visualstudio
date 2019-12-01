@@ -30,7 +30,6 @@ using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -118,14 +117,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return this.InternalState.BindingProjects.Any();
         }
 
-        public async Task<bool> DownloadQualityProfileAsync(IProgressStepExecutionEvents notificationEvents, IEnumerable<Language> languages, CancellationToken cancellationToken)
+        public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, IEnumerable<Language> languages, CancellationToken cancellationToken)
         {
             var rulesets = new Dictionary<Language, RuleSet>();
             var languageList = languages as IList<Language> ?? languages.ToList();
 
-            DeterminateStepProgressNotifier notifier = new DeterminateStepProgressNotifier(notificationEvents, languageList.Count());
-
-            notifier.NotifyCurrentProgress(Strings.DownloadingQualityProfileProgressMessage);
+            var languageCount = languageList.Count;
+            int currentLanguage = 0;
+            progress?.Report(new FixedStepsProgress(Strings.DownloadingQualityProfileProgressMessage, currentLanguage, languageCount));
 
             foreach (var language in languageList)
             {
@@ -177,7 +176,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfileInfo);
 
                 rulesets[language] = ruleSet;
-                notifier.NotifyIncrementedProgress(string.Empty);
+
+                currentLanguage++;
+                progress?.Report(new FixedStepsProgress(string.Empty, currentLanguage, languageCount));
 
                 this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                     string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
@@ -197,9 +198,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.NuGetBindingOperation.PrepareOnUIThread();
         }
 
-        public void InstallPackages(IProgressStepExecutionEvents notificationEvents, CancellationToken cancellationToken)
+        public void InstallPackages(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            this.InternalState.BindingOperationSucceeded = this.NuGetBindingOperation.InstallPackages(this.InternalState.BindingProjects, notificationEvents, cancellationToken);
+            this.InternalState.BindingOperationSucceeded = this.NuGetBindingOperation.InstallPackages(this.InternalState.BindingProjects, progress, cancellationToken);
         }
 
         public void InitializeSolutionBindingOnUIThread()

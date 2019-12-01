@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
-using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGet;
@@ -66,6 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.CreateTestSubject();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = projectKind };
             ProjectMock project2 = new ProjectMock("project2") { ProjectKind = projectKind };
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, packages);
 
             // Act
-            testSubject.InstallPackages(projectsToBind, progressEvents, CancellationToken.None);
+            testSubject.InstallPackages(projectsToBind, progressAdapter, CancellationToken.None);
 
             // Assert
             packageInstaller.AssertInstalledPackages(project1, new[] { nugetPackage });
@@ -99,6 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.CreateTestSubject();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
 
             var project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             var projectsToBind = new HashSet<Project> { project1 };
@@ -112,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, packages);
 
             // Act
-            testSubject.InstallPackages(projectsToBind, progressEvents, CancellationToken.None);
+            testSubject.InstallPackages(projectsToBind, progressAdapter, CancellationToken.None);
 
             // Assert
             packageInstaller.AssertInstalledPackages(project1, nugetPackages);
@@ -132,6 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.CreateTestSubject();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
             var cts = new CancellationTokenSource();
 
             var project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
@@ -149,12 +151,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 cts.Cancel(); // Cancel the next one (should complete the first one)
             };
 
-            // Act
-            testSubject.InstallPackages(projectsToBind, progressEvents, cts.Token);
+            // Acts
+            testSubject.InstallPackages(projectsToBind, progressAdapter, cts.Token);
 
             // Assert
             packageInstaller.AssertInstalledPackages(project1, packages);
             packageInstaller.AssertNoInstalledPackages(project2);
+
+            progressEvents.AssertProgress(.5);
         }
 
         [TestMethod]
@@ -167,6 +171,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = this.CreateTestSubject();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
             var cts = new CancellationTokenSource();
 
             ProjectMock project1 = new ProjectMock(project1Name) { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
@@ -186,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            testSubject.InstallPackages(projectsToBind, progressEvents, cts.Token);
+            testSubject.InstallPackages(projectsToBind, progressAdapter, cts.Token);
 
             // Assert
             packageInstaller.AssertNoInstalledPackages(project1);
@@ -198,6 +203,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.EnsuringNugetPackagesProgressMessage, nugetPackage.Id, project2Name)),
                 string.Format(Strings.SubTextPaddingFormat, string.Format(Strings.SuccessfullyInstalledNugetPackageForProject, nugetPackage.Id, project2Name))
                 );
+
+            progressEvents.AssertProgress(.5, 1.0);
         }
 
         [TestMethod]
@@ -209,6 +216,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = this.CreateTestSubject();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
 
             ProjectMock project1 = new ProjectMock(project1Name); // No project kind so no nuget package will be installed
             ProjectMock project2 = new ProjectMock(project2Name) { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
@@ -222,7 +230,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigurablePackageInstaller packageInstaller = this.PrepareInstallPackagesTest(testSubject, nugetPackages);
 
             // Act
-            testSubject.InstallPackages(projectsToBind, progressEvents, CancellationToken.None);
+            testSubject.InstallPackages(projectsToBind, progressAdapter, CancellationToken.None);
 
             // Assert
             packageInstaller.AssertNoInstalledPackages(project1);

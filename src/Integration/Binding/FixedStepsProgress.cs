@@ -19,29 +19,38 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
-using EnvDTE;
-using SonarQube.Client.Messages;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     /// <summary>
-    /// Encapsulate the workflow steps to install NuGet packages during binding
+    /// Data class used for reporting progress through a fixed number of steps
     /// </summary>
-    internal interface INuGetBindingOperation
+    internal struct FixedStepsProgress
     {
-        void PrepareOnUIThread();
+        public FixedStepsProgress(string message, int currentStep, int totalSteps)
+        {
+            if (currentStep < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(currentStep));
+            }
+            if (totalSteps < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(totalSteps));
+            }
+            if (currentStep > totalSteps)
+            {
+                throw new ArgumentOutOfRangeException(nameof(currentStep));
+            }
 
-        /// <summary>
-        /// Returns true if the operation completed succcessfully, otherwise false
-        /// </summary>
-        bool InstallPackages(ISet<Project> projectsToBind, IProgress<FixedStepsProgress> progress, CancellationToken token);
+            Message = message;
+            CurrentStep = currentStep;
+            TotalSteps = totalSteps;
+        }
 
-        /// <summary>
-        /// Extracts any required information from the supplied Roslyn export profile
-        /// </summary>
-        /// <returns>True if processing was successful, otherwise false</returns>
-        bool ProcessExport(Language language, RoslynExportProfileResponse exportProfileResponse);
+        public string Message { get; }
+
+        public int CurrentStep { get; }
+
+        public int TotalSteps { get; }
     }
 }
