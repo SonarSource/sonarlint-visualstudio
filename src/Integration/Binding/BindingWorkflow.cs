@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -40,40 +39,30 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal class BindingWorkflow : IBindingWorkflow
     {
         private readonly IHost host;
-        private readonly IProjectSystemHelper projectSystem;
+
+        private readonly IBindingProcess bindingProcess;
 
         public BindingWorkflow(IHost host,
-            BindCommandArgs bindingArgs,
-            ISolutionBindingOperation solutionBindingOperation,
-            INuGetBindingOperation nugetBindingOperation,
-            ISolutionBindingInformationProvider bindingInformationProvider,
-            bool isFirstBinding = false)
+            IBindingProcess bindingProcess)
         {
             if (host == null)
             {
                 throw new ArgumentNullException(nameof(host));
             }
+            if (bindingProcess == null)
+            {
+                throw new ArgumentNullException(nameof(bindingProcess));
+            }
 
-            this.BindingProcessImpl = new BindingProcessImpl(host, bindingArgs, solutionBindingOperation,
-                nugetBindingOperation, bindingInformationProvider, isFirstBinding);
-
+            this.bindingProcess = bindingProcess;
             this.host = host;
-            this.projectSystem = this.host.GetService<IProjectSystemHelper>();
-            this.projectSystem.AssertLocalServiceIsNotNull();
         }
-
-        // duncanp
-        internal /*for testing*/ BindingProcessImpl BindingProcessImpl { get; }
-
-        // duncanp - remove when tests refactored
-        internal /*for testing*/ BindingProcessImpl.BindingProcessState State { get { return BindingProcessImpl.InternalState; } }
 
         #region Workflow startup
 
         public IProgressEvents Run()
         {
             Debug.Assert(this.host.ActiveSection != null, "Expect the section to be attached at least until this method returns");
-            Debug.Assert(this.projectSystem.GetSolutionProjects().Any(), "Expecting projects in solution");
 
             IProgressEvents progress = ProgressStepRunner.StartAsync(this.host,
                 this.host.ActiveSection.ProgressHost,
@@ -116,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 // Fetch data from Sonar server and write shared ruleset file(s) to temporary location on disk
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, BindingProcessImpl.GetBindingLanguages(), token).GetAwaiter().GetResult()),
+                        (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, bindingProcess.GetBindingLanguages(), token).GetAwaiter().GetResult()),
 
                 //*****************************************************************
                 // NuGet package handling
@@ -164,10 +153,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void PromptSaveSolutionIfDirty(IProgressController controller, CancellationToken token)
         {
-            if (!BindingProcessImpl.PromptSaveSolutionIfDirty())
+            if (!bindingProcess.PromptSaveSolutionIfDirty())
             {
-                this.host.Logger.WriteLine(Strings.SolutionSaveCancelledBindAborted);
-
                 this.AbortWorkflow(controller, token);
             }
         }
@@ -178,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage);
 
-            if (!BindingProcessImpl.DiscoverProjects())
+            if (!bindingProcess.DiscoverProjects())
             {
                 AbortWorkflow(controller, CancellationToken.None);
             }
@@ -191,31 +178,31 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(controller != null);
             Debug.Assert(notificationEvents != null);
 
-            if (!await BindingProcessImpl.DownloadQualityProfileAsync(notificationEvents, languages, cancellationToken).ConfigureAwait(false))
+            if (!await bindingProcess.DownloadQualityProfileAsync(notificationEvents, languages, cancellationToken).ConfigureAwait(false))
             {
                 this.AbortWorkflow(controller, cancellationToken);
             }
         }
 
-        private void InitializeSolutionBindingOnUIThread(IProgressStepExecutionEvents notificationEvents)
+        internal /* for testing */ void InitializeSolutionBindingOnUIThread(IProgressStepExecutionEvents notificationEvents)
         {
             Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
 
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage);
 
-            BindingProcessImpl.InitializeSolutionBindingOnUIThread();
+            bindingProcess.InitializeSolutionBindingOnUIThread();
         }
 
-        private void PrepareSolutionBinding(CancellationToken token)
+        internal /* for testing */ void PrepareSolutionBinding(CancellationToken token)
         {
-            this.BindingProcessImpl.PrepareSolutionBinding(token);
+            this.bindingProcess.PrepareSolutionBinding(token);
         }
 
-        private void FinishSolutionBindingOnUIThread(IProgressController controller, CancellationToken token)
+        internal /* for testing */ void FinishSolutionBindingOnUIThread(IProgressController controller, CancellationToken token)
         {
             Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
 
-            if (!BindingProcessImpl.FinishSolutionBindingOnUIThread())
+            if (!bindingProcess.FinishSolutionBindingOnUIThread())
             {
                 AbortWorkflow(controller, token);
             }
@@ -223,22 +210,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void PrepareToInstallPackages()
         {
-            BindingProcessImpl.PrepareToInstallPackages();
+            bindingProcess.PrepareToInstallPackages();
         }
 
         internal /*for testing purposes*/ void InstallPackages(IProgressStepExecutionEvents notificationEvents, CancellationToken token)
         {
-            BindingProcessImpl.InstallPackages(notificationEvents, token);
+            bindingProcess.InstallPackages(notificationEvents, token);
         }
 
         internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
         {
-            BindingProcessImpl.SilentSaveSolutionIfDirty();
+            bindingProcess.SilentSaveSolutionIfDirty();
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
         {
-            var message = this.BindingProcessImpl.BindOperationSucceeded
+            var message = this.bindingProcess.BindOperationSucceeded
                 ? Strings.FinishedSolutionBindingWorkflowSuccessful
                 : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
             notifications.ProgressChanged(message);
