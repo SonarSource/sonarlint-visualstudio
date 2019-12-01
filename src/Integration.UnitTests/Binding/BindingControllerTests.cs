@@ -386,12 +386,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
 
             // Act
-            var actual = BindingController.CreateBindingWorkflow(host, ValidBindingArgs);
+            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs);
 
             // Assert
-            actual.Should().BeOfType<BindingWorkflow>();
+            actual.Should().BeOfType<BindingProcessImpl>();
             outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingLegacyBinding);
-            ((BindingWorkflow)actual).BindingProcessImpl.InternalState.IsFirstBinding.Should().BeFalse();
+            ((BindingProcessImpl)actual).InternalState.IsFirstBinding.Should().BeFalse();
         }
 
         [TestMethod]
@@ -403,14 +403,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
 
             // Act
-            var actual = BindingController.CreateBindingWorkflow(host, ValidBindingArgs);
+            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs);
 
             // Assert
-            actual.Should().BeOfType<BindingWorkflow>();
-            var bindingWorkFlow = (BindingWorkflow)actual;
-            bindingWorkFlow.BindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
+            actual.Should().BeOfType<BindingProcessImpl>();
+            var bindingProcessImpl = (BindingProcessImpl)actual;
+            bindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
             outputWindowPane.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
-            bindingWorkFlow.State.IsFirstBinding.Should().BeTrue();
+            bindingProcessImpl.InternalState.IsFirstBinding.Should().BeTrue();
         }
 
         [TestMethod]
@@ -422,13 +422,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
 
             // Act
-            var actual = BindingController.CreateBindingWorkflow(host, ValidBindingArgs);
+            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs);
 
             // Assert
-            actual.Should().BeOfType<BindingWorkflow>();
-            var bindingWorkFlow = (BindingWorkflow)actual;
-            bindingWorkFlow.BindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
-            bindingWorkFlow.State.IsFirstBinding.Should().BeFalse();
+            actual.Should().BeOfType<BindingProcessImpl>();
+            var bindingProcessImpl = (BindingProcessImpl)actual;
+            bindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
+            bindingProcessImpl.InternalState.IsFirstBinding.Should().BeFalse();
             outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
         }
 

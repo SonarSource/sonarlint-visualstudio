@@ -116,16 +116,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
-            var workflow = CreateBindingWorkflow(host, bindingArgs);
+            var bindingProcess = CreateBindingProcess(host, bindingArgs);
+            var workflow = new BindingWorkflow(host, bindingProcess);
 
             IProgressEvents progressEvents = workflow.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
             this.SetBindingInProgress(progressEvents, bindingArgs);
         }
 
-        internal static /* for testing purposes */ IBindingWorkflow CreateBindingWorkflow(IHost host, BindCommandArgs bindingArgs)
+        internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(IHost host, BindCommandArgs bindingArgs)
         {
-            //Choose the type of binding
+            // Choose the type of binding
             var configProvider = host.GetService<IConfigurationProvider>();
             configProvider.AssertLocalServiceIsNotNull();
 
@@ -164,8 +165,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 host.Logger);
 
             var bindingInformationProvider = new SolutionBindingInformationProvider(host);
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, bindingInformationProvider, isFirstBinding);
 
-            return new BindingWorkflow(host, bindingArgs, solutionBindingOp, nugetBindingOp, bindingInformationProvider, isFirstBinding);
+            return bindingProcess;
         }
 
         internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, BindCommandArgs bindingArgs)
