@@ -62,7 +62,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // 2. Null binding process
             act = () => new BindingWorkflow(host, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingProcess");
-
         }
 
         [TestMethod]
@@ -75,7 +74,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetDownloadQPResult(true);
 
             // Act
-            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { Language.VBNET }, CancellationToken.None);
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { Language.VBNET }, CancellationToken.None)
+                .ConfigureAwait(false);
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(0);
@@ -95,7 +95,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetDownloadQPResult(false);
 
             // Act
-            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { Language.VBNET }, CancellationToken.None);
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { Language.VBNET }, CancellationToken.None)
+                .ConfigureAwait(false);
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(1);
@@ -120,7 +121,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             mockBindingProcess.Verify(x => x.InstallPackages(progressEvents, cts.Token), Times.Once);
-
         }
 
         [TestMethod]
@@ -214,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             mockBindingProcess.Setup(x => x.BindOperationSucceeded).Returns(false);
             var notificationsFail = new ConfigurableProgressStepExecutionEvents();
-            
+
             // Act
             testSubject.EmitBindingCompleteMessage(notificationsFail);
 
