@@ -127,6 +127,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object);
 
             var notifications = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
             var expectedRuleSet = new RuleSet(ruleSet)
@@ -142,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(notifications, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
 
             // Assert
             result.Should().BeTrue();
@@ -165,12 +166,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.CreateTestSubject();
             var notifications = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             var language = Language.CSharp;
             this.ConfigureProfileExport(null, Language.VBNET, "");
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(notifications, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -191,12 +193,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.CreateTestSubject();
             var notifications = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             var language = Language.CSharp;
             this.ConfigureProfileExport(null, language, "");
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(notifications, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -219,6 +222,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string ProjectName = "SQProjectName";
             var testSubject = this.CreateTestSubject("key", ProjectName);
             var notifications = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(Enumerable.Empty<string>());
             var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
@@ -229,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(notifications, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -252,6 +256,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string ProjectName = "SQProjectName";
             var testSubject = this.CreateTestSubject("key", ProjectName);
             var notifications = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
             foreach (var rule in ruleSet.Rules)
@@ -266,7 +271,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(notifications, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -291,6 +296,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var legacyNuGetBinding = new NuGetBindingOperation(this.host, this.host.Logger);
             var testSubject = this.CreateTestSubject("key", ProjectName, legacyNuGetBinding);
             var notifications = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
             var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
@@ -300,7 +306,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(notifications, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -397,7 +403,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var slnBindOpMock = new Mock<ISolutionBindingOperation>();
             var nugetMock = new Mock<INuGetBindingOperation>();
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
-                It.IsAny<IProgressStepExecutionEvents>(),
+                It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(true);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
 
@@ -408,12 +414,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.InternalState.BindingProjects.Add(project1);
 
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
             var cts = new CancellationTokenSource();
 
             testSubject.InternalState.BindingOperationSucceeded = false;
 
             // Act
-            testSubject.InstallPackages(progressEvents, cts.Token);
+            testSubject.InstallPackages(progressAdapter, cts.Token);
 
             // Assert
             testSubject.InternalState.BindingOperationSucceeded.Should().BeTrue();
@@ -428,7 +435,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var slnBindOpMock = new Mock<ISolutionBindingOperation>();
             var nugetMock = new Mock<INuGetBindingOperation>();
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
-                It.IsAny<IProgressStepExecutionEvents>(),
+                It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(false);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
 
@@ -439,12 +446,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.InternalState.BindingProjects.Add(project1);
 
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
             var cts = new CancellationTokenSource();
 
             testSubject.InternalState.BindingOperationSucceeded = true;
 
             // Act
-            testSubject.InstallPackages(progressEvents, cts.Token);
+            testSubject.InstallPackages(progressAdapter, cts.Token);
 
             // Assert
             testSubject.InternalState.BindingOperationSucceeded.Should().BeFalse();
