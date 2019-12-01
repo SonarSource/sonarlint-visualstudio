@@ -28,8 +28,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// Adapter class to translate between <see cref="IProgress{T}" /> and the custom progress 
     /// IProgressStepExecutionEvents class
     /// </summary>
-    /// <remarks>This class does effectively the same as SonarLint.VisualStudio.Progress.DeterminateStepProgressNotifier
-    /// i.e. converts reporting of a fixed number of steps to a double between zero and one.</remarks>
+    /// <remarks>This class converts reporting of a fixed number of steps to a double between zero and one,
+    /// as expected by the wrapped <see cref="IProgressStepExecutionEvents"/> implementation</remarks>
     internal class FixedStepsProgressAdapter : IProgress<FixedStepsProgress>
     {
         private readonly IProgressStepExecutionEvents executionEvents;
