@@ -20,6 +20,7 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
