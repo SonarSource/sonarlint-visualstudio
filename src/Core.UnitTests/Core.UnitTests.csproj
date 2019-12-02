@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+
+    <ProjectGuid>{11960170-E82F-4241-B1AA-552F168D11AD}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Core.UnitTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Core.UnitTests</AssemblyName>
+
+  </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  
+  <ItemGroup Label="Test framework">
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+
+    <PackageReference Include="Moq" Version="4.10.1" />
+    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
+</Project>
