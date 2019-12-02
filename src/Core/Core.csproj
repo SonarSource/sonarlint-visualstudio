@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- NOTE: this assembly should NOT have any dependencies on Visual Studio assemblies -->
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <ProjectGuid>{4F379759-6798-4C98-9CDD-31853F8E46DF}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Core</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Core</AssemblyName>
+        
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
+  </ItemGroup>
+  
+</Project>

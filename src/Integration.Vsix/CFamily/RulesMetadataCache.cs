@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SonarLint.VisualStudio.Core;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
