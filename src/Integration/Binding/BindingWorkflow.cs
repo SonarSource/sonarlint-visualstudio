@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 // Fetch data from Sonar server and write shared ruleset file(s) to temporary location on disk
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, bindingProcess.GetBindingLanguages(), token).GetAwaiter().GetResult()),
+                        (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, token).GetAwaiter().GetResult()),
 
                 //*****************************************************************
                 // NuGet package handling
@@ -172,14 +172,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         internal /*for testing purposes*/ async System.Threading.Tasks.Task DownloadQualityProfileAsync(
-            IProgressController controller, IProgressStepExecutionEvents notificationEvents, IEnumerable<Language> languages,
+            IProgressController controller, IProgressStepExecutionEvents notificationEvents,
             CancellationToken cancellationToken)
         {
             Debug.Assert(controller != null);
             Debug.Assert(notificationEvents != null);
 
             var progressAdapter = new FixedStepsProgressAdapter(notificationEvents);
-            if (!await bindingProcess.DownloadQualityProfileAsync(progressAdapter, languages, cancellationToken).ConfigureAwait(false))
+            if (!await bindingProcess.DownloadQualityProfileAsync(progressAdapter, cancellationToken).ConfigureAwait(false))
             {
                 this.AbortWorkflow(controller, cancellationToken);
             }

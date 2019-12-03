@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -38,10 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         bool DiscoverProjects();
 
-        System.Threading.Tasks.Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, IEnumerable<Language> languages, CancellationToken cancellationToken);
-
-        // duncanp - remove
-        IEnumerable<Language> GetBindingLanguages();
+        System.Threading.Tasks.Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
 
         void PrepareToInstallPackages();
 
