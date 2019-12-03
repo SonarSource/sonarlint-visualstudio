@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var patternFilteredProjects = this.projectSystem.GetFilteredSolutionProjects();
             var pluginAndPatternFilteredProjects =
-                patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages.Contains(Language.ForProject(p)));
+                patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages.Contains(ProjectToLanguageMapper.GetLanguageForProject(p)));
 
             this.InternalState.BindingProjects.UnionWith(pluginAndPatternFilteredProjects);
             this.InformAboutFilteredOutProjects();
@@ -292,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
         {
-            return this.InternalState.BindingProjects.Select(Language.ForProject)
+            return this.InternalState.BindingProjects.Select(ProjectToLanguageMapper.GetLanguageForProject)
                                        .Distinct()
                                        .Where(this.host.SupportedPluginLanguages.Contains)
                                        .ToArray();

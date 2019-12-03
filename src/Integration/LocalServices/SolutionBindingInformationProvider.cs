@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             string expectedSolutionRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                          binding.Project.ProjectKey,
-                         Language.ForProject(project),
+                         ProjectToLanguageMapper.GetLanguageForProject(project),
                          binding.Mode);
 
             return ruleSetSerializer.LoadRuleSet(expectedSolutionRuleSet);
