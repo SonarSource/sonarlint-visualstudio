@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  
+
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <RequiresRuleset>true</RequiresRuleset>
   </PropertyGroup>
@@ -11,7 +11,7 @@
     <ProjectGuid>{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration</AssemblyName>
-    
+
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">
@@ -37,6 +37,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Resources\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Strings.resx">
+      <!-- Note: must be public so the resources are visible to XAML -->
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="StrongNamer" Version="0.0.8" />
   </ItemGroup>
   <ItemGroup Label="Alm authentication">
@@ -54,7 +67,7 @@
     <None Remove="Connection\UI\OrganizationSelectionWindow.xaml" />
     <None Remove="Notifications\NotificationIndicator.xaml" />
     <None Remove="Progress\ProgressControl.xaml" />
-      
+
     <Page Include="Connection\UI\ConnectionInfoDialogView.xaml" />
     <Page Include="Connection\UI\OrganizationSelectionWindow.xaml" />
     <Page Include="Notifications\NotificationIndicator.xaml" />
@@ -68,7 +81,7 @@
     <ProjectReference Include="..\ProgressVS\ProgressVS.csproj" />
   </ItemGroup>
 
-  
+
   <!--**********************************************************************-->
   <!-- Workarounds -->
   <!--**********************************************************************-->
@@ -90,7 +103,7 @@
            or '%(FileName)' == 'Microsoft.Vsts.Authentication'
               ">
         <CopyLocal>true</CopyLocal>
-    </ReferencePath>
+      </ReferencePath>
     </ItemGroup>
 
     <Message Importance="high" Text="In HackIncludeAlmAuthInVsix" />
@@ -99,5 +112,5 @@
   <!--**********************************************************************-->
   <!-- End of workarounds -->
   <!--**********************************************************************-->
-  
+
 </Project>
