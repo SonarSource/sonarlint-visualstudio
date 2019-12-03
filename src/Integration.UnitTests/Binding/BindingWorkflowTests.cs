@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetDownloadQPResult(true);
 
             // Act
-            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { Language.VBNET }, CancellationToken.None)
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetDownloadQPResult(false);
 
             // Act
-            await testSubject.DownloadQualityProfileAsync(controller, notifications, new[] { Language.VBNET }, CancellationToken.None)
+            await testSubject.DownloadQualityProfileAsync(controller, notifications, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -101,7 +101,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void SetDownloadQPResult(bool result)
         {
             mockBindingProcess.Setup(x => x.DownloadQualityProfileAsync(It.IsAny<IProgress<FixedStepsProgress>>(),
-                It.IsAny<IEnumerable<Language>>(),
                 It.IsAny<CancellationToken>())).Returns(Task.FromResult(result));
         }
 

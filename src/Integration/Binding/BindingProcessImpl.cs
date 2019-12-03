@@ -117,12 +117,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return this.InternalState.BindingProjects.Any();
         }
 
-        public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, IEnumerable<Language> languages, CancellationToken cancellationToken)
+        public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
             var rulesets = new Dictionary<Language, RuleSet>();
-            var languageList = languages as IList<Language> ?? languages.ToList();
+            var languageList = this.GetBindingLanguages();
 
-            var languageCount = languageList.Count;
+            var languageCount = languageList.Count();
             int currentLanguage = 0;
             progress?.Report(new FixedStepsProgress(Strings.DownloadingQualityProfileProgressMessage, currentLanguage, languageCount));
 
@@ -290,12 +290,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             ruleSet.WriteToFile(ruleSet.FilePath);
         }
 
-        // duncanp
-        public IEnumerable<Language> GetBindingLanguages()
+        internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
         {
             return this.InternalState.BindingProjects.Select(Language.ForProject)
                                        .Distinct()
-                                       .Where(this.host.SupportedPluginLanguages.Contains);
+                                       .Where(this.host.SupportedPluginLanguages.Contains)
+                                       .ToArray();
         }
 
         internal /* for testing purposes */ static Project[] GetProjectsForRulesetBinding(bool isFirstBinding,

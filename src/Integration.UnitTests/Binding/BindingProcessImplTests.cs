@@ -140,10 +140,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
+            ConfigureSupportedBindingProject(testSubject.InternalState, language);
             SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
             // Assert
             result.Should().BeTrue();
@@ -169,10 +170,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             var language = Language.CSharp;
+            ConfigureSupportedBindingProject(testSubject.InternalState, language);
             this.ConfigureProfileExport(null, Language.VBNET, "");
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -196,10 +198,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             var language = Language.CSharp;
+            ConfigureSupportedBindingProject(testSubject.InternalState, language);
             this.ConfigureProfileExport(null, language, "");
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -230,10 +233,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
+            ConfigureSupportedBindingProject(testSubject.InternalState, language);
             this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -268,10 +272,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
 
             var language = Language.VBNET;
+            ConfigureSupportedBindingProject(testSubject.InternalState, language);
             this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -303,10 +308,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, Enumerable.Empty<PackageName>(), additionalFiles);
 
             var language = Language.VBNET;
+            ConfigureSupportedBindingProject(testSubject.InternalState, language);
             this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, new[] { language }, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -792,6 +798,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project = new ProjectMock(projectName);
             project.SetCSProjectKind();
             return project;
+        }
+
+        private void ConfigureSupportedBindingProject(BindingProcessImpl.BindingProcessState internalState, Language language)
+        {
+            // Mark the language as supported by the host
+            host.SupportedPluginLanguages.Add(language);
+
+            // Create a dummy project and add it to the internal state
+            var project = new ProjectMock(null);
+            switch (language.Id)
+            {
+                case "VB":
+                    project.SetVBProjectKind();
+                    break;
+                case "CSharp":
+                    project.SetCSProjectKind();
+                    break;
+                default:
+                    Assert.Fail($"Test setup error: unknown language: {language}");
+                    break;
+            }
+            internalState.BindingProjects.Add(project);
         }
 
         #endregion Helpers
