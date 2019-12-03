@@ -608,7 +608,7 @@ namespace SonarLint.VisualStudio.Integration
                 projectSystem.AssertLocalServiceIsNotNull();
 
                 IEnumerable<Language> languages = projectSystem.GetFilteredSolutionProjects()
-                    .Select(Language.ForProject)
+                    .Select(ProjectToLanguageMapper.GetLanguageForProject)
                     .Distinct();
 
                 if (!languages.Any())

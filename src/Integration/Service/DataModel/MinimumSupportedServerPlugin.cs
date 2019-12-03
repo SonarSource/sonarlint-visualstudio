@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Service.DataModel
 
         public bool ISupported(EnvDTE.Project project)
         {
-            return Language.ForProject(project).Equals(Language);
+            return ProjectToLanguageMapper.GetLanguageForProject(project).Equals(Language);
         }
     }
 }

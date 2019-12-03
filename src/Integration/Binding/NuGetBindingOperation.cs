@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var projectNugets = projectsToBind
                 .SelectMany(bindingProject =>
                 {
-                    var projectLanguage = Language.ForProject(bindingProject);
+                    var projectLanguage = ProjectToLanguageMapper.GetLanguageForProject(bindingProject);
 
                     List<NuGetPackageInfoResponse> nugetPackages;
                     if (!this.NuGetPackages.TryGetValue(projectLanguage, out nugetPackages))

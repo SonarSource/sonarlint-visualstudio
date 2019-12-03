@@ -310,7 +310,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                     this.configProvider.ProjectToReturn.ProjectKey,
-                    Language.ForProject(project),
+                    ProjectToLanguageMapper.GetLanguageForProject(project),
                     SonarLintMode.LegacyConnected);
                 this.fileSystem.RegisterFile(solutionRuleSet);
             }

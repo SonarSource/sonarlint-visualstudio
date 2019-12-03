@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration
             foreach (var hierarchy in EnumerateProjects(solution))
             {
                 Project Project = GetProject(hierarchy);
-                if (Project != null && !Language.ForProject(Project).Equals(Language.Unknown))
+                if (Project != null && !ProjectToLanguageMapper.GetLanguageForProject(Project).Equals(Language.Unknown))
                 {
                     yield return Project;
                 }
