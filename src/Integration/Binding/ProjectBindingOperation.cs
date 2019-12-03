@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void CaptureProject()
         {
-            this.ProjectLanguage = Language.ForProject(this.initializedProject);
+            this.ProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(this.initializedProject);
             this.ProjectFullPath = this.initializedProject.FullName;
         }
 

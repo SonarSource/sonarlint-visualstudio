@@ -108,17 +108,6 @@ namespace SonarLint.VisualStudio.Integration
             this.Name = name;
         }
 
-        public static Language ForProject(EnvDTE.Project dteProject)
-        {
-            if (dteProject == null)
-            {
-                throw new ArgumentNullException(nameof(dteProject));
-            }
-
-            // TODO: remove this method - change the callers to call the following method directly
-            return ProjectToLanguageMapper.GetLanguageForProject(dteProject);
-        }
-
         #region IEquatable<Language> and Equals
 
         public bool Equals(Language other)

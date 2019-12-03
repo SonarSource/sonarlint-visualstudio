@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                     bindingInfo.ProjectKey,
-                    Language.ForProject(project),
+                    ProjectToLanguageMapper.GetLanguageForProject(project),
                     SonarLintMode.LegacyConnected);
 
                 if (!fileSystem.FileExist(baselineRuleSet))
