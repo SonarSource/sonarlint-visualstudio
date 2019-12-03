@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .ToList();
 
             Debug.Assert(projects.Any(), "No projects selected");
-            Debug.Assert(projects.All(x => Language.ForProject(x).IsSupported), "Unsupported projects");
+            Debug.Assert(projects.All(x => ProjectToLanguageMapper.GetLanguageForProject(x).IsSupported), "Unsupported projects");
 
             foreach (Project project in projects)
             {
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .GetSelectedProjects()
                                           .ToList();
 
-            if (projects.Any() && projects.All(x => Language.ForProject(x).IsSupported))
+            if (projects.Any() && projects.All(x => ProjectToLanguageMapper.GetLanguageForProject(x).IsSupported))
             {
                 IList<bool?> properties = projects.Select(x =>
                     this.propertyManager.GetBooleanProperty(x, PropertyName)).ToList();

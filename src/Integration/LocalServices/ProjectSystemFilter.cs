@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private static bool IsNotSupportedProject(DteProject project)
         {
-            var language = Language.ForProject(project);
+            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
             return (language == null || !language.IsSupported);
         }
 

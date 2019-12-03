@@ -312,7 +312,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(supportedSonarQubePlugins));
 
             // If any of the project can be bound then return success
-            if (csharpOrVbNetProjects.Select(Language.ForProject)
+            if (csharpOrVbNetProjects.Select(ProjectToLanguageMapper.GetLanguageForProject)
                                      .Any(this.host.SupportedPluginLanguages.Contains))
             {
                 return true;
