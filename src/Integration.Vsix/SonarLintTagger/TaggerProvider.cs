@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem)
+        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem)
         {
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try

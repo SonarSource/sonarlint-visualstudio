@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // minimal setup to create a tagger
 
             mockAnalyzerController = new Mock<IAnalyzerController>();
-            mockAnalyzerController.Setup(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<SonarLanguage>>())).Returns(true);
+            mockAnalyzerController.Setup(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<AnalysisLanguage>>())).Returns(true);
             analyzerController = this.mockAnalyzerController.Object;
 
             var mockTableManagerProvider = new Mock<ITableManagerProvider>();
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreateTagger_should_return_null_when_analysis_is_not_supported()
         {
-            mockAnalyzerController.Setup(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<SonarLanguage>>())).Returns(false);
+            mockAnalyzerController.Setup(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<AnalysisLanguage>>())).Returns(false);
 
             CreateTagger(jsContentType).Should().BeNull();
         }

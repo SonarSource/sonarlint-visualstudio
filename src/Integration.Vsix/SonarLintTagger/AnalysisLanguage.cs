@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <summary>
     /// Enum of languages supported by the SonarLint tagger
     /// </summary>
-    public enum SonarLanguage
+    public enum AnalysisLanguage
     {
         Javascript,
         CFamily

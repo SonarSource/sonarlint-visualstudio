@@ -48,10 +48,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void IsSupported_True()
         {
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.CFamily };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.CFamily };
 
             // Act
-            var result = analyzer.IsAnalysisSupported(new[] { SonarLanguage.CFamily });
+            var result = analyzer.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily });
 
             // Assert
             result.Should().BeTrue();
@@ -61,10 +61,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void IsSupported_False()
         {
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.CFamily };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.CFamily };
 
             // Act
-            var result = analyzer.IsAnalysisSupported(new[] { SonarLanguage.Javascript });
+            var result = analyzer.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript });
 
             // Assert
             result.Should().BeFalse();
@@ -74,12 +74,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_Started_NotSupported_AnalysisRequested()
         {
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.CFamily };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.CFamily };
             dummyInstaller.IsInstalledReturnValue = true;
             dummyDaemon.IsRunning = true;
 
             // Act
-            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             // Assert - analysis not called
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
@@ -94,12 +94,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_Started_AnalysisRequested()
         {
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = true;
             dummyDaemon.IsRunning = true;
 
             // 1. Start
-            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             // Assert - only RequestAnalysis called
             dummyInstaller.InstallCallCount.Should().Be(0);
@@ -115,12 +115,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_NotStarted_StartThenRequestAnalysis()
         {
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = true;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_NotStarted_StartThenRequestAnalysis_NonCriticalExceptionInMakeRequestIsSuppressed()
         {
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = true;
             dummyDaemon.IsRunning = false;
 
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             };
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
@@ -186,12 +186,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_NotInstalled_InstallThenStartThenRequestAnalysis()
         {
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript}, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript}, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -216,12 +216,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Related to https://github.com/SonarSource/sonarlint-visualstudio/issues/999
 
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -244,7 +244,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Related to https://github.com/SonarSource/sonarlint-visualstudio/issues/999
 
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
@@ -256,7 +256,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             };
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -278,12 +278,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_NotInstalled_ErrorOnInstall_StartNotCalled()
         {
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -304,12 +304,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void RequestAnalysis_NotInstalled_InstallCancelled_StartNotCalled()
         {
             // Arrange
-            dummyDaemon.SupportedLanguages = new[] { SonarLanguage.Javascript };
+            dummyDaemon.SupportedLanguages = new[] { AnalysisLanguage.Javascript };
             dummyInstaller.IsInstalledReturnValue = false;
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { SonarLanguage.Javascript }, null, null);
+            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed

@@ -46,12 +46,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.telemetryManager = telemetryManager;
         }
 
-        public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
+        public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
             return daemon.IsAnalysisSupported(languages);
         }
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
             if (!IsAnalysisSupported(detectedLanguages))
             {
@@ -68,9 +68,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             new DelayedRequest(this, path, charset, detectedLanguages, consumer, projectItem).Execute();
         }
 
-        private void InvokeDaemon(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        private void InvokeDaemon(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
-            Debug.Assert(detectedLanguages?.Contains(SonarLanguage.Javascript) ?? false, "Not expecting the daemon to be called for languages other than JavaScript");
+            Debug.Assert(detectedLanguages?.Contains(AnalysisLanguage.Javascript) ?? false, "Not expecting the daemon to be called for languages other than JavaScript");
 
             // TODO refactor the daemon so it does not implement IAnalyzer or make any
             // decisions about whether to run or not. That should all be handled by 
@@ -95,11 +95,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             private readonly DaemonAnalyzer daemonAnalyzer;
             private readonly string path;
             private readonly string charset;
-            private readonly IEnumerable<SonarLanguage> detectedLanguages;
+            private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
             private readonly IIssueConsumer consumer;
             private readonly ProjectItem projectItem;
 
-            public DelayedRequest(DaemonAnalyzer daemonAnalyzer, string path, string charset, IEnumerable<SonarLanguage> detectedLanguages,
+            public DelayedRequest(DaemonAnalyzer daemonAnalyzer, string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
                 IIssueConsumer consumer, ProjectItem projectItem)
             {
                 this.daemonAnalyzer = daemonAnalyzer;
