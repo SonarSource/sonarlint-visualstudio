@@ -48,12 +48,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.logger = logger;
         }
 
-        public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
+        public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
-            return languages.Contains(SonarLanguage.CFamily);
+            return languages.Contains(AnalysisLanguage.CFamily);
         }
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 

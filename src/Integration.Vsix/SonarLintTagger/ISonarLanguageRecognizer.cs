@@ -25,6 +25,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal interface ISonarLanguageRecognizer
     {
-        IEnumerable<SonarLanguage> Detect(ITextDocument textDocument, ITextBuffer buffer);
+        IEnumerable<AnalysisLanguage> Detect(ITextDocument textDocument, ITextBuffer buffer);
     }
 }
