@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -28,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class LanguageTests
     {
         [TestMethod]
-        public void Language_Ctor_Guid_ArgChecks()
+        public void Language_Ctor_ArgChecks()
         {
             // Arrange
             var key = "k";
@@ -36,21 +37,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             // Nulls
-            Exceptions.Expect<ArgumentNullException>(() => new Language(name, null));
-            Exceptions.Expect<ArgumentNullException>(() => new Language(null, key));
+            Action act = () => new Language(name, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("name");
+
+            act = () => new Language(null, key);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
-        [TestMethod]
-        public void Language_Ctor_GuidString_ArgChecks()
+        public void Language_UnknownLanguage()
         {
-            // Arrange
-            var key = "k";
-            var name = "MyName";
-
-            // Act + Assert
-            // Nulls
-            Exceptions.Expect<ArgumentNullException>(() => new Language(name, null));
-            Exceptions.Expect<ArgumentNullException>(() => new Language(null, key));
+            Language.Unknown.Id.Should().BeEmpty();
+            Language.Unknown.Name.Should().Be(Strings.UnknownLanguageName);
         }
 
         [TestMethod]
