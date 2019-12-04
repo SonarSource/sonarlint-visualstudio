@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {

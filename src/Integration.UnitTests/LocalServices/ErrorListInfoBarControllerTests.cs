@@ -36,6 +36,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

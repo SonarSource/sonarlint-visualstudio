@@ -27,6 +27,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Flavor;
 using Microsoft.VisualStudio.Shell.Interop;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
