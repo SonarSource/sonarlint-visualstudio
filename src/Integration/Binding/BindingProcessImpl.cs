@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -30,7 +29,6 @@ using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -232,18 +230,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             output.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
 
             this.host.Logger.WriteLine(output.ToString());
-        }
-
-        private void UpdateDownloadedSonarQubeQualityProfile(RuleSet ruleSet, SonarQubeQualityProfile qualityProfile)
-        {
-            ruleSet.NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, this.bindingArgs.ProjectName, qualityProfile.Name);
-
-            var ruleSetDescriptionBuilder = new StringBuilder();
-            ruleSetDescriptionBuilder.AppendLine(ruleSet.Description);
-            ruleSetDescriptionBuilder.AppendFormat(Strings.SonarQubeQualityProfilePageUrlFormat, this.bindingArgs.Connection.ServerUri, qualityProfile.Key);
-            ruleSet.NonLocalizedDescription = ruleSetDescriptionBuilder.ToString();
-
-            ruleSet.WriteToFile(ruleSet.FilePath);
         }
 
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()

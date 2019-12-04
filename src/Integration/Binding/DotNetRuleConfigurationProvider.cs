@@ -67,20 +67,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.logger = logger;
         }
 
-        public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfileInfo, string organizationKey, Language language, CancellationToken cancellationToken)
+        public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
         {
             var serverLanguage = language.ToServerLanguage();
 
             // Generate the rules configuration file for the language
             var roslynProfileExporter = await WebServiceHelper.SafeServiceCallAsync(() =>
-                this.sonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
+                this.sonarQubeService.GetRoslynExportProfileAsync(qualityProfile.Name,
                     organizationKey, serverLanguage, cancellationToken),
                 this.logger);
             if (roslynProfileExporter == null)
             {
                 this.logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                    string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfileInfo.Name,
-                        qualityProfileInfo.Key, language.Name)));
+                    string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfile.Name,
+                        qualityProfile.Key, language.Name)));
                 return null;
             }
 
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 ruleSet.Rules.All(rule => rule.Action == RuleAction.None))
             {
                 this.logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                    string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfileInfo.Name, language.Name)));
+                    string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfile.Name, language.Name)));
                 return null;
             }
 
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
-            UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfileInfo, this.projectName, this.serverUrl);
+            UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfile, this.projectName, this.serverUrl);
 
             return new DotNetRulesConfiguration(ruleSet);
         }
