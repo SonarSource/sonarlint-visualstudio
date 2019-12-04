@@ -30,6 +30,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarQube.Client;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -42,6 +43,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystem;
         private readonly ISolutionBindingOperation solutionBindingOperation;
         private readonly ISolutionBindingInformationProvider bindingInformationProvider;
+        private readonly IRulesConfigurationProvider rulesConfigurationProvider;
+
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
 
         public BindingProcessImpl(IHost host,
@@ -49,44 +52,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
             ISolutionBindingOperation solutionBindingOperation,
             INuGetBindingOperation nugetBindingOperation,
             ISolutionBindingInformationProvider bindingInformationProvider,
+            IRulesConfigurationProvider rulesConfigurationProvider,
             bool isFirstBinding = false)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
+            this.solutionBindingOperation = solutionBindingOperation ?? throw new ArgumentNullException(nameof(solutionBindingOperation));
+            this.NuGetBindingOperation = nugetBindingOperation ?? throw new ArgumentNullException(nameof(nugetBindingOperation));
+            this.bindingInformationProvider = bindingInformationProvider ?? throw new ArgumentNullException(nameof(bindingInformationProvider));
+            this.rulesConfigurationProvider = rulesConfigurationProvider ?? throw new ArgumentNullException(nameof(rulesConfigurationProvider));
 
-            if (bindingArgs == null)
-            {
-                throw new ArgumentNullException(nameof(bindingArgs));
-            }
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
             Debug.Assert(bindingArgs.Connection != null);
 
-            if (solutionBindingOperation == null)
-            {
-                throw new ArgumentNullException(nameof(solutionBindingOperation));
-            }
-
-            if (nugetBindingOperation == null)
-            {
-                throw new ArgumentNullException(nameof(nugetBindingOperation));
-            }
-
-            if (bindingInformationProvider == null)
-            {
-                throw new ArgumentNullException(nameof(bindingInformationProvider));
-            }
-
-            this.host = host;
-            this.bindingArgs = bindingArgs;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
-
-            this.solutionBindingOperation = solutionBindingOperation;
-            this.NuGetBindingOperation = nugetBindingOperation;
-            this.bindingInformationProvider = bindingInformationProvider;
 
             this.InternalState = new BindingProcessState(isFirstBinding);
         }
@@ -120,7 +101,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            var rulesets = new Dictionary<Language, RuleSet>();
             var languageList = this.GetBindingLanguages();
 
             var languageCount = languageList.Count();
@@ -131,6 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 var serverLanguage = language.ToServerLanguage();
 
+                // Download the quality profile for each language
                 var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(() =>
                     this.host.SonarQubeService.GetQualityProfileAsync(
                         this.bindingArgs.ProjectKey, this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
@@ -143,52 +124,26 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
                 this.InternalState.QualityProfiles[language] = qualityProfileInfo;
 
-                var roslynProfileExporter = await WebServiceHelper.SafeServiceCallAsync(() =>
-                    this.host.SonarQubeService.GetRoslynExportProfileAsync(qualityProfileInfo.Name,
-                        this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
-                    this.host.Logger);
-                if (roslynProfileExporter == null)
+                // Create the rules configuration for the language
+                var ruleConfig = await this.rulesConfigurationProvider.GetRulesConfigurationAsync(qualityProfileInfo, this.bindingArgs.Connection.Organization?.Key, language, cancellationToken);
+                if (ruleConfig == null)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                        string.Format(Strings.QualityProfileDownloadFailedMessageFormat, qualityProfileInfo.Name,
-                            qualityProfileInfo.Key, language.Name)));
+                        string.Format(Strings.FailedToCreateRulesConfigForLanguage, language.Name)));
                     return false;
                 }
 
-                var tempRuleSetFilePath = Path.GetTempFileName();
-                File.WriteAllText(tempRuleSetFilePath, roslynProfileExporter.Configuration.RuleSet.OuterXml);
-                RuleSet ruleSet = RuleSet.LoadFromFile(tempRuleSetFilePath);
-
-                if (ruleSet == null ||
-                    ruleSet.Rules.Count == 0 ||
-                    ruleSet.Rules.All(rule => rule.Action == RuleAction.None))
+                // duncanp: remove special case logic for rulesets
+                if (ruleConfig is DotNetRulesConfiguration rulesetConfig)
                 {
-                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                        string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfileInfo.Name, language.Name)));
-                    return false;
+                    this.InternalState.Rulesets[language] = rulesetConfig.RuleSet;
                 }
-
-                if (!this.NuGetBindingOperation.ProcessExport(language, roslynProfileExporter))
-                {
-                    return false;
-                }
-
-                // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
-                UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfileInfo);
-
-                rulesets[language] = ruleSet;
 
                 currentLanguage++;
                 progress?.Report(new FixedStepsProgress(string.Empty, currentLanguage, languageCount));
 
                 this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                     string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
-            }
-
-            // Set the rule set which should be available for the following steps
-            foreach (var keyValue in rulesets)
-            {
-                this.InternalState.Rulesets[keyValue.Key] = keyValue.Value;
             }
 
             return true;
