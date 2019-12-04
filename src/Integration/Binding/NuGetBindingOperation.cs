@@ -28,6 +28,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Messages;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {

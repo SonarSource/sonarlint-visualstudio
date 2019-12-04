@@ -23,9 +23,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
     /// Represents a programming language for which connected mode is supported. Implements <seealso cref="IEquatable{T}"/>.

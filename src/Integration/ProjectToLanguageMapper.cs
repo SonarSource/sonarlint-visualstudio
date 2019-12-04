@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
