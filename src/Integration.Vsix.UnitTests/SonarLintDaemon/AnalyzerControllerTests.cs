@@ -38,15 +38,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var analyzers = new IAnalyzer[]
             {
                 new DummyAnalyzer(),
-                new DummyAnalyzer(SonarLanguage.CFamily),
+                new DummyAnalyzer(AnalysisLanguage.CFamily),
                 new DummyAnalyzer(),
             };
 
             var controller = new AnalyzerController(new TestLogger(), analyzers);
 
             // Act and Assert
-            controller.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeTrue();
-            controller.IsAnalysisSupported(new[] { SonarLanguage.Javascript }).Should().BeFalse();
+            controller.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeTrue();
+            controller.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeFalse();
         }
 
         [TestMethod]
@@ -56,14 +56,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var analyzers = new DummyAnalyzer[]
             {
                 new DummyAnalyzer(),
-                new DummyAnalyzer(SonarLanguage.CFamily),
+                new DummyAnalyzer(AnalysisLanguage.CFamily),
                 new DummyAnalyzer(),
             };
 
             var controller = new AnalyzerController(new TestLogger(), analyzers);
 
             // Act
-            controller.RequestAnalysis("c:\\file.cpp", "charset1", new[] { SonarLanguage.Javascript }, null, null);
+            controller.RequestAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null);
 
             analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
         }
@@ -75,16 +75,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var analyzers = new DummyAnalyzer[]
             {
                 new DummyAnalyzer(),
-                new DummyAnalyzer(SonarLanguage.CFamily),
+                new DummyAnalyzer(AnalysisLanguage.CFamily),
                 new DummyAnalyzer(),
-                new DummyAnalyzer(SonarLanguage.CFamily),
+                new DummyAnalyzer(AnalysisLanguage.CFamily),
             };
 
             var controller = new AnalyzerController(new TestLogger(), analyzers);
 
             // Act
             controller.RequestAnalysis("c:\\file.cpp", "charset1", 
-                new[] { SonarLanguage.CFamily, SonarLanguage.Javascript }, null, null);
+                new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null);
 
             analyzers[0].RequestAnalysisCalled.Should().BeFalse();
             analyzers[2].RequestAnalysisCalled.Should().BeFalse();
@@ -96,21 +96,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
         private class DummyAnalyzer : IAnalyzer
         {
-            private readonly SonarLanguage[] supportedLanguages;
+            private readonly AnalysisLanguage[] supportedLanguages;
 
             public bool RequestAnalysisCalled { get; private set; }
 
-            public DummyAnalyzer(params SonarLanguage[] supportedLanguages)
+            public DummyAnalyzer(params AnalysisLanguage[] supportedLanguages)
             {
                 this.supportedLanguages = supportedLanguages;
             }
 
-            public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
+            public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
             {
                 return supportedLanguages?.Intersect(languages).Count() > 0;
             }
 
-            public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+            public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
             {
                 detectedLanguages.Should().NotBeNull();
                 detectedLanguages.Any().Should().BeTrue();

@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly DTE dte;
         internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
-        private readonly IEnumerable<SonarLanguage> detectedLanguages;
+        private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
 
         internal ProjectItem ProjectItem { get; private set; }
         private ITextSnapshot currentSnapshot;
@@ -65,11 +65,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
         
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<SonarLanguage> detectedLanguages, ILogger logger)
+            IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger)
             : this(dte, provider, document, detectedLanguages, new IssueConverter(), logger) { }
 
         internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<SonarLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger)
+            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger)
         {
             this.dte = dte;
 

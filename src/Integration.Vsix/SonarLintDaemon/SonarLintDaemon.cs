@@ -410,7 +410,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region IAnalyzer methods
 
-        public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
+        public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
             // TODO: this method is called when deciding whether to create a tagger.
             // If support for additional languages is not active when the user opens a document
@@ -419,12 +419,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // tagger. The user will have to close and re-open the file to see issues.
             // Is this the behaviour we want, or should we return true here if the language
             // is supported, and then check whether to analyze when RequestAnalysis is called?
-            bool isSupported = (languages != null && languages.Contains(SonarLanguage.Javascript) &&
+            bool isSupported = (languages != null && languages.Contains(AnalysisLanguage.Javascript) &&
                 settings.IsActivateMoreEnabled);
             return isSupported;
         }
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, EnvDTE.ProjectItem projectItem)
+        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, EnvDTE.ProjectItem projectItem)
         {
             if (!settings.IsActivateMoreEnabled)
             {
