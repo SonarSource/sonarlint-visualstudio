@@ -416,14 +416,6 @@ This is the general format to use when writing errors to output window or when t
     <value>None (for selected SonarQube project's quality profile)</value>
     <comment>Output window message indicating the current solution does not contain any projects that are applicable to the currently selected SonarQube project's quality profile.</comment>
   </data>
-  <data name="CSharpLanguageName" xml:space="preserve">
-    <value>C#</value>
-    <comment>C# language name</comment>
-  </data>
-  <data name="VBNetLanguageName" xml:space="preserve">
-    <value>VB.NET</value>
-    <comment>VB.NET language name</comment>
-  </data>
   <data name="DiscoveringSolutionProjectsProgressMessage" xml:space="preserve">
     <value>Discovering solution projects</value>
     <comment>Progress step message indicating projects are being discovered in the current solution</comment>
@@ -533,10 +525,6 @@ This is the general format to use when writing errors to output window or when t
   <data name="FilteredOutProjectFromBindingEnding" xml:space="preserve">
     <value>You can change the exclusion options via the SonarLint project-level context menu i.e. Solution Explorer -&gt; Select project(s)</value>
     <comment>Output window message</comment>
-  </data>
-  <data name="UnknownLanguageName" xml:space="preserve">
-    <value>Unknown</value>
-    <comment>Name of any unknown languages</comment>
   </data>
   <data name="SonarLintInfoBarUpdateCommandIsBusyRetry" xml:space="preserve">
     <value>Could not update the binding because the command is not currently available. Please try again and ensure that the solution is not building or currently being debugged.</value>

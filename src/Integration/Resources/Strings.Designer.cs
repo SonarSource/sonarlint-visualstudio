@@ -494,15 +494,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to C#.
-        /// </summary>
-        public static string CSharpLanguageName {
-            get {
-                return ResourceManager.GetString("CSharpLanguageName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Detecting server plugins.
         /// </summary>
         public static string DetectingSonarQubePlugins {
@@ -1414,15 +1405,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown.
-        /// </summary>
-        public static string UnknownLanguageName {
-            get {
-                return ResourceManager.GetString("UnknownLanguageName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unpacking additional file: {0}.
         /// </summary>
         public static string UnpackingAdditionalFile {
@@ -1455,15 +1437,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string UsernameRequired {
             get {
                 return ResourceManager.GetString("UsernameRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB.NET.
-        /// </summary>
-        public static string VBNetLanguageName {
-            get {
-                return ResourceManager.GetString("VBNetLanguageName", resourceCulture);
             }
         }
         

@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration
     /// the corresponding known <seealso cref="Language"/> singleton is returned. Otherwise the <seealso cref="Language.Unknown"/>
     /// is returned.
     /// </remarks>
-    internal class LanguageConverter : TypeConverter
+    public class LanguageConverter : TypeConverter
     {
         #region Convert From
 
