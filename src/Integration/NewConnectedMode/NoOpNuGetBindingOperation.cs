@@ -24,8 +24,8 @@ using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Messages;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {

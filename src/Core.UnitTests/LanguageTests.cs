@@ -21,9 +21,8 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Core.UnitTests
 {
     [TestClass]
     public class LanguageTests
@@ -44,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
+        [TestMethod]
         public void Language_UnknownLanguage()
         {
             Language.Unknown.Id.Should().BeEmpty();

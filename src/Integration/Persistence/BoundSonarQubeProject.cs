@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using SonarQube.Client.Models;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {

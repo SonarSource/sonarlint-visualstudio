@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Threading;
 using EnvDTE;
 using SonarQube.Client.Messages;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {

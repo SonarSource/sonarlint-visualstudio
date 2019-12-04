@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using EnvDTE;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
