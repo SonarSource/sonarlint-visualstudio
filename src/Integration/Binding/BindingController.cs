@@ -165,7 +165,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 host.Logger);
 
             var bindingInformationProvider = new SolutionBindingInformationProvider(host);
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, bindingInformationProvider, isFirstBinding);
+
+            // duncanp - finish refactoring to support other languages
+            var dotNetConfigProvider = new DotNetRuleConfigurationProvider(host.SonarQubeService, nugetBindingOp,
+                bindingArgs.Connection.ServerUri.ToString(), bindingArgs.ProjectName,
+                host.Logger);
+
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, bindingInformationProvider, dotNetConfigProvider, isFirstBinding);
 
             return bindingProcess;
         }
