@@ -54,22 +54,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.fileExtensionRegistryService = fileExtensionRegistryService;
         }
 
-        public IEnumerable<SonarLanguage> Detect(ITextDocument textDocument, ITextBuffer buffer)
+        public IEnumerable<AnalysisLanguage> Detect(ITextDocument textDocument, ITextBuffer buffer)
         {
             var fileExtension = Path.GetExtension(textDocument.FilePath).Replace(".", "");
             var contentTypes = GetExtensionContentTypes(fileExtension, buffer);
 
             // Languages are for now mainly exclusive but it should possible for the same file to be analyzed by multiple
             // plugins (language plugin).
-            var detectedLanguages = new List<SonarLanguage>();
+            var detectedLanguages = new List<AnalysisLanguage>();
             if (IsJavascriptDocument(fileExtension, contentTypes))
             {
-                detectedLanguages.Add(SonarLanguage.Javascript);
+                detectedLanguages.Add(AnalysisLanguage.Javascript);
             }
 
             if (IsCFamilyDocument(contentTypes))
             {
-                detectedLanguages.Add(SonarLanguage.CFamily);
+                detectedLanguages.Add(AnalysisLanguage.CFamily);
             }
             return detectedLanguages;
         }

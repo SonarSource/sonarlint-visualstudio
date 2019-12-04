@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private TaggerProvider taggerProvider;
         private Mock<ITextDocument> mockedJavascriptDocumentFooJs;
-        private SonarLanguage[] javascriptLanguage = new[] { SonarLanguage.Javascript };
+        private AnalysisLanguage[] javascriptLanguage = new[] { AnalysisLanguage.Javascript };
 
         [TestInitialize]
         public void SetUp()
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             taggerProvider = CreateTaggerProvider();
             mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js");
-            javascriptLanguage = new[] { SonarLanguage.Javascript };
+            javascriptLanguage = new[] { AnalysisLanguage.Javascript };
         }
 
         #region Triggering analysis tests
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // 2. Add a tagger -> analysis requested
             var tagger = new IssueTagger(testSubject);
-            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new SonarLanguage[] { SonarLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
         }
 
         [TestMethod]
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockAnalyzerController.Invocations.Clear();
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new SonarLanguage[] { SonarLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
 
             // 3. Unregister tagger and raise -> analysis not requested
             tagger.Dispose();
@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Sanity check (that the test setup is correct and that events are actually being handled)
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new SonarLanguage[] { SonarLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
         }
 
         private static void RaiseRenameEvent(Mock<ITextDocument> mockDocument, string newFileName)
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void CheckAnalysisWasNotRequested()
         {
-            mockAnalyzerController.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<SonarLanguage>>(),
+            mockAnalyzerController.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
                 It.IsAny<IIssueConsumer>(), It.IsAny<ProjectItem>()), Times.Never);
         }
 

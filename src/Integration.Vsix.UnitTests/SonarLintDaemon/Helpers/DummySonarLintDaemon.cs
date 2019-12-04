@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         #region Test helper methods
 
-        public IEnumerable<SonarLanguage> SupportedLanguages { get; set; }
+        public IEnumerable<AnalysisLanguage> SupportedLanguages { get; set; }
 
         public int StartCallCount { get; private set; }
         public int RequestAnalysisCallCount { get; private set; }
@@ -64,12 +64,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-        public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
+        public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
             return SupportedLanguages?.Intersect(languages).Any() ?? false;
         }
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
             RequestAnalysisCallCount++;
             RequestAnalysisOperation?.Invoke();

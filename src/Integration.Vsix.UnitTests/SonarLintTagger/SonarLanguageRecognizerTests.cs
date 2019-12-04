@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Assert
                 result.Should().HaveCount(1);
-                result.First().Should().Be(SonarLanguage.Javascript);
+                result.First().Should().Be(AnalysisLanguage.Javascript);
             }
         }
 
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Assert
                 result.Should().HaveCount(1);
-                result.First().Should().Be(SonarLanguage.Javascript);
+                result.First().Should().Be(AnalysisLanguage.Javascript);
             }
         }
 
@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().HaveCount(1);
-            result.First().Should().Be(SonarLanguage.CFamily);
+            result.First().Should().Be(AnalysisLanguage.CFamily);
         }
 
         [TestMethod]
@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().HaveCount(1);
-            result.First().Should().Be(SonarLanguage.Javascript);
+            result.First().Should().Be(AnalysisLanguage.Javascript);
         }
 
         [TestMethod]
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().HaveCount(1);
-            result.First().Should().Be(SonarLanguage.CFamily);
+            result.First().Should().Be(AnalysisLanguage.CFamily);
         }
 
         [TestMethod]
@@ -198,8 +198,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().HaveCount(2);
-            result.First().Should().Be(SonarLanguage.Javascript);
-            result.Skip(1).First().Should().Be(SonarLanguage.CFamily);
+            result.First().Should().Be(AnalysisLanguage.Javascript);
+            result.Skip(1).First().Should().Be(AnalysisLanguage.CFamily);
         }
     }
 }

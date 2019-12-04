@@ -42,9 +42,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
                 userSettingsProviderMock.Object, testLogger);
 
             // Act and Assert
-            analyzer.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeTrue();
-            analyzer.IsAnalysisSupported(new[] { SonarLanguage.Javascript }).Should().BeFalse();
-            analyzer.IsAnalysisSupported(new[] { SonarLanguage.Javascript, SonarLanguage.CFamily }).Should().BeTrue();
+            analyzer.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeTrue();
+            analyzer.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeFalse();
+            analyzer.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript, AnalysisLanguage.CFamily }).Should().BeTrue();
         }
     }
 }

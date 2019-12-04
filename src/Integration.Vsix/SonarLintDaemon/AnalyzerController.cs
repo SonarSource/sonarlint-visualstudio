@@ -40,13 +40,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.analyzers = analyzers;
         }
 
-        public bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages)
+        public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
             bool isSupported = analyzers.Any(a => a.IsAnalysisSupported(languages));
             return isSupported;
         }
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
             bool handled = false;
             foreach(var analyzer in analyzers)

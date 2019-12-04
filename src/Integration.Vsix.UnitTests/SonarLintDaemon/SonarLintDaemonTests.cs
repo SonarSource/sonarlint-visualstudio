@@ -368,8 +368,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             settings.IsActivateMoreEnabled = false;
 
             // Should never return true if activate more is not enabled
-            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.Javascript }).Should().BeFalse();
-            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeFalse();
+            testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeFalse();
+            testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeFalse();
         }
 
         [TestMethod]
@@ -379,9 +379,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             settings.IsActivateMoreEnabled = true;
 
             // Should never return true if activate more is not enabled
-            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.Javascript }).Should().BeTrue();
-            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.CFamily }).Should().BeFalse();
-            testableDaemon.IsAnalysisSupported(new[] { SonarLanguage.CFamily, SonarLanguage.Javascript }).Should().BeTrue();
+            testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeTrue();
+            testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeFalse();
+            testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }).Should().BeTrue();
         }
 
         private static void ForceDeleteDirectory(string path)

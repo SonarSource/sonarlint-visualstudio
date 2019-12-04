@@ -27,9 +27,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     public interface IAnalyzer
     {
-        bool IsAnalysisSupported(IEnumerable<SonarLanguage> languages);
+        bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
 
-        void RequestAnalysis(string path, string charset, IEnumerable<SonarLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem);
+        void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem);
     }
 
     // Marker interface used by for MEF exporting/importing
