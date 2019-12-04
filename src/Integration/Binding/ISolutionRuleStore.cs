@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {

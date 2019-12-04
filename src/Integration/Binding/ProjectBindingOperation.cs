@@ -25,6 +25,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {

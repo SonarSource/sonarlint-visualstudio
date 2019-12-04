@@ -24,7 +24,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
     /// Enables conversion between <seealso cref="Language.Id"/> and <seealso cref="Language"/>.

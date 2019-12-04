@@ -35,6 +35,7 @@ using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarQube.Client;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {

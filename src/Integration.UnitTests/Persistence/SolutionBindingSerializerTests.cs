@@ -30,6 +30,7 @@ using Moq;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Helpers;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
