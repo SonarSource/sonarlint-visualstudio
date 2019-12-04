@@ -602,6 +602,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to create the rules configuration for language {0}.
+        /// </summary>
+        public static string FailedToCreateRulesConfigForLanguage {
+            get {
+                return ResourceManager.GetString("FailedToCreateRulesConfigForLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to delete credentials for {0}..
         /// </summary>
         public static string FailedToDeleteCredentials {

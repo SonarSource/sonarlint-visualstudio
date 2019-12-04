@@ -38,7 +38,6 @@ using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
-using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -88,26 +87,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var slnBindOp = new Mock<ISolutionBindingOperation>().Object;
             var nuGetOp = new Mock<INuGetBindingOperation>().Object;
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            var rulesConfigurationProvider = new Mock<IRulesConfigurationProvider>().Object;
 
             // 1. Null host
-            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, bindingInfoProvider);
+            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, bindingInfoProvider, rulesConfigurationProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
 
             // 2. Null binding args
-            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, bindingInfoProvider);
+            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, bindingInfoProvider, rulesConfigurationProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
             // 3. Null solution binding operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, bindingInfoProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, bindingInfoProvider, rulesConfigurationProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingOperation");
 
             // 4. Null NuGet operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, bindingInfoProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, bindingInfoProvider, rulesConfigurationProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("nugetBindingOperation");
 
             // 5. Null binding info provider
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null, rulesConfigurationProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingInformationProvider");
+            
+            // 6. Null rules configuration provider
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, bindingInfoProvider, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesConfigurationProvider");
         }
 
         [TestMethod]
@@ -117,31 +121,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
 
-            // Record all of the calls to NuGetBindingOperation.ProcessExport
-            var actualProfiles = new List<Tuple<Language, RoslynExportProfileResponse>>();
             Mock<INuGetBindingOperation> nuGetOpMock = new Mock<INuGetBindingOperation>();
-            nuGetOpMock.Setup(x => x.ProcessExport(It.IsAny<Language>(), It.IsAny<RoslynExportProfileResponse>()))
-                .Callback<Language, RoslynExportProfileResponse>((l, r) => actualProfiles.Add(new Tuple<Language, RoslynExportProfileResponse>(l, r)))
-                .Returns(true);
-
-            var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object);
 
             var notifications = new ConfigurableProgressStepExecutionEvents();
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
-            RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
-            var expectedRuleSet = new RuleSet(ruleSet)
-            {
-                NonLocalizedDisplayName = string.Format(Strings.SonarQubeRuleSetNameFormat, ProjectName, QualityProfileName),
-                NonLocalizedDescription = "\r\nhttp://connected/profiles/show?key="
-            };
-            var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
-            var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
-            RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
+            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
+            var rulesetRulesConfig = new DotNetRulesConfiguration(expectedRuleSet);
 
             var language = Language.VBNET;
+            SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
+
+            var rulesConfigProviderMock = new Mock<IRulesConfigurationProvider>();
+            rulesConfigProviderMock.Setup(x => x.GetRulesConfigurationAsync(profile, null, language, CancellationToken.None))
+                .ReturnsAsync(rulesetRulesConfig);
+
+            var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, rulesConfigProviderMock.Object);
+
             ConfigureSupportedBindingProject(testSubject.InternalState, language);
-            SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -150,7 +147,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().BeTrue();
             RuleSetAssert.AreEqual(expectedRuleSet, testSubject.InternalState.Rulesets[language], "Unexpected rule set");
             testSubject.InternalState.QualityProfiles[language].Should().Be(profile);
-            VerifyNuGetPackgesDownloaded(nugetPackages, language, actualProfiles);
 
             notifications.AssertProgress(0.0, 1.0);
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage, string.Empty);
@@ -171,7 +167,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var language = Language.CSharp;
             ConfigureSupportedBindingProject(testSubject.InternalState, language);
-            this.ConfigureProfileExport(null, Language.VBNET, "");
+            this.ConfigureQualityProfile(Language.VBNET, "");
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -190,141 +186,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task DownloadQualityProfile_WhenProfileExportIsNotAvailable_Fails()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-            var notifications = new ConfigurableProgressStepExecutionEvents();
-            var progressAdapter = new FixedStepsProgressAdapter(notifications);
-
-            var language = Language.CSharp;
-            ConfigureSupportedBindingProject(testSubject.InternalState, language);
-            this.ConfigureProfileExport(null, language, "");
-
-            // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
-
-            // Assert
-            result.Should().BeFalse();
-            testSubject.InternalState.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.InternalState.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
-
-            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
-
-            this.outputWindowPane.AssertOutputStrings(1);
-            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.QualityProfileDownloadFailedMessageFormat, string.Empty, string.Empty, language.Name));
-            this.outputWindowPane.AssertOutputStrings(expectedOutput);
-        }
-
-        [TestMethod]
-        public async Task DownloadQualityProfile_WithNoRules_Fails()
+        public async Task DownloadQualityProfile_WhenRulesConfigIsNull_Fails()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
-            var testSubject = this.CreateTestSubject("key", ProjectName);
+
+            Mock<INuGetBindingOperation> nuGetOpMock = new Mock<INuGetBindingOperation>();
+
             var notifications = new ConfigurableProgressStepExecutionEvents();
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
-            RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(Enumerable.Empty<string>());
-            var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
-            var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
-            RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
-
             var language = Language.VBNET;
+            SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
+
+            var rulesConfigProviderMock = new Mock<IRulesConfigurationProvider>();
+            var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, rulesConfigProviderMock.Object);
+
             ConfigureSupportedBindingProject(testSubject.InternalState, language);
-            this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
-            testSubject.InternalState.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.InternalState.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
-            
+            testSubject.InternalState.QualityProfiles[language].Should().Be(profile);
+
+            notifications.AssertProgress(0.0);
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 
             this.outputWindowPane.AssertOutputStrings(1);
             var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, QualityProfileName, language.Name));
-            this.outputWindowPane.AssertOutputStrings(expectedOutput);
-        }
-
-        [TestMethod]
-        public async Task DownloadQualityProfile_WithNoActiveRules_Fails()
-        {
-            // Arrange
-            const string QualityProfileName = "SQQualityProfileName";
-            const string ProjectName = "SQProjectName";
-            var testSubject = this.CreateTestSubject("key", ProjectName);
-            var notifications = new ConfigurableProgressStepExecutionEvents();
-            var progressAdapter = new FixedStepsProgressAdapter(notifications);
-
-            RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
-            foreach (var rule in ruleSet.Rules)
-            {
-                rule.Action = RuleAction.None;
-            }
-            var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
-            var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
-            RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, nugetPackages, additionalFiles);
-
-            var language = Language.VBNET;
-            ConfigureSupportedBindingProject(testSubject.InternalState, language);
-            this.ConfigureProfileExport(export, language, QualityProfileName);
-
-            // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
-
-            // Assert
-            result.Should().BeFalse();
-            testSubject.InternalState.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.InternalState.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
-            testSubject.InternalState.Rulesets.Count.Should().Be(0);
-
-            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
-
-            this.outputWindowPane.AssertOutputStrings(1);
-            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, QualityProfileName, language.Name));
-            this.outputWindowPane.AssertOutputStrings(expectedOutput);
-        }
-
-        [TestMethod]
-        public async Task DownloadQualityProfile_LegacyMode_WithNoNugetPackage_Fails()
-        {
-            // Arrange
-            const string QualityProfileName = "SQQualityProfileName";
-            const string ProjectName = "SQProjectName";
-            var legacyNuGetBinding = new NuGetBindingOperation(this.host, this.host.Logger);
-            var testSubject = this.CreateTestSubject("key", ProjectName, legacyNuGetBinding);
-            var notifications = new ConfigurableProgressStepExecutionEvents();
-            var progressAdapter = new FixedStepsProgressAdapter(notifications);
-
-            RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
-            var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
-            RoslynExportProfileResponse export = RoslynExportProfileHelper.CreateExport(ruleSet, Enumerable.Empty<PackageName>(), additionalFiles);
-
-            var language = Language.VBNET;
-            ConfigureSupportedBindingProject(testSubject.InternalState, language);
-            this.ConfigureProfileExport(export, language, QualityProfileName);
-
-            // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
-
-            // Assert
-            result.Should().BeFalse();
-            testSubject.InternalState.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.InternalState.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
-            testSubject.InternalState.Rulesets.Count.Should().Be(0);
-
-            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
-
-            this.outputWindowPane.AssertOutputStrings(1);
-            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.NoNuGetPackageForQualityProfile, language.Name));
+                string.Format(Strings.FailedToCreateRulesConfigForLanguage, language.Name));
             this.outputWindowPane.AssertOutputStrings(expectedOutput);
         }
 
@@ -412,8 +305,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(true);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            var rulesConfigurationProvider = new Mock<IRulesConfigurationProvider>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider, rulesConfigurationProvider.Object);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -444,8 +338,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(false);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            var rulesConfigurationProvider = new Mock<IRulesConfigurationProvider>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider, rulesConfigurationProvider.Object);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -750,54 +645,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Helpers
 
         private BindingProcessImpl CreateTestSubject(string projectKey = "anykey", string projectName = "anyname",
-            INuGetBindingOperation nuGetBindingOperation = null)
+            INuGetBindingOperation nuGetBindingOperation = null,
+            IRulesConfigurationProvider rulesConfigurationProvider = null)
         {
-            this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
+            nuGetBindingOperation = nuGetBindingOperation ?? new NoOpNuGetBindingOperation(this.host.Logger);
+            rulesConfigurationProvider = rulesConfigurationProvider ?? new Mock<IRulesConfigurationProvider>().Object;
 
+            this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
             var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
 
             var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected, this.host.Logger);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
 
-            if (nuGetBindingOperation == null)
-            {
-                return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, new NoOpNuGetBindingOperation(this.host.Logger), bindingInfoProvider);
-            }
-            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, bindingInfoProvider);
-        }
-
-        private SonarQubeQualityProfile ConfigureProfileExport(RoslynExportProfileResponse export, Language language, string profileName)
-        {
-            var profile = new SonarQubeQualityProfile("", profileName, "", false, DateTime.Now);
-            this.sonarQubeServiceMock
-                .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), language.ToServerLanguage(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(profile);
-            this.sonarQubeServiceMock
-                .Setup(x => x.GetRoslynExportProfileAsync(profileName, It.IsAny<string>(), It.IsAny<SonarQubeLanguage>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(export);
-
-            return profile;
-        }
-
-        private static void VerifyNuGetPackgesDownloaded(IEnumerable<PackageName> expectedPackages,
-            Language language,
-            IList<Tuple<Language, RoslynExportProfileResponse>> actualProfiles)
-        {
-            actualProfiles.All(p => p.Item1 == language).Should().BeTrue();
-
-            var actualPackages = actualProfiles.SelectMany(p => p.Item2?.Deployment?.NuGetPackages.Select(
-                ngp => new PackageName(ngp.Id, new SemanticVersion(ngp.Version))));
-
-            actualPackages.Should().BeEquivalentTo(expectedPackages);
-            actualPackages.Should().HaveSameCount(expectedPackages, "Different number of packages.");
-            actualPackages.Select(x => x.ToString()).Should().Equal(expectedPackages.Select(x => x.ToString()));
-        }
-
-        private static ProjectMock CreateCsProject(string projectName)
-        {
-            var project = new ProjectMock(projectName);
-            project.SetCSProjectKind();
-            return project;
+            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, bindingInfoProvider, rulesConfigurationProvider);
         }
 
         private void ConfigureSupportedBindingProject(BindingProcessImpl.BindingProcessState internalState, Language language)
@@ -820,6 +680,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     break;
             }
             internalState.BindingProjects.Add(project);
+        }
+
+        private SonarQubeQualityProfile ConfigureQualityProfile(Language language, string profileName)
+        {
+            var profile = new SonarQubeQualityProfile("", profileName, "", false, DateTime.Now);
+            this.sonarQubeServiceMock
+                .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), language.ToServerLanguage(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(profile);
+
+            return profile;
         }
 
         #endregion Helpers
