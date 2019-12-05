@@ -124,8 +124,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             CollectionAssert.AreEquivalent(ruleSetMap.Keys.ToArray(), testSubject.RuleSetsInformationMap.Keys.ToArray());
-            testSubject.RuleSetsInformationMap[Language.CSharp].RuleSet.Should().Be(ruleSetMap[Language.CSharp]);
-            testSubject.RuleSetsInformationMap[Language.VBNET].RuleSet.Should().Be(ruleSetMap[Language.VBNET]);
+            testSubject.RuleSetsInformationMap[Language.CSharp].RulesConfigurationFile.Should().Be(ruleSetMap[Language.CSharp]);
+            testSubject.RuleSetsInformationMap[Language.VBNET].RulesConfigurationFile.Should().Be(ruleSetMap[Language.VBNET]);
         }
 
         [TestMethod]

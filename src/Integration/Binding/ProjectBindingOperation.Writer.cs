@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(solutionRuleSet != null);
 
             // TODO: clean up to remove down-cast to check for RuleSet
-            DotNetRulesConfigurationFile.TryGetRuleSet(solutionRuleSet.RuleSet, out var dotNetRuleSet);
+            DotNetRulesConfigurationFile.TryGetRuleSet(solutionRuleSet.RulesConfigurationFile, out var dotNetRuleSet);
             Debug.Assert(dotNetRuleSet != null, "Only expecting this method to be called for projects that have a VS RuleSet");
 
             string projectRoot = Path.GetDirectoryName(projectFullPath);

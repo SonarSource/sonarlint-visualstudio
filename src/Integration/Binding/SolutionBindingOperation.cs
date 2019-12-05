@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
-        private readonly Dictionary<Language, RuleSetInformation> ruleSetsInformationMap = new Dictionary<Language, RuleSetInformation>();
+        private readonly Dictionary<Language, RuleSetInformation> rulesConfigInformationMap = new Dictionary<Language, RuleSetInformation>();
         private Dictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string projectKey;
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ IReadOnlyDictionary<Language, RuleSetInformation> RuleSetsInformationMap
         {
-            get { return this.ruleSetsInformationMap; }
+            get { return this.rulesConfigInformationMap; }
         }
         #endregion
 
@@ -123,10 +123,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var keyValue in ruleSets)
             {
-                Debug.Assert(!this.ruleSetsInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
+                Debug.Assert(!this.rulesConfigInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
 
                 string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.projectKey, keyValue.Key, this.bindingMode);
-                this.ruleSetsInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
+                this.rulesConfigInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
             }
         }
 
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             RuleSetInformation info;
 
-            if (!this.ruleSetsInformationMap.TryGetValue(language, out info) || info == null)
+            if (!this.rulesConfigInformationMap.TryGetValue(language, out info) || info == null)
             {
                 Debug.Fail("Expected to be called by the ProjectBinder after the known rulesets were registered");
                 return null;
@@ -186,7 +186,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
             ruleSetSerializer.AssertLocalServiceIsNotNull();
 
-            foreach (var keyValue in this.ruleSetsInformationMap)
+            foreach (var keyValue in this.rulesConfigInformationMap)
             {
                 if (token.IsCancellationRequested)
                 {
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 Debug.Assert(!string.IsNullOrWhiteSpace(info.NewRuleSetFilePath), "Expected to be set during registration time");
 
                 // duncanp - add support for C++ projects
-                if (!DotNetRulesConfigurationFile.TryGetRuleSet(info.RuleSet, out var dotnetRuleset))
+                if (!DotNetRulesConfigurationFile.TryGetRuleSet(info.RulesConfigurationFile, out var dotnetRuleset))
                 {
                     break;
                 }
@@ -292,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void UpdateSolutionFile()
         {
-            foreach (RuleSetInformation info in ruleSetsInformationMap.Values)
+            foreach (RuleSetInformation info in rulesConfigInformationMap.Values)
             {
                 Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
                 this.AddFileToSolutionItems(info.NewRuleSetFilePath);
