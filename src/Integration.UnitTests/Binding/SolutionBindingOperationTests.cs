@@ -28,6 +28,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -379,9 +380,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var connectionInformation = new ConnectionInformation(new Uri("http://xyz"));
             SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation, bindingMode);
 
+            var rulesConfigFileMock = new Mock<IRulesConfigurationFileWithRuleset>();
+            rulesConfigFileMock.Setup(x => x.RuleSet).Returns(new RuleSet("cs"));
+            
             var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>()
             {
-                { Language.CSharp, new DotNetRulesConfigurationFile(new RuleSet("cs")) }
+                { Language.CSharp, rulesConfigFileMock.Object }
             };
             
             testSubject.RegisterKnownRuleSets(ruleSetMap);
@@ -413,6 +417,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             savedProject.Profiles.Should().HaveCount(1);
             savedProject.Profiles[Language.CSharp].ProfileKey.Should().Be("expected profile Key");
             savedProject.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(expectedTimeStamp);
+
+            //rulesConfigFileMock.Verify(x => x.Save(It.IsAny<string>()), Times.Once);
+
         }
 
         [TestMethod]
