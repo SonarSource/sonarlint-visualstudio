@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         public DotNetRulesConfigurationFile(RuleSet ruleSet)
         {
-            this.RuleSet = ruleSet ?? throw new ArgumentOutOfRangeException(nameof(ruleSet));
+            this.RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
         }
 
         #region IRulesConfigurationFileWithRuleset methods
