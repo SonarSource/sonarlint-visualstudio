@@ -756,4 +756,8 @@ This is the general format to use when writing errors to output window or when t
     <value>Failed to create the rules configuration for language {0}</value>
     <comment>Output window message displayed when the application failed to fetch and create the rules configuration associated with a language. {0} the language name.</comment>
   </data>
+  <data name="Bind_Project_NotRequired" xml:space="preserve">
+    <value>Project-level binding is not required for project '{0}'</value>
+    <comment>Output window message about projects that don't require binding</comment>
+  </data>
 </root>

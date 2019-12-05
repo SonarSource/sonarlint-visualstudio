@@ -19,7 +19,7 @@
  */
 
 using System;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -30,17 +30,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     public class RuleSetInformation
     {
-        public RuleSetInformation(Language language, RuleSet ruleSet)
+        public RuleSetInformation(Language language, IRulesConfigurationFile rulesConfigurationFile)
         {
-            if (ruleSet == null)
-            {
-                throw new ArgumentNullException(nameof(ruleSet));
-            }
-
-            this.RuleSet = ruleSet;
+            RulesConfigurationFile = rulesConfigurationFile ?? throw new ArgumentNullException(nameof(rulesConfigurationFile));
         }
 
-        public RuleSet RuleSet { get; }
+        public IRulesConfigurationFile RulesConfigurationFile { get; }
 
         public string NewRuleSetFilePath { get; set; }
     }

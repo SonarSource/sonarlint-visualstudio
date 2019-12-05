@@ -20,10 +20,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Core.Binding
 {
     public interface IRulesConfigurationProvider
     {
@@ -37,9 +36,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// For C++ it will be in a json file in a Sonar-specific format</remarks>
     public interface IRulesConfigurationFile
     {
-        /// <summary>
-        /// Saves the configuration file in the specified directory and returns the full file path
-        /// </summary>
-        string Save(string directoryPath, string baseFileName);
+        // WIP - this is currently just a marker interface
     }
 }

@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().NotBeNull();
-            var dotNetResult = result as DotNetRulesConfiguration;
+            var dotNetResult = result as DotNetRulesConfigurationFile;
             dotNetResult.Should().NotBeNull();
 
             RuleSetAssert.AreEqual(expectedRuleSet, dotNetResult.RuleSet, "Unexpected rule set");

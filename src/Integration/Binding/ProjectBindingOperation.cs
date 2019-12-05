@@ -45,33 +45,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionRuleStore ruleStore, ILogger logger)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-            if (ruleStore == null)
-            {
-                throw new ArgumentNullException(nameof(ruleStore));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            this.serviceProvider = serviceProvider;
-            this.initializedProject = project;
-            this.ruleStore = ruleStore;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
+            this.ruleStore = ruleStore ?? throw new ArgumentNullException(nameof(ruleStore));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
 
             this.ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
             this.ruleSetSerializer.AssertLocalServiceIsNotNull();
-            this.logger = logger;
         }
 
         #region State
