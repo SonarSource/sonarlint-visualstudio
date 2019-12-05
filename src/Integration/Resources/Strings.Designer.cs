@@ -124,6 +124,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project-level binding is not required for project &apos;{0}&apos;.
+        /// </summary>
+        public static string Bind_Project_NotRequired {
+            get {
+                return ResourceManager.GetString("Bind_Project_NotRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ruleset binding: all projects need to be updated reference the generated ruleset..
         /// </summary>
         public static string Bind_Ruleset_AllProjectsNeedToBeUpdated {
