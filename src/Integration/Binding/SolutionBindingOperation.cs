@@ -194,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 Debug.Assert(!string.IsNullOrWhiteSpace(info.NewRuleSetFilePath), "Expected to be set during registration time");
 
                 // duncanp - add support for C++ projects
-                if (!DotNetRulesConfigurationFile.TryGetRuleSet(info.RulesConfigurationFile, out var dotnetRuleset))
+                if (!info.RulesConfigurationFile.TryGetRuleSet(out var dotnetRuleset))
                 {
                     break;
                 }

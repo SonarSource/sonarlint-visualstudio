@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -34,41 +33,6 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    interface IRulesConfigurationFileWithRuleset : IRulesConfigurationFile
-    {
-        RuleSet RuleSet { get; }
-    }
-
-    internal class DotNetRulesConfigurationFile : IRulesConfigurationFileWithRuleset
-    {
-        public DotNetRulesConfigurationFile(RuleSet ruleSet)
-        {
-            this.RuleSet = ruleSet;
-        }
-
-        public static bool TryGetRuleSet(IRulesConfigurationFile rulesConfigurationFile, out RuleSet ruleSet)
-        {
-            ruleSet = (rulesConfigurationFile as IRulesConfigurationFileWithRuleset)?.RuleSet;
-            return ruleSet != null;
-        }
-
-        #region IRulesConfigurationFileWithRuleset methods
-
-        public RuleSet RuleSet { get; }
-
-        public void Save(string fullFilePath)
-        {
-            if (string.IsNullOrWhiteSpace(fullFilePath))
-            {
-                throw new ArgumentNullException(nameof(fullFilePath));
-            }
-
-            this.RuleSet.WriteToFile(fullFilePath);
-        }
-
-        #endregion
-    }
-
     internal class DotNetRuleConfigurationProvider : IRulesConfigurationProvider
     {
         private readonly ISonarQubeService sonarQubeService;
