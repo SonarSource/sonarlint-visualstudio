@@ -33,22 +33,6 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class DotNetRulesConfigurationFile : IRulesConfigurationFile
-    {
-        public RuleSet RuleSet { get; }
-
-        public DotNetRulesConfigurationFile(RuleSet ruleSet)
-        {
-            this.RuleSet = ruleSet;
-        }
-
-        public static bool TryGetRuleSet(IRulesConfigurationFile rulesConfigurationFile, out RuleSet ruleSet)
-        {
-            ruleSet = (rulesConfigurationFile as DotNetRulesConfigurationFile)?.RuleSet;
-            return ruleSet != null;
-        }
-    }
-
     internal class DotNetRuleConfigurationProvider : IRulesConfigurationProvider
     {
         private readonly ISonarQubeService sonarQubeService;
