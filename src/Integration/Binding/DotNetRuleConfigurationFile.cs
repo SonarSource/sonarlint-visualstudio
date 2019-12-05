@@ -18,27 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
-using System.Threading.Tasks;
-using SonarQube.Client.Models;
+using System;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
-namespace SonarLint.VisualStudio.Core.Binding
+namespace SonarLint.VisualStudio.Integration.Binding
 {
-    public interface IRulesConfigurationProvider
+    internal class DotNetRulesConfigurationFile : IRulesConfigurationFileWithRuleset
     {
-        Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken);
-    }
+        public DotNetRulesConfigurationFile(RuleSet ruleSet)
+        {
+            this.RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
+        }
 
-    /// <summary>
-    /// Abstraction of the various types of configuration file used to store rule configuration information
-    /// </summary>
-    /// <remarks>e.g. for C# and VB.NET the rules configuration will be in a ruleset file.
-    /// For C++ it will be in a json file in a Sonar-specific format</remarks>
-    public interface IRulesConfigurationFile
-    {
-        /// <summary>
-        /// Saves the file, replacing any existing file
-        /// </summary>
-        void Save(string fullFilePath);
+        #region IRulesConfigurationFileWithRuleset methods
+
+        public RuleSet RuleSet { get; }
+
+        public void Save(string fullFilePath)
+        {
+            if (string.IsNullOrWhiteSpace(fullFilePath))
+            {
+                throw new ArgumentNullException(nameof(fullFilePath));
+            }
+
+            this.RuleSet.WriteToFile(fullFilePath);
+        }
+
+        #endregion
     }
 }
