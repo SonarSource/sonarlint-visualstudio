@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public static bool TryGetRuleSet(IRulesConfigurationFile rulesConfigurationFile, out RuleSet ruleSet)
         {
-            ruleSet = (rulesConfigurationFile as DotNetRulesConfigurationFile)?.RuleSet;
+            ruleSet = (rulesConfigurationFile as IRulesConfigurationFileWithRuleset)?.RuleSet;
             return ruleSet != null;
         }
 

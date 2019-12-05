@@ -43,12 +43,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private DTEMock dte;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
-        private ConfigurableProjectSystemFilter projectFilter;
         private ConfigurableVsOutputWindowPane outputPane;
         private ProjectMock solutionItemsProject;
         private SolutionMock solutionMock;
         private ConfigurableSourceControlledFileSystem sccFileSystem;
+
+        // Note: currently the project binding saves files using the IRuleSetSerializer.
+        // However, solution binding saves files using IRulesConfigurationFileWithRuleSet.Save(...)
+        // -> a test might need to mock both.
+        // If/when the project binding switches to IRulesConfigurationFileWithRuleSet.Save(...)
+        // then the tests can be simplified.
         private ConfigurableRuleSetSerializer ruleFS;
+
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfo;
 
         private const string SolutionRoot = @"c:\solution";
@@ -62,7 +68,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.outputPane = new ConfigurableVsOutputWindowPane();
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.projectFilter = new ConfigurableProjectSystemFilter();
             this.solutionItemsProject = this.solutionMock.AddOrGetProject("Solution items");
             this.projectSystemHelper.SolutionItemsProject = this.solutionItemsProject;
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
@@ -114,8 +119,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
             var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
-            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
-            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
+            ruleSetMap[Language.CSharp] = CreateMockRuleSetConfigFile("cs").Object;
+            ruleSetMap[Language.VBNET] = CreateMockRuleSetConfigFile("vb").Object;
 
             // Sanity
             testSubject.RuleSetsInformationMap.Should().BeEmpty("Not expecting any registered rulesets");
@@ -145,8 +150,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Test case 2: known ruleset map
             // Arrange
             var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
-            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
-            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
+            ruleSetMap[Language.CSharp] = CreateMockRuleSetConfigFile("cs").Object;
+            ruleSetMap[Language.VBNET] = CreateMockRuleSetConfigFile("vb").Object;
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(new ProjectMock[0], GetQualityProfiles());
@@ -240,9 +245,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
+            var csRulesConfigFile = CreateMockRuleSetConfigFile("cs");
+            var vbRulesConfigFile = CreateMockRuleSetConfigFile("vb");
             var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
-            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
-            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
+            ruleSetMap[Language.CSharp] = csRulesConfigFile.Object;
+            ruleSetMap[Language.VBNET] = vbRulesConfigFile.Object;
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
@@ -267,15 +274,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             this.sccFileSystem.directories.Should().NotContain(sonarQubeRulesDirectory);
             prepareCalledForBinder.Should().BeTrue("Expected to propagate the prepare call to binders");
-            this.sccFileSystem.files.Should().NotContainKey(csharpRulesetPath);
-            this.sccFileSystem.files.Should().NotContainKey(vbRulesetPath);
+            CheckSaveWasNotCalled(csRulesConfigFile);
+            CheckSaveWasNotCalled(vbRulesConfigFile);
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert
-            this.sccFileSystem.files.Should().ContainKey(csharpRulesetPath);
-            this.sccFileSystem.files.Should().ContainKey(vbRulesetPath);
+            CheckRuleSetFileWasSaved(csRulesConfigFile, csharpRulesetPath);
+            CheckRuleSetFileWasSaved(vbRulesConfigFile, vbRulesetPath);
             this.sccFileSystem.directories.Should().Contain(sonarQubeRulesDirectory);
         }
 
@@ -290,9 +297,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projects = new[] { csProject, vbProject };
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+
+            var csRulesConfigFile = CreateMockRuleSetConfigFile("cs");
+            var vbRulesConfigFile = CreateMockRuleSetConfigFile("vb");
             var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
-            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
-            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
+            ruleSetMap[Language.CSharp] = csRulesConfigFile.Object;
+            ruleSetMap[Language.VBNET] = vbRulesConfigFile.Object;
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
@@ -312,6 +322,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keyCSharp.ruleset"));
             testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keyVB.ruleset"));
             prepareCalledForBinder.Should().BeFalse("Expected to be canceled as soon as possible i.e. after the first binder");
+
+            CheckSaveWasNotCalled(csRulesConfigFile);
+            CheckSaveWasNotCalled(vbRulesConfigFile);
         }
 
         [TestMethod]
@@ -326,9 +339,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
+            var csRulesConfigFile = CreateMockRuleSetConfigFile("cs");
+            var vbRulesConfigFile = CreateMockRuleSetConfigFile("vb");
             var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
-            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
-            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
+            ruleSetMap[Language.CSharp] = csRulesConfigFile.Object;
+            ruleSetMap[Language.VBNET] = vbRulesConfigFile.Object;
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
@@ -347,6 +362,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().NotBeNull("Expected to be set before Prepare is called");
             testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().NotBeNull("Expected to be set before Prepare is called");
             prepareCalledForBinder.Should().BeFalse("Expected to be canceled as soon as possible i.e. before the first binder");
+            CheckSaveWasNotCalled(csRulesConfigFile);
+            CheckSaveWasNotCalled(vbRulesConfigFile);
         }
 
         [TestMethod]
@@ -357,6 +374,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var expectedRuleset = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName, "keyCSharp.ruleset");
             this.solutionItemsProject.Files.ContainsKey(expectedRuleset).Should().BeTrue("Ruleset was expected to be added to solution items when in legacy mode");
+            this.sccFileSystem.files.Should().ContainKey(expectedRuleset); // check the file was saved
         }
 
         [TestMethod]
@@ -366,6 +384,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ExecuteCommitSolutionBindingTest(SonarLintMode.Connected);
 
             this.solutionItemsProject.Files.Count.Should().Be(0, "Not expecting any items to be added to the solution in new connected mode");
+            var expectedRuleset = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyConnectedModeFolderName, "keyCSharp.ruleset");
+            this.sccFileSystem.files.Should().ContainKey(expectedRuleset); // check the file was saved
         }
 
         private void ExecuteCommitSolutionBindingTest(SonarLintMode bindingMode)
@@ -380,9 +400,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var connectionInformation = new ConnectionInformation(new Uri("http://xyz"));
             SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation, bindingMode);
 
-            var rulesConfigFileMock = new Mock<IRulesConfigurationFileWithRuleset>();
-            rulesConfigFileMock.Setup(x => x.RuleSet).Returns(new RuleSet("cs"));
-            
+            var rulesConfigFileMock = CreateMockRuleSetConfigFile("cs");
             var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>()
             {
                 { Language.CSharp, rulesConfigFileMock.Object }
@@ -417,9 +435,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             savedProject.Profiles.Should().HaveCount(1);
             savedProject.Profiles[Language.CSharp].ProfileKey.Should().Be("expected profile Key");
             savedProject.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(expectedTimeStamp);
-
-            //rulesConfigFileMock.Verify(x => x.Save(It.IsAny<string>()), Times.Once);
-
         }
 
         [TestMethod]
@@ -449,6 +464,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             return new Dictionary<Language, SonarQubeQualityProfile>();
         }
+
+        private Mock<IRulesConfigurationFileWithRuleset> CreateMockRuleSetConfigFile(string displayName)
+        {
+            var rulesConfig = new Mock<IRulesConfigurationFileWithRuleset>();
+            rulesConfig.Setup(x => x.RuleSet)
+                .Returns(new RuleSet(displayName));
+
+            // Simulate an update to the scc file system on Save (prevents an assertion
+            // in the product code).
+            rulesConfig.Setup(x => x.Save(It.IsAny<string>()))
+                .Callback<string>(s => this.sccFileSystem.UpdateTimestamp(s));
+
+            return rulesConfig;
+        }
+
+        private static void CheckRuleSetFileWasSaved(Mock<IRulesConfigurationFileWithRuleset> mock, string expectedFileName)
+            => mock.Verify(x => x.Save(expectedFileName), Times.Once);
+
+        private static void CheckSaveWasNotCalled(Mock<IRulesConfigurationFileWithRuleset> mock)
+            => mock.Verify(x => x.Save(It.IsAny<string>()), Times.Never);
+
+
 
         #endregion Helpers
     }
