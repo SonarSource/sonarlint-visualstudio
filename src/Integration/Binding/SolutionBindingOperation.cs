@@ -183,9 +183,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.SolutionFullPath != null, "Expected to be initialized");
 
-            var ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
-            ruleSetSerializer.AssertLocalServiceIsNotNull();
-
             foreach (var keyValue in this.rulesConfigInformationMap)
             {
                 if (token.IsCancellationRequested)
@@ -197,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 Debug.Assert(!string.IsNullOrWhiteSpace(info.NewRuleSetFilePath), "Expected to be set during registration time");
 
                 // duncanp - add support for C++ projects
-                if (!DotNetRulesConfigurationFile.TryGetRuleSet(info.RulesConfigurationFile, out var dotnetRuleset))
+                if (!info.RulesConfigurationFile.TryGetRuleSet(out var dotnetRuleset))
                 {
                     break;
                 }
@@ -209,7 +206,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     this.sourceControlledFileSystem.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
 
                     // Create or overwrite existing rule set
-                    ruleSetSerializer.WriteRuleSetFile(dotnetRuleset, info.NewRuleSetFilePath);
+                    info.RulesConfigurationFile.Save(info.NewRuleSetFilePath);
 
                     return true;
                 });
