@@ -24,9 +24,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -110,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region ISolutionRuleStore
 
-        public void RegisterKnownRuleSets(IDictionary<Language, RuleSet> ruleSets)
+        public void RegisterKnownRuleSets(IDictionary<Language, IRulesConfigurationFile> ruleSets)
         {
             if (ruleSets == null)
             {
@@ -165,9 +166,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (Project project in projects)
             {
-                var binder = new ProjectBindingOperation(serviceProvider, project, this, this.logger);
-                binder.Initialize();
-                this.childBinder.Add(binder);
+                if (IsProjectBindingRequired(project))
+                {
+                    var binder = new ProjectBindingOperation(serviceProvider, project, this, this.logger);
+                    binder.Initialize();
+                    this.childBinder.Add(binder);
+                }
+                else
+                {
+                    this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
+                }
             }
         }
 
@@ -188,6 +196,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 RuleSetInformation info = keyValue.Value;
                 Debug.Assert(!string.IsNullOrWhiteSpace(info.NewRuleSetFilePath), "Expected to be set during registration time");
 
+                // duncanp - add support for C++ projects
+                if (!DotNetRulesConfigurationFile.TryGetRuleSet(info.RuleSet, out var dotnetRuleset))
+                {
+                    break;
+                }
+                
                 this.sourceControlledFileSystem.QueueFileWrite(info.NewRuleSetFilePath, () =>
                 {
                     string ruleSetDirectoryPath = Path.GetDirectoryName(info.NewRuleSetFilePath);
@@ -195,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     this.sourceControlledFileSystem.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
 
                     // Create or overwrite existing rule set
-                    ruleSetSerializer.WriteRuleSetFile(info.RuleSet, info.NewRuleSetFilePath);
+                    ruleSetSerializer.WriteRuleSetFile(dotnetRuleset, info.NewRuleSetFilePath);
 
                     return true;
                 });
@@ -235,10 +249,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return false;
         }
 
-
         #endregion
 
         #region Helpers
+
+        internal /* for testing */ static bool IsProjectBindingRequired(Project project)
+        {
+            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
+            return language == Language.VBNET || language == Language.CSharp;
+        }
+
         /// <summary>
         /// Will bend add/edit the binding information for next time usage
         /// </summary>

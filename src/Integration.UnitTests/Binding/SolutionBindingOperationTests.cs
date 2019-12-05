@@ -28,6 +28,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarQube.Client.Models;
@@ -111,9 +112,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
-            var ruleSetMap = new Dictionary<Language, RuleSet>();
-            ruleSetMap[Language.CSharp] = new RuleSet("cs");
-            ruleSetMap[Language.VBNET] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
+            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
+            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
 
             // Sanity
             testSubject.RuleSetsInformationMap.Should().BeEmpty("Not expecting any registered rulesets");
@@ -142,9 +143,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Test case 2: known ruleset map
             // Arrange
-            var ruleSetMap = new Dictionary<Language, RuleSet>();
-            ruleSetMap[Language.CSharp] = new RuleSet("cs");
-            ruleSetMap[Language.VBNET] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
+            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
+            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(new ProjectMock[0], GetQualityProfiles());
@@ -179,8 +180,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             cs2Project.SetCSProjectKind();
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
-            var projects = new[] { cs1Project, vbProject, cs2Project };
+            var otherProjectType = this.solutionMock.AddOrGetProject("xxx.proj");
+            otherProjectType.ProjectKind = "{" + Guid.NewGuid().ToString() + "}";
+
+            var logger = new TestLogger();
+
+            SolutionBindingOperation testSubject = this.CreateTestSubject("key", logger: logger);
+            var projects = new[] { cs1Project, vbProject, cs2Project, otherProjectType };
 
             // Sanity
             testSubject.Binders.Should().BeEmpty("Not expecting any project binders");
@@ -190,7 +196,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             testSubject.SolutionFullPath.Should().Be(Path.Combine(SolutionRoot, "xxx.sln"));
-            testSubject.Binders.Should().HaveCount(projects.Length, "Should be one per managed project");
+            testSubject.Binders.Should().HaveCount(3, "Should be one per managed project");
+
+            testSubject.Binders.Select(x => ((ProjectBindingOperation)x).ProjectFullPath)
+                .Should().BeEquivalentTo("CS1.csproj", "CS2.csproj", "VB.vbproj");
+
+            logger.AssertPartialOutputStringExists("xxx.proj"); // expecting a message about the project that won't be bound, but not the others
+            logger.AssertPartialOutputStringDoesNotExist("CS1.csproj");
+        }
+
+        [TestMethod]
+        public void SolutionBindingOperation_IsInitializationRequired()
+        {
+            // 1. C# -> binding is required
+            var csProject = new ProjectMock("c:\\foo.proj");
+            csProject.SetCSProjectKind();
+
+            SolutionBindingOperation.IsProjectBindingRequired(csProject).Should().BeTrue();
+
+            // 2. VB.NET -> binding is required
+            var vbProject = new ProjectMock("c:\\foo.proj");
+            vbProject.SetVBProjectKind();
+
+            SolutionBindingOperation.IsProjectBindingRequired(vbProject).Should().BeTrue();
+
+            // 3. Other -> binding is not required
+            var otherProject = new ProjectMock("c:\\foo.proj");
+            otherProject.ProjectKind = "{" + Guid.NewGuid().ToString() + "}";
+
+            SolutionBindingOperation.IsProjectBindingRequired(otherProject).Should().BeFalse();
         }
 
         [TestMethod]
@@ -205,9 +239,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
-            var ruleSetMap = new Dictionary<Language, RuleSet>();
-            ruleSetMap[Language.CSharp] = new RuleSet("cs");
-            ruleSetMap[Language.VBNET] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
+            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
+            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
@@ -255,9 +289,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projects = new[] { csProject, vbProject };
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
-            var ruleSetMap = new Dictionary<Language, RuleSet>();
-            ruleSetMap[Language.CSharp] = new RuleSet("cs");
-            ruleSetMap[Language.VBNET] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
+            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
+            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
@@ -291,9 +325,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             SolutionBindingOperation testSubject = this.CreateTestSubject("key");
 
-            var ruleSetMap = new Dictionary<Language, RuleSet>();
-            ruleSetMap[Language.CSharp] = new RuleSet("cs");
-            ruleSetMap[Language.VBNET] = new RuleSet("vb");
+            var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>();
+            ruleSetMap[Language.CSharp] = new DotNetRulesConfigurationFile(new RuleSet("cs"));
+            ruleSetMap[Language.VBNET] = new DotNetRulesConfigurationFile(new RuleSet("vb"));
 
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
@@ -345,8 +379,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var connectionInformation = new ConnectionInformation(new Uri("http://xyz"));
             SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation, bindingMode);
 
-            var ruleSetMap = new Dictionary<Language, RuleSet>();
-            ruleSetMap[Language.CSharp] = new RuleSet("cs");
+            var ruleSetMap = new Dictionary<Language, IRulesConfigurationFile>()
+            {
+                { Language.CSharp, new DotNetRulesConfigurationFile(new RuleSet("cs")) }
+            };
+            
             testSubject.RegisterKnownRuleSets(ruleSetMap);
             var profiles = GetQualityProfiles();
 

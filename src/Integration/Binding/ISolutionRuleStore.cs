@@ -19,7 +19,7 @@
  */
 
 using System.Collections.Generic;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -30,13 +30,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
     public interface ISolutionRuleStore
     {
         /// <summary>
-        /// Registers a mapping of <see cref="Language"/> to <see cref="RuleSet"/>.
+        /// Registers a mapping of <see cref="Language"/> to <see cref="IRulesConfigurationFile"/>/>.
         /// </summary>
         /// <param name="ruleSets">Required</param>
-        void RegisterKnownRuleSets(IDictionary<Language, RuleSet> ruleSets);
+        void RegisterKnownRuleSets(IDictionary<Language, IRulesConfigurationFile> ruleSets);
 
         /// <summary>
-        /// Retrieves the solution-level <see cref="RuleSet"/> mapped to the <see cref="Language"/>.
+        /// Retrieves the solution-level rules configuration mapped to the <see cref="Language"/>.
         /// </summary>
         RuleSetInformation GetRuleSetInformation(Language language);
     }

@@ -26,7 +26,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
@@ -123,19 +123,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.InternalState.QualityProfiles[language] = qualityProfileInfo;
 
                 // Create the rules configuration for the language
-                var ruleConfig = await this.rulesConfigurationProvider.GetRulesConfigurationAsync(qualityProfileInfo, this.bindingArgs.Connection.Organization?.Key, language, cancellationToken);
-                if (ruleConfig == null)
+                var rulesConfig = await this.rulesConfigurationProvider.GetRulesConfigurationAsync(qualityProfileInfo, this.bindingArgs.Connection.Organization?.Key, language, cancellationToken);
+                if (rulesConfig == null)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                         string.Format(Strings.FailedToCreateRulesConfigForLanguage, language.Name)));
                     return false;
                 }
 
-                // duncanp: remove special case logic for rulesets
-                if (ruleConfig is DotNetRulesConfiguration rulesetConfig)
-                {
-                    this.InternalState.Rulesets[language] = rulesetConfig.RuleSet;
-                }
+                this.InternalState.Rulesets[language] = rulesConfig;
 
                 currentLanguage++;
                 progress?.Report(new FixedStepsProgress(string.Empty, currentLanguage, languageCount));
@@ -291,10 +287,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 get;
             } = new HashSet<Project>();
 
-            public Dictionary<Language, RuleSet> Rulesets
+            public Dictionary<Language, IRulesConfigurationFile> Rulesets
             {
                 get;
-            } = new Dictionary<Language, RuleSet>();
+            } = new Dictionary<Language, IRulesConfigurationFile>();
 
             public Dictionary<Language, SonarQubeQualityProfile> QualityProfiles
             {

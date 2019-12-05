@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -43,13 +43,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <param name="projectFullPath">The absolute full path to the project</param>
         /// <param name="ruleSetFileName">The rule set file name</param>
         /// <param name="solutionRuleSet\">Full path of the parent solution-level SonarQube rule set</param>
-        /// <param name="existingRuleSetPath">Existing project rule set</param>
         /// <returns>Full file path of the file that we expect to write to</returns>
         internal /*for testing purposes*/ string QueueWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, RuleSetInformation solutionRuleSet, string currentRuleSetPath)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(projectFullPath));
             Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFileName));
             Debug.Assert(solutionRuleSet != null);
+
+            // TODO: clean up to remove down-cast to check for RuleSet
+            DotNetRulesConfigurationFile.TryGetRuleSet(solutionRuleSet.RuleSet, out var dotNetRuleSet);
+            Debug.Assert(dotNetRuleSet != null, "Only expecting this method to be called for projects that have a VS RuleSet");
 
             string projectRoot = Path.GetDirectoryName(projectFullPath);
             string ruleSetRoot = PathHelper.ForceDirectoryEnding(projectRoot);
@@ -73,7 +76,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             // Create a new project level rule set
             string solutionIncludePath = PathHelper.CalculateRelativePath(ruleSetRoot, solutionRuleSet.NewRuleSetFilePath);
-            RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, solutionRuleSet.RuleSet.DisplayName);
+            
+            RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, dotNetRuleSet.DisplayName);
             string newRuleSetPath = this.GenerateNewProjectRuleSetPath(ruleSetRoot, ruleSetFileName);
 
             // Pend new

@@ -33,6 +33,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NuGet;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -127,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
-            var rulesetRulesConfig = new DotNetRulesConfiguration(expectedRuleSet);
+            var rulesetRulesConfig = new Mock<IRulesConfigurationFile>().Object;
 
             var language = Language.VBNET;
             SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
@@ -145,7 +146,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().BeTrue();
-            RuleSetAssert.AreEqual(expectedRuleSet, testSubject.InternalState.Rulesets[language], "Unexpected rule set");
+            testSubject.InternalState.Rulesets.Should().ContainKey(language);
+            testSubject.InternalState.Rulesets[language].Should().Be(rulesetRulesConfig);
+            testSubject.InternalState.Rulesets.Count().Should().Be(1);
+
             testSubject.InternalState.QualityProfiles[language].Should().Be(profile);
 
             notifications.AssertProgress(0.0, 1.0);
