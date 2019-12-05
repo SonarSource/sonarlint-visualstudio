@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
@@ -33,19 +33,19 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class DotNetRulesConfiguration : IRulesConfigurationFile
+    internal class DotNetRulesConfigurationFile : IRulesConfigurationFile
     {
         public RuleSet RuleSet { get; }
 
-        public DotNetRulesConfiguration(RuleSet ruleSet)
+        public DotNetRulesConfigurationFile(RuleSet ruleSet)
         {
             this.RuleSet = ruleSet;
         }
 
-        public string Save(string directoryPath, string baseFileName)
+        public static bool TryGetRuleSet(IRulesConfigurationFile rulesConfigurationFile, out RuleSet ruleSet)
         {
-            // TODO
-            throw new NotImplementedException();
+            ruleSet = (rulesConfigurationFile as DotNetRulesConfigurationFile)?.RuleSet;
+            return ruleSet != null;
         }
     }
 
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
             UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfile, this.projectName, this.serverUrl);
 
-            return new DotNetRulesConfiguration(ruleSet);
+            return new DotNetRulesConfigurationFile(ruleSet);
         }
 
         private void UpdateDownloadedSonarQubeQualityProfile(RuleSet ruleSet, SonarQubeQualityProfile qualityProfile, string projectName, string serverUrl)

@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -35,12 +36,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         RuleSetInformation ISolutionRuleStore.GetRuleSetInformation(Language language)
         {
             RuleSetInformation ruleSet;
-            this.availableRuleSets.TryGetValue(language, out ruleSet).Should().BeTrue("No RuleSet for group: " + language);
+            this.availableRuleSets.TryGetValue(language, out ruleSet);
 
             return ruleSet;
         }
 
-        void ISolutionRuleStore.RegisterKnownRuleSets(IDictionary<Language, RuleSet> ruleSets)
+        void ISolutionRuleStore.RegisterKnownRuleSets(IDictionary<Language, IRulesConfigurationFile> ruleSets)
         {
             ruleSets.Should().NotBeNull("Not expecting nulls");
 
@@ -54,11 +55,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        public void RegisterRuleSetPath(Language language, string path)
+        public void RegisterRuleSetPath(Language language, string path, IRulesConfigurationFile rulesConfiguration = null)
         {
             if (!this.availableRuleSets.ContainsKey(language))
             {
-                this.availableRuleSets[language] = new RuleSetInformation(language, new RuleSet("SonarQube"));
+                rulesConfiguration = rulesConfiguration ?? new DotNetRulesConfigurationFile(new RuleSet("SonarQube"));
+                this.availableRuleSets[language] = new RuleSetInformation(language, rulesConfiguration);
             }
 
             this.availableRuleSets[language].NewRuleSetFilePath = path;
