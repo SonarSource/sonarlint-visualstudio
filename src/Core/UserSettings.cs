@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Core
 {
 
     /*
-     // Example config file - same format as the VS Code settings.json file
+     // Example config file - same format as the VS Code settings.json file, with the addition of "Parameters"
 {
 ...
     "sonarlint.rules": {
@@ -42,7 +42,10 @@ namespace SonarLint.VisualStudio.Core
             "level": "off"
         },
         "c:CommentedCode": {
-            "level": "on"
+            "level": "on",
+            "Parameters": {
+              "key1": "value1",
+              "key2": "value2"
         },
     }
 ...
@@ -60,6 +63,8 @@ namespace SonarLint.VisualStudio.Core
     {
         [JsonConverter(typeof(StringEnumConverter))]
         public RuleLevel Level { get; set; }
+
+        public Dictionary<string, string> Parameters { get; set; }
     }
 
     public enum RuleLevel
