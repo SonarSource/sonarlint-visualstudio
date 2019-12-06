@@ -24,6 +24,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
 

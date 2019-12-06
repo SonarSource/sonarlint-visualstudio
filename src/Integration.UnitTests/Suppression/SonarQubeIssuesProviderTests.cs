@@ -29,6 +29,7 @@ using Moq;
 using SonarLint.VisualStudio.Integration.Suppression;
 using SonarQube.Client.Models;
 using SonarQube.Client;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {

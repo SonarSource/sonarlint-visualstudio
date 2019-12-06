@@ -22,7 +22,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using EnvDTE;
-using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
