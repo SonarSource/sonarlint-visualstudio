@@ -308,7 +308,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             var csharpOrVbNetProjects = new HashSet<EnvDTE.Project>(this.projectSystem.GetSolutionProjects());
             var supportedSonarQubePlugins = MinimumSupportedSonarQubePlugin.All
-                .Where(lang => IsSonarQubePluginSupported(plugins, lang, host.Logger))
+                .Where(supportedPlugin => IsSonarQubePluginSupported(plugins, supportedPlugin, host.Logger))
                 .Select(lang => lang.Language);
             this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(supportedSonarQubePlugins));
 
@@ -344,21 +344,21 @@ namespace SonarLint.VisualStudio.Integration.Connection
             return string.Format(Strings.OnlySupportedPluginsHaveNoProjectInSolution, supportedPluginsNames);
         }
 
-        internal static /*for testing purposes*/ bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> plugins,
+        internal static /*for testing purposes*/ bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> installedPlugins,
             MinimumSupportedSonarQubePlugin minimumSupportedPlugin, ILogger logger)
         {
-            var plugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
+            var installedPlugin = installedPlugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
 
-            if (plugin == null) // plugin is not installed on remote server
+            if (installedPlugin == null) // plugin is not installed on remote server
             {
                 return false;
             }
 
-            var pluginInfoMessage = string.Format(CultureInfo.CurrentCulture, Strings.MinimumSupportedSonarQubePlugin,
-                minimumSupportedPlugin.Language.Name, minimumSupportedPlugin.MinimumVersion);
+            var pluginInfoMessage = string.Format(CultureInfo.CurrentCulture, Strings.InstalledAndMinimumSonarQubePlugin,
+                minimumSupportedPlugin.Language.Name, installedPlugin.Version, minimumSupportedPlugin.MinimumVersion);
 
-            var isPluginSupported = !string.IsNullOrWhiteSpace(plugin.Version) &&
-                VersionHelper.Compare(plugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
+            var isPluginSupported = !string.IsNullOrWhiteSpace(installedPlugin.Version) &&
+                VersionHelper.Compare(installedPlugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
 
             // Let's handle specific case for old Visual Studio instances
             if (isPluginSupported &&
@@ -368,14 +368,14 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 {
                     const string newRoslynSonarCSharpVersion = "7.0";
                     pluginInfoMessage += $", Maximum version: '{newRoslynSonarCSharpVersion}'";
-                    isPluginSupported = VersionHelper.Compare(plugin.Version, newRoslynSonarCSharpVersion) < 0;
+                    isPluginSupported = VersionHelper.Compare(installedPlugin.Version, newRoslynSonarCSharpVersion) < 0;
                 }
 
                 if (minimumSupportedPlugin == MinimumSupportedSonarQubePlugin.VbNet)
                 {
                     const string newRoslynSonarVBNetVersion = "5.0";
                     pluginInfoMessage += $", Maximum version: '{newRoslynSonarVBNetVersion}'";
-                    isPluginSupported = VersionHelper.Compare(plugin.Version, newRoslynSonarVBNetVersion) < 0;
+                    isPluginSupported = VersionHelper.Compare(installedPlugin.Version, newRoslynSonarVBNetVersion) < 0;
                 }
             }
 

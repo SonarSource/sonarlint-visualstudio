@@ -649,7 +649,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0",
                 installedPlugin: new SonarQubePlugin("csharp", "7.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CSharp,
-                expectedMessage: "   Discovered an unsupported plugin: Language: 'C#', Minimum version: '5.0', Maximum version: '7.0'");
+                expectedMessage: "   Discovered an unsupported plugin: Language: 'C#', Installed version: '7.0', Minimum version: '5.0', Maximum version: '7.0'");
         }
 
         [TestMethod]
@@ -660,7 +660,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0",
                 installedPlugin: new SonarQubePlugin("csharp", "6.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CSharp,
-                expectedMessage: "   Discovered a supported plugin: Language: 'C#', Minimum version: '5.0', Maximum version: '7.0'");
+                expectedMessage: "   Discovered a supported plugin: Language: 'C#', Installed version: '6.0', Minimum version: '5.0', Maximum version: '7.0'");
         }
 
         [TestMethod]
@@ -671,7 +671,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0.25420.00",
                 installedPlugin: new SonarQubePlugin("csharp", "7.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CSharp,
-                expectedMessage: "   Discovered a supported plugin: Language: 'C#', Minimum version: '5.0'");
+                expectedMessage: "   Discovered a supported plugin: Language: 'C#', Installed version: '7.0', Minimum version: '5.0'");
         }
 
         [TestMethod]
@@ -682,7 +682,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0",
                 installedPlugin: new SonarQubePlugin("vbnet", "5.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.VbNet,
-                expectedMessage: "   Discovered an unsupported plugin: Language: 'VB.NET', Minimum version: '3.0', Maximum version: '5.0'");
+                expectedMessage: "   Discovered an unsupported plugin: Language: 'VB.NET', Installed version: '5.0', Minimum version: '3.0', Maximum version: '5.0'");
         }
 
         [TestMethod]
@@ -693,7 +693,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0",
                 installedPlugin: new SonarQubePlugin("vbnet", "4.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.VbNet,
-                expectedMessage: "   Discovered a supported plugin: Language: 'VB.NET', Minimum version: '3.0', Maximum version: '5.0'");
+                expectedMessage: "   Discovered a supported plugin: Language: 'VB.NET', Installed version: '4.0', Minimum version: '3.0', Maximum version: '5.0'");
         }
 
         [TestMethod]
@@ -704,7 +704,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0.25420.00",
                 installedPlugin: new SonarQubePlugin("vbnet", "5.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.VbNet,
-                expectedMessage: "   Discovered a supported plugin: Language: 'VB.NET', Minimum version: '3.0'");
+                expectedMessage: "   Discovered a supported plugin: Language: 'VB.NET', Installed version: '5.0', Minimum version: '3.0'");
         }
 
         private static void TestPluginSupport(bool expectedResult, string vsVersion, SonarQubePlugin installedPlugin,
