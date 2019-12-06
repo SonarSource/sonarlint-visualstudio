@@ -54,10 +54,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Language_IsSupported_SupportedLanguage_IsTrue()
         {
             // Act + Assert
-            foreach (var supportedLang in Language.SupportedLanguages)
-            {
-                supportedLang.IsSupported.Should().BeTrue("Supported language should be supported");
-            }
+            Language.CSharp.IsSupported.Should().BeTrue("Supported language should be supported");
+            Language.VBNET.IsSupported.Should().BeTrue("Supported language should be supported");
+            Language.Cpp.IsSupported.Should().BeTrue("Supported language should be supported");
+        }
+
+        [TestMethod]
+        public void Language_ISupported_UnsupportedLanguage_IsFalse()
+        {
+            var other = new Language("foo", "Foo language");
+            other.IsSupported.Should().BeFalse();
         }
 
         [TestMethod]

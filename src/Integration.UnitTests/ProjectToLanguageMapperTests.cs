@@ -37,107 +37,67 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Mapper_ForProject_UnknownLanguage_ReturnsUnknown()
         {
-            // Arrange
-            var otherProject = new ProjectMock("other.proj");
-
-            // Act
-            var otherProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(otherProject);
-
-            // Assert
-            otherProjectLanguage.Should().Be(Language.Unknown, "Unexpected Language for unknown project");
+            CheckLanguageForProjectKind("", Language.Unknown);
+            CheckLanguageForProjectKind("{F63A7EA2-4179-46BF-B9AE-E758BE4EC87C}", Language.Unknown);
+            CheckLanguageForProjectKind("wibble", Language.Unknown);
+            CheckLanguageForProjectKind("wibble;bibble", Language.Unknown);
         }
 
         [TestMethod]
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity1()
         {
-            // Arrange
-            var csProject = new ProjectMock("cs1.csproj")
-            {
-                ProjectKind = ProjectSystemHelper.CSharpProjectKind.ToUpper()
-            };
-
-            // Act
-            var csProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(csProject);
-
-            // Assert
-            csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# project");
+            CheckLanguageForProjectKind(ProjectSystemHelper.CSharpProjectKind.ToUpper(), Language.CSharp);
         }
 
         [TestMethod]
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity2()
         {
-            // Arrange
-            var csProject = new ProjectMock("cs1.csproj")
-            {
-                ProjectKind = ProjectSystemHelper.CSharpProjectKind.ToLower()
-            };
-
-            // Act
-            var csProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(csProject);
-
-            // Assert
-            csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# project");
+            CheckLanguageForProjectKind(ProjectSystemHelper.CSharpProjectKind.ToLower(), Language.CSharp);
         }
 
         [TestMethod]
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS()
         {
-            // Arrange
-            var csProject = new ProjectMock("cs1.csproj");
-            csProject.SetCSProjectKind();
-
-            // Act
-            var csProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(csProject);
-
-            // Assert
-            csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# project");
+            CheckLanguageForProjectKind(ProjectSystemHelper.CSharpProjectKind, Language.CSharp);
         }
 
         [TestMethod]
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_VB()
         {
-            // Test case 3: VB - non-Core
-            // Arrange
-            var vbNetProject = new ProjectMock("vb1.vbproj");
-            vbNetProject.SetVBProjectKind();
-
-            // Act
-            var vbNetProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(vbNetProject);
-
-            // Assert
-            vbNetProjectLanguage.Should().Be(Language.VBNET, "Unexpected Language for VB project");
+            CheckLanguageForProjectKind(ProjectSystemHelper.VbProjectKind, Language.VBNET);
         }
 
         [TestMethod]
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CSCore()
         {
-            // Arrange
-            var csProject = new ProjectMock("cs1.csproj")
-            {
-                ProjectKind = ProjectSystemHelper.CSharpCoreProjectKind
-            };
-
-            // Act
-            var csProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(csProject);
-
-            // Assert
-            csProjectLanguage.Should().Be(Language.CSharp, "Unexpected Language for C# Core project");
+            CheckLanguageForProjectKind(ProjectSystemHelper.CSharpCoreProjectKind, Language.CSharp);
         }
 
         [TestMethod]
         public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_VBCore()
         {
+            CheckLanguageForProjectKind(ProjectSystemHelper.VbCoreProjectKind, Language.VBNET);
+        }
+
+        [TestMethod]
+        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_Cpp()
+        {
+            CheckLanguageForProjectKind(ProjectSystemHelper.CppProjectKind, Language.Cpp);
+        }
+
+        private static void CheckLanguageForProjectKind(string projectTypeGuid, Language expectedLanguage)
+        {
             // Arrange
-            var vbNetProject = new ProjectMock("vb1.vbproj")
+            var project = new ProjectMock("any.xxx")
             {
-                ProjectKind = ProjectSystemHelper.VbCoreProjectKind
+                ProjectKind = projectTypeGuid
             };
 
             // Act
-            var vbNetProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(vbNetProject);
+            var actualLanguage = ProjectToLanguageMapper.GetLanguageForProject(project);
 
             // Assert
-            vbNetProjectLanguage.Should().Be(Language.VBNET, "Unexpected Language for VB Core project");
+            actualLanguage.Should().Be(expectedLanguage);
         }
     }
 }
