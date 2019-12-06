@@ -838,11 +838,11 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This SonarQube server only supported plugin language ({0}) does not match any of this solution projects&apos; languages..
+        ///   Looks up a localized string similar to The plugins supported by this SonarQube server ({0}) do not match any of the solution projects&apos; languages..
         /// </summary>
-        public static string OnlySupportedPluginHasNoProjectInSolution {
+        public static string OnlySupportedPluginsHaveNoProjectInSolution {
             get {
-                return ResourceManager.GetString("OnlySupportedPluginHasNoProjectInSolution", resourceCulture);
+                return ResourceManager.GetString("OnlySupportedPluginsHaveNoProjectInSolution", resourceCulture);
             }
         }
         
