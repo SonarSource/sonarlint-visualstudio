@@ -18,20 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-
-namespace SonarLint.VisualStudio.Integration.Helpers
+namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
-    public interface IFileSystemWatcher : IDisposable
+    public sealed class TimerFactory : ITimerFactory
     {
-        string Path { get; set; }
-        string Filter { get; set; }
-        NotifyFilters NotifyFilter { get; set; }
-        bool EnableRaisingEvents { get; set; }
-        event FileSystemEventHandler Changed;
-        event FileSystemEventHandler Created;
-        event FileSystemEventHandler Deleted;
-        event RenamedEventHandler Renamed;
+        public ITimer Create()
+        {
+            return new TimerWrapper();
+        }
     }
 }

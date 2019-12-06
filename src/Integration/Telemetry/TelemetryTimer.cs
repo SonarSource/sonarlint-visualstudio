@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration
 {

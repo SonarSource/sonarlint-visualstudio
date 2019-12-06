@@ -22,7 +22,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Timers;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
     [ExcludeFromCodeCoverage] // Wrapper around System
     public sealed class TimerWrapper : ITimer

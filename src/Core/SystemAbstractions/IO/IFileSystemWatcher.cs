@@ -18,15 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Helpers
+using System;
+using System.IO;
+
+namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
-    public interface IDirectory
+    public interface IFileSystemWatcher : IDisposable
     {
-        bool Exists(string path);
-        void Delete(string path);
-        void Delete(string path, bool recursive);
-        void Create(string path);
-        string[] GetDirectories(string path, string searchPattern);
-        void Move(string sourceDirName, string destDirName);
+        string Path { get; set; }
+        string Filter { get; set; }
+        NotifyFilters NotifyFilter { get; set; }
+        bool EnableRaisingEvents { get; set; }
+        event FileSystemEventHandler Changed;
+        event FileSystemEventHandler Created;
+        event FileSystemEventHandler Deleted;
+        event RenamedEventHandler Renamed;
     }
 }
