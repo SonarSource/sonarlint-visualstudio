@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using FluentAssertions;
@@ -245,8 +246,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         'typescript:S2685': {
             'level': 'on'
         },
-     'xxx:yyy': {
-            'level': 'off'
+        'xxx:yyy': {
+            'level': 'off',
+            'Parameters': {
+              'key1': 'value1',
+              'key2': 'value2'
+            }
         }
     },
 
@@ -264,6 +269,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             loadedSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
             loadedSettings.Rules["xxx:yyy"].Level.Should().Be(RuleLevel.Off);
 
+            loadedSettings.Rules["typescript:S2685"].Parameters.Should().BeNull();
+            loadedSettings.Rules["xxx:yyy"].Parameters.Should().NotBeNull();
+            loadedSettings.Rules["xxx:yyy"].Parameters["key1"].Should().Be("value1");
+            loadedSettings.Rules["xxx:yyy"].Parameters["key2"].Should().Be("value2");
+
             // 2. Save and reload
             UserSettingsProvider.SafeSaveUserSettings(filePath2, loadedSettings, new FileWrapper(), testLogger);
             var reloadedSettings = UserSettingsProvider.SafeLoadUserSettings(filePath2, new FileWrapper(), testLogger);
@@ -277,6 +287,67 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Check loaded data
             reloadedSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
             reloadedSettings.Rules["xxx:yyy"].Level.Should().Be(RuleLevel.Off);
+
+            loadedSettings.Rules["typescript:S2685"].Parameters.Should().BeNull();
+            loadedSettings.Rules["xxx:yyy"].Parameters.Should().NotBeNull();
+            loadedSettings.Rules["xxx:yyy"].Parameters["key1"].Should().Be("value1");
+            loadedSettings.Rules["xxx:yyy"].Parameters["key2"].Should().Be("value2");
+        }
+
+        [TestMethod]
+        public void RealFile_RoundTripSaveAndLoad()
+        {
+            // Arrange
+            var testLogger = new TestLogger(logToConsole: true);
+
+            var dir = CreateTestSpecificDirectory();
+            var filePath = Path.Combine(dir, "settings.txt");
+
+            var settings = new UserSettings
+            {
+                Rules = new Dictionary<string, RuleConfig>
+                {
+                    { "repo1:key1", new RuleConfig { Level = RuleLevel.Off } },
+                    { "repo1:key2", new RuleConfig { Level = RuleLevel.On } },
+                    { "repox:keyy",
+                        new RuleConfig
+                        {
+                            Level = RuleLevel.On,
+                            Parameters = new Dictionary<string, string>
+                            {
+                                { "key1", "value1" },
+                                { "key2", "value2" }
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Act: save and reload
+            UserSettingsProvider.SafeSaveUserSettings(filePath, settings, new FileWrapper(), testLogger);
+
+            var reloadedSettings = UserSettingsProvider.SafeLoadUserSettings(filePath, new FileWrapper(), testLogger);
+
+            TestContext.AddResultFile(filePath);
+
+            reloadedSettings.Should().NotBeNull();
+            reloadedSettings.Rules.Should().NotBeNull();
+            reloadedSettings.Rules.Count.Should().Be(3);
+
+            // Check loaded data
+            reloadedSettings.Rules["repo1:key1"].Level.Should().Be(RuleLevel.Off);
+            reloadedSettings.Rules["repo1:key2"].Level.Should().Be(RuleLevel.On);
+            reloadedSettings.Rules["repox:keyy"].Level.Should().Be(RuleLevel.On);
+
+            reloadedSettings.Rules["repo1:key1"].Parameters.Should().BeNull();
+            reloadedSettings.Rules["repo1:key2"].Parameters.Should().BeNull();
+            
+            var rulexParams = reloadedSettings.Rules["repox:keyy"].Parameters;
+            rulexParams.Should().NotBeNull();
+
+            rulexParams.Keys.Should().BeEquivalentTo("key1", "key2");
+            rulexParams["key1"].Should().Be("value1");
+            rulexParams["key2"].Should().Be("value2");
         }
 
         [TestMethod]
