@@ -720,6 +720,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Language: &apos;{0}&apos;, Installed version: &apos;{1}&apos;, Minimum version: &apos;{2}&apos;.
+        /// </summary>
+        public static string InstalledAndMinimumSonarQubePlugin {
+            get {
+                return ResourceManager.GetString("InstalledAndMinimumSonarQubePlugin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Colon (&quot;:&quot;) is not a permitted character..
         /// </summary>
         public static string InvalidCharacterColon {
@@ -743,15 +752,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string InvalidTestProjectRegexPattern {
             get {
                 return ResourceManager.GetString("InvalidTestProjectRegexPattern", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Language: &apos;{0}&apos;, Minimum version: &apos;{1}&apos;.
-        /// </summary>
-        public static string MinimumSupportedSonarQubePlugin {
-            get {
-                return ResourceManager.GetString("MinimumSupportedSonarQubePlugin", resourceCulture);
             }
         }
         
