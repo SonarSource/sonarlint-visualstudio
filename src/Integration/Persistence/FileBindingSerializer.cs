@@ -24,7 +24,6 @@ using System.IO;
 using Microsoft.Alm.Authentication;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Helpers;
 
