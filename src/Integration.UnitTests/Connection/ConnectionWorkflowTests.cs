@@ -289,9 +289,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public async Task ConnectionWorkflow_ConnectionStep_WhenCSharpPluginAndNoCSharpProject_AbortsWorkflowAndDisconnects()
+        public async Task ConnectionWorkflow_ConnectionStep_WhenCSharpAndVbPluginAndNoCSharpOrVbProject_AbortsWorkflowAndDisconnects()
         {
-            await ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.vbproj", ProjectSystemHelper.VbProjectKind, MinimumSupportedSonarQubePlugin.CSharp);
+            await ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.xxx", Guid.NewGuid().ToString(),
+                MinimumSupportedSonarQubePlugin.CSharp, MinimumSupportedSonarQubePlugin.VbNet);
         }
 
         [TestMethod]
@@ -300,7 +301,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             await ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.csproj", ProjectSystemHelper.CSharpProjectKind, MinimumSupportedSonarQubePlugin.VbNet);
         }
 
-        private async Task ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects(string projectName, string projectKind, MinimumSupportedSonarQubePlugin minimumSupportedSonarQubePlugin)
+        private async Task ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects(string projectName, string projectKind,
+            params MinimumSupportedSonarQubePlugin[] minimumSupportedSonarQubePlugins)
         {
             // Arrange
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
@@ -308,7 +310,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeServiceMock.Setup(x => x.GetAllProjectsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(projects);
             this.sonarQubeServiceMock.Setup(x => x.GetAllPluginsAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<SonarQubePlugin> { new SonarQubePlugin(minimumSupportedSonarQubePlugin.Key, minimumSupportedSonarQubePlugin.MinimumVersion) });
+                .ReturnsAsync(minimumSupportedSonarQubePlugins.Select(p => new SonarQubePlugin(p.Key, p.MinimumVersion)).ToList());
             this.projectSystemHelper.Projects = new[] { new ProjectMock(projectName) { ProjectKind = projectKind } };
             bool projectChangedCallbackCalled = false;
             this.host.TestStateManager.SetProjectsAction = (c, p) =>
@@ -336,7 +338,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
-            notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, minimumSupportedSonarQubePlugin.Language.Name));
+
+            var languageList = string.Join(", ", minimumSupportedSonarQubePlugins.Select(x => x.Language.Name));
+            notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, string.Format(Strings.OnlySupportedPluginsHaveNoProjectInSolution, languageList));
 
             AssertCredentialsNotStored(); // Username and password are null
         }
