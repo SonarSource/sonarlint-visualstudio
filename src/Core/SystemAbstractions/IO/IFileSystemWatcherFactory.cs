@@ -18,24 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-
-namespace SonarLint.VisualStudio.Integration.Helpers
+namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
-    [ExcludeFromCodeCoverage] // Wrapper around System
-    public class DirectoryWrapper : IDirectory
+    public interface IFileSystemWatcherFactory
     {
-        public void Create(string path) => Directory.CreateDirectory(path);
-
-        public void Delete(string path) => Directory.Delete(path);
-
-        public void Delete(string path, bool recursive) => Directory.Delete(path, recursive);
-
-        public bool Exists(string path) => Directory.Exists(path);
-
-        public string[] GetDirectories(string path, string searchPattern) => Directory.GetDirectories(path, searchPattern);
-
-        public void Move(string sourceDirName, string destDirName) => Directory.Move(sourceDirName, destDirName);
+        IFileSystemWatcher Create();
     }
 }

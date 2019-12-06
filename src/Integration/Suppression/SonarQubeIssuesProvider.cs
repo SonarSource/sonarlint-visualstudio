@@ -27,6 +27,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarQube.Client.Models;
 using SonarQube.Client;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {

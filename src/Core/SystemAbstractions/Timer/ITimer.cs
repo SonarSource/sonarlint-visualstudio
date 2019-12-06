@@ -18,13 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration
+using System;
+
+namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
-    public sealed class TimerFactory : ITimerFactory
+    public interface ITimer : IDisposable
     {
-        public ITimer Create()
-        {
-            return new TimerWrapper();
-        }
+        event EventHandler<TimerEventArgs> Elapsed;
+
+        bool AutoReset { get; set; }
+        double Interval { get; set; }
+
+        void Start();
+        void Stop();
+        void Close();
     }
 }

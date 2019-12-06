@@ -22,7 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Xml.Serialization;
-using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration
 {

@@ -24,7 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
