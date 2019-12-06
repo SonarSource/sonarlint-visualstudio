@@ -34,7 +34,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service.DataModel;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Helpers;
@@ -721,6 +720,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Assert
             result.Should().Be(expectedResult);
             logger.AssertOutputStrings(expectedMessage);
+        }
+
+        [TestMethod]
+        public void IsSonarQubePluginSupported_OldVersionOfVSAndSupportedCppPluginReturnsTrue()
+        {
+            TestPluginSupport(
+                expectedResult: true,
+                vsVersion: "14",
+                installedPlugin: new SonarQubePlugin("cpp", "6.0"),
+                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.Cpp,
+                expectedMessage: "   Discovered a supported plugin: Language: 'C++', Installed version: '6.0', Minimum version: '6.0'");
+        }
+
+        [TestMethod]
+        public void IsSonarQubePluginSupported_NewerVersionOfVSAndSupportedCppPluginReturnsTrue()
+        {
+            TestPluginSupport(
+                expectedResult: true,
+                vsVersion: "15",
+                installedPlugin: new SonarQubePlugin("cpp", "6.0"),
+                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.Cpp,
+                expectedMessage: "   Discovered a supported plugin: Language: 'C++', Installed version: '6.0', Minimum version: '6.0'");
+        }
+
+        [TestMethod]
+        public void IsSonarQubePluginSupported_OldVersionOfVSAndUnsupportedCppPlugin_ReturnsFalse()
+        {
+            TestPluginSupport(
+                expectedResult: false,
+                vsVersion: "14",
+                installedPlugin: new SonarQubePlugin("cpp", "5.0"),
+                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.Cpp,
+                expectedMessage: "   Discovered an unsupported plugin: Language: 'C++', Installed version: '5.0', Minimum version: '6.0'");
+        }
+
+        [TestMethod]
+        public void IsSonarQubePluginSupported_NewerVersionOfVSAndUnsupportedCppPlugin_ReturnsFalse()
+        {
+            TestPluginSupport(
+                expectedResult: false,
+                vsVersion: "15",
+                installedPlugin: new SonarQubePlugin("cpp", "5.9"),
+                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.Cpp,
+                expectedMessage: "   Discovered an unsupported plugin: Language: 'C++', Installed version: '5.9', Minimum version: '6.0'");
         }
 
         #endregion Tests

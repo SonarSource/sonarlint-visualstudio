@@ -31,7 +31,8 @@ namespace SonarLint.VisualStudio.Integration
             { new Guid(ProjectSystemHelper.CSharpProjectKind), Language.CSharp },
             { new Guid(ProjectSystemHelper.VbProjectKind), Language.VBNET },
             { new Guid(ProjectSystemHelper.CSharpCoreProjectKind),  Language.CSharp },
-            { new Guid(ProjectSystemHelper.VbCoreProjectKind), Language.VBNET }
+            { new Guid(ProjectSystemHelper.VbCoreProjectKind), Language.VBNET },
+            { new Guid(ProjectSystemHelper.CppProjectKind), Language.Cpp }
         };
 
         public static Language GetLanguageForProject(EnvDTE.Project dteProject)
