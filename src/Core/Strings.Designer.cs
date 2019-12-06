@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C++.
+        /// </summary>
+        public static string CppLanguageName {
+            get {
+                return ResourceManager.GetString("CppLanguageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C#.
         /// </summary>
         public static string CSharpLanguageName {

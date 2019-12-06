@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Core
         public readonly static Language Unknown = new Language();
         public readonly static Language CSharp = new Language("CSharp", Strings.CSharpLanguageName);
         public readonly static Language VBNET = new Language("VB", Strings.VBNetLanguageName);
+        public readonly static Language Cpp = new Language("C++", Strings.CppLanguageName);
 
         /// <summary>
         /// A stable identifier for this language.
@@ -67,7 +68,7 @@ namespace SonarLint.VisualStudio.Core
         {
             get
             {
-                return new[] { CSharp, VBNET };
+                return new[] { CSharp, VBNET, Cpp };
             }
         }
 
