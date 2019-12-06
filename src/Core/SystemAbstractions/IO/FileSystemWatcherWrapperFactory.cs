@@ -20,7 +20,7 @@
 
 using System.IO;
 
-namespace SonarLint.VisualStudio.Integration.Helpers
+namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
     public class FileSystemWatcherWrapperFactory : IFileSystemWatcherFactory
     {

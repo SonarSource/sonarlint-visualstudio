@@ -21,6 +21,7 @@
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
