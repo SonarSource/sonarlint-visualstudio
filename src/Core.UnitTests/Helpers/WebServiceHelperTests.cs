@@ -91,13 +91,27 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void CallIsCancelled_ExceptionIsSuppressed()
+        public void TaskIsCancelled_ExceptionIsSuppressed()
         {
             // Arrange
             var testLogger = new TestLogger();
 
             // Act
             WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new TaskCanceledException("dummy error message"),
+                testLogger).Wait();
+
+            // Assert
+            testLogger.AssertOutputStringExists(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
+        }
+
+        [TestMethod]
+        public void OperationIsCancelled_ExceptionIsSuppressed()
+        {
+            // Arrange
+            var testLogger = new TestLogger();
+
+            // Act
+            WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new OperationCanceledException("dummy error message"),
                 testLogger).Wait();
 
             // Assert
