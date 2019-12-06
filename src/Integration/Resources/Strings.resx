@@ -707,8 +707,8 @@ This is the general format to use when writing errors to output window or when t
     <value>Notifications are not supported on this version of SonarQube</value>
     <comment>Output window message</comment>
   </data>
-  <data name="OnlySupportedPluginHasNoProjectInSolution" xml:space="preserve">
-    <value>This SonarQube server only supported plugin language ({0}) does not match any of this solution projects' languages.</value>
+  <data name="OnlySupportedPluginsHaveNoProjectInSolution" xml:space="preserve">
+    <value>The plugins supported by this SonarQube server ({0}) do not match any of the solution projects' languages.</value>
     <comment>Output window message printed when the only supported plugin has no matching project types in the current solution. {0} the name of the language.</comment>
   </data>
   <data name="Telemetry_ERROR_Recording" xml:space="preserve">

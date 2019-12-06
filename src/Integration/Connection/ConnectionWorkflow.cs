@@ -340,7 +340,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 return Strings.SolutionContainsNoSupportedProject;
             }
 
-            return string.Format(Strings.OnlySupportedPluginHasNoProjectInSolution, this.host.SupportedPluginLanguages.First().Name);
+            var supportedPluginsNames = string.Join(", ", this.host.SupportedPluginLanguages.Select(p => p.Name));
+            return string.Format(Strings.OnlySupportedPluginsHaveNoProjectInSolution, supportedPluginsNames);
         }
 
         internal /*for testing purposes*/ bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> plugins,
