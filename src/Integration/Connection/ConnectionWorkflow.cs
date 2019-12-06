@@ -308,7 +308,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             var csharpOrVbNetProjects = new HashSet<EnvDTE.Project>(this.projectSystem.GetSolutionProjects());
             var supportedSonarQubePlugins = MinimumSupportedSonarQubePlugin.All
-                .Where(lang => IsSonarQubePluginSupported(plugins, lang))
+                .Where(lang => IsSonarQubePluginSupported(plugins, lang, host.Logger))
                 .Select(lang => lang.Language);
             this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(supportedSonarQubePlugins));
 
@@ -344,8 +344,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
             return string.Format(Strings.OnlySupportedPluginsHaveNoProjectInSolution, supportedPluginsNames);
         }
 
-        internal /*for testing purposes*/ bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> plugins,
-            MinimumSupportedSonarQubePlugin minimumSupportedPlugin)
+        internal static /*for testing purposes*/ bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> plugins,
+            MinimumSupportedSonarQubePlugin minimumSupportedPlugin, ILogger logger)
         {
             var plugin = plugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
 
@@ -353,7 +353,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
             {
                 return false;
             }
-
 
             var pluginInfoMessage = string.Format(CultureInfo.CurrentCulture, Strings.MinimumSupportedSonarQubePlugin,
                 minimumSupportedPlugin.Language.Name, minimumSupportedPlugin.MinimumVersion);
@@ -384,7 +383,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 isPluginSupported
                     ? Strings.SupportedPluginFoundMessage
                     : Strings.UnsupportedPluginFoundMessage);
-            this.host.Logger.WriteLine(pluginSupportMessageFormat, pluginInfoMessage);
+            logger.WriteLine(pluginSupportMessageFormat, pluginInfoMessage);
 
             return isPluginSupported;
         }
