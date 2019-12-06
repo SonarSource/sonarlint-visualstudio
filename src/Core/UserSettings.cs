@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Core
 {
 
     /*
@@ -50,19 +50,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
      */
 
     // Json-serializable data class
-    internal class UserSettings
+    public class UserSettings
     {
         [JsonProperty("sonarlint.rules")]
         public Dictionary<string, RuleConfig> Rules { get; set; } = new Dictionary<string, RuleConfig>(StringComparer.OrdinalIgnoreCase);
     }
 
-    internal class RuleConfig
+    public class RuleConfig
     {
         [JsonConverter(typeof(StringEnumConverter))]
         public RuleLevel Level { get; set; }
     }
 
-    internal enum RuleLevel
+    public enum RuleLevel
     {
         On,
         Off
