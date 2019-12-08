@@ -1243,24 +1243,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube request failed: {0} {1}.
-        /// </summary>
-        public static string SonarQubeRequestFailed {
-            get {
-                return ResourceManager.GetString("SonarQubeRequestFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube request timed out or was canceled.
-        /// </summary>
-        public static string SonarQubeRequestTimeoutOrCancelled {
-            get {
-                return ResourceManager.GetString("SonarQubeRequestTimeoutOrCancelled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarQube - {0} {1}.
         /// </summary>
         public static string SonarQubeRuleSetNameFormat {

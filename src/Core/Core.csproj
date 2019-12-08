@@ -19,14 +19,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Strings.Designer.cs">
+    <Compile Update="CoreStrings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Strings.resx</DependentUpon>
+      <DependentUpon>CoreStrings.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Update="Strings.resx">
+    <EmbeddedResource Update="CoreStrings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   

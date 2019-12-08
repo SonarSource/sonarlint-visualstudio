@@ -30,6 +30,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -205,18 +206,18 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 // For some errors we will get an inner exception which will have a more specific information
                 // that we would like to show i.e.when the host could not be resolved
                 var innerException = e.InnerException as System.Net.WebException;
-                this.host.Logger.WriteLine(Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
+                this.host.Logger.WriteLine(CoreStrings.SonarQubeRequestFailed, e.Message, innerException?.Message);
                 AbortWithMessage(notifications, controller, cancellationToken);
             }
             catch (TaskCanceledException)
             {
                 // Canceled or timeout
-                this.host.Logger.WriteLine(Strings.SonarQubeRequestTimeoutOrCancelled);
+                this.host.Logger.WriteLine(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
                 AbortWithMessage(notifications, controller, cancellationToken);
             }
             catch (Exception ex)
             {
-                this.host.Logger.WriteLine(Strings.SonarQubeRequestFailed, ex.Message, null);
+                this.host.Logger.WriteLine(CoreStrings.SonarQubeRequestFailed, ex.Message, null);
                 AbortWithMessage(notifications, controller, cancellationToken);
             }
         }
