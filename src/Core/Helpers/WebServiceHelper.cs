@@ -22,6 +22,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+
 namespace SonarLint.VisualStudio.Integration
 {
     public static class WebServiceHelper
