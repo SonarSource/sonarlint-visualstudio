@@ -22,14 +22,14 @@ namespace SonarLint.VisualStudio.Core {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Strings {
+    public class CoreStrings {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Strings() {
+        internal CoreStrings() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Core {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.Core.Strings", typeof(Strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.Core.CoreStrings", typeof(CoreStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -75,6 +75,24 @@ namespace SonarLint.VisualStudio.Core {
         public static string CSharpLanguageName {
             get {
                 return ResourceManager.GetString("CSharpLanguageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube request failed: {0} {1}.
+        /// </summary>
+        public static string SonarQubeRequestFailed {
+            get {
+                return ResourceManager.GetString("SonarQubeRequestFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube request timed out or was canceled.
+        /// </summary>
+        public static string SonarQubeRequestTimeoutOrCancelled {
+            get {
+                return ResourceManager.GetString("SonarQubeRequestTimeoutOrCancelled", resourceCulture);
             }
         }
         

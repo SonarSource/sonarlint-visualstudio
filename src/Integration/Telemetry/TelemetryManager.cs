@@ -18,14 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -187,7 +186,7 @@ namespace SonarLint.VisualStudio.Integration
                     telemetryRepository.Save();
                 }
             }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
                 logger.WriteLine(Resources.Strings.Telemetry_ERROR_Recording, ex.Message);
@@ -218,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration
                 telemetryRepository.Data.Analyses = new System.Collections.Generic.List<Analysis>();
                 telemetryRepository.Save();
             }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
                 logger.WriteLine(Resources.Strings.Telemetry_ERROR_SendingTelemetry, ex.Message);

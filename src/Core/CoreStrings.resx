@@ -125,6 +125,16 @@
     <value>C#</value>
     <comment>C# language name</comment>
   </data>
+  <data name="SonarQubeRequestFailed" xml:space="preserve">
+    <value>SonarQube request failed: {0} {1}</value>
+    <comment>Information message when the request failed.
+ {0} exception message
+ {1} inner exception message (if applicable)</comment>
+  </data>
+  <data name="SonarQubeRequestTimeoutOrCancelled" xml:space="preserve">
+    <value>SonarQube request timed out or was canceled</value>
+    <comment>Information message when the request timed out or canceled.</comment>
+  </data>
   <data name="UnknownLanguageName" xml:space="preserve">
     <value>Unknown</value>
     <comment>Name of any unknown languages</comment>

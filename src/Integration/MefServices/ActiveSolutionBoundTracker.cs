@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration
             if (boundProject != null)
             {
                 var connectionInformation = boundProject.CreateConnectionInformation();
-                await WebServiceHelper.SafeServiceCallAsync(() => sonarQubeService.ConnectAsync(connectionInformation,
+                await Core.WebServiceHelper.SafeServiceCallAsync(() => sonarQubeService.ConnectAsync(connectionInformation,
                     CancellationToken.None), this.logger);
             }
 

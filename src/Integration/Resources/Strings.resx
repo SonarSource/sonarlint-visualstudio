@@ -175,16 +175,6 @@ See more information in the output window (SonarLint).</value>
     <comment>The error message the user sees when the connection has failed. The message will appear in team explorer.
 Localization note: '[try again]()' is a special markup used to translate the text 'try again' into a hyperlink. Make sure to keep it localized content in with that format to avoid reducing functionality in the localized version of the product</comment>
   </data>
-  <data name="SonarQubeRequestFailed" xml:space="preserve">
-    <value>SonarQube request failed: {0} {1}</value>
-    <comment>Information message when the request failed.
- {0} exception message
- {1} inner exception message (if applicable)</comment>
-  </data>
-  <data name="SonarQubeRequestTimeoutOrCancelled" xml:space="preserve">
-    <value>SonarQube request timed out or was canceled</value>
-    <comment>Information message when the request timed out or canceled.</comment>
-  </data>
   <data name="BindButtonText" xml:space="preserve">
     <value>Bind</value>
     <comment>Button text for binding a SonarQube project to a VS solution</comment>
