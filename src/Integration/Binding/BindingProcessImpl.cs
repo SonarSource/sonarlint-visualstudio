@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 var serverLanguage = language.ToServerLanguage();
 
                 // Download the quality profile for each language
-                var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(() =>
+                var qualityProfileInfo = await Core.WebServiceHelper.SafeServiceCallAsync(() =>
                     this.host.SonarQubeService.GetQualityProfileAsync(
                         this.bindingArgs.ProjectKey, this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
                     this.host.Logger);
