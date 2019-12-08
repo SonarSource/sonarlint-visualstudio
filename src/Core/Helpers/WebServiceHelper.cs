@@ -21,9 +21,9 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core
 {
     public static class WebServiceHelper
     {
@@ -38,16 +38,16 @@ namespace SonarLint.VisualStudio.Integration
                 // For some errors we will get an inner exception which will have a more specific information
                 // that we would like to show i.e. when the host could not be resolved
                 var innerException = e.InnerException as System.Net.WebException;
-                logger.WriteLine(Strings.SonarQubeRequestFailed, e.Message, innerException?.Message);
+                logger.WriteLine(CoreStrings.SonarQubeRequestFailed, e.Message, innerException?.Message);
             }
             catch (TaskCanceledException)
             {
                 // Canceled or timeout
-                logger.WriteLine(Strings.SonarQubeRequestTimeoutOrCancelled);
+                logger.WriteLine(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.SonarQubeRequestFailed, ex.Message, null);
+                logger.WriteLine(CoreStrings.SonarQubeRequestFailed, ex.Message, null);
             }
 
             return default(T);

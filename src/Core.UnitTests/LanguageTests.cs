@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Language_UnknownLanguage()
         {
             Language.Unknown.Id.Should().BeEmpty();
-            Language.Unknown.Name.Should().Be(Strings.UnknownLanguageName);
+            Language.Unknown.Name.Should().Be(CoreStrings.UnknownLanguageName);
         }
 
         [TestMethod]

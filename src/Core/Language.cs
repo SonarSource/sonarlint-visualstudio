@@ -42,9 +42,9 @@ namespace SonarLint.VisualStudio.Core
     public sealed class Language : IEquatable<Language>
     {
         public readonly static Language Unknown = new Language();
-        public readonly static Language CSharp = new Language("CSharp", Strings.CSharpLanguageName);
-        public readonly static Language VBNET = new Language("VB", Strings.VBNetLanguageName);
-        public readonly static Language Cpp = new Language("C++", Strings.CppLanguageName);
+        public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName);
+        public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName);
+        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName);
 
         /// <summary>
         /// A stable identifier for this language.
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Core
         private Language()
         {
             this.Id = string.Empty;
-            this.Name = Strings.UnknownLanguageName;
+            this.Name = CoreStrings.UnknownLanguageName;
         }
 
         public Language(string id, string name)

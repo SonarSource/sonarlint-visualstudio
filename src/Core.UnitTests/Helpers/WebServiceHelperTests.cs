@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
                 testLogger).Wait();
 
             // Assert
-            testLogger.AssertOutputStringExists(Strings.SonarQubeRequestTimeoutOrCancelled);
+            testLogger.AssertOutputStringExists(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
         }
 
         [TestMethod]
