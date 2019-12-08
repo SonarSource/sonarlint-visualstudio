@@ -21,11 +21,11 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal static class WebServiceHelper
+    public static class WebServiceHelper
     {
         public static async Task<T> SafeServiceCallAsync<T>(Func<Task<T>> call, ILogger logger)
         {
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration
                 // Canceled or timeout
                 logger.WriteLine(Strings.SonarQubeRequestTimeoutOrCancelled);
             }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Strings.SonarQubeRequestFailed, ex.Message, null);
             }
