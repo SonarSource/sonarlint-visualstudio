@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-// Note: functionally equivalent to Microsoft.VisualStudio.ErrorHandler
+// Note: replacement for Microsoft.VisualStudio.ErrorHandler
 
 namespace SonarLint.VisualStudio.Core
 {
