@@ -52,6 +52,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.logger = logger;
         }
 
+        public bool IsLanguageSupported(Language language)
+        {
+            return Language.CSharp.Equals(language) || Language.VBNET.Equals(language);
+        }
+
         public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
         {
             var serverLanguage = language.ToServerLanguage();

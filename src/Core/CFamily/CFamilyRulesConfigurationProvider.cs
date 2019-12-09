@@ -43,6 +43,11 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         #region IRulesConfigurationProvider implementation
 
+        public bool IsLanguageSupported(Language language)
+        {
+            return Language.Cpp.Equals(language) || Language.C.Equals(language);
+        }
+
         public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey,
             Language language, CancellationToken cancellationToken)
         {

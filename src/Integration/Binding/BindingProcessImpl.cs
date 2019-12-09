@@ -230,10 +230,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
         {
-            return this.InternalState.BindingProjects.Select(ProjectToLanguageMapper.GetLanguageForProject)
+            var languageList = this.InternalState.BindingProjects.Select(ProjectToLanguageMapper.GetLanguageForProject)
                                        .Distinct()
                                        .Where(this.host.SupportedPluginLanguages.Contains)
-                                       .ToArray();
+                                       .ToList();
+
+            // duncanp
+            // HACK - if we have a C++ project, then we need to download the profile for C
+            // as well.
+            if (languageList.Contains(Language.Cpp))
+            {
+                languageList.Add(Language.C);
+            }
+
+            return languageList;
         }
 
         internal /* for testing purposes */ static Project[] GetProjectsForRulesetBinding(bool isFirstBinding,
