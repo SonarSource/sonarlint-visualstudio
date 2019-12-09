@@ -19,9 +19,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
@@ -41,6 +44,50 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             var userSettings = new UserSettings();
             var testSubject = new CFamilyRulesConfigurationFile(userSettings);
             testSubject.UserSettings.Equals(userSettings);
+        }
+
+        [TestMethod]
+        public void Save_SettingsAreSerializedAndSaved()
+        {
+            // Arrange
+            var settings = new UserSettings
+            {
+                Rules = new Dictionary<string, RuleConfig>
+                {
+                    { "key", new RuleConfig { Level = RuleLevel.On,
+                            Parameters = new Dictionary<string, string>
+                            {
+                                { "p1", "p2" }
+                            }
+                        }
+                    }
+                }
+            };
+
+            string actualPath = null;
+            string actualText = null;
+
+            var fileSystemMock = new Mock<IFile>();
+            fileSystemMock.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
+                .Callback<string, string>((p, t) => { actualPath = p; actualText = t; });
+
+            var testSubject = new CFamilyRulesConfigurationFile(settings, fileSystemMock.Object);
+
+            // Act
+            testSubject.Save("c:\\full\\path\\file.txt");
+
+            // Assert
+            actualPath.Should().Be("c:\\full\\path\\file.txt");
+            actualText.Should().Be(@"{
+  ""sonarlint.rules"": {
+    ""key"": {
+      ""Level"": ""On"",
+      ""Parameters"": {
+        ""p1"": ""p2""
+      }
+    }
+  }
+}");
         }
     }
 }
