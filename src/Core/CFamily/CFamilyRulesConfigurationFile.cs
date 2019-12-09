@@ -19,15 +19,25 @@
  */
 
 using System;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
     public class CFamilyRulesConfigurationFile : IRulesConfigurationFile
     {
+        private readonly IFile fileWrapper;
+
         public CFamilyRulesConfigurationFile(UserSettings userSettings)
+            : this (userSettings, new FileWrapper())
+        {
+        }
+
+        public CFamilyRulesConfigurationFile(UserSettings userSettings, IFile fileWrapper)
         {
             this.UserSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
+            this.fileWrapper = fileWrapper;
         }
 
         internal /* for testing */ UserSettings UserSettings { get; }
@@ -36,7 +46,8 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         public void Save(string fullFilePath)
         {
-            // TODO
+            string dataAsText = JsonConvert.SerializeObject(this.UserSettings, Formatting.Indented);
+            fileWrapper.WriteAllText(fullFilePath, dataAsText);
         }
 
         #endregion IRulesConfigurationFile implementation
