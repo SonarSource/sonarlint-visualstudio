@@ -41,7 +41,9 @@ namespace SonarQube.Client
 
             var inactiveRules = await sonarQubeService.GetRulesAsync(false, qualityProfileKey, token);
 
-            var allRules = activeRules.Union(inactiveRules).ToList();
+            var allRules = (activeRules ?? Enumerable.Empty<SonarQubeRule>())
+                .Union(inactiveRules ?? Enumerable.Empty<SonarQubeRule>())
+                .ToList();
             return allRules;
         }
     }

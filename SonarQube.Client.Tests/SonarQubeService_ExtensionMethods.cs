@@ -18,6 +18,7 @@
 * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -127,5 +128,103 @@ namespace SonarQube.Client.Tests
             result.SelectMany(r => r.Parameters.Select(p => p.Key)).Should().Contain(new[] { "format", "flagsAttributeFormat" });
             result.SelectMany(r => r.Parameters.Select(p => p.Value)).Should().Contain(new[] { "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?$", "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?s$" });
         }
+
+        [TestMethod]
+        public async Task GetAllRulesAsync_OnlyActiveRulesExist_AreFetched()
+        {
+            await ConnectToSonarQube();
+
+            // One active rule, no inactive rules
+            var ruleJson = SingleValidRuleJson("repo1", "rule1");
+            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+                ruleJson);
+
+            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+                NoRulesJson);
+
+            var result = await service.GetAllRulesAsync("quality-profile-1", CancellationToken.None);
+
+            messageHandler.VerifyAll();
+
+            result.Should().HaveCount(1);
+            result.First().Key.Should().Be("rule1");
+            result.First().RepositoryKey.Should().Be("repo1");
+        }
+
+        [TestMethod]
+        public async Task GetAllRulesAsync_OnlyInactiveRulesExist_AreFetched()
+        {
+            await ConnectToSonarQube();
+
+            // One active rule, no inactive rules
+            var ruleJson = SingleValidRuleJson("repo1", "rule1");
+            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+                NoRulesJson);
+
+            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+                ruleJson);
+
+            var result = await service.GetAllRulesAsync("quality-profile-1", CancellationToken.None);
+
+            messageHandler.VerifyAll();
+
+            result.Should().HaveCount(1);
+            result.First().Key.Should().Be("rule1");
+            result.First().RepositoryKey.Should().Be("repo1");
+        }
+
+
+        [TestMethod]
+        public async Task GetAllRulesAsync_GetInactiveFails_ExceptionIsPropogated()
+        {
+            // Arrange
+            await ConnectToSonarQube();
+
+            // One active rule, no inactive rules
+            var ruleJson = SingleValidRuleJson("repo1", "rule1");
+            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+                ruleJson);
+
+            SetupRequestWithOperation("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+                () => { throw new InvalidOperationException("xxx"); });
+
+            // Act
+            Func<Task> act = async () => await service.GetAllRulesAsync("quality-profile-1", CancellationToken.None);
+
+            // Assert
+            act.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Be("xxx");
+        }
+
+        private const string NoRulesJson = @"
+{
+  'total': 0,
+  'p': 1,
+  'ps': 500,
+  'rules': [],
+  'actives': { },
+  'qProfiles': { }
+}
+";
+
+        private static string SingleValidRuleJson(string repoId, string ruleId) =>
+@"
+{
+  'total': 1,
+  'p': 1,
+  'ps': 500,
+  'rules': [
+    {
+      'key': '***RULE_ID***',
+      'repo': '***REPO_ID***',
+      'params': [],
+      'type': 'BUG'
+    }
+  ],
+  'actives': { },
+  'qProfiles': { }
+}"
+.Replace("***REPO_ID***", repoId)
+.Replace("***RULE_ID***", ruleId);
+
     }
 }
