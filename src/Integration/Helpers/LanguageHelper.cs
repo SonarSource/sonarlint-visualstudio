@@ -27,13 +27,21 @@ namespace SonarLint.VisualStudio.Integration.Helpers
     {
         public static SonarQubeLanguage ToServerLanguage(this Language language)
         {
-            if (language == Language.CSharp)
+            if (Language.CSharp.Equals(language))
             {
                 return SonarQubeLanguage.CSharp;
             }
-            else if (language == Language.VBNET)
+            else if (Language.VBNET.Equals(language))
             {
                 return SonarQubeLanguage.VbNet;
+            }
+            else if (Language.Cpp.Equals(language))
+            {
+                return SonarQubeLanguage.Cpp;
+            }
+            else if (Language.C.Equals(language))
+            {
+                return SonarQubeLanguage.C;
             }
             else
             {
