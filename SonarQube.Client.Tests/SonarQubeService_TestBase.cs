@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Security;
@@ -28,11 +29,9 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
-using SonarQube.Client.Requests;
-using SonarQube.Client.Models;
 using SonarQube.Client.Api;
-using System.Globalization;
-using System.Linq;
+using SonarQube.Client.Models;
+using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Tests
 {
@@ -78,6 +77,17 @@ namespace SonarQube.Client.Tests
                     StatusCode = statusCode,
                     Content = new StringContent(response)
                 }));
+        }
+
+        protected void SetupRequestWithOperation(string relativePath, Func<Task<HttpResponseMessage>> op, string serverUrl = DefaultBasePath)
+        {
+            messageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(m =>
+                        m.RequestUri == new Uri(new Uri(serverUrl), relativePath) &&
+                        m.Headers.UserAgent.ToString() == UserAgent), // UserAgent should be always sent
+                    ItExpr.IsAny<CancellationToken>())
+                .Returns(op);
         }
 
         protected async Task ConnectToSonarQube(string version = "5.6.0.0", string serverUrl = DefaultBasePath)
