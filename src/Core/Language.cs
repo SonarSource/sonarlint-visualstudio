@@ -42,10 +42,10 @@ namespace SonarLint.VisualStudio.Core
     public sealed class Language : IEquatable<Language>
     {
         public readonly static Language Unknown = new Language();
-        public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName);
-        public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName);
-        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName);
-        public readonly static Language C = new Language("C", "C");
+        public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "csharp.ruleset");
+        public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "vb.ruleset");
+        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "cpp.settings");
+        public readonly static Language C = new Language("C", "C", "c.settings");
 
         /// <summary>
         /// A stable identifier for this language.
@@ -56,6 +56,12 @@ namespace SonarLint.VisualStudio.Core
         /// The language display name.
         /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// Suffix and extension added to the language-specific rules configuration file for the language
+        /// </summary>
+        /// <remarks>e.g. for ruleset-based languages this will be a language identifier + ".ruleset"</remarks>
+        public string FileSuffixAndExtension { get; }
 
         /// <summary>
         /// Returns whether or not this language is a supported project language.
@@ -91,9 +97,10 @@ namespace SonarLint.VisualStudio.Core
         {
             this.Id = string.Empty;
             this.Name = CoreStrings.UnknownLanguageName;
+            this.FileSuffixAndExtension = string.Empty;
         }
 
-        public Language(string id, string name)
+        public Language(string id, string name, string fileSuffix)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -105,8 +112,14 @@ namespace SonarLint.VisualStudio.Core
                 throw new ArgumentNullException(nameof(name));
             }
 
+            if (string.IsNullOrWhiteSpace(fileSuffix))
+            {
+                throw new ArgumentNullException(nameof(fileSuffix));
+            }
+
             this.Id = id;
             this.Name = name;
+            this.FileSuffixAndExtension = fileSuffix;
         }
 
         #region IEquatable<Language> and Equals

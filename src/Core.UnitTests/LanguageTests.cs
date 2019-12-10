@@ -33,14 +33,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             // Arrange
             var key = "k";
             var name = "MyName";
+            var fileSuffix = "suffix";
 
             // Act + Assert
             // Nulls
-            Action act = () => new Language(name, null);
+            Action act = () => new Language(name, null, fileSuffix);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("name");
 
-            act = () => new Language(null, key);
+            act = () => new Language(null, key, fileSuffix);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+
+            act = () => new Language(name, key, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSuffix");
         }
 
         [TestMethod]
@@ -63,7 +67,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void Language_ISupported_UnsupportedLanguage_IsFalse()
         {
-            var other = new Language("foo", "Foo language");
+            var other = new Language("foo", "Foo language", "file_suffix");
             other.IsSupported.Should().BeFalse();
         }
 
@@ -71,9 +75,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Language_Equality()
         {
             // Arrange
-            var lang1a = new Language("Language 1", "lang1");
-            var lang1b = new Language("Language 1", "lang1");
-            var lang2 = new Language("Language 2", "lang2");
+            var lang1a = new Language("Language 1", "lang1", "file_suffix");
+            var lang1b = new Language("Language 1", "lang1", "file_suffix");
+            var lang2 = new Language("Language 2", "lang2", "file_suffix");
 
             // Act + Assert
             lang1b.Should().Be(lang1a, "Languages with the same keys and GUIDs should be equal");
