@@ -209,6 +209,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.logger.AssertOutputStrings(expectedOutput);
         }
 
+        [TestMethod]
+        public void GetRules_UnsupportedLanguage_Throws()
+        {
+            // Arrange
+            CancellationTokenSource cts = new CancellationTokenSource();
+            Mock<INuGetBindingOperation> nuGetOpMock = new Mock<INuGetBindingOperation>();
+            var qualityProfile = new SonarQubeQualityProfile("key", "name", "language", false, DateTime.UtcNow);
+
+            var testSubject = this.CreateTestSubject("key", "anyProject", nuGetOpMock.Object);
+
+            // Act
+            Action act = () => testSubject.GetRulesConfigurationAsync(qualityProfile, null, Language.Cpp, cts.Token).Wait();
+
+            // Assert
+            act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
+        }
+
+        [TestMethod]
+        public void IsSupported()
+        {
+            // Arrange
+            Mock<INuGetBindingOperation> nuGetOpMock = new Mock<INuGetBindingOperation>();
+            var testSubject = this.CreateTestSubject("anyProject", "http://connected/", nuGetOpMock.Object);
+            
+            // 1. Supported languages
+            testSubject.IsLanguageSupported(Language.CSharp).Should().BeTrue();
+            testSubject.IsLanguageSupported(Language.VBNET).Should().BeTrue();
+
+            testSubject.IsLanguageSupported(new Language("CSharp", "FooXXX"));
+
+            // 2. Not supported
+            testSubject.IsLanguageSupported(Language.C).Should().BeFalse();
+            testSubject.IsLanguageSupported(Language.Cpp).Should().BeFalse();
+        }
+
         #region Helpers
 
         private DotNetRuleConfigurationProvider CreateTestSubject(string projectName = "anyProjectName", string serverUrl = "http://localhost",
