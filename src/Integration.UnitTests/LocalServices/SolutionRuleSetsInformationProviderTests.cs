@@ -251,10 +251,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             include = new RuleSetInclude("..\\xxx\\SUBDIR2\\file.txt", RuleAction.Default);
             include.FilePath.Should().Be("..\\xxx\\subdir2\\file.txt");
 
-            // 2. Check our file name calculation function produces lower case
+            // 2. Check our file name calculation function produces lower-case
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
+            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", new Language("l_id", "l_name", "FILESUFFIX.ANDEXT"), SonarLintMode.Connected);
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeyfilesuffix.andext"); // should be lower-case
+        }
+
+        [TestMethod]
+        public void CheckSolutionRuleSet_RuleConfigIncludePath_UsesLanguageSpecificSuffixAndExtension()
+        {
+            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
+
+            // 1. VB
             string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.VBNET, SonarLintMode.Connected);
             ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeyvb.ruleset"); // should be lower-case
+
+            // 2. Cpp
+            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.Cpp, SonarLintMode.Connected);
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeycpp.settings"); // should be lower-case
         }
 
         [TestMethod]

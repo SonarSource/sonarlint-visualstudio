@@ -237,7 +237,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.IsLanguageSupported(Language.CSharp).Should().BeTrue();
             testSubject.IsLanguageSupported(Language.VBNET).Should().BeTrue();
 
-            testSubject.IsLanguageSupported(new Language("CSharp", "FooXXX"));
+            testSubject.IsLanguageSupported(new Language("CSharp", "FooXXX", "file_suffix"));
 
             // 2. Not supported
             testSubject.IsLanguageSupported(Language.C).Should().BeFalse();
