@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 host.Logger);
 
             var cppConfigProvider = new CFamilyRulesConfigurationProvider(host.SonarQubeService, host.Logger);
-            var ruleConfigProvider = new CompositeBindingConfigurationProvider(dotNetConfigProvider, cppConfigProvider);
+            var ruleConfigProvider = new CompositeRulesConfigurationProvider(dotNetConfigProvider, cppConfigProvider);
 
             var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, bindingInformationProvider, ruleConfigProvider, isFirstBinding);
 

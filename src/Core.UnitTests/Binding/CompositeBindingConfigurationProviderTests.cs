@@ -17,11 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -39,12 +38,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
         public void Ctor_InvalidArgs()
         {
             // 1. No config providers supplied
-            Action act = () => new CompositeBindingConfigurationProvider();
+            Action act = () => new CompositeRulesConfigurationProvider();
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("providers");
 
             // 2. Null provider supplied
             var providerMock = new Mock<IRulesConfigurationProvider>();
-            act = () => new CompositeBindingConfigurationProvider(providerMock.Object, null);
+            act = () => new CompositeRulesConfigurationProvider(providerMock.Object, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("providers");
         }
 
@@ -57,7 +56,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var providerMock2 = new Mock<IRulesConfigurationProvider>();
 
             // Act
-            var testSubject = new CompositeBindingConfigurationProvider(
+            var testSubject = new CompositeRulesConfigurationProvider(
                 providerMock1.Object,
                 providerMock2.Object, providerMock2.Object); // duplicate should be ignored
 
@@ -74,7 +73,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var p2 = new DummyProvider(Language.VBNET);
             var p3 = new DummyProvider(Language.CSharp);
 
-            var testSubject = new CompositeBindingConfigurationProvider(p1, p2, p3);
+            var testSubject = new CompositeRulesConfigurationProvider(p1, p2, p3);
 
             // 1. Supported languages
             testSubject.IsLanguageSupported(Language.C).Should().BeTrue();
@@ -95,7 +94,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
 
             var qp = new SonarQubeQualityProfile("key", "name", "language", false, DateTime.UtcNow);
 
-            var testSubject = new CompositeBindingConfigurationProvider(otherProvider, cppProvider1, cppProvider2);
+            var testSubject = new CompositeRulesConfigurationProvider(otherProvider, cppProvider1, cppProvider2);
 
             // Act. Multiple matching providers -> config from the first matching provider returned
             var actualConfig = await testSubject.GetRulesConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None);
@@ -109,7 +108,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var otherProvider = new DummyProvider(Language.VBNET);
             var qp = new SonarQubeQualityProfile("key", "name", "language", false, DateTime.UtcNow);
 
-            var testSubject = new CompositeBindingConfigurationProvider(otherProvider);
+            var testSubject = new CompositeRulesConfigurationProvider(otherProvider);
 
             // 1. Multiple matching providers -> config from the first matching provider returned
             Action act = () => testSubject.GetRulesConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None).Wait();

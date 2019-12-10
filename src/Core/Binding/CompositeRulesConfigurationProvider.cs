@@ -27,11 +27,11 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
-    public class CompositeBindingConfigurationProvider : IRulesConfigurationProvider
+    public class CompositeRulesConfigurationProvider : IRulesConfigurationProvider
     {
         private readonly HashSet<IRulesConfigurationProvider> providers;
 
-        public CompositeBindingConfigurationProvider(params IRulesConfigurationProvider[] providers)
+        public CompositeRulesConfigurationProvider(params IRulesConfigurationProvider[] providers)
         {
             // params args can't be null - will be an empty array
             if (providers.Length == 0)
@@ -58,7 +58,6 @@ namespace SonarLint.VisualStudio.Core.Binding
             {
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
-
             IRulesConfigurationFile config = null;
             if (provider != null)
             {
