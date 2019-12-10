@@ -235,7 +235,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                                        .Where(this.host.SupportedPluginLanguages.Contains)
                                        .ToList();
 
-            // duncanp
             // HACK - if we have a C++ project, then we need to download the profile for C
             // as well.
             if (languageList.Contains(Language.Cpp))
