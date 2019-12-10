@@ -149,8 +149,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new InvalidOperationException(Strings.SolutionIsClosed);
             }
 
-            string fileNameSuffix = language.Id;
-            return GenerateSolutionRuleSetPath(ruleSetDirectoryRoot, ProjectKey, fileNameSuffix);
+            return GenerateSolutionRuleSetPath(ruleSetDirectoryRoot, ProjectKey, language.FileSuffixAndExtension);
         }
 
         public bool TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath)
@@ -181,12 +180,12 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         /// <param name="ruleSetRootPath">Root directory to generate the full file path under</param>
         /// <param name="ProjectKey">SonarQube project key to generate a rule set file name path for</param>
-        /// <param name="fileNameSuffix">Fixed file name suffix</param>
-        private static string GenerateSolutionRuleSetPath(string ruleSetRootPath, string ProjectKey, string fileNameSuffix)
+        /// <param name="fileNameSuffixAndExtension">Fixed file name suffix and extension (language-specific)</param>
+        private static string GenerateSolutionRuleSetPath(string ruleSetRootPath, string ProjectKey, string fileNameSuffixAndExtension)
         {
             // Cannot use Path.ChangeExtension here because if the sonar project name contains
             // a dot (.) then everything after this will be replaced with .ruleset
-            string fileName = $"{PathHelper.EscapeFileName(ProjectKey + fileNameSuffix)}.{Constants.RuleSetFileExtension}"
+            string fileName = PathHelper.EscapeFileName(ProjectKey + fileNameSuffixAndExtension)
                 .ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068
             return Path.Combine(ruleSetRootPath, fileName);
         }

@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
             LanguageHelper.ToServerLanguage(null).Should().BeNull();
 
             // 2. Unknown languages
-            CheckMapping(new Language("foo", "bar"), null);
+            CheckMapping(new Language("foo", "bar", "file_suffix"), null);
         }
 
         [TestMethod]
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
             CheckMapping(Language.CSharp, SonarQubeLanguage.CSharp);
             CheckMapping(Language.VBNET, SonarQubeLanguage.VbNet);
 
-            CheckMapping(new Language("VB", "Any name at all - isn't used in the mapping"), SonarQubeLanguage.VbNet);
+            CheckMapping(new Language("VB", "Any name at all - isn't used in the mapping", "file_suffix"), SonarQubeLanguage.VbNet);
         }
 
         private static void CheckMapping(Language language, SonarQubeLanguage expectedServerLanguage)
