@@ -43,9 +43,19 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         #region IRulesConfigurationProvider implementation
 
+        public bool IsLanguageSupported(Language language)
+        {
+            return Language.Cpp.Equals(language) || Language.C.Equals(language);
+        }
+
         public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey,
             Language language, CancellationToken cancellationToken)
         {
+            if (!IsLanguageSupported(language))
+            {
+                throw new ArgumentOutOfRangeException(nameof(language));
+            }
+
             var result = await WebServiceHelper.SafeServiceCallAsync(
                     () => sonarQubeService.GetAllRulesAsync(qualityProfile.Key, cancellationToken), logger);
 

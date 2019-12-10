@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -125,6 +126,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             testLogger.AssertNoOutputMessages();
         }
 
+        [DebuggerStepThrough]
         private static SonarQubeQualityProfile CreateQp() =>
             new SonarQubeQualityProfile("key1", "", "", false, DateTime.UtcNow);
 
@@ -198,6 +200,43 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             // Assert
             result.Should().BeNull();
             testLogger.AssertPartialOutputStringExists(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
+        }
+
+        [TestMethod]
+        public void GetRules_UnsupportedLanguage_Throws()
+        {
+            // Arrange
+            var testLogger = new TestLogger();
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            var serviceMock = new Mock<ISonarQubeService>();
+
+            var testSubject = new CFamilyRulesConfigurationProvider(serviceMock.Object, testLogger);
+
+            // Act
+            Action act = () => testSubject.GetRulesConfigurationAsync(CreateQp(), null, Language.VBNET, cts.Token).Wait();
+
+            // Assert
+            act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
+        }
+
+        [TestMethod]
+        public void IsSupported()
+        {
+            // Arrange
+            var testLogger = new TestLogger();
+            var serviceMock = new Mock<ISonarQubeService>();
+            var testSubject = new CFamilyRulesConfigurationProvider(serviceMock.Object, testLogger);
+
+            // 1. Supported languages
+            testSubject.IsLanguageSupported(Language.C).Should().BeTrue();
+            testSubject.IsLanguageSupported(Language.Cpp).Should().BeTrue();
+
+            testSubject.IsLanguageSupported(new Language("cpp", "FooXXX"));
+
+            // 2. Not supported
+            testSubject.IsLanguageSupported(Language.CSharp).Should().BeFalse();
+            testSubject.IsLanguageSupported(Language.VBNET).Should().BeFalse();
         }
     }
 }

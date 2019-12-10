@@ -22,6 +22,8 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -166,12 +168,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var bindingInformationProvider = new SolutionBindingInformationProvider(host);
 
-            // duncanp - finish refactoring to support other languages
             var dotNetConfigProvider = new DotNetRuleConfigurationProvider(host.SonarQubeService, nugetBindingOp,
                 bindingArgs.Connection.ServerUri.ToString(), bindingArgs.ProjectName,
                 host.Logger);
 
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, bindingInformationProvider, dotNetConfigProvider, isFirstBinding);
+            var cppConfigProvider = new CFamilyRulesConfigurationProvider(host.SonarQubeService, host.Logger);
+            var ruleConfigProvider = new CompositeRulesConfigurationProvider(dotNetConfigProvider, cppConfigProvider);
+
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, bindingInformationProvider, ruleConfigProvider, isFirstBinding);
 
             return bindingProcess;
         }
