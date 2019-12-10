@@ -262,6 +262,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void GetBindingLanguages_IfCppIsDetected_ThenCIsReturnedToo()
+        {
+            // Arrange
+            var testSubject = this.CreateTestSubject();
+
+            var project1 = new ProjectMock("cs1.csproj");
+            project1.ProjectKind = ProjectSystemHelper.CppProjectKind;
+            var projects = new[]
+            {
+                project1,
+            };
+            testSubject.InternalState.BindingProjects.AddRange(projects);
+
+            this.host.SupportedPluginLanguages.Add(Language.Cpp);
+
+            // Act
+            var actualLanguages = testSubject.GetBindingLanguages();
+
+            // Assert
+            var expectedLanguages = new[] { Language.Cpp, Language.C };
+            CollectionAssert.AreEquivalent(expectedLanguages, actualLanguages.ToArray());
+        }
+
+        [TestMethod]
         public void GetBindingLanguages_FiltersProjectsWithUnsupportedPluginLanguage()
         {
             // Arrange

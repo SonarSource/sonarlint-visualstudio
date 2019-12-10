@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -52,8 +53,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.logger = logger;
         }
 
+        public bool IsLanguageSupported(Language language)
+        {
+            return Language.CSharp.Equals(language) || Language.VBNET.Equals(language);
+        }
+
         public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
         {
+            if(!IsLanguageSupported(language))
+            {
+                throw new ArgumentOutOfRangeException(nameof(language));
+            }
+
             var serverLanguage = language.ToServerLanguage();
 
             // Generate the rules configuration file for the language

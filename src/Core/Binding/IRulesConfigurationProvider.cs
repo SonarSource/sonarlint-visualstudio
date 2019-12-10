@@ -26,6 +26,8 @@ namespace SonarLint.VisualStudio.Core.Binding
 {
     public interface IRulesConfigurationProvider
     {
+        bool IsLanguageSupported(Language language);
+
         Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken);
     }
 
