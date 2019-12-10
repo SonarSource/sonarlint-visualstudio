@@ -51,6 +51,11 @@ namespace SonarLint.VisualStudio.Core.CFamily
         public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey,
             Language language, CancellationToken cancellationToken)
         {
+            if (!IsLanguageSupported(language))
+            {
+                throw new ArgumentOutOfRangeException(nameof(language));
+            }
+
             var result = await WebServiceHelper.SafeServiceCallAsync(
                     () => sonarQubeService.GetAllRulesAsync(qualityProfile.Key, cancellationToken), logger);
 

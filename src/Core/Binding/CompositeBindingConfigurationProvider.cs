@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,24 +27,45 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
-    public class AggregatingBindingConfigurationProvider : IRulesConfigurationProvider
+    public class CompositeBindingConfigurationProvider : IRulesConfigurationProvider
     {
-        public AggregatingBindingConfigurationProvider(params IRulesConfigurationProvider[] providers)
+        private readonly HashSet<IRulesConfigurationProvider> providers;
+
+        public CompositeBindingConfigurationProvider(params IRulesConfigurationProvider[] providers)
         {
-            Providers = providers ?? throw new ArgumentNullException(nameof(providers));
-            Debug.Assert(providers.All(p => p != null));
+            // params args can't be null - will be an empty array
+            if (providers.Length == 0)
+            {
+                throw new ArgumentNullException(nameof(providers));
+            }
+            if (providers.Any(p => p == null))
+            {
+                throw new ArgumentNullException(nameof(providers));
+            }
+
+            this.providers = new HashSet<IRulesConfigurationProvider>(providers);
         }
 
-        internal /* for testing */ IEnumerable<IRulesConfigurationProvider> Providers { get; }
+        internal /* for testing */ IEnumerable<IRulesConfigurationProvider> Providers { get { return this.providers; } }
 
         #region IRulesConfigurationProvider methods
 
         public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
         {
             var provider = Providers.FirstOrDefault(p => p.IsLanguageSupported(language));
-            Debug.Assert(provider != null, $"Failed to find a provider for language: {language.Name}");
 
-            return await provider?.GetRulesConfigurationAsync(qualityProfile, organizationKey, language, cancellationToken);
+            if (provider == null)
+            {
+                throw new ArgumentOutOfRangeException(nameof(language));
+            }
+
+            IRulesConfigurationFile config = null;
+            if (provider != null)
+            {
+                config = await provider?.GetRulesConfigurationAsync(qualityProfile, organizationKey, language, cancellationToken);
+            }
+
+            return config;
         }
 
         public bool IsLanguageSupported(Language language)
