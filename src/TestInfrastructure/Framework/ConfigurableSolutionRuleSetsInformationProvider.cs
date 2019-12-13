@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         string ISolutionRuleSetsInformationProvider.CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language, SonarLintMode bindingMode)
         {
-            string fileName = $"{ProjectKey}{language.Id}.{Constants.RuleSetFileExtension}";
+            string fileName = $"{ProjectKey}{language.FileSuffixAndExtension}";
             return Path.Combine(((ISolutionRuleSetsInformationProvider)this).GetSolutionSonarQubeRulesFolder(bindingMode), fileName);
         }
 
