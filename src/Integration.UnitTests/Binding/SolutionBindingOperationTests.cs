@@ -212,28 +212,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOperation_IsInitializationRequired()
-        {
-            // 1. C# -> binding is required
-            var csProject = new ProjectMock("c:\\foo.proj");
-            csProject.SetCSProjectKind();
-
-            SolutionBindingOperation.IsProjectBindingRequired(csProject).Should().BeTrue();
-
-            // 2. VB.NET -> binding is required
-            var vbProject = new ProjectMock("c:\\foo.proj");
-            vbProject.SetVBProjectKind();
-
-            SolutionBindingOperation.IsProjectBindingRequired(vbProject).Should().BeTrue();
-
-            // 3. Other -> binding is not required
-            var otherProject = new ProjectMock("c:\\foo.proj");
-            otherProject.ProjectKind = "{" + Guid.NewGuid().ToString() + "}";
-
-            SolutionBindingOperation.IsProjectBindingRequired(otherProject).Should().BeFalse();
-        }
-
-        [TestMethod]
         public void SolutionBindingOperation_Prepare()
         {
             // Arrange

@@ -166,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (Project project in projects)
             {
-                if (IsProjectBindingRequired(project))
+                if (BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project))
                 {
                     var binder = new ProjectBindingOperation(serviceProvider, project, this, this.logger);
                     binder.Initialize();
@@ -243,12 +243,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Helpers
-
-        internal /* for testing */ static bool IsProjectBindingRequired(Project project)
-        {
-            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
-            return language == Language.VBNET || language == Language.CSharp;
-        }
 
         /// <summary>
         /// Will bend add/edit the binding information for next time usage
