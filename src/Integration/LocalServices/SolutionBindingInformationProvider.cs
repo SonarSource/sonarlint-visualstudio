@@ -24,6 +24,8 @@ using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration
@@ -32,8 +34,14 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
+        private readonly IFile fileWrapper;
 
         public SolutionBindingInformationProvider(IServiceProvider serviceProvider)
+            : this(serviceProvider, new FileWrapper())
+        {
+        }
+
+        internal /* for testing */ SolutionBindingInformationProvider(IServiceProvider serviceProvider, IFile fileWrapper)
         {
             if (serviceProvider == null)
             {
@@ -44,6 +52,8 @@ namespace SonarLint.VisualStudio.Integration
 
             ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
+            
+            this.fileWrapper = fileWrapper;
         }
 
         #region ISolutionBindingInformationProvider
@@ -89,16 +99,32 @@ namespace SonarLint.VisualStudio.Integration
 
             // Reuse the binding information passed in to avoid reading it more than once
             return projectSystem.GetFilteredSolutionProjects()
-                .Where(p => !this.IsFullyBoundProject(cachingSerializer, binding, p));
+                .Where(p => !IsFullyBoundProject(ruleSetInfoProvider, cachingSerializer, binding, p, fileWrapper))
+                .ToArray();
         }
 
-        private bool IsFullyBoundProject(IRuleSetSerializer ruleSetSerializer, BindingConfiguration binding, Project project)
+        private bool IsFullyBoundProject(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, IRuleSetSerializer ruleSetSerializer, BindingConfiguration binding, Project project, IFile fileWrapper)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
 
-            // If solution is not bound/has a missing ruleset, no need to go further
-            RuleSet sonarQubeRuleSet = this.FindSonarQubeSolutionRuleSet(ruleSetSerializer, binding, project);
+            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
+
+            // If solution is not bound/is missing a rules configuration file, no need to go further
+            var slnLevelRulesConfigFilepath = CalculateSonarQubeSolutionRuleConfigPath(ruleSetInfoProvider, binding, language);
+            if (!fileWrapper.Exists(slnLevelRulesConfigFilepath))
+            {
+                return false;
+            }
+
+            if (!BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project))
+            {
+                return true; // nothing else to check
+            }
+
+            // Projects that required project-level binding should be using RuleSets for configuration,
+            // so we assume that the solution-level config file is a ruleset.
+            RuleSet sonarQubeRuleSet = ruleSetSerializer.LoadRuleSet(slnLevelRulesConfigFilepath);
             if (sonarQubeRuleSet == null)
             {
                 return false;
@@ -114,16 +140,12 @@ namespace SonarLint.VisualStudio.Integration
             RuleSet projectRuleSet = this.FindDeclarationRuleSet(ruleSetSerializer, project, declaration);
             return (projectRuleSet != null && RuleSetIncludeChecker.HasInclude(projectRuleSet, sonarQubeRuleSet));
         }
-        
-        private RuleSet FindSonarQubeSolutionRuleSet(IRuleSetSerializer ruleSetSerializer, BindingConfiguration binding, Project project)
-        {
-            string expectedSolutionRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
-                         binding.Project.ProjectKey,
-                         ProjectToLanguageMapper.GetLanguageForProject(project),
-                         binding.Mode);
 
-            return ruleSetSerializer.LoadRuleSet(expectedSolutionRuleSet);
-        }
+        private static string CalculateSonarQubeSolutionRuleConfigPath(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, BindingConfiguration binding, Core.Language language)
+            => ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
+                    binding.Project.ProjectKey,
+                    language,
+                    binding.Mode);
 
         private RuleSet FindDeclarationRuleSet(IRuleSetSerializer ruleSetSerializer, Project project, RuleSetDeclaration declaration)
         {
