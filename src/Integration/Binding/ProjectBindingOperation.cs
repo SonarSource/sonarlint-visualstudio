@@ -68,6 +68,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region IBindingOperation
         public void Initialize()
         {
+            Debug.Assert(BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(this.initializedProject),
+                $"Not expecting project binding operation to be called for project '{this.initializedProject.FullName}'");
+
             this.CaptureProject();
             this.CalculateRuleSetInformation();
         }

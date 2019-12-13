@@ -25,6 +25,7 @@ using System.Globalization;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -77,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             // in other cases assuming that the rule set are indeed on disk is not possible, and in fact re-syncing
             // would be required when we have missing rule-sets, otherwise finding conflicts will not be possible.
 
-            RuleSetInformation[] aggregatedRuleSets = GetAggregatedSolutionRuleSets(bindingConfig.Project);
+            RuleSetInformation[] aggregatedRuleSets = CheckSlnLevelConfigExistsAndReturnAllProjectRuleSetsForAllConfigurations(bindingConfig.Project);
 
             if (aggregatedRuleSets.Length > 0)
             {
@@ -122,7 +123,9 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             return conflicts;
         }
 
-        private RuleSetInformation[] GetAggregatedSolutionRuleSets(BoundSonarQubeProject bindingInfo)
+        // ISSUE : this method is doing too many things
+        private RuleSetInformation[] CheckSlnLevelConfigExistsAndReturnAllProjectRuleSetsForAllConfigurations(
+            BoundSonarQubeProject bindingInfo)
         {
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
@@ -137,6 +140,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
             foreach (Project project in projectSystem.GetFilteredSolutionProjects())
             {
+                // Solution-level checks (done here because the expected solution-level config
+                // depends on the languages supported by the project that exist)
                 string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                     bindingInfo.ProjectKey,
                     ProjectToLanguageMapper.GetLanguageForProject(project),
@@ -145,6 +150,11 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                 if (!fileSystem.FileExist(baselineRuleSet))
                 {
                     this.WriteWarning(Strings.ExpectedRuleSetNotFound, baselineRuleSet, project.FullName);
+                    continue;
+                }
+
+                if (!BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project))
+                {
                     continue;
                 }
 
