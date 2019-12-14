@@ -39,10 +39,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     public class SolutionBindingInformationProviderTests_SolutionConfigLevel
     {
         [TestMethod]
-        public void GetUnboundProjects_Legacy_SolutionBound_EmptyFilteredProjects()
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void GetUnboundProjects_SolutionBound_EmptyFilteredProjects(SonarLintMode mode)
         {
             // Arrange - no projects created
-            var testConfig = new TestConfigurationBuilder(SonarLintMode.LegacyConnected, "sqKey1");
+            var testConfig = new TestConfigurationBuilder(mode, "sqKey1");
 
             var testSubject = testConfig.CreateTestSubject();
 
@@ -54,33 +56,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void GetUnboundProjects_Connected_SolutionBound_EmptyFilteredProjects()
-        {
-            // Arrange - no projects created
-            var testConfig = new TestConfigurationBuilder(SonarLintMode.Connected, "sqKey1");
-
-            var testSubject = testConfig.CreateTestSubject();
-
-            // Act
-            var result = testSubject.GetUnboundProjects();
-
-            // Assert
-            AssertEmptyResult(result);
-        }
-
-        [TestMethod]
-        public void GetUnboundProjects_Legacy_ValidSolution_SolutionRuleSetIsMissing()
-        {
-            DoGetUnboundProjects_Connected_ValidSolution_SolutionRuleSetIsMissing(SonarLintMode.LegacyConnected);
-        }
-
-        [TestMethod]
-        public void GetUnboundProjects_Connected_ValidSolution_SolutionRuleSetIsMissing()
-        {
-            DoGetUnboundProjects_Connected_ValidSolution_SolutionRuleSetIsMissing(SonarLintMode.Connected);
-        }
-
-        private void DoGetUnboundProjects_Connected_ValidSolution_SolutionRuleSetIsMissing(SonarLintMode mode)
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void GetUnboundProjects_ValidSolution_SolutionRuleSetIsMissing(SonarLintMode mode)
         {
             // If the solution ruleset is missing then all projects will be returned as unbound
             // Arrange - no projects created
@@ -135,6 +113,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             return string.Join(", ", projects.Select(p => p.FullName));
         }
 
+        /// <summary>
+        /// Builder that provides more declarative methods to set up the test environment 
+        /// </summary>
         private class TestConfigurationBuilder
         {
             private readonly SonarLintMode mode;
