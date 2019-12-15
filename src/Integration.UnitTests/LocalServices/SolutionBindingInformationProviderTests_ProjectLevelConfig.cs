@@ -31,10 +31,14 @@ using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using Language = SonarLint.VisualStudio.Core.Language;
 
+// This file contains tests for SolutionBindingInformationProvider that relate to
+// the project-level config files.
+// The solution-level config tests are in another class.
+
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class SolutionBindingInformationProviderTests
+    public class SolutionBindingInformationProviderTests_ProjectLevelConfig
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableConfigurationProvider configProvider;
@@ -76,80 +80,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetUnboundProjects_Legacy_SolutionBound_EmptyFilteredProjects()
-        {
-            // Arrange
-            var testSubject = CreateTestSubject();
-            this.projectSystemHelper.FilteredProjects = new Project[0];
-            IEnumerable<Project> projects;
-
-            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
-
-            // Act
-            projects = testSubject.GetUnboundProjects();
-
-            // Assert
-            AssertEmptyResult(projects);
-        }
-
-        [TestMethod]
-        public void GetUnboundProjects_Connected_SolutionBound_EmptyFilteredProjects()
-        {
-            // Arrange
-            var testSubject = CreateTestSubject();
-            this.projectSystemHelper.FilteredProjects = new Project[0];
-            IEnumerable<Project> projects;
-
-            this.SetValidSolutionBinding(SonarLintMode.Connected);
-
-            // Act
-            projects = testSubject.GetUnboundProjects();
-
-            // Assert
-            AssertEmptyResult(projects);
-        }
-
-        [TestMethod]
-        public void GetUnboundProjects_Legacy_ValidSolution_SolutionRuleSetIsMissing()
-        {
-            // If the solution ruleset is missing then all projects will be returned as unbound
-
-            // Arrange
-            var testSubject = CreateTestSubject();
-            var expected = this.SetValidFilteredProjects();
-
-            this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
-
-            IEnumerable<Project> projects;
-
-            // Act
-            projects = testSubject.GetUnboundProjects();
-
-            // Assert
-            AssertExpectedProjects(expected, projects);
-        }
-
-        [TestMethod]
-        public void GetUnboundProjects_Connected_ValidSolution_SolutionRuleSetIsMissing()
-        {
-            // If the solution ruleset is missing then all projects will be returned as unbound
-
-            // Arrange
-            var testSubject = CreateTestSubject();
-            var expected = this.SetValidFilteredProjects();
-
-            this.SetValidSolutionBinding(SonarLintMode.Connected);
-
-            IEnumerable<Project> projects;
-
-            // Act
-            projects = testSubject.GetUnboundProjects();
-
-            // Assert
-            AssertExpectedProjects(expected, projects);
-        }
-
-        [TestMethod]
         public void GetUnboundProjects_Legacy_ValidSolution_ProjectRuleSetIsMissing()
         {
             // Arrange
@@ -157,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var expected = this.SetValidFilteredProjects();
 
             this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
-            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.LegacyConnected);
+            this.SetValidCSharpSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.LegacyConnected);
 
             IEnumerable<Project> projects;
 
@@ -176,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var expected = this.SetValidFilteredProjects();
 
             this.SetValidSolutionBinding(SonarLintMode.Connected);
-            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.Connected);
+            this.SetValidCSharpSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.Connected);
 
             IEnumerable<Project> projects;
 
@@ -188,46 +118,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetUnboundProjects_Connected_ValidSolution_ProjectLevelBindingIsNotRequired_ProjectsAreNotChecked()
-        {
-            // Arrange
-            const string ProjKey = "xxx_key";
-            const string SlnLevelRuleFilePath = "c:\\solution\\rules.config";
-
-            var rulesetSerializerMock = new Mock<IRuleSetSerializer>();
-            this.serviceProvider.RegisterService(typeof(RuleSetSerializer), rulesetSerializerMock.Object,
-                replaceExisting: true);
-
-            fileMock.Setup(x => x.Exists(SlnLevelRuleFilePath)).Returns(true);
-
-            var infoProvider = new Mock<ISolutionRuleSetsInformationProvider>();
-            infoProvider.Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath(
-                    ProjKey, Core.Language.Cpp, SonarLintMode.Connected))
-                .Returns(SlnLevelRuleFilePath);
-            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), infoProvider.Object,
-                replaceExisting: true);
-
-            // Set up a single C++ project
-            var project1 = new ProjectMock(@"c:\\foo\\any.proj");
-            project1.ProjectKind = ProjectSystemHelper.CppProjectKind;
-            this.projectSystemHelper.FilteredProjects = new Project[] { project1 };
-
-            // Set binding mode
-            this.configProvider.ModeToReturn = SonarLintMode.Connected;
-            this.configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = ProjKey };
-
-            var testSubject = CreateTestSubject();
-
-            // Act
-            var projects = testSubject.GetUnboundProjects();
-
-            // Assert
-            projects.Should().BeEmpty();
-            fileMock.Verify(x => x.Exists(SlnLevelRuleFilePath), Times.Once); // Should have checked the existence of the sln rules file...
-            rulesetSerializerMock.Verify(x => x.LoadRuleSet(It.IsAny<string>()), Times.Never); // ... but not tried to load it as a RuleSet
-        }
-
-        [TestMethod]
         public void GetUnboundProjects_Legacy_ValidSolution_ProjectRuleSetNotIncludingSolutionRuleSet()
         {
             // Arrange
@@ -236,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidProjectRuleSets((project, filePath) => new RuleSet("ProjectRuleSet") { FilePath = filePath });
 
             this.SetValidSolutionBinding(SonarLintMode.LegacyConnected);
-            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.LegacyConnected);
+            this.SetValidCSharpSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.LegacyConnected);
 
             IEnumerable<Project> projects;
 
@@ -256,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidProjectRuleSets((project, filePath) => new RuleSet("ProjectRuleSet") { FilePath = filePath });
 
             this.SetValidSolutionBinding(SonarLintMode.Connected);
-            this.SetValidSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.Connected);
+            this.SetValidCSharpSolutionRuleSet(new RuleSet("SolutionRuleSet"), SonarLintMode.Connected);
 
             IEnumerable<Project> projects;
 
@@ -507,14 +397,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = "projectKey" };
         }
 
-        private void SetValidSolutionRuleSet(RuleSet ruleSet, SonarLintMode bindingMode)
+        private void SetValidCSharpSolutionRuleSet(RuleSet ruleSet, SonarLintMode bindingMode)
         {
-            string expectedSolutionRuleSet = ((ISolutionRuleSetsInformationProvider)this.ruleSetInfoProvider)
-                .CalculateSolutionSonarQubeRuleSetFilePath("projectKey", Language.CSharp, bindingMode);
-            ruleSet.FilePath = expectedSolutionRuleSet;
+            string expectedSolutionRuleSet = SetValidSolutionRulesFile("projectKey", Language.CSharp, bindingMode);
 
-            fileMock.Setup(x => x.Exists(expectedSolutionRuleSet)).Returns(true);
+            ruleSet.FilePath = expectedSolutionRuleSet;
             this.ruleSetSerializer.RegisterRuleSet(ruleSet);
+        }
+
+        private string SetValidSolutionRulesFile(string projectKey, Language language, SonarLintMode bindingMode)
+        {
+            string expectedSolutionRulesFile = ((ISolutionRuleSetsInformationProvider)this.ruleSetInfoProvider)
+                .CalculateSolutionSonarQubeRuleSetFilePath(projectKey, language, bindingMode);
+
+            fileMock.Setup(x => x.Exists(expectedSolutionRulesFile)).Returns(true);
+            return expectedSolutionRulesFile;
         }
 
         /// <summary>
@@ -527,7 +424,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var solutionRuleSet = new RuleSet("SolutionRuleSet");
             ProjectMock boundProject = this.projectSystemHelper.FilteredProjects.OfType<ProjectMock>().First();
 
-            this.SetValidSolutionRuleSet(solutionRuleSet, bindingMode);
+            this.SetValidCSharpSolutionRuleSet(solutionRuleSet, bindingMode);
             this.SetValidProjectRuleSets((project, filePath) =>
             {
                 var ruleSet = new RuleSet("ProjectRuleSet") { FilePath = filePath };
