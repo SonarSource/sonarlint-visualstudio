@@ -238,8 +238,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             binder.PrepareAction = (ct) => prepareCalledForBinder = true;
             string sonarQubeRulesDirectory = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
 
-            var csharpRulesetPath = Path.Combine(sonarQubeRulesDirectory, "keyCSharp.ruleset");
-            var vbRulesetPath = Path.Combine(sonarQubeRulesDirectory, "keyVB.ruleset");
+            var csharpRulesetPath = Path.Combine(sonarQubeRulesDirectory, "keycsharp.ruleset");
+            var vbRulesetPath = Path.Combine(sonarQubeRulesDirectory, "keyvb.ruleset");
 
             // Sanity
             this.sccFileSystem.directories.Should().NotContain(sonarQubeRulesDirectory);
@@ -297,8 +297,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             string expectedSolutionFolder = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
-            testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keyCSharp.ruleset"));
-            testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keyVB.ruleset"));
+            testSubject.RuleSetsInformationMap[Language.CSharp].NewRuleSetFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keycsharp.ruleset"));
+            testSubject.RuleSetsInformationMap[Language.VBNET].NewRuleSetFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keyvb.ruleset"));
             prepareCalledForBinder.Should().BeFalse("Expected to be canceled as soon as possible i.e. after the first binder");
 
             CheckSaveWasNotCalled(csRulesConfigFile);
