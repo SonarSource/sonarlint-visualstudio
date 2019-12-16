@@ -613,8 +613,8 @@ This is the general format to use when writing errors to output window or when t
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
   </data>
   <data name="InstalledAndMinimumSonarQubePlugin" xml:space="preserve">
-    <value>Language: '{0}', Installed version: '{1}', Minimum version: '{2}'</value>
-    <comment>Error message displayed for every supported plugin when none of them match the minimum required version. {0} the plugin language name, {1} the installed plugin version, {2} the minimum plugin version.</comment>
+    <value>Plugin: '{0}', Language(s): '{1}', Installed version: '{2}', Minimum version: '{3}'</value>
+    <comment>Error message displayed for every supported plugin when none of them match the minimum required version. {0} the plugin name, {1} languages supported by the plugin, {2} the installed plugin version, {3} the minimum plugin version.</comment>
   </data>
   <data name="DetectingSonarQubePlugins" xml:space="preserve">
     <value>Detecting server plugins</value>
@@ -698,7 +698,7 @@ This is the general format to use when writing errors to output window or when t
     <comment>Output window message</comment>
   </data>
   <data name="OnlySupportedPluginsHaveNoProjectInSolution" xml:space="preserve">
-    <value>The plugins supported by this SonarQube server ({0}) do not match any of the solution projects' languages.</value>
+    <value>The languages supported by plugins on this SonarQube server ({0}) do not match any of the solution projects' languages.</value>
     <comment>Output window message printed when the only supported plugin has no matching project types in the current solution. {0} the name of the language.</comment>
   </data>
   <data name="Telemetry_ERROR_Recording" xml:space="preserve">
