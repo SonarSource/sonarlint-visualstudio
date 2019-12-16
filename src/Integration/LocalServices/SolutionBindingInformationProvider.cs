@@ -103,12 +103,26 @@ namespace SonarLint.VisualStudio.Integration
                 .ToArray();
         }
 
-        private bool IsFullyBoundProject(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, IRuleSetSerializer ruleSetSerializer, BindingConfiguration binding, Project project, IFile fileWrapper)
+        private bool IsFullyBoundProject(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, IRuleSetSerializer ruleSetSerializer,
+            BindingConfiguration binding, Project project, IFile fileWrapper)
+        {
+            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
+
+            // HACK - if we have a C++ project then we need to check the configuration for C as well.
+            if (Core.Language.Cpp.Equals(language))
+            {
+                return IsFullyBoundProject(ruleSetInfoProvider, ruleSetSerializer, binding, project, language, fileWrapper)
+                    && IsFullyBoundProject(ruleSetInfoProvider, ruleSetSerializer, binding, project, Core.Language.C, fileWrapper);
+            }
+
+            return IsFullyBoundProject(ruleSetInfoProvider, ruleSetSerializer, binding, project, language, fileWrapper);
+        }
+
+        private bool IsFullyBoundProject(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, IRuleSetSerializer ruleSetSerializer,
+            BindingConfiguration binding, Project project, Core.Language language, IFile fileWrapper)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
-
-            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
 
             // If solution is not bound/is missing a rules configuration file, no need to go further
             var slnLevelRulesConfigFilepath = CalculateSonarQubeSolutionRuleConfigPath(ruleSetInfoProvider, binding, language);
