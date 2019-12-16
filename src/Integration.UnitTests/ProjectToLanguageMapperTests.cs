@@ -29,63 +29,76 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class ProjectToLanguageMapperTests
     {
         [TestMethod]
-        public void Mapper_ForProject_KnownLanguage_ArgChecks()
+        public void Mapper_GetLanguage_KnownLanguage_ArgChecks()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             Exceptions.Expect<ArgumentNullException>(() => ProjectToLanguageMapper.GetLanguageForProject(null));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         [TestMethod]
-        public void Mapper_ForProject_UnknownLanguage_ReturnsUnknown()
+        public void Mapper_GetLanguage_UnknownLanguage_ReturnsUnknown()
         {
-            CheckLanguageForProjectKind("", Language.Unknown);
-            CheckLanguageForProjectKind("{F63A7EA2-4179-46BF-B9AE-E758BE4EC87C}", Language.Unknown);
-            CheckLanguageForProjectKind("wibble", Language.Unknown);
-            CheckLanguageForProjectKind("wibble;bibble", Language.Unknown);
+            CheckGetLanguage("", Language.Unknown);
+            CheckGetLanguage("{F63A7EA2-4179-46BF-B9AE-E758BE4EC87C}", Language.Unknown);
+            CheckGetLanguage("wibble", Language.Unknown);
+            CheckGetLanguage("wibble;bibble", Language.Unknown);
         }
 
         [TestMethod]
-        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity1()
+        public void Mapper_GetLanguage_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity()
         {
-            CheckLanguageForProjectKind(ProjectSystemHelper.CSharpProjectKind.ToUpper(), Language.CSharp);
+            CheckGetLanguage(ProjectSystemHelper.CSharpProjectKind.ToUpper(), Language.CSharp);
+            CheckGetLanguage(ProjectSystemHelper.CSharpProjectKind.ToLower(), Language.CSharp);
         }
 
         [TestMethod]
-        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity2()
+        public void Mapper_GetLanguage_KnownLanguage_ReturnsCorrectLanguage_CS()
         {
-            CheckLanguageForProjectKind(ProjectSystemHelper.CSharpProjectKind.ToLower(), Language.CSharp);
+            CheckGetLanguage(ProjectSystemHelper.CSharpProjectKind, Language.CSharp);
+            CheckGetLanguage(ProjectSystemHelper.CSharpCoreProjectKind, Language.CSharp);
         }
 
         [TestMethod]
-        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CS()
+        public void Mapper_GetLanguage_KnownLanguage_ReturnsCorrectLanguage_VB()
         {
-            CheckLanguageForProjectKind(ProjectSystemHelper.CSharpProjectKind, Language.CSharp);
+            CheckGetLanguage(ProjectSystemHelper.VbProjectKind, Language.VBNET);
+            CheckGetLanguage(ProjectSystemHelper.VbCoreProjectKind, Language.VBNET);
         }
 
         [TestMethod]
-        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_VB()
+        public void Mapper_GetLanguage_KnownLanguage_ReturnsCorrectLanguage_Cpp()
         {
-            CheckLanguageForProjectKind(ProjectSystemHelper.VbProjectKind, Language.VBNET);
+            CheckGetLanguage(ProjectSystemHelper.CppProjectKind, Language.Cpp);
         }
 
         [TestMethod]
-        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_CSCore()
+        public void Mapper_AllBindingLanguages_CSharpProject()
         {
-            CheckLanguageForProjectKind(ProjectSystemHelper.CSharpCoreProjectKind, Language.CSharp);
+            CheckGetAllBindingsLanguages(ProjectSystemHelper.CSharpProjectKind, Language.CSharp);
+            CheckGetAllBindingsLanguages(ProjectSystemHelper.CSharpCoreProjectKind, Language.CSharp);
         }
 
         [TestMethod]
-        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_VBCore()
+        public void Mapper_AllBindingLanguages_VbProject()
         {
-            CheckLanguageForProjectKind(ProjectSystemHelper.VbCoreProjectKind, Language.VBNET);
+            CheckGetAllBindingsLanguages(ProjectSystemHelper.VbProjectKind, Language.VBNET);
+            CheckGetAllBindingsLanguages(ProjectSystemHelper.VbCoreProjectKind, Language.VBNET);
         }
 
         [TestMethod]
-        public void Mapper_ForProject_KnownLanguage_ReturnsCorrectLanguage_Cpp()
+        public void Mapper_AllBindingLanguages_CppProject()
         {
-            CheckLanguageForProjectKind(ProjectSystemHelper.CppProjectKind, Language.Cpp);
+            CheckGetAllBindingsLanguages(ProjectSystemHelper.CppProjectKind, Language.Cpp, Language.C);
         }
 
-        private static void CheckLanguageForProjectKind(string projectTypeGuid, Language expectedLanguage)
+        [TestMethod]
+        public void Mapper_AllBindingLanguages_UnknownProject()
+        {
+            CheckGetAllBindingsLanguages(Guid.NewGuid().ToString(), Language.Unknown);
+        }
+
+        private static void CheckGetLanguage(string projectTypeGuid, Language expectedLanguage)
         {
             // Arrange
             var project = new ProjectMock("any.xxx")
@@ -94,10 +107,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
+#pragma warning disable CS0618 // Type or member is obsolete
             var actualLanguage = ProjectToLanguageMapper.GetLanguageForProject(project);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // Assert
             actualLanguage.Should().Be(expectedLanguage);
         }
+
+        private static void CheckGetAllBindingsLanguages(string projectTypeGuid, params Language[] expectedLanguages)
+        {
+            // Arrange
+            var project = new ProjectMock("any.xxx")
+            {
+                ProjectKind = projectTypeGuid
+            };
+
+            // Act
+            var actualLanguage = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
+
+            // Assert
+            actualLanguage.Should().BeEquivalentTo(expectedLanguages);
+        }
+
     }
 }

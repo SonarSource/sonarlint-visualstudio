@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         [DataRow(SonarLintMode.Connected)]
         [DataRow(SonarLintMode.LegacyConnected)]
-        public void GetUnboundProjects_ValidSolution_SolutionRuleSetIsMissing(SonarLintMode mode)
+        public void GetUnboundProjects_ValidSolution_SolutionRuleConfigtIsMissing(SonarLintMode mode)
         {
             // If the solution ruleset is missing then all projects will be returned as unbound
             // Arrange - no projects created
@@ -84,11 +84,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
+        [DataRow(SonarLintMode.Connected, /* cppConfig =*/ true, /* cConfig */ true)]
+        [DataRow(SonarLintMode.Connected, /* cppConfig =*/ true, /* cConfig */ false)]
+        [DataRow(SonarLintMode.Connected, /* cppConfig =*/ false, /* cConfig */ false)]
+        [DataRow(SonarLintMode.Connected, /* cppConfig =*/ false, /* cConfig */ true)]
+        [DataRow(SonarLintMode.LegacyConnected, /* cppConfig =*/ true, /* cConfig */ true)]
+        [DataRow(SonarLintMode.LegacyConnected, /* cppConfig =*/ true, /* cConfig */ false)]
+        [DataRow(SonarLintMode.LegacyConnected , /* cppConfig =*/ false, /* cConfig */ false)]
+        [DataRow(SonarLintMode.LegacyConnected, /* cppConfig =*/ false, /* cConfig */ true)]
+        public void GetUnboundProjects_ValidSolution_CFamily_RequiresBothCppAndCRulesConfig(SonarLintMode mode,
+            bool cppConfigExists, bool cConfigExists)
+        {
+            // Cpp projects should have both C++ and C solution-level rules config files
+            var shouldBeBound = cppConfigExists && cConfigExists;
+
+            // Arrange
+            var testConfig = new TestConfigurationBuilder(mode, "sqKey1");
+            var projectCpp = testConfig.AddFilteredProject(ProjectSystemHelper.CppProjectKind);
+
+            testConfig.SetSolutionLevelFilePathForLanguage(Language.Cpp, "c:\\slnConfig.cpp", cppConfigExists);
+            testConfig.SetSolutionLevelFilePathForLanguage(Language.C, "c:\\slnConfig.c", cConfigExists);
+
+            var testSubject = testConfig.CreateTestSubject();
+
+            // Act
+            var result = testSubject.GetUnboundProjects();
+
+            // Assert
+            if (shouldBeBound)
+            {
+                result.Should().BeEmpty();
+            }
+            else
+            {
+                result.Should().BeEquivalentTo(projectCpp);
+            }
+        }
+
+        [TestMethod]
         public void GetUnboundProjects_Connected_ValidSolution_ProjectLevelBindingIsNotRequired_ProjectsAreNotChecked()
         {
             // Arrange
             var testConfig = new TestConfigurationBuilder(SonarLintMode.Connected, "xxx_key");
             testConfig.SetSolutionLevelFilePathForLanguage(Language.Cpp, "c:\\existingConfig.cpp", true);
+            testConfig.SetSolutionLevelFilePathForLanguage(Language.C, "c:\\existingConfig.c", true);
             testConfig.AddFilteredProject(ProjectSystemHelper.CppProjectKind);
 
             var testSubject = testConfig.CreateTestSubject();
